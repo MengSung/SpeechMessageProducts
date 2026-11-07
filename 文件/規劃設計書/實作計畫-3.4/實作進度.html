@@ -1,0 +1,2318 @@
+<!doctype html>
+<!--
+檔案整體說明
+
+目的與定位：本檔是《實作計畫 3.4》的現行進度頁，給使用者一眼看懂整體進度、目前進行中的工作包、
+完成定義達成狀況，以及「需要使用者動手」的時間點。它是靜態快照，不連任何服務、不自動抓取背景進度；
+內容全部來自檔內的 DATA，渲染程式只負責把 DATA 畫出來。
+
+主要功能與流程：載入時讀取 DATA → 依工作包狀態自動計算全計畫、各階段與里程碑的數字（不手寫總數，
+避免卡片與統計不一致）→ 依序畫出摘要、需要你的事、九階段進度、進行中工作包、階段 2 路線圖、
+84 個工作包總表（可篩選）、品質守門、規則速查、之後再說、計畫修正提案、一般資訊與歷史。
+
+更新方式（給 Codex）：只改 DATA，不改版面程式。工作包 status 只能是 done、active、todo、you；
+同時 active 的工作包不得超過 2 個（D31）。只有達成完成定義五項（00 §7.1）才改為 done，並填 doneAt 與 commit。
+一般資訊（notices）每個階段一張卡，以穩定 id「phase-N-summary」原地更新；body 與每一筆 steps 都要以
+「YYYY-MM-DD HH:mm Asia/Taipei (UTC+08:00)」開頭，lastUpdated 用 ISO 8601「+08:00」；原時間不明時用
+「補記 … （原事件時間未記錄）｜原文」，不得猜測或改寫歷史時間。舊紀錄只能追加，不刪除。
+
+安全與資料界線：DATA 只放工作狀態與公開可說明的摘要，不得放 token、密碼、個資、連線字串或伺服器內部機密；
+所有文字一律經 esc() 轉義後才放入頁面，避免 HTML 注入。localStorage 只保存「深淺色」偏好，失敗時忽略。
+
+驗證：資料由產生器自我檢查（84 包、合法狀態、ID 唯一、時間格式）；P2-00 切換時另新增本頁的契約測試，
+並依 AGENTS.md 以位元組檢查 UTF-8 無 BOM、CRLF 與結尾 CRLF。
+-->
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>實作進度 3.4</title>
+<style>
+:root{color-scheme:light;
+  --page:#f9f9f7;--surface:#fcfcfb;--surface-2:#f3f2ee;--ink:#0b0b0b;--ink-2:#52514e;--muted:#6f6e69;--hair:#e1e0d9;
+  --good:#0ca30c;--good-text:#006300;--good-wash:#eaf6ea;--warn:#fab219;--warn-text:#7a4f00;--warn-wash:#fff6e0;
+  --crit:#d03b3b;--crit-text:#a52a2a;--crit-wash:#fcefee;--prog:#2a78d6;--prog-text:#1c5cab;--prog-wash:#edf4fd;--todo:#c9c8bf;--todo-wash:#f0efeb}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){color-scheme:dark;
+  --page:#0d0d0d;--surface:#1a1a19;--surface-2:#232321;--ink:#f0efec;--ink-2:#c3c2b7;--muted:#9a998f;--hair:#34342f;
+  --good:#0ca30c;--good-text:#7fd67f;--good-wash:#163016;--warn:#fab219;--warn-text:#f2c45a;--warn-wash:#382c0f;
+  --crit:#d03b3b;--crit-text:#f08b8b;--crit-wash:#3b1b1b;--prog:#3987e5;--prog-text:#8ab8f2;--prog-wash:#172a42;--todo:#45453f;--todo-wash:#262624}}
+:root[data-theme="dark"]{color-scheme:dark;
+  --page:#0d0d0d;--surface:#1a1a19;--surface-2:#232321;--ink:#f0efec;--ink-2:#c3c2b7;--muted:#9a998f;--hair:#34342f;
+  --good:#0ca30c;--good-text:#7fd67f;--good-wash:#163016;--warn:#fab219;--warn-text:#f2c45a;--warn-wash:#382c0f;
+  --crit:#d03b3b;--crit-text:#f08b8b;--crit-wash:#3b1b1b;--prog:#3987e5;--prog-text:#8ab8f2;--prog-wash:#172a42;--todo:#45453f;--todo-wash:#262624}
+*{box-sizing:border-box}
+body{margin:0;background:var(--page);color:var(--ink);font-family:"Microsoft JhengHei","Noto Sans TC","PingFang TC",system-ui,sans-serif;line-height:1.6;font-size:15.5px;overflow-wrap:anywhere}
+.wrap{max-width:1120px;margin:0 auto;padding:20px 16px 72px}
+header.top{display:flex;flex-wrap:wrap;gap:12px;align-items:flex-start;justify-content:space-between;margin:8px 0 14px}
+h1{font-size:28px;margin:0;line-height:1.25}
+.sub{color:var(--ink-2);margin:4px 0 10px}
+.pills{display:flex;flex-wrap:wrap;gap:6px}
+.pill{font-size:12.5px;color:var(--ink-2);background:var(--surface);border:1px solid var(--hair);border-radius:999px;padding:2px 10px}
+button{font:inherit}
+.btn{border:1px solid var(--hair);background:var(--surface);color:var(--ink);border-radius:10px;padding:6px 12px;cursor:pointer}
+nav.toc{position:sticky;top:0;z-index:5;background:color-mix(in srgb,var(--page) 92%,transparent);backdrop-filter:blur(6px);border-bottom:1px solid var(--hair);margin:0 -16px 8px;padding:8px 16px;display:flex;gap:4px;overflow-x:auto;scrollbar-width:none}
+nav.toc a{flex:none;font-size:13.5px;color:var(--ink-2);text-decoration:none;padding:3px 10px;border-radius:999px}
+nav.toc a:hover{background:var(--surface);color:var(--ink)}
+section{margin:28px 0 0;scroll-margin-top:56px}
+h2{font-size:20px;margin:0 0 4px}
+.lead{color:var(--ink-2);margin:0 0 12px;font-size:14.5px}
+.card{background:var(--surface);border:1px solid var(--hair);border-radius:14px;padding:16px}
+.headline{border-left:6px solid var(--prog);font-size:16.5px}
+.notice{border-radius:12px;padding:12px 14px;margin:10px 0;border:1px solid var(--hair)}
+.notice.warn{background:var(--warn-wash);border-color:var(--warn)}
+.notice.error{background:var(--crit-wash);border-color:var(--crit)}
+.notice b{display:block;margin-bottom:2px}
+.tiles{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:12px}
+.tile{background:var(--surface);border:1px solid var(--hair);border-radius:14px;padding:12px 14px;border-top:4px solid var(--todo)}
+.tile.good{border-top-color:var(--good)}.tile.prog{border-top-color:var(--prog)}.tile.warn{border-top-color:var(--warn)}.tile.you{border-top-color:var(--warn)}
+.tile .l{font-size:12.5px;color:var(--ink-2)}.tile .v{font-size:30px;font-weight:800;line-height:1.2;font-variant-numeric:tabular-nums}
+.tile .u{font-size:13.5px;color:var(--ink-2);font-weight:500;margin-left:4px}.tile .s{font-size:12.5px;color:var(--muted)}
+.meter{display:flex;height:10px;border-radius:999px;overflow:hidden;background:var(--todo-wash);margin-top:8px;gap:2px}
+.meter i{display:block;height:100%}
+.chip{display:inline-flex;align-items:center;gap:4px;font-size:12.5px;font-weight:700;border-radius:999px;padding:1px 9px;white-space:nowrap}
+.chip.done{background:var(--good-wash);color:var(--good-text)}.chip.active{background:var(--prog-wash);color:var(--prog-text)}
+.chip.todo{background:var(--todo-wash);color:var(--ink-2)}.chip.you{background:var(--warn-wash);color:var(--warn-text)}
+.chip.later{background:var(--todo-wash);color:var(--muted)}.chip.ok{background:var(--good-wash);color:var(--good-text)}
+.chip.no,.chip.bad{background:var(--crit-wash);color:var(--crit-text)}.chip.na{background:var(--todo-wash);color:var(--muted)}
+.chip.warn{background:var(--warn-wash);color:var(--warn-text)}
+.list{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+.list li{display:flex;gap:10px;align-items:flex-start;background:var(--surface);border:1px solid var(--hair);border-radius:12px;padding:10px 12px}
+.list .when{flex:none;min-width:110px;font-size:13px;color:var(--ink-2);font-weight:700}
+.list .txt small{display:block;color:var(--muted);font-size:12.5px}
+.stages{display:grid;gap:8px}
+.st-row{display:grid;grid-template-columns:270px 1fr 200px;gap:12px;align-items:center;background:var(--surface);border:1px solid var(--hair);border-radius:12px;padding:10px 12px}
+.st-row.cur{border-color:var(--prog);box-shadow:0 0 0 1px var(--prog) inset}
+.st-row .nm b{display:block}.st-row .nm small{color:var(--muted)}
+.bar{display:flex;height:16px;border-radius:6px;overflow:hidden;background:var(--todo-wash);gap:2px}
+.bar i{display:block;height:100%}
+.f-done{background:var(--good)}.f-active{background:var(--prog)}.f-you{background:var(--warn)}.f-todo{background:var(--todo)}
+.st-row .num{font-size:13px;color:var(--ink-2)}
+.legend{display:flex;flex-wrap:wrap;gap:12px;font-size:13px;color:var(--ink-2);margin:0 0 8px}
+.legend span::before{content:"";display:inline-block;width:11px;height:11px;border-radius:3px;margin-right:5px;vertical-align:-1px;background:var(--c)}
+.acts{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.act{background:var(--surface);border:1px solid var(--hair);border-radius:14px;padding:14px;border-top:4px solid var(--prog)}
+.act h3{margin:0 0 4px;font-size:16px}.act .meta{font-size:12.5px;color:var(--muted);margin-bottom:8px}
+.dod{list-style:none;margin:0 0 10px;padding:0;display:grid;gap:5px}
+.dod li{display:grid;grid-template-columns:auto 1fr;gap:8px;font-size:13.5px;align-items:start}
+.dod small{display:block;color:var(--muted);font-size:12px}
+.next{font-size:13.5px;background:var(--surface-2);border-radius:8px;padding:8px 10px}
+.flow{display:grid;gap:8px}
+.flow .lane{display:grid;grid-template-columns:110px 1fr;gap:10px;align-items:stretch}
+.flow .lane>b{font-size:13px;color:var(--ink-2);padding-top:10px}
+.flow .boxes{display:flex;flex-wrap:wrap;gap:8px;align-items:stretch}
+.fb{flex:1 1 170px;background:var(--surface);border:1px solid var(--hair);border-left:6px solid var(--todo);border-radius:10px;padding:8px 10px;font-size:13px;min-width:0}
+.fb.done{border-left-color:var(--good)}.fb.active{border-left-color:var(--prog)}.fb.you{border-left-color:var(--warn);border-style:dashed}
+.fb b{display:block;font-size:14px}.fb small{color:var(--muted)}
+.arrow{align-self:center;color:var(--muted)}
+.filters{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin:0 0 10px}
+.filters button{border:1px solid var(--hair);background:var(--surface);color:var(--ink);border-radius:999px;padding:3px 12px;cursor:pointer;font-size:13.5px}
+.filters button[aria-pressed="true"]{background:var(--ink);color:var(--surface);border-color:var(--ink)}
+.filters input{flex:1 1 180px;min-width:0;border:1px solid var(--hair);background:var(--surface);color:var(--ink);border-radius:999px;padding:4px 12px;font:inherit;font-size:13.5px}
+details.grp{background:var(--surface);border:1px solid var(--hair);border-radius:12px;margin-bottom:8px}
+details.grp>summary{cursor:pointer;padding:10px 14px;font-weight:700;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+details.grp>summary small{font-weight:500;color:var(--ink-2)}
+.tblwrap{overflow-x:auto;border-top:1px solid var(--hair)}
+table{border-collapse:collapse;width:100%;min-width:900px}
+th,td{text-align:left;padding:7px 10px;border-bottom:1px solid var(--hair);font-size:13.5px;vertical-align:top}
+th{font-size:12.5px;color:var(--ink-2);background:var(--surface-2);font-weight:700;white-space:nowrap}
+td.id{white-space:nowrap;font-weight:700}
+td .c{font-family:Consolas,monospace;font-size:12.5px;color:var(--ink-2)}
+.rules{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.rule h3{margin:0 0 6px;font-size:15px}.rule ol,.rule ul{margin:0;padding-left:20px;font-size:13.5px}.rule li{margin:2px 0}
+details.info{background:var(--surface);border:1px solid var(--hair);border-radius:12px;margin-bottom:8px;padding:0 14px}
+details.info>summary{cursor:pointer;padding:10px 0;font-weight:700}
+details.info .body{margin:0 0 8px;font-size:14px}
+details.info ol{margin:0 0 12px;padding-left:22px;font-size:13.5px;color:var(--ink-2)}
+details.info li{margin:4px 0}
+.hist{font-size:13px;color:var(--ink-2)}
+.hist li{margin:5px 0}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+footer{margin-top:36px;color:var(--muted);font-size:12.5px;text-align:center}
+@media (max-width:860px){.tiles{grid-template-columns:1fr 1fr}.acts,.rules,.two{grid-template-columns:1fr}.st-row{grid-template-columns:1fr}.flow .lane{grid-template-columns:1fr}.flow .lane>b{padding-top:0}}
+@media (max-width:420px){.tiles{grid-template-columns:1fr}}
+@media print{nav.toc,.filters,#themeBtn{display:none}details{display:block}}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+<header class="top">
+  <div>
+    <h1>實作進度｜實作計畫 3.4</h1>
+    <p class="sub">方案整合、.NET 10 升級與國際化（依設計 v3.4）・規則見 00_總覽與執行規則.md</p>
+    <div class="pills"><span class="pill" id="snap"></span><span class="pill" id="branch"></span><span class="pill" id="head"></span></div>
+  </div>
+  <button class="btn" id="themeBtn" type="button">◐ 深淺色</button>
+</header>
+<nav class="toc" aria-label="章節">
+  <a href="#now">現況</a><a href="#s-you">需要你</a><a href="#s-stages">九個階段</a><a href="#s-active">進行中</a><a href="#s-flow">階段 2 路線圖</a>
+  <a href="#s-all">全部工作包</a><a href="#s-miles">里程碑</a><a href="#s-gates">品質守門</a><a href="#s-rules">規則速查</a><a href="#s-later">之後再說</a><a href="#s-info">一般資訊</a><a href="#s-hist">歷史</a>
+</nav>
+
+<section id="now">
+  <div class="card headline" id="headline"></div>
+  <div id="alerts"></div>
+  <div class="tiles" id="tiles"></div>
+</section>
+
+<section id="s-you">
+  <h2>需要你的事</h2>
+  <p class="lead">3.4 起 Codex 全自主操作測試環境，只有下面這些才需要你。</p>
+  <ul class="list" id="you"></ul>
+</section>
+
+<section id="s-stages">
+  <h2>九個階段</h2>
+  <div class="legend"><span style="--c:var(--good)">已驗收</span><span style="--c:var(--prog)">進行中</span><span style="--c:var(--warn)">等你</span><span style="--c:var(--todo)">未開始</span></div>
+  <div class="stages" id="stages"></div>
+</section>
+
+<section id="s-active">
+  <h2>進行中的工作包</h2>
+  <p class="lead">每包都用同一張「完成定義」五項打勾；五項都綠才可以標已驗收、推送到 GitHub。</p>
+  <div class="acts" id="active"></div>
+</section>
+
+<section id="s-flow">
+  <h2>階段 2 路線圖</h2>
+  <p class="lead">由上往下做；虛線框是要等你的關卡。</p>
+  <div class="card"><div class="flow" id="flow"></div></div>
+</section>
+
+<section id="s-all">
+  <h2>全部工作包（84 個）</h2>
+  <p class="lead">範圍凍結在 84 包（原 83 包＋從 P2-01 移出的 P6-07）。點階段名稱展開。</p>
+  <div class="filters" id="wpfilters" role="group" aria-label="依狀態篩選">
+    <button type="button" data-f="all" aria-pressed="true">全部</button><button type="button" data-f="done" aria-pressed="false">✓ 已驗收</button>
+    <button type="button" data-f="active" aria-pressed="false">● 進行中</button><button type="button" data-f="you" aria-pressed="false">◆ 等你</button>
+    <button type="button" data-f="todo" aria-pressed="false">○ 未開始</button>
+    <input id="wpq" type="search" placeholder="搜尋工作包、名稱或說明" aria-label="搜尋工作包">
+  </div>
+  <div id="wplist"></div>
+</section>
+
+<section id="s-miles">
+  <h2>里程碑（不計入 84 包）</h2>
+  <ul class="list" id="miles"></ul>
+</section>
+
+<section id="s-gates">
+  <h2>品質守門（最近一次獨立檢查）</h2>
+  <p class="lead">「通過」只算在乾淨複本上跑過的結果（00 §8.2）。</p>
+  <div class="card tblwrap" id="gates" style="padding:0"></div>
+</section>
+
+<section id="s-rules">
+  <h2>規則速查</h2>
+  <div class="rules">
+    <div class="card rule"><h3>完成定義（五項，不得加碼）</h3><ol><li>計畫列的測試同名存在並通過（兩個目標）</li><li>§8 守門在乾淨複本全過</li><li>新專案覆蓋率 ≥ 80%</li><li>計畫明列的實機（Codex 執行，殘留 0）</li><li>一頁回報＋進度頁</li></ol></div>
+    <div class="card rule"><h3>收斂</h3><ul><li>範圍凍結 84 包</li><li>時間盒：1 個工作天或 15 個提交（總表另寫者優先）</li><li>同時最多 2 包，互不相依</li><li>做完就收工，改進寫進「之後再說」</li><li>每階段審查一次，只修 Critical／High</li></ul></div>
+    <div class="card rule"><h3>提交、推送與找你</h3><ul><li>一提交一包，訊息以工作包編號開頭</li><li>不提交會讓建置或測試失敗的內容</li><li>驗收後才推送到 GitHub</li><li>只有「需要你的事」與 00 §9 的情況才找你</li><li>計畫只由你改版，Codex 不就地改計畫</li></ul></div>
+  </div>
+</section>
+
+<section id="s-later">
+  <div class="two">
+    <div><h2>之後再說</h2><p class="lead">不在本計畫範圍的改進；專案終點時一次交你決定。</p><ul class="list" id="later"></ul></div>
+    <div><h2>計畫修正提案</h2><p class="lead">等你核定；核定後才出下一版計畫。</p><ul class="list" id="props"></ul></div>
+  </div>
+</section>
+
+<section id="s-info">
+  <h2>一般資訊</h2>
+  <p class="lead">每個階段一張摘要卡（預設收合），每筆都有日期、時間與時區。</p>
+  <div id="infos"></div>
+</section>
+
+<section id="s-hist">
+  <h2>決定與歷史</h2>
+  <details class="info"><summary>使用者核定紀錄</summary><ol class="hist" id="decisions"></ol></details>
+  <details class="info" open><summary>3.4 時間軸</summary><ol class="hist" id="timeline"></ol></details>
+  <details class="info"><summary>3.3 時期的紀錄（原文保留，<span id="hist33n"></span> 筆）</summary><ol class="hist" id="hist33"></ol></details>
+</section>
+
+<footer>本頁是靜態快照；更新時只改 DATA（見檔首說明）。</footer>
+</div>
+
+<script>
+/*
+ * 本頁所有內容都來自下面的 DATA。更新進度時只改 DATA，不必改版面程式（規則見檔首說明）。
+ */
+const DATA = {
+  "planVersion": "3.4",
+  "snapshot": "2026-11-07 21:10 Asia/Taipei (UTC+08:00)",
+  "lastUpdated": "2026-11-07T21:10:00+08:00",
+  "branch": "1.0.0.11.Integration.P2.Worktree",
+  "head": "16c75932",
+  "headline": "全計畫 84 包已驗收 31 包、進行中 3 包（3.4 上限 2 包）。下一步：Codex 做 P2-00 切換；推播要等你準備測試 LINE channel。",
+  "notices": [
+    {
+      "id": "plan-3.4-summary",
+      "phaseId": "全計畫",
+      "level": "info",
+      "title": "實作計畫 3.4 生效",
+      "lastUpdated": "2026-11-07T21:10:00+08:00",
+      "body": "2026-11-07 21:10 Asia/Taipei (UTC+08:00)：實作計畫 3.4 已放進 repo（文件\\規劃設計書\\實作計畫-3.4\\）。重點：Codex 全自主操作測試環境（D24 修訂）、完成定義固定五項（D29）、驗收後才推送（D30）、最多 2 包平行（D31）、範圍凍結 84 包與時間盒（D35）。Codex 下一件事是 P2-00 切換。",
+      "steps": [
+        "2026-11-07 21:10 Asia/Taipei (UTC+08:00)：設計 v3.4（Word、保姆級圖解、drawio、討論紀錄）放在 E: 規劃資料夾與 repo 的 方案整合NET10升級與國際化_v3.4\\。",
+        "2026-11-07 21:10 Asia/Taipei (UTC+08:00)：本頁取代 實作計畫-3.3\\實作進度.html 作為現行進度頁；3.3 的頁面與測試在 P2-00 封存時一併處理，歷史保留在本頁最下方。",
+        "2026-11-07 21:10 Asia/Taipei (UTC+08:00)：工作包總數由 83 改為 84：P2-01 的 R2 清零移到 P6-07（範圍移動，不是新增）；P2-09 拆 a／b 仍計 1 包。"
+      ]
+    },
+    {
+      "id": "scope-warning",
+      "phaseId": "階段 2",
+      "level": "warn",
+      "title": "目前有 3 包同時進行，超過 3.4 的上限 2 包；最新提交含紅燈測試",
+      "lastUpdated": "2026-11-07T21:10:00+08:00",
+      "body": "2026-11-07 21:10 Asia/Taipei (UTC+08:00)：P2-01、P2-03、P2-09 同時進行（D31 上限 2）；提交 16c75932 可以建置，但 GoodShepherd.Core.Tests 有 19 個紅燈測試（P2-09 codec 只有骨架），違反 D30。兩者都由 P2-00 第 1、7 步處理。",
+      "steps": []
+    },
+    {
+      "id": "phase-2-summary",
+      "phaseId": "階段 2",
+      "level": "info",
+      "title": "P2 進度摘要",
+      "lastUpdated": "2026-11-07T21:10:00+08:00",
+      "body": "2026-11-07 21:10 Asia/Taipei (UTC+08:00)：階段 2 為 1／12 已驗收（P2-02）、3 包進行中（P2-01、P2-03、P2-09）。依 3.4：P2-01、P2-03 只差乾淨複本守門等收尾即可驗收；P2-04 前置等你準備測試 LINE channel。",
+      "steps": [
+        "2026-11-07 21:10 Asia/Taipei (UTC+08:00)：3.4 生效。P2-01 依 D28 不再以 R2 清冊清空為完成條件（移到 P6-07）；P2-03 依 D29 不需實機；P2-09 拆 a／b。",
+        "2026-11-07 21:10 Asia/Taipei (UTC+08:00)：稽核（2026-11-07 19:29 獨立重跑）：30d2f02b 無法建置（P2-09 紅燈測試）；16c75932（20:34）已可建置但仍有 19 個紅燈測試。",
+        "2026-11-07 19:23 Asia/Taipei (UTC+08:00)｜P2-09內容編解碼切片啟動：已讀四個ChurchReport掃描器與QrCodes導讀，依實際解析鎖定課程／主日／個人／小組欄位；TDD net10測試先紅，編譯失敗明確指出SpeechMessageProducts.GoodShepherd.Core.QrCodes尚不存在。原始輸出 .trellis/tasks/11-07-11-07-p2-09-qr-content/evidence/qr-codec-red-net10.log；屬預期缺實作紅燈，不是驗收通過。P2-07圖片處理器仍未解除依賴；一名唯讀代理正在盤點P2-06，主會話唯一寫入。未操作D365／LINE／金流。",
+        "2026-11-07 18:50 Asia/Taipei (UTC+08:00)｜P2-01-provider移轉切片已通過：舊組件型別轉送、完整CLR名稱及constructor ABI驗證成功；借用diagnostics owner在provider.Dispose後仍可寫入。ChurchReport相容與既有例外管線Debug／Release各4／4；清冊比對2／2通過。首輪架構紅燈確認只剩已移轉型別的Debug／Release兩筆stale清冊紀錄，保留失敗TRX；移除後清冊652筆（Debug337／Release315），仍非空，R2不標完成。三個C#檔位元組均UTF-8無BOM／純CRLF／檔尾CRLF；全方案文件說明1283／0、進度頁測試18／18。證據在 .trellis/tasks/11-07-p2-01-hosting/evidence/provider-forwarder-verification-20261107-1818/ 與 provider-forwarder-r2-green-20261107-1825/。",
+        "2026-11-07 18:06 Asia/Taipei (UTC+08:00)｜P2-01-TDD紅燈：`dotnet test ChurchReport.MemberInfo.Tests/ChurchReport.MemberInfo.Tests.csproj --no-restore --filter FullyQualifiedName~ExceptionLoggerProviderCompatibilityTests`結果1／2，ABI測試按預期失敗於型別組件仍是SpeechMessageProducts.ChurchReport，owner生命週期測試通過，0略過。原始TRX provider-forwarder-red-20261107-1801/provider-forwarder-red.trx；不代表移轉完成。已讀既有ExceptionPipelineTests，避免重複其Error/Critical與formatter保密覆蓋。",
+        "2026-11-07 17:55 Asia/Taipei (UTC+08:00)｜P2-01初始盤點：R2清冊中SpeechMessageProducts.ChurchReport/Logging/ExceptionLoggerProvider.cs於Debug與Release各有一筆R2HostPublicType，程式只有Program的Error/Critical provider註冊；候選移轉至Hosting需保留ChurchReport.Logging.ExceptionLoggerProvider的CLR完整名稱，驗證轉送、Error/Critical篩選、formatter不求值、空Exception與借用diagnostics不被provider.Dispose關閉。尚未修改程式或清冊。平行僅一名唯讀代理核對精確差異與ABI，主會話唯一寫入。未讀到AGENTS所引用的cross-user-isolation-and-performance.md（工作樹不存在），仍依AGENTS原文隔離／資源規則；未操作D365／LINE／金流。",
+        "2026-11-07 17:47 Asia/Taipei (UTC+08:00)｜P2-03目前工作樹整合重驗：XML解析目前Release輸出20份TRX，逐份比較ResultSummary Counters與UnitTestResult實際結果列，合計4596／4596通過、0失敗／0未執行／0中止；全方案Release建置成功但有23警告／0錯誤。驗證時Git HEAD為cc913067，實際建置對象包含既有未提交的P2-02／任務文件變更，不冒稱乾淨HEAD或零警告。逐份位元組數、SHA-256、計數及build log hash見 .trellis/tasks/11-07-p2-03-channel-token/evidence/current-head-rerun-20261107-1730/current-head-summary.json；原始TRX保留本機且未改寫。此為離線整合證據，不替代D365／Dataverse實機、LINE實收、權限、回復或P2整體驗收。",
+        "2026-11-07 17:25 Asia/Taipei (UTC+08:00)｜P2-03唯讀盤點：130項raw evidence manifest檔案大小與SHA-256一致；但既有全方案18份TRX共4594／4594早於P2-02加入GoodShepherd兩個專案，不能作目前HEAD整合證據。下一步以獨立輸出重跑P2-03 Core／Deployment雙組態、目前方案Release建置與完整測試、I18n及完整Changed編碼守門；實機替代鍵唯一性、原子Upsert、資料列身分、權限、備份／回復／清理仍須核准測試環境實測。證據依據 .trellis/tasks/11-07-p2-03-channel-token/evidence/solution-lifecycle-final-summary.json、coverage-summary.json、raw-integrity-manifest.json；不將代理盤點當成測試結果。",
+        "2026-11-07 17:25 Asia/Taipei (UTC+08:00)｜P2-02封存交付：工作包已封存至 .trellis/tasks/archive/2026-11/11-07-p2-02-goodshepherd-core/，任務封存提交cc913067。原歷史紀錄路徑為當時活動任務位置，保留其原文；目前驗收報告與證據均位於封存目錄。程式提交c042b7a8已存在；未推送或合併遠端。",
+        "2026-11-07 17:13 Asia/Taipei (UTC+08:00)｜接續完整性複核：再次執行檔案說明1281／0、I18n `generate --check`、進度頁18／18及`git diff --check`；P2-02驗收報告、最終檢查log與目前進度HTML逐位元組確認UTF-8有效、無BOM／裸LF／裸CR、檔尾CRLF。原16:55 byte-check log保留當時的檢查結果；本次另重新檢查目前檔案格式，未發現換行缺陷。本次第一版PowerShell檢查命令有語法錯誤未執行，改正後核驗成功。證據索引仍為 .trellis/tasks/11-07-p2-02-goodshepherd-core/evidence/P2-02.md 與 evidence/validation/report-byte-check-final.log。",
+        "2026-11-07 16:55 Asia/Taipei (UTC+08:00)｜報告格式與位元組收尾：驗收報告原為LF-only，已用專案Convert-TextEncoding.ps1正規化為UTF-8無BOM／CRLF／檔尾CRLF；工具確認文字內容符合只改換行的預期，沒有常值變動，TEMP manifest已清除。HTML與報告的最終位元組檢查記錄於validation/report-byte-check-final.log；進度頁狀態、摘要與meter一致，完成此更新後再跑最後18項回歸。",
+        "2026-11-07 16:40 Asia/Taipei (UTC+08:00)｜交付前複核：P2-02完成狀態下進度頁完整測試18／18；Changed UTF-8／CRLF守門檢查25份、0問題，檔案說明1281／0，`git diff --check`與I18n檢查通過。進度HTML與驗收報告各自位元組檢查通過；所有結果與證據路徑已收錄於 .trellis/tasks/11-07-p2-02-goodshepherd-core/evidence/P2-02.md。P2-01、P2-03仍進行中，未連外部測試環境。",
+        "2026-11-07 16:38 Asia/Taipei (UTC+08:00)｜驗收證據彙整：正式P2-02.md已建立，列出專案契約、Debug／Release建置、net48／net10 smoke、32→34方案集合、組態映射、I18n、檔案說明、Changed編碼與進度頁18／18結果；binlog、TRX及各守門log均存於本任務evidence。測試僅離線合成，未連D365／Hyper-V／LINE／金流，P2-01與P2-03仍active，P2總目標未完成。",
+        "2026-11-07 16:26 Asia/Taipei (UTC+08:00)｜P2-02工作包完成驗收：產品net462／net10.0 Debug與Release建置均0警告／0錯誤；net48與net10.0測試宿主各1／1，TRX確認net48宿主載入net462、net10宿主載入net10.0。方案由32個專案增至34，僅新增兩個GoodShepherd專案、無移除，兩者Debug／Release ActiveCfg與Build.0各一組。I18n generate --check通過，檔案說明1281／0，Changed編碼25檔／0問題，HTML UTF-8無BOM／CRLF／檔尾CRLF，進度頁測試18／18。原紅燈根因是P2-02狀態與階段計數不一致，修正真實資料後測試恢復通過，未降低測試。證據見 .trellis/tasks/11-07-p2-02-goodshepherd-core/evidence/；本包只做離線驗證。",
+        "2026-11-07 16:05 Asia/Taipei (UTC+08:00)｜狀態修正：P2-02實作與建置／smoke、I18n等離線項目已有證據，但完整驗收未通過；該工作包目前active，階段2統計0包已驗收／3包進行中。進度頁測試紅燈根因是狀態欄與階段彙總不一致；沒有修改測試斷言，修正後須重跑全套18項。證據報告P2-02.md尚未建立，23份工作包文字檔的位元組檢查也待以失敗即停止方式重跑。未連D365／Hyper-V／LINE／金流，不讀秘密。",
+        "2026-11-07 15:58 Asia/Taipei (UTC+08:00)｜原快照當時曾記載P2-02工作包驗收完成，並記錄雙組態建置、雙宿主smoke、方案整合、I18n及檔案說明結果。此完成判定已於2026-11-07 16:05更正：進度頁測試為17／18、P2-02.md不存在，且嚴格位元組檢查尚待重跑；原有binlog、TRX與守門輸出僅作部分證據，不能據此認定工作包已驗收。",
+        "2026-11-07 15:58 Asia/Taipei (UTC+08:00)｜進度追蹤更正：第43筆10:29是反向排序清單中的歷史紀錄；原頁面最新資料實為13:01。之後P2-02於15:37有實作提交c042b7a8，但進度頁未同步，形成真實更新缺口；本次已在同一張階段2摘要補登並保留舊歷史。提交由既有提交者建立，本會話未推送或amend。",
+        "2026-11-07 13:01 Asia/Taipei (UTC+08:00)｜主代理本地檢查點54d78c81已提交：P2-03安全Channel部署命令、有界stdin、雙故障保真、193案雙組態與全方案4594案摘要／hash。沒有amend既有376a6172、沒有推送。測試暫存p203-cli目錄0、命令／測試程序已收取；未變更D365／Hyper-V／LINE／金流。P2-03必要實機與P2-01既有門檻仍保留，接續其他離線可執行需求。",
+        "2026-11-07 12:59 Asia/Taipei (UTC+08:00)｜品質追蹤：完整Changed初查6份，新增的一份P2父task.json為維護資料缺末尾CRLF，已只補CRLF且JSON語意／before-after hash核對；重跑剩既有5份原始機器證據（137 checked、96 raw excluded），未過完整門檻。本檢查點Changed為零問題。stdin新增36案中的owner suite共7案：4案真pipe（含128輪handle回基線）與3案MemoryStream故障，非7案全用pipe。原始123份hash先核對全不變，再補入後續證據；P2仍未驗收。",
+        "2026-11-07 12:57 Asia/Taipei (UTC+08:00)｜P2-03離線收尾：補足128輪真pipe handle基線，無GC輔助；最終Deployment Debug／Release各193／193（原157＋新36）、獨立coverage89.30%。最新完整方案18份TRX4594／4594，逐列／身分／Counters核對，零失敗／略過；正常audit還原32專案通過。I18n工具179／179、Plugin工具還原後27／27、Debug tracer7／7；中央套件38專案183引用零違規；文件1275／0。證據solution-lifecycle-final-summary.json、coverage-summary.json與wp-reports/P2-03.md。主代理已審查MAC順序、buffer所有權、stdin有界、精確SDK及SDK＋cleanup故障；保持active，不封存，不做D365／LINE變更。",
+        "2026-11-07 12:51 Asia/Taipei (UTC+08:00)｜P2-03重要驗證：SDK與Dispose雙故障先以cli-cleanup-red重現原錯誤被覆蓋，再修為ExceptionDispatchInfo＋有界清理聚合；Debug192／192。修後完整Release重建零警告／錯誤、18份獨立TRX4593／4593，逐檔核對Counters、結果列與executionId，零略過；Deployment獨立coverage89.30%，Core95.26%／97.48%均通過80%。duplicate32專案1054檔零新增／stale、I18n verify通過、工具I18n179／179、Debug tracer7／7。Plugin工具初因缺assets失敗，已正常還原並重跑，另存證據。執行期間出現既有本地提交376a6172，已保留、不amend，非主代理本次提交。",
+        "2026-11-07 12:43 Asia/Taipei (UTC+08:00)｜P2-03 Deployment：新增protect-token／assign-channel，保留舊Run與RunCommand唯一簽章；新RunWithInput不破壞原反射契約。專屬有界stdin以真匿名pipe驗取消／三十秒政策的短deadline／EOF／UTF-8／容量／關閉6／6；新功能共34案、含原157案完整Release191／191，0失敗／0略過。產品不讀Plugin DLL，先加密再Connect、原子Upsert、最小lookup、lease及鎖釋放後report，真共用Exception.log無秘密。證據deployment-full-release、stdin-*；文件1275／0。尚未做實機或宣告WP完成。",
+        "2026-11-07 12:34 Asia/Taipei (UTC+08:00)｜P2-03核心：net48實載net462與net10共用三份獨立／跨端向量，Node另驗3／3；雙組態完整75／75、116／116，Core各目標coverage 95.26%／97.48%已實際過80%門檻。CLI保留缺入口與分析器失敗，修正相容多載後行為紅燈14失敗／9通過；證據11-07-p2-03-channel-token/evidence/core-*、cli-*。下一步完成stdin有界讀取、Upsert、lookup及失敗清理；沒有實機寫入。",
+        "2026-11-07 12:17 Asia/Taipei (UTC+08:00)｜P2-01診斷移轉／逐案證據檢查點已本地提交055adf1f；最新Debug與Release各104／104，Localization雙宿主184／184、182／182；文件1266／0、duplicate零新增、I18n通過。完整Changed的16份換行問題中11份維護文字已做無語意修正，剩三份自動trace及兩份原始solution JSON保持原貌，未標門檻通過。",
+        "2026-11-07 12:17 Asia/Taipei (UTC+08:00)｜P2-03獨立群組開始：活動子任務11-07-p2-03-channel-token，prd／design／implement已保存。主代理唯一寫入Core/Security與Tests/Security，沿既有net462／net10產品及net48／net10測試宿主，不新增csproj。先保存core-missing-red.log的缺Security型別紅燈；後續需行為紅燈、先驗MAC、key／buffer清零、雙向向量、並行與資源驗證。Deployment寫入工具及實機仍待驗證，不以核心切片代表整包。",
+        "2026-11-07 12:07 Asia/Taipei (UTC+08:00)｜架構與診斷驗證：正常audit完整32專案還原及CI filter Release建置0警告／0錯誤；Hosting Debug完整104／104，Release覆蓋率完整104／104、83.29%。先前58.48%失敗保留，將共用ExceptionDiagnosticsTests八案由ChurchReport搬入Hosting後達門檻；ChurchReport精確回歸Debug／Release各82／82，原90案＝保留82＋搬移8。Localization net10原209＝保留184＋搬移25，24案同身分、1個R4方案案擴成Debug／Release兩案；net48原182全數保留。逐案多重集合與coverage hash見evidence/architecture-case-transfer.json、architecture-hosting-coverage-owner-summary.json；不是實機驗收。",
+        "2026-11-07 12:07 Asia/Taipei (UTC+08:00)｜品質缺口：完整Changed編碼守門相對62b409c80仍有16份歷史文字／機器證據換行問題，先依所有權做無語意修正，原始TRX／log／solution證據不改寫；未標整體通過。R2精確未通過清冊654筆仍非空；後續獨立需求繼續，P2-01不封存、不以追蹤測試綠燈取代驗收。",
+        "2026-11-07 11:43 Asia/Taipei (UTC+08:00)｜P2-01架構實測：原防繞過11案先8失敗／3通過；改Roslyn後focused27／27，擴充別名／繼承／條件來源／超限UTF-8／global using／真實Plugin AssemblyRef後focused94／94。完整方案首次盤點43通過／2失敗，列出ChurchReport Debug338、Release316筆R2公開型別差距；另兩筆R9為SDK隱含System.Drawing可用參考誤報，已用專屬反例修正。精確未通過清冊SpeechMessage.Hosting.Tests/Architecture/unresolved-r2-inventory.json逐筆附理由及移除條件；清冊綠燈只代表無未追蹤差距，不能代替R2驗收。證據根.trellis/tasks/11-07-p2-01-hosting/evidence/architecture-*。",
+        "2026-11-07 11:24 Asia/Taipei (UTC+08:00)｜接續盤點：保留使用者提交f595903d／f4e5bd4d。架構搬移後CI7／7、舊Hosting75／75、Localization184／184及182／182均有離線診斷證據，但舊還原曾關閉audit，不能當正式品質通過；本輪architecture-normal-restore.log正常啟用audit已成功。最新ReadSource呼叫錯用source.Length且Regex可被別名、raw字串或相似Plugin名稱繞過；R9無來源時漏檢，正在補反例及修復，尚未通過。證據根.trellis/tasks/11-07-p2-01-hosting/evidence/。",
+        "2026-11-07 11:24 Asia/Taipei (UTC+08:00)｜執行方式更正：上一輪外部分析因雙方額度／session限制結束，沒有可用結果；summary.json位於.ccg/dual-model-runs/20261107-112017-p2-architecture-continuation-analyzer/。目前沒有高優先設定強制雙模型，遵守使用者明確豁免，後續不再啟動。主代理依inline工作流實作／審查，獨立命令可並行。Goal狀態usageLimited，僅於目前續作回合執行，不宣稱背景續跑。",
+        "2026-11-07 10:45 Asia/Taipei (UTC+08:00)｜日期需求收斂：本文及每筆歷史均有可見日期、時分與台北時區，原時間不明者明標補記；單階段單卡與原有證據保留，永久規則已寫AGENTS及progress-page-contract。頁面18／18、文件1265份0問題。完整Changed對a1dcc3cb另抓到既有c20dff45的P0-13自動.turns.json缺檔尾CRLF，保留其原貌並歸屬記錄，不把本P2切片通過冒充整體守門通過。",
+        "2026-11-07 10:40 Asia/Taipei (UTC+08:00)｜P2-01-CULTURE切片已驗證：完整工具179／179，Hosting strict Debug／Release各70／70，ChurchReport相關各90／90，Localization net48宿主驗net462為182／182、net10為209／209，均0失敗／0略過；全方案Release23警告／0錯誤，I18n CJK／生成／資源／CLDR及檔案說明1265檔0失敗通過。證據根目錄.trellis/tasks/11-07-p2-01-hosting/evidence/culture-*，完整對照research/culture-completeness-checkpoint.md；僅本機離線，不相加重疊案例數。",
+        "2026-11-07 10:40 Asia/Taipei (UTC+08:00)｜實際分工與限制：主會話inline寫入，唯讀代理只盤點架構並已關閉；不同組態及只讀守門實際並行。較高優先CCG設定仍強制外部分析／審查，本輪兩個run均quotaBlocked=true、dualModelComplete=false、degradedFallback=false且無可用輸出，保留證據不稱外審成功。未連D365／LINE／金流、未部署／修改真實秘密；P2-04安全實機前置未完成。下一步架構測試搬移、CI filter與R2／R3／R9。",
+        "2026-11-07 10:29 Asia/Taipei (UTC+08:00)｜一般資訊日期規則已永久保存至AGENTS.md與progress-page-contract.md；每筆詳細／歷史紀錄都有日期、分鐘及Asia/Taipei時區，原事件時間未留存者明標補記，不猜測歷史時間。仍保持同階段單卡與全部驗收證據。",
+        "2026-11-07 10:18 Asia/Taipei (UTC+08:00)｜已完成切片｜P2-01-PROGRAM｜2026-11-07 10:18 Asia/Taipei (UTC+08:00)：已核對program-hosting-debug與program-hosting-release-final原始TRX各90／90、Hosting 55／55；原清理8通過／6失敗紅燈已修復，保留原始證據。Program經Hosting借用同一owner／adapter，逐階清理、保留主要例外、真實未啟動WebApplication組態移交與通知排空案例已通過；方案Release建置23個既有警告／0錯誤，來源比對見program-build-warning-provenance.json。證據均在.trellis/tasks/11-07-p2-01-hosting/evidence/，僅離線。",
+        "2026-11-07 10:18 Asia/Taipei (UTC+08:00)｜進行中｜P2-01-CULTURE｜2026-11-07 10:18 Asia/Taipei (UTC+08:00)：生成器→Localization產物→Hosting守門→ChurchReport組合根為同一依賴鏈；主會話負責寫入。唯讀代理僅盤點架構R2／R3／R9，沒有產品寫入權；未呼叫外部雙模型。Goal工具回報usageLimited，本輪依使用者續作指示執行並保存狀態。P2-04安全實機前置保持未完成。",
+        "2026-11-07 10:06 Asia/Taipei (UTC+08:00)｜歷史紀錄｜進行中｜P2-01-PROGRAM｜2026-11-07 10:06 Asia/Taipei (UTC+08:00)：真實空白WebApplication的組態所有權探針2／2通過；共用註冊／ICU順序已接入，原清理邏輯抽取後14項中8通過／6失敗，證明單階故障跳過後續資源及覆蓋主要例外，正在修復。證據 .trellis/tasks/11-07-p2-01-hosting/evidence/program-configuration-ownership/program-configuration-ownership.trx、program-cleanup-original-order-red/program-cleanup-original-order-red.trx；均為離線。",
+        "補記 2026-11-07 10:29 Asia/Taipei (UTC+08:00)（原事件時間未記錄）｜歷史紀錄｜本輪進度頁守門先16／17：P2-01範圍縮寫為三個diagnostics時遺失ExceptionOutputOptions明確名稱，已恢復完整型別清單及CultureCompleteness，不刪53項計畫細節斷言。紅燈證據 .trellis/tasks/11-07-p2-01-hosting/evidence/sender-guard-progress.log；修復後獨立輸出sender-guard-progress-green.log。",
+        "2026-11-07 09:47 Asia/Taipei (UTC+08:00)｜歷史紀錄｜最新驗證｜2026-11-07 09:47 Asia/Taipei (UTC+08:00)：P2-01-SENDER真正傳輸與P2-01-DEVELOPMENT共用委派已實作；Hosting strict Debug、Release各55／55（各含17個sender案例），ChurchReport例外／四開關／Development／集中解析回歸各74／74，均0失敗／0略過。證據 .trellis/tasks/11-07-p2-01-hosting/evidence/sender-guard-release/sender-guard-release.trx、sender-guard-debug/sender-guard-debug.trx、sender-guard-churchreport-release/sender-guard-churchreport-release.trx、sender-guard-churchreport-debug/sender-guard-churchreport-debug.trx；均為本機離線。",
+        "2026-11-07 09:54 Asia/Taipei (UTC+08:00)｜歷史紀錄｜本輪品質與審查：檔案說明1260檔／0失敗、duplicate32專案1038檔／0新增／0stale、I18n棘輪／5生成檔／資源驗證通過。CJK歸屬等額移轉且全repo基準3986→3986，無新增排除。主會話已審查每request憑證、單一sender owner、建構失敗不接管handler、關閉後拒絕及Dispose故障finally清理；沒有使用外部模型。證據sender-guard-file-documentation.log、sender-guard-duplicates.log、sender-guard-i18n-verify.log與research/sender-guard-checkpoint.md。 檢查點複驗｜2026-11-07 09:54 Asia/Taipei (UTC+08:00)：頁面17／17、檔案說明1260檔0失敗、Hosting Release55／55與ChurchReport同範圍Release74／74通過；新證據sender-checkpoint-progress.log、sender-checkpoint-file-documentation.log、sender-checkpoint-release/sender-checkpoint-release.trx、sender-checkpoint-churchreport/sender-checkpoint-churchreport.trx。",
+        "補記 2026-11-07 10:29 Asia/Taipei (UTC+08:00)（原事件時間未記錄）｜實際並行與清理：主會話inline，未派子代理。ChurchReport Release與Hosting Debug以no-restore、分離輸出實際並行；共享同組態輸出的建置序列。A／B各64筆以barrier證明同時存活，全部await後active／content回基線；本輪測試程序已終止，已知guard暫存目錄餘0。未讀取真實秘密、未連LINE／D365、未部署或變更測試環境。",
+        "補記 2026-11-07 10:29 Asia/Taipei (UTC+08:00)（原事件時間未記錄）｜歷史紀錄｜目前依賴與下一步：Program仍待由手動Attach／singleton改接Hosting registration，接續CultureCompleteness生成、R2／R3／R9搬移及完整主機驗收。P2-04測試channel／本人帳號與User Secrets前置仍未完成；離線／mock不代替必要實機。P2維持0／12，不封存現有子任務。",
+        "2026-11-07 09:39 Asia/Taipei (UTC+08:00)｜歷史紀錄｜sender修復與守門移轉｜2026-11-07 09:39 Asia/Taipei (UTC+08:00)：關閉後契約、收件人清理與transport Dispose失敗時的finally清理已先紅後綠；sender14／14、Hosting51／51、ChurchReport74／74通過（均在Development facade改接前）。I18n verify抓到Hosting複製的8個CJK診斷字串且未有歸屬基準；已確認與原產品8字串多重集完全一致，舊guard改為共用委派並重跑驗證。原guard基準7加已實測的NewPerson既有8→7改善1，等額移轉Hosting8；全repo基準3986→3986，無新增排除、不重新產生基準。來源證據 .trellis/tasks/11-07-p2-01-hosting/evidence/development-guard-baseline-transfer.json；失敗輸出sender-i18n-build-verify.log與development-delegation-red/development-delegation-red.trx完整保留。",
+        "2026-11-07 09:31 Asia/Taipei (UTC+08:00)｜歷史紀錄｜sender搬移紅燈｜2026-11-07 09:31 Asia/Taipei (UTC+08:00)：先驗證Hosting實作不存在而失敗，再搬入真正HTTP sender並保留舊產品薄facade；組件歸屬1／1轉綠。新增13項傳輸測試11通過／2失敗，失敗為Dispose後仍回缺設定錯誤與保留收件人字串；不標示完成。證據 .trellis/tasks/11-07-p2-01-hosting/evidence/sender-move-red/sender-move-red.trx、sender-move-green/sender-move-green.trx、sender-lifecycle-red/sender-lifecycle-red.trx。",
+        "補記 2026-11-07 10:29 Asia/Taipei (UTC+08:00)（原事件時間未記錄）｜歷史紀錄｜本輪foundation實測：診斷三型別已真正移至Hosting，ToolUtility僅CLR型別轉送；Hosting不反向參考ToolUtility。新增單一owner、重入冪等、衝突拒絕／不部分發布與舊Report ABI測試。Hosting嚴格Release全套37／37（含實際方案架構評估）、ChurchReport既有例外回歸24／24、focused13／13通過。證據：.trellis/tasks/11-07-p2-01-hosting/evidence/hosting-strict-release/hosting-strict-release.trx、hosting-legacy-release/hosting-legacy-release.trx、hosting-foundation-green/hosting-foundation-green.trx；均為本機離線，不是實機通知驗收。",
+        "補記 2026-11-07 10:29 Asia/Taipei (UTC+08:00)（原事件時間未記錄）｜歷史紀錄｜本輪品質與下一步：檔案說明1258檔／0失敗；ExceptionTypeForwards.cs換行問題已修復。P2-01仍進行中：繼續搬移LINE sender、ChurchReport Program接入、Development guard共用委派、CultureCompleteness生成與R2／R3／R9整合，之後再跑完整方案。P2-04測試channel／本人帳號與User Secrets前置未完成；離線／mock不能替代必要實機。",
+        "補記 2026-11-07 10:29 Asia/Taipei (UTC+08:00)（原事件時間未記錄）｜歷史紀錄｜最新離線功能證據：Hosting 測試10項，6通過／4失敗；失敗為實作組件歸屬、重複註冊冪等、衝突設定拒絕及adapter／owner一致性，仍須修復。證據：.trellis/tasks/11-07-p2-01-hosting/evidence/hosting-ownership-red/hosting-ownership-red.trx；先前3通過／2失敗僅為歷史基線，不代表目前結果。",
+        "補記 2026-11-07 10:29 Asia/Taipei (UTC+08:00)（原事件時間未記錄）｜版面與追蹤規則：同階段只保留一張一般資訊摘要並原地更新；方案可見不等於驗收完成。進度頁17／17通過（含先紅後綠、83包狀態、53項計畫細節、P1實機證據與警告隔離），檔案說明1257檔／0失敗。證據：.trellis/tasks/archive/2026-11/11-07-p2-progress-phase-summary/evidence/progress-red.log、progress-contract-red.log、progress-final.log、file-documentation.log。 HTML結構、CSS／renderer不變、原資訊完整保留、UTF-8無BOM／CRLF檢查通過：同目錄page-integrity.json；P2驗收仍未完成。",
+        "補記 2026-11-07 10:29 Asia/Taipei (UTC+08:00)（原事件時間未記錄）｜歷史紀錄｜實際執行：主會話 inline 修改／檢查；本次沒有派遣子代理或平行產品實作。P2-02／03／06／09僅為依賴上可離線並行的候選；受模式限制不冒稱已並行。",
+        "補記 2026-11-07 10:29 Asia/Taipei (UTC+08:00)（原事件時間未記錄）｜歷史紀錄｜外部流程限制：使用者已要求不使用外部模型，但高優先執行設定仍強制兩模型呼叫；本次分析 .ccg/dual-model-runs/20261107-085531-p2-progress-phase-summary-analyzer/summary.json、審查 .ccg/dual-model-runs/20261107-090026-p2-progress-phase-summary-reviewer/summary.json 均無可用輸出，Gemini 503、Claude額度受阻，dualModelComplete=false、degradedFallback=false。不重試同一阻塞、不冒稱外審成功；主會話本地審查與驗證已執行。",
+        "2026-11-07 08:47 Asia/Taipei (UTC+08:00)｜歷史紀錄｜P2-01 方案登錄已補齊，功能驗收仍進行中：2026-11-07 08:47 Asia/Taipei (UTC+08:00)：Hosting 與 Hosting.Tests 已加入 SpeechMessageProducts.sln，原有30專案保持不變，現為32專案；兩個新項目各一筆且有 Debug／Release 建置對應。這只完成方案登錄，不代表 P2-01 或 P2 全部完成。",
+        "補記 2026-11-07 10:29 Asia/Taipei (UTC+08:00)（原事件時間未記錄）｜歷史紀錄｜現有設定 Release 建置成功：0警告／0錯誤。證據：.trellis/tasks/11-07-p2-01-hosting/evidence/solution-registration-build.log。",
+        "補記 2026-11-07 10:29 Asia/Taipei (UTC+08:00)（原事件時間未記錄）｜歷史紀錄｜已驗證加入前缺少兩筆、加入後32筆且原集合完整保留。證據：同 evidence 目錄 solution-before.json、solution-after.json。",
+        "補記 2026-11-07 10:29 Asia/Taipei (UTC+08:00)（原事件時間未記錄）｜歷史紀錄｜既有 Hosting 功能測試先前仍2失敗；進度頁測試基線12通過／3失敗，正待修正P1快照綁定。不得標示工作包驗收通過。",
+        "補記 2026-11-07 10:29 Asia/Taipei (UTC+08:00)（原事件時間未記錄）｜歷史紀錄｜2026-11-07 使用者要求已寫入 AGENTS.md 與目錄規範：未來新增 .csproj 同步加入 .sln，不等功能完成。",
+        "補記 2026-11-07 10:29 Asia/Taipei (UTC+08:00)（原事件時間未記錄）｜歷史紀錄｜檔案說明守門先指出7份新Hosting檔案換行錯誤；僅正規化UTF-8無BOM／CRLF後，完整1257檔0失敗。證據：solution-registration-file-docs.log與solution-registration-file-docs-green.log。進度頁仍12通過／3失敗，不冒稱完整通過。",
+        "補記 2026-11-07 10:29 Asia/Taipei (UTC+08:00)（原事件時間未記錄）｜歷史紀錄｜P2 依賴與必要條件已建立追蹤：P2-01 先建立 Hosting 共用 owner／啟動守門；P2-02、P2-03、P2-06、P2-09 可在不連 D365／LINE 下並行。P2-04 及後續推播工作要等使用者完成安全測試 channel、本人帳號與 User Secrets 佔位驗收；任何離線／mock 結果不代替實機收訊。",
+        "補記 2026-11-07 10:29 Asia/Taipei (UTC+08:00)（原事件時間未記錄）｜歷史紀錄｜使用者要求取消外部模型；目前執行設定仍強制分析／審查。已依自癒入口呼叫 Gemini／Claude，但兩者均未完成、無可用輸出，不宣稱雙模型或單模型成功；保留失敗摘要，主會話繼續本地驗證。",
+        "補記 2026-11-07 10:29 Asia/Taipei (UTC+08:00)（原事件時間未記錄）｜歷史紀錄｜不讀取或寫入秘密、不執行 D365 寫入、不發送 LINE；所有必要實機結果保留為待驗證／受阻。",
+        "補記 2026-11-07 10:29 Asia/Taipei (UTC+08:00)（原事件時間未記錄）｜歷史紀錄｜每個工作包依實作、測試、文件說明、UTF-8 無 BOM／CRLF、隔離與資源清理證據更新。"
+      ]
+    }
+  ],
+  "userActions": [
+    {
+      "when": "2026-11-07",
+      "text": "核定實作計畫 3.4 生效",
+      "status": "done",
+      "note": "2026-11-07 21:10 Asia/Taipei (UTC+08:00) 記錄：你回覆把 3.4 放進 repo"
+    },
+    {
+      "when": "P2-04 前置之前",
+      "text": "建立（或指定）測試 LINE Messaging API channel；把 TestChannelToken、TestLineUserId 放進 Deployment 的 User Secrets；手機加好友",
+      "status": "you",
+      "note": "這是目前唯一卡住推播的事；其餘清理、寫入、推播、驗證都由 Codex 做"
+    },
+    {
+      "when": "階段 3 前",
+      "text": "正式平台 SQL 連線字串（只有 Codex 自己取不到時）",
+      "status": "later",
+      "note": "測試環境由 Codex 在測試主機建立"
+    },
+    {
+      "when": "階段 4 前",
+      "text": "永豐測試商店金鑰（若尚未有），放進 User Secrets",
+      "status": "later",
+      "note": ""
+    },
+    {
+      "when": "階段 7",
+      "text": "每個正式組織第一次寫入前，回一句「可以」",
+      "status": "later",
+      "note": "Codex 會先給你一頁 plan、影響、回復方式與時段"
+    },
+    {
+      "when": "階段 8",
+      "text": "奉獻類別要不要合併（例如十一／什一）",
+      "status": "later",
+      "note": ""
+    },
+    {
+      "when": "全程（既有事項）",
+      "text": "輪替已外流的機密：CRM 密碼、LINE Token、永豐金鑰、舊 .snk",
+      "status": "later",
+      "note": ""
+    }
+  ],
+  "phases": [
+    {
+      "id": "階段 0",
+      "name": "準備、守門與可行性驗證",
+      "planned": "6～10 天",
+      "actual": "約 2.7 天（2026-11-02～11-05）"
+    },
+    {
+      "id": "階段 1",
+      "name": "基礎層與國際化地基",
+      "planned": "12～16 天",
+      "actual": "約 1.6 天（2026-11-05～11-06）"
+    },
+    {
+      "id": "階段 2",
+      "name": "共用送訊＋對外待辦",
+      "planned": "3～5 個工作天（3.4 估）",
+      "actual": "進行中（2026-11-07 起）",
+      "current": true
+    },
+    {
+      "id": "階段 3",
+      "name": "LINE Webhook 主機",
+      "planned": "4～6 個工作天",
+      "actual": ""
+    },
+    {
+      "id": "階段 4",
+      "name": "金流＋幣別",
+      "planned": "2～3 個工作天",
+      "actual": ""
+    },
+    {
+      "id": "階段 5",
+      "name": "Plugin／Workflow 重建（36 個 DLL → 2 個）",
+      "planned": "8～12 個工作天",
+      "actual": ""
+    },
+    {
+      "id": "階段 6",
+      "name": "ChurchReport 改用共用層",
+      "planned": "3～4 個工作天",
+      "actual": ""
+    },
+    {
+      "id": "階段 7",
+      "name": "D365 9.1 切換（逐組織）",
+      "planned": "每組織 1 天＋觀察 1 週",
+      "actual": ""
+    },
+    {
+      "id": "階段 8",
+      "name": "收尾、偽語系驗收、教會設定網頁",
+      "planned": "3～4 個工作天",
+      "actual": ""
+    }
+  ],
+  "wps": [
+    {
+      "id": "P0-01",
+      "phaseId": "階段 0",
+      "name": "開分支、Trellis 任務、基準記錄",
+      "status": "done",
+      "deps": "—",
+      "live": "無",
+      "timebox": "—",
+      "doneAt": "2026-11-02 14:45",
+      "commit": "90799969",
+      "note": "開工基準；修好 24 個原本就失敗的測試（測試找錯路徑，產品程式沒動）"
+    },
+    {
+      "id": "P0-02",
+      "phaseId": "階段 0",
+      "name": ".gitignore、global.json",
+      "status": "done",
+      "deps": "P0-01",
+      "live": "無",
+      "timebox": "—",
+      "doneAt": "2026-11-02 14:53",
+      "commit": "bc13efe7",
+      "note": "固定 .NET SDK 10.0.403；舊方案、私鑰、原始測試檔不進版控"
+    },
+    {
+      "id": "P0-03",
+      "phaseId": "階段 0",
+      "name": "套件版本集中管理與版本統一",
+      "status": "done",
+      "deps": "P0-02",
+      "live": "無",
+      "timebox": "—",
+      "doneAt": "2026-11-02 15:24",
+      "commit": "d1c92d83",
+      "note": "51 個套件集中管理；恢復降版警告"
+    },
+    {
+      "id": "P0-04",
+      "phaseId": "階段 0",
+      "name": "新程式的分析器與禁用 API 設定",
+      "status": "done",
+      "deps": "P0-03",
+      "live": "無",
+      "timebox": "—",
+      "doneAt": "2026-11-03 14:59",
+      "commit": "c4e1f294",
+      "note": "新專案嚴格分析器；net48 正確套用 Recommended"
+    },
+    {
+      "id": "P0-04-Cryptography",
+      "phaseId": "階段 0",
+      "name": "補修：Cryptography.Xml／Pkcs 弱點",
+      "status": "done",
+      "deps": "P0-04",
+      "live": "無",
+      "timebox": "—",
+      "doneAt": "2026-11-03",
+      "commit": "—",
+      "note": "直接相依升至 10.0.14"
+    },
+    {
+      "id": "P0-04-NuGetAudit",
+      "phaseId": "階段 0",
+      "name": "補修：net48 嚴格專案稽核間接套件",
+      "status": "done",
+      "deps": "P0-04",
+      "live": "無",
+      "timebox": "—",
+      "doneAt": "2026-11-03",
+      "commit": "—",
+      "note": "NuGetAuditMode=all；System.Text.Json 6.0.11"
+    },
+    {
+      "id": "P0-05",
+      "phaseId": "階段 0",
+      "name": "編碼檢查與編碼轉換工具",
+      "status": "done",
+      "deps": "P0-01",
+      "live": "無",
+      "timebox": "—",
+      "doneAt": "2026-11-02 18:01",
+      "commit": "ba565a55",
+      "note": "PowerShell 5.1／7 都通過"
+    },
+    {
+      "id": "P0-SEC",
+      "phaseId": "階段 0",
+      "name": "Development 不得用正式 LINE token、只能連 goodshepherdback",
+      "status": "done",
+      "deps": "P0-05",
+      "live": "無",
+      "timebox": "—",
+      "doneAt": "2026-11-02 21:02",
+      "commit": "24cca555",
+      "note": "開發環境啟動守門"
+    },
+    {
+      "id": "P0-ENV",
+      "phaseId": "階段 0",
+      "name": "指定 goodshepherdback 為開發測試組織",
+      "status": "done",
+      "deps": "P0-SEC",
+      "live": "無",
+      "timebox": "—",
+      "doneAt": "2026-11-03 13:05",
+      "commit": "aa1de29d",
+      "note": "Development 設定檔可存測試帳密"
+    },
+    {
+      "id": "P0-06",
+      "phaseId": "階段 0",
+      "name": "重複程式掃描（R1）",
+      "status": "done",
+      "deps": "P0-01",
+      "live": "無",
+      "timebox": "—",
+      "doneAt": "2026-11-02 21:44",
+      "commit": "18e901b1",
+      "note": "基準外新增即失敗"
+    },
+    {
+      "id": "P0-07",
+      "phaseId": "階段 0",
+      "name": "I18nCheck 第一版：中文字串棘輪＋resx 產生器",
+      "status": "done",
+      "deps": "P0-03",
+      "live": "無",
+      "timebox": "—",
+      "doneAt": "2026-11-03 07:50",
+      "commit": "f0f0360f",
+      "note": "中文字串只減不增"
+    },
+    {
+      "id": "P0-08",
+      "phaseId": "階段 0",
+      "name": "骨架：SpeechMessage.Localization（雙目標）",
+      "status": "done",
+      "deps": "P0-04、P0-07",
+      "live": "無",
+      "timebox": "—",
+      "doneAt": "2026-11-03 09:10",
+      "commit": "92cfa180",
+      "note": "系統文字字典骨架"
+    },
+    {
+      "id": "P0-09",
+      "phaseId": "階段 0",
+      "name": "骨架：LineMessagingProcessor.Core（雙目標，單人推播）",
+      "status": "done",
+      "deps": "P0-04",
+      "live": "無",
+      "timebox": "—",
+      "doneAt": "2026-11-03 10:45",
+      "commit": "6b559da5",
+      "note": "單人推播核心骨架"
+    },
+    {
+      "id": "P0-10",
+      "phaseId": "階段 0",
+      "name": "骨架：Dynamics Plugins（net462）＋ILRepack＋簽章＋打包檢查",
+      "status": "done",
+      "deps": "P0-08、P0-09",
+      "live": "無",
+      "timebox": "—",
+      "doneAt": "2026-11-03 11:56",
+      "commit": "7881177a",
+      "note": "一般建置不讀金鑰"
+    },
+    {
+      "id": "P0-11",
+      "phaseId": "階段 0",
+      "name": "方案層級 CI",
+      "status": "done",
+      "deps": "P0-03～P0-10",
+      "live": "無",
+      "timebox": "—",
+      "doneAt": "2026-11-03 12:18",
+      "commit": "9b59a4f4",
+      "note": "逐目標覆蓋率門檻；雲端範圍見 D33"
+    },
+    {
+      "id": "P0-12",
+      "phaseId": "階段 0",
+      "name": "佈署專案最小版 SpeechMessage.Dynamics.Deployment",
+      "status": "done",
+      "deps": "P0-10、P0-11",
+      "live": "無",
+      "timebox": "—",
+      "doneAt": "2026-11-03 19:21",
+      "commit": "a6a20905",
+      "note": "plan／apply／verify／export／rollback／smoke"
+    },
+    {
+      "id": "P0-12A",
+      "phaseId": "階段 0",
+      "name": "ImageSharp 升級與上傳圖片防護",
+      "status": "done",
+      "deps": "P0-12",
+      "live": "無",
+      "timebox": "—",
+      "doneAt": "2026-11-03 23:17",
+      "commit": "eb7ff61f",
+      "note": "3.2.0 需 Six Labors 授權金鑰"
+    },
+    {
+      "id": "P0-13",
+      "phaseId": "階段 0",
+      "name": "最小實機驗收：trace 沙箱註冊、執行與清理",
+      "status": "done",
+      "deps": "P0-12A",
+      "live": "有",
+      "timebox": "—",
+      "doneAt": "2026-11-04 20:49",
+      "commit": "39e58b30",
+      "note": "net462 Plugin 在 goodshepherdback 註冊、執行、停用、清理，殘留 0"
+    },
+    {
+      "id": "P1-01",
+      "phaseId": "階段 1",
+      "name": "清理孤兒專案與檔案",
+      "status": "done",
+      "deps": "—",
+      "live": "無",
+      "timebox": "—",
+      "doneAt": "2026-11-05",
+      "commit": "—",
+      "note": "51 個孤兒檔清除；ToolUtility.Tests 加入方案；smoke 輪詢改約 2 秒"
+    },
+    {
+      "id": "P1-02",
+      "phaseId": "階段 1",
+      "name": "架構測試（R4：相依只能往下）",
+      "status": "done",
+      "deps": "—",
+      "live": "無",
+      "timebox": "—",
+      "doneAt": "2026-11-05",
+      "commit": "—",
+      "note": "讀真實 MSBuild 逐目標評估結果"
+    },
+    {
+      "id": "P1-03",
+      "phaseId": "階段 1",
+      "name": "Line.Messaging 雙目標與 Webhook 安全",
+      "status": "done",
+      "deps": "P1-02",
+      "live": "無",
+      "timebox": "—",
+      "doneAt": "2026-11-05 14:15",
+      "commit": "—",
+      "note": "六類訊息黃金檔兩目標逐字相同；LineSignature.Verify"
+    },
+    {
+      "id": "P1-04",
+      "phaseId": "階段 1",
+      "name": "ToolUtility.Core 雙目標抽取與四個資料操作",
+      "status": "done",
+      "deps": "P1-02",
+      "live": "無",
+      "timebox": "—",
+      "doneAt": "2026-11-06 12:00",
+      "commit": "a12cfa07",
+      "note": "FetchXML 安全組裝；AddToolUtility(configuration, product)"
+    },
+    {
+      "id": "P1-05",
+      "phaseId": "階段 1",
+      "name": "SpeechMessage.Localization 完整版",
+      "status": "done",
+      "deps": "階段 0",
+      "live": "無",
+      "timebox": "—",
+      "doneAt": "2026-11-06 13:01",
+      "commit": "2bbf8850",
+      "note": "五層解析、具名參數、會友語言、關鍵字表"
+    },
+    {
+      "id": "P1-06",
+      "phaseId": "階段 1",
+      "name": "教會時鐘與 IANA／Windows 時區對照",
+      "status": "done",
+      "deps": "P1-05",
+      "live": "無",
+      "timebox": "—",
+      "doneAt": "2026-11-06 14:36",
+      "commit": "1e68c298",
+      "note": "CLDR 產生對照；ICU 檢查"
+    },
+    {
+      "id": "P1-07",
+      "phaseId": "階段 1",
+      "name": "Money 與幣別格式化",
+      "status": "done",
+      "deps": "P1-05",
+      "live": "無",
+      "timebox": "—",
+      "doneAt": "2026-11-06 14:52",
+      "commit": "0691db90",
+      "note": "七種幣別、ISO 4217 小數位"
+    },
+    {
+      "id": "P1-08",
+      "phaseId": "階段 1",
+      "name": "教會覆寫快照快取",
+      "status": "done",
+      "deps": "P1-05、P1-04、P1-10",
+      "live": "無",
+      "timebox": "—",
+      "doneAt": "2026-11-06 16:31",
+      "commit": "dfb82a7e",
+      "note": "single-flight、驗證後才發布、A／B 隔離"
+    },
+    {
+      "id": "P1-09",
+      "phaseId": "階段 1",
+      "name": "I18nCheck v2 完整資源檢查",
+      "status": "done",
+      "deps": "P1-05",
+      "live": "無",
+      "timebox": "—",
+      "doneAt": "2026-11-06 15:22",
+      "commit": "9f9b2b29",
+      "note": "key／參數一致、長度上限、關鍵字衝突"
+    },
+    {
+      "id": "P1-10",
+      "phaseId": "階段 1",
+      "name": "SpeechMessage.Tenancy 與 LINE channel resolver",
+      "status": "done",
+      "deps": "P1-04",
+      "live": "無",
+      "timebox": "—",
+      "doneAt": "2026-11-06 13:47",
+      "commit": "6e8f1ef9",
+      "note": "取代 9 處 ?? \"Jesus\" 複製"
+    },
+    {
+      "id": "P1-11",
+      "phaseId": "階段 1",
+      "name": "Deployment 結構 schema／plan／apply／verify",
+      "status": "done",
+      "deps": "P1-04、P0-12",
+      "live": "無",
+      "timebox": "—",
+      "doneAt": "2026-11-06 19:08",
+      "commit": "5cfef59e",
+      "note": "export-metadata、complete-created-audit"
+    },
+    {
+      "id": "P1-12",
+      "phaseId": "階段 1",
+      "name": "goodshepherdback 結構實機驗收",
+      "status": "done",
+      "deps": "P1-11",
+      "live": "有",
+      "timebox": "—",
+      "doneAt": "2026-11-06 21:10",
+      "commit": "e890ec95",
+      "note": "6 表 36 欄 4 鍵；第二次 apply 零寫入；唯一鍵擋重複；殘留 0"
+    },
+    {
+      "id": "P2-01",
+      "phaseId": "階段 2",
+      "name": "SpeechMessage.Hosting：共用例外通知、啟動檢查、架構測試",
+      "status": "active",
+      "deps": "—",
+      "live": "無",
+      "timebox": "自 3.4 生效起半天",
+      "doneAt": "",
+      "commit": "",
+      "note": "依 D28 收尾：ChurchReport R2 改棘輪；修正依賴本機 Debug 產物的測試；乾淨複本驗證"
+    },
+    {
+      "id": "P2-02",
+      "phaseId": "階段 2",
+      "name": "GoodShepherd.Core 雙目標骨架",
+      "status": "done",
+      "deps": "—",
+      "live": "無",
+      "timebox": "—",
+      "doneAt": "2026-11-07 19:23",
+      "commit": "c042b7a8",
+      "note": "10 個模組導讀、MemberNotificationService 骨架、雙目標 smoke"
+    },
+    {
+      "id": "P2-03",
+      "phaseId": "階段 2",
+      "name": "Channel Token 加密封包與安全寫入工具",
+      "status": "active",
+      "deps": "—",
+      "live": "無",
+      "timebox": "自 3.4 生效起半天",
+      "doneAt": "",
+      "commit": "",
+      "note": "L0 已完成；補 4 個同名測試＋乾淨複本驗證後即驗收；實機移到 P2-04 前置、P2-12"
+    },
+    {
+      "id": "P2-04",
+      "phaseId": "階段 2",
+      "name": "LineMessagingProcessor.Core 完整版與單人推播",
+      "status": "todo",
+      "deps": "P2-02、P2-03、P2-04 前置",
+      "live": "無",
+      "timebox": "1 天",
+      "doneAt": "",
+      "commit": "",
+      "note": "教會檢查、共用 Channel 各用自己的 sender、Retry Key、宮格綁定"
+    },
+    {
+      "id": "P2-05",
+      "phaseId": "階段 2",
+      "name": "Flex 範本引擎與 sender 範本",
+      "status": "todo",
+      "deps": "P2-04",
+      "live": "無",
+      "timebox": "1 天",
+      "doneAt": "",
+      "commit": "",
+      "note": "{{t:Key}}／{{v:name}}、JSON 跳脫、altText 必填"
+    },
+    {
+      "id": "P2-06",
+      "phaseId": "階段 2",
+      "name": "合併 PushUtility、ReplyUtility、LineUtilityClass 副本",
+      "status": "todo",
+      "deps": "P2-04",
+      "live": "無",
+      "timebox": "1 天",
+      "doneAt": "",
+      "commit": "",
+      "note": "黃金 HTTP 請求比對；舊類別留 Obsolete 薄殼"
+    },
+    {
+      "id": "P2-07",
+      "phaseId": "階段 2",
+      "name": "對外待辦 Writer 與有界 Worker",
+      "status": "todo",
+      "deps": "P2-01、P2-02",
+      "live": "無",
+      "timebox": "1 天",
+      "doneAt": "",
+      "commit": "",
+      "note": "冪等 Upsert、RowVersion 認領、退避重試、停機 drain"
+    },
+    {
+      "id": "P2-08",
+      "phaseId": "階段 2",
+      "name": "宮格多語產生器",
+      "status": "todo",
+      "deps": "P2-07",
+      "live": "無",
+      "timebox": "1 天",
+      "doneAt": "",
+      "commit": "",
+      "note": "只為啟用語系產生；alias ≤ 32 字；容量檢查"
+    },
+    {
+      "id": "P2-09",
+      "phaseId": "階段 2",
+      "name": "QR 內容編碼（a）與圖片產生處理器（b）",
+      "status": "active",
+      "deps": "a：P2-02；b：P2-07、P2-09a",
+      "live": "無",
+      "timebox": "a 半天；b 半天",
+      "doneAt": "",
+      "commit": "",
+      "note": "3.3 期間開工、未列入進度頁；目前只有 codec 骨架，20 個測試中 19 個紅燈"
+    },
+    {
+      "id": "P2-10",
+      "phaseId": "階段 2",
+      "name": "改字時間輪詢背景服務",
+      "status": "todo",
+      "deps": "P2-01",
+      "live": "無",
+      "timebox": "半天",
+      "doneAt": "",
+      "commit": "",
+      "note": "只讓有變更的教會快照失效；重疊窗不漏"
+    },
+    {
+      "id": "P2-11",
+      "phaseId": "階段 2",
+      "name": "推播整條鏈骨架驗證",
+      "status": "todo",
+      "deps": "P2-04、P2-05",
+      "live": "無",
+      "timebox": "1 天",
+      "doneAt": "",
+      "commit": "",
+      "note": "DiagnosticsPingPlugin mode=member；四情境"
+    },
+    {
+      "id": "P2-12",
+      "phaseId": "階段 2",
+      "name": "實機驗收：推播整條鏈（Codex 執行）",
+      "status": "todo",
+      "deps": "P2-03、P2-04、P2-05、P2-07、P2-08、P2-11",
+      "live": "有",
+      "timebox": "1 天",
+      "doneAt": "",
+      "commit": "",
+      "note": "偽語系收訊、異教會不送、重跑不重複、兩程序只產生一次"
+    },
+    {
+      "id": "P3-01",
+      "phaseId": "階段 3",
+      "name": "舊行為的黃金資料：關鍵字、事件樣本、回覆內容",
+      "status": "todo",
+      "deps": "—",
+      "live": "無",
+      "timebox": "1 天",
+      "doneAt": "",
+      "commit": "",
+      "note": "103 個關鍵字與 12 種事件樣本"
+    },
+    {
+      "id": "P3-02",
+      "phaseId": "階段 3",
+      "name": "LineWebhook 主機專案與端點（只組裝）",
+      "status": "todo",
+      "deps": "P2-01",
+      "live": "無",
+      "timebox": "半天",
+      "doneAt": "",
+      "commit": "",
+      "note": "新增 2 個 csproj 並同步加入方案"
+    },
+    {
+      "id": "P3-03",
+      "phaseId": "階段 3",
+      "name": "驗簽",
+      "status": "todo",
+      "deps": "P3-02",
+      "live": "無",
+      "timebox": "半天",
+      "doneAt": "",
+      "commit": "",
+      "note": "secret 空就拒絕啟動該 Channel"
+    },
+    {
+      "id": "P3-04",
+      "phaseId": "階段 3",
+      "name": "去重（平台 SQL）",
+      "status": "todo",
+      "deps": "P3-02",
+      "live": "測試主機 SQL",
+      "timebox": "1 天",
+      "doneAt": "",
+      "commit": "",
+      "note": "Codex 在測試主機建表；逾時回 503"
+    },
+    {
+      "id": "P3-05",
+      "phaseId": "階段 3",
+      "name": "有界佇列與背景處理",
+      "status": "todo",
+      "deps": "P3-02",
+      "live": "無",
+      "timebox": "1 天",
+      "doneAt": "",
+      "commit": "",
+      "note": "依 userId 分區保序；停機 drain"
+    },
+    {
+      "id": "P3-06",
+      "phaseId": "階段 3",
+      "name": "事件分派與處理器移植",
+      "status": "todo",
+      "deps": "P3-01、P3-05",
+      "live": "無",
+      "timebox": "1 天",
+      "doneAt": "",
+      "commit": "",
+      "note": "一次一個事件類型；超過時間盒拆 a／b"
+    },
+    {
+      "id": "P3-07",
+      "phaseId": "階段 3",
+      "name": "關鍵字路由改用 IKeywordCatalog",
+      "status": "todo",
+      "deps": "P3-01、P3-06",
+      "live": "無",
+      "timebox": "半天",
+      "doneAt": "",
+      "commit": "",
+      "note": "舊關鍵字 100% 相同意圖"
+    },
+    {
+      "id": "P3-08",
+      "phaseId": "階段 3",
+      "name": "回覆、letter 紀錄、例外處理",
+      "status": "todo",
+      "deps": "P3-06",
+      "live": "無",
+      "timebox": "1 天",
+      "doneAt": "",
+      "commit": "",
+      "note": "入站寫 letter 但不觸發；移除推給開發者的 LINE"
+    },
+    {
+      "id": "P3-09",
+      "phaseId": "階段 3",
+      "name": "實機驗收：Webhook（Codex 執行）",
+      "status": "todo",
+      "deps": "P3-02～P3-08",
+      "live": "有",
+      "timebox": "1 天",
+      "doneAt": "",
+      "commit": "",
+      "note": "測試 IIS 部署、Webhook URL、模擬事件、重送、驗簽"
+    },
+    {
+      "id": "P4-01",
+      "phaseId": "階段 4",
+      "name": "盤點金流副本並鎖行為",
+      "status": "todo",
+      "deps": "—",
+      "live": "無",
+      "timebox": "1 天",
+      "doneAt": "",
+      "commit": "",
+      "note": "建單、查詢、撥款、回呼、HashCode"
+    },
+    {
+      "id": "P4-02",
+      "phaseId": "階段 4",
+      "name": "金額改用 Money",
+      "status": "todo",
+      "deps": "P4-01",
+      "live": "無",
+      "timebox": "半天",
+      "doneAt": "",
+      "commit": "",
+      "note": "舊呼叫點 Obsolete 轉接"
+    },
+    {
+      "id": "P4-03",
+      "phaseId": "階段 4",
+      "name": "永豐撥款查詢處理器（對外待辦）",
+      "status": "todo",
+      "deps": "P4-01、P2-07",
+      "live": "無",
+      "timebox": "1 天",
+      "doneAt": "",
+      "commit": "",
+      "note": "業務結果不重試，照實回寫"
+    },
+    {
+      "id": "P4-04",
+      "phaseId": "階段 4",
+      "name": "金鑰改為具名設定檔",
+      "status": "todo",
+      "deps": "P4-01",
+      "live": "無",
+      "timebox": "半天",
+      "doneAt": "",
+      "commit": "",
+      "note": "移除寫死金鑰；教會不能用別人的設定檔"
+    },
+    {
+      "id": "P4-05",
+      "phaseId": "階段 4",
+      "name": "回呼端點由 LineWebhook 承載",
+      "status": "todo",
+      "deps": "P3-02、P4-04",
+      "live": "無",
+      "timebox": "半天",
+      "doneAt": "",
+      "commit": "",
+      "note": "驗簽、冪等、幣別一致"
+    },
+    {
+      "id": "P4-06",
+      "phaseId": "階段 4",
+      "name": "實機驗收：永豐測試環境（Codex 執行）",
+      "status": "todo",
+      "deps": "P4-02～P4-05",
+      "live": "有",
+      "timebox": "半天",
+      "doneAt": "",
+      "commit": "",
+      "note": "同一筆只執行一次；不做真實付款"
+    },
+    {
+      "id": "P5-01",
+      "phaseId": "階段 5",
+      "name": "外殼基礎與測試替身",
+      "status": "todo",
+      "deps": "P2-04、P2-11",
+      "live": "無",
+      "timebox": "1 天",
+      "doneAt": "",
+      "commit": "",
+      "note": "PluginShellBase、影子模式記錄器"
+    },
+    {
+      "id": "P5-02",
+      "phaseId": "階段 5",
+      "name": "舊程式黃金資料產生器",
+      "status": "todo",
+      "deps": "—",
+      "live": "無",
+      "timebox": "1 天",
+      "doneAt": "",
+      "commit": "",
+      "note": "net48 harness，不進方案、不部署"
+    },
+    {
+      "id": "P5-03",
+      "phaseId": "階段 5",
+      "name": "影子模式比對 shadow＋佈署擴充",
+      "status": "todo",
+      "deps": "P5-01",
+      "live": "唯讀比對",
+      "timebox": "1 天",
+      "doneAt": "",
+      "commit": "",
+      "note": "映像、活動群組、switch、ui-export／import"
+    },
+    {
+      "id": "P5-04",
+      "phaseId": "階段 5",
+      "name": "國際化 Plugin",
+      "status": "todo",
+      "deps": "P5-03、更新回復前置、P2-08、P2-10",
+      "live": "影子模式",
+      "timebox": "1 天",
+      "doneAt": "",
+      "commit": "",
+      "note": "改字時間、會友語言換宮格、教會語系驗證"
+    },
+    {
+      "id": "P5-05",
+      "phaseId": "階段 5",
+      "name": "週報",
+      "status": "todo",
+      "deps": "P5-03、更新回復前置",
+      "live": "影子模式",
+      "timebox": "1 天",
+      "doneAt": "",
+      "commit": "",
+      "note": "建立 Workflows 專案並加入方案"
+    },
+    {
+      "id": "P5-06",
+      "phaseId": "階段 5",
+      "name": "出席",
+      "status": "todo",
+      "deps": "P5-03、更新回復前置",
+      "live": "影子模式",
+      "timebox": "1 天",
+      "doneAt": "",
+      "commit": "",
+      "note": ""
+    },
+    {
+      "id": "P5-07",
+      "phaseId": "階段 5",
+      "name": "課程（8 個舊專案）",
+      "status": "todo",
+      "deps": "P5-03、更新回復前置",
+      "live": "影子模式",
+      "timebox": "2 天",
+      "doneAt": "",
+      "commit": "",
+      "note": "兩套進階評估合成一個引擎"
+    },
+    {
+      "id": "P5-08",
+      "phaseId": "階段 5",
+      "name": "預約簽核",
+      "status": "todo",
+      "deps": "P5-03、更新回復前置",
+      "live": "影子模式",
+      "timebox": "1 天",
+      "doneAt": "",
+      "commit": "",
+      "note": ""
+    },
+    {
+      "id": "P5-09",
+      "phaseId": "階段 5",
+      "name": "QR",
+      "status": "todo",
+      "deps": "P5-03、P2-09",
+      "live": "影子模式",
+      "timebox": "1 天",
+      "doneAt": "",
+      "commit": "",
+      "note": "需要圖片時建立 QrImageGenerate 待辦"
+    },
+    {
+      "id": "P5-10",
+      "phaseId": "階段 5",
+      "name": "關懷",
+      "status": "todo",
+      "deps": "P5-03、更新回復前置",
+      "live": "影子模式",
+      "timebox": "1 天",
+      "doneAt": "",
+      "commit": "",
+      "note": "「今天」依教會時區；祝福推播固定 Retry Key"
+    },
+    {
+      "id": "P5-11",
+      "phaseId": "階段 5",
+      "name": "收費",
+      "status": "todo",
+      "deps": "P5-03、P4-03",
+      "live": "影子模式",
+      "timebox": "1 天",
+      "doneAt": "",
+      "commit": "",
+      "note": "撥款走 AllotQuery 待辦"
+    },
+    {
+      "id": "P5-12",
+      "phaseId": "階段 5",
+      "name": "訊息與群發（風險最高）",
+      "status": "todo",
+      "deps": "P5-03、P2-05、P2-06",
+      "live": "影子模式",
+      "timebox": "2 天",
+      "doneAt": "",
+      "commit": "",
+      "note": "每次只送 1 人；不得 multicast／broadcast"
+    },
+    {
+      "id": "P5-13",
+      "phaseId": "階段 5",
+      "name": "刪除不移植的舊項目",
+      "status": "todo",
+      "deps": "P5-04～P5-12",
+      "live": "無",
+      "timebox": "半天",
+      "doneAt": "",
+      "commit": "",
+      "note": "LINE Notify 已終止等"
+    },
+    {
+      "id": "P6-01",
+      "phaseId": "階段 6",
+      "name": "QR 改呼叫 GoodShepherd.Core",
+      "status": "todo",
+      "deps": "P2-09、P5-09",
+      "live": "頁面驗收",
+      "timebox": "1 天",
+      "doneAt": "",
+      "commit": "",
+      "note": "掃碼解析新舊結果相同"
+    },
+    {
+      "id": "P6-02",
+      "phaseId": "階段 6",
+      "name": "週報改呼叫 GoodShepherd.Core",
+      "status": "todo",
+      "deps": "P5-05",
+      "live": "頁面驗收",
+      "timebox": "1 天",
+      "doneAt": "",
+      "commit": "",
+      "note": ""
+    },
+    {
+      "id": "P6-03",
+      "phaseId": "階段 6",
+      "name": "送訊移除 Obsolete 薄殼",
+      "status": "todo",
+      "deps": "P2-06、P5-12",
+      "live": "無",
+      "timebox": "1 天",
+      "doneAt": "",
+      "commit": "",
+      "note": ""
+    },
+    {
+      "id": "P6-04",
+      "phaseId": "階段 6",
+      "name": "AddToolUtility 舊多載移除",
+      "status": "todo",
+      "deps": "—",
+      "live": "無",
+      "timebox": "1 天",
+      "doneAt": "",
+      "commit": "",
+      "note": "同時拿掉 ToolUtility → Hosting 型別轉送"
+    },
+    {
+      "id": "P6-05",
+      "phaseId": "階段 6",
+      "name": "搬走部分的字改經字典",
+      "status": "todo",
+      "deps": "—",
+      "live": "無",
+      "timebox": "1 天",
+      "doneAt": "",
+      "commit": "",
+      "note": "ChurchReport 中文字串基準下降"
+    },
+    {
+      "id": "P6-06",
+      "phaseId": "階段 6",
+      "name": "AspNetCore 2.2.x 舊套件評估",
+      "status": "todo",
+      "deps": "—",
+      "live": "無",
+      "timebox": "1 天",
+      "doneAt": "",
+      "commit": "",
+      "note": ""
+    },
+    {
+      "id": "P6-07",
+      "phaseId": "階段 6",
+      "name": "R2 清冊清零（D28，從 P2-01 移出）",
+      "status": "todo",
+      "deps": "P6-01～P6-06",
+      "live": "無",
+      "timebox": "2 天",
+      "doneAt": "",
+      "commit": "",
+      "note": "清冊為空、R2 架構測試改嚴格"
+    },
+    {
+      "id": "P7-01",
+      "phaseId": "階段 7",
+      "name": "佈署專案的正式組織支援與 switch",
+      "status": "todo",
+      "deps": "階段 5 全部",
+      "live": "無",
+      "timebox": "1 天",
+      "doneAt": "",
+      "commit": "",
+      "note": "--production 與組織名稱確認"
+    },
+    {
+      "id": "P7-02",
+      "phaseId": "階段 7",
+      "name": "切換手冊＋goodshepherdback 全流程演練",
+      "status": "todo",
+      "deps": "P7-01",
+      "live": "有",
+      "timebox": "1 天",
+      "doneAt": "",
+      "commit": "",
+      "note": "之後每個正式組織：你回「可以」後由 Codex 切換"
+    },
+    {
+      "id": "P8-01",
+      "phaseId": "階段 8",
+      "name": "奉獻類別清單 new_offeringcategory",
+      "status": "todo",
+      "deps": "P1-11",
+      "live": "有",
+      "timebox": "1 天",
+      "doneAt": "",
+      "commit": "",
+      "note": "類別合併由你決定"
+    },
+    {
+      "id": "P8-02",
+      "phaseId": "階段 8",
+      "name": "角色名稱改為字典＋教會覆寫",
+      "status": "todo",
+      "deps": "—",
+      "live": "無",
+      "timebox": "1 天",
+      "doneAt": "",
+      "commit": "",
+      "note": "權限判斷一律用代碼"
+    },
+    {
+      "id": "P8-03",
+      "phaseId": "階段 8",
+      "name": "教會設定網頁",
+      "status": "todo",
+      "deps": "P8-01、P8-02",
+      "live": "無",
+      "timebox": "1 天",
+      "doneAt": "",
+      "commit": "",
+      "note": "只列白名單名詞；60 秒內生效"
+    },
+    {
+      "id": "P8-04",
+      "phaseId": "階段 8",
+      "name": "偽語系全面驗收",
+      "status": "todo",
+      "deps": "P8-03",
+      "live": "有",
+      "timebox": "1 天",
+      "doneAt": "",
+      "commit": "",
+      "note": "未包住的中文 0、截斷元素 0"
+    },
+    {
+      "id": "P8-05",
+      "phaseId": "階段 8",
+      "name": "收尾清理",
+      "status": "todo",
+      "deps": "其餘全部",
+      "live": "無",
+      "timebox": "半天",
+      "doneAt": "",
+      "commit": "",
+      "note": "「之後再說」清單交你決定"
+    }
+  ],
+  "milestones": [
+    {
+      "id": "M-P0-REVIEW",
+      "phaseId": "階段 0",
+      "name": "階段 0 外部審查（單模型，使用者指定 ClaudeOnly）",
+      "status": "done",
+      "note": "無未處理 Critical／High"
+    },
+    {
+      "id": "P2-00",
+      "phaseId": "階段 2",
+      "name": "切換到實作計畫 3.4（00 §14）",
+      "status": "todo",
+      "note": "Codex 下一件事：修好紅燈提交、關閉自動推送、封存 3.2／3.3、收斂進行中為 2 包"
+    },
+    {
+      "id": "P2-04 前置",
+      "phaseId": "階段 2",
+      "name": "沙箱對 LINE 的測試推播（Codex 執行）",
+      "status": "you",
+      "note": "等你：測試 LINE channel 與 User Secrets（TestChannelToken、TestLineUserId）"
+    },
+    {
+      "id": "M-P2-REVIEW",
+      "phaseId": "階段 2",
+      "name": "階段 2 審查＋一次提出計畫修正提案",
+      "status": "todo",
+      "note": ""
+    },
+    {
+      "id": "更新回復前置",
+      "phaseId": "階段 5",
+      "name": "Plugin FileVersion 追蹤、只更新 FileVersion、回復（Codex 執行）",
+      "status": "todo",
+      "note": "首個正式 Plugin 佈署 goodshepherdback 之前"
+    }
+  ],
+  "active": [
+    {
+      "id": "P2-01",
+      "startedAt": "2026-11-07 08:47",
+      "timebox": "自 3.4 生效（2026-11-07 21:10）起半個工作天",
+      "next": "依 D28 改完成條件（ChurchReport R2 改棘輪）；把 BuiltPlugin_HasNoForbiddenAssemblyReferences 改成不依賴另一組態的本機產物；乾淨複本驗證後驗收。",
+      "dod": [
+        [
+          "測試全部同名存在並通過",
+          "ok",
+          "必須補的測試已有；ChurchReport 82／82"
+        ],
+        [
+          "乾淨複本守門",
+          "no",
+          "Debug 產物測試在乾淨複本失敗；P2 範圍編碼檢查 6 檔未過"
+        ],
+        [
+          "覆蓋率 ≥ 80%",
+          "ok",
+          "Hosting 83.29%"
+        ],
+        [
+          "實機",
+          "na",
+          "本包不需要"
+        ],
+        [
+          "一頁回報與進度頁",
+          "no",
+          "回報需改為一頁格式"
+        ]
+      ]
+    },
+    {
+      "id": "P2-03",
+      "startedAt": "2026-11-07 12:34",
+      "timebox": "自 3.4 生效（2026-11-07 21:10）起半個工作天",
+      "next": "補上 Tampered_Ciphertext_Throws 等 4 個同名測試（可共用斷言）；乾淨複本驗證後驗收。",
+      "dod": [
+        [
+          "測試全部同名存在並通過",
+          "no",
+          "內容已覆蓋，4 個指定名稱需補同名"
+        ],
+        [
+          "乾淨複本守門",
+          "no",
+          "工作樹 4,596 個全過，尚未在乾淨複本跑"
+        ],
+        [
+          "覆蓋率 ≥ 80%",
+          "ok",
+          "Core net462 95.26%、net10 97.48%；Deployment 89.30%"
+        ],
+        [
+          "實機",
+          "na",
+          "3.4 移到 P2-04 前置與 P2-12"
+        ],
+        [
+          "一頁回報與進度頁",
+          "ok",
+          ""
+        ]
+      ]
+    },
+    {
+      "id": "P2-09",
+      "startedAt": "2026-11-07 19:23",
+      "timebox": "P2-09a 半個工作天（3.4 生效後重新起算）",
+      "next": "依 D31 先暫停或併入 2 包上限；改名 P2-09a，完成 codec 讓 19 個紅燈轉綠，紅燈不再提交。",
+      "dod": [
+        [
+          "測試全部同名存在並通過",
+          "no",
+          "20 個測試中 19 個紅燈（只有骨架）"
+        ],
+        [
+          "乾淨複本守門",
+          "no",
+          "最新提交含紅燈測試"
+        ],
+        [
+          "覆蓋率 ≥ 80%",
+          "no",
+          "尚未量測"
+        ],
+        [
+          "實機",
+          "na",
+          "本包不需要"
+        ],
+        [
+          "一頁回報與進度頁",
+          "no",
+          ""
+        ]
+      ]
+    }
+  ],
+  "gates": [
+    {
+      "item": "方案建置（Release）",
+      "result": "warn",
+      "at": "2026-11-07 20:58",
+      "note": "30d2f02b 有 2 個錯誤；16c75932 已可建置（只驗了 GoodShepherd.Core.Tests 專案）"
+    },
+    {
+      "item": "全方案測試",
+      "result": "bad",
+      "at": "2026-11-07 20:58",
+      "note": "30d2f02b：4,595 通過、1 失敗（需 Debug 產物）；16c75932：GoodShepherd.Core.Tests 20 個中 19 個紅燈"
+    },
+    {
+      "item": "檔案說明檢查",
+      "result": "ok",
+      "at": "2026-11-07 19:35",
+      "note": "1,284 檔、0 失敗"
+    },
+    {
+      "item": "文字編碼（P2 範圍）",
+      "result": "bad",
+      "at": "2026-11-07 19:36",
+      "note": "6 個流程檔缺結尾 CRLF"
+    },
+    {
+      "item": "重複程式掃描",
+      "result": "ok",
+      "at": "2026-11-07 19:37",
+      "note": "34 專案 1,059 檔，新增 0"
+    },
+    {
+      "item": "I18nCheck verify",
+      "result": "ok",
+      "at": "2026-11-07 19:38",
+      "note": "en 完成度 13.33%（只供參考）"
+    },
+    {
+      "item": "雲端 CI（GitHub）",
+      "result": "na",
+      "at": "—",
+      "note": "正式範圍 23 個專案（D33）；尚未取得成功紀錄"
+    }
+  ],
+  "later": [
+    {
+      "id": "LATER-001",
+      "text": "ImageSharp 升級到 4.x：v3 安全支援到 2027-05-12，到期前 2 個月提醒你",
+      "source": "P0-12A",
+      "addedAt": "2026-11-07 21:10 Asia/Taipei (UTC+08:00)"
+    },
+    {
+      "id": "LATER-002",
+      "text": "恢復雲端完整 CI：需要可用的 DevExpress 套件來源",
+      "source": "D33",
+      "addedAt": "2026-11-07 21:10 Asia/Taipei (UTC+08:00)"
+    },
+    {
+      "id": "LATER-003",
+      "text": "伺服器取得支援 4.8 沙箱的更新後，再評估 Plugin 是否升回 net48",
+      "source": "D21",
+      "addedAt": "2026-11-07 21:10 Asia/Taipei (UTC+08:00)"
+    }
+  ],
+  "proposals": [],
+  "decisions": [
+    {
+      "at": "2026-11-07",
+      "text": "測試環境權限：維持全自主，包括進 D365 主機、SQL 備份還原（D24 修訂）"
+    },
+    {
+      "at": "2026-11-07",
+      "text": "「兩手放開」：除非必要，全程由 Codex 伸手進 D365-9.1、D365-DC01 等自動處理"
+    },
+    {
+      "at": "2026-11-07",
+      "text": "GitHub 推送：工作包驗收後才推（D30）"
+    },
+    {
+      "at": "2026-11-07",
+      "text": "平行：最多 2 包，需互不相依（D31）"
+    },
+    {
+      "at": "2026-11-07",
+      "text": "證據：以後只留摘要，舊的保留（D32）"
+    },
+    {
+      "at": "2026-11-07",
+      "text": "計畫要收斂、能落地，不無限擴張；同時要詳細完整（D29、D35）"
+    },
+    {
+      "at": "2026-11-07",
+      "text": "3.2、3.3 封存而不刪除（00 §14）"
+    },
+    {
+      "at": "3.3 期間",
+      "text": "先修好原有 24 個失敗測試，再繼續階段 0"
+    },
+    {
+      "at": "3.3 期間",
+      "text": "外部審查只使用 Claude，階段末做一次（P0-12A 提交後、P0-13 前；失敗就準備審查包並等待使用者）"
+    },
+    {
+      "at": "3.3 期間",
+      "text": "P0-04 文件開關放在 csproj 本體，其餘嚴格設定放 targets（以實際文件路徑、CS1591、SMQ0001 與 bin XML 驗收，16／16）"
+    },
+    {
+      "at": "3.3 期間",
+      "text": "保留 6b7d5c4b 與 06a4b102 歷史（P0-05 正式收尾提交記錄紅燈、實作與最新完整驗證）"
+    },
+    {
+      "at": "3.3 期間",
+      "text": "P0-05 之後先做 P0-ENV，才進入 P0-06"
+    },
+    {
+      "at": "3.3 期間",
+      "text": "goodshepherdback 清理完成且使用者回報前，任何工具都不得連線（P0-ENV 僅處理本機設定、測試與計畫，不連線任何 D365 組織）"
+    },
+    {
+      "at": "3.3 期間",
+      "text": "依 P0-ENV(c) 停止，不擅自提前實作 P2-01（只保存本機調查與停止紀錄；等待使用者安排安全修復）"
+    },
+    {
+      "at": "3.3 期間",
+      "text": "使用者已核定先做獨立 P0-SEC，再接續 P0-ENV（安全修復範圍已明確；僅環境優先順序與實際 Host 矛盾需核定修正）"
+    },
+    {
+      "at": "3.3 期間",
+      "text": "使用者核定以實作計畫 3.3 執行，3.2 凍結（部署改用 Solution 內佈署專案，環境順序依網站現有規則；原兩項待決均已解除）"
+    },
+    {
+      "at": "3.3 期間",
+      "text": "P0-07 補字數以附錄 E.3 精確公式為準（使用者 2026-11-03 核定；排除參數後以 Rune 計數，設計中四字補三個為筆誤，不改設計原檔。）"
+    },
+    {
+      "at": "3.3 期間",
+      "text": "僅 I18nCheck.Tests 允許 CA1707 命名例外（使用者 2026-11-03 明確核定；保留十二個方法名，工具本體及其他分析器維持嚴格。）"
+    },
+    {
+      "at": "3.3 期間",
+      "text": "永久集中允許合格嚴格測試的底線命名（2026-11-03 核定所有階段：StrictCode、IsTestProject、.Tests 名稱三者同時成立，僅 CA1707；取代先前單專案例外。）"
+    },
+    {
+      "at": "3.3 期間",
+      "text": "嚴格 net48 明確設定分析層級；新 API 可依 CA1716 語意改名（2026-11-03 核定：AnalysisLevel 空白補 latest；GetText／richMenuAlias 不需警告抑制，原測試名不改。）"
+    },
+    {
+      "at": "3.3 期間",
+      "text": "P0-09／P0-10 例外責任依既有設計核定（2026-11-03：Core 原始 TransportException 交 caller；net48 Plugin 追蹤後拋出，不用 notifier；最終通知依設計 10.5／10.9、04 §5.4。）"
+    },
+    {
+      "at": "3.3 期間",
+      "text": "ChurchReport Development 帳密存放例外已核定（僅調整 ChurchReport；User Secrets 仍可覆寫。P0-12 佈署帳密仍只讀 User Secrets；證據不含機密值。）"
+    },
+    {
+      "at": "3.3 期間",
+      "text": "P0-12 前置套件弱點修補與 P0-12A 已核定（Xml／Pkcs 升至 10.0.14、net48 全相依稽核及 System.Text.Json 6.0.11 已通過；ImageSharp 3.2.0 與圖片格式／尺寸防護列入 P0-12A，階段審查移至其後。）"
+    },
+    {
+      "at": "3.3 期間",
+      "text": "P0-12A 維持既有 JPEG／PNG／GIF 白名單，不新增 WebP（使用者 2026-11-03 更正；先把 3.1.12 特徵測試修到全綠，再拒絕偽裝 WebP。）"
+    },
+    {
+      "at": "3.3 期間",
+      "text": "Six Labors 使用一般金鑰；本機與 GitHub 設定已由使用者完成（只以程序環境提供本機路徑，不讀內容；B 段將 secret 暫存至 runner，缺少即失敗並 always 清理。）"
+    },
+    {
+      "at": "3.3 期間",
+      "text": "P0-13 改為 trace 沙箱最小驗收（使用者 2026-11-04 核定；一輪建立即啟用，只需三個 User Secrets 值，不需 LINE channel 或 Six Labors 授權；完成後停用、verify=0、恢復追蹤並清理。）"
+    },
+    {
+      "at": "3.3 期間",
+      "text": "推播前置移至 P2-04；更新／回復與 Plugin FileVersion 追蹤移至階段 5（使用者 2026-11-04 核定；後者須在首個正式 Plugin 佈署 goodshepherdback 前驗收，現在不改 Plugin。）"
+    },
+    {
+      "at": "3.3 期間",
+      "text": "接受 Retry Key 單元測試及 LINE 官方 24 小時有效期契約（使用者 2026-11-04 核定，取消 P0 同事件實機重送；不宣稱實機重送通過，也不保證送達。）"
+    },
+    {
+      "at": "3.3 期間",
+      "text": "GitHub CI 過渡範圍已接受（使用者 2026-11-04 核定；排除三個 DevExtreme 依賴專案，階段 1 優先解決來源，本機 §8 仍為全方案。）"
+    },
+    {
+      "at": "3.3 期間",
+      "text": "smoke 輪詢調整列入階段 1 第一批（使用者 2026-11-04 核定：目前 100 毫秒／最多 3 分鐘，改約 2 秒並補時鐘測試；P2-04 推播驗收前完成，現在只記錄。）"
+    }
+  ],
+  "timeline": [
+    {
+      "t": "2026-11-07 21:10 Asia/Taipei (UTC+08:00)",
+      "text": "實作計畫 3.4 與設計 v3.4 放進 repo；本頁成為現行進度頁。",
+      "cls": "info"
+    },
+    {
+      "t": "2026-11-07 20:34 Asia/Taipei (UTC+08:00)",
+      "text": "Codex 提交 16c75932：QR codec 骨架，建置恢復，但 19 個紅燈測試。",
+      "cls": "warn"
+    },
+    {
+      "t": "2026-11-07 19:50 Asia/Taipei (UTC+08:00)",
+      "text": "Codex 實作稽核報告（P0／P1／P2）完成：建議出 v3.4。",
+      "cls": "info"
+    }
+  ],
+  "history33": [
+    {
+      "t": "2026-11-07 19:23 Asia/Taipei (UTC+08:00)",
+      "text": "P2-09純內容編解碼切片啟動，依現役掃描器欄位建立黃金測試；缺少QrCodes實作的編譯紅燈已保存，尚未通過驗收。主會話唯一寫入；一名唯讀代理同步盤點P2-06送訊副本。P2-07圖片與P2-04實機依賴保持未完成；P2仍1／12驗收、3包進行中。"
+    },
+    {
+      "t": "2026-11-07 09:00 Asia/Taipei (UTC+08:00)",
+      "text": "同階段一般資訊集中：P2兩張合為一張預設收合摘要，原歷史與證據完整保留；P1歷史及warn/error維持獨立。進度頁17／17、檔案說明1257檔0失敗；Hosting最新6通過／4失敗仍待修，83包狀態與驗收數未改。主會話inline，未連D365／LINE或變更測試環境。"
+    },
+    {
+      "t": "2026-11-07 08:47 Asia/Taipei (UTC+08:00)",
+      "text": "P2-01 補齊方案登錄：Hosting 與 Hosting.Tests 各一筆，原30專案完整保留、現32；Release建置0警告／0錯誤。新增即入方案規則寫入AGENTS與spec。兩個子代理因inline限制停止，僅保留進度測試紅燈證據；外部雙模型分析／審查均未完成，不虛報成功。完整P2目標不縮小，必要實機受阻仍算未完成。 檔案說明守門7份換行紅燈已修復，完整1257檔0失敗；進度頁3個P1快照斷言仍待修。"
+    },
+    {
+      "t": "2026-11-07 08:18",
+      "text": "P2 開始：已讀取 P2 目標、正式計畫與適用規範；啟動 P2-01 Hosting 子任務。P2-02／03／06／09列為可離線並行候選，P2-04 測試 channel／本人帳號／User Secrets 前置仍未完成；尚未修改產品程式或連 D365／LINE。"
+    },
+    {
+      "t": "2026-11-06 21:13",
+      "text": "P1-12實機/4412回歸/157與89.11%完成；12/12驗收、30/83總計，續本地提交及封存。"
+    },
+    {
+      "t": "2026-11-06 12:00",
+      "text": "P1-04整包驗收完成：所有候選已抽取或保留必要host adapter；四方法專屬7/7/8/8、product隔離8案。ToolUtility net48實載net462 1214/1214、net10 1345/1345；完整16TRX 3906/3906、ChurchReport623、架構67，Core coverage95.45%/95.81%及strict零警告／錯誤。Debug7、I18n108、PE27、Plugin metadata10/build6、CI閉包6及套件／I18n／duplicates／完整Changed編碼通過。主會話直接審查，依使用者取消雙模型。驗收矩陣wp-reports/P1-04-acceptance.md；證據.ccg/tasks/integration-p1/evidence/p104-final/。程式本地提交6aac1c6f／57078508／ebe6d0b5，編碼前置d99a4c77；未push。P1進度4/12，P1-05～12尚未完成；D365 預設只讀，本包未操作VM/D365/LINE或hosted CI。"
+    },
+    {
+      "t": "2026-11-06 09:50",
+      "text": "P1-04 Constants 已抽取；契約/優化查詢與帳密修補已提交c9a667d4。Contact純資料切片完成：原host7特性先綠、安全24全紅及空密碼2全紅，修後搬前43綠才抽Core；host保留兩ctor、不使用/保存缺隔離鍵cache。最新雙宿主688/818、全方案16TRX 2853/2853（ChurchReport623）、Core coverage92.77%/93.42%、Contact本體100%、strict零警告/錯誤；Debug tracer7、進度頁11及I18n/duplicates通過。主會話審查，未呼叫雙模型。List/MarketingList、其餘Query/CrmAsync尚待交付，整包P1-04未完成、P1仍3/12。D365 預設只讀，未操作VM/D365/LINE。"
+    },
+    {
+      "t": "2026-11-06 09:37",
+      "text": "P1-04 Constants 已抽取；契約/優化查詢與帳密修補已本地提交c9a667d4（未push）。Contact新切片：原host三查詢golden與舊文字7/7先綠，安全24/24全紅及空密碼2/2真紅；修後搬前43/43通過，抽出Core ContactDataService，host保留兩建構式adapter、不使用缺隔離鍵的cache。搬後目前681/811通過，strict雙目標零警告/錯誤；正補取消/外借多載與完整回歸，尚非最終驗收。D365 預設只讀，未操作VM/D365/LINE。其餘List/Query/CrmAsync待完成，P1仍3/12、P1-04進行中。"
+    },
+    {
+      "t": "2026-11-06 09:25",
+      "text": "P1-04 Constants 已抽取；五個純契約67個多載與優化查詢已抽取；補上帳密cache繞過的安全修補，每次核對當前密碼、不快取登入結果。最終ToolUtility net48實載net462 652/652、net10 778/778；Core coverage 92.13%/92.83%、strict零警告/錯誤；全方案16 TRX共2777/2777、ChurchReport623/623。使用者免除雙模型，主會話審查。Contact其餘純查詢、List/MarketingList、其餘Query/CrmAsync尚待處理；整包P1-04未完成，P1仍3/12。D365 預設只讀；未操作VM、D365、LINE。"
+    },
+    {
+      "t": "2026-11-05 21:39",
+      "text": "Activity切片ec108ae0已本地提交、未push；495/602雙宿主、2444完整回歸、Core99.56%/100%及主會話審查證據已保存。依使用者不再安排雙模型REVIEW。集中P1-04剩餘抽取，先Collection原host特性、安全紅綠與完整分頁，再處理必要純契約；已驗收切片不重做。其餘P1仍未完成。"
+    },
+    {
+      "t": "2026-11-05 21:37",
+      "text": "Activity切片16TRX2444、雙宿主495/602、Core99.56%/100%、tracer7、工具108/27、plugin10/6、package34/158/0、duplicates28/941/0、頁面8/8與三尺寸Edge全過。使用者免除後續雙模型REVIEW，主會話審查已保存；30自有文字0問題，完整Changed唯一非本切片索引缺CRLF，未修改。P1仍2/12，接續其他候選。"
+    },
+    {
+      "t": "2026-11-05 21:31",
+      "text": "Activity安全51紅→57綠，含生命週期搬前82/82後才git mv；搬後ToolUtility net48實載net462 495/495、net10 602/602，Core獨立coverage99.56%／100%、strict零警告／錯誤。真公開委派7/7、完整方案16TRX2444/2444、ChurchReport623/623、架構67/67。使用者免除後續雙模型REVIEW，改主會話審查；其餘守門保存中，P1仍2/12。"
+    },
+    {
+      "t": "2026-11-05 21:19",
+      "text": "使用者已明確免除後續雙模型REVIEW，由主會話直接審查及實測，既有外審紀錄保留不改寫。Activity安全51案已在原host真實全紅，包含跨表GUID覆寫／部分發布；產品修正尚未通過。P1仍2/12，D365預設只讀、本輪未操作VM／D365／LINE。"
+    },
+    {
+      "t": "2026-11-05 21:02",
+      "text": "Activity六特性原host已綠，最新完整方案16TRX2278/2278、ToolUtility413/518、ChurchReport623；205806特性review為Gemini單模型降級且無新Critical/High/Warning。產品尚未修／搬，分析已核實跨表GUID覆寫與部分發布風險，安全紅綠為下一步；主P1仍2/12。Attachment已保存31ab8cea。"
+    },
+    {
+      "t": "2026-11-05 21:00",
+      "text": "Attachment已本地提交31ab8cea、完整2272回歸通過；Activity原host六特性已綠（含前綴不Clear、兩組SetState/default與external SDK），204755分析為Gemini單模型週額度降級。已核實跨表GUID覆寫及部分ArrayList發布風險，安全紅綠待做，Activity產品未改／未搬。P1仍2/12。"
+    },
+    {
+      "t": "2026-11-05 20:45",
+      "text": "Attachment已保存完整離線2272回歸、雙宿主413/512及99.48%/100%。末端審查Claude週額度、Gemini單模型降級；完整Changed編碼只被非本切片p013任務索引缺檔尾CRLF阻擋，自有40文字0問題，保留外部索引不改、不混入提交。P1仍2/12，接續Activity及其餘候選。"
+    },
+    {
+      "t": "2026-11-05 20:38",
+      "text": "Attachment完整方案16TRX、2272/2272，ToolUtility413/413與512/512、ChurchReport623/623、架構67/67；Core coverage99.48%/100%。203320已完成Gemini單模型降級審查；Claude週額度阻擋至2026-11-07 16:00(台北)，未宣稱雙模型。已修復自癒入口weekly誤判，離線7/7與summary6/6；1536組候選證明合法Base64可解碼且兩target同拒多餘padding。末端其他守門與保存中，P1仍2/12，整包未完成。"
+    },
+    {
+      "t": "2026-11-05 20:24",
+      "text": "Attachment原host特性3/3、安全28紅/2綠；Base64與parent補測13紅/1綠，修後搬前50/50才git mv。搬後雙宿主410/410、509/509，產品net462反射通過、strict雙目標0警告/錯誤。完整回歸、coverage與雙模型審查待完成；P1仍2/12，P1-04未驗收。"
+    },
+    {
+      "t": "2026-11-05 20:04",
+      "text": "Repository收尾證據已本地提交141c1e8e、未push。接續Attachment：已讀兩入口、既有測試與真實Facade委派，確認實際使用ref SDK而非ctor SDK；200333 CCG雙模型分析執行中，附件產品尚未修改。P1仍2/12，整包未完成。"
+    },
+    {
+      "t": "2026-11-05 19:59",
+      "text": "Repository切片完成末端再驗：16TRX2167/2167，ToolUtility363/363、457/457，ChurchReport623/623；Core coverage99.42%／100%、strict零警告／錯誤，I18nCheck verify通過／Core CJK=0。195337雙模型完整、無配額降級，前W1／W2關閉、無新增Critical／High／Warning。其餘候選未完成，P1仍2/12；接續Attachment，不封存主P1。"
+    },
+    {
+      "t": "2026-11-05 19:47",
+      "text": "Repository初輪完整方案16TRX、2165/2165，ChurchReport623/623、架構67/67；193656雙模型無Critical／High，有兩個文件Warning，已補聚合無ID拒絕與PageInfo原地改寫文件／案例。I18nCheck曾抓13個搬入Core的中文診斷常值，已改英文固定訊息、Core回0且verify通過，未改基準。英文化及補證後的最後回歸／複審進行中，尚未列最終驗收。P1仍2/12、P1-04整包未完成。"
+    },
+    {
+      "t": "2026-11-05 19:36",
+      "text": "P1-04 Repository原host特性12/12、安全30紅/4綠、overload2紅；修後搬前含六個消費點98/98後git mv。搬後雙宿主362/362、456/456，Core獨立coverage99.42%／100%、strict零警告／錯誤。完整方案回歸與CCG雙模型審查進行中，尚未預判通過，P1仍2/12。"
+    },
+    {
+      "t": "2026-11-05 19:28",
+      "text": "P1-04 Repository 分析191821已完成Gemini／Claude雙模型、無配額降級；原host六入口特性12/12。目前補安全紅綠，保留Update非空ID及SDK原InnerException，記錄固定訊息／拒絕錯誤識別等安全差異。Repository尚未搬移或驗收，整個P1仍2/12；上一切片2056回歸是既有證據，不當成本切片通過。"
+    },
+    {
+      "t": "2026-11-05 19:16",
+      "text": "本地主動提交0169e079已保存抽取、完整回歸與雙模型證據，未push；兩份既有修改保留。主P1仍2/12，接續Repository及其他候選，不封存未完成任務。"
+    },
+    {
+      "t": "2026-11-05 19:09",
+      "text": "P1-04本切片完整方案2056/2056與末輪185904雙模型通過；caller補證修正為8種、11案，無降級或Critical／High／Warning。其他候選未完成，P1仍2/12。"
+    },
+    {
+      "t": "2026-11-05 18:44",
+      "text": "P1-04屬性工具／SDK extension完成本輪抽取與雙宿主314／395驗證，coverage99.36%／100%。增量雙模型及全方案回歸執行中，P1仍2/12。"
+    },
+    {
+      "t": "2026-11-05 18:21",
+      "text": "接回P1-04。拒絕使用過期DLL的244／349案作為驗收；實際重新建置後270／350案全通過。最新coverage與剩餘純工具抽取持續中，P1仍2/12。"
+    },
+    {
+      "t": "2026-11-05 16:25",
+      "text": "階段2～8的53包登錄完成，對照原文ID無遺漏或額外項，全部未開始。頁面測試8/8；Edge在1440／390／320像素與明暗色通過鍵盤切換、零溢出／零執行錯誤。CCG最終增量複核run 20261105-162250雙模型完整、無降級、無Critical／Warning；僅完成文件登錄，P1仍2/12。"
+    },
+    {
+      "t": "2026-11-05 16:12",
+      "text": "CCG雙模型初審run 20261105-160221完成，無Critical／Warning；Info指出展開符號不易發現，已補可見展開／收合指示。專項回歸紅→綠，進度頁全測8/8通過；最終複審待完成。"
+    },
+    {
+      "t": "2026-11-05 15:57",
+      "text": "逐項對照正式計畫03／04，確認階段2～8的53包、驗收案例與停止界線；修正P8-01重複ID及P8-03伺服器判定措辭，進度頁測試7/7通過，所有後續包仍未開始。"
+    },
+    {
+      "t": "2026-11-05 14:25",
+      "text": "Core CRUD／Owner完成安全抽取並再驗雙宿主244/244、324/324，coverage98.91%／100%；切片外審中，P1仍2/12。"
+    },
+    {
+      "t": "2026-11-05 14:15",
+      "text": "P1-03最終雙模型無Critical／Warning，SDK再驗96/96與101/101；正式驗收2/12。修正卡片／階段統計舊零值，先用新一致性測試重現。"
+    },
+    {
+      "t": "2026-11-05 接續",
+      "text": "沿用 P1 任務；確認 P1-01～03 尚未具備最新版完整驗收證據，進度頁改以「實作存在、驗收未完成」呈現。"
+    },
+    {
+      "t": "目前",
+      "text": "Gemini＋Claude 雙模型分析完成（dualModelComplete=true、無降級）：確認兩項 Warning，排除 AdvancingClock 假設競態；正式計畫未發現缺陷，無須變更計畫或製作 Word 修正報告。"
+    },
+    {
+      "t": "目前",
+      "text": "P1-02 reviewer run 20261105-113854：Gemini＋Claude 均完成，dualModelComplete=true，無 quota 降級；Critical／Warning 0。Claude 的子程序限制符合既有單程序評估契約；Gemini BOM 建議不採納（與 UTF-8 無 BOM 規範衝突）。P1-02 全階段 gates 仍待完成。"
+    },
+    {
+      "t": "2026-11-05",
+      "text": "P1-04 盤點中：已確認舊來源位於父工作樹 .其他解決方案\\LineApiWebhook\\ToolUtility，逐型別標註可搬／不可搬並先建特性測試；沒有修改正式計畫。"
+    },
+    {
+      "t": "2026-11-05",
+      "text": "接續回歸：進度頁測試原有兩項狀態文案斷言已過時，更新為逐包檢查 P1-02 最新雙模型證據與 P1-04 盤點狀態；node --test 4/4 通過，P1 驗收仍為 0/12。"
+    },
+    {
+      "t": "安全邊界",
+      "text": "Hyper-V／D365 維持只讀；不執行 apply、部署或正式資料寫入。若有證據證明計畫需修訂，另產出 Word 修正報告。"
+    },
+    {
+      "t": "12:30",
+      "text": "Codex 建立階段 0 任務與工作資料夾"
+    },
+    {
+      "t": "12:48–13:15",
+      "text": "自動外部審查試了 8 次，都逾時或登入失效"
+    },
+    {
+      "t": "—",
+      "text": "停：發現 24 個原本就失敗的測試 → 你授權先修"
+    },
+    {
+      "t": "—",
+      "text": "改由你人工轉交審查包給 Claude；Claude 審查無 Critical"
+    },
+    {
+      "t": "14:45",
+      "text": "P0-01 提交"
+    },
+    {
+      "t": "14:53",
+      "text": "P0-02 提交"
+    },
+    {
+      "t": "—",
+      "text": "停：計畫有 2 處和程式對不上 → 你核定修正"
+    },
+    {
+      "t": "15:24",
+      "text": "P0-03 提交"
+    },
+    {
+      "t": "15:26",
+      "text": "停：計畫指定的設定位置讀不到專案開關 → 你核定改放 targets"
+    },
+    {
+      "t": "15:32",
+      "text": "P0-04 測試先失敗（紅燈）"
+    },
+    {
+      "t": "15:43",
+      "text": "P0-04 自檢 13/13 通過，尚未提交"
+    },
+    {
+      "t": "15:45",
+      "text": "Claude 查核：XML 說明強制沒有真的生效"
+    },
+    {
+      "t": "已核對",
+      "text": "P0-04 文件產出補修 c4e1f294，16／16 可信；原急件已解決"
+    },
+    {
+      "t": "本次",
+      "text": "P0-05 保存歷史紅燈與實作提交，新增排除目錄／junction 與空警示容錯測試後轉綠"
+    },
+    {
+      "t": "本次收尾",
+      "text": "P0-05 編碼與轉換 21／21（兩個 PowerShell 版本）、進度頁 3／3、完整方案與 Debug tracer 通過"
+    },
+    {
+      "t": "18:01",
+      "text": "P0-05 已提交 ba565a55；完整驗證結果保存在 P0-05 回報"
+    },
+    {
+      "t": "本次調查",
+      "text": "停：P0-ENV 發現舊 LINE 靜態設定繞過 Development，必須改產品程式才能保障 token 來源；依使用者規則等待核定"
+    },
+    {
+      "t": "本次核對",
+      "text": "P0-SEC 已獲核定；環境衝突五案探針有兩案與核定順序不一致，依 §9.6 停止等待單行修正"
+    },
+    {
+      "t": "本次改版",
+      "text": "核對 E: v3.3 Word／HTML／drawio 的 D22～D27；切換 3.3 路徑及進度，3.2 保持凍結。"
+    },
+    {
+      "t": "本次",
+      "text": "P0-SEC 25 個功能紅燈轉綠；Release 766／766、Debug tracer 7／7，未連線外部系統。"
+    },
+    {
+      "t": "本次",
+      "text": "P0-ENV 五個設定紅燈轉綠，Release 771／771；正式回呼保留並記錄限制，不進行付款或外部連線。"
+    },
+    {
+      "t": "本次",
+      "text": "P0-06 12 個初始紅燈轉綠，再補兩個基準識別拒絕紅燈；最終兩個引擎各 14／14，重複群組基準 0。"
+    },
+    {
+      "t": "本次核對",
+      "text": "P0-06 已提交 18e901b1；P0-07 偽語系兩個範例與精確公式不一致，依 §9.6 停止。"
+    },
+    {
+      "t": "2026-11-03",
+      "text": "使用者明確核定偽語系公式例外；設計範例留待下一版勘誤，P0-07 從 TDD 接續。"
+    },
+    {
+      "t": "2026-11-03",
+      "text": "停：新嚴格測試專案的 CA1707 拒絕原列十二個測試名稱；保留全部名稱及嚴格規則，等待窄範圍例外核定。"
+    },
+    {
+      "t": "2026-11-03",
+      "text": "P0-07 原 18／邊界 58 紅燈轉綠，補充邊界後 75／75；Release 771／771、Debug 7／7、CLI 全範圍通過。"
+    },
+    {
+      "t": "2026-11-03",
+      "text": "P0-07 提交前全部守門通過；包含新檔的全階段編碼無問題，3.2 凍結副本不變。"
+    },
+    {
+      "t": "2026-11-03",
+      "text": "P0-07 已提交 f0f0360f；P0-08 核對發現同一命名衝突，但目前例外僅限上一測試專案，停下等待核定。"
+    },
+    {
+      "t": "2026-11-03",
+      "text": "永久規則補充：原探測加四例 20／20；工具 75／75、方案 771／771、Debug 7／7。P0-08 命名待決解除。"
+    },
+    {
+      "t": "2026-11-03",
+      "text": "P0-04 補充提交 cea2958d；P0-08 net48 33 個功能紅燈，net10 因 Get 的 CA1716 編譯診斷停止。"
+    },
+    {
+      "t": "2026-11-03",
+      "text": "net48 規則補修先紅 3 項，綠燈 24／24；本補修與 P0-08 分開提交，沒有修改尚未提交的 P0-08 來源。"
+    },
+    {
+      "t": "2026-11-03",
+      "text": "分析層級補修 58245c6f 獨立提交後，P0-08 兩目標各 33 紅燈轉綠，完整方案 837／837。"
+    },
+    {
+      "t": "2026-11-03",
+      "text": "P0-08 提交 92cfa180；P0-09 核對發現跨框架共用例外回報契約缺口，依 §9.6 停止，沒有產品變更或外部連線。"
+    },
+    {
+      "t": "2026-11-03",
+      "text": "使用者釐清既有設計責任分工；Core 兩目標各 41 個功能紅燈，補取消競爭後各 42／42，全方案驗證中。"
+    },
+    {
+      "t": "2026-11-03",
+      "text": "P0-09 完成功能及重構：雙目標各 42／42、方案 921／921、Debug 7／7、重複掃描 22 專案 863 檔無重複，沒有外部連線。"
+    },
+    {
+      "t": "2026-11-03",
+      "text": "依核定補修取消邊界：新案例兩目標紅 3／綠 6；雙目標測試各 45／45、方案 927／927、覆蓋率 93.87%／98.88%。"
+    },
+    {
+      "t": "2026-11-03",
+      "text": "P0-09 補修已提交 6b559da5；P0-10 全部本機守門通過，兩個早期測試暫存目錄刪除遭工具拒絕，待使用者清理後提交。"
+    },
+    {
+      "t": "2026-11-03",
+      "text": "收尾發現 HEAD 新增 cf3595db，內容為已驗證 P0-10 實作；提交格式不符原規則，非本次會話建立，保留歷史並停止等待確認。"
+    },
+    {
+      "t": "2026-11-03",
+      "text": "P0-10 收尾核定：使用者清除暫存並確認 cf3595db；一般建置改為不打包，六樣本及無金鑰 Release／正式明確打包通過。"
+    },
+    {
+      "t": "2026-11-03",
+      "text": "P0-11 本機逐步 CI 通過；覆蓋率七組皆過門檻，保留啟動器故障與修正證據，不推送、不建立 GitHub secret。"
+    },
+    {
+      "t": "2026-11-03",
+      "text": "P0-ENV 核定調整：保留 01f3c03e；舊空白契約與舊網址故障各有紅燈，相關 32／32、方案 971／971，未連線外部服務。"
+    },
+    {
+      "t": "2026-11-03",
+      "text": "P0-04 net48 全相依稽核及 System.Text.Json 修補通過；還原成功、弱點清單只剩 ImageSharp，Release 971／971、建置 37 警告。"
+    },
+    {
+      "t": "2026-11-03",
+      "text": "P0-12 離線佈署工具通過：42／42、覆蓋率 81.80%；方案 1013／1013、建置 36 警告。新增設定切換紅→綠並修正八個新檔換行。"
+    },
+    {
+      "t": "2026-11-03",
+      "text": "P0-12A 特徵測試修復：補齊 Personal 測試工具依賴，現有 3.1.12 圖片 50／50、Release 1063／1063，未改產品。"
+    },
+    {
+      "t": "2026-11-03",
+      "text": "P0-12A 新增 30 個功能紅燈後開始實作；3.2.0 還原成功，但編譯前缺有效授權，停止等待使用者。"
+    },
+    {
+      "t": "2026-11-03",
+      "text": "P0-12A 一般金鑰已備妥：76 個圖片案例、Release 1089／1089、Debug 7／7；CJK 訊息移入資源檔，兩個生成檔逐位元組一致。"
+    },
+    {
+      "t": "2026-11-03",
+      "text": "P0-12A B 段：一般金鑰 CI 23／23（PowerShell 5.1、7）；完整 §8 再通過，準備八批 ClaudeOnly 審查。"
+    },
+    {
+      "t": "2026-11-03 23:48",
+      "text": "ClaudeOnly 第 03 份因工作階段額度限制失敗；01a、01b、01c、02 已有結果，完整審查包已準備，依核定停止。Razor 修正仍未通過完整 verify。"
+    },
+    {
+      "t": "2026-11-04",
+      "text": "依核定保留 d25fd2cc、接續 ClaudeOnly；C-01 混合語法 14 項功能紅燈後轉工具 108／108，完整 repo verify 通過，CJK 基準未提高。"
+    },
+    {
+      "t": "2026-11-04",
+      "text": "H-01 依核定改列 Medium 並修正：真 junction 與排除邊界先有 3 項紅燈，兩種 PowerShell 各 5／5，實際套件盤點 39 專案／149 引用零違規。"
+    },
+    {
+      "t": "2026-11-04",
+      "text": "M-01 tracer 守門：真實 workflow 合成 5 項紅燈後，兩種 PowerShell 各 6／6；本機 Debug TRX 實際 executed=7、passed=7。"
+    },
+    {
+      "t": "2026-11-04",
+      "text": "M-02 本機重現巢狀型別 owner 誤判：新增 4 案紅→綠，兩種 PowerShell 各 18／18；完整方案重複掃描仍零新增，未改基準。"
+    },
+    {
+      "t": "11/04",
+      "text": "03～08 七份續行完成；重大問題分題修正，全方案 1104／1104，修正另送第 09 份 ClaudeOnly。"
+    },
+    {
+      "t": "2026-11-04",
+      "text": "第 09 份複審完成，無 Critical／High；單模型（使用者指定 ClaudeOnly），未受額度阻擋。"
+    },
+    {
+      "t": "2026-11-04",
+      "text": "小組回報第 ⑧ 批與第 09 份審查通過，前端再次 16／16；依核定完成 Trellis／CCG 封存。"
+    },
+    {
+      "t": "2026-11-04",
+      "text": "P0-13 驗收步驟文件已寫好，第 0 步全未勾選；發現 Plugin FileVersion 追蹤與計畫不符，依 §9.6 停止等待使用者。"
+    },
+    {
+      "t": "2026-11-04",
+      "text": "使用者核定 P0-13 最小驗收及 CI 過渡範圍；解除 FileVersion 停止事項，以離線 Retry Key 測試與官方契約為依據，不改 Plugin。精簡文件後等待清理與使用者結果。"
+    },
+    {
+      "t": "2026-11-04",
+      "text": "依使用者核定補齊 P0-13 帳號格式、金鑰新視窗、plan 路徑取得、追蹤位置及清單恢復檢查；smoke 約 2 秒輪詢與時鐘測試登錄階段 1 第一批，現在不改程式。"
+    },
+    {
+      "t": "2026-11-04",
+      "text": "舊 net48 組件在 D365 目標框架驗證器發生 FormatException。使用者核定正式採用 net462；離線驗證與第 10 份獨立複審通過，初審 High 已修正。伺服器註冊仍待使用者重跑；FrameworkFileVersion=4.8.x 指伺服器 mscorlib，不代表 Plugin 目標。"
+    },
+    {
+      "t": "2026-11-04 20:41",
+      "text": "使用者 verify=0 後全權授權自動驗收。Codex 完成 smoke=0、五項追蹤（FrameworkFileVersion=4.8.4795.0）、單項 UpdateStepState 停用及 verify=0；追蹤回復例外狀況，本次 smoke task 殘留 0。清單 false 已新提交，階段 0 為 18／18，未開 P1。"
+    },
+    {
+      "t": "2026-11-04 20:54",
+      "text": "本輪額外收尾文件 ClaudeOnly 審查逾時，無可用輸出；不是配額問題，未冒稱通過。審查包已保存，依規則停止新增操作，Trellis／CCG 保留 review；實機驗收完成事實不變。"
+    },
+    {
+      "t": "2026-11-05",
+      "text": "P0 收尾文件補審：Gemini＋Claude 均完成，無 Critical／High。新工作樹 Release 1125／1125；使用者全權授權完成 P1，接續建立規劃。"
+    }
+  ]
+};
+
+/*
+ * 渲染程式：只讀 DATA、不寫入任何外部狀態。所有輸出文字經 esc() 轉義；數字一律由狀態即時計算。
+ */
+(function () {
+  const D = DATA;
+  const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  const LABEL = { done: '✓ 已驗收', active: '● 進行中', todo: '○ 未開始', you: '◆ 等你' };
+  const chip = st => '<span class="chip ' + esc(st) + '">' + esc(LABEL[st] || st) + '</span>';
+  const $ = id => document.getElementById(id);
+  const count = (list, st) => list.filter(w => w.status === st).length;
+  const total = D.wps.length, done = count(D.wps, 'done'), act = count(D.wps, 'active'), you = count(D.wps, 'you');
+
+  // 抬頭
+  $('snap').textContent = '快照 ' + D.snapshot;
+  $('branch').textContent = '分支 ' + D.branch;
+  $('head').textContent = '最新提交 ' + D.head;
+  $('headline').textContent = D.headline;
+  $('alerts').innerHTML = D.notices.filter(n => n.level === 'warn' || n.level === 'error').map(n =>
+    '<div class="notice ' + esc(n.level) + '"><b>' + (n.level === 'error' ? '✕ ' : '▲ ') + esc(n.title) + '</b>' + esc(n.body) + '</div>').join('');
+
+  // 數字卡
+  const youNext = D.userActions.find(a => a.status === 'you');
+  const pct = n => (n / total * 100).toFixed(2) + '%';
+  $('tiles').innerHTML =
+    '<div class="tile good"><div class="l">全計畫已驗收</div><div class="v">' + done + '<span class="u">／' + total + ' 個工作包</span></div>' +
+    '<div class="meter" role="img" aria-label="已驗收 ' + done + '、進行中 ' + act + '、未開始 ' + (total - done - act - you) + '"><i class="f-done" style="width:' + pct(done) + '"></i><i class="f-active" style="width:' + pct(act) + '"></i><i class="f-you" style="width:' + pct(you) + '"></i></div></div>' +
+    '<div class="tile ' + (act > 2 ? 'warn' : 'prog') + '"><div class="l">進行中</div><div class="v">' + act + '<span class="u">包（上限 2）</span></div><div class="s">' + esc(D.wps.filter(w => w.status === 'active').map(w => w.id).join('、') || '無') + (act > 2 ? '；超過上限' : '') + '</div></div>' +
+    '<div class="tile"><div class="l">剩餘</div><div class="v">' + (total - done) + '<span class="u">包</span></div><div class="s">終點：階段 8 完成判準</div></div>' +
+    '<div class="tile you"><div class="l">下一個需要你</div><div class="s" style="font-size:14px;color:var(--ink)">' + esc(youNext ? youNext.text : '目前沒有') + '</div></div>';
+
+  // 需要你的事
+  const UA = { done: ['ok', '✓ 已完成'], you: ['you', '◆ 現在等你'], later: ['later', '○ 之後'] };
+  $('you').innerHTML = D.userActions.map(a => '<li><span class="when">' + esc(a.when) + '</span><span class="txt">' +
+    '<span class="chip ' + UA[a.status][0] + '">' + UA[a.status][1] + '</span> ' + esc(a.text) + (a.note ? '<small>' + esc(a.note) + '</small>' : '') + '</span></li>').join('');
+
+  // 九個階段
+  $('stages').innerHTML = D.phases.map(p => {
+    const ws = D.wps.filter(w => w.phaseId === p.id), n = ws.length;
+    const c = { done: count(ws, 'done'), active: count(ws, 'active'), you: count(ws, 'you') };
+    c.todo = n - c.done - c.active - c.you;
+    const seg = st => c[st] ? '<i class="f-' + st + '" style="width:' + (c[st] / n * 100) + '%" title="' + esc(LABEL[st] + ' ' + c[st]) + '"></i>' : '';
+    return '<div class="st-row' + (p.current ? ' cur' : '') + '"><div class="nm"><b>' + esc(p.id + '　' + p.name) + '</b><small>估時 ' + esc(p.planned) + (p.actual ? '｜實際 ' + esc(p.actual) : '') + '</small></div>' +
+      '<div class="bar" role="img" aria-label="' + esc(p.id + '：已驗收 ' + c.done + '、進行中 ' + c.active + '、等你 ' + c.you + '、未開始 ' + c.todo) + '">' + seg('done') + seg('active') + seg('you') + seg('todo') + '</div>' +
+      '<div class="num">已驗收 ' + c.done + '／' + n + (c.active ? '・進行中 ' + c.active : '') + (c.you ? '・等你 ' + c.you : '') + '</div></div>';
+  }).join('');
+
+  // 進行中
+  const DOD = { ok: ['ok', '✓'], no: ['no', '✕'], na: ['na', '—'] };
+  $('active').innerHTML = D.active.map(a => {
+    const w = D.wps.find(x => x.id === a.id) || {};
+    return '<div class="act"><h3>' + esc(a.id + '　' + (w.name || '')) + '</h3><div class="meta">開始 ' + esc(a.startedAt) + '｜時間盒：' + esc(a.timebox) + '</div>' +
+      '<ul class="dod">' + a.dod.map(d => '<li><span class="chip ' + DOD[d[1]][0] + '">' + DOD[d[1]][1] + '</span><span>' + esc(d[0]) + (d[2] ? '<small>' + esc(d[2]) + '</small>' : '') + '</span></li>').join('') + '</ul>' +
+      '<div class="next"><b>下一步：</b>' + esc(a.next) + '</div></div>';
+  }).join('') || '<p class="lead">目前沒有進行中的工作包。</p>';
+
+  // 階段 2 路線圖
+  const byId = id => D.wps.find(w => w.id === id) || D.milestones.find(m => m.id === id) || { id: id, name: '', status: 'todo' };
+  const box = id => { const w = byId(id); return '<div class="fb ' + esc(w.status) + '"><b>' + esc(w.id) + '</b>' + esc(w.name) + '<br><small>' + esc(LABEL[w.status] || '') + '</small></div>'; };
+  // 第三欄 true＝依序（畫箭頭）；false＝可平行（不畫箭頭）
+  const lanes = [['① 切換', ['P2-00'], false], ['② 地基（可平行）', ['P2-01', 'P2-02', 'P2-03'], false], ['③ 關卡（等你）', ['P2-04 前置'], false],
+    ['④ 推播（依序）', ['P2-04', 'P2-05', 'P2-06'], true], ['⑤ 待辦與背景', ['P2-07', 'P2-08', 'P2-09', 'P2-10'], false], ['⑥ 驗收（依序）', ['P2-11', 'P2-12'], true]];
+  $('flow').innerHTML = lanes.map(l => '<div class="lane"><b>' + esc(l[0]) + '</b><div class="boxes">' + l[1].map(box).join(l[2] ? '<span class="arrow" aria-hidden="true">→</span>' : '') + '</div></div>').join('') +
+    '<p class="lead" style="margin:6px 0 0">⑤ 的相依：P2-08、P2-09b 要等 P2-07；P2-09a 只依賴 P2-02；P2-10 只依賴 P2-01。</p>';
+
+  // 全部工作包
+  let filter = 'all', query = '';
+  function drawTable() {
+    $('wplist').innerHTML = D.phases.map(p => {
+      const rows = D.wps.filter(w => w.phaseId === p.id && (filter === 'all' || w.status === filter) &&
+        (!query || (w.id + w.name + w.note + w.deps).toLowerCase().includes(query)));
+      if (!rows.length) return '';
+      const ws = D.wps.filter(w => w.phaseId === p.id);
+      return '<details class="grp"' + (p.current || filter !== 'all' || query ? ' open' : '') + '><summary>' + esc(p.id + '　' + p.name) +
+        ' <small>已驗收 ' + count(ws, 'done') + '／' + ws.length + '</small></summary><div class="tblwrap"><table><thead><tr><th>工作包</th><th>名稱</th><th>狀態</th><th>依賴</th><th>實機</th><th>時間盒</th><th>完成時間／提交</th><th>說明</th></tr></thead><tbody>' +
+        rows.map(w => '<tr><td class="id">' + esc(w.id) + '</td><td>' + esc(w.name) + '</td><td>' + chip(w.status) + '</td><td>' + esc(w.deps) + '</td><td>' + esc(w.live) + '</td><td>' + esc(w.timebox) +
+          '</td><td>' + esc(w.doneAt || '') + (w.commit && w.commit !== '—' ? '<br><span class="c">' + esc(w.commit) + '</span>' : '') + '</td><td>' + esc(w.note) + '</td></tr>').join('') +
+        '</tbody></table></div></details>';
+    }).join('') || '<p class="lead">沒有符合的工作包。</p>';
+  }
+  const fbtns = document.querySelectorAll('#wpfilters button');
+  fbtns.forEach(b => { b.addEventListener('click', () => { filter = b.dataset.f; fbtns.forEach(x => x.setAttribute('aria-pressed', x === b ? 'true' : 'false')); drawTable(); }); });
+  $('wpq').addEventListener('input', e => { query = e.target.value.trim().toLowerCase(); drawTable(); });
+  document.querySelectorAll('#wpfilters button').forEach(b => { const st = b.dataset.f; if (st !== 'all') b.textContent += ' ' + count(D.wps, st); else b.textContent += ' ' + total; });
+  drawTable();
+
+  // 里程碑
+  $('miles').innerHTML = D.milestones.map(m => '<li><span class="when">' + esc(m.phaseId) + '</span><span class="txt">' + chip(m.status) + ' <b>' + esc(m.id) + '</b>　' + esc(m.name) + (m.note ? '<small>' + esc(m.note) + '</small>' : '') + '</span></li>').join('');
+
+  // 品質守門
+  const G = { ok: ['ok', '✓ 通過'], bad: ['bad', '✕ 未過'], warn: ['warn', '▲ 部分'], na: ['na', '— 未取得'] };
+  $('gates').innerHTML = '<table><thead><tr><th>項目</th><th>結果</th><th>時間</th><th>說明</th></tr></thead><tbody>' + D.gates.map(g =>
+    '<tr><td><b>' + esc(g.item) + '</b></td><td><span class="chip ' + G[g.result][0] + '">' + G[g.result][1] + '</span></td><td>' + esc(g.at) + '</td><td>' + esc(g.note) + '</td></tr>').join('') + '</tbody></table>';
+
+  // 之後再說／計畫修正提案
+  $('later').innerHTML = D.later.map(x => '<li><span class="when">' + esc(x.id) + '</span><span class="txt">' + esc(x.text) + '<small>來源：' + esc(x.source) + '｜記錄：' + esc(x.addedAt) + '</small></span></li>').join('') || '<li>目前沒有</li>';
+  $('props').innerHTML = D.proposals.map(x => '<li><span class="when">' + esc(x.id) + '</span><span class="txt">' + esc(x.problem) + '<small>建議：' + esc(x.proposal) + '｜影響：' + esc(x.impact) + '｜' + esc(x.status) + '</small></span></li>').join('') || '<li><span class="txt">目前沒有。Codex 發現計畫問題時寫在這裡，階段結束時一次交你核定。</span></li>';
+
+  // 一般資訊（每階段一張，預設收合）
+  $('infos').innerHTML = D.notices.filter(n => n.level === 'info').map(n => '<details class="info"><summary>' + esc(n.title) + '　<small style="font-weight:500;color:var(--muted)">更新 ' + esc(n.lastUpdated) + '</small></summary>' +
+    '<p class="body">' + esc(n.body) + '</p>' + (n.steps.length ? '<ol>' + n.steps.map(s => '<li>' + esc(s) + '</li>').join('') + '</ol>' : '') + '</details>').join('');
+
+  // 決定與歷史
+  $('decisions').innerHTML = D.decisions.map(d => '<li><b>' + esc(d.at) + '</b>　' + esc(d.text) + '</li>').join('');
+  $('timeline').innerHTML = D.timeline.map(t => '<li><b>' + esc(t.t) + '</b>　' + esc(t.text) + '</li>').join('');
+  $('hist33').innerHTML = D.history33.map(t => '<li><b>' + esc(t.t) + '</b>　' + esc(t.text) + '</li>').join('');
+  $('hist33n').textContent = D.history33.length;
+
+  // 深淺色
+  const root = document.documentElement;
+  try { const th = localStorage.getItem('progress34-theme'); if (th) root.setAttribute('data-theme', th); } catch (e) { }
+  $('themeBtn').addEventListener('click', () => {
+    const cur = root.getAttribute('data-theme') || (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+    const nx = cur === 'dark' ? 'light' : 'dark'; root.setAttribute('data-theme', nx);
+    try { localStorage.setItem('progress34-theme', nx); } catch (e) { }
+  });
+})();
+
+</script>
+</body>
+</html>
