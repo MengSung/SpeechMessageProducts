@@ -36,3 +36,16 @@
 具體紅綠燈與下一步見 `research/culture-completeness-checkpoint.md`。
 AGENTS 引用的 backend cross-user-isolation spec 缺檔時，仍直接遵守 AGENTS 同等硬性規則；
 不能把未存在的文件標成已讀取。以上第一項代表已檢查可用規範與此缺檔事實。
+
+## 架構測試與 CI 接續切片
+
+由主代理唯一寫入，沿用已隔離的 P2 worktree。先以真實 CI 閉包與 Hosting
+覆蓋率配對案例取得 5／7 紅燈，確認缺少的是兩個 Hosting 專案與專屬 collector／矩陣。
+
+1. 將六個共用架構來源實際搬到 `SpeechMessage.Hosting.Tests/Architecture/`，
+   只更新檔首合作路徑，保留 namespace 與所有可執行本文位元組；移除兩份 linked Compile。
+2. 同步 CI filter、Hosting.Tests collector 與獨立 net10 覆蓋率 case，
+   保留既定三個 DevExtreme 排除。更新用途索引與 CI 契約。
+3. 執行 CI 閉包、Hosting 完整測試、Localization 雙宿主、實際只讀 R4
+   及獨立 Hosting 覆蓋率；檢查案例轉移數，不以零案例或舊 DLL 當成功。
+4. 再接 R2／R3／R9；搬移和 R4 通過本身不完成三項新規則，也不完成 P2-01。

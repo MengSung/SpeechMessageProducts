@@ -6,6 +6,8 @@
 主要功能與流程：
 宣告的產品／測試target為net48;net10.0；條件評估後的實際輸出以MSBuild為準。
 專案參考包含SpeechMessage.Localization.csproj；不能新增反向相依或將主機狀態引入純核心。
+P2起架構測試由Hosting.Tests/Architecture唯一持有，本專案只驗Localization，
+兩宿主均不再連結或啟動全方案MSBuild評估；CI須同時納入Hosting.Tests才能維持架構守門。
 
 使用邊界與維護：修改前先核對引用此檔的專案、頁面、腳本或CI步驟，保留既有參數、輸出及失敗結束碼。
 涉及寫入、外部命令或暫存資源時，依本檔實際實作的owner及清理路徑處理；說明不能取代執行前的範圍驗證。
@@ -32,9 +34,5 @@
   </ItemGroup>
   <ItemGroup Condition="'$(TargetFramework)' == 'net48'">
     <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" PrivateAssets="all" />
-  </ItemGroup>
-  <ItemGroup Condition="'$(TargetFramework)' == 'net10.0'">
-    <!-- R4 原始碼共用；Framework 測試宿主不啟動 MSBuild 子程序。 -->
-    <Compile Include="../tests-shared/ArchitectureTests/*.cs" Link="ArchitectureTests/%(Filename)%(Extension)" />
   </ItemGroup>
 </Project>

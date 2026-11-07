@@ -9,6 +9,8 @@
  * - Extensions、ASP.NET 與 Dataverse 直接套件不得進入共用雙目標；以各套件正反例保護辨識。
  * - ToolUtility.Core 的 Dataverse 例外只限 net10 SDK 型別來源，不能擴大為 net462 或任意 Extensions 豁免。
  * - 沙箱只引用可提供 net462 的雙目標產品；net48 宿主不等於合格部署產品。
+ * - R2 以公開型別宣告檢查主機／Plugin 邊界；R3 以精確來源檔白名單保護相容
+ *   組織別名；R9 檢查 HttpClient 所在專案及 Plugin 的禁止參考。
  * 測試案例入口包含 DualTarget_ReferenceToNet10Only_IsRejected、DualTarget_HostPackage_IsRejected、
  * ToolCore_DataverseException_IsTargetSpecific、Sandbox_ReferenceToNet48Product_IsRejected、
  * Sandbox_HigherFramework_IsRejected、HostToHost_IsRejected、
@@ -101,6 +103,90 @@ public sealed class ArchitectureRuleTests
     }
 
     /// <summary>
+    /// R2 只允許主機外殼公開 Program、Registration 或 Endpoints 類型；一般公開服務即使
+    /// 名稱看似主機功能也必須被拒絕，避免以命名慣例繞過外殼邊界。
+    /// </summary>
+    [Fact]
+    public void R2_HostPublicTypeOutsideShell_IsRejected()
+    {
+        var violations = ArchitectureRules.ValidateSource(Graph(
+            Product("SpeechMessageProducts.LineWebhook", "net10.0", "net10.0") with
+            {
+                Sources = new[]
+                {
+                    Source("Endpoints.cs", "public sealed class HealthEndpoints { }"),
+                    Source("Service.cs", "public sealed class MutableRequestService { }")
+                }
+            }));
+
+        Assert.Contains(violations, item => item.Rule == "R2HostPublicType" && item.Dependency == "MutableRequestService");
+        Assert.DoesNotContain(violations, item => item.Dependency == "HealthEndpoints");
+    }
+
+    /// <summary>
+    /// R2 的 Plugin 邊界允許實際公開 IPlugin／CodeActivity 入口，但不允許公開可被外部
+    /// 直接建立的 helper 類別；測試使用合成來源，不載入 Dataverse 或產品組件。
+    /// </summary>
+    [Fact]
+    public void R2_PluginPublicHelperOutsideEntryPoint_IsRejected()
+    {
+        var violations = ArchitectureRules.ValidateSource(Graph(
+            Product("SpeechMessage.Dynamics.Plugins", "net462", "net462") with
+            {
+                Sources = new[]
+                {
+                    Source("Plugin.cs", "public sealed class ValidPlugin : IPlugin { }"),
+                    Source("Helper.cs", "public sealed class PublicPluginHelper { }")
+                }
+            }));
+
+        Assert.Contains(violations, item => item.Rule == "R2PluginPublicType" && item.Dependency == "PublicPluginHelper");
+        Assert.DoesNotContain(violations, item => item.Dependency == "ValidPlugin");
+    }
+
+    /// <summary>
+    /// R3 只接受精確檔案／專案／字面值白名單；相同組織字面值出現在另一個來源時不得
+    /// 因為既有相容案例而整體放行。
+    /// </summary>
+    [Fact]
+    public void R3_OrganizationLiteralRequiresExactCompatibilityAllowlist()
+    {
+        var rejected = ArchitectureRules.ValidateSource(Graph(
+            Product("SpeechMessage.Hosting", "net10.0", "net10.0") with
+            {
+                Sources = new[] { Source("Resolver.cs", "var alias = \"Jesus\";") }
+            }));
+        Assert.Contains(rejected, item => item.Rule == "R3OrganizationLiteral" && item.Dependency == "Jesus");
+
+        var allowed = ArchitectureRules.ValidateSource(Graph(
+            Product("SpeechMessage.Tenancy", "net10.0", "net10.0") with
+            {
+                Sources = new[] { Source("ConfigurationLineChannelResolver.cs", "var alias = \"Jesus\";") }
+            }));
+        Assert.DoesNotContain(allowed, item => item.Rule == "R3OrganizationLiteral");
+    }
+
+    /// <summary>
+    /// R9 只允許指定傳輸／主機專案使用 HttpClient，Plugin 另須拒絕 Payments 與
+    /// System.Drawing 參考；每個斷言都對應一個可造成邊界退化的實際修改。
+    /// </summary>
+    [Fact]
+    public void R9_TransportAndPluginReferencesAreBounded()
+    {
+        var violations = ArchitectureRules.ValidateSource(Graph(
+            Product("SpeechMessage.Dynamics.Plugins", "net462", "net462",
+                "SpeechMessage.Payments") with
+            {
+                Packages = new[] { "System.Drawing.Common" },
+                Sources = new[] { Source("Plugin.cs", "using System.Net.Http; public sealed class Plugin { private HttpClient client; }") }
+            }));
+
+        Assert.Contains(violations, item => item.Rule == "R9HttpClientProject");
+        Assert.Contains(violations, item => item.Rule == "R9PluginPaymentsReference");
+        Assert.Contains(violations, item => item.Rule == "R9PluginSystemDrawingReference");
+    }
+
+    /// <summary>
     /// P2通知owner真正抽出後，Hosting是Tenancy之上的net10基礎而非ToolUtility的消費者。
     /// 正例允許舊工具委派Hosting，反例仍拒絕Hosting反向參考ToolUtility，防止未來形成循環。
     /// 合成圖僅含本案例值，不載入產品或保留任何程序資源。
@@ -138,6 +224,9 @@ public sealed class ArchitectureRuleTests
     /// <summary>建立單一不可變的合成評估節點，陣列僅屬此案例，不持有 request 或 SDK 型別。</summary>
     private static ArchitectureProject Product(string name, string target, string targets, params string[] references) =>
         new(name, target, targets.Split(';'), references, Array.Empty<string>(), false);
+
+    /// <summary>建立不持有檔案、程序或使用者資料的合成來源快照。</summary>
+    private static ArchitectureSource Source(string path, string text) => new(path, text);
 
     /// <summary>將案例節點組成 operation-local 圖，不跨案例快取。</summary>
     private static ArchitectureProject[] Graph(params ArchitectureProject[] projects) => projects;

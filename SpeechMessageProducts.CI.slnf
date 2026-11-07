@@ -18,6 +18,8 @@
       "SpeechMessage.Dynamics.Deployment\\SpeechMessage.Dynamics.Deployment.csproj",
       "SpeechMessage.Dynamics.Plugins.Tests\\SpeechMessage.Dynamics.Plugins.Tests.csproj",
       "SpeechMessage.Dynamics.Plugins\\SpeechMessage.Dynamics.Plugins.csproj",
+      "SpeechMessage.Hosting.Tests\\SpeechMessage.Hosting.Tests.csproj",
+      "SpeechMessage.Hosting\\SpeechMessage.Hosting.csproj",
       "SpeechMessage.Localization.Tests\\SpeechMessage.Localization.Tests.csproj",
       "SpeechMessage.Localization\\SpeechMessage.Localization.csproj",
       "SpeechMessage.Payments.AspNetCore\\SpeechMessage.Payments.AspNetCore.csproj",

@@ -1,13 +1,17 @@
 <#
 檔案整體說明
 
-目的與定位：以真實方案依賴與 workflow 執行區塊驗證 DevExtreme 來源未定時的過渡範圍。
+目的與定位：以真實方案依賴與 workflow 執行區塊驗證 DevExtreme 來源未定時的過渡範圍，
+防止新產品或架構測試因未更新篩選檔而從CI消失，也驗證每目標覆蓋率實際配對的測試宿主。
 
 主要功能與流程：
-操作入口包含dotnet、Get-RunBlock；呼叫參數與輸出形狀以各入口宣告為準。
+從目前工作樹的方案與專案XML建立依賴閉包，僅允許已核定的三個DevExtreme相關排除；
+執行workflow原有run區塊，只以本機函式替換dotnet來記錄命令。覆蓋率從實際PowerShell
+AST取出cases候選，檢查ToolUtility.Core雙目標與Hosting單一net10宿主，缺漏或重複均失敗。
 
-使用邊界與維護：修改前先核對引用此檔的專案、頁面、腳本或CI步驟，保留既有參數、輸出及失敗結束碼。
-涉及寫入、外部命令或暫存資源時，依本檔實際實作的owner及清理路徑處理；說明不能取代執行前的範圍驗證。
+使用邊界與維護：不真正啟動產品、還原套件、讀秘密或連外；摘要檔只使用每次唯一的合成暫存檔，
+finally恢復原環境變數與工作目錄並移除自建檔。dotnet記錄僅在此程序存活；此測試不是
+GitHub hosted執行結果，也不代表被排除產品已驗收。修改時須保留精確閉包與可執行失敗路徑。
 #>
 <#
 .SYNOPSIS
@@ -32,6 +36,22 @@ function Get-RunBlock([string]$Name) {
     $match = [regex]::Match($script:workflow, '(?ms)^      - name: ' + [regex]::Escape($Name) + '\r?\n(?<meta>.*?)        run: \|\r?\n(?<run>.*?)(?=^      - name:|\z)')
     if (-not $match.Success) { throw ('Workflow block missing: ' + $Name) }
     return $match
+}
+function Get-CoverageMatrix {
+    # 只評估受信任workflow的矩陣賦值，保留真實專案／目標／模組配對，不執行覆蓋率或讀秘密。
+    $run = (Get-RunBlock 'Coverage for each new module and target').Groups['run'].Value -replace '(?m)^          ', ''
+    $tokens = $null
+    $parseErrors = $null
+    $ast = [Management.Automation.Language.Parser]::ParseInput($run, [ref]$tokens, [ref]$parseErrors)
+    if ($parseErrors.Count -gt 0) { throw 'Coverage run block is invalid.' }
+    $assignment = $ast.Find({
+        param($node)
+        $node -is [Management.Automation.Language.AssignmentStatementAst] -and
+            $node.Left -is [Management.Automation.Language.VariableExpressionAst] -and
+            $node.Left.VariablePath.UserPath -eq 'cases'
+    }, $true)
+    if ($null -eq $assignment) { throw 'Coverage matrix is missing.' }
+    return & ([scriptblock]::Create($assignment.Extent.Text + '; $cases'))
 }
 $cases = [ordered]@{
     Filter_ExcludesExactlyDependencyClosure = {
@@ -66,19 +86,7 @@ $cases = [ordered]@{
     }
     Coverage_IncludesBothCoreProductTargets = {
         # 評估 workflow 真正使用的矩陣宣告，不以字串存在代替目標／專案配對驗證。
-        $run = (Get-RunBlock 'Coverage for each new module and target').Groups['run'].Value -replace '(?m)^          ', ''
-        $tokens = $null
-        $parseErrors = $null
-        $ast = [Management.Automation.Language.Parser]::ParseInput($run, [ref]$tokens, [ref]$parseErrors)
-        if ($parseErrors.Count -gt 0) { throw 'Coverage run block is invalid.' }
-        $assignment = $ast.Find({
-            param($node)
-            $node -is [Management.Automation.Language.AssignmentStatementAst] -and
-                $node.Left -is [Management.Automation.Language.VariableExpressionAst] -and
-                $node.Left.VariablePath.UserPath -eq 'cases'
-        }, $true)
-        if ($null -eq $assignment) { throw 'Coverage matrix is missing.' }
-        $matrix = & ([scriptblock]::Create($assignment.Extent.Text + '; $cases'))
+        $matrix = Get-CoverageMatrix
         $core = @($matrix | Where-Object { $_.Module -ceq 'ToolUtility.Core' })
         if ($core.Count -ne 2 -or @($core | Where-Object { $_.Project -cne 'ToolUtility.Tests' }).Count -gt 0) {
             throw 'Core coverage must use its complete test project for both targets.'
@@ -86,6 +94,17 @@ $cases = [ordered]@{
         $frameworks = @($core | ForEach-Object { $_.Framework } | Sort-Object)
         if (@(Compare-Object @('net10.0', 'net48') $frameworks).Count -gt 0) {
             throw 'Core coverage must independently execute net48 and net10.0.'
+        }
+    }
+    Coverage_IncludesHostingOwner = {
+        # 若Hosting只進solution-tests卻沒有獨立覆蓋率，或借另一模組的報告冒充，此配對必須失敗。
+        $hosting = @(Get-CoverageMatrix | Where-Object { $_.Module -ceq 'SpeechMessage.Hosting' })
+        if ($hosting.Count -ne 1 -or $hosting[0].Project -cne 'SpeechMessage.Hosting.Tests' -or $hosting[0].Framework -cne 'net10.0') {
+            throw 'Hosting coverage must execute its own net10.0 test project exactly once.'
+        }
+        [xml]$project = [IO.File]::ReadAllText((Join-Path $root 'SpeechMessage.Hosting.Tests/SpeechMessage.Hosting.Tests.csproj'))
+        if (@($project.SelectNodes('//PackageReference') | Where-Object { $_.GetAttribute('Include') -ceq 'coverlet.collector' }).Count -ne 1) {
+            throw 'Hosting coverage requires its collector package.'
         }
     }
     Commands_UseFilteredSolution = {

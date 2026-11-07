@@ -1,0 +1,48 @@
+{
+  "movedFiles": 6,
+  "namespacePreserved": true,
+  "files": [
+    {
+      "before": "tests-shared/ArchitectureTests/ArchitectureProcessRunnerTests.cs",
+      "after": "SpeechMessage.Hosting.Tests/Architecture/ArchitectureProcessRunnerTests.cs",
+      "beforeSha256": "799ae6bfeba36c9a6ef47d88967449c0295677c43f6f8b38c56e3d3a670652a0",
+      "afterSha256": "799ae6bfeba36c9a6ef47d88967449c0295677c43f6f8b38c56e3d3a670652a0",
+      "executableBodyUnchanged": true
+    },
+    {
+      "before": "tests-shared/ArchitectureTests/ArchitectureProjectReader.cs",
+      "after": "SpeechMessage.Hosting.Tests/Architecture/ArchitectureProjectReader.cs",
+      "beforeSha256": "2d6804dc737c63a2fb7deb39411debf79393e4e173a470f2c5ce620a62e6cc5f",
+      "afterSha256": "360b1666cc108e116569dc8d24130bfd3d852c1bb64d99efa1780848d0868a5d",
+      "executableBodyUnchanged": true
+    },
+    {
+      "before": "tests-shared/ArchitectureTests/ArchitectureRules.cs",
+      "after": "SpeechMessage.Hosting.Tests/Architecture/ArchitectureRules.cs",
+      "beforeSha256": "9eee38ad0b9784b2bca56143cfe2af11049328aa56063b189625d90c22febff6",
+      "afterSha256": "f285c0ecf1343490a02e6815380656607ab96fd1d52a47f9c99944814bb4a8d6",
+      "executableBodyUnchanged": true
+    },
+    {
+      "before": "tests-shared/ArchitectureTests/ArchitectureRuleTests.cs",
+      "after": "SpeechMessage.Hosting.Tests/Architecture/ArchitectureRuleTests.cs",
+      "beforeSha256": "7f71d2afd640df2210ae03dde7e3f0aa7c095dc71ae3f1f31bbd4f8eaafafd0a",
+      "afterSha256": "7f71d2afd640df2210ae03dde7e3f0aa7c095dc71ae3f1f31bbd4f8eaafafd0a",
+      "executableBodyUnchanged": true
+    },
+    {
+      "before": "tests-shared/ArchitectureTests/ArchitectureXmlTests.cs",
+      "after": "SpeechMessage.Hosting.Tests/Architecture/ArchitectureXmlTests.cs",
+      "beforeSha256": "79682f676c94e300ae5bfb9ced789141d6a81a3f760665e7299b707130c2d652",
+      "afterSha256": "79682f676c94e300ae5bfb9ced789141d6a81a3f760665e7299b707130c2d652",
+      "executableBodyUnchanged": true
+    },
+    {
+      "before": "tests-shared/ArchitectureTests/BoundedProcessRunner.cs",
+      "after": "SpeechMessage.Hosting.Tests/Architecture/BoundedProcessRunner.cs",
+      "beforeSha256": "5e2d80c4a35932cda9e851fb7d1eef8ba6a2a151a8ced08cbfb40a191cd20fdf",
+      "afterSha256": "cc7b4e5919b3240d1760d0b356389377a7ec28413577a3b896195350a0f821f1",
+      "executableBodyUnchanged": true
+    }
+  ]
+}

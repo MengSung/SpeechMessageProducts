@@ -6,14 +6,15 @@
 不連 D365 或 LINE，也不把測試輸入寫入產品設定。
 
 主要功能與流程：
-本檔參考 Hosting、Localization 與 ChurchReport 所需的架構測試原始碼。測試使用
+本檔直接參考 Hosting，Architecture 目錄是全方案架構測試的唯一編譯擁有者，
+不再從 tests-shared 連結來源，也不由 Localization.Tests 重複執行。測試使用
 專屬暫存目錄、合成 IConfiguration 及可控 sender；每個案例在 finally／await using
 中釋放檔案、registration、owner、task 與 cancellation source，讓資源基線可重複驗證。
 
 使用邊界與維護：
 架構測試只讀目前工作樹的方案與明確來源，不能掃描父 worktree 或執行部署。新增
-測試時須說明故障注入、決定性斷言及 owner 清理責任；Release 與 Debug 的例外契約
-由 CI 分別執行，不能以 mock 結果宣稱實機推播。
+測試時須說明故障注入、決定性斷言及 owner 清理責任；CI 透過 solution filter 執行
+Release 並單獨收集 Hosting 覆蓋率，本機另驗 Debug，不能以 mock 結果宣稱實機推播。
 -->
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
@@ -35,9 +36,9 @@
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
     <PackageReference Include="FluentAssertions" />
+    <PackageReference Include="coverlet.collector" PrivateAssets="all" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="../tests-shared/ArchitectureTests/*.cs" Link="Architecture/%(Filename)%(Extension)" />
     <ProjectReference Include="..\SpeechMessage.Hosting\SpeechMessage.Hosting.csproj" />
   </ItemGroup>
 </Project>
