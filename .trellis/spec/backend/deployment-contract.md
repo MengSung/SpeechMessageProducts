@@ -136,3 +136,11 @@ phases. This acceptance did not exercise LINE delivery or prove hosted CI succes
 - 本次已核對原 DLL hash 未變、步驟仍停用／trace／無 secure，trace 2→1 並讀回。
   D34 已清理的非測試主 LINE ID 不因部署失敗而恢復；備份保留在 repo 外 DPAPI。
   這些結果不等於 smoke、TLS、整體 verify=0 或 P2-04 前置通過。
+
+## P2-04 加密解除後的接續證據（2026-11-08）
+
+前節 false 是先前失敗時的歷史狀態，不是目前狀態。SDK `IsDataEncryptionActive` 的回應欄位為 `Results["IsActive"]`；先驗 Contains 與 bool 型別再使用，缺欄位不能當 false。此次已為 true，未讀取／輸出組織加密金鑰。
+
+兩輪推播均獲真實 LINE 200，但 smoke 的外部診斷契約仍未達成。收尾 verify=0、追蹤=1、同一步驟 trace／停用／空 secure，依精確 trace ID＋correlation 與 owning step 備份後只清掉自己的兩個 trace／已完成作業；不得清其他作業或平台步驟。手機收訊與 HTTPS 成功不等於獨立量測 OS TLS 協定版本，也不能取代 smoke=0。
+
+本機診斷腳本使用 PowerShell 對 SDK 查詢時，管線 `object[]` 可能含 PSObject 包裝，導致 DataContract 序列化失敗。對 GUID 的 In 條件建立 `ConditionExpression`，逐一 `Values.Add(Guid.Parse(...))`，先離線序列化確認；不要把此失敗誤判為伺服器資料錯誤。live CLI 與會改寫其 bin 的建置不可並行；改用獨立輸出或等 lease／程序釋放後重建。

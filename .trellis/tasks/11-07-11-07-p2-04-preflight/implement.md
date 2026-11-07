@@ -29,3 +29,7 @@
 ## 2026-11-08 接續
 
 apply 失敗，未 smoke；trace 已回 1，live DLL／step 與 pre-apply 原況一致。TLS、舊流程精確盤點及整體 verify=0 未完成；缺組織加密復原材料，詳一頁報告。
+
+## 2026-11-08 07:57 Asia/Taipei (UTC+08:00) 加密解除後重驗
+
+第 0 步精確盤點、plan/apply、push verify=3 與安全收尾均完成。兩輪真實 LINE 200，但 smoke=1；先紅後綠修正診斷映射，live／local DLL hash 一致仍輸出舊字串，未確認沙箱快取原因。自己 task、trace、已完成作業殘留皆 0；不再盲重試，等待安全刷新／版本策略，獨立 P2-07 可繼續。操作紀錄與 SHA 見一頁報告。

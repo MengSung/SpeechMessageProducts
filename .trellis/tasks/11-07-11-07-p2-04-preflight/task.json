@@ -21,10 +21,12 @@
   "children": [],
   "parent": "11-07-integration-p2",
   "relatedFiles": [],
-  "notes": "2026-11-08 已恢復 trace=1，live assembly/step 與 pre-apply 原況一致。apply=1/0x8004852E、IsDataEncryptionActive=false、RetrieveDataEncryptionKey 回空，未重試。未 smoke／未發 LINE；舊流程精確盤點及 TLS 尚未通過；詳 wp-reports。",
+  "notes": "加密已解除；兩輪 LINE 200，使用者已收訊；smoke 仍 Success／Accepted 不符。離線映射已修正但 live 新 DLL 仍執行舊字串，收尾／備份清除已完成，等待安全刷新路徑，不再盲試。",
   "meta": {
-    "blocker": "organization-data-encryption-key-unavailable",
-    "lastUpdated": "2026-11-08T07:04:41+08:00",
-    "nextAction": "取得原組織加密金鑰或安全可回復方案；先做獨立 P2-07"
+    "blocker": "兩次 smoke=1：live/local 新 DLL hash 一致、IL 含 Accepted，但沙箱 trace 仍 Success；既有主機存取受限，不能安全斷言快取已刷新。",
+    "lastUpdated": "2026-11-08T07:57:54+08:00",
+    "nextAction": "確認測試主機存取與服務隔離或核定版本策略後重驗；其餘先繼續 P2-07",
+    "operationRecordSha256": "517D6B30C08442C47EAE32BB52B2B378F60E4F4C4B2252E0AA2B939DDB7E2889",
+    "evidenceIndexSha256": "75ABB680FAA722FDC535E40252B4EF142214DD936EEB3B508EDFCE0958627595"
   }
 }

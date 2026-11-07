@@ -9,6 +9,7 @@
  * - 註冊設定的不可變模式；沙箱可重用外掛，但不得寫入此次 Execute 的狀態。
  * - 只屬此 secure 註冊步驟的不可變憑證；不進 static、追蹤或其他步驟。
  * - 只屬此測試步驟的固定收件者；執行時不由輸入內容覆寫，也不寫追蹤。
+ * - HTTP 成功的診斷分類固定映射為 Accepted，供部署 smoke 判定受理；不代表手機送達，也不更名 Core enum。
  * 主要操作入口包含 Execute、ReadString、IsValidUserId、InvalidConfiguration、ReadUtcNow、SafeIdentifier。
  *
  * 使用邊界與維護：
@@ -113,7 +114,10 @@ public sealed class DiagnosticsPingPlugin : IPlugin
             // 同步等待十秒有界的 Core 完成才返回，沒有未等待工作，所有 HTTP／取消資源由 Core using 清理。
             var result = Task.Run(() => client.PushAsync(credential!, request, CancellationToken.None)).GetAwaiter().GetResult();
             var requestId = Guid.TryParse(result.RequestId, out var parsed) ? parsed.ToString("D", CultureInfo.InvariantCulture) : "unavailable";
-            tracing.Trace("Outcome={0}; Status={1}; RequestId={2}; ExceptionType={3}", result.Outcome,
+            // smoke 消費的是外部診斷契約 Accepted，不是 Core 內部 enum 名稱；只轉譯成功分類，
+            // AlreadyAccepted／Retryable／Permanent 保留原義，不能把 HTTP 409 或失敗誤報為首次受理。
+            var diagnosticOutcome = result.Outcome == LinePushOutcome.Success ? "Accepted" : result.Outcome.ToString();
+            tracing.Trace("Outcome={0}; Status={1}; RequestId={2}; ExceptionType={3}", diagnosticOutcome,
                 result.StatusCode.HasValue ? ((int)result.StatusCode.Value).ToString(CultureInfo.InvariantCulture) : "no-response",
                 requestId, result.TransportException?.GetType().FullName ?? "none");
             if (result.Outcome == LinePushOutcome.Retryable)

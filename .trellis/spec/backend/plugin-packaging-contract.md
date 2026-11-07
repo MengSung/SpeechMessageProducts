@@ -117,3 +117,13 @@ the test process sees two assemblies claiming the same referenced Core types.
 
 Correct: an explicit four-input merge writes to artifacts, while the unmerged
 bin DLL and SDK references remain unchanged for the normal build/test graph.
+
+## P2-04 前置的診斷字串契約（2026-11-08）
+
+`DiagnosticsPingPlugin.Execute` 將 Core 的 `LinePushOutcome.Success` 映射為外部追蹤 `Outcome=Accepted`；其他分類原樣保留。公開 enum 與 HTTP 分類不改，不能讓 409、429 或永久失敗冒充首次受理。
+
+部署 smoke 嚴格消費 `Accepted`＋`Status=200`，一頁實機證據另查有效 RequestId、無敏感值與殘留 0。測試 `Execute_PushMode_EmitsAcceptedForSmokeContract` 必須走真實 Core＋假 HTTP 200，斷言這段追蹤、禁止 token／收件者／內文，並確認回應 Dispose；既有 Retryable／Permanent、隔離與 drain 案例保留。
+
+錯誤：直接格式化 `result.Outcome` 導致輸出 `Success`，或放寬 smoke 只看 200。正確：只在診斷邊界明確轉譯，保持 Core ABI 與驗收條件。
+
+live DLL hash 等於本機、合併 IL 含新字串，不代表沙箱已執行新碼。2026-11-08 兩輪 smoke 均仍見舊字串；這是觀察，不是已證實的快取根因。停止重送、保存安全證據與收尾，未核對主機／服務隔離前不重啟共用服務，也不擅改版本契約。

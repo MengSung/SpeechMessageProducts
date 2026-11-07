@@ -11,7 +11,7 @@
  * - trace 模式不得送 HTTP；斷言標記、組件、執行環境、觸發事件及兩語系實際取字結果。
  * - 固定 UTC 時鐘與實體 ID，斷言真實 Core HTTP 標頭及單則推播內容，不驗證替身自行設定的結果。
  * 測試案例入口包含 Assembly_TargetFramework_IsNet462、Execute_TraceMode_WritesPingAndBothCultures、
- * Execute_PushMode_UsesPrimaryEntityIdAsRetryKey、Execute_PushMode_TraceNeverContainsToken、
+ * Execute_PushMode_UsesPrimaryEntityIdAsRetryKey、Execute_PushMode_EmitsAcceptedForSmokeContract、Execute_PushMode_TraceNeverContainsToken、
  * Execute_Retryable_ThrowsInvalidPluginExecutionException、Execute_Permanent_DoesNotThrow、
  * Execute_DepthGreaterThanOne_DoesNothing、Ctor_InvalidUnsecureJson_ThrowsWithChineseMessage；其餘入口見下方成員契約。
  *
@@ -87,6 +87,25 @@ public sealed class DiagnosticsPingPluginTests
         fixture.Create().Execute(fixture.Provider.Object);
         Assert.Equal(fixture.EntityId.ToString("D", CultureInfo.InvariantCulture), fixture.Handler.RetryKey);
         Assert.Contains("P0 推播測試 2026-11-03T00:00:00.0000000+00:00", fixture.Handler.Body!, StringComparison.Ordinal);
+        Assert.Equal(1, fixture.Handler.Calls);
+        Assert.True(fixture.Handler.ContentDisposed);
+    }
+
+    /// <summary>
+    /// 保護部署 smoke 的診斷契約：真實 Core 接受合成 HTTP 200 後，外掛應輸出 Accepted 而非內部 enum 的 Success。
+    /// 只允許狀態與有效請求識別，不含 token、收件者或測試訊息；Execute 返回前回應內容必須釋放，fixture 最後關閉連線池。
+    /// </summary>
+    [Fact(DisplayName = "推播受理診斷符合部署 smoke 契約")]
+    public void Execute_PushMode_EmitsAcceptedForSmokeContract()
+    {
+        using var fixture = new Fixture();
+        fixture.Create().Execute(fixture.Provider.Object);
+        var trace = string.Join("\n", fixture.Traces);
+        Assert.Contains("Outcome=Accepted; Status=200; RequestId=11111111-2222-3333-4444-555555555555", trace, StringComparison.Ordinal);
+        Assert.DoesNotContain("Outcome=Success", trace, StringComparison.Ordinal);
+        Assert.DoesNotContain(Token, trace, StringComparison.Ordinal);
+        Assert.DoesNotContain(UserId, trace, StringComparison.Ordinal);
+        Assert.DoesNotContain("P0 推播測試", trace, StringComparison.Ordinal);
         Assert.Equal(1, fixture.Handler.Calls);
         Assert.True(fixture.Handler.ContentDisposed);
     }

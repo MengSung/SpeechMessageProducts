@@ -240,11 +240,11 @@ footer{margin-top:36px;color:var(--muted);font-size:12.5px;text-align:center}
  */
 const DATA = {
   "planVersion": "3.4",
-  "snapshot": "2026-11-08 07:19 Asia/Taipei (UTC+08:00)",
-  "lastUpdated": "2026-11-08T07:19:25+08:00",
+  "snapshot": "2026-11-08 07:57 Asia/Taipei (UTC+08:00)",
+  "lastUpdated": "2026-11-08T07:57:54+08:00",
   "branch": "1.0.0.11.Integration.P2.Worktree",
-  "head": "3614e9d5",
-  "headline": "P2-07 入列程式的乾淨複本全方案 4,707 個測試通過；主任務 JSON 末尾換行守門失敗，已修正待重新驗證。",
+  "head": "21efb963",
+  "headline": "P2-04 前置已完成安全收尾、殘留為零；真實推播成功，但沙箱仍執行舊診斷字串，smoke 未通過，先繼續 P2-07。",
   "notices": [
     {
       "id": "plan-3.4-summary",
@@ -264,9 +264,14 @@ const DATA = {
       "phaseId": "階段 2",
       "level": "info",
       "title": "P2 進度摘要",
-      "lastUpdated": "2026-11-08T07:19:25+08:00",
-      "body": "2026-11-08 07:19 Asia/Taipei (UTC+08:00)：P2-07 Writer 與入列已完成本地提交；乾淨複本全方案 4,707 個測試及 Debug tracer 7 個通過，但主任務 JSON 檔尾 CRLF 守門失敗，僅修換行後重新驗證，不標驗收。P2-04 前置仍缺組織加密復原材料。",
+      "lastUpdated": "2026-11-08T07:57:54+08:00",
+      "body": "2026-11-08 07:57 Asia/Taipei (UTC+08:00)：P2-04 前置安全收尾、殘留零；手機已收訊與 LINE 200 均有證據，但新版 DLL 尚未反映於沙箱診斷，兩次 smoke 失敗，不標驗收。後續先做不依賴推播的 P2-07。",
       "steps": [
+        "2026-11-08 07:57 Asia/Taipei (UTC+08:00)｜P2-04 重驗及收尾｜新版 Plugin 回歸先紅後綠，26 個測試全過；Deployment 193 個測試全過。第二輪 plan/apply=0、push verify=3，LINE 200＋有效 RequestId，敏感值命中 0，但 smoke=1；live/local 新 DLL hash 一致、合併 IL 含 Accepted，實機仍輸出舊 Success，疑似快取未確認。兩次失敗後停止重送；cleanup verify=0、追蹤=1、停用／trace／無 secure；自己 task、trace、作業各 0。建議確認既有主機存取及共用服務影響後安全刷新；另可核定版本策略，或暫延前置先做 P2-07。手機收訊已記為使用者佐證，未代替自動 smoke。操作紀錄與 SHA 見 P2-04-preflight 一頁報告。",
+        "2026-11-08 07:47 Asia/Taipei (UTC+08:00)｜實機推播已受理、smoke 尚未通過｜07:41 輪次 plan/apply=0，push verify=3；LINE HTTP 200 且有效 RequestId，使用者確認 2026-11-08 07:41 手機收到 P0 測試訊息。Plugin 輸出 Outcome=Success，但核定 smoke 要求 Accepted，故 smoke=1，不能宣告前置通過。已收尾 trace／空 secure／停用，cleanup verify=0、追蹤回例外=1；先以真實 Core＋假 HTTP 補紅燈回歸，再做最小診斷映射修正及實機重驗，不改公開 enum、不放寬 smoke。",
+        "2026-11-08 07:39 Asia/Taipei (UTC+08:00)｜執行設定限制｜本輪高優先設定強制雙模型，已透過自癒入口嘗試 Gemini 與 Claude reviewer；Gemini 403、Claude 未交付實際審查，dualModelComplete=false，無可用雙模型驗收。沒有實作／檢查子代理，不把外部輸出當實機證據。",
+        "2026-11-08 07:39 Asia/Taipei (UTC+08:00)｜P2-04 前置重啟｜SDK IsDataEncryptionActive 正式回應 IsActive=true，兩個測試鍵存在而未輸出；非測試主 LINE ID 0、舊信件 token 0、channel 0。依舊來源的組件身分核對 24 個舊組件／25 個型別／15 個舊步驟，啟用 0；27 個舊流程記錄的啟用定義 0，等待／執行中舊作業均 0；未更動平台元件。Hyper-V CLI 權限仍不足，GUI 未取得可操作測試主機；尚無獨立 OS TLS 測試。",
+        "2026-11-08 07:25 Asia/Taipei (UTC+08:00)｜入列檢查點乾淨守門通過｜提交 21efb963 的 Release 建置、全方案 20 份 TRX 共 4,707 個測試、Debug tracer 7 個、232 檔編碼、1,292 檔說明、重複程式、I18n 與兩套頁面測試全過。前次主任務檔尾換行失敗已修復；這不是 Worker 或整包驗收。",
         "2026-11-08 07:19 Asia/Taipei (UTC+08:00)｜乾淨複本守門真失敗｜提交 3614e9d5 的 Release 建置、20 份 TRX 共 4,707 案及 Debug tracer 7 案通過；Changed 編碼 232 檔抓到主任務 task.json 缺 Final CRLF，未繼續其餘守門。已逐位元組修正且確認 JSON 語義完全相同，將以新提交重驗。另嘗試以既有憑證連 D365-9.1 的 WinRM，PSSessionOpenFailed／1312，未進入遠端、未修改服務或出站規則；TLS 仍未證實。",
         "2026-11-08 07:12 Asia/Taipei (UTC+08:00)｜P2-07 入列檢查點｜Writer 穩定鍵、三型別與有界 payload、decimal 正規化已實作；SDK 唯一鍵 Create-or-get 拒覆寫既有狀態，兩 store 競爭、內容衝突、取消、fault 與 Dispose 離線通過。Writer 17 案／store 11 案兩宿主均通過，產品含 QR 回歸各 41 案通過。原始證據與 SHA-256 見 P2-07 一頁回報；CAS／Worker 六個同名測試待做，未推送。",
         "2026-11-08 07:04 Asia/Taipei (UTC+08:00)｜P2-04 前置核對收尾｜兩份備份與 live DLL 解碼 hash 一致，撤回先前以 Base64 長度誤判 DLL 改變的推論；trace 已由 2 恢復 1，固定步驟停用／trace／無 secure。錯誤碼指 Config DB 組織加密金鑰缺失，唯讀 active=false、讀鍵回空；未重跑部署。操作紀錄 SHA-256 見 P2-04-preflight 一頁報告。舊流程精確盤點及 TLS 仍未完成。",
@@ -370,9 +375,9 @@ const DATA = {
       "id": "p2-04-preflight-active",
       "phaseId": "階段 2",
       "level": "warn",
-      "title": "P2-04 前置受阻：缺組織加密復原材料",
-      "lastUpdated": "2026-11-08T07:04:41+08:00",
-      "body": "2026-11-08 07:04 Asia/Taipei (UTC+08:00)：apply=1（0x8004852E），組織資料加密未啟用且讀鍵回空；需安全取得原有加密金鑰或可回復方案。本地清單已復原，遠端原況未變，trace=1，未 smoke／未發送 LINE。先做 P2-07，不盲目重試或重設金鑰。",
+      "title": "P2-04 前置待解除：沙箱仍執行舊診斷字串",
+      "lastUpdated": "2026-11-08T07:57:54+08:00",
+      "body": "2026-11-08 07:57 Asia/Taipei (UTC+08:00)｜P2-04 重驗及收尾｜新版 Plugin 回歸先紅後綠，26 個測試全過；Deployment 193 個測試全過。第二輪 plan/apply=0、push verify=3，LINE 200＋有效 RequestId，敏感值命中 0，但 smoke=1；live/local 新 DLL hash 一致、合併 IL 含 Accepted，實機仍輸出舊 Success，疑似快取未確認。兩次失敗後停止重送；cleanup verify=0、追蹤=1、停用／trace／無 secure；自己 task、trace、作業各 0。建議確認既有主機存取及共用服務影響後安全刷新；另可核定版本策略，或暫延前置先做 P2-07。手機收訊已記為使用者佐證，未代替自動 smoke。操作紀錄與 SHA 見 P2-04-preflight 一頁報告。",
       "steps": []
     }
   ],
@@ -1507,7 +1512,7 @@ const DATA = {
       "phaseId": "階段 2",
       "name": "沙箱對 LINE 的測試推播（Codex 執行）",
       "status": "you",
-      "note": "D34 主 LINE ID 清理與回復核對已完成；apply 因組織加密金鑰缺失受阻。TLS／舊流程盤點／smoke／收尾 verify=0 均未通過。"
+      "note": "LINE 200 與手機收訊已確認；smoke 仍因舊 Success 字串兩次失敗。收尾 verify=0、追蹤=1、殘留 0；先核對既有主機存取／服務影響或核定版本策略，不再盲重送。"
     },
     {
       "id": "M-P2-REVIEW",
@@ -1539,7 +1544,7 @@ const DATA = {
         [
           "乾淨複本守門",
           "no",
-          "提交後執行。"
+          "入列檢查點 21efb963 全部通過；整包仍需完成 CAS／Worker 後於其提交驗證。"
         ],
         [
           "覆蓋率 ≥ 80%",
@@ -1563,38 +1568,38 @@ const DATA = {
     {
       "item": "方案建置（Release）",
       "result": "ok",
-      "at": "2026-11-08 07:19",
-      "note": "3614e9d5 的獨立短路徑乾淨複本 Release 建置成功，23 個既有警告、0 個錯誤。"
+      "at": "2026-11-08 07:25",
+      "note": "21efb963 短路徑乾淨複本 Release 建置成功，0 個錯誤。"
     },
     {
       "item": "全方案測試",
       "result": "ok",
-      "at": "2026-11-08 07:19",
-      "note": "3614e9d5 乾淨複本 20 份 TRX，共 4,707 個測試全部通過；Debug tracer 7 個通過。"
+      "at": "2026-11-08 07:25",
+      "note": "20 份 TRX 共 4,707 個測試全部通過；Debug tracer 7 個通過。"
     },
     {
       "item": "檔案說明檢查",
-      "result": "na",
-      "at": "2026-11-08 07:19",
-      "note": "本輪在編碼失敗處停止，此項未在本次乾淨複本執行；先前通過證據仍保留於歷史。"
+      "result": "ok",
+      "at": "2026-11-08 07:25",
+      "note": "1,292 個檔案，0 個問題。"
     },
     {
       "item": "文字編碼（P2 範圍）",
-      "result": "bad",
-      "at": "2026-11-08 07:19",
-      "note": "3614e9d5：232 檔中主任務 task.json 缺檔尾 CRLF；僅修換行、JSON 語義不變，待新提交重驗。"
+      "result": "ok",
+      "at": "2026-11-08 07:25",
+      "note": "Changed 232 個檔案，96 個原始證據排除，0 個問題。"
     },
     {
       "item": "重複程式掃描",
-      "result": "na",
-      "at": "2026-11-08 07:19",
-      "note": "本輪在編碼失敗處停止，此項未在本次乾淨複本執行；先前通過證據仍保留於歷史。"
+      "result": "ok",
+      "at": "2026-11-08 07:25",
+      "note": "34 個專案，1,066 個來源檔，0 個新增重複群組。"
     },
     {
       "item": "I18nCheck verify",
-      "result": "na",
-      "at": "2026-11-08 07:19",
-      "note": "本輪在編碼失敗處停止，此項未在本次乾淨複本執行；先前通過證據仍保留於歷史。"
+      "result": "ok",
+      "at": "2026-11-08 07:25",
+      "note": "verify 成功；兩套進度頁共 27 個測試通過。"
     },
     {
       "item": "雲端 CI（GitHub）",
@@ -1764,6 +1769,22 @@ const DATA = {
     }
   ],
   "timeline": [
+    {
+      "at": "2026-11-08 07:57",
+      "text": "P2-04 第二輪仍執行舊診斷字串；新版 DLL 已核對一致，兩次 smoke 失敗後停止重送。已備份精確清理、殘留零，繼續獨立 P2-07。"
+    },
+    {
+      "at": "2026-11-08 07:47",
+      "text": "LINE 200 且使用者已收到測試訊息；smoke 因 Success／Accepted 不一致失敗，已安全收尾，補測修正中。"
+    },
+    {
+      "at": "2026-11-08 07:39",
+      "text": "使用者已啟用 goodshepherdback 加密，P2-04 前置重啟；舊 LINE 自訂步驟／流程／待辦精確核對安全，開始部署重試。"
+    },
+    {
+      "at": "2026-11-08 07:25",
+      "text": "P2-07 入列檢查點乾淨守門全過；接續 CAS 與 Worker，未驗收、未推送。"
+    },
     {
       "t": "2026-11-08 07:19 Asia/Taipei (UTC+08:00)",
       "text": "乾淨複本全方案 4,707 個測試通過；編碼攔下主任務 JSON 缺檔尾 CRLF，修正後重驗。"
