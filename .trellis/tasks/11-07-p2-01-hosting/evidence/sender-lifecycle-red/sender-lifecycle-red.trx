@@ -1,0 +1,154 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TestRun id="c202f23e-2def-48af-b5fa-91e99f30cd28" name="Administrator@LENOVO-LEGION 2026-11-07 09:30:13" runUser="LENOVO-LEGION\Administrator" xmlns="http://microsoft.com/schemas/VisualStudio/TeamTest/2010">
+  <Times creation="2026-11-07T09:30:13.2240342+08:00" queuing="2026-11-07T09:30:13.2240345+08:00" start="2026-11-07T09:30:12.4956697+08:00" finish="2026-11-07T09:30:18.2780063+08:00" />
+  <TestSettings name="default" id="f0c8290e-ab20-4331-b257-44ee953d1b24">
+    <Deployment runDeploymentRoot="Administrator_LENOVO-LEGION_2026-11-07_09_30_13" />
+  </TestSettings>
+  <Results>
+    <UnitTestResult executionId="7ee1b661-12a6-41e5-a82d-0532c3e0f686" testId="d3f72ae0-12a6-a129-6370-406976752974" testName="SpeechMessage.Hosting.Tests.LineExceptionSenderTests.Concurrent_deployments_keep_request_credentials_and_recipients_isolated" computerName="LENOVO-LEGION" duration="00:00:00.0076263" startTime="2026-11-07T09:30:13.1912291+08:00" endTime="2026-11-07T09:30:13.1912293+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="7ee1b661-12a6-41e5-a82d-0532c3e0f686" />
+    <UnitTestResult executionId="018a1e2c-b9e6-46ca-a08c-6a715643b585" testId="203b9007-6520-f92b-82fb-e5a078bcea7b" testName="SpeechMessage.Hosting.Tests.LineExceptionSenderTests.Sender_implementation_belongs_to_Hosting" computerName="LENOVO-LEGION" duration="00:00:00.0015270" startTime="2026-11-07T09:30:13.1644170+08:00" endTime="2026-11-07T09:30:13.1644172+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="018a1e2c-b9e6-46ca-a08c-6a715643b585" />
+    <UnitTestResult executionId="61bf5074-7dd3-411f-8b23-700963eaa714" testId="16c1119b-d399-08ef-27d6-3e211fa934ac" testName="SpeechMessage.Hosting.Tests.LineExceptionSenderTests.Dispose_clears_retained_deployment_strings" computerName="LENOVO-LEGION" duration="00:00:00.0014313" startTime="2026-11-07T09:30:13.2067039+08:00" endTime="2026-11-07T09:30:13.2067039+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Failed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="61bf5074-7dd3-411f-8b23-700963eaa714">
+      <Output>
+        <ErrorInfo>
+          <Message>Assert.All() Failure: 1 out of 2 items in the collection did not pass.&#xD;
+[1]: Item:  System.String recipient&#xD;
+     Error: Closed sender retains deployment state.</Message>
+          <StackTrace>   at SpeechMessage.Hosting.Tests.LineExceptionSenderTests.Dispose_clears_retained_deployment_strings() in D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\SpeechMessage.Hosting.Tests\LineExceptionSenderTests.cs:line 220&#xD;
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)&#xD;
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)</StackTrace>
+        </ErrorInfo>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="2a121940-aad8-4fee-82e1-0238f88bfbdc" testId="76dc6ab8-ba30-7aa3-a986-177da4558b8d" testName="SpeechMessage.Hosting.Tests.LineExceptionSenderTests.Dispose_is_idempotent_and_closed_sender_rejects_new_work" computerName="LENOVO-LEGION" duration="00:00:00.0011429" startTime="2026-11-07T09:30:13.1831381+08:00" endTime="2026-11-07T09:30:13.1831384+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Failed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="2a121940-aad8-4fee-82e1-0238f88bfbdc">
+      <Output>
+        <ErrorInfo>
+          <Message>Assert.Throws() Failure: Exception type was not an exact match&#xD;
+Expected: typeof(System.ObjectDisposedException)&#xD;
+Actual:   typeof(System.InvalidOperationException)&#xD;
+---- System.InvalidOperationException : Exception LINE notification configuration is missing.</Message>
+          <StackTrace>   at SpeechMessage.Hosting.Tests.LineExceptionSenderTests.Dispose_is_idempotent_and_closed_sender_rejects_new_work() in D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\SpeechMessage.Hosting.Tests\LineExceptionSenderTests.cs:line 205&#xD;
+--- End of stack trace from previous location ---&#xD;
+----- Inner Stack Trace -----&#xD;
+   at SpeechMessage.Hosting.LineExceptionSender.SendAsync(String message, CancellationToken cancellationToken) in D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\SpeechMessage.Hosting\LineExceptionSender.cs:line 79</StackTrace>
+        </ErrorInfo>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="196b270c-4d6d-45d6-a444-4d6421634898" testId="d0309514-b50d-ed91-ca0b-1c73df2a54db" testName="SpeechMessage.Hosting.Tests.LineExceptionSenderTests.Recipient_fallback_and_configuration_snapshot_remain_host_owned" computerName="LENOVO-LEGION" duration="00:00:00.0019889" startTime="2026-11-07T09:30:18.2053178+08:00" endTime="2026-11-07T09:30:18.2053182+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="196b270c-4d6d-45d6-a444-4d6421634898" />
+    <UnitTestResult executionId="7f8f7c9b-3198-44ea-b93c-243854f52e18" testId="24fc19e5-747e-b7a2-dc28-a81d839eabb3" testName="SpeechMessage.Hosting.Tests.LineExceptionSenderTests.Caller_cancellation_propagates_and_drains_transport" computerName="LENOVO-LEGION" duration="00:00:00.0020473" startTime="2026-11-07T09:30:13.2063387+08:00" endTime="2026-11-07T09:30:13.2063387+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="7f8f7c9b-3198-44ea-b93c-243854f52e18" />
+    <UnitTestResult executionId="14957434-d48e-4c44-b413-16db88bc5e70" testId="4578aa70-e55e-1f14-8eb9-b3c0f6d4c165" testName="SpeechMessage.Hosting.Tests.LineExceptionSenderTests.Token_selection_preserves_environment_organization_default(environment: &quot; &quot;, organization: &quot;&quot;, fallback: &quot;default-A&quot;, expected: &quot;default-A&quot;)" computerName="LENOVO-LEGION" duration="00:00:00.0035012" startTime="2026-11-07T09:30:13.1619224+08:00" endTime="2026-11-07T09:30:13.1619225+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="14957434-d48e-4c44-b413-16db88bc5e70" />
+    <UnitTestResult executionId="f6dd0522-c524-4023-bc7f-21edf970afed" testId="c813fbf2-dd07-c740-f38b-cf9b3a91f15a" testName="SpeechMessage.Hosting.Tests.LineExceptionSenderTests.Token_selection_preserves_environment_organization_default(environment: null, organization: &quot;organization-A&quot;, fallback: &quot;default-A&quot;, expected: &quot;organization-A&quot;)" computerName="LENOVO-LEGION" duration="00:00:00.0002139" startTime="2026-11-07T09:30:13.1596846+08:00" endTime="2026-11-07T09:30:13.1596846+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="f6dd0522-c524-4023-bc7f-21edf970afed" />
+    <UnitTestResult executionId="ba874bcb-df5a-4b67-bab6-687babd387db" testId="90fb8450-2ecf-cd97-93e0-04c95a6fdc3e" testName="SpeechMessage.Hosting.Tests.LineExceptionSenderTests.Internal_timeout_is_not_disguised_as_caller_cancellation" computerName="LENOVO-LEGION" duration="00:00:05.0068481" startTime="2026-11-07T09:30:18.2032155+08:00" endTime="2026-11-07T09:30:18.2032160+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="ba874bcb-df5a-4b67-bab6-687babd387db" />
+    <UnitTestResult executionId="02f350b2-b64f-498a-98b0-819ef8f48222" testId="9988dd7a-a133-8abe-07bf-1e4d129c7f16" testName="SpeechMessage.Hosting.Tests.LineExceptionSenderTests.Provider_failure_has_fixed_message_and_disposes_response_without_reading_body" computerName="LENOVO-LEGION" duration="00:00:00.2773355" startTime="2026-11-07T09:30:13.1575225+08:00" endTime="2026-11-07T09:30:13.1575375+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="02f350b2-b64f-498a-98b0-819ef8f48222" />
+    <UnitTestResult executionId="d6e4729b-e095-48a3-b4e8-3cecab5239f3" testId="3c5a4e62-bfa3-d6be-a965-a78e08a2113d" testName="SpeechMessage.Hosting.Tests.LineExceptionSenderTests.Default_transport_has_no_cookie_redirect_or_unbounded_connection_pool" computerName="LENOVO-LEGION" duration="00:00:00.0019390" startTime="2026-11-07T09:30:13.1833161+08:00" endTime="2026-11-07T09:30:13.1833161+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="d6e4729b-e095-48a3-b4e8-3cecab5239f3" />
+    <UnitTestResult executionId="1a927d31-7816-45b9-af23-aeea4f80fe99" testId="ac6e28eb-69f9-6626-8d2b-0d089d0c1a6f" testName="SpeechMessage.Hosting.Tests.LineExceptionSenderTests.Token_selection_preserves_environment_organization_default(environment: &quot;environment-A&quot;, organization: &quot;organization-A&quot;, fallback: &quot;default-A&quot;, expected: &quot;environment-A&quot;)" computerName="LENOVO-LEGION" duration="00:00:00.0010032" startTime="2026-11-07T09:30:13.1594779+08:00" endTime="2026-11-07T09:30:13.1594780+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="1a927d31-7816-45b9-af23-aeea4f80fe99" />
+    <UnitTestResult executionId="47621a8e-d0f6-4ba4-bd61-4713ba362462" testId="64cad6d0-00a4-7d5e-5c49-11aefc3c6aa9" testName="SpeechMessage.Hosting.Tests.LineExceptionSenderTests.Missing_configuration_fails_before_transport" computerName="LENOVO-LEGION" duration="00:00:00.0008953" startTime="2026-11-07T09:30:13.1628430+08:00" endTime="2026-11-07T09:30:13.1628430+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="47621a8e-d0f6-4ba4-bd61-4713ba362462" />
+  </Results>
+  <TestDefinitions>
+    <UnitTest name="SpeechMessage.Hosting.Tests.LineExceptionSenderTests.Token_selection_preserves_environment_organization_default(environment: &quot; &quot;, organization: &quot;&quot;, fallback: &quot;default-A&quot;, expected: &quot;default-A&quot;)" storage="d:\音訊科技產品\系統平台\speechmessageproducts\.worktrees\1.0.0.10.integratewebhook_sdk.worktree\.worktrees\1.0.0.11.integration.p2.worktree\speechmessage.hosting.tests\bin\release\net10.0\speechmessage.hosting.tests.dll" id="4578aa70-e55e-1f14-8eb9-b3c0f6d4c165">
+      <Execution id="14957434-d48e-4c44-b413-16db88bc5e70" />
+      <TestMethod codeBase="D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\SpeechMessage.Hosting.Tests\bin\Release\net10.0\SpeechMessage.Hosting.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="SpeechMessage.Hosting.Tests.LineExceptionSenderTests" name="Token_selection_preserves_environment_organization_default" />
+    </UnitTest>
+    <UnitTest name="SpeechMessage.Hosting.Tests.LineExceptionSenderTests.Dispose_is_idempotent_and_closed_sender_rejects_new_work" storage="d:\音訊科技產品\系統平台\speechmessageproducts\.worktrees\1.0.0.10.integratewebhook_sdk.worktree\.worktrees\1.0.0.11.integration.p2.worktree\speechmessage.hosting.tests\bin\release\net10.0\speechmessage.hosting.tests.dll" id="76dc6ab8-ba30-7aa3-a986-177da4558b8d">
+      <Execution id="2a121940-aad8-4fee-82e1-0238f88bfbdc" />
+      <TestMethod codeBase="D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\SpeechMessage.Hosting.Tests\bin\Release\net10.0\SpeechMessage.Hosting.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="SpeechMessage.Hosting.Tests.LineExceptionSenderTests" name="Dispose_is_idempotent_and_closed_sender_rejects_new_work" />
+    </UnitTest>
+    <UnitTest name="SpeechMessage.Hosting.Tests.LineExceptionSenderTests.Concurrent_deployments_keep_request_credentials_and_recipients_isolated" storage="d:\音訊科技產品\系統平台\speechmessageproducts\.worktrees\1.0.0.10.integratewebhook_sdk.worktree\.worktrees\1.0.0.11.integration.p2.worktree\speechmessage.hosting.tests\bin\release\net10.0\speechmessage.hosting.tests.dll" id="d3f72ae0-12a6-a129-6370-406976752974">
+      <Execution id="7ee1b661-12a6-41e5-a82d-0532c3e0f686" />
+      <TestMethod codeBase="D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\SpeechMessage.Hosting.Tests\bin\Release\net10.0\SpeechMessage.Hosting.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="SpeechMessage.Hosting.Tests.LineExceptionSenderTests" name="Concurrent_deployments_keep_request_credentials_and_recipients_isolated" />
+    </UnitTest>
+    <UnitTest name="SpeechMessage.Hosting.Tests.LineExceptionSenderTests.Caller_cancellation_propagates_and_drains_transport" storage="d:\音訊科技產品\系統平台\speechmessageproducts\.worktrees\1.0.0.10.integratewebhook_sdk.worktree\.worktrees\1.0.0.11.integration.p2.worktree\speechmessage.hosting.tests\bin\release\net10.0\speechmessage.hosting.tests.dll" id="24fc19e5-747e-b7a2-dc28-a81d839eabb3">
+      <Execution id="7f8f7c9b-3198-44ea-b93c-243854f52e18" />
+      <TestMethod codeBase="D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\SpeechMessage.Hosting.Tests\bin\Release\net10.0\SpeechMessage.Hosting.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="SpeechMessage.Hosting.Tests.LineExceptionSenderTests" name="Caller_cancellation_propagates_and_drains_transport" />
+    </UnitTest>
+    <UnitTest name="SpeechMessage.Hosting.Tests.LineExceptionSenderTests.Token_selection_preserves_environment_organization_default(environment: &quot;environment-A&quot;, organization: &quot;organization-A&quot;, fallback: &quot;default-A&quot;, expected: &quot;environment-A&quot;)" storage="d:\音訊科技產品\系統平台\speechmessageproducts\.worktrees\1.0.0.10.integratewebhook_sdk.worktree\.worktrees\1.0.0.11.integration.p2.worktree\speechmessage.hosting.tests\bin\release\net10.0\speechmessage.hosting.tests.dll" id="ac6e28eb-69f9-6626-8d2b-0d089d0c1a6f">
+      <Execution id="1a927d31-7816-45b9-af23-aeea4f80fe99" />
+      <TestMethod codeBase="D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\SpeechMessage.Hosting.Tests\bin\Release\net10.0\SpeechMessage.Hosting.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="SpeechMessage.Hosting.Tests.LineExceptionSenderTests" name="Token_selection_preserves_environment_organization_default" />
+    </UnitTest>
+    <UnitTest name="SpeechMessage.Hosting.Tests.LineExceptionSenderTests.Recipient_fallback_and_configuration_snapshot_remain_host_owned" storage="d:\音訊科技產品\系統平台\speechmessageproducts\.worktrees\1.0.0.10.integratewebhook_sdk.worktree\.worktrees\1.0.0.11.integration.p2.worktree\speechmessage.hosting.tests\bin\release\net10.0\speechmessage.hosting.tests.dll" id="d0309514-b50d-ed91-ca0b-1c73df2a54db">
+      <Execution id="196b270c-4d6d-45d6-a444-4d6421634898" />
+      <TestMethod codeBase="D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\SpeechMessage.Hosting.Tests\bin\Release\net10.0\SpeechMessage.Hosting.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="SpeechMessage.Hosting.Tests.LineExceptionSenderTests" name="Recipient_fallback_and_configuration_snapshot_remain_host_owned" />
+    </UnitTest>
+    <UnitTest name="SpeechMessage.Hosting.Tests.LineExceptionSenderTests.Missing_configuration_fails_before_transport" storage="d:\音訊科技產品\系統平台\speechmessageproducts\.worktrees\1.0.0.10.integratewebhook_sdk.worktree\.worktrees\1.0.0.11.integration.p2.worktree\speechmessage.hosting.tests\bin\release\net10.0\speechmessage.hosting.tests.dll" id="64cad6d0-00a4-7d5e-5c49-11aefc3c6aa9">
+      <Execution id="47621a8e-d0f6-4ba4-bd61-4713ba362462" />
+      <TestMethod codeBase="D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\SpeechMessage.Hosting.Tests\bin\Release\net10.0\SpeechMessage.Hosting.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="SpeechMessage.Hosting.Tests.LineExceptionSenderTests" name="Missing_configuration_fails_before_transport" />
+    </UnitTest>
+    <UnitTest name="SpeechMessage.Hosting.Tests.LineExceptionSenderTests.Token_selection_preserves_environment_organization_default(environment: null, organization: &quot;organization-A&quot;, fallback: &quot;default-A&quot;, expected: &quot;organization-A&quot;)" storage="d:\音訊科技產品\系統平台\speechmessageproducts\.worktrees\1.0.0.10.integratewebhook_sdk.worktree\.worktrees\1.0.0.11.integration.p2.worktree\speechmessage.hosting.tests\bin\release\net10.0\speechmessage.hosting.tests.dll" id="c813fbf2-dd07-c740-f38b-cf9b3a91f15a">
+      <Execution id="f6dd0522-c524-4023-bc7f-21edf970afed" />
+      <TestMethod codeBase="D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\SpeechMessage.Hosting.Tests\bin\Release\net10.0\SpeechMessage.Hosting.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="SpeechMessage.Hosting.Tests.LineExceptionSenderTests" name="Token_selection_preserves_environment_organization_default" />
+    </UnitTest>
+    <UnitTest name="SpeechMessage.Hosting.Tests.LineExceptionSenderTests.Sender_implementation_belongs_to_Hosting" storage="d:\音訊科技產品\系統平台\speechmessageproducts\.worktrees\1.0.0.10.integratewebhook_sdk.worktree\.worktrees\1.0.0.11.integration.p2.worktree\speechmessage.hosting.tests\bin\release\net10.0\speechmessage.hosting.tests.dll" id="203b9007-6520-f92b-82fb-e5a078bcea7b">
+      <Execution id="018a1e2c-b9e6-46ca-a08c-6a715643b585" />
+      <TestMethod codeBase="D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\SpeechMessage.Hosting.Tests\bin\Release\net10.0\SpeechMessage.Hosting.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="SpeechMessage.Hosting.Tests.LineExceptionSenderTests" name="Sender_implementation_belongs_to_Hosting" />
+    </UnitTest>
+    <UnitTest name="SpeechMessage.Hosting.Tests.LineExceptionSenderTests.Internal_timeout_is_not_disguised_as_caller_cancellation" storage="d:\音訊科技產品\系統平台\speechmessageproducts\.worktrees\1.0.0.10.integratewebhook_sdk.worktree\.worktrees\1.0.0.11.integration.p2.worktree\speechmessage.hosting.tests\bin\release\net10.0\speechmessage.hosting.tests.dll" id="90fb8450-2ecf-cd97-93e0-04c95a6fdc3e">
+      <Execution id="ba874bcb-df5a-4b67-bab6-687babd387db" />
+      <TestMethod codeBase="D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\SpeechMessage.Hosting.Tests\bin\Release\net10.0\SpeechMessage.Hosting.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="SpeechMessage.Hosting.Tests.LineExceptionSenderTests" name="Internal_timeout_is_not_disguised_as_caller_cancellation" />
+    </UnitTest>
+    <UnitTest name="SpeechMessage.Hosting.Tests.LineExceptionSenderTests.Provider_failure_has_fixed_message_and_disposes_response_without_reading_body" storage="d:\音訊科技產品\系統平台\speechmessageproducts\.worktrees\1.0.0.10.integratewebhook_sdk.worktree\.worktrees\1.0.0.11.integration.p2.worktree\speechmessage.hosting.tests\bin\release\net10.0\speechmessage.hosting.tests.dll" id="9988dd7a-a133-8abe-07bf-1e4d129c7f16">
+      <Execution id="02f350b2-b64f-498a-98b0-819ef8f48222" />
+      <TestMethod codeBase="D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\SpeechMessage.Hosting.Tests\bin\Release\net10.0\SpeechMessage.Hosting.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="SpeechMessage.Hosting.Tests.LineExceptionSenderTests" name="Provider_failure_has_fixed_message_and_disposes_response_without_reading_body" />
+    </UnitTest>
+    <UnitTest name="SpeechMessage.Hosting.Tests.LineExceptionSenderTests.Dispose_clears_retained_deployment_strings" storage="d:\音訊科技產品\系統平台\speechmessageproducts\.worktrees\1.0.0.10.integratewebhook_sdk.worktree\.worktrees\1.0.0.11.integration.p2.worktree\speechmessage.hosting.tests\bin\release\net10.0\speechmessage.hosting.tests.dll" id="16c1119b-d399-08ef-27d6-3e211fa934ac">
+      <Execution id="61bf5074-7dd3-411f-8b23-700963eaa714" />
+      <TestMethod codeBase="D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\SpeechMessage.Hosting.Tests\bin\Release\net10.0\SpeechMessage.Hosting.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="SpeechMessage.Hosting.Tests.LineExceptionSenderTests" name="Dispose_clears_retained_deployment_strings" />
+    </UnitTest>
+    <UnitTest name="SpeechMessage.Hosting.Tests.LineExceptionSenderTests.Default_transport_has_no_cookie_redirect_or_unbounded_connection_pool" storage="d:\音訊科技產品\系統平台\speechmessageproducts\.worktrees\1.0.0.10.integratewebhook_sdk.worktree\.worktrees\1.0.0.11.integration.p2.worktree\speechmessage.hosting.tests\bin\release\net10.0\speechmessage.hosting.tests.dll" id="3c5a4e62-bfa3-d6be-a965-a78e08a2113d">
+      <Execution id="d6e4729b-e095-48a3-b4e8-3cecab5239f3" />
+      <TestMethod codeBase="D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\SpeechMessage.Hosting.Tests\bin\Release\net10.0\SpeechMessage.Hosting.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="SpeechMessage.Hosting.Tests.LineExceptionSenderTests" name="Default_transport_has_no_cookie_redirect_or_unbounded_connection_pool" />
+    </UnitTest>
+  </TestDefinitions>
+  <TestEntries>
+    <TestEntry testId="d3f72ae0-12a6-a129-6370-406976752974" executionId="7ee1b661-12a6-41e5-a82d-0532c3e0f686" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="203b9007-6520-f92b-82fb-e5a078bcea7b" executionId="018a1e2c-b9e6-46ca-a08c-6a715643b585" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="16c1119b-d399-08ef-27d6-3e211fa934ac" executionId="61bf5074-7dd3-411f-8b23-700963eaa714" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="76dc6ab8-ba30-7aa3-a986-177da4558b8d" executionId="2a121940-aad8-4fee-82e1-0238f88bfbdc" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="d0309514-b50d-ed91-ca0b-1c73df2a54db" executionId="196b270c-4d6d-45d6-a444-4d6421634898" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="24fc19e5-747e-b7a2-dc28-a81d839eabb3" executionId="7f8f7c9b-3198-44ea-b93c-243854f52e18" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="4578aa70-e55e-1f14-8eb9-b3c0f6d4c165" executionId="14957434-d48e-4c44-b413-16db88bc5e70" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="c813fbf2-dd07-c740-f38b-cf9b3a91f15a" executionId="f6dd0522-c524-4023-bc7f-21edf970afed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="90fb8450-2ecf-cd97-93e0-04c95a6fdc3e" executionId="ba874bcb-df5a-4b67-bab6-687babd387db" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="9988dd7a-a133-8abe-07bf-1e4d129c7f16" executionId="02f350b2-b64f-498a-98b0-819ef8f48222" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="3c5a4e62-bfa3-d6be-a965-a78e08a2113d" executionId="d6e4729b-e095-48a3-b4e8-3cecab5239f3" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="ac6e28eb-69f9-6626-8d2b-0d089d0c1a6f" executionId="1a927d31-7816-45b9-af23-aeea4f80fe99" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="64cad6d0-00a4-7d5e-5c49-11aefc3c6aa9" executionId="47621a8e-d0f6-4ba4-bd61-4713ba362462" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+  </TestEntries>
+  <TestLists>
+    <TestList name="不在清單中的結果" id="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestList name="所有載入的結果" id="19431567-8539-422a-85d7-44ee4e166bda" />
+  </TestLists>
+  <ResultSummary outcome="Failed">
+    <Counters total="13" executed="13" passed="11" failed="2" error="0" timeout="0" aborted="0" inconclusive="0" passedButRunAborted="0" notRunnable="0" notExecuted="0" disconnected="0" warning="0" completed="0" inProgress="0" pending="0" />
+    <Output>
+      <StdOut>[xUnit.net 00:00:00.00] xUnit.net VSTest Adapter v2.5.6+bf9b858c26 (64-bit .NET 10.0.14)&#xD;
+[xUnit.net 00:00:00.05]   Discovering: SpeechMessage.Hosting.Tests&#xD;
+[xUnit.net 00:00:00.08]   Discovered:  SpeechMessage.Hosting.Tests&#xD;
+[xUnit.net 00:00:00.08]   Starting:    SpeechMessage.Hosting.Tests&#xD;
+[xUnit.net 00:00:00.41]       Assert.Throws() Failure: Exception type was not an exact match&#xD;
+[xUnit.net 00:00:00.41]       Expected: typeof(System.ObjectDisposedException)&#xD;
+[xUnit.net 00:00:00.41]       Actual:   typeof(System.InvalidOperationException)&#xD;
+[xUnit.net 00:00:00.41]       ---- System.InvalidOperationException : Exception LINE notification configuration is missing.&#xD;
+[xUnit.net 00:00:00.41]       Stack Trace:&#xD;
+[xUnit.net 00:00:00.41]         D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\SpeechMessage.Hosting.Tests\LineExceptionSenderTests.cs(205,0): at SpeechMessage.Hosting.Tests.LineExceptionSenderTests.Dispose_is_idempotent_and_closed_sender_rejects_new_work()&#xD;
+[xUnit.net 00:00:00.41]         --- End of stack trace from previous location ---&#xD;
+[xUnit.net 00:00:00.41]         ----- Inner Stack Trace -----&#xD;
+[xUnit.net 00:00:00.41]         D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\SpeechMessage.Hosting\LineExceptionSender.cs(79,0): at SpeechMessage.Hosting.LineExceptionSender.SendAsync(String message, CancellationToken cancellationToken)&#xD;
+[xUnit.net 00:00:00.44]       Assert.All() Failure: 1 out of 2 items in the collection did not pass.&#xD;
+[xUnit.net 00:00:00.44]       [1]: Item:  System.String recipient&#xD;
+[xUnit.net 00:00:00.44]            Error: Closed sender retains deployment state.&#xD;
+[xUnit.net 00:00:00.44]       Stack Trace:&#xD;
+[xUnit.net 00:00:00.44]         D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\SpeechMessage.Hosting.Tests\LineExceptionSenderTests.cs(220,0): at SpeechMessage.Hosting.Tests.LineExceptionSenderTests.Dispose_clears_retained_deployment_strings()&#xD;
+[xUnit.net 00:00:00.44]            at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)&#xD;
+[xUnit.net 00:00:00.44]            at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)&#xD;
+[xUnit.net 00:00:05.45]   Finished:    SpeechMessage.Hosting.Tests&#xD;
+</StdOut>
+    </Output>
+    <RunInfos>
+      <RunInfo computerName="LENOVO-LEGION" outcome="Error" timestamp="2026-11-07T09:30:13.1819463+08:00">
+        <Text>[xUnit.net 00:00:00.41]     SpeechMessage.Hosting.Tests.LineExceptionSenderTests.Dispose_is_idempotent_and_closed_sender_rejects_new_work [FAIL]</Text>
+      </RunInfo>
+      <RunInfo computerName="LENOVO-LEGION" outcome="Error" timestamp="2026-11-07T09:30:13.2295616+08:00">
+        <Text>[xUnit.net 00:00:00.44]     SpeechMessage.Hosting.Tests.LineExceptionSenderTests.Dispose_clears_retained_deployment_strings [FAIL]</Text>
+      </RunInfo>
+    </RunInfos>
+  </ResultSummary>
+</TestRun>

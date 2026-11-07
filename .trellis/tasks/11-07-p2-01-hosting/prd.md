@@ -21,7 +21,7 @@ Production 啟動守門與架構規則，讓 ChurchReport 及後續 LineWebhook 
 
 ## Acceptance Criteria
 
-- [ ] `SpeechMessage.Hosting` 與測試專案加入 solution，Release 建置通過。
+- [x] `SpeechMessage.Hosting` 與測試專案加入 solution，Release 建置通過。
 - [ ] 四種通知開關、寫檔失敗、LINE sender 失敗、佇列滿載、正常取消、內部逾時、
   drain／Dispose、A／B 兩組 operation 不串資料的測試通過。
 - [ ] ChurchReport 以 Hosting registration／adapter 使用共用入口，原有

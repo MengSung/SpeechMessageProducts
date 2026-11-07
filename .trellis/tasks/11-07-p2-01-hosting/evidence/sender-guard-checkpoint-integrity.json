@@ -1,0 +1,129 @@
+{
+  "baseCommit": "4db55f33",
+  "snapshot": "2026-11-07T09:54:52+08:00",
+  "htmlBalanced": true,
+  "duplicateHtmlIds": false,
+  "layoutCssAndRendererUnchangedAfterGitLineEndingNormalization": true,
+  "p1HistoryUnchanged": true,
+  "workPackageIdentityAndStatusUnchanged": true,
+  "workPackageCount": 83,
+  "noticeCount": 1,
+  "p2InfoCount": 1,
+  "localLinksChecked": 0,
+  "byteChecked": 16,
+  "files": [
+    {
+      "path": ".ccg/tasks/integration-p2/task.json",
+      "sha256": "0cecca7fb6f2acdb62845e79c19f4b2d28fbdc4edb32108fd1c4e760b9406c24",
+      "utf8WithoutBom": true,
+      "crlf": true,
+      "finalCrlf": true
+    },
+    {
+      "path": ".trellis/spec/backend/error-handling.md",
+      "sha256": "99ecf8aa76b3555ddb178e69af84ad019afbfe26640a69940e0e573c4b45ad4e",
+      "utf8WithoutBom": true,
+      "crlf": true,
+      "finalCrlf": true
+    },
+    {
+      "path": ".trellis/tasks/11-07-p2-01-hosting/design.md",
+      "sha256": "77b0264d3499f850341396a713af333ac65c524574d4b073f0e5a078cea9625a",
+      "utf8WithoutBom": true,
+      "crlf": true,
+      "finalCrlf": true
+    },
+    {
+      "path": ".trellis/tasks/11-07-p2-01-hosting/evidence/development-guard-baseline-transfer.json",
+      "sha256": "6da29e6b465294c9b1ca1203759f1eaf4e2cb57748d372ac00db28c4def00205",
+      "utf8WithoutBom": true,
+      "crlf": true,
+      "finalCrlf": true
+    },
+    {
+      "path": ".trellis/tasks/11-07-p2-01-hosting/prd.md",
+      "sha256": "4ed8fbac11394dc5c425434fac29adfc543aca7894fc2ec3872a17abfff6b94b",
+      "utf8WithoutBom": true,
+      "crlf": true,
+      "finalCrlf": true
+    },
+    {
+      "path": ".trellis/tasks/11-07-p2-01-hosting/research/sender-guard-checkpoint.md",
+      "sha256": "0b61279fa4e2ec299b2837f0bdcf018034b368b868fb19d80ba9667ab4161d09",
+      "utf8WithoutBom": true,
+      "crlf": true,
+      "finalCrlf": true
+    },
+    {
+      "path": ".trellis/tasks/11-07-p2-01-hosting/task.json",
+      "sha256": "3f34e60bc385f7dbe487681d5ae49fd187338294b6ae0249f8df362c11a52da2",
+      "utf8WithoutBom": true,
+      "crlf": true,
+      "finalCrlf": true
+    },
+    {
+      "path": "ChurchReport.MemberInfo.Tests/Contracts/TenancyCallSiteTests.cs",
+      "sha256": "27292c0dab94571d50944a1aeddf87a44c0f74eccfccec7251334717fb63c451",
+      "utf8WithoutBom": true,
+      "crlf": true,
+      "finalCrlf": true
+    },
+    {
+      "path": "SpeechMessage.Hosting.Tests/LineExceptionSenderTests.cs",
+      "sha256": "c06e2aa478e772f023ec22fa590a1c15aa14ea34f5fcd656c0bdf49b52b8d34e",
+      "utf8WithoutBom": true,
+      "crlf": true,
+      "finalCrlf": true
+    },
+    {
+      "path": "SpeechMessage.Hosting.Tests/StartupGuardsTests.cs",
+      "sha256": "fb0f9f5a4f3788948d1ed8392c57bfaef9307f24245a76efbdafe2b474eb4879",
+      "utf8WithoutBom": true,
+      "crlf": true,
+      "finalCrlf": true
+    },
+    {
+      "path": "SpeechMessage.Hosting/LineExceptionSender.cs",
+      "sha256": "02fe9b462fadeed9f03a793380d2bdbbc5f6c7daed9b03cba982b41f517fafda",
+      "utf8WithoutBom": true,
+      "crlf": true,
+      "finalCrlf": true
+    },
+    {
+      "path": "SpeechMessageProducts.ChurchReport/Configuration/ChurchReportDevelopmentConfiguration.cs",
+      "sha256": "1f906959ee686cd56315f1b0c09cac9534aeee7d8784ddf34197ffb8012917c4",
+      "utf8WithoutBom": true,
+      "crlf": true,
+      "finalCrlf": true
+    },
+    {
+      "path": "SpeechMessageProducts.ChurchReport/Services/LineExceptionSender.cs",
+      "sha256": "e6f7f875e56772f86bd880acd80b1367ca164481a521906a8fed11ef767990e6",
+      "utf8WithoutBom": true,
+      "crlf": true,
+      "finalCrlf": true
+    },
+    {
+      "path": "SpeechMessageProducts.ChurchReport/SpeechMessageProducts.ChurchReport.csproj",
+      "sha256": "8aa652744f76b1625fe838e9ec1327d37f12f9492ece91afc5edf2358433b1eb",
+      "utf8WithoutBom": true,
+      "crlf": true,
+      "finalCrlf": true
+    },
+    {
+      "path": "tools/I18nCheck/baselines/cjk-literals.json",
+      "sha256": "d5017de9b13087b5c4a085f2fd9952bd424ea073b3c415202b46668e9ae46c9b",
+      "utf8WithoutBom": true,
+      "crlf": true,
+      "finalCrlf": true
+    },
+    {
+      "path": "文件/規劃設計書/實作計畫-3.3/實作進度.html",
+      "sha256": "cc8d9113fd254e7739ccfd4fd4aa0d97dd5b19fb9b7b90d8c67f73739b661736",
+      "utf8WithoutBom": true,
+      "crlf": true,
+      "finalCrlf": true
+    }
+  ],
+  "validationScope": "offline; not P2 acceptance"
+}

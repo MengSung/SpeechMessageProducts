@@ -1,0 +1,34 @@
+  ���b�P�_�n�٭쪺�M��...
+  �Ҧ��M�׳��b�̷s���A�A�i�i���٭�C
+  LineMessagingProcessor.Core -> D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\LineMessagingProcessor.Core\bin\Release\net10.0\LineMessagingProcessor.Core.dll
+  SpeechMessage.Localization -> D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\SpeechMessage.Localization\bin\Release\net10.0\SpeechMessage.Localization.dll
+  SpeechMessage.Tenancy -> D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\SpeechMessage.Tenancy\bin\Release\net10.0\SpeechMessage.Tenancy.dll
+  SpeechMessage.Hosting -> D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\SpeechMessage.Hosting\bin\Release\net10.0\SpeechMessage.Hosting.dll
+  SpeechMessage.Hosting.Tests -> D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\SpeechMessage.Hosting.Tests\bin\Release\net10.0\SpeechMessage.Hosting.Tests.dll
+D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\SpeechMessage.Hosting.Tests\bin\Release\net10.0\SpeechMessage.Hosting.Tests.dll 的測試回合 (.NETCoreApp,Version=v10.0)
+總共有 1 個測試檔案與指定的模式相符。
+[xUnit.net 00:00:00.41]     SpeechMessage.Hosting.Tests.LineExceptionSenderTests.Dispose_is_idempotent_and_closed_sender_rejects_new_work [FAIL]
+  失敗 SpeechMessage.Hosting.Tests.LineExceptionSenderTests.Dispose_is_idempotent_and_closed_sender_rejects_new_work [1 ms]
+  錯誤訊息:
+   Assert.Throws() Failure: Exception type was not an exact match
+Expected: typeof(System.ObjectDisposedException)
+Actual:   typeof(System.InvalidOperationException)
+---- System.InvalidOperationException : Exception LINE notification configuration is missing.
+  堆疊追蹤:
+     at SpeechMessage.Hosting.Tests.LineExceptionSenderTests.Dispose_is_idempotent_and_closed_sender_rejects_new_work() in D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\SpeechMessage.Hosting.Tests\LineExceptionSenderTests.cs:line 205
+--- End of stack trace from previous location ---
+----- Inner Stack Trace -----
+   at SpeechMessage.Hosting.LineExceptionSender.SendAsync(String message, CancellationToken cancellationToken) in D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\SpeechMessage.Hosting\LineExceptionSender.cs:line 79
+[xUnit.net 00:00:00.44]     SpeechMessage.Hosting.Tests.LineExceptionSenderTests.Dispose_clears_retained_deployment_strings [FAIL]
+  失敗 SpeechMessage.Hosting.Tests.LineExceptionSenderTests.Dispose_clears_retained_deployment_strings [1 ms]
+  錯誤訊息:
+   Assert.All() Failure: 1 out of 2 items in the collection did not pass.
+[1]: Item:  System.String recipient
+     Error: Closed sender retains deployment state.
+  堆疊追蹤:
+     at SpeechMessage.Hosting.Tests.LineExceptionSenderTests.Dispose_clears_retained_deployment_strings() in D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\SpeechMessage.Hosting.Tests\LineExceptionSenderTests.cs:line 220
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+結果檔案: D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\.trellis\tasks\11-07-p2-01-hosting\evidence\sender-lifecycle-red\sender-lifecycle-red.trx
+
+失敗!  - 失敗:     2，通過:    11，略過:     0，總計:    13，持續時間: 5 s - SpeechMessage.Hosting.Tests.dll (net10.0)

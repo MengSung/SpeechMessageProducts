@@ -55,3 +55,17 @@ ToolUtility改參考Hosting，Hosting移除ToolUtility參考、改參考Tenancy�
 DI僅Dispose自己建立的owner／adapter；外部instance一律借用。全域registration先解除，
 再drain診斷，最後釋放sender與configuration。此步不替代後續sender搬移、Program接入、
 CultureCompleteness生成、R2／R3／R9與完整主機驗收，P2-01保持進行中。
+
+## LINE sender 搬移與測試邊界
+
+真正傳輸實作移至 Hosting，仍委派 Tenancy 唯一解析器，保留環境→組織→預設順序。
+共用層不保存 ChurchReport 管理者 ID；由既有產品薄 facade 或組合根提供相容後備值。
+啟動時一次取得 token／收件人快照，不保存 IConfiguration、request 或 Session。
+預設傳輸無 cookie、禁止 redirect、一條連線、五分鐘 pool lifetime、五秒 timeout；
+每筆 Authorization 只放 request，不寫共用 DefaultRequestHeaders。
+
+建構式可由受信任組合根注入 HttpMessageHandler，成功建構後 sender 接管其 Dispose；
+此為實際傳輸替換邊界，測試使用完全離線的 owned handler，不讀真實憑證。
+設定解析失敗發生在接管 handler 之前，仍由原 caller 清理。sender 不另建 queue 或 retry，
+Host 必須先 drain diagnostics 再關閉 sender；Dispose 冪等並清除憑證／收件人參照。
+正常取消與內部 timeout 均向上傳遞，由 diagnostics 依原 caller token 判別，sender 不通知自己。

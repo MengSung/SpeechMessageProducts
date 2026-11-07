@@ -105,3 +105,64 @@ catch (Exception ex)
 - D365 端最終通知由階段 5 LineWebhook 每五分鐘彙總、依門檻交給共用入口；階段 0～4 只能從系統作業與 Plugin 追蹤查看，屬排定的過渡期。
 - net10 主機呼叫 Core，重試用盡後才經 ExceptionReporting 上報一次，屬階段 2 以後；正常 caller 取消與成功恢復的重試不上報，通知管道自身失敗不遞迴通知。
 - 日後遇到階段段落省略責任時，先查設計 Word 第十章及計畫 02～04；已有答案就按出處執行並在 WP 回報註明，不能只因本段未重複敘述而判定缺少架構。
+
+## P2-01 Hosting sender 與相容入口
+
+### 1. 適用範圍
+
+例外傳輸的真正實作位於 `SpeechMessage.Hosting/LineExceptionSender.cs`；
+產品 facade 不可保留第二套 HTTP／token／Development 安全政策。
+三個 diagnostics 型別已搬入 Hosting，保留舊 namespace 與 ToolUtility 型別轉送。
+此抽取不表示 Program、語系完成度生成或整包 P2-01 已驗收。
+
+### 2. 可執行介面
+
+- `new SpeechMessage.Hosting.LineExceptionSender(IConfiguration configuration,
+  string? fallbackRecipient = null, HttpMessageHandler? transport = null)`。
+- `Task SendAsync(string message, CancellationToken cancellationToken)`、
+  `void Dispose()`。
+- 舊 `ChurchReport.Services.LineExceptionSender(IConfiguration)` 只提供原產品後備收件人，
+  並委派上述實作；共用層不可硬編碼產品管理者 ID。
+- 舊 Development 三個入口委派 `StartupGuards.ValidateDevelopmentConfiguration`、
+  `AddDevelopmentConfigurationOverrides`、`AddDeploymentLineEnvironmentOverrides`。
+
+### 3. 所有權與資料契約
+
+設定先驗證，再接管自有 transport；建構失敗時 caller 仍擁有注入的 handler。
+成功後由 sender 的 HttpClient 唯一負責釋放。只保留啟動 token／收件人快照，
+不保留 IConfiguration、request、Session 或 provider；Authorization 只存在單次 request。
+預設 handler 無 cookie、禁止 redirect、每站一連線、pool lifetime 五分鐘，
+client timeout 五秒。每筆 request／response 均 Dispose，不讀供應商本文、不重試或通知自身失敗。
+Host 先停止並 drain diagnostics，再 Dispose sender；關閉旗標必須先發布，
+即使 transport 清理失敗，finally 仍清空部署字串且不再次清理已失敗 owner。
+
+### 4. 驗證與錯誤矩陣
+
+| 條件 | 必須結果 |
+| --- | --- |
+| 缺 token／收件人 | 固定錯誤、零 HTTP 操作 |
+| 非 2xx | 固定訊息，保留 StatusCode，response 釋放、本文零讀取 |
+| 無回應的傳輸故障 | 原例外身分向上傳遞，不重送／遞迴通知 |
+| caller 取消／內部逾時 | 工作失敗並排空，由 diagnostics 依原 caller token 分類 |
+| 關閉後新操作 | ObjectDisposedException，不以缺設定誤報 |
+| transport Dispose 失敗 | 保留失敗且清空部署參照，重複 Dispose 不重入 |
+
+### 5. 正常、缺省與禁止案例
+
+正常：同時存活的 A／B sender 各使用自身 request token 與收件人。
+缺省：只有產品組合根明確提供的後備收件人可使用，不推定其他產品管理者。
+禁止：把 token 放 DefaultRequestHeaders、讓 request 選 handler，或保留已關閉 sender 的收件人。
+
+### 6. 必跑驗證
+
+`LineExceptionSenderTests` 目前有 17 個離線案例，涵蓋選擇順序、快照、
+兩 owner 各六十四筆以 barrier 證明同時存活、request／response 釋放、失敗及關閉故障。
+`StartupGuardsTests` 保護實際委派且無重複政策；原 DevelopmentSafetyTests／
+ExceptionOutputOptionsTests 必須 Debug、Release 皆綠，不能只靠新共用 helper。
+型別搬移、相依圖、file documentation、編碼、duplicate 與 I18n 仍獨立檢查。
+
+### 7. 錯誤與正確作法
+
+錯誤：在產品 facade 再 new HttpClient、重新解析 token 或複製 ValidateTestHost。
+正確：產品只傳設定與自己的後備常數給共用 sender，Development 入口只委派 StartupGuards。
+共用 sender 不自行發通知，最終失敗仍由唯一 diagnostics owner 分類與去重。

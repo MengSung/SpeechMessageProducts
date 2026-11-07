@@ -5,7 +5,8 @@
  *
  * 主要功能與流程：
  * 本檔宣告 TenancyCallSiteTests。
- * - 原九處及擴大盤點的十五處必須全部委派共用入口；其他產品來源不得藏有新的 token key 解析副本。
+ * - 原九處及擴大盤點的十五處必須全部委派共用入口；P2-01 sender 搬入 Hosting 後，
+ *   檢查真正新 owner 並確認產品 facade 不重複解析；其他來源不得藏有 token key 解析副本。
  * - 只由本測試輸出向上尋找同時擁有方案與既定主機的工作樹，不跨父工作樹掃描。
  * 測試案例入口包含 ChurchReport_AllCallSites_UseResolver、Root。
  *
@@ -33,7 +34,7 @@ public sealed class TenancyCallSiteTests
         [
             "LineMessagingProcessor/LineMessagingProcessorClass.cs",
             "SpeechMessageProducts.ChurchReport/Startup.cs",
-            "SpeechMessageProducts.ChurchReport/Services/LineExceptionSender.cs",
+            "SpeechMessage.Hosting/LineExceptionSender.cs",
             "SpeechMessageProducts.ChurchReport/Services/PaymentNotificationService.cs",
             "SpeechMessageProducts.ChurchReport/Models/DonationPaymentManager.cs",
             "SpeechMessageProducts.ChurchReport/Controllers/MemberInfoController.cs",
@@ -54,15 +55,21 @@ public sealed class TenancyCallSiteTests
                 || text.Contains("ChurchReportLineChannelAccess.", StringComparison.Ordinal), path);
         }
         var options = new EnumerationOptions { RecurseSubdirectories = true, AttributesToSkip = FileAttributes.ReparsePoint };
-        foreach (var project in new[] { "SpeechMessageProducts.ChurchReport", "LineMessagingProcessor" })
+        foreach (var project in new[] { "SpeechMessageProducts.ChurchReport", "LineMessagingProcessor", "SpeechMessage.Hosting" })
         foreach (var path in Directory.EnumerateFiles(Path.Combine(root, project), "*.cs", options)
             .Where(path => !path.Split(Path.DirectorySeparatorChar).Any(part => part is "bin" or "obj")))
         {
-            if (Path.GetFileName(path) == "ChurchReportDevelopmentConfiguration.cs") continue;
+            // 唯一安全 validator 可讀鍵做來源檢查；舊產品 facade 不再擁有此豁免。
+            if (project == "SpeechMessage.Hosting" && Path.GetFileName(path) == "StartupGuards.cs") continue;
             var text = File.ReadAllText(path);
             Assert.False(Regex.IsMatch(text, "LineMessaging:[^\\r\\n]*:ChannelAccessToken[\"\\]]",
                 RegexOptions.CultureInvariant), Path.GetRelativePath(root, path));
         }
+        var senderFacade = File.ReadAllText(Path.Combine(root,
+            "SpeechMessageProducts.ChurchReport/Services/LineExceptionSender.cs"));
+        Assert.Contains("new SpeechMessage.Hosting.LineExceptionSender(", senderFacade, StringComparison.Ordinal);
+        Assert.DoesNotContain("GetOptionalAccessToken(", senderFacade, StringComparison.Ordinal);
+        Assert.DoesNotContain("new HttpClient(", senderFacade, StringComparison.Ordinal);
         Assert.Contains("AddSpeechMessageTenancy(", File.ReadAllText(Path.Combine(root, "SpeechMessageProducts.ChurchReport", "Startup.cs")), StringComparison.Ordinal);
     }
 

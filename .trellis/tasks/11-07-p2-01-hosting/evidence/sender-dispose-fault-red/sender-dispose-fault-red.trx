@@ -1,0 +1,61 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TestRun id="523ccff8-ae47-405a-9d02-fc30afa76aec" name="Administrator@LENOVO-LEGION 2026-11-07 09:31:12" runUser="LENOVO-LEGION\Administrator" xmlns="http://microsoft.com/schemas/VisualStudio/TeamTest/2010">
+  <Times creation="2026-11-07T09:31:12.1262822+08:00" queuing="2026-11-07T09:31:12.1262823+08:00" start="2026-11-07T09:31:11.6708329+08:00" finish="2026-11-07T09:31:12.1306932+08:00" />
+  <TestSettings name="default" id="9fafb1c0-256e-424a-8f17-afd6c797c362">
+    <Deployment runDeploymentRoot="Administrator_LENOVO-LEGION_2026-11-07_09_31_12" />
+  </TestSettings>
+  <Results>
+    <UnitTestResult executionId="9ed68be4-5cbe-4109-9820-64a457b5a975" testId="775fbfec-fab4-3c8f-6890-903b1b770f52" testName="SpeechMessage.Hosting.Tests.LineExceptionSenderTests.Dispose_failure_still_clears_state_and_does_not_repeat_cleanup" computerName="LENOVO-LEGION" duration="00:00:00.0088139" startTime="2026-11-07T09:31:12.0667516+08:00" endTime="2026-11-07T09:31:12.0667655+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Failed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="9ed68be4-5cbe-4109-9820-64a457b5a975">
+      <Output>
+        <ErrorInfo>
+          <Message>Assert.All() Failure: 2 out of 2 items in the collection did not pass.&#xD;
+[0]: Item:  System.String token&#xD;
+     Error: Failed cleanup retains deployment state.&#xD;
+[1]: Item:  System.String recipient&#xD;
+     Error: Failed cleanup retains deployment state.</Message>
+          <StackTrace>   at SpeechMessage.Hosting.Tests.LineExceptionSenderTests.Dispose_failure_still_clears_state_and_does_not_repeat_cleanup() in D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\SpeechMessage.Hosting.Tests\LineExceptionSenderTests.cs:line 234&#xD;
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)&#xD;
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)</StackTrace>
+        </ErrorInfo>
+      </Output>
+    </UnitTestResult>
+  </Results>
+  <TestDefinitions>
+    <UnitTest name="SpeechMessage.Hosting.Tests.LineExceptionSenderTests.Dispose_failure_still_clears_state_and_does_not_repeat_cleanup" storage="d:\音訊科技產品\系統平台\speechmessageproducts\.worktrees\1.0.0.10.integratewebhook_sdk.worktree\.worktrees\1.0.0.11.integration.p2.worktree\speechmessage.hosting.tests\bin\release\net10.0\speechmessage.hosting.tests.dll" id="775fbfec-fab4-3c8f-6890-903b1b770f52">
+      <Execution id="9ed68be4-5cbe-4109-9820-64a457b5a975" />
+      <TestMethod codeBase="D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\SpeechMessage.Hosting.Tests\bin\Release\net10.0\SpeechMessage.Hosting.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="SpeechMessage.Hosting.Tests.LineExceptionSenderTests" name="Dispose_failure_still_clears_state_and_does_not_repeat_cleanup" />
+    </UnitTest>
+  </TestDefinitions>
+  <TestEntries>
+    <TestEntry testId="775fbfec-fab4-3c8f-6890-903b1b770f52" executionId="9ed68be4-5cbe-4109-9820-64a457b5a975" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+  </TestEntries>
+  <TestLists>
+    <TestList name="不在清單中的結果" id="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestList name="所有載入的結果" id="19431567-8539-422a-85d7-44ee4e166bda" />
+  </TestLists>
+  <ResultSummary outcome="Failed">
+    <Counters total="1" executed="1" passed="0" failed="1" error="0" timeout="0" aborted="0" inconclusive="0" passedButRunAborted="0" notRunnable="0" notExecuted="0" disconnected="0" warning="0" completed="0" inProgress="0" pending="0" />
+    <Output>
+      <StdOut>[xUnit.net 00:00:00.00] xUnit.net VSTest Adapter v2.5.6+bf9b858c26 (64-bit .NET 10.0.14)&#xD;
+[xUnit.net 00:00:00.04]   Discovering: SpeechMessage.Hosting.Tests&#xD;
+[xUnit.net 00:00:00.08]   Discovered:  SpeechMessage.Hosting.Tests&#xD;
+[xUnit.net 00:00:00.08]   Starting:    SpeechMessage.Hosting.Tests&#xD;
+[xUnit.net 00:00:00.12]       Assert.All() Failure: 2 out of 2 items in the collection did not pass.&#xD;
+[xUnit.net 00:00:00.12]       [0]: Item:  System.String token&#xD;
+[xUnit.net 00:00:00.12]            Error: Failed cleanup retains deployment state.&#xD;
+[xUnit.net 00:00:00.12]       [1]: Item:  System.String recipient&#xD;
+[xUnit.net 00:00:00.12]            Error: Failed cleanup retains deployment state.&#xD;
+[xUnit.net 00:00:00.12]       Stack Trace:&#xD;
+[xUnit.net 00:00:00.12]         D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\SpeechMessage.Hosting.Tests\LineExceptionSenderTests.cs(234,0): at SpeechMessage.Hosting.Tests.LineExceptionSenderTests.Dispose_failure_still_clears_state_and_does_not_repeat_cleanup()&#xD;
+[xUnit.net 00:00:00.12]            at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)&#xD;
+[xUnit.net 00:00:00.12]            at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)&#xD;
+[xUnit.net 00:00:00.13]   Finished:    SpeechMessage.Hosting.Tests&#xD;
+</StdOut>
+    </Output>
+    <RunInfos>
+      <RunInfo computerName="LENOVO-LEGION" outcome="Error" timestamp="2026-11-07T09:31:12.0652309+08:00">
+        <Text>[xUnit.net 00:00:00.12]     SpeechMessage.Hosting.Tests.LineExceptionSenderTests.Dispose_failure_still_clears_state_and_does_not_repeat_cleanup [FAIL]</Text>
+      </RunInfo>
+    </RunInfos>
+  </ResultSummary>
+</TestRun>

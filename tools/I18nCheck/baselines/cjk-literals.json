@@ -1212,6 +1212,40 @@
       ]
     },
     {
+      "project": "SpeechMessage.Hosting/SpeechMessage.Hosting.csproj",
+      "count": 8,
+      "files": [
+        {
+          "path": "SpeechMessage.Hosting/Diagnostics/ExceptionDiagnostics.cs",
+          "count": 0
+        },
+        {
+          "path": "SpeechMessage.Hosting/Diagnostics/ExceptionOutputOptions.cs",
+          "count": 0
+        },
+        {
+          "path": "SpeechMessage.Hosting/Diagnostics/ExceptionReporting.cs",
+          "count": 0
+        },
+        {
+          "path": "SpeechMessage.Hosting/ExceptionReportingAdapter.cs",
+          "count": 0
+        },
+        {
+          "path": "SpeechMessage.Hosting/LineExceptionSender.cs",
+          "count": 0
+        },
+        {
+          "path": "SpeechMessage.Hosting/SpeechMessageHostingServiceCollectionExtensions.cs",
+          "count": 0
+        },
+        {
+          "path": "SpeechMessage.Hosting/StartupGuards.cs",
+          "count": 8
+        }
+      ]
+    },
+    {
       "project": "SpeechMessage.Localization/SpeechMessage.Localization.csproj",
       "count": 0,
       "files": [
@@ -1497,11 +1531,11 @@
     },
     {
       "project": "SpeechMessageProducts.ChurchReport/SpeechMessageProducts.ChurchReport.csproj",
-      "count": 3685,
+      "count": 3677,
       "files": [
         {
           "path": "SpeechMessageProducts.ChurchReport/Configuration/ChurchReportDevelopmentConfiguration.cs",
-          "count": 7
+          "count": 0
         },
         {
           "path": "SpeechMessageProducts.ChurchReport/Controllers/ApiControllers/AssignSmallGroupController.cs",
@@ -1605,7 +1639,7 @@
         },
         {
           "path": "SpeechMessageProducts.ChurchReport/Controllers/NewPersonController.cs",
-          "count": 8
+          "count": 7
         },
         {
           "path": "SpeechMessageProducts.ChurchReport/Controllers/PaymentReturnController.cs",
@@ -3202,15 +3236,7 @@
           "count": 5
         },
         {
-          "path": "ToolUtility/Diagnostics/ExceptionDiagnostics.cs",
-          "count": 0
-        },
-        {
-          "path": "ToolUtility/Diagnostics/ExceptionOutputOptions.cs",
-          "count": 0
-        },
-        {
-          "path": "ToolUtility/Diagnostics/ExceptionReporting.cs",
+          "path": "ToolUtility/Diagnostics/ExceptionTypeForwards.cs",
           "count": 0
         },
         {

@@ -21,6 +21,6 @@
   "children": [],
   "parent": "11-07-integration-p2",
   "relatedFiles": [],
-  "notes": "Foundation離線檢查點：strict Release 37/37、ChurchReport例外24/24、focused13/13；詳research/foundation-checkpoint.md。仍待sender、Program、語系生成與整包驗收，status維持in_progress。",
+  "notes": "sender／Development實際抽取檢查點：Hosting Debug/Release各55/55、ChurchReport相關各74/74；I18n、duplicate、文件通過。詳research/sender-guard-checkpoint.md；Program／CultureCompleteness／R2R3R9未完成，保持in_progress。",
   "meta": {}
 }

@@ -1,0 +1,57 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TestRun id="469ea377-a9ce-4ff7-aa3d-3d30c6cdfdf4" name="Administrator@LENOVO-LEGION 2026-11-07 09:37:03" runUser="LENOVO-LEGION\Administrator" xmlns="http://microsoft.com/schemas/VisualStudio/TeamTest/2010">
+  <Times creation="2026-11-07T09:37:03.6027630+08:00" queuing="2026-11-07T09:37:03.6027631+08:00" start="2026-11-07T09:37:03.1561470+08:00" finish="2026-11-07T09:37:03.6067879+08:00" />
+  <TestSettings name="default" id="164f5875-5ca7-4dca-b73e-2acb2b99dc7d">
+    <Deployment runDeploymentRoot="Administrator_LENOVO-LEGION_2026-11-07_09_37_03" />
+  </TestSettings>
+  <Results>
+    <UnitTestResult executionId="91bffbed-caad-44d4-b3d8-f6745f1d77c6" testId="95600c42-6f8c-d422-514e-b97d9838ec7f" testName="SpeechMessage.Hosting.Tests.StartupGuardsTests.Legacy_development_entrypoint_delegates_to_shared_guard_without_duplicate_policy" computerName="LENOVO-LEGION" duration="00:00:00.0026059" startTime="2026-11-07T09:37:03.5453239+08:00" endTime="2026-11-07T09:37:03.5453369+08:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Failed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="91bffbed-caad-44d4-b3d8-f6745f1d77c6">
+      <Output>
+        <ErrorInfo>
+          <Message>Assert.Contains() Failure: Sub-string not found&#xD;
+String:    "/*\r\n * 檔案整體說明\r\n *\r\n * 目的與定位：讓舊式行程級設定讀取點在 "···&#xD;
+Not found: "StartupGuards.ValidateDevelopmentConfigur"···</Message>
+          <StackTrace>   at SpeechMessage.Hosting.Tests.StartupGuardsTests.Legacy_development_entrypoint_delegates_to_shared_guard_without_duplicate_policy() in D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\SpeechMessage.Hosting.Tests\StartupGuardsTests.cs:line 44&#xD;
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)&#xD;
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)</StackTrace>
+        </ErrorInfo>
+      </Output>
+    </UnitTestResult>
+  </Results>
+  <TestDefinitions>
+    <UnitTest name="SpeechMessage.Hosting.Tests.StartupGuardsTests.Legacy_development_entrypoint_delegates_to_shared_guard_without_duplicate_policy" storage="d:\音訊科技產品\系統平台\speechmessageproducts\.worktrees\1.0.0.10.integratewebhook_sdk.worktree\.worktrees\1.0.0.11.integration.p2.worktree\speechmessage.hosting.tests\bin\release\net10.0\speechmessage.hosting.tests.dll" id="95600c42-6f8c-d422-514e-b97d9838ec7f">
+      <Execution id="91bffbed-caad-44d4-b3d8-f6745f1d77c6" />
+      <TestMethod codeBase="D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\SpeechMessage.Hosting.Tests\bin\Release\net10.0\SpeechMessage.Hosting.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner2/netcoreapp" className="SpeechMessage.Hosting.Tests.StartupGuardsTests" name="Legacy_development_entrypoint_delegates_to_shared_guard_without_duplicate_policy" />
+    </UnitTest>
+  </TestDefinitions>
+  <TestEntries>
+    <TestEntry testId="95600c42-6f8c-d422-514e-b97d9838ec7f" executionId="91bffbed-caad-44d4-b3d8-f6745f1d77c6" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+  </TestEntries>
+  <TestLists>
+    <TestList name="不在清單中的結果" id="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestList name="所有載入的結果" id="19431567-8539-422a-85d7-44ee4e166bda" />
+  </TestLists>
+  <ResultSummary outcome="Failed">
+    <Counters total="1" executed="1" passed="0" failed="1" error="0" timeout="0" aborted="0" inconclusive="0" passedButRunAborted="0" notRunnable="0" notExecuted="0" disconnected="0" warning="0" completed="0" inProgress="0" pending="0" />
+    <Output>
+      <StdOut>[xUnit.net 00:00:00.00] xUnit.net VSTest Adapter v2.5.6+bf9b858c26 (64-bit .NET 10.0.14)&#xD;
+[xUnit.net 00:00:00.05]   Discovering: SpeechMessage.Hosting.Tests&#xD;
+[xUnit.net 00:00:00.08]   Discovered:  SpeechMessage.Hosting.Tests&#xD;
+[xUnit.net 00:00:00.08]   Starting:    SpeechMessage.Hosting.Tests&#xD;
+[xUnit.net 00:00:00.11]       Assert.Contains() Failure: Sub-string not found&#xD;
+[xUnit.net 00:00:00.11]       String:    "/*\r\n * 檔案整體說明\r\n *\r\n * 目的與定位：讓舊式行程級設定讀取點在 "···&#xD;
+[xUnit.net 00:00:00.11]       Not found: "StartupGuards.ValidateDevelopmentConfigur"···&#xD;
+[xUnit.net 00:00:00.11]       Stack Trace:&#xD;
+[xUnit.net 00:00:00.12]         D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\SpeechMessage.Hosting.Tests\StartupGuardsTests.cs(44,0): at SpeechMessage.Hosting.Tests.StartupGuardsTests.Legacy_development_entrypoint_delegates_to_shared_guard_without_duplicate_policy()&#xD;
+[xUnit.net 00:00:00.12]            at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)&#xD;
+[xUnit.net 00:00:00.12]            at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)&#xD;
+[xUnit.net 00:00:00.12]   Finished:    SpeechMessage.Hosting.Tests&#xD;
+</StdOut>
+    </Output>
+    <RunInfos>
+      <RunInfo computerName="LENOVO-LEGION" outcome="Error" timestamp="2026-11-07T09:37:03.5438066+08:00">
+        <Text>[xUnit.net 00:00:00.11]     SpeechMessage.Hosting.Tests.StartupGuardsTests.Legacy_development_entrypoint_delegates_to_shared_guard_without_duplicate_policy [FAIL]</Text>
+      </RunInfo>
+    </RunInfos>
+  </ResultSummary>
+</TestRun>

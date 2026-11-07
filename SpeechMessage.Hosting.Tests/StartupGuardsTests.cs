@@ -28,6 +28,26 @@ namespace SpeechMessage.Hosting.Tests;
 /// </summary>
 public sealed class StartupGuardsTests
 {
+    /// <summary>
+    /// 舊產品入口只能委派 Hosting 的驗證與 provider 組合；第二套端點或基底比較政策均拒絕。
+    /// 配合既有 DevelopmentSafetyTests 的實際正反例，避免只新增共用薄殼而保留重複實作。
+    /// </summary>
+    [Fact]
+    public void Legacy_development_entrypoint_delegates_to_shared_guard_without_duplicate_policy()
+    {
+        var directory = new DirectoryInfo(AppContext.BaseDirectory);
+        while (directory is not null && !File.Exists(Path.Combine(directory.FullName, "SpeechMessageProducts.sln")))
+            directory = directory.Parent;
+        Assert.NotNull(directory);
+        var source = File.ReadAllText(Path.Combine(directory.FullName,
+            "SpeechMessageProducts.ChurchReport/Configuration/ChurchReportDevelopmentConfiguration.cs"));
+        Assert.Contains("StartupGuards.ValidateDevelopmentConfiguration(", source, StringComparison.Ordinal);
+        Assert.Contains("StartupGuards.AddDevelopmentConfigurationOverrides(", source, StringComparison.Ordinal);
+        Assert.Contains("StartupGuards.AddDeploymentLineEnvironmentOverrides(", source, StringComparison.Ordinal);
+        Assert.DoesNotContain("private static ConfigurationRoot ReadBaseline(", source, StringComparison.Ordinal);
+        Assert.DoesNotContain("private static void ValidateTestHost(", source, StringComparison.Ordinal);
+    }
+
     /// <summary>正式環境不得啟用偽語系或把 qps-ploc 放入已發布清單。</summary>
     [Fact]
     public void Production_rejects_pseudo_locale_configuration()

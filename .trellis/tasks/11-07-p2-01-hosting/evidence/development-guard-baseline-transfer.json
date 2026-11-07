@@ -1,0 +1,22 @@
+{
+  "sharedGuardCjkLiteralCount": 8,
+  "legacyAndSharedLiteralMultisetsIdenticalBeforeDelegation": true,
+  "literalSetSha256": "c4a7efd3a6a47c0f9b69b085f399dff29186d828a56405274cda50b80cff823b",
+  "globalBaselineBefore": 3986,
+  "globalBaselineAfter": 3986,
+  "hostingAllowance": 8,
+  "legacyGuardAllowanceBefore": 7,
+  "legacyGuardAllowanceAfter": 0,
+  "auditedExistingImprovement": {
+    "path": "SpeechMessageProducts.ChurchReport/Controllers/NewPersonController.cs",
+    "before": 8,
+    "actual": 7,
+    "after": 7
+  },
+  "zeroCountDiagnosticsOwnershipMoved": [
+    "ToolUtility/Diagnostics/ExceptionDiagnostics.cs",
+    "ToolUtility/Diagnostics/ExceptionOutputOptions.cs",
+    "ToolUtility/Diagnostics/ExceptionReporting.cs"
+  ],
+  "exclusionsAdded": false
+}

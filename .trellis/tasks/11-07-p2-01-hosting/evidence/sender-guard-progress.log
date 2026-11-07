@@ -1,0 +1,45 @@
+✔ Every work package has a supported status and renders without undefined labels or icons (9.7455ms)
+✔ No alert hides the warning region and still renders the page (10.2627ms)
+✔ Alert without prompt omits copy button and full prompt area (6.1355ms)
+✔ Alert with prompt preserves escaped prompt and copy handler (6.1424ms)
+✔ Stage 1 progress lists all twelve packages and preserves the live acceptance boundary (13.4477ms)
+✖ Stages 2 through 8 preserve planned scope and render each package with its actual progress (1.0104ms)
+✔ Planned phase disclosures show a visible expanded-state indicator (3.7654ms)
+✔ All nine stages share one closed work-package disclosure list without standalone P0/P1 sections (4.7643ms)
+✔ Unified summaries exclude review milestones and account for user-operated work (10.5728ms)
+✔ Stage switching and mixed planned statuses render independently of the historical snapshot (5.2434ms)
+✔ Integrated P0/P1 entries preserve every evidence field and never merge same-name records (11.5598ms)
+✔ Future work packages preserve external-operation and isolation stop boundaries (0.4594ms)
+✔ Summary cards and phase meters agree with accepted work packages (0.2183ms)
+✔ Informational history defaults to a closed neutral disclosure (4.5058ms)
+✔ P2 informational updates share one stable closed summary and retain their evidence (5.4873ms)
+✔ Current warnings and errors remain separate from collapsed history (5.1989ms)
+✔ Empty notices hide their region and unknown severity cannot inject markup (7.6712ms)
+ℹ tests 17
+ℹ suites 0
+ℹ pass 16
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 119.3905
+
+✖ failing tests:
+
+test at tools\RepoQuality\Tests\Test-ProgressPage.cjs:199:1
+✖ Stages 2 through 8 preserve planned scope and render each package with its actual progress (1.0104ms)
+  AssertionError [ERR_ASSERTION]: P2-01 must preserve plan-specific detail: ExceptionOutputOptions
+      at TestContext.<anonymous> (D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P2.Worktree\tools\RepoQuality\Tests\Test-ProgressPage.cjs:284:12)
+      at Test.runInAsyncScope (node:async_hooks:214:14)
+      at Test.run (node:internal/test_runner/test:1106:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:788:18)
+      at Test.postRun (node:internal/test_runner/test:1235:19)
+      at Test.run (node:internal/test_runner/test:1163:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:788:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
