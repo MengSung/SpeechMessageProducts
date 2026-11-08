@@ -240,10 +240,10 @@ footer{margin-top:36px;color:var(--muted);font-size:12.5px;text-align:center}
  */
 const DATA = {
   "planVersion": "3.4",
-  "snapshot": "2026-11-09 06:47 Asia/Taipei (UTC+08:00)",
-  "lastUpdated": "2026-11-09T06:47:35+08:00",
+  "snapshot": "2026-11-09 06:50 Asia/Taipei (UTC+08:00)",
+  "lastUpdated": "2026-11-09T06:50:10+08:00",
   "branch": "1.0.0.11.Integration.P2.Worktree",
-  "head": "1e2e5605",
+  "head": "54647e61",
   "headline": "P2工作包11／12完成；P2-12實機驗收與階段審查待完成，不啟動P3。",
   "notices": [
     {
@@ -264,9 +264,10 @@ const DATA = {
       "phaseId": "階段 2",
       "level": "info",
       "title": "P2 進度摘要",
-      "lastUpdated": "2026-11-09T06:47:35+08:00",
+      "lastUpdated": "2026-11-09T06:50:10+08:00",
       "body": "2026-11-09 06:42 Asia/Taipei (UTC+08:00)：P2-01～11已驗收，P2-12進行中；Deployment安全設定格式修正後200個測試通過。尚待完整實機、乾淨守門與階段審查，不啟動P3。",
       "steps": [
+        "2026-11-09 06:50 Asia/Taipei (UTC+08:00)：使用者核定清理後，9份原始執行紀錄只移出Git索引、本機原檔及備份SHA-256逐份一致；沒有刪檔、改寫歷史或放寬守門。接續完整實機及最終固定guard驗收。",
         "2026-11-09 06:47 Asia/Taipei (UTC+08:00)：Release全方案建置0錯誤、76警告，文件說明1334檔0失敗；唯讀盤點非測試LINE ID／letter token／Channel／smoke task均0。編碼守門仍被原始外審證據及自動索引阻擋，未執行D365寫入或推送。",
         "2026-11-09 06:42 Asia/Taipei (UTC+08:00)：P2-12 member首次建立與既有步驟更新的安全JSON兩案先失敗後通過，Deployment全套200案通過；四項必要秘密只查存在性，測試Channel ID已查證。尚未執行本輪D365寫入。",
         "2026-11-09 06:42 Asia/Taipei (UTC+08:00)：唯讀ls-remote核對P2分支遠端為1e2e56057da6a9ecea8c0e25b5ac97b9f2ba4e8c，撤回舊摘要未核實的c1b01680推送說法。外部分析入口一次失敗、雙後端均無可用輸出，改用本地分析，不重試。",
@@ -385,23 +386,14 @@ const DATA = {
         "2026-11-08 22:02 Asia/Taipei (UTC+08:00)：恢復時HEAD已為f014a4aa，保留共享提交，不改寫歷史。P2-11於21:50到期，停止實作等待時間盒核定，P2-06獨立守門繼續。",
         "2026-11-08 22:14 Asia/Taipei (UTC+08:00)：P2-06首輪真實圖拒絕ToolUtility→Workflows，已將唯一實作下移processor並保留型別轉送，未放寬R4。新測試先紅再綠，36案通過；2c0b9e95正在乾淨複本驗證。"
       ]
-    },
-    {
-      "id": "p212-evidence-encoding",
-      "phaseId": "階段 2",
-      "level": "warn",
-      "title": "P2-12：原始執行證據的版控阻擋",
-      "lastUpdated": "2026-11-09T06:47:35+08:00",
-      "body": "2026-11-09 06:47 Asia/Taipei (UTC+08:00)：編碼守門發現誤提交的外審原始輸出及自動索引不合格式，但既有規則禁止改寫原始證據。建議核定移出版控、保留本機原檔與SHA-256，不改程式、歷史或檢查門檻。",
-      "steps": []
     }
   ],
   "userActions": [
     {
       "when": "2026-11-09 06:47 Asia/Taipei (UTC+08:00)",
       "text": "核定將本次誤納版控的外審原始輸出與自動執行索引改為只保存在本機，原檔與SHA-256不變。",
-      "status": "you",
-      "note": "不需操作Git或主機，只需文字核定；程式與歷史提交不改寫，不放寬守門。"
+      "status": "done",
+      "note": "2026-11-09 06:50 Asia/Taipei (UTC+08:00)：已回覆「核定清理」；9份原檔與備份雜湊完全一致，Git操作由Codex完成，使用者無需操作電腦。"
     },
     {
       "when": "2026-11-07",

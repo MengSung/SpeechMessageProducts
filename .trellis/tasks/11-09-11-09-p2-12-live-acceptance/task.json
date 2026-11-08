@@ -21,7 +21,7 @@
   "children": [],
   "parent": "11-07-integration-p2",
   "relatedFiles": [],
-  "notes": "2026-11-09 06:46 Asia/Taipei (UTC+08:00)：member安全格式修正、Deployment200案及進度27案通過；Release全方案0錯誤。實機只完成唯讀盤點；編碼守門因已提交原始外審證據及自動索引不合格式而未通過，未重試或改寫原始檔，待一次性版控清理核定。",
+  "notes": "2026-11-09 06:50 Asia/Taipei (UTC+08:00)：已依核定只移除9份原始執行紀錄的Git索引，本機原檔及備份SHA-256相同；不改寫歷史或放寬守門。接續P2-12實機準備，未部署或發訊。",
   "meta": {
     "offlineDeploymentTests": 200,
     "memberSecureRedCases": 2,
@@ -33,7 +33,8 @@
     "readonlyAuditAt": "2026-11-09T06:43:17+08:00",
     "fullSolutionBuildErrors": 0,
     "fullSolutionBuildWarnings": 76,
-    "encodingGate": "未通過；8份已提交外審原始證據及2份任務JSON，尚未乾淨守門",
-    "pendingUserDecision": "允許將誤納版控的原始外審輸出與自動執行索引移出版控，保留本機原檔與SHA-256；不改寫歷史，不放寬守門。"
+    "encodingGate": "核定清理後通過：checked=365、excluded=120、filesWithIssues=0；尚未提交後乾淨守門",
+    "cleanupAuthorizedAt": "2026-11-09T06:50:10+08:00",
+    "cleanupPreservedFiles": 9
   }
 }
