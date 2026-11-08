@@ -7,7 +7,7 @@
  *
  * 主要功能與流程：
  * 本檔宣告 ArchitectureRuleTests。
- * - 雙目標專案不能指向只有 net10 的產品，即使當次建置選到 net10 也不豁免整體雙目標契約。
+ * - P2-05共用核心向Localization取字合法，反向仍拒絕；雙目標專案不能指向只有 net10 的產品，即使當次建置選到 net10 也不豁免整體雙目標契約。
  * - Extensions、ASP.NET 與 Dataverse 直接套件不得進入共用雙目標；以各套件正反例保護辨識。
  * - ToolUtility.Core 的 Dataverse 例外只限 net10 SDK 型別來源，不能擴大為 net462 或任意 Extensions 豁免。
  * - 沙箱只引用可提供 net462 的雙目標產品；net48 宿主不等於合格部署產品。
@@ -103,6 +103,25 @@ public sealed class ArchitectureRuleTests
         Assert.Contains(ArchitectureRules.Validate(Graph(Product("Line.Messaging", "net10.0", "net10.0", "LineMessagingProcessor"), Product("LineMessagingProcessor", "net10.0", "net10.0"))), x => x.Rule == "LayerDirection");
         Assert.Contains(ArchitectureRules.Validate(Graph(Product("ToolUtility", "net10.0", "net10.0", "SpeechMessage.Dynamics.Deployment"), Product("SpeechMessage.Dynamics.Deployment", "net10.0", "net10.0"))), x => x.Rule == "DeploymentIsolation");
         Assert.Contains(ArchitectureRules.Validate(Graph(Product("Unclassified.Product", "net10.0", "net10.0"))), x => x.Rule == "UnknownProject");
+    }
+
+    /// <summary>
+    /// P2-05允許共用核心向最底層Localization取字；兩個目標都須合法，反向依賴仍必須被拒絕。
+    /// 合成圖只持有案例值，不建立產品Host、I/O或可跨案例保留的資源；不以豁免整個核心層放行。
+    /// </summary>
+    /// <param name="target">分別保護兩個正式產品目標。</param>
+    [Theory]
+    [InlineData("net462")]
+    [InlineData("net10.0")]
+    public void Core_LocalizationDependency_IsAllowedButReverseIsRejected(string target)
+    {
+        Assert.Empty(ArchitectureRules.Validate(Graph(
+            Product("LineMessagingProcessor.Core", target, "net462;net10.0", "SpeechMessage.Localization"),
+            Product("SpeechMessage.Localization", target, "net462;net10.0"))));
+        Assert.Contains(ArchitectureRules.Validate(Graph(
+            Product("SpeechMessage.Localization", target, "net462;net10.0", "LineMessagingProcessor.Core"),
+            Product("LineMessagingProcessor.Core", target, "net462;net10.0"))),
+            item => item.Rule == "LayerDirection" && item.Project == "SpeechMessage.Localization");
     }
 
     /// <summary>net10 共用層往雙目標核心為合法方向；層級圖不能因文件的視覺排列誤擋此情境。</summary>

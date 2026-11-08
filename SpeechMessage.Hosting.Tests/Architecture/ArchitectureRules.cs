@@ -10,7 +10,7 @@
  * - 部署端 Plugin 與 Workflow 都受同一個 v4.6.2 沙箱契約約束。
  * - 以來源快照執行 R2 主機／Plugin 公開邊界、R3 組織字面值白名單及 R9 傳輸／Plugin 參考守門；
  *   舊 ChurchReport 的搬移債務保持精確可見，不以全產品豁免掩蓋。
- * - 以實際 DAG 而非示意圖的位置標記層級；同層彼此也不可參考。未知專案 fail closed， 加入新產品時必須明確分類並補正反例，不能因名稱相似自動取得高層權限。
+ * - 以實際 DAG 而非示意圖的位置標記層級；共用核心內Localization為取字底層，其餘同層彼此不可參考。未知專案 fail closed， 加入新產品時必須明確分類並補正反例，不能因名稱相似自動取得高層權限。
  * 測試案例入口包含 ArchitectureProject、ArchitectureSource、ArchitectureViolation、Validate、
  * ValidateSource、ValidateFrameworkAssets、IsSandbox、IsHost、Layer。
  *
@@ -471,13 +471,15 @@ internal static class ArchitectureRules
     private static bool IsHost(string name) => name is "SpeechMessageProducts.ChurchReport" or "SpeechMessageProducts.LineWebhook";
 
     /// <summary>
-    /// 以實際 DAG 而非示意圖的位置標記層級；同層彼此也不可參考。未知專案 fail closed，
+    /// 以實際 DAG 而非示意圖的位置標記層級；共用核心內Localization為取字底層，其餘同層彼此不可參考。未知專案 fail closed，
     /// 加入新產品時必須明確分類並補正反例，不能因名稱相似自動取得高層權限。
     /// </summary>
     private static int Layer(string name) => name switch
     {
         "Line.Messaging" or "PowerPlatform.Dataverse.Client" or "SpeechMessage.Payments" => 0,
-        "SpeechMessage.Localization" or "LineMessagingProcessor.Core" => 10,
+        // P2-05明定Localization是共用核心取字底層；反向仍由嚴格層序拒絕。
+        "SpeechMessage.Localization" => 5,
+        "LineMessagingProcessor.Core" => 10,
         "ToolUtility.Core" => 20,
         "SpeechMessage.Tenancy" or "SpeechMessageProducts.GoodShepherd.Core" => 30,
         // P2診斷owner抽取後Hosting不再依賴ToolUtility；舊net10消費者向此基礎層委派。
