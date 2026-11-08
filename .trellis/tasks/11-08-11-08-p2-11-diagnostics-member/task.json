@@ -21,9 +21,13 @@
   "children": [],
   "parent": "11-07-integration-p2",
   "relatedFiles": [],
-  "notes": "PROP-004已核定：兩個包裝專用連結來源子集；2小時或metadata拒絕即停止並回報。",
+  "notes": "PROP-004兩小時自19:50:45至21:50:45；恢復時已到期，停止子集實作等待核定。metadata及合併六案已通過，覆蓋率／專案登錄／乾淨守門未完成。",
   "meta": {
     "subsetTimeboxStartedAt": "2026-11-08T19:50:45.844622+08:00",
-    "subsetTimeboxHours": 2
+    "subsetTimeboxHours": 2,
+    "subsetTimeboxState": "expired_waiting_user",
+    "subsetTimeboxExpiredAt": "2026-11-08T21:50:45.844622+08:00",
+    "subsetTimeboxObservedAt": "2026-11-08T21:53:27+08:00",
+    "timeboxDecisionRequestedAt": "2026-11-08T21:55:00+08:00"
   }
 }

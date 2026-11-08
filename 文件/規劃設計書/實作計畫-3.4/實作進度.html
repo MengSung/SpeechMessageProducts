@@ -240,11 +240,11 @@ footer{margin-top:36px;color:var(--muted);font-size:12.5px;text-align:center}
  */
 const DATA = {
   "planVersion": "3.4",
-  "snapshot": "2026-11-08 19:53 Asia/Taipei (UTC+08:00)",
-  "lastUpdated": "2026-11-08T19:53:08+08:00",
+  "snapshot": "2026-11-08 22:14 Asia/Taipei (UTC+08:00)",
+  "lastUpdated": "2026-11-08T22:14:42+08:00",
   "branch": "1.0.0.11.Integration.P2.Worktree",
-  "head": "e10ba351",
-  "headline": "P2-06等待乾淨守門；P2-11依已核定PROP-004建置子集，P2-12未開始。",
+  "head": "2c0b9e95",
+  "headline": "P2-06已修正同層相依，正在提交後乾淨守門；P2-11子集時間盒到期待核定。",
   "notices": [
     {
       "id": "plan-3.4-summary",
@@ -264,8 +264,8 @@ const DATA = {
       "phaseId": "階段 2",
       "level": "info",
       "title": "P2 進度摘要",
-      "lastUpdated": "2026-11-08T19:53:08+08:00",
-      "body": "2026-11-08 19:53 Asia/Taipei (UTC+08:00)：P2-06依PROP-005等待守門，P2-11依PROP-004建置七輸入來源子集。P2-12未開始，已驗收前置不重跑。",
+      "lastUpdated": "2026-11-08T22:14:42+08:00",
+      "body": "2026-11-08 22:14 Asia/Taipei (UTC+08:00)：P2-06已移除同層參考，舊型別相容及Workflows36案通過，提交2c0b9e95正跑乾淨守門。P2-11的metadata／合併六案已過，兩小時到期後停止子集實作，覆蓋率及最終守門仍缺。",
       "steps": [
         "2026-11-08 19:53 Asia/Taipei (UTC+08:00)：PROP-004／005與D4 Emojis延後已核定，宮格補償／alias容量修正列階段審查；原清理告警九個clone已逐一路徑確認不存在並解除。另C:/smv/6d9f7b6b仍存在，未冒稱已清除。",
         "2026-11-08 19:17 Asia/Taipei (UTC+08:00)：P2-11完整35案與GoodShepherd雙目標各50案通過；原四input與唯一一次完整七input探測被metadata拒絕，尚未驗收。已提PROP-004請核定最小包裝子集，不改安全限制或AssemblyVersion。",
@@ -369,8 +369,19 @@ const DATA = {
         "補記 2026-11-07 10:29 Asia/Taipei (UTC+08:00)（原事件時間未記錄）｜歷史紀錄｜不讀取或寫入秘密、不執行 D365 寫入、不發送 LINE；所有必要實機結果保留為待驗證／受阻。",
         "補記 2026-11-07 10:29 Asia/Taipei (UTC+08:00)（原事件時間未記錄）｜歷史紀錄｜每個工作包依實作、測試、文件說明、UTF-8 無 BOM／CRLF、隔離與資源清理證據更新。",
         "2026-11-07 22:58 Asia/Taipei (UTC+08:00)：User Secrets前置已解除；目前先補建核定net462 Plugin產物，再保存goodshepherdback原況，之後依序執行TLS、push plan/apply/verify、smoke及回復清理。",
-        "2026-11-07 22:58 Asia/Taipei (UTC+08:00)：尚未對D365寫入，尚未發送LINE；產物缺少是目前技術前置，不是實機阻塞。"
+        "2026-11-07 22:58 Asia/Taipei (UTC+08:00)：尚未對D365寫入，尚未發送LINE；產物缺少是目前技術前置，不是實機阻塞。",
+        "2026-11-08 22:02 Asia/Taipei (UTC+08:00)：恢復時HEAD已為f014a4aa，保留共享提交，不改寫歷史。P2-11於21:50到期，停止實作等待時間盒核定，P2-06獨立守門繼續。",
+        "2026-11-08 22:14 Asia/Taipei (UTC+08:00)：P2-06首輪真實圖拒絕ToolUtility→Workflows，已將唯一實作下移processor並保留型別轉送，未放寬R4。新測試先紅再綠，36案通過；2c0b9e95正在乾淨複本驗證。"
       ]
+    },
+    {
+      "id": "p211-timebox-warning",
+      "phaseId": "階段 2",
+      "level": "warn",
+      "title": "P2-11：PROP-004兩小時時間盒已到",
+      "lastUpdated": "2026-11-08T22:02:52+08:00",
+      "body": "2026-11-08 22:02 Asia/Taipei (UTC+08:00)：19:50:45起算、21:50:45到期，metadata及合併六案已通過，子集coverage／乾淨守門未完成。建議保留子集方案再延長兩小時；精確允許CSharp方案證據與風險見P2-11一頁回報，未自行放寬。",
+      "steps": []
     }
   ],
   "userActions": [
@@ -385,6 +396,12 @@ const DATA = {
       "text": "建立（或指定）測試 LINE Messaging API channel；把 TestChannelToken、TestLineUserId 放進 Deployment 的 User Secrets；手機加好友",
       "status": "done",
       "note": "2026-11-07 22:58 Asia/Taipei (UTC+08:00) 已確認兩個鍵存在且未輸出秘密值；手機加好友由使用者已完成，清理、寫入、推播、驗證由Codex執行"
+    },
+    {
+      "when": "2026-11-08 22:02",
+      "text": "核定PROP-004時間盒後續；建議維持子集、不放寬限制，再延長兩小時",
+      "status": "you",
+      "note": "metadata及合併鏈六案已過，缺子集coverage與最終守門；替代方案精確identity及ValueTuple風險已列P2-11一頁回報。"
     },
     {
       "when": "階段 3 前",
@@ -905,7 +922,7 @@ const DATA = {
       "timebox": "1 天",
       "doneAt": "",
       "commit": "",
-      "note": "黃金 HTTP 請求比對；舊類別留 Obsolete 薄殼"
+      "note": "2026-11-08 22:14 Asia/Taipei (UTC+08:00)：同層參考已修正，舊型別解析及36案通過。2c0b9e95乾淨守門執行中，未驗收。"
     },
     {
       "id": "P2-07",
@@ -965,7 +982,7 @@ const DATA = {
       "timebox": "1 天",
       "doneAt": "",
       "commit": "",
-      "note": "DiagnosticsPingPlugin mode=member；四情境"
+      "note": "2026-11-08 22:02 Asia/Taipei (UTC+08:00)：七輸入子集metadata及合併六案通過。兩小時時間盒已到，coverage／最終守門未完，等待核定。"
     },
     {
       "id": "P2-12",
@@ -1511,7 +1528,7 @@ const DATA = {
       "phaseId": "階段 2",
       "name": "階段 2 審查＋一次提出計畫修正提案",
       "status": "todo",
-      "note": ""
+      "note": "2026-11-08 22:02 Asia/Taipei (UTC+08:00)：待P2全部驗收後只審查一次；同包處理自有menu補償刪除（先紅燈）及每Channel alias上限1000。"
     },
     {
       "id": "更新回復前置",
@@ -1526,32 +1543,32 @@ const DATA = {
       "id": "P2-06",
       "startedAt": "2026-11-08 16:22 Asia/Taipei (UTC+08:00)",
       "timebox": "1工作天或15提交",
-      "next": "依PROP-005核對legacy入口，等待與P2-11共用乾淨守門。",
+      "next": "2c0b9e95提交後乾淨守門完成才驗收，接P2-09b。",
       "dod": [
         [
-          "公開方法盤點與差異表",
+          "測試",
           "ok",
-          "12份來源與266個公開入口已對照；D4 Emojis依核定延後。"
+          "原wire證據保留；下移唯一legacy實作與舊組件名稱相容先紅再綠，Workflows36案通過。"
         ],
         [
-          "黃金HTTP特性測試",
-          "ok",
-          "改前66案及原Add接縫，另5種source replay，聚焦201案通過。"
-        ],
-        [
-          "新入口與Obsolete薄殼",
-          "ok",
-          "legacy依核定走net10；公開RichMenu成功路徑保留。"
-        ],
-        [
-          "乾淨守門",
+          "守門",
           "no",
-          "產品提交後執行。"
+          "f014a4aa同層相依失敗已修正；2c0b9e95短路徑乾淨§8.1執行中。"
+        ],
+        [
+          "新專案覆蓋率",
+          "na",
+          "本包沒有新增專案。"
+        ],
+        [
+          "實機",
+          "na",
+          "P2-06段落未列實機，不追加。"
         ],
         [
           "回報與DATA",
           "no",
-          "驗收後補一頁回報並更新本頁。"
+          "一頁回報已同步核定，驗收結果待守門完成。"
         ]
       ]
     },
@@ -1559,32 +1576,32 @@ const DATA = {
       "id": "P2-11",
       "startedAt": "2026-11-08 16:22 Asia/Taipei (UTC+08:00)",
       "timebox": "1工作天或15提交",
-      "next": "兩小時內建置連結來源子集、metadata及合併產物完整鏈；尚未驗收。",
+      "next": "時間盒到期停止子集實作；等待核定後完成coverage、宿主登錄與最終打包／乾淨守門。",
       "dod": [
         [
-          "四情境同名測試",
+          "測試",
           "ok",
-          "正常、教會不符、未綁定、偽語系等Plugins35案已通過。"
+          "Plugin35案、通知雙宿主各50案及真合併鏈六案有通過證據。"
         ],
         [
-          "mode=member實作",
-          "ok",
-          "已接真正MemberNotificationService與嵌入Flex，未部署。"
-        ],
-        [
-          "雙目標／Plugin驗證",
+          "守門",
           "no",
-          "原四／七完整輸入失敗，正依核定建置子集。"
+          "metadata全部通過，但本包最終乾淨守門尚未完成。"
         ],
         [
-          "乾淨守門",
+          "新專案覆蓋率",
           "no",
-          "產品提交後執行。"
+          "實際子集每module至少80%的有效報告尚缺，不拿完整原產品代替。"
+        ],
+        [
+          "實機",
+          "na",
+          "P2-11未列實機；P2-12才部署，前置不重跑。"
         ],
         [
           "回報與DATA",
           "no",
-          "驗收後補一頁回報並更新本頁。"
+          "一頁回報已列到期選項及精確CSharp／ValueTuple風險，尚未驗收。"
         ]
       ]
     }
@@ -1693,10 +1710,10 @@ const DATA = {
     {
       "id": "PROP-004",
       "problem": "P2-11需要GoodShepherd/ToolUtility/LINE模型，但固定四輸入無法封閉相依；完整七輸入又有Microsoft.CSharp與ValueTuple閉包風險。",
-      "evidence": "原四input build=0但metadata=1（3個產品AssemblyRef殘留）；唯一一次七完整input merge=0但metadata=1（Microsoft.CSharp）；研究及SHA見P2-11一頁回報。",
+      "evidence": "核定後子集metadata全部checks=true（851,968bytes、AssemblyVersion1.0.0.0），合併DLL六案通過；完整七input仍有CSharp4.0.0.0及ValueTuple4.0.3.0。證據SHA見P2-11一頁回報索引，子集coverage與乾淨守門未完成。",
       "proposal": "明列七輸入；Line.Messaging與LineRecipients各以包裝專用子集專案Compile Include／Link連結原始碼，AssemblyName／AssemblyVersion不變。兩小時或metadata拒絕即停，不放寬限制。",
-      "impact": "P2-11、P2-12及階段5更新回復前置；等待期間繼續P2-06，這不是已證明的可行性成果。",
-      "status": "2026-11-08使用者已核定，實作中，待寫入3.5"
+      "impact": "P2-11／P2-12；等待期間P2-06乾淨守門繼續，不改3.4正文或metadata限制。",
+      "status": "2026-11-08已核定方案；21:50時間盒到期，等待後續核定，待寫入3.5"
     },
     {
       "id": "PROP-005",
