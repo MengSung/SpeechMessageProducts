@@ -240,11 +240,11 @@ footer{margin-top:36px;color:var(--muted);font-size:12.5px;text-align:center}
  */
 const DATA = {
   "planVersion": "3.4",
-  "snapshot": "2026-11-08 12:59 Asia/Taipei (UTC+08:00)",
-  "lastUpdated": "2026-11-08T12:59:01+08:00",
+  "snapshot": "2026-11-08 13:10 Asia/Taipei (UTC+08:00)",
+  "lastUpdated": "2026-11-08T13:10:48+08:00",
   "branch": "1.0.0.11.Integration.P2.Worktree",
-  "head": "0e9e2f71",
-  "headline": "P2-04前置已驗收推送；P2-04＋P2-10離線TDD進行中。",
+  "head": "71326e9d",
+  "headline": "P2-10已驗收；P2-04離線TDD進行中，前置不再重跑。",
   "notices": [
     {
       "id": "plan-3.4-summary",
@@ -264,9 +264,10 @@ const DATA = {
       "phaseId": "階段 2",
       "level": "info",
       "title": "P2 進度摘要",
-      "lastUpdated": "2026-11-08T12:59:01+08:00",
-      "body": "2026-11-08 12:59 Asia/Taipei (UTC+08:00)：前置Accepted實機與0e9e2f71乾淨守門均通過，已推送本分支。P2-04＋P2-10開始離線TDD，仍未驗收。",
+      "lastUpdated": "2026-11-08T13:10:48+08:00",
+      "body": "2026-11-08 13:10 Asia/Taipei (UTC+08:00)：P2-10已驗收，71326e9d乾淨全方案4,763個測試及全部守門通過。P2-04繼續離線TDD，前置不再重跑。",
       "steps": [
+        "2026-11-08 13:10 Asia/Taipei (UTC+08:00)：P2-10已驗收，71326e9d乾淨全方案4,763個測試及全部守門通過。P2-04繼續離線TDD，前置不再重跑。",
         "2026-11-08 12:59 Asia/Taipei (UTC+08:00)：前置Accepted實機與0e9e2f71乾淨守門均通過，已推送本分支。P2-04＋P2-10開始離線TDD，仍未驗收。",
         "2026-11-08 12:50 Asia/Taipei (UTC+08:00)：P2-04 前置只重跑一次，smoke=0、Accepted／200及有效 RequestId，收尾 verify=0、本輪殘留0，已驗收。P2-07 最終封存提交 b0fb5b99 的乾淨守門全過並已推送，接續 P2-04＋P2-10。",
         "2026-11-08 12:42 Asia/Taipei (UTC+08:00)：P2-07 已驗收，49f67029 乾淨複本全方案 4,755 個測試及全部守門通過。下一步 P2-04 前置 A：已確認唯一固定步驟與組件，FileVersion 仍 1.0.0.1，將依既定序號遞增再部署。",
@@ -954,13 +955,13 @@ const DATA = {
       "id": "P2-10",
       "phaseId": "階段 2",
       "name": "改字時間輪詢背景服務",
-      "status": "active",
+      "status": "done",
       "deps": "P2-01",
       "live": "無",
       "timebox": "半天",
-      "doneAt": "",
-      "commit": "",
-      "note": "2026-11-08 12:59 Asia/Taipei (UTC+08:00)：依3.4開始離線TDD，尚未驗收。"
+      "doneAt": "2026-11-08 13:10",
+      "commit": "71326e9d",
+      "note": "2026-11-08 13:10 Asia/Taipei (UTC+08:00)：三個同名測試、最小查詢、排空及timer歸零通過；乾淨全方案4,763個測試與全部守門通過。"
     },
     {
       "id": "P2-11",
@@ -1533,39 +1534,6 @@ const DATA = {
       "id": "P2-04",
       "startedAt": "2026-11-08 12:59",
       "timebox": "1工作天或15提交",
-      "next": "先確認同名功能紅燈，再做最小實作與守門。",
-      "dod": [
-        [
-          "測試同名存在並通過",
-          "no",
-          "尚在TDD。"
-        ],
-        [
-          "乾淨複本守門",
-          "no",
-          "尚未提交產品實作。"
-        ],
-        [
-          "新專案覆蓋率",
-          "na",
-          "無新增專案。"
-        ],
-        [
-          "實機",
-          "na",
-          "本包未要求實機。"
-        ],
-        [
-          "一頁回報與進度",
-          "no",
-          "已列開始狀態，驗收報告待補。"
-        ]
-      ]
-    },
-    {
-      "id": "P2-10",
-      "startedAt": "2026-11-08 12:59",
-      "timebox": "半天或15提交",
       "next": "先確認同名功能紅燈，再做最小實作與守門。",
       "dod": [
         [

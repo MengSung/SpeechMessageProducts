@@ -3,7 +3,7 @@
   "name": "p2-10-text-polling",
   "title": "P2-10 改字時間輪詢背景服務",
   "description": "",
-  "status": "in_progress",
+  "status": "completed",
   "dev_type": null,
   "scope": null,
   "package": null,
@@ -11,7 +11,7 @@
   "creator": "codex",
   "assignee": "codex",
   "createdAt": "2026-11-08",
-  "completedAt": null,
+  "completedAt": "2026-11-08",
   "branch": null,
   "base_branch": "1.0.0.11.Integration.P2.Worktree",
   "worktree_path": null,
@@ -21,6 +21,10 @@
   "children": [],
   "parent": "11-07-integration-p2",
   "relatedFiles": [],
-  "notes": "",
-  "meta": {}
+  "notes": "2026-11-08 13:10 Asia/Taipei (UTC+08:00)：71326e9d全部乾淨守門通過，4763個測試，驗收後僅文件收尾。",
+  "meta": {
+    "acceptedAt": "2026-11-08T13:10:48+08:00",
+    "verifiedCommit": "71326e9d",
+    "evidenceIndexSha256": "7c1fd349162526f41acb13e548dda42192a0ae99ad27a886cc6bdb3fb3253f9e"
+  }
 }

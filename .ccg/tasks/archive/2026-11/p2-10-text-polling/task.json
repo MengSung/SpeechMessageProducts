@@ -1,0 +1,13 @@
+{
+  "id": "p2-10-text-polling",
+  "title": "P2-10 改字時間輪詢背景服務",
+  "status": "completed",
+  "complexity": "M",
+  "risk": "high",
+  "domain": "backend",
+  "currentPhase": "completed",
+  "nextAction": "已驗收封存，繼續P2-04。",
+  "createdAt": "2026-11-08T12:59:01+08:00",
+  "branch": "1.0.0.11.Integration.P2.Worktree",
+  "updatedAt": "2026-11-08T13:10:48+08:00"
+}
