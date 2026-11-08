@@ -15,3 +15,9 @@
 
 ## 未核定決策的撤回
 曾把 M1 Add/Delete 退役是錯誤解讀，已依使用者澄清撤回，不納入設計。既有 Delete 的獨佔選單假設如實保留並警示；本包不擅改原 business decision。
+
+## PROP-005 核定後唯一路由
+2026-11-08 核定 legacy 統一 LineLegacySendWorkflow，正式會友才走 Core。LineNotificationWorkflow 不再另持 processor，而委派同一 legacy workflow；三參數 SendAsync 保留既有 Retry Key，RichMenu 成功通知亦走同入口。呼叫端 ABI 與原 wire 不改；D4 Emojis 依核定列之後再說，不擴張 SDK。
+
+## 乾淨守門發現與最小修正
+f014a4aa 的真實Debug／Release評估圖指出ToolUtility(rank40)參考Workflows(rank40)，既有R4正確拒絕。將唯一LineLegacySendWorkflow實作搬至已允許的processor(rank35)，保留namespace並由原Workflows組件TypeForwardedTo；ToolUtility移除同層參考。新測試以真實舊組件限定名稱驗證同一型別，先紅再綠，36個Workflows測試全過；不改R4、公開簽章、HTTP或owner。

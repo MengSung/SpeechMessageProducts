@@ -8,3 +8,9 @@
 6. 原始 TRX/log/錄製只放 evidence，整個 evidence 被本task .gitignore 排除；正式 synthetic Golden 留測試目錄。wp-reports/P2-06.md 僅草稿，明說尚未乾淨驗收。
 
 主代理另負責 §8.2 全方案乾淨複本／I18n／重複等守門、正式驗收、提交推送與封存；本包不動 workflow state、進度或別人的修改。
+
+## 主會話接續
+- [x] 依 PROP-005 收斂唯一 legacy 路由，路由欄位契約先有功能紅燈，再轉綠；Workflows 完整35案通過。
+- [x] 同步已核定 Core／legacy 邊界及 D4 Emojis 延後，不再要求重複裁定。
+- [ ] 在包含共享提交的短路徑乾淨複本執行 §8.1；不得用先前聚焦201案代替。
+- [ ] 守門成功才更新驗收、封存與推送；目前未驗收，不覆寫原證據。

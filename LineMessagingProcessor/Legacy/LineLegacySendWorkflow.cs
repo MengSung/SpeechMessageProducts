@@ -2,7 +2,9 @@
  * 檔案整體說明
  *
  * 目的與定位：P2-06 舊 ToolUtility 推播相容流程，將任意 SDK 訊息與 multicast 轉交
- * net10 processor；不是正式會友授權流程，也不替換 P2-04 Core 的教會／頻道核對。
+ * net10 processor；實作屬於較低層LineMessagingProcessor，讓ToolUtility不必反向參考
+ * 同層Workflows。保留原namespace，舊組件以型別轉送維持已編譯呼叫端相容，不複製第二份。
+ * 不是正式會友授權流程，也不替換 P2-04 Core 的教會／頻道核對。
  * 主要功能與流程：單次 push 沿既有 SendMessagesAsync，多播沿專用 MultiCastMessagesAsync；
  * 舊 RichMenu 的 create／upload／link／notify 與 query／unlink／delete 保持次序，圖片串流
  * 在 upload 範圍由本流程 using 擁有；不自行解析 token、建立 HTTP、序列化 body 或加 key/sender，讓黃金保持
@@ -12,8 +14,11 @@
  * 屬於該次作業，不存到欄位或與其他使用者共享；呼叫者須完成伺服器授權並等待排空。
  * 多播／產品樣板／舊同步別名不能被用作略過新正式會友流程的安全檢查。
  */
-using Line.Messaging;
+using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Threading.Tasks;
+using Line.Messaging;
 
 namespace LineMessagingProcessor.Workflows;
 
@@ -25,12 +30,18 @@ public sealed class LineLegacySendWorkflow
 {
     private readonly LineMessagingProcessorClass processor;
 
-    /// <summary>借用既有 processor；不取得 client 所有權，也不建立隱藏的傳輸或通知資源。</summary>
+    /// <summary>
+    /// 借用既有processor並立即拒絕空值；實例最長存活至原頻道client owner結束。
+    /// 不取得client所有權，也不建立隱藏的傳輸或通知資源，不能跨頻道重綁後重用。
+    /// </summary>
     /// <param name="processor">原頻道 owner 已建立的 net10 processor，不可跨頻道重綁。</param>
     public LineLegacySendWorkflow(LineMessagingProcessorClass processor) =>
         this.processor = processor ?? throw new ArgumentNullException(nameof(processor));
 
-    /// <summary>保留 legacy 單次 push；不改訊息、不加 sender/key，原 SDK 例外由產品處理。</summary>
+    /// <summary>
+    /// 保留legacy單次push並委派同一個三參數入口；未提供Retry Key時不自行產生。
+    /// 不改訊息或sender，原SDK失敗交產品既有例外入口，不建立額外重試或背景工作。
+    /// </summary>
     /// <param name="userId">產品已授權的當次收件 ID。</param>
     /// <param name="messages">操作限定的 SDK 訊息集合。</param>
     /// <returns>原單次傳輸，不建立遺留背景工作。</returns>
@@ -47,7 +58,10 @@ public sealed class LineLegacySendWorkflow
     public Task SendAsync(string userId, IList<ISendMessage> messages, string? retryKey) =>
         processor.SendMessagesAsync(userId, messages, retryKey);
 
-    /// <summary>保持 multicast HTTP 與完整收件序列，不在相容流程偷偷拆包或按顯示值去重。</summary>
+    /// <summary>
+    /// 保持原multicast HTTP與完整收件序列，包含合法重複收件者；不自行拆包或按顯示值去重。
+    /// SDK傳輸及timeout仍由借用的processor／client負責，失敗原樣傳遞至產品owner。
+    /// </summary>
     /// <param name="userIds">操作限定、產品先授權的收件集合。</param>
     /// <param name="messages">傳給同次 SDK serializer 的訊息集合。</param>
     /// <returns>完成或失敗即排空的唯一作業。</returns>

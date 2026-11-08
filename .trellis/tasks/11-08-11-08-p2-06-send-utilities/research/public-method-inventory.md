@@ -19,7 +19,7 @@ rg -n "class PushUtility|class ReplyUtility|class LineUtilityClass" --glob "*.cs
 - 主方案認證 RichMenu 已由 assignment 處理，不能退回 D1/D2/M1 的「create→固定磁碟圖片→link→通知」示範，也不能把 unlink 改回刪共用 menu。
 - M1 建構時解析 ToolUtilityFactory；基線以已知 fake 欄位隔離 CRM，搬移後改公開借用資源建構式。AddRichMenuMessage 補操作限定圖片來源，在原 HEAD 方法只替換圖片讀取的接縫下實測四步 HTTP，不能將成功路徑退役。
 - M3 EchoImageAsync 下載串流、Image 與 thumbnail 原本沒有 Dispose；本包先保護失敗與成功釋放，再以 processor 內容入口承接，不重做 HTTP。
-- D4 的 Emojis 型別在本主方案 SDK 不存在；人類指示原文是「而非一律新增SDK缺少Emojis」，只限制本包不要擅加 SDK 能力，不能推定已核定刪除功能；是否接受此相容缺口待確認。
+- D4 的 Emojis 型別在本主方案 SDK 不存在；2026-11-08 使用者已核定 D4 多載不搬，列 LATER-005；同型別能力維持明確差異，不新增 SDK。
 
 ## 逐份完整方法對照
 
@@ -390,7 +390,7 @@ rg -n "class PushUtility|class ReplyUtility|class LineUtilityClass" --glob "*.cs
 
 - 使用者已授權本包獨佔 ToolUtility.csproj，XML 專案圖檢查 processor／Workflows 無返回 ToolUtility 的路徑，新增參考沒有循環。
 - 正式會友主鏈已由 P2-04 Core 承接；legacy arbitrary／group／多則／multicast／reply／download 留 net10。沒有偽造 church/contact ID、反射讀 token、Core/SDK 修改或第二套 HTTP。
-- **E1**：D4、D5 的 Emojis 多載不搬；這是外部舊能力與主 SDK 型別的明確差異。人類原文「而非一律新增SDK缺少Emojis」並非廢止授權，是否接受此未搬缺口仍待確認；本包不自行修改 SDK 補洞。
+- **E1**：D4、D5 的 Emojis 多載不搬；這是外部舊能力與主 SDK 型別的明確差異。2026-11-08 使用者核定 D4 多載不搬，列 LATER-005；同型別能力不另增 SDK，本包不冒稱已保留。
 - **E2**：W3/D5 外部 demo 的 displayLineId 掃描／全選單刪除／固定檔案佈建不復活。**不代表可退役主方案公開方法**：M1 Add/Delete 均保留成功與失敗次序，M2/M4 已有 assignment 保持不變。
 - **E3**：D5/W3 的 CRM Flex builder、receiver/thumbnail/contact manager 等只屬產品，不搬共用。主 M4 現有五個 CRM-only 方法已逐項 NO HTTP＋結果驗證。
 - **E4**：D3 的 Sender 多載與 D3/W2 Buttons reply 由目前 SDK 模型＋M3 generic list 承接，補直接 SDK 來源重播黃金；不增加重複 API。Sender 是既有顯示欄位，不是新增授權或注入 sender。
@@ -403,7 +403,7 @@ rg -n "class PushUtility|class ReplyUtility|class LineUtilityClass" --glob "*.cs
 | ToolUtility 舊文字／媒體／樣板／同步範例 | M1 → LineLegacySendWorkflow.SendAsync → processor.SendMessagesAsync → SDK | 去除直接 SDK 傳輸副本；保留產品文案、統計及原 best-effort／重拋 |
 | ToolUtility 多播 | M1 → LineLegacySendWorkflow.MultiCastAsync → processor.MultiCastMessagesAsync → SDK | 單次 multicast、順序及重複收件者保持 |
 | ToolUtility 主方案 RichMenu | M1 → 新 legacy workflow 方法 → 既有 processor RichMenu／SDK | create/upload/link/notify 及 query/unlink/delete 保留；有限圖片 stream 唯一 using owner |
-| ChurchReport Controllers／Donation／Payment／Tools | M2/M4 → 既有 LineNotificationWorkflow → processor | 不重寫 HTTP；必要通知與 retry key 保持 |
+| ChurchReport Controllers／Donation／Payment／Tools | M2/M4 → LineNotificationWorkflow → LineLegacySendWorkflow → processor | 不重寫 HTTP；必要通知與 retry key 保持 |
 | Webhook 回音／產品 reply | M3/M4 → 既有 LineReplyWorkflow → processor | profile user/group/room 及 reply token 本文不變 |
 | ChurchReport 媒體回音 | M3 → processor.UseContentAsync → SDK content | stream/response 與 image/thumbnail 在成功／故障均確定性釋放；舊 blob no-op 保持 |
 | ChurchReport 認證 menu | M2/M4 → 既有 assignment → RichMenus adapter → processor | 不退回 ToolUtility demo 或建立第二套 HTTP |
@@ -422,15 +422,14 @@ rg -n "class PushUtility|class ReplyUtility|class LineUtilityClass" --glob "*.cs
 
 尚待主代理乾淨複本全方案守門（含 I18n／重複／encoding）；本研究不是整包已驗收或外部舊方案已全部搬入的聲明。
 
-## 與「推播類全改 Core」仍存在的落差
+## PROP-005 已核定的實際邊界（2026-11-08）
+03 P2-06「推播類方法改Core」在P2只適用正式會友；legacy非會友、群組、多則、multicast、媒體、樣板統一走net10 LineLegacySendWorkflow。此決定已核定，待寫入3.5，不改3.4正文，不再要求使用者裁定。
 
-03 P2-06 第2點原文要求推播類方法改呼叫 Core。本包依人類後續原文「舊 arbitrary group/multi/reply/download確實應保留net10」及「可表達的正式會友推播主鏈已在P2-04新增，legacy相容用net10 processor，不從private token反射」保留 legacy；這是明確的執行邊界，但**計畫原文尚未被本包改版，不能聲稱已逐字完全符合**。
-
-| 尚未直接改 Core 的範圍 | 實際入口／原因 | 尚待主代理裁定 |
+| 範圍 | 實際入口／原因 | 核定處理 |
 |---|---|---|
-| M1 SendMessage(text/list)、media/location/sticker/template、同步樣板及 multicast | Legacy workflow→net10 processor→SDK；舊 SDK client 沒有公開 token，arbitrary/group 不具正式會友 scope | legacy 邊界是否足以驗收原計畫第2點，或需要使用者計畫修正 |
-| M2/M4 SendMessage／必要通知／reliable／media/template/Flex／split-push | 保留既有 notification workflow→net10 processor；必要 key 不另補造，沒有正式 contact/church/channel 輸入 | 即使文字能表示為 Core text，也不能只憑 userId 偽造正式授權；此批產品呼叫的正式 scope 改造不在本包授權範圍 |
-| M1 RichMenu 成功通知與舊範例通知 | 仍是原 SDK 多則 push；只移傳輸入口，不改公開業務行為 | 不能以「不復活外部 demo」作為退役主方案成功方法授權 |
-| D4/D5 Emojis | 目前 SDK 不支援舊型別，未搬；功能未取得廢止核定 | 是否接受缺口待確認，不冒稱已保留或已核定排除 |
+| M1任意推播、多播及RichMenu成功通知 | LineLegacySendWorkflow→processor→SDK；不偽造正式會友scope | PROP-005 |
+| M2/M4必要／reliable／媒體／Flex通知 | LineNotificationWorkflow→同一LineLegacySendWorkflow→processor，原Retry Key保持 | PROP-005 |
+| 正式會友 | P2-04 MemberNotificationService→Core，教會與channel驗證不變 | 仍依原計畫 |
+| D4及來源中同型別Emojis多載 | SDK未新增該能力，如實列相容差異 | D4依核定不搬，LATER-005 |
 
-Reply／download／多則留 net10 與原計畫一致；正式會友 Core 主鏈是 P2-04 既有成果，本包未更改也未用假 ID 重測該授權鏈。以上落差不以額外功能或新測試矩陣擴張處理。
+實作唯一下移至LineMessagingProcessor/Legacy，保留原namespace；Workflows用TypeForwardedTo轉送舊組件限定名稱。ToolUtility不再參考同層Workflows；這是R4修正，不是新增白名單或第二份實作。

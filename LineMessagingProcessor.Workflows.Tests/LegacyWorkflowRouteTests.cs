@@ -2,7 +2,8 @@
  * 檔案整體說明
  * 目的與定位：保護PROP-005的唯一legacy任意推播流程，不把正式會友Core與舊SDK入口混為一談。
  * 主要功能與流程：反射檢查通知流程只持有共用Legacy流程，再用真processor及假HTTP驗證原Retry Key、
- * 多則與群組收件者不被重寫，確認HTTP response在完成後已釋放。
+ * 多則與群組收件者不被重寫，確認HTTP response在完成後已釋放；另以實際CLR載入保護
+ * legacy實作下移processor後的唯一型別與舊Workflows組件限定名稱相容，避免重建同層反向參考。
  * 使用邊界與維護：所有識別與內容均為合成值，不連LINE或CRM；案例擁有SDK、HttpClient及handler，
  * using在await排空後反向Dispose，不保存跨案例憑證、訊息或活動；反射不讀private token。
  */
@@ -17,6 +18,22 @@ namespace LineMessagingProcessor.Workflows.Tests;
 /// <summary>以精確架構斷言與真序列化保護唯一委派和原wire，沒有替代產品授權。</summary>
 public sealed class LegacyWorkflowRouteTests
 {
+    /// <summary>
+    /// 保護既有已編譯呼叫端的型別身分與相依方向：實作必須屬於較低層processor，
+    /// 舊Workflows限定名稱須透過真實型別轉送解析為同一型別；沒有建立client或外部I/O。
+    /// 若誤把實作放回Workflows、複製第二份或移除轉送，精確組件及Same斷言必須失敗。
+    /// </summary>
+    [Fact]
+    public void LegacyWorkflow_LowerLayerImplementation_OldAssemblyNameResolvesSameType()
+    {
+        Assert.Equal("LineMessagingProcessor", typeof(LineLegacySendWorkflow).Assembly.GetName().Name);
+        var oldType = Type.GetType(
+            "LineMessagingProcessor.Workflows.LineLegacySendWorkflow, LineMessagingProcessor.Workflows",
+            throwOnError: true);
+        Assert.Same(typeof(LineLegacySendWorkflow), oldType);
+        Assert.Contains(typeof(LineLegacySendWorkflow), typeof(LineNotificationWorkflow).Assembly.GetForwardedTypes());
+    }
+
     /// <summary>通知workflow不得再直接持有processor，避免legacy有兩條平行推播入口。</summary>
     [Fact]
     public void Notification_HoldsSingleLegacyWorkflow_NotParallelProcessor()

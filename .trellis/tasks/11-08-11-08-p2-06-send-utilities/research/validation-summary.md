@@ -50,7 +50,31 @@
 | `p206-diff-check.log` | `e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855` |
 
 ## 守門與差異
-尚待00 §7.1第2項全方案乾淨複本守門及第5項主代理正式回報／進度／提交推送。沒有新專案，第3項新增專案80%覆蓋率不適用；P2-06未列實機，第4項不以實機延後。第1項的主方案HTTP保護已驗證，但Core全推播與legacy邊界、D4/D5 Emojis未搬仍須主代理裁定，不能直接標完全符合或已驗收。
+尚待00 §7.1第2項全方案乾淨複本守門及第5項主代理正式回報／進度／提交推送。沒有新專案，第3項新增專案80%覆蓋率不適用；P2-06未列實機，第4項不以實機延後。PROP-005 與 D4 Emojis 延後均已於 2026-11-08 核定，不再列為待裁定；未驗收原因是乾淨守門與正式收尾尚未完成。
 
 ## 共享樹交付時點
 交付時偵測共享HEAD為 `e10ba351`（整合P2-06/P2-11），由其他會話提交；本子代理未執行commit/push、不修改該提交。原Add基線的「原HEAD」指整合前 `761e4ae97ec3bcb96b2ed7baa540133647611691`，ToolUtility/PushUtility.cs的Git blob位元組SHA-256為 `7df6e36f40fe0ce03bd5db23f15c3a765945875a5b3cb3173c3e5c21dab24b33`。提交存在不代表本包已通過乾淨複本驗收。
+
+## 核定後的唯一入口與最新證據
+LineNotificationWorkflow 與 RichMenu 通知已統一經 LineLegacySendWorkflow；正式會友 Core 鏈不改。新測試先斷言舊流程缺少唯一 legacy 欄位而紅燈，改為委派後35個 Workflows 案例全過，並驗證群組多則 wire、既有 Retry Key 及 response Dispose。先前201案是歷史聚焦批次，不將它與本輪35案加總冒充同一 HEAD 的全方案驗收。
+
+| 本機原始 evidence（不提交） | SHA-256 |
+|---|---|
+| unique-route-red-fixed.log | `5927d100fc71af28573ae6498620e9183e149dbd05f697dcf352d55bcd46b0bb` |
+| unique-route-green.log | `1b5fba4466559b690f9633df3de53c53d566327d9e057e6143da3c437b3f7c4d` |
+
+公開盤點中 D4/D5 Emojis 是同一舊能力的相容差異；2026-11-08 使用者核定不搬並列 LATER-005。本包按 PROP-005 驗收，不改計畫正文，不再擴張 Core 或 SDK。
+
+## 乾淨守門R4修正（2026-11-08）
+f014a4aa乾淨Release建置76警告、0錯誤，方案測試只有Debug／Release真實圖各一項失敗：ToolUtility→Workflows同層參考。不是全部守門成功；第一輪啟動器在寫摘要時Tee參數不相容，原build log保留，其後從第二命令接續，沒有冒稱build exit已記錄。
+
+唯一legacy實作移至processor的Legacy目錄，舊Workflows以TypeForwardedTo維持組件限定名稱。新型別owner／舊名稱解析測試先紅（原實作組件錯層）再綠；完整Workflows36案通過，主樹Release建置0錯誤。新一輪提交後再跑完整乾淨守門，舊失敗證據不覆寫。
+
+外部雙後端分析自癒入口僅試一次：Gemini403、Claude逾時，沒有可用輸出，並非外部審查通過；本次由主會話依真實R4及ABI測試作本地分析，不重試。階段末reviewer仍另按00§6.6只做一次。
+
+| 本機證據 | SHA-256 |
+|---|---|
+| layer-red.log | `4595d245d8144c9ce9d9d7140ca5bf8c57517703a90539ca97197b36b6653855` |
+| layer-green.log | `7e4a15d7d3c68a5fedd8a4adaf2d5bba9a1c7fcbc4af7088564dbb5d35514ddd` |
+| layer-precommit-build.log | `5e0dbd84e830f05854b86de34ef081f91f45864e416a7cbf77a99f7241defe1b` |
+| 外部analyzer summary.json（原始留本機） | `e93534d239ba0b8722d7892f47d3a7c80b1fd00be57898541736c8bd993cc782` |
