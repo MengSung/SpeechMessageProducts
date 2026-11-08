@@ -34,7 +34,18 @@ public sealed class LineLegacySendWorkflow
     /// <param name="userId">產品已授權的當次收件 ID。</param>
     /// <param name="messages">操作限定的 SDK 訊息集合。</param>
     /// <returns>原單次傳輸，不建立遺留背景工作。</returns>
-    public Task SendAsync(string userId, IList<ISendMessage> messages) => processor.SendMessagesAsync(userId, messages);
+    public Task SendAsync(string userId, IList<ISendMessage> messages) => SendAsync(userId, messages, null);
+
+    /// <summary>
+    /// 讓既有notification也經唯一legacy入口；來源原有Retry Key原樣委派，未提供時不補造。
+    /// 本流程不解析會員或教會身分，正式會友推播仍須走Core授權組合服務。
+    /// </summary>
+    /// <param name="userId">產品已授權的當次收件人／群組，不保存於實例。</param>
+    /// <param name="messages">當次SDK訊息，序列化與傳輸仍由既有processor負責。</param>
+    /// <param name="retryKey">呼叫端原有來源鍵；不改寫或跨作業共用。</param>
+    /// <returns>原傳輸完成或失敗即排空的作業。</returns>
+    public Task SendAsync(string userId, IList<ISendMessage> messages, string? retryKey) =>
+        processor.SendMessagesAsync(userId, messages, retryKey);
 
     /// <summary>保持 multicast HTTP 與完整收件序列，不在相容流程偷偷拆包或按顯示值去重。</summary>
     /// <param name="userIds">操作限定、產品先授權的收件集合。</param>
@@ -62,7 +73,7 @@ public sealed class LineLegacySendWorkflow
             await processor.UploadRichMenuPngImageAsync(id, image).ConfigureAwait(false);
         }
         await processor.LinkRichMenuToUserAsync(userId, id).ConfigureAwait(false);
-        await processor.SendMessagesAsync(userId, notification).ConfigureAwait(false);
+        await SendAsync(userId, notification).ConfigureAwait(false);
     }
 
     /// <summary>

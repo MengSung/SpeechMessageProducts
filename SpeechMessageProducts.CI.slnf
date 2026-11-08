@@ -30,7 +30,9 @@
       "SpeechMessage.Tenancy\\SpeechMessage.Tenancy.csproj",
       "ToolUtility.Core\\ToolUtility.Core.csproj",
       "ToolUtility.Tests\\ToolUtility.Tests.csproj",
-      "ToolUtility\\ToolUtility.csproj"
+      "ToolUtility\\ToolUtility.csproj",
+      "build\\Line.Messaging.PluginSubset\\Line.Messaging.PluginSubset.csproj",
+      "build\\ToolUtility.Core.PluginSubset\\ToolUtility.Core.PluginSubset.csproj"
     ]
   }
 }

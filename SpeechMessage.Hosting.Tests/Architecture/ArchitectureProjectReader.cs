@@ -306,9 +306,11 @@ internal static class ArchitectureProjectReader
     }
 
     /// <summary>拒絕跨工作樹及 reparse point，確保測試只檢視本次方案宣告的普通檔案。</summary>
-    private static void ValidateLocalPath(string root, string path)
+    internal static void ValidateLocalPath(string root, string path)
     {
-        if (!path.StartsWith(root + Path.DirectorySeparatorChar, StringComparison.OrdinalIgnoreCase))
+        // TrimEndingDirectorySeparator刻意保留磁碟根的分隔符；統一一次，避免W:\\誤拒絕W:\內檔案。
+        var prefix = root.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar) + Path.DirectorySeparatorChar;
+        if (!path.StartsWith(prefix, StringComparison.OrdinalIgnoreCase))
         {
             throw new InvalidDataException("Project path is outside the current worktree.");
         }

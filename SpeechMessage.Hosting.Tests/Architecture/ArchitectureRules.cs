@@ -476,11 +476,11 @@ internal static class ArchitectureRules
     /// </summary>
     private static int Layer(string name) => name switch
     {
-        "Line.Messaging" or "PowerPlatform.Dataverse.Client" or "SpeechMessage.Payments" => 0,
+        "Line.Messaging" or "Line.Messaging.PluginSubset" or "PowerPlatform.Dataverse.Client" or "SpeechMessage.Payments" => 0,
         // P2-05明定Localization是共用核心取字底層；反向仍由嚴格層序拒絕。
         "SpeechMessage.Localization" => 5,
         "LineMessagingProcessor.Core" => 10,
-        "ToolUtility.Core" => 20,
+        "ToolUtility.Core" or "ToolUtility.Core.PluginSubset" => 20,
         "SpeechMessage.Tenancy" or "SpeechMessageProducts.GoodShepherd.Core" => 30,
         // P2診斷owner抽取後Hosting不再依賴ToolUtility；舊net10消費者向此基礎層委派。
         // 正反圖及實際方案共同禁止Hosting反向引用舊工具，不能讓雙目標或Plugin取得主機資源。

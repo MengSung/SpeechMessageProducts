@@ -6,6 +6,8 @@
  * 送至假handler；錯教會與未綁定必須零HTTP，正常與偽語系斷言完整body及安全追蹤。
  * 使用邊界與維護：fixture擁有HttpClient、合成64byte key與追蹤，所有Execute等待排空，
  * Dispose關client、清key及快照；回應由Core確定性Dispose，不以GC或程序結束代替。
+ * 包裝驗證由專用AppDomain執行同一組案例，反射僅使用既有注入建構式；卸載Domain後
+ * 不在測試程序保留合併組件，不能把一般bin的測試冒充實際合併產物。
  */
 using System;
 using System.Collections.Generic;
@@ -13,6 +15,7 @@ using System.Globalization;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
+using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using LineMessagingProcessor.Core;
@@ -29,11 +32,19 @@ namespace SpeechMessage.Dynamics.Plugins.Tests;
 /// <summary>合成SDK/HTTP只隔離外部I/O，產品解密、語言、範本、sender及傳輸完整執行。</summary>
 public sealed class DiagnosticsMemberTests
 {
+    private readonly string? packagedPath;
+
+    /// <summary>一般xUnit使用未合併net462輸出，保持既有型別身分與正常無金鑰建置。</summary>
+    public DiagnosticsMemberTests() { }
+
+    /// <summary>只由隔離Domain的包裝探針指定實際合併DLL；路徑不來自產品輸入。</summary>
+    internal DiagnosticsMemberTests(string packagedPath) => this.packagedPath = packagedPath;
+
     /// <summary>正常Contact產生真Flex、server sender、task Retry Key及Accepted，不記錄秘密或內容。</summary>
     [Fact]
     public void Execute_Member_Normal_AcceptedWithTaskRetryKey()
     {
-        using var f = new Fixture();
+        using var f = new Fixture(packagedPath);
         f.Run();
         var body = JObject.Parse(f.Handler.Body!);
         Assert.Equal("flex", (string?)body["messages"]![0]!["type"]);
@@ -50,7 +61,7 @@ public sealed class DiagnosticsMemberTests
     [Fact]
     public void Execute_Member_ChurchMismatch_NoHttp()
     {
-        using var f = new Fixture();
+        using var f = new Fixture(packagedPath);
         f.Member["parentcustomerid"] = new EntityReference("account", Guid.NewGuid());
         f.Run();
         Assert.Contains("Reason=ChurchMismatch", f.Trace, StringComparison.Ordinal);
@@ -62,7 +73,7 @@ public sealed class DiagnosticsMemberTests
     [Fact]
     public void Execute_Member_NotBound_NoHttp()
     {
-        using var f = new Fixture();
+        using var f = new Fixture(packagedPath);
         f.Member.Attributes.Remove("new_lineid");
         f.Run();
         Assert.Contains("Reason=NotBound", f.Trace, StringComparison.Ordinal);
@@ -74,7 +85,7 @@ public sealed class DiagnosticsMemberTests
     [Fact]
     public void Execute_Member_Pseudo_UsesMemberCultureAndTemplate()
     {
-        using var f = new Fixture();
+        using var f = new Fixture(packagedPath);
         f.Member["new_preferredlanguage"] = "qps-ploc";
         f.Run();
         var body = JObject.Parse(f.Handler.Body!);
@@ -89,7 +100,7 @@ public sealed class DiagnosticsMemberTests
     [Fact]
     public void Execute_Member_WrongRegarding_FailsBeforeHttp()
     {
-        using var f = new Fixture();
+        using var f = new Fixture(packagedPath);
         f.Task["regardingobjectid"] = new EntityReference("account", f.ContactId);
         Assert.Throws<InvalidPluginExecutionException>(() => f.Run());
         Assert.Equal(0, f.Handler.Calls);
@@ -100,7 +111,7 @@ public sealed class DiagnosticsMemberTests
     [Fact]
     public void Execute_Member_DoesNotCaptureSynchronizationContext()
     {
-        using var f = new Fixture();
+        using var f = new Fixture(packagedPath);
         var previous = SynchronizationContext.Current;
         var rejecting = new RejectingContext();
         try
@@ -153,11 +164,13 @@ public sealed class DiagnosticsMemberTests
         internal Handler Handler { get; } = new();
         private readonly HttpClient http;
         private readonly Mock<IServiceProvider> provider = new(MockBehavior.Strict);
+        private readonly string? packagedPath;
         internal string Trace => string.Join("\n", traces);
 
         /// <summary>只提供明列ColumnSet，任意AllColumns或未知表立即測試失敗；不容網路fallback。</summary>
-        internal Fixture()
+        internal Fixture(string? packagedPath)
         {
+            this.packagedPath = packagedPath;
             http = new HttpClient(Handler);
             Task = new Entity("task", TaskId) { ["regardingobjectid"] = new EntityReference("contact", ContactId) };
             Member = new Entity("contact", ContactId) { ["parentcustomerid"] = new EntityReference("account",ChurchId),
@@ -197,8 +210,43 @@ public sealed class DiagnosticsMemberTests
             provider.Setup(x=>x.GetService(typeof(IOrganizationServiceFactory))).Returns(factory.Object);
         }
         /// <summary>真Core與64byte secure JSON輸入；不把raw test channel token誤當加密key。</summary>
-        internal void Run() => new DiagnosticsPingPlugin("{\"mode\":\"member\",\"culture\":\"zh-TW\",\"allowPseudoLocale\":true,\"sourceChurchId\":\"" + ChurchId.ToString("D", CultureInfo.InvariantCulture) + "\"}",
-            "{\"tokenKey\":\""+Convert.ToBase64String(key)+"\"}", new LinePushClient(http), ()=>DateTimeOffset.UtcNow).Execute(provider.Object);
+        internal void Run()
+        {
+            var unsecure = "{\"mode\":\"member\",\"culture\":\"zh-TW\",\"allowPseudoLocale\":true,\"sourceChurchId\":\"" + ChurchId.ToString("D", CultureInfo.InvariantCulture) + "\"}";
+            var secure = "{\"tokenKey\":\"" + Convert.ToBase64String(key) + "\"}";
+            IPlugin plugin;
+            if (packagedPath is null)
+                plugin = CreateUnmerged(unsecure, secure);
+            else
+            {
+                // 只在可卸載Domain載入合併DLL；Core、SDK模型、查詢及嵌入範本必須真的來自同一DLL。
+                var assembly = Assembly.LoadFrom(packagedPath);
+                Assert.Equal(new Version(1, 0, 0, 0), assembly.GetName().Version);
+                Assert.NotEmpty(assembly.GetName().GetPublicKeyToken()!);
+                Assert.Single(assembly.GetExportedTypes());
+                var clientType = assembly.GetType("LineMessagingProcessor.Core.LinePushClient", true)!;
+                var clientConstructor = clientType.GetConstructor(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic,
+                    null, new[] { typeof(HttpClient) }, null)!;
+                var client = clientConstructor.Invoke(new object[] { http });
+                var pluginType = assembly.GetType(typeof(DiagnosticsPingPlugin).FullName!, true)!;
+                var constructor = pluginType.GetConstructors(BindingFlags.Instance | BindingFlags.NonPublic)
+                    .Single(c => c.GetParameters().Length == 4);
+                try
+                {
+                    plugin = (IPlugin)constructor.Invoke(new object[] { unsecure, secure, client, (Func<DateTimeOffset>)(() => DateTimeOffset.UtcNow) });
+                }
+                catch (TargetInvocationException error) { throw error.InnerException!; }
+            }
+            plugin.Execute(provider.Object);
+        }
+        /// <summary>
+        /// 將一般bin的型別注入與合併DLL隔離，避免JIT先解析未合併Core的建構式身分。
+        /// 包裝Domain不執行此方法；HTTP仍由fixture擁有並在案例排空後Dispose。
+        /// </summary>
+        [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.NoInlining)]
+        private DiagnosticsPingPlugin CreateUnmerged(string unsecure, string secure) =>
+            new DiagnosticsPingPlugin(unsecure, secure, new LinePushClient(http), () => DateTimeOffset.UtcNow);
+
         /// <summary>追蹤不含token、LINE ID、訊息本文或Base64 key；只驗固定診斷欄位。</summary>
         internal void AssertCleanTrace()
         {

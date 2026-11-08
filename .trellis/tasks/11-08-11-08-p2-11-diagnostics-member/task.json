@@ -21,6 +21,9 @@
   "children": [],
   "parent": "11-07-integration-p2",
   "relatedFiles": [],
-  "notes": "",
-  "meta": {}
+  "notes": "PROP-004已核定：兩個包裝專用連結來源子集；2小時或metadata拒絕即停止並回報。",
+  "meta": {
+    "subsetTimeboxStartedAt": "2026-11-08T19:50:45.844622+08:00",
+    "subsetTimeboxHours": 2
+  }
 }

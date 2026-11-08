@@ -13,3 +13,6 @@ Plugin需要GoodShepherd的net462閉包。先以實際PE相依與既有打包測
 
 ## 回復
 未連實機；改動可由下一提交回復。P2-12才遞增FileVersion、備份部署與收尾。
+
+## 核定後實施
+子集各自位於build/Line.Messaging.PluginSubset與build/ToolUtility.Core.PluginSubset，匯入原專案既有編譯政策，但僅明列原始Compile Link，不複製來源；各自bin/obj隔離。ToolUtility只連結LineRecipients及既有Framework polyfill，引用仍向原Core／Localization，不把子集反向引入一般產品。合併targets以MSBuild明確建置兩個已還原子集，七輸入仍僅一次ILRepack；合併後原metadata檢查與反射執行真member鏈驗證。

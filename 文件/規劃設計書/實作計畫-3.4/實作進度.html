@@ -240,11 +240,11 @@ footer{margin-top:36px;color:var(--muted);font-size:12.5px;text-align:center}
  */
 const DATA = {
   "planVersion": "3.4",
-  "snapshot": "2026-11-08 19:17 Asia/Taipei (UTC+08:00)",
-  "lastUpdated": "2026-11-08T19:17:44+08:00",
+  "snapshot": "2026-11-08 19:53 Asia/Taipei (UTC+08:00)",
+  "lastUpdated": "2026-11-08T19:53:08+08:00",
   "branch": "1.0.0.11.Integration.P2.Worktree",
-  "head": "761e4ae9",
-  "headline": "P2-06、P2-11進行中；前置已驗收不重跑，P2-12尚未開始。",
+  "head": "e10ba351",
+  "headline": "P2-06等待乾淨守門；P2-11依已核定PROP-004建置子集，P2-12未開始。",
   "notices": [
     {
       "id": "plan-3.4-summary",
@@ -264,9 +264,10 @@ const DATA = {
       "phaseId": "階段 2",
       "level": "info",
       "title": "P2 進度摘要",
-      "lastUpdated": "2026-11-08T19:17:44+08:00",
-      "body": "2026-11-08 19:17 Asia/Taipei (UTC+08:00)：P2-06繼續黃金與薄殼；P2-11測試已綠，但打包閉包衝突等待核定PROP-004。前置不重跑，P2-12未開始。",
+      "lastUpdated": "2026-11-08T19:53:08+08:00",
+      "body": "2026-11-08 19:53 Asia/Taipei (UTC+08:00)：P2-06依PROP-005等待守門，P2-11依PROP-004建置七輸入來源子集。P2-12未開始，已驗收前置不重跑。",
       "steps": [
+        "2026-11-08 19:53 Asia/Taipei (UTC+08:00)：PROP-004／005與D4 Emojis延後已核定，宮格補償／alias容量修正列階段審查；原清理告警九個clone已逐一路徑確認不存在並解除。另C:/smv/6d9f7b6b仍存在，未冒稱已清除。",
         "2026-11-08 19:17 Asia/Taipei (UTC+08:00)：P2-11完整35案與GoodShepherd雙目標各50案通過；原四input與唯一一次完整七input探測被metadata拒絕，尚未驗收。已提PROP-004請核定最小包裝子集，不改安全限制或AssemblyVersion。",
         "2026-11-08 19:04 Asia/Taipei (UTC+08:00)：P2-11新完整鏈6案、既有診斷合計31案及GoodShepherd兩目標各9案通過，打包metadata發現缺少必要相依，尚未驗收。P2-06完成12份副本公開方法盤點，續作黃金與薄殼。",
         "2026-11-08 16:22 Asia/Taipei (UTC+08:00)：已建立並啟動P2-06與P2-11 Trellis子任務；P2-06盤點送訊副本，P2-11盤點DiagnosticsPingPlugin與MemberNotificationService，下一步先紅燈測試。",
@@ -370,24 +371,6 @@ const DATA = {
         "2026-11-07 22:58 Asia/Taipei (UTC+08:00)：User Secrets前置已解除；目前先補建核定net462 Plugin產物，再保存goodshepherdback原況，之後依序執行TLS、push plan/apply/verify、smoke及回復清理。",
         "2026-11-07 22:58 Asia/Taipei (UTC+08:00)：尚未對D365寫入，尚未發送LINE；產物缺少是目前技術前置，不是實機阻塞。"
       ]
-    },
-    {
-      "id": "p200-plan-conflict",
-      "phaseId": "階段 2",
-      "level": "warn",
-      "title": "P2-00 §14-6 範圍已依核定結案",
-      "lastUpdated": "2026-11-08T15:28:05+08:00",
-      "body": "2026-11-08 15:28 Asia/Taipei (UTC+08:00)：使用者核定PROP-001，零命中僅針對有效依據與失效連結；排除歷史文字及明確封存連結。已唯讀核對有效路徑均存在，未改3.4正文。",
-      "steps": []
-    },
-    {
-      "id": "validation-clone-cleanup",
-      "phaseId": "階段 2",
-      "level": "warn",
-      "title": "暫存驗證複本清理受平台限制",
-      "lastUpdated": "2026-11-08T13:55:53+08:00",
-      "body": "2026-11-08 13:55 Asia/Taipei (UTC+08:00)：正常刪除暫存clone遭平台拒絕，未改用其他方法。未清路徑：C:/smv/p207-413fde67、49f67029、b0fb5b99、f7383ab5、0e9e2f71、71326e9d、fa7fa1f9、3ad62fe9、c0b79a94。",
-      "steps": []
     }
   ],
   "userActions": [
@@ -1543,22 +1526,22 @@ const DATA = {
       "id": "P2-06",
       "startedAt": "2026-11-08 16:22 Asia/Taipei (UTC+08:00)",
       "timebox": "1工作天或15提交",
-      "next": "完成副本公開方法盤點後，先補黃金HTTP特性測試並確認紅燈。",
+      "next": "依PROP-005核對legacy入口，等待與P2-11共用乾淨守門。",
       "dod": [
         [
           "公開方法盤點與差異表",
-          "no",
-          "已完成初步盤點，完整對照表與測試仍待補。"
+          "ok",
+          "12份來源與266個公開入口已對照；D4 Emojis依核定延後。"
         ],
         [
           "黃金HTTP特性測試",
-          "no",
-          "待鎖定每個公開方法的請求、標頭與body。"
+          "ok",
+          "改前66案及原Add接縫，另5種source replay，聚焦201案通過。"
         ],
         [
           "新入口與Obsolete薄殼",
-          "no",
-          "尚未修改產品程式。"
+          "ok",
+          "legacy依核定走net10；公開RichMenu成功路徑保留。"
         ],
         [
           "乾淨守門",
@@ -1576,22 +1559,22 @@ const DATA = {
       "id": "P2-11",
       "startedAt": "2026-11-08 16:22 Asia/Taipei (UTC+08:00)",
       "timebox": "1工作天或15提交",
-      "next": "先補DiagnosticsPingPlugin的四個member案例，再接入最小D365來源與通知鏈。",
+      "next": "兩小時內建置連結來源子集、metadata及合併產物完整鏈；尚未驗收。",
       "dod": [
         [
           "四情境同名測試",
-          "no",
-          "正常、教會不符、未綁定、偽語系尚未新增。"
+          "ok",
+          "正常、教會不符、未綁定、偽語系等Plugins35案已通過。"
         ],
         [
           "mode=member實作",
-          "no",
-          "尚未修改Plugin產品程式。"
+          "ok",
+          "已接真正MemberNotificationService與嵌入Flex，未部署。"
         ],
         [
           "雙目標／Plugin驗證",
           "no",
-          "測試與打包守門待實作後執行。"
+          "原四／七完整輸入失敗，正依核定建置子集。"
         ],
         [
           "乾淨守門",
@@ -1674,6 +1657,12 @@ const DATA = {
       "text": "Debug IDE 中繼檔診斷已依核定結案；CLI 建置／重建及兩宿主各 41 案通過，IDE 未重現，若日後另有可重現證據再決定。",
       "source": "P2-00",
       "addedAt": "2026-11-08 12:41 Asia/Taipei (UTC+08:00)"
+    },
+    {
+      "id": "LATER-005",
+      "text": "舊方案D4的Emojis多載不搬，依2026-11-08核定留待後續，不新增SDK能力。",
+      "source": "P2-06",
+      "addedAt": "2026-11-08 19:53 Asia/Taipei (UTC+08:00)"
     }
   ],
   "proposals": [
@@ -1705,9 +1694,17 @@ const DATA = {
       "id": "PROP-004",
       "problem": "P2-11需要GoodShepherd/ToolUtility/LINE模型，但固定四輸入無法封閉相依；完整七輸入又有Microsoft.CSharp與ValueTuple閉包風險。",
       "evidence": "原四input build=0但metadata=1（3個產品AssemblyRef殘留）；唯一一次七完整input merge=0但metadata=1（Microsoft.CSharp）；研究及SHA見P2-11一頁回報。",
-      "proposal": "建議核定明列七輸入，LINE模型與LineRecipients只在包裝使用必要原始碼子集；不放寬CSharp/facade/Drawing/R2、不改AssemblyVersion、不新增通用trimmer或套件，通過前不部署驗收。",
+      "proposal": "明列七輸入；Line.Messaging與LineRecipients各以包裝專用子集專案Compile Include／Link連結原始碼，AssemblyName／AssemblyVersion不變。兩小時或metadata拒絕即停，不放寬限制。",
       "impact": "P2-11、P2-12及階段5更新回復前置；等待期間繼續P2-06，這不是已證明的可行性成果。",
-      "status": "2026-11-08待使用者核定"
+      "status": "2026-11-08使用者已核定，實作中，待寫入3.5"
+    },
+    {
+      "id": "PROP-005",
+      "problem": "03的推播全改Core與legacy任意推播缺少正式會友scope不相容。",
+      "evidence": "P2-06公開方法盤點：非會友、群組、多則、multicast、媒體及樣板不可捏造教會／Contact。",
+      "proposal": "legacy統一走net10 LineLegacySendWorkflow；P2只要求正式會友推播走Core，不偽造scope或反射SDK token。",
+      "impact": "P2-06及階段6相容殼移除；未改3.4正文。",
+      "status": "2026-11-08已核定，待寫入3.5"
     }
   ],
   "decisions": [

@@ -1,0 +1,65 @@
+<!--
+檔案整體說明
+目的與定位：P2-11 核定的Line.Messaging沙箱打包來源投影，不是第二份產品實作；僅以Compile Link讀取原始檔，保留原AssemblyName與版本。
+主要功能與流程：匯入原專案既有SDK、套件與來源分析政策；固定net462並移除預設來源，只建置下方明列必要來源，禁止萬用字元／複製碼或通用裁切器。
+使用邊界與維護：輸出限定本專案bin/obj，不覆寫一般產品／測試輸出，不讀金鑰或連外；合併由PluginMerge唯一owner執行。套件與既有警告政策不新增例外，來源漂移由編譯、metadata及真合併鏈測試拒絕。變更投影必須重驗整個部署閉包、公開型別與來源覆蓋率。
+-->
+<Project>
+  <PropertyGroup>
+    <AssemblyName>Line.Messaging</AssemblyName>
+    <TargetFramework>net462</TargetFramework>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+  </PropertyGroup>
+  <Import Project="../../Line.Messaging/Line.Messaging.csproj" />
+  <PropertyGroup>
+    <TargetFrameworks></TargetFrameworks>
+    <RootNamespace>Line.Messaging</RootNamespace>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Remove="@(Compile)" />
+    <Compile Include="../../Line.Messaging/Messages/ISendMessage.cs" Link="Messages/ISendMessage.cs" />
+    <Compile Include="../../Line.Messaging/Messages/TextMessage.cs" Link="Messages/TextMessage.cs" />
+    <Compile Include="../../Line.Messaging/Messages/FlexMessage.cs" Link="Messages/FlexMessage.cs" />
+    <Compile Include="../../Line.Messaging/Messages/MessageType.cs" Link="Messages/MessageType.cs" />
+    <Compile Include="../../Line.Messaging/Messages/Sender/Sender.cs" Link="Messages/Sender/Sender.cs" />
+    <Compile Include="../../Line.Messaging/Messages/Template/ITemplateAction.cs" Link="Messages/Template/ITemplateAction.cs" />
+    <Compile Include="../../Line.Messaging/Messages/Action/TemplateActionType.cs" Link="Messages/Action/TemplateActionType.cs" />
+    <Compile Include="../../Line.Messaging/Json/CustomStringEnumConverter.cs" Link="Json/CustomStringEnumConverter.cs" />
+    <Compile Include="../../Line.Messaging/Json/ToStringJsonConverter.cs" Link="Json/ToStringJsonConverter.cs" />
+    <Compile Include="../../Line.Messaging/Messages/QuickReply/QuickItem.cs" Link="Messages/QuickReply/QuickItem.cs" />
+    <Compile Include="../../Line.Messaging/Messages/QuickReply/QuickReply.cs" Link="Messages/QuickReply/QuickReply.cs" />
+    <Compile Include="../../Line.Messaging/Messages/Flex/BubbleContainer.cs" Link="Messages/Flex/BubbleContainer.cs" />
+    <Compile Include="../../Line.Messaging/Messages/Flex/CarouselContainer.cs" Link="Messages/Flex/CarouselContainer.cs" />
+    <Compile Include="../../Line.Messaging/Messages/Flex/Component/BoxComponent.cs" Link="Messages/Flex/Component/BoxComponent.cs" />
+    <Compile Include="../../Line.Messaging/Messages/Flex/Component/ButtonComponent.cs" Link="Messages/Flex/Component/ButtonComponent.cs" />
+    <Compile Include="../../Line.Messaging/Messages/Flex/Component/FillerComponent.cs" Link="Messages/Flex/Component/FillerComponent.cs" />
+    <Compile Include="../../Line.Messaging/Messages/Flex/Component/FlexComponentType.cs" Link="Messages/Flex/Component/FlexComponentType.cs" />
+    <Compile Include="../../Line.Messaging/Messages/Flex/Component/IconComponent.cs" Link="Messages/Flex/Component/IconComponent.cs" />
+    <Compile Include="../../Line.Messaging/Messages/Flex/Component/IFlexComponent.cs" Link="Messages/Flex/Component/IFlexComponent.cs" />
+    <Compile Include="../../Line.Messaging/Messages/Flex/Component/ImageComponent.cs" Link="Messages/Flex/Component/ImageComponent.cs" />
+    <Compile Include="../../Line.Messaging/Messages/Flex/Component/SeparatorComponent.cs" Link="Messages/Flex/Component/SeparatorComponent.cs" />
+    <Compile Include="../../Line.Messaging/Messages/Flex/Component/SpacerComponent.cs" Link="Messages/Flex/Component/SpacerComponent.cs" />
+    <Compile Include="../../Line.Messaging/Messages/Flex/Component/TextComponent.cs" Link="Messages/Flex/Component/TextComponent.cs" />
+    <Compile Include="../../Line.Messaging/Messages/Flex/Extensions/BubbleContainerFlexMessages.cs" Link="Messages/Flex/Extensions/BubbleContainerFlexMessages.cs" />
+    <Compile Include="../../Line.Messaging/Messages/Flex/Extensions/CarouselContainerFlexMessges.cs" Link="Messages/Flex/Extensions/CarouselContainerFlexMessges.cs" />
+    <Compile Include="../../Line.Messaging/Messages/Flex/IFlexContainer.cs" Link="Messages/Flex/IFlexContainer.cs" />
+    <Compile Include="../../Line.Messaging/Messages/Flex/ParameterTypes/Align.cs" Link="Messages/Flex/ParameterTypes/Align.cs" />
+    <Compile Include="../../Line.Messaging/Messages/Flex/ParameterTypes/AltUri.cs" Link="Messages/Flex/ParameterTypes/AltUri.cs" />
+    <Compile Include="../../Line.Messaging/Messages/Flex/ParameterTypes/AspectMode.cs" Link="Messages/Flex/ParameterTypes/AspectMode.cs" />
+    <Compile Include="../../Line.Messaging/Messages/Flex/ParameterTypes/AspectRatio.cs" Link="Messages/Flex/ParameterTypes/AspectRatio.cs" />
+    <Compile Include="../../Line.Messaging/Messages/Flex/ParameterTypes/BoxLayout.cs" Link="Messages/Flex/ParameterTypes/BoxLayout.cs" />
+    <Compile Include="../../Line.Messaging/Messages/Flex/ParameterTypes/ButtonHeight.cs" Link="Messages/Flex/ParameterTypes/ButtonHeight.cs" />
+    <Compile Include="../../Line.Messaging/Messages/Flex/ParameterTypes/ButtonStyle.cs" Link="Messages/Flex/ParameterTypes/ButtonStyle.cs" />
+    <Compile Include="../../Line.Messaging/Messages/Flex/ParameterTypes/ColorCode.cs" Link="Messages/Flex/ParameterTypes/ColorCode.cs" />
+    <Compile Include="../../Line.Messaging/Messages/Flex/ParameterTypes/ComponentDirection.cs" Link="Messages/Flex/ParameterTypes/ComponentDirection.cs" />
+    <Compile Include="../../Line.Messaging/Messages/Flex/ParameterTypes/ComponentSize.cs" Link="Messages/Flex/ParameterTypes/ComponentSize.cs" />
+    <Compile Include="../../Line.Messaging/Messages/Flex/ParameterTypes/FlexContainerType.cs" Link="Messages/Flex/ParameterTypes/FlexContainerType.cs" />
+    <Compile Include="../../Line.Messaging/Messages/Flex/ParameterTypes/Gravity.cs" Link="Messages/Flex/ParameterTypes/Gravity.cs" />
+    <Compile Include="../../Line.Messaging/Messages/Flex/ParameterTypes/Spacing.cs" Link="Messages/Flex/ParameterTypes/Spacing.cs" />
+    <Compile Include="../../Line.Messaging/Messages/Flex/ParameterTypes/Weight.cs" Link="Messages/Flex/ParameterTypes/Weight.cs" />
+    <Compile Include="../../Line.Messaging/Messages/Flex/Style/Background.cs" Link="Messages/Flex/Style/Background.cs" />
+    <Compile Include="../../Line.Messaging/Messages/Flex/Style/BoxStyle.cs" Link="Messages/Flex/Style/BoxStyle.cs" />
+    <Compile Include="../../Line.Messaging/Messages/Flex/Style/BubbleStyles.cs" Link="Messages/Flex/Style/BubbleStyles.cs" />
+  </ItemGroup>
+</Project>

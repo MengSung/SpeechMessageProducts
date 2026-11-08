@@ -1,0 +1,30 @@
+<!--
+檔案整體說明
+目的與定位：P2-11 核定的ToolUtility.Core沙箱打包來源投影，不是第二份產品實作；僅以Compile Link讀取原始檔，保留原AssemblyName與版本。
+主要功能與流程：匯入原專案既有SDK、套件與來源分析政策；固定net462並移除預設來源，只建置下方明列必要來源，禁止萬用字元／複製碼或通用裁切器。
+使用邊界與維護：輸出限定本專案bin/obj，不覆寫一般產品／測試輸出，不讀金鑰或連外；合併由PluginMerge唯一owner執行。套件與既有警告政策不新增例外，來源漂移由編譯、metadata及真合併鏈測試拒絕。變更投影必須重驗整個部署閉包、公開型別與來源覆蓋率。
+-->
+<Project>
+  <PropertyGroup>
+    <AssemblyName>ToolUtility.Core</AssemblyName>
+    <TargetFramework>net462</TargetFramework>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+  </PropertyGroup>
+  <Import Project="../../ToolUtility.Core/ToolUtility.Core.csproj" />
+  <PropertyGroup>
+    <TargetFrameworks></TargetFrameworks>
+    <RootNamespace>ToolUtilityNameSpace</RootNamespace>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Remove="@(ProjectReference)" />
+    <ProjectReference Include="../../SpeechMessage.Localization/SpeechMessage.Localization.csproj" />
+    <ProjectReference Include="../../LineMessagingProcessor.Core/LineMessagingProcessor.Core.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Remove="@(Compile)" />
+    <Compile Include="../../ToolUtility.Core/LineRecipients/LineRecipientQueries.cs" Link="LineRecipients/LineRecipientQueries.cs" />
+    <Compile Include="../../src-shared/Polyfills/IsExternalInit.cs" Link="Polyfills/IsExternalInit.cs" />
+    <Compile Include="../../src-shared/Polyfills/NotNullWhenAttribute.cs" Link="Polyfills/NotNullWhenAttribute.cs" />
+  </ItemGroup>
+</Project>

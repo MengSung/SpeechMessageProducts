@@ -124,6 +124,37 @@ public sealed class ArchitectureRuleTests
             item => item.Rule == "LayerDirection" && item.Project == "SpeechMessage.Localization");
     }
 
+    /// <summary>
+    /// PROP-004的兩個包裝投影只取得原來源的精確層級；相似名稱仍拒絕分類。
+    /// 合成圖同時證明Plugin／雙目標不可反向參考單目標投影，不建立I/O或共享狀態。
+    /// </summary>
+    [Fact]
+    public void PackagingSubsets_ExactLayers_DoNotRelaxSandboxOrDualReferences()
+    {
+        var line = Product("Line.Messaging.PluginSubset", "net462", "net462");
+        var tool = Product("ToolUtility.Core.PluginSubset", "net462", "net462", "LineMessagingProcessor.Core");
+        var core = Product("LineMessagingProcessor.Core", "net462", "net462;net10.0");
+        Assert.Empty(ArchitectureRules.Validate(Graph(line, tool, core)));
+        Assert.Contains(ArchitectureRules.Validate(Graph(core with { References = new[] { line.Name } }, line)), item => item.Rule == "DualTargetReference");
+        Assert.Contains(ArchitectureRules.Validate(Graph(Product("SpeechMessage.Dynamics.Plugins", "net462", "net462", tool.Name), tool, core)), item => item.Rule == "SandboxReference");
+        Assert.Contains(ArchitectureRules.Validate(Graph(Product("Line.Messaging.PluginSubset.Other", "net462", "net462"))), item => item.Rule == "UnknownProject");
+        Assert.Contains(ArchitectureRules.Validate(Graph(line with { References = new[] { tool.Name } }, tool, core)), item => item.Rule == "LayerDirection");
+    }
+
+    /// <summary>
+    /// 工作樹可位於磁碟根目錄，前綴正規化不可多加分隔符而拒絕所有本地資產。
+    /// 使用現有來源只讀驗路徑，同時拒絕根外的相似前綴；不建立或刪除任何檔案。
+    /// </summary>
+    [Fact]
+    public void LocalPath_DriveRoot_AcceptsOwnedFilesButRejectsOutsidePrefix()
+    {
+        var root = ArchitectureProjectReader.FindRoot();
+        var source = Path.Combine(root, "SpeechMessage.Hosting.Tests/Architecture/ArchitectureRuleTests.cs");
+        ArchitectureProjectReader.ValidateLocalPath(Path.GetPathRoot(root)!, source);
+        Assert.Throws<InvalidDataException>(() =>
+            ArchitectureProjectReader.ValidateLocalPath(Path.Combine(root, "not-owner"), source));
+    }
+
     /// <summary>net10 共用層往雙目標核心為合法方向；層級圖不能因文件的視覺排列誤擋此情境。</summary>
     [Fact]
     public void Net10SharedLayer_ToDualCore_IsAllowed()

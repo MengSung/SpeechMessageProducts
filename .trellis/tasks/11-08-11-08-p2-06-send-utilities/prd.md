@@ -16,7 +16,7 @@
 - [x] 原 66 筆主方案 wire 黃金於產品修改前全綠；M1 Add 原 HEAD＋圖片接縫補實測第67筆；另五種來源重播三方比對。
 - [x] EchoImage 成功／故障的 response、image/thumbnail 及 RichMenu 上傳 stream 在 using owner 釋放。
 - [x] 舊四類標 Obsolete；M1 直接送訊改共用 net10；ChurchReport 既有 Workflows/RichMenu 委派保留。
-- [ ] 最終聚焦回歸與文件／位元組檢查結果落入一頁草稿。
+- [x] 最終聚焦201個測試通過，文件／位元組檢查結果及SHA-256落入一頁草稿；仍保留Core／Emojis未收斂事項。
 - [ ] 主代理乾淨複本全方案守門、正式驗收／提交推送／封存；本包尚未乾淨驗收。
 
 ## 非目標與誠實邊界

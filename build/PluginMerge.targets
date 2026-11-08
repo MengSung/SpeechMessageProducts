@@ -1,10 +1,11 @@
 <!--
 檔案整體說明
 
-目的與定位：只在明確要求時將核定輸入合併為net462沙箱外掛，依程序環境取得簽章金鑰並保持一般建置不自動打包。
+目的與定位：只在明確要求時將核定七輸入合併為net462沙箱外掛，依程序環境取得簽章金鑰並保持一般建置不自動打包。
 
 主要功能與流程：
-依下方原生宣告執行本檔所述工作；入口、條件及順序須與實際呼叫端一致，不能把示範或預覽視為已套用。
+先建置兩個只連結原始碼的包裝子集，各自使用獨立bin/obj；其餘五個輸入使用一般產品輸出。
+逐一驗證net462上限及facade後只合併一次，依賴內部化，SDK由沙箱提供，不以bin萬用字元取代清單。
 
 使用邊界與維護：修改前先核對引用此檔的專案、頁面、腳本或CI步驟，保留既有參數、輸出及失敗結束碼。
 涉及寫入、外部命令或暫存資源時，依本檔實際實作的owner及清理路徑處理；說明不能取代執行前的範圍驗證。
@@ -25,12 +26,20 @@
            Code="SMP0003" Text="SPEECHMESSAGE_PLUGIN_KEYFILE 指定的金鑰不存在；禁止改用其他金鑰或產生正式金鑰。" />
     <Warning Condition="'$(_SpeechMessagePluginKeyFile)' == '' And '$(Configuration)' != 'Release'"
              Code="SMP0002" Text="未設定 SPEECHMESSAGE_PLUGIN_KEYFILE；本次 Debug 只產生未簽章診斷組件，不可部署。" />
+    <!-- PROP-004：來源只連結、不複製；一般產品及測試永遠仍使用完整原組件。
+         採標準子程序建置／還原，不把子集塞進Plugin的ProjectReference而污染一般型別身分。
+         子程序完成才讀專屬輸出，兩個固定路徑不共用可變的obj或bin。 -->
+    <Exec Command="dotnet build &quot;$(MSBuildThisFileDirectory)Line.Messaging.PluginSubset/Line.Messaging.PluginSubset.csproj&quot; --configuration $(Configuration) --framework net462 --nologo -p:RestoreUseStaticGraphEvaluation=false" />
+    <Exec Command="dotnet build &quot;$(MSBuildThisFileDirectory)ToolUtility.Core.PluginSubset/ToolUtility.Core.PluginSubset.csproj&quot; --configuration $(Configuration) --framework net462 --nologo -p:RestoreUseStaticGraphEvaluation=false" />
     <ItemGroup>
       <!-- 第一個輸入是唯一公開外殼；其餘型別全部內部化，SDK 仍由 D365 沙箱提供。 -->
       <_SpeechMessageMergeInput Include="$(TargetPath)" />
       <_SpeechMessageMergeInput Include="$(TargetDir)SpeechMessage.Localization.dll" />
       <_SpeechMessageMergeInput Include="$(TargetDir)LineMessagingProcessor.Core.dll" />
       <_SpeechMessageMergeInput Include="$(TargetDir)Newtonsoft.Json.dll" />
+      <_SpeechMessageMergeInput Include="$(TargetDir)SpeechMessageProducts.GoodShepherd.Core.dll" />
+      <_SpeechMessageMergeInput Include="$(MSBuildThisFileDirectory)ToolUtility.Core.PluginSubset/bin/$(Configuration)/net462/ToolUtility.Core.dll" />
+      <_SpeechMessageMergeInput Include="$(MSBuildThisFileDirectory)Line.Messaging.PluginSubset/bin/$(Configuration)/net462/Line.Messaging.dll" />
     </ItemGroup>
     <!-- 每個被合併輸入都必須先證明目標不高於伺服器核定的 v4.6.2；
          檢查器以 PE metadata 工作，不載入或執行組件。使用 dotnet build 的標準 restore/build 流程，
