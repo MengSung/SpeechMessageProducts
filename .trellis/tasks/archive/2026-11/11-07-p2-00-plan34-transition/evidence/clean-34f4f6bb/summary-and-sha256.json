@@ -1,0 +1,227 @@
+{
+  "commit": "34f4f6bb",
+  "gates": [
+    {
+      "name": "01-release-build",
+      "exitCode": 0,
+      "startedAt": "2026-11-07T21:42:22.2146827+08:00",
+      "endedAt": "2026-11-07T21:42:48.8337353+08:00",
+      "log": "01-release-build.log"
+    },
+    {
+      "name": "02-plugin-current-config-without-debug",
+      "exitCode": 0,
+      "startedAt": "2026-11-07T21:42:48.8587396+08:00",
+      "endedAt": "2026-11-07T21:42:51.7909502+08:00",
+      "log": "02-plugin-current-config-without-debug.log"
+    },
+    {
+      "name": "03-plugin-debug-build",
+      "exitCode": 0,
+      "startedAt": "2026-11-07T21:42:51.7929510+08:00",
+      "endedAt": "2026-11-07T21:42:54.9771809+08:00",
+      "log": "03-plugin-debug-build.log"
+    },
+    {
+      "name": "04-solution-tests",
+      "exitCode": 0,
+      "startedAt": "2026-11-07T21:42:54.9777085+08:00",
+      "endedAt": "2026-11-07T21:44:17.9564852+08:00",
+      "log": "04-solution-tests.log"
+    },
+    {
+      "name": "05-debug-tracer",
+      "exitCode": 0,
+      "startedAt": "2026-11-07T21:44:17.9574837+08:00",
+      "endedAt": "2026-11-07T21:44:29.4897423+08:00",
+      "log": "05-debug-tracer.log"
+    },
+    {
+      "name": "06-encoding",
+      "exitCode": 0,
+      "startedAt": "2026-11-07T21:44:29.4907425+08:00",
+      "endedAt": "2026-11-07T21:44:31.6966388+08:00",
+      "log": "06-encoding.log"
+    },
+    {
+      "name": "07-duplicates",
+      "exitCode": 0,
+      "startedAt": "2026-11-07T21:44:31.6976388+08:00",
+      "endedAt": "2026-11-07T21:44:34.7484853+08:00",
+      "log": "07-duplicates.log"
+    },
+    {
+      "name": "08-i18n",
+      "exitCode": 0,
+      "startedAt": "2026-11-07T21:44:34.7494949+08:00",
+      "endedAt": "2026-11-07T21:44:41.9277557+08:00",
+      "log": "08-i18n.log"
+    },
+    {
+      "name": "09-file-docs",
+      "exitCode": 0,
+      "startedAt": "2026-11-07T21:44:41.9287571+08:00",
+      "endedAt": "2026-11-07T21:44:48.3643974+08:00",
+      "log": "09-file-docs.log"
+    },
+    {
+      "name": "10-progress-legacy",
+      "exitCode": 0,
+      "startedAt": "2026-11-07T21:44:48.3663972+08:00",
+      "endedAt": "2026-11-07T21:44:48.6134260+08:00",
+      "log": "10-progress-legacy.log"
+    },
+    {
+      "name": "11-progress34",
+      "exitCode": 0,
+      "startedAt": "2026-11-07T21:44:48.6144276+08:00",
+      "endedAt": "2026-11-07T21:44:48.7169417+08:00",
+      "log": "11-progress34.log"
+    }
+  ],
+  "solutionTrxCount": 20,
+  "solutionCounters": {
+    "total": 4635,
+    "passed": 4635,
+    "failed": 0,
+    "notExecuted": 0
+  },
+  "rawFiles": [
+    {
+      "file": "01-release-build.log",
+      "sha256": "f2900c45f5ba93e7c7a785d128b2bce9bbc870bd4063977bda435ac26340b8c5"
+    },
+    {
+      "file": "02-plugin-current-config-without-debug.log",
+      "sha256": "f83c06fbeda3dca2d8327513c319df3cff91d671052c87ba36552a84d0e04104"
+    },
+    {
+      "file": "03-plugin-debug-build.log",
+      "sha256": "3a0d8a3a6a3a5613de1c3f7a2414c2ebf1f9dc1bf36bfef34a2297c57ea750d9"
+    },
+    {
+      "file": "04-solution-tests.log",
+      "sha256": "19687d59bccfdb8a99c7228d455e9ad22a1923d17088e233143fdbc39b9db8ef"
+    },
+    {
+      "file": "05-debug-tracer.log",
+      "sha256": "43f7ce5f29223121aa52f647a1880b4d8afbaebee50faa97e56a8d58841ac251"
+    },
+    {
+      "file": "06-encoding.log",
+      "sha256": "943bf4e24ba695b3665c80e5520f7461361d3ba2de6cefb09773b350a12f0fdb"
+    },
+    {
+      "file": "07-duplicates.log",
+      "sha256": "3fdd184dd87497df50f07ef6a47525d6c97247d4896560be77b92b1c301d8720"
+    },
+    {
+      "file": "08-i18n.log",
+      "sha256": "53d112a3787455157f39a7ef09bdbfe1611ea2bedc0f4fe10aecde80a66a034c"
+    },
+    {
+      "file": "09-file-docs.log",
+      "sha256": "bd9848396208a6f9341939a099e9376a0d882a80b44c3bd09817e125ed9ea305"
+    },
+    {
+      "file": "10-progress-legacy.log",
+      "sha256": "52f3bce92886263da4d8f3024ab52887740cbfa266c08c855d38759cdbd961f6"
+    },
+    {
+      "file": "11-progress34.log",
+      "sha256": "77c306d6ee04471aced605c4e455c8d9b96ed239d5197cd5b15b72da3263a406"
+    },
+    {
+      "file": "plugin-only-trx\\Administrator_LENOVO-LEGION_2026-11-07_21_42_51_net10.0.trx",
+      "sha256": "95010660ccacd927e066124a5a9c433d1c54d5eb8eefe7d5fe4fc89f73e0137e"
+    },
+    {
+      "file": "results.json",
+      "sha256": "3378f93a92507bd94e5e02e4d4494ee0e3d7661e467d80b5bc7bee5cdd98d112"
+    },
+    {
+      "file": "solution-trx\\Administrator_LENOVO-LEGION_2026-11-07_21_42_57_net10.0.trx",
+      "sha256": "ebfe34a952bb1b890f43028605df6365849743dc91b3ad61d595ffacfe872fb9"
+    },
+    {
+      "file": "solution-trx\\Administrator_LENOVO-LEGION_2026-11-07_21_42_57_net10.0[1].trx",
+      "sha256": "d60e96507c3b5be401eea2e8598d8a8461d3bb735d7fcda0a0e0054d6095d6f1"
+    },
+    {
+      "file": "solution-trx\\Administrator_LENOVO-LEGION_2026-11-07_21_42_57_net10.0[2].trx",
+      "sha256": "024444c657fc51f79a0d9fb2ca0cea60663526e2877e0a87a109ccf16d737b9b"
+    },
+    {
+      "file": "solution-trx\\Administrator_LENOVO-LEGION_2026-11-07_21_42_57_net10.0[3].trx",
+      "sha256": "6f5344e0e0814336f037023fd205f68493871ca8976ae9fd02b184b4b8627c69"
+    },
+    {
+      "file": "solution-trx\\Administrator_LENOVO-LEGION_2026-11-07_21_42_57_net10.0[4].trx",
+      "sha256": "bfc52f94ff8b2be6e593e62663776c56973792996194261da85e554553cd159b"
+    },
+    {
+      "file": "solution-trx\\Administrator_LENOVO-LEGION_2026-11-07_21_42_57_net10.0[5].trx",
+      "sha256": "7d0ee6ffd73f8efa492c293fb3edd87cc4b56d97ab5cf6ab77452bfbe07344ff"
+    },
+    {
+      "file": "solution-trx\\Administrator_LENOVO-LEGION_2026-11-07_21_42_57_net10.0[6].trx",
+      "sha256": "14499b06e9eae3bca6c93457860b826f13d027cf232c4f54c90796bea5492dcd"
+    },
+    {
+      "file": "solution-trx\\Administrator_LENOVO-LEGION_2026-11-07_21_42_57_net10.0[7].trx",
+      "sha256": "8c4d4d706cf2d784b8b2b5949d08a3e12e655507fd726a443d25210fb1816f44"
+    },
+    {
+      "file": "solution-trx\\Administrator_LENOVO-LEGION_2026-11-07_21_42_57_net10.0[8].trx",
+      "sha256": "1c8b28d21da8b746adbba95aae485a2f6b2856f4186356c5e4fd66e6e3794d40"
+    },
+    {
+      "file": "solution-trx\\Administrator_LENOVO-LEGION_2026-11-07_21_42_58_net10.0.trx",
+      "sha256": "c04077c5a9a01fa6a8216e484eec4738a46493c01ddf915f480fb1bb3d95f062"
+    },
+    {
+      "file": "solution-trx\\Administrator_LENOVO-LEGION_2026-11-07_21_42_58_net10.0[1].trx",
+      "sha256": "9f464ce6c8a74d346682ec1041600f3745f1b864b2278e466ac2a0659317032c"
+    },
+    {
+      "file": "solution-trx\\Administrator_LENOVO-LEGION_2026-11-07_21_42_58_net10.0[2].trx",
+      "sha256": "5684a06a684cac6b823c5eca072b33d6c0b42164e52ec92cc2aef213c91bd6ad"
+    },
+    {
+      "file": "solution-trx\\Administrator_LENOVO-LEGION_2026-11-07_21_42_58_net10.0[3].trx",
+      "sha256": "cb763f8e4599b4c3d2204add125dae41b7247cb8fc75819d6bcc3bc129555b27"
+    },
+    {
+      "file": "solution-trx\\Administrator_LENOVO-LEGION_2026-11-07_21_42_58_net48.trx",
+      "sha256": "86dea8c356f5860d3670176cddc0bafea51439251c85271da4174b48fbf0ff4d"
+    },
+    {
+      "file": "solution-trx\\Administrator_LENOVO-LEGION_2026-11-07_21_42_59_net10.0.trx",
+      "sha256": "81ea376cc257e37420dd5c5201d6d11ddbe361c2a6c173ecfa676ac6bcb68ed6"
+    },
+    {
+      "file": "solution-trx\\Administrator_LENOVO-LEGION_2026-11-07_21_42_59_net48.trx",
+      "sha256": "2644f7fb97c6fa3c469b92bb8a559e7383160ccd5ec2028ecb9796e419b2176a"
+    },
+    {
+      "file": "solution-trx\\Administrator_LENOVO-LEGION_2026-11-07_21_42_59_net48[1].trx",
+      "sha256": "cb413bebd6ee485ab7f46badc5874883553067980ecaabe9267e32388a160dc0"
+    },
+    {
+      "file": "solution-trx\\Administrator_LENOVO-LEGION_2026-11-07_21_42_59_net48[2].trx",
+      "sha256": "0cb21ce9e7782718ef9ab72c61234c1cb5de42ca351131d68aab5cde5c78366d"
+    },
+    {
+      "file": "solution-trx\\Administrator_LENOVO-LEGION_2026-11-07_21_43_00_net48.trx",
+      "sha256": "52f633f148e088421916dee09685d3568a0afbcf73f4506163f9fc5929a425d2"
+    },
+    {
+      "file": "solution-trx\\Administrator_LENOVO-LEGION_2026-11-07_21_43_00_net48[1].trx",
+      "sha256": "616576df48a3b3fd0e76d2eedca59566e589baafb99c904e41ba4d8f9944a1e6"
+    },
+    {
+      "file": "tracer-trx\\Administrator_LENOVO-LEGION_2026-11-07_21_44_29_net10.0.trx",
+      "sha256": "1418b5b1e080b4b94421c7cae529ca41802b2776a27b664287f5d8bef53a6c30"
+    }
+  ]
+}

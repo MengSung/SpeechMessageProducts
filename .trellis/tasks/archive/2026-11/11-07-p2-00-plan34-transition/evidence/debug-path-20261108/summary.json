@@ -1,0 +1,66 @@
+{
+  "at": "2026-11-08T08:15:52+08:00",
+  "head": "8b2bbb15",
+  "scope": "原工作樹 Debug，非乾淨複本／非 P2 驗收",
+  "paths": [
+    {
+      "path": "SpeechMessageProducts.GoodShepherd.Core/obj/Debug/net462/SpeechMessageProducts.GoodShepherd.Core.GeneratedMSBuildEditorConfig.editorconfig",
+      "fullPathLength": 269,
+      "exists": true
+    },
+    {
+      "path": "SpeechMessageProducts.GoodShepherd.Core.Tests/obj/Debug/net48/SpeechMessageProducts.GoodShepherd.Core.Tests.csproj.FileListAbsolute.txt",
+      "fullPathLength": 266,
+      "exists": true
+    }
+  ],
+  "longPathsEnabled": 1,
+  "readProbeExitCodes": {
+    "VisualStudioMSBuild": 0,
+    "dotnetMSBuild": 0
+  },
+  "buildExitCode": 0,
+  "rebuildExitCode": 0,
+  "testsExitCode": 0,
+  "tests": [
+    {
+      "file": "Administrator_LENOVO-LEGION_2026-11-08_08_10_33_net10.0.trx",
+      "total": 41,
+      "passed": 41,
+      "failed": 0,
+      "sha256": "6ECFEBD44F0A15630F03FA136191B1DDE4F166A3A7F91D695F37F7A171865D8C"
+    },
+    {
+      "file": "Administrator_LENOVO-LEGION_2026-11-08_08_10_33_net48.trx",
+      "total": 41,
+      "passed": 41,
+      "failed": 0,
+      "sha256": "DAD75427A5D8A280DE76068CCE2123757130CBDF4BBD8CD4649B9DD53ADCF3A5"
+    }
+  ],
+  "rootCause": "未確認；目前 CLI 無法重現。不把長路徑或程序競爭視為已證實。",
+  "ideObservation": "08:11 仍可見原兩筆錯誤；觀察到 IDE 方案重建開始，後續視窗最小化，未確認 IDE 重建最終結果。",
+  "changes": "沒有修改產品／csproj／方案／建置或系統設定，未停止使用者程序；SDK 正常重建中繼檔。",
+  "logs": [
+    {
+      "file": "debug-tests.log",
+      "sha256": "705DA65F427FF8C9C15B5ECB86F631E3CC778A4087A635EC6A8C8A318668EDF5"
+    },
+    {
+      "file": "vs-msbuild-before-console.log",
+      "sha256": "98F71557138DA4AF1ACAD9DDD4BCACF2D3DAD79A97B2E9D38A9CBC91EE92F9D1"
+    },
+    {
+      "file": "vs-msbuild-before.log",
+      "sha256": "A4DC7CC07550ADC8AD4BA64E3E6C8F649715861109D281F5BAC2D627BF240174"
+    },
+    {
+      "file": "vs-msbuild-rebuild-console.log",
+      "sha256": "98F71557138DA4AF1ACAD9DDD4BCACF2D3DAD79A97B2E9D38A9CBC91EE92F9D1"
+    },
+    {
+      "file": "vs-msbuild-rebuild.log",
+      "sha256": "F9F2D0464DCC263D0E7108AD274B806E4779DAF2018A0D28D14D2B9CC54157BF"
+    }
+  ]
+}

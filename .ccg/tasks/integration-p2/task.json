@@ -6,8 +6,8 @@
   "risk": "high",
   "domain": "backend",
   "currentPhase": "implementation",
-  "nextAction": "Hosting Debug104/104、Release coverage104/104及83.29%通過；ChurchReport兩組態82/82，8案診斷與25案架構逐案轉移核對。R2 Debug338/Release316未驗收；完整Changed編碼歷史16份問題待處理。P2維持0/12，P2-01不封存，繼續獨立需求。",
+  "nextAction": "P2-06公開方法黃金與薄殼，P2-11完整鏈測試已綠但打包閉包待處理；前置已驗收不重跑。",
   "createdAt": "2026-11-07T00:35:03.4037617+00:00",
   "branch": "1.0.0.11.Integration.P2.Worktree",
-  "updatedAt": "2026-11-07T12:07:12+08:00"
+  "updatedAt": "2026-11-08T19:04:28+08:00"
 }

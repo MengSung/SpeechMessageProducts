@@ -1,27 +1,21 @@
 /*
  * 檔案整體說明
  *
- * 目的與定位：LINE 通訊工具類別。封裝與 LINE Messaging API 往來所需的組態、 Channel Access Token 取得與訊息組裝，並以 IDisposable Pattern 確保資源正確釋放。
- *
- * 主要功能與流程：
- * 本檔宣告 LineUtilityClass、PostTextClass、TextMessageClass、PostTemplateClass、TemplateMessageClass、TemplateClass、
- * PostConfirmClass、ConfirmMessageClass、ConfirmClass、PostCarouselClass、CarouselMessageClass、CarouselClass 等相關型別。
- * - LineUtilityClass 的部署設定每行程一份，只保存設定、不保存 request／使用者或教會可變資料。 Development 接上主機環境檔與 secrets，正式環境不增加 provider；缺少測試
- * token 不得退回基底正式值。 保留原 static／Lazy 與基底 reload 生命週期；新增來源不監聽變更，不建立額外背景資源。
- * - 由 Tenancy 唯一入口解析，null 表示部署預設；保留既有產品組織選擇與 client owner，不快取解析結果。
- * - 指示目前 LINE client 是否由本類別以相容字串建構式建立並負責釋放。 外部注入的 client 由呼叫端擁有，不能在此處 Dispose，避免破壞共享 HttpClient 的生命週期。
- * - 舊版 RichMenu 建立/上傳/連結 workflow 的相容欄位。 目前 legacy-auth 的一般指派改由 m_LineRichMenuAssignmentWorkflow 處理，
- * 此欄位仍保留給既有建構式與測試替換使用。
- * 主要操作入口包含 GetChannelAccessToken、Dispose、CreateDefaultNotificationWorkflow、CreateDefaultReplyWorkflow、
- * CreateDefaultRichMenuWorkflow、CreateDefaultRichMenuAssignmentWorkflow、SetupChannelAccessToken、ThrowIfDisposed；
- * 其餘入口見下方成員契約。
- *
- * 使用邊界與維護：
- * 本檔的前置條件、錯誤及資源責任以各型別／成員契約為準；此導讀不把呼叫參數視為授權，也不擴張被借入依賴的所有權。
- * 變更介面、資料格式、取消或清理順序時，須一併核對下列合作檔案及對應測試，不能只改目前檔案。
- * 可沿 SpeechMessageProducts.ChurchReport/Services/ChurchReportLineBindingNotificationService.cs、
- * SpeechMessageProducts.ChurchReport/SessionAttribute.cs、SpeechMessageProducts.ChurchReport/Tools/ReplyUtility.cs、
- * SpeechMessageProducts.ChurchReport/Tools/SmallGroupQrCodeUtility.cs 追查目前工作樹中的合作／使用位置。
+ * 目的與定位：ChurchReport 舊 LINE 工具的 Obsolete 相容外觀；送訊只組裝 SDK 訊息
+ * 並委派共用 notification／reply／RichMenu assignment，CRM action／party 組裝及舊
+ * JSON DTO 仍屬產品，不移入 Core。正式會友授權推播由 P2-04 Core 負責，本檔不補造身分。
+ * 主要功能與流程：保留統計、同步別名、媒體、Flex、template 與 reply 入口；既有多播
+ * 刻意逐人 push，與 ToolUtility multicast 不同。認證選單僅以 menu key 指派／解除，不
+ * 重新建立 HTTP、圖片或刪除共用 provider 資源。best-effort 的真實失敗交共用診斷，
+ * 不以 raw Exception 字串通知使用者；必要產品決策及 CRM 授權仍由呼叫端完成。
+ * 資源與隔離：部署組態為不監聽變更的 static 設定，沒有 request／user 快取；每個工具
+ * 實例必須限定一個 request／operation 並在操作排空後 Dispose，不可 singleton 或與
+ * 切換組織並行。自行建立的 token-bound client 由本實例釋放；注入 client／workflow／
+ * CRM Tool 僅借用，由外層 scope 釋放。SetupChannelAccessToken 保持原先成功建構才替換
+ * 及失敗釋放新 client 的順序；注入的 workflow 必須符合 owner 的既有頻道隔離約定。
+ * 使用邊界與維護：訊息、party、DTO 都是操作內可變資料，不能快取為跨使用者狀態；
+ * DTO 不執行驗證或授權。SDK timeout 由 client owner 設定，本包未新增 caller-token API。
+ * P206 假 HTTP 黃金驗證送訊；CRM-only 方法另作 no-HTTP／產品組裝對照，不冒稱實機。
  */
 using ChurchReport.Configuration;
 using System;
@@ -48,6 +42,7 @@ namespace ChurchReport.Tools
     /// LINE 通訊工具類別。封裝與 LINE Messaging API 往來所需的組態、
     /// Channel Access Token 取得與訊息組裝，並以 IDisposable Pattern 確保資源正確釋放。
     /// </summary>
+    [Obsolete("改用共用 notification/reply/RichMenu workflow；CRM 組裝留產品，階段6移除送訊相容殼。")]
     public class LineUtilityClass : IDisposable
     {
             #region 系統層級欄位
@@ -58,7 +53,7 @@ namespace ChurchReport.Tools
             //IOrganizationServiceFactory m_ServiceFactory;
             IOrganizationService m_CrmService;
 
-            // 目前請求所屬的組織代號，決定要使用哪一組 LINE 頻道設定。
+            /// <summary>由產品 owner 設定的組織別名；不可把使用者輸入視為授權，也不可與送訊並行修改。</summary>
             public String m_OrganizationName = "";
 
             ReplyUtility m_ReplyUtility;
@@ -151,6 +146,8 @@ namespace ChurchReport.Tools
             #region 資源釋放
         private bool _disposed = false;
 
+        /// <summary>在呼叫端已等待作業排空後釋放本實例擁有的 client；借入的 SDK／CRM／workflow 不在此釋放。</summary>
+        /// <param name="disposing">true 時只關閉本實例擁有的 managed client；false 不碰借用資源。</param>
         protected virtual void Dispose(bool disposing)
         {
             if (_disposed) return;
@@ -176,6 +173,7 @@ namespace ChurchReport.Tools
             _disposed = true;
         }
 
+        /// <summary>在呼叫端已等待作業排空後釋放本實例擁有的 client；借入的 SDK／CRM／workflow 不在此釋放。</summary>
         public void Dispose()
         {
             Dispose(true);
@@ -192,11 +190,16 @@ namespace ChurchReport.Tools
 
             ToolUtilityClass m_ToolUtilityClass;
 
+            /// <summary>保留部署設定建構式；由本實例建立 token-bound client，呼叫端必須等待操作結束後 Dispose。</summary>
+            /// <param name="aToolUtilityClass">借入的產品 CRM 工具，由呼叫端 scope 擁有及釋放。</param>
             public LineUtilityClass( ToolUtilityClass aToolUtilityClass)
                 : this(aToolUtilityClass, null)
             {
             }
 
+            /// <summary>保留部署設定建構式；由本實例建立 token-bound client，呼叫端必須等待操作結束後 Dispose。</summary>
+            /// <param name="aToolUtilityClass">借入的產品 CRM 工具，由呼叫端 scope 擁有及釋放。</param>
+            /// <param name="lineNotificationWorkflow">可選的同頻道通知流程；null 才以現有 client 建立 adapter，不取得 owner。</param>
             public LineUtilityClass(
                 ToolUtilityClass aToolUtilityClass,
                 ILineNotificationWorkflow? lineNotificationWorkflow)
@@ -204,6 +207,10 @@ namespace ChurchReport.Tools
             {
             }
 
+            /// <summary>保留部署設定建構式；由本實例建立 token-bound client，呼叫端必須等待操作結束後 Dispose。</summary>
+            /// <param name="aToolUtilityClass">借入的產品 CRM 工具，由呼叫端 scope 擁有及釋放。</param>
+            /// <param name="lineNotificationWorkflow">可選的同頻道通知流程；null 才以現有 client 建立 adapter，不取得 owner。</param>
+            /// <param name="lineReplyWorkflow">可選的同頻道 reply 流程；null 使用現有 client，不保存事件 token。</param>
             public LineUtilityClass(
                 ToolUtilityClass aToolUtilityClass,
                 ILineNotificationWorkflow? lineNotificationWorkflow,
@@ -232,6 +239,10 @@ namespace ChurchReport.Tools
                     m_LineReplyWorkflow);
             }
 
+            /// <summary>保留舊建構式的頻道限定相容外觀；借用注入資源，null workflow 只以同一 SDK 建 adapter。</summary>
+            /// <param name="aToolUtilityClass">借入的產品 CRM 工具，由呼叫端 scope 擁有及釋放。</param>
+            /// <param name="lineMessagingClient">同頻道 SDK client；由呼叫端擁有、設定有限 timeout 並於操作排空後釋放。</param>
+            /// <param name="lineNotificationWorkflow">可選的同頻道通知流程；null 才以現有 client 建立 adapter，不取得 owner。</param>
             public LineUtilityClass(
                 ToolUtilityClass aToolUtilityClass,
                 LineMessagingClient lineMessagingClient,
@@ -240,6 +251,11 @@ namespace ChurchReport.Tools
             {
             }
 
+            /// <summary>保留舊建構式的頻道限定相容外觀；借用注入資源，null workflow 只以同一 SDK 建 adapter。</summary>
+            /// <param name="aToolUtilityClass">借入的產品 CRM 工具，由呼叫端 scope 擁有及釋放。</param>
+            /// <param name="lineMessagingClient">同頻道 SDK client；由呼叫端擁有、設定有限 timeout 並於操作排空後釋放。</param>
+            /// <param name="lineNotificationWorkflow">可選的同頻道通知流程；null 才以現有 client 建立 adapter，不取得 owner。</param>
+            /// <param name="lineReplyWorkflow">可選的同頻道 reply 流程；null 使用現有 client，不保存事件 token。</param>
             public LineUtilityClass(
                 ToolUtilityClass aToolUtilityClass,
                 LineMessagingClient lineMessagingClient,
@@ -249,6 +265,11 @@ namespace ChurchReport.Tools
             {
             }
 
+            /// <summary>保留舊建構式的頻道限定相容外觀；借用注入資源，null workflow 只以同一 SDK 建 adapter。</summary>
+            /// <param name="aToolUtilityClass">借入的產品 CRM 工具，由呼叫端 scope 擁有及釋放。</param>
+            /// <param name="lineMessagingClient">同頻道 SDK client；由呼叫端擁有、設定有限 timeout 並於操作排空後釋放。</param>
+            /// <param name="lineNotificationWorkflow">可選的同頻道通知流程；null 才以現有 client 建立 adapter，不取得 owner。</param>
+            /// <param name="createPushLineMessage">當次產品統計接點；替身可用於離線驗證，不是授權接點。</param>
             protected LineUtilityClass(
                 ToolUtilityClass aToolUtilityClass,
                 LineMessagingClient lineMessagingClient,
@@ -258,6 +279,12 @@ namespace ChurchReport.Tools
             {
             }
 
+            /// <summary>保留舊建構式的頻道限定相容外觀；借用注入資源，null workflow 只以同一 SDK 建 adapter。</summary>
+            /// <param name="aToolUtilityClass">借入的產品 CRM 工具，由呼叫端 scope 擁有及釋放。</param>
+            /// <param name="lineMessagingClient">同頻道 SDK client；由呼叫端擁有、設定有限 timeout 並於操作排空後釋放。</param>
+            /// <param name="lineNotificationWorkflow">可選的同頻道通知流程；null 才以現有 client 建立 adapter，不取得 owner。</param>
+            /// <param name="lineReplyWorkflow">可選的同頻道 reply 流程；null 使用現有 client，不保存事件 token。</param>
+            /// <param name="createPushLineMessage">當次產品統計接點；替身可用於離線驗證，不是授權接點。</param>
             protected LineUtilityClass(
                 ToolUtilityClass aToolUtilityClass,
                 LineMessagingClient lineMessagingClient,
@@ -268,6 +295,13 @@ namespace ChurchReport.Tools
             {
             }
 
+            /// <summary>保留舊建構式的頻道限定相容外觀；借用注入資源，null workflow 只以同一 SDK 建 adapter。</summary>
+            /// <param name="aToolUtilityClass">借入的產品 CRM 工具，由呼叫端 scope 擁有及釋放。</param>
+            /// <param name="lineMessagingClient">同頻道 SDK client；由呼叫端擁有、設定有限 timeout 並於操作排空後釋放。</param>
+            /// <param name="lineNotificationWorkflow">可選的同頻道通知流程；null 才以現有 client 建立 adapter，不取得 owner。</param>
+            /// <param name="lineReplyWorkflow">可選的同頻道 reply 流程；null 使用現有 client，不保存事件 token。</param>
+            /// <param name="lineRichMenuWorkflow">舊佈建流程注入形狀的相容參數；一般指派不在本殼重做佈建。</param>
+            /// <param name="createPushLineMessage">當次產品統計接點；替身可用於離線驗證，不是授權接點。</param>
             protected LineUtilityClass(
                 ToolUtilityClass aToolUtilityClass,
                 LineMessagingClient lineMessagingClient,
@@ -279,6 +313,14 @@ namespace ChurchReport.Tools
             {
             }
 
+            /// <summary>保留舊建構式的頻道限定相容外觀；借用注入資源，null workflow 只以同一 SDK 建 adapter。</summary>
+            /// <param name="aToolUtilityClass">借入的產品 CRM 工具，由呼叫端 scope 擁有及釋放。</param>
+            /// <param name="lineMessagingClient">同頻道 SDK client；由呼叫端擁有、設定有限 timeout 並於操作排空後釋放。</param>
+            /// <param name="lineNotificationWorkflow">可選的同頻道通知流程；null 才以現有 client 建立 adapter，不取得 owner。</param>
+            /// <param name="lineReplyWorkflow">可選的同頻道 reply 流程；null 使用現有 client，不保存事件 token。</param>
+            /// <param name="lineRichMenuWorkflow">舊佈建流程注入形狀的相容參數；一般指派不在本殼重做佈建。</param>
+            /// <param name="lineRichMenuAssignmentWorkflow">同頻道的產品 menu-key 指派流程，不以 provider ID 跨頻道共用。</param>
+            /// <param name="createPushLineMessage">當次產品統計接點；替身可用於離線驗證，不是授權接點。</param>
             protected LineUtilityClass(
                 ToolUtilityClass aToolUtilityClass,
                 LineMessagingClient lineMessagingClient,
@@ -454,13 +496,13 @@ namespace ChurchReport.Tools
             }
 
             #region 工具方法
-            #region Line Messagin Api SDK?喲?
+            #region LINE SDK 相容入口
             private async Task SendBestEffortSdkMessagesAsync(
                 string userId,
                 IReadOnlyList<ISendMessage> messages,
                 string source)
             {
-                await m_LineNotificationWorkflow.SendAsync(new LineNotificationRequest
+                var result = await m_LineNotificationWorkflow.SendAsync(new LineNotificationRequest
                 {
                     Recipient = LineNotificationRecipient.User(userId),
                     Content = LineNotificationContent.SdkMessagesList(messages),
@@ -469,6 +511,10 @@ namespace ChurchReport.Tools
                         ["source"] = source
                     }
                 });
+                if (result.Exception is { } exception)
+                {
+                    global::ToolUtilityNameSpace.Diagnostics.ExceptionReporting.Report(exception);
+                }
             }
 
             private async Task SendBestEffortSdkMessagesToManyAsync(
@@ -483,7 +529,7 @@ namespace ChurchReport.Tools
 
                 foreach (var userId in userIds.Where(id => !string.IsNullOrWhiteSpace(id)))
                 {
-                    await m_LineNotificationWorkflow.SendAsync(new LineNotificationRequest
+                    var result = await m_LineNotificationWorkflow.SendAsync(new LineNotificationRequest
                     {
                         Recipient = LineNotificationRecipient.User(userId),
                         Content = LineNotificationContent.SdkMessagesList(messages),
@@ -493,9 +539,18 @@ namespace ChurchReport.Tools
                             ["deliveryMode"] = "multicast-split"
                         }
                     });
+                    if (result.Exception is { } exception)
+                    {
+                        global::ToolUtilityNameSpace.Diagnostics.ExceptionReporting.Report(exception);
+                    }
                 }
             }
 
+            /// <summary>將操作限定的 reply token 與 SDK 訊息清單交共用 reply 流程，保留既有 best-effort 行為。</summary>
+            /// <remarks>產品參數不是授權證明；維持舊版失敗語意，不新增 HTTP、重試或跨操作狀態。</remarks>
+            /// <param name="ReplyToken">已驗證 webhook 的一次性 token，僅在本次呼叫借用，不快取。</param>
+            /// <param name="MessageToSend">呼叫端組好的當次 SDK 訊息集合，完成前不得並行修改。</param>
+            /// <returns>等待同一流程結束的作業；依既有入口契約保留 best-effort 或必要失敗。</returns>
             public async Task ReplyMessage(string ReplyToken, List<ISendMessage> MessageToSend)
             {
                 try
@@ -506,15 +561,25 @@ namespace ChurchReport.Tools
                 }
                 catch (System.Exception e)
                 {
-                    String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+                    global::ToolUtilityNameSpace.Diagnostics.ExceptionReporting.Report(e);
                 }
             }
+            /// <summary>將當次文字與 reply token 交產品 reply 相容殼，再由共用 workflow 傳輸。</summary>
+            /// <remarks>產品參數不是授權證明；維持舊版失敗語意，不新增 HTTP、重試或跨操作狀態。</remarks>
+            /// <param name="ReplyToken">已驗證 webhook 的一次性 token，僅在本次呼叫借用，不快取。</param>
+            /// <param name="Message">當次文字內容，不存到共享狀態。</param>
+            /// <returns>等待同一流程結束的作業；依既有入口契約保留 best-effort 或必要失敗。</returns>
             public async Task ReplyTextMessage(string ReplyToken, string Message)
             {
                 await this.m_ReplyUtility.ReplyMessageAsync(ReplyToken, Message);
 
                 return;
             }
+            /// <summary>將當次收件者與文字或 SDK 多則訊息交共用送訊流程；不更改原 payload、sender 或重試鍵。</summary>
+            /// <remarks>產品參數不是授權證明；維持舊版失敗語意，不新增 HTTP、重試或跨操作狀態。</remarks>
+            /// <param name="UserId">本次產品已授權的 LINE 收件 ID；相容入口也可能為群組，不代表正式會友授權。</param>
+            /// <param name="MessageToSend">呼叫端組好的當次 SDK 訊息集合，完成前不得並行修改。</param>
+            /// <returns>等待同一流程結束的作業；依既有入口契約保留 best-effort 或必要失敗。</returns>
             public async Task SendMessage(string UserId, List<ISendMessage> MessageToSend)
             {
                 await SendBestEffortSdkMessagesAsync(
@@ -524,6 +589,11 @@ namespace ChurchReport.Tools
 
                 return;
             }
+            /// <summary>先執行既有產品推播統計，再將文字交共用通知流程；統計不是授權證明。</summary>
+            /// <remarks>產品參數不是授權證明；維持舊版失敗語意，不新增 HTTP、重試或跨操作狀態。</remarks>
+            /// <param name="UserId">本次產品已授權的 LINE 收件 ID；相容入口也可能為群組，不代表正式會友授權。</param>
+            /// <param name="Message">當次文字內容，不存到共享狀態。</param>
+            /// <returns>等待同一流程結束的作業；依既有入口契約保留 best-effort 或必要失敗。</returns>
             public async Task SendMessageAsync(string UserId, string Message)
             {
                 m_CreatePushLineMessage(UserId, "Line推播統計:文字", Message);
@@ -542,6 +612,11 @@ namespace ChurchReport.Tools
 
                 return;
             }
+            /// <summary>保留原收件順序及空集合不發送契約；本產品沿既有 workflow 逐人 push，不改為 ToolUtility 的 multicast HTTP。</summary>
+            /// <remarks>產品參數不是授權證明；維持舊版失敗語意，不新增 HTTP、重試或跨操作狀態。</remarks>
+            /// <param name="To">產品先驗證的當次收件集合，不以內容去重。</param>
+            /// <param name="Message">當次文字內容，不存到共享狀態。</param>
+            /// <returns>等待同一流程結束的作業；依既有入口契約保留 best-effort 或必要失敗。</returns>
             public async Task MultiCastTextMessageAsync(IList<string> To, string Message)
             {
                 try
@@ -562,12 +637,16 @@ namespace ChurchReport.Tools
                 }
                 catch (System.Exception e)
                 {
-                    String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+                    global::ToolUtilityNameSpace.Diagnostics.ExceptionReporting.Report(e);
 
-                    throw e;
+                    throw;
                 }
 
             }
+            /// <summary>將當次收件者與文字或 SDK 多則訊息交共用送訊流程；不更改原 payload、sender 或重試鍵。</summary>
+            /// <remarks>產品參數不是授權證明；維持舊版失敗語意，不新增 HTTP、重試或跨操作狀態。</remarks>
+            /// <param name="UserId">本次產品已授權的 LINE 收件 ID；相容入口也可能為群組，不代表正式會友授權。</param>
+            /// <param name="Message">當次文字內容，不存到共享狀態。</param>
             public void SendMessage(string UserId, string Message)
             {
                 m_CreatePushLineMessage(UserId, "Line推播統計:文字", Message);
@@ -585,6 +664,12 @@ namespace ChurchReport.Tools
 
                 return;
             }
+            /// <summary>保留原圖／預覽 URL 組裝 ImageMessage，僅委派共用流程而不下載或保留圖片。</summary>
+            /// <remarks>產品參數不是授權證明；維持舊版失敗語意，不新增 HTTP、重試或跨操作狀態。</remarks>
+            /// <param name="UserId">本次產品已授權的 LINE 收件 ID；相容入口也可能為群組，不代表正式會友授權。</param>
+            /// <param name="OriginalContenUrl">原始媒體 URL，只交 SDK，不由本殼下載。</param>
+            /// <param name="PreviewImageUrl">預覽圖片 URL，原樣交 SDK。</param>
+            /// <returns>等待同一流程結束的作業；依既有入口契約保留 best-effort 或必要失敗。</returns>
             public async Task SendImage(string UserId, string OriginalContenUrl, string PreviewImageUrl)
             {
                 m_CreatePushLineMessage(UserId, "Line推播統計:圖片", "");
@@ -600,6 +685,12 @@ namespace ChurchReport.Tools
 
                 return;
             }
+            /// <summary>把當次原圖／預覽 URL 組成圖片回覆後交既有 reply 流程，不取得媒體串流所有權。</summary>
+            /// <remarks>產品參數不是授權證明；維持舊版失敗語意，不新增 HTTP、重試或跨操作狀態。</remarks>
+            /// <param name="ReplyToken">已驗證 webhook 的一次性 token，僅在本次呼叫借用，不快取。</param>
+            /// <param name="OriginalContenUrl">原始媒體 URL，只交 SDK，不由本殼下載。</param>
+            /// <param name="PreviewImageUrl">預覽圖片 URL，原樣交 SDK。</param>
+            /// <returns>等待同一流程結束的作業；依既有入口契約保留 best-effort 或必要失敗。</returns>
             public async Task ReplyImage(string ReplyToken, string OriginalContenUrl, string PreviewImageUrl)
             {
                 List<ISendMessage> MessageToSend = new List<ISendMessage>
@@ -611,6 +702,12 @@ namespace ChurchReport.Tools
 
                 return;
             }
+            /// <summary>將影片與預覽 URL 組裝為 SDK 訊息；本層不另開串流或變更傳輸協定。</summary>
+            /// <remarks>產品參數不是授權證明；維持舊版失敗語意，不新增 HTTP、重試或跨操作狀態。</remarks>
+            /// <param name="UserId">本次產品已授權的 LINE 收件 ID；相容入口也可能為群組，不代表正式會友授權。</param>
+            /// <param name="OriginalContenUrl">原始媒體 URL，只交 SDK，不由本殼下載。</param>
+            /// <param name="PreviewImageUrl">預覽圖片 URL，原樣交 SDK。</param>
+            /// <returns>等待同一流程結束的作業；依既有入口契約保留 best-effort 或必要失敗。</returns>
             public async Task SendVideo(string UserId, string OriginalContenUrl, string PreviewImageUrl)
             {
                 m_CreatePushLineMessage(UserId, "Line推播統計:影片", "");
@@ -626,6 +723,12 @@ namespace ChurchReport.Tools
 
                 return;
             }
+            /// <summary>保留舊拼字的音訊相容入口，將 URL 與毫秒長度原樣交 SDK，不額外存取檔案。</summary>
+            /// <remarks>產品參數不是授權證明；維持舊版失敗語意，不新增 HTTP、重試或跨操作狀態。</remarks>
+            /// <param name="UserId">本次產品已授權的 LINE 收件 ID；相容入口也可能為群組，不代表正式會友授權。</param>
+            /// <param name="OriginalContenUrl">原始媒體 URL，只交 SDK，不由本殼下載。</param>
+            /// <param name="Duration">音訊長度（毫秒），保留舊 SDK 數值。</param>
+            /// <returns>等待同一流程結束的作業；依既有入口契約保留 best-effort 或必要失敗。</returns>
             public async Task SendAudeo(string UserId, string OriginalContenUrl, long Duration)
             {
                 m_CreatePushLineMessage(UserId, "Line推播統計:聲音", "");
@@ -641,6 +744,14 @@ namespace ChurchReport.Tools
 
                 return;
             }
+            /// <summary>將產品給定的標題、地址及座標封裝為位置訊息；不把這些顯示值當授權或身分。</summary>
+            /// <remarks>產品參數不是授權證明；維持舊版失敗語意，不新增 HTTP、重試或跨操作狀態。</remarks>
+            /// <param name="UserId">本次產品已授權的 LINE 收件 ID；相容入口也可能為群組，不代表正式會友授權。</param>
+            /// <param name="Title">顯示標題，不作身分識別。</param>
+            /// <param name="Address">顯示地址，不寫入診斷。</param>
+            /// <param name="Latitude">緯度數值，原樣交 SDK。</param>
+            /// <param name="Longitude">經度數值，原樣交 SDK。</param>
+            /// <returns>等待同一流程結束的作業；依既有入口契約保留 best-effort 或必要失敗。</returns>
             public async Task SendLocation(string UserId, string Title, string Address, decimal Latitude, decimal Longitude)
             {
                 m_CreatePushLineMessage(UserId, "Line推播統計:座標", "");
@@ -656,6 +767,12 @@ namespace ChurchReport.Tools
 
                 return;
             }
+            /// <summary>保留既有 package／sticker ID 的字串序列化，由共用流程執行一次傳輸。</summary>
+            /// <remarks>產品參數不是授權證明；維持舊版失敗語意，不新增 HTTP、重試或跨操作狀態。</remarks>
+            /// <param name="UserId">本次產品已授權的 LINE 收件 ID；相容入口也可能為群組，不代表正式會友授權。</param>
+            /// <param name="PackageId">既有貼圖套件數值。</param>
+            /// <param name="StickerId">既有貼圖識別數值。</param>
+            /// <returns>等待同一流程結束的作業；依既有入口契約保留 best-effort 或必要失敗。</returns>
             public async Task SendSticker(string UserId, int PackageId, int StickerId)
             {
                 m_CreatePushLineMessage(UserId, "Line推播統計:貼圖", "");
@@ -671,6 +788,16 @@ namespace ChurchReport.Tools
 
                 return;
             }
+            /// <summary>把當次 Buttons 內容及 action 清單組為 SDK template，產品 entity 多載不額外改動 wire。</summary>
+            /// <remarks>產品參數不是授權證明；維持舊版失敗語意，不新增 HTTP、重試或跨操作狀態。</remarks>
+            /// <param name="aLetterEntity">當次產品 letter 資料，由呼叫端完成 CRM scope 驗證。</param>
+            /// <param name="UserId">本次產品已授權的 LINE 收件 ID；相容入口也可能為群組，不代表正式會友授權。</param>
+            /// <param name="AltText">無法顯示樣板時的替代文字。</param>
+            /// <param name="ThumbnailImageUrl">Buttons 的縮圖 URL，不開本機檔案。</param>
+            /// <param name="Title">顯示標題，不作身分識別。</param>
+            /// <param name="Text">SDK 顯示本文，維持舊格式。</param>
+            /// <param name="aITemplateAction">當次 template actions，保留序列及內容。</param>
+            /// <returns>等待同一流程結束的作業；依既有入口契約保留 best-effort 或必要失敗。</returns>
             public async Task PostSerializedTemplate(Entity aLetterEntity, string UserId, String AltText, String ThumbnailImageUrl, String Title, String Text, List<ITemplateAction> aITemplateAction)
             {
                 m_CreatePushLineMessage(UserId, "Line推播統計:Template", "");
@@ -699,6 +826,15 @@ namespace ChurchReport.Tools
 
             }
 
+            /// <summary>把當次 Buttons 內容及 action 清單組為 SDK template，產品 entity 多載不額外改動 wire。</summary>
+            /// <remarks>產品參數不是授權證明；維持舊版失敗語意，不新增 HTTP、重試或跨操作狀態。</remarks>
+            /// <param name="UserId">本次產品已授權的 LINE 收件 ID；相容入口也可能為群組，不代表正式會友授權。</param>
+            /// <param name="AltText">無法顯示樣板時的替代文字。</param>
+            /// <param name="ThumbnailImageUrl">Buttons 的縮圖 URL，不開本機檔案。</param>
+            /// <param name="Title">顯示標題，不作身分識別。</param>
+            /// <param name="Text">SDK 顯示本文，維持舊格式。</param>
+            /// <param name="aITemplateAction">當次 template actions，保留序列及內容。</param>
+            /// <returns>等待同一流程結束的作業；依既有入口契約保留 best-effort 或必要失敗。</returns>
             public async Task PostSerializedTemplate(string UserId, String AltText, String ThumbnailImageUrl, String Title, String Text, List<ITemplateAction> aITemplateAction)
             {
                 try
@@ -730,12 +866,17 @@ namespace ChurchReport.Tools
                 }
                 catch (System.Exception e)
                 {
-                    String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+                    global::ToolUtilityNameSpace.Diagnostics.ExceptionReporting.Report(e);
 
-                    throw e;
+                    throw;
                 }
             }
 
+            /// <summary>保留呼叫端已組好的 Flex 訊息及產品統計；本層不改寫 sender 或進行 CRM 授權。</summary>
+            /// <remarks>產品參數不是授權證明；維持舊版失敗語意，不新增 HTTP、重試或跨操作狀態。</remarks>
+            /// <param name="UserId">本次產品已授權的 LINE 收件 ID；相容入口也可能為群組，不代表正式會友授權。</param>
+            /// <param name="aFlexMessage">呼叫端已組裝的當次 Flex，不改寫內容。</param>
+            /// <returns>等待同一流程結束的作業；依既有入口契約保留 best-effort 或必要失敗。</returns>
             public async Task PostSerializedFlex(string UserId, FlexMessage aFlexMessage)
             {
                 m_CreatePushLineMessage(UserId, "Line推播統計:Flex", "");
@@ -744,6 +885,13 @@ namespace ChurchReport.Tools
                     new List<ISendMessage> { aFlexMessage },
                     "ChurchReport.LineUtilityClass.PostSerializedFlex");
             }
+            /// <summary>保留替代文字、確認本文及 action 順序，透過既有共用流程送出 Confirm template。</summary>
+            /// <remarks>產品參數不是授權證明；維持舊版失敗語意，不新增 HTTP、重試或跨操作狀態。</remarks>
+            /// <param name="UserId">本次產品已授權的 LINE 收件 ID；相容入口也可能為群組，不代表正式會友授權。</param>
+            /// <param name="AltText">無法顯示樣板時的替代文字。</param>
+            /// <param name="Text">SDK 顯示本文，維持舊格式。</param>
+            /// <param name="aITemplateAction">當次 template actions，保留序列及內容。</param>
+            /// <returns>等待同一流程結束的作業；依既有入口契約保留 best-effort 或必要失敗。</returns>
             public async Task PostSerializedConfirm(string UserId, String AltText, String Text, List<ITemplateAction> aITemplateAction)
             {
                 m_CreatePushLineMessage(UserId, "Line推播統計:Confirm", "");
@@ -763,6 +911,15 @@ namespace ChurchReport.Tools
                     MessageToSend,
                     "ChurchReport.LineUtilityClass.PostSerializedConfirm");
             }
+            /// <summary>保留圖片基底 URL、寬高及 action 座標，委派共用流程而不自行序列化 HTTP。</summary>
+            /// <remarks>產品參數不是授權證明；維持舊版失敗語意，不新增 HTTP、重試或跨操作狀態。</remarks>
+            /// <param name="UserId">本次產品已授權的 LINE 收件 ID；相容入口也可能為群組，不代表正式會友授權。</param>
+            /// <param name="AltText">無法顯示樣板時的替代文字。</param>
+            /// <param name="ImageUrl">Imagemap 基底圖片 URL。</param>
+            /// <param name="BaseWidth">Imagemap 基底寬度。</param>
+            /// <param name="Basehight">保留舊參數拼字的 Imagemap 基底高度。</param>
+            /// <param name="aImagemapAction">當次圖片區塊 action 序列。</param>
+            /// <returns>等待同一流程結束的作業；依既有入口契約保留 best-effort 或必要失敗。</returns>
             public async Task PostSerializedImageMap(string UserId, string AltText, string ImageUrl, int BaseWidth, int Basehight, List<IImagemapAction> aImagemapAction)
             {
                 m_CreatePushLineMessage(UserId, "Line推播統計:ImageMap", "");
@@ -785,6 +942,10 @@ namespace ChurchReport.Tools
 
             }
 
+            /// <summary>保留 ChurchReport 指派既有 legacy-auth 並送成功通知的相容入口；佈建與資源版本不在本殼重做。</summary>
+            /// <remarks>只在當次產品操作使用輸入與輸出；不建立跨使用者快取，真正失敗交原 owner 處理。</remarks>
+            /// <param name="UserId">本次產品已授權的 LINE 收件 ID；相容入口也可能為群組，不代表正式會友授權。</param>
+            /// <returns>等待同一流程結束的作業；依既有入口契約保留 best-effort 或必要失敗。</returns>
             public async Task<String> AddRichMenuMessage(string UserId)
             {
                 // RichMenu 佈建已由 LineMessagingProcessor.RichMenus 的 catalog/provisioning workflow 負責。
@@ -805,6 +966,10 @@ namespace ChurchReport.Tools
                 return "成功";
             }
 
+            /// <summary>只透過既有 assignment 解除使用者選單；不刪除可能被其他使用者共用的 provider menu。</summary>
+            /// <remarks>只在當次產品操作使用輸入與輸出；不建立跨使用者快取，真正失敗交原 owner 處理。</remarks>
+            /// <param name="UserId">本次產品已授權的 LINE 收件 ID；相容入口也可能為群組，不代表正式會友授權。</param>
+            /// <returns>等待同一流程結束的作業；依既有入口契約保留 best-effort 或必要失敗。</returns>
             public async Task<String> DeleteRichMenuMessage(string UserId)
             {
                 // 解除使用者 RichMenu 連結時走共用 assignment workflow，
@@ -818,6 +983,10 @@ namespace ChurchReport.Tools
 
             #region 設定與組態存取
 
+            /// <summary>從 letter 欄位追加舊產品 action DTO，保留既有格式與欄位值；不發 HTTP 或執行授權。</summary>
+            /// <remarks>只在當次產品操作使用輸入與輸出；不建立跨使用者快取，真正失敗交原 owner 處理。</remarks>
+            /// <param name="aLetterEntity">當次產品 letter 資料，由呼叫端完成 CRM scope 驗證。</param>
+            /// <param name="aTemplateMessageClass">當次可變 template DTO，僅追加到此操作候選，不應跨使用者共用。</param>
             public void SetupActionList(Entity aLetterEntity, ref TemplateMessageClass aTemplateMessageClass)
             {
                 try
@@ -843,12 +1012,17 @@ namespace ChurchReport.Tools
                 }
                 catch (System.Exception e)
                 {
-                    String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+                    global::ToolUtilityNameSpace.Diagnostics.ExceptionReporting.Report(e);
 
-                    throw e;
+                    throw;
                 }
             }
 
+            /// <summary>把 CRM option 值轉成舊樣板 action 型別，未知值保留空字串；不送訊或猜測資料。</summary>
+            /// <remarks>只在當次產品操作使用輸入與輸出；不建立跨使用者快取，真正失敗交原 owner 處理。</remarks>
+            /// <param name="aLetterEntity">當次產品 letter 資料，由呼叫端完成 CRM scope 驗證。</param>
+            /// <param name="FieldName">產品內定的 option 欄位名稱。</param>
+            /// <returns>既有產品欄位對應結果；未附加授權或跨操作狀態。</returns>
             public String ConvertActionType(Entity aLetterEntity, String FieldName)
             {
                 try
@@ -877,15 +1051,19 @@ namespace ChurchReport.Tools
                 }
                 catch (System.Exception e)
                 {
-                    String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+                    global::ToolUtilityNameSpace.Diagnostics.ExceptionReporting.Report(e);
 
-                    throw e;
+                    throw;
                 }
             }
             #endregion
 
             #region 訊息組裝
 
+            /// <summary>依 letter 第一個 from party 查詢 contact；查詢與授權責任屬產品 Tool，回傳值不跨請求快取。</summary>
+            /// <remarks>只在當次產品操作使用輸入與輸出；不建立跨使用者快取，真正失敗交原 owner 處理。</remarks>
+            /// <param name="aLetterEntity">當次產品 letter 資料，由呼叫端完成 CRM scope 驗證。</param>
+            /// <returns>既有產品欄位對應結果；未附加授權或跨操作狀態。</returns>
             public Entity GetLineSender(Entity aLetterEntity)
             {
                 try
@@ -910,12 +1088,19 @@ namespace ChurchReport.Tools
                 }
                 catch (System.Exception e)
                 {
-                    String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+                    global::ToolUtilityNameSpace.Diagnostics.ExceptionReporting.Report(e);
 
-                    throw e;
+                    throw;
                 }
             }
 
+            /// <summary>沿既有 from party 順序更新輸出及 letter reply 欄位；僅產品 CRM 組裝，不改成授權流程。</summary>
+            /// <remarks>只在當次產品操作使用輸入與輸出；不建立跨使用者快取，真正失敗交原 owner 處理。</remarks>
+            /// <param name="aLetterEntity">當次產品 letter 資料，由呼叫端完成 CRM scope 驗證。</param>
+            /// <param name="DisplayedLineId">輸出產品顯示帳號，不是授權證明。</param>
+            /// <param name="LineId">輸出當次查得的 LINE ID，不跨操作保留。</param>
+            /// <param name="ReplyToken">已驗證 webhook 的一次性 token，僅在本次呼叫借用，不快取。</param>
+            /// <param name="ContactFullName">輸出既有 contact 顯示名，不作穩定身分。</param>
             public void GetLineIdAndContactFullNameOfSender(Entity aLetterEntity, ref String DisplayedLineId, ref String LineId, ref String ReplyToken, ref String ContactFullName)
             {
                 try
@@ -938,12 +1123,17 @@ namespace ChurchReport.Tools
                 }
                 catch (System.Exception e)
                 {
-                    String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+                    global::ToolUtilityNameSpace.Diagnostics.ExceptionReporting.Report(e);
 
-                    throw e;
+                    throw;
                 }
             }
 
+            /// <summary>透過 partyid 查 contact 的 LINE ID，回傳原參照顯示名；同名不合併、不以名稱代替身分。</summary>
+            /// <remarks>只在當次產品操作使用輸入與輸出；不建立跨使用者快取，真正失敗交原 owner 處理。</remarks>
+            /// <param name="aContactParty">當次包含伺服器 partyid 的 CRM party。</param>
+            /// <param name="LineId">輸出當次查得的 LINE ID，不跨操作保留。</param>
+            /// <returns>既有產品欄位對應結果；未附加授權或跨操作狀態。</returns>
             public string GetContactPartyFullName(Entity aContactParty, ref String LineId)
             {
                 try
@@ -970,9 +1160,9 @@ namespace ChurchReport.Tools
                 }
                 catch (System.Exception e)
                 {
-                    String ErrorString = "ERROR : FullName = " + this.GetType().FullName.ToString() + " , Time = " + DateTime.Now.ToString() + " , Description = " + e.ToString();
+                    global::ToolUtilityNameSpace.Diagnostics.ExceptionReporting.Report(e);
 
-                    throw e;
+                    throw;
                 }
             }
 
@@ -981,18 +1171,24 @@ namespace ChurchReport.Tools
 
         }
 
-        #region POST ?憛?
+        #region 舊 JSON 資料傳輸模型
 
+        /// <summary>文字推播收件者與訊息序列的可變資料容器；只供產品操作內組裝，不執行 HTTP／授權，不可跨使用者快取。</summary>
         public class PostTextClass
         {
+            /// <summary>當次收件 LINE ID，不是授權證明；不含額外資源所有權。</summary>
             public string to { get; set; }
 
+            /// <summary>當次有序訊息集合，不可共享可變清單；不含額外資源所有權。</summary>
             public List<TextMessageClass> messages { get; set; }
         }
 
+        /// <summary>文字訊息型別及本文的可變資料容器；只供產品操作內組裝，不執行 HTTP／授權，不可跨使用者快取。</summary>
         public class TextMessageClass
         {
+            /// <summary>舊 JSON 型別代碼，保留大小寫；不含額外資源所有權。</summary>
             public string type { get; set; }
+            /// <summary>顯示本文，可能含產品資料，不應寫入診斷；不含額外資源所有權。</summary>
             public string text { get; set; }
         }
 
@@ -1002,101 +1198,152 @@ namespace ChurchReport.Tools
 
 
 
+        /// <summary>Buttons 推播收件者與訊息序列的可變資料容器；只供產品操作內組裝，不執行 HTTP／授權，不可跨使用者快取。</summary>
         public class PostTemplateClass
         {
+            /// <summary>當次收件 LINE ID，不是授權證明；不含額外資源所有權。</summary>
             public string to { get; set; }
 
+            /// <summary>當次有序訊息集合，不可共享可變清單；不含額外資源所有權。</summary>
             public List<TemplateMessageClass> messages { get; set; }
         }
+        /// <summary>Buttons 替代文字及樣板的可變資料容器；只供產品操作內組裝，不執行 HTTP／授權，不可跨使用者快取。</summary>
         public class TemplateMessageClass
         {
+            /// <summary>舊 JSON 型別代碼，保留大小寫；不含額外資源所有權。</summary>
             public string type { get; set; }
+            /// <summary>樣板替代文字；不含額外資源所有權。</summary>
             public string altText { get; set; }
+            /// <summary>操作內可變樣板內容；不含額外資源所有權。</summary>
             public TemplateClass template { get; set; }
         }
+        /// <summary>Buttons 圖片、標題、本文及 action 清單的可變資料容器；只供產品操作內組裝，不執行 HTTP／授權，不可跨使用者快取。</summary>
         public class TemplateClass
         {
+            /// <summary>舊 JSON 型別代碼，保留大小寫；不含額外資源所有權。</summary>
             public string type { get; set; }
+            /// <summary>縮圖 URL 字串，本 DTO 不下載；不含額外資源所有權。</summary>
             public string thumbnailImageUrl { get; set; }
+            /// <summary>顯示標題，不作穩定身分；不含額外資源所有權。</summary>
             public string title { get; set; }
+            /// <summary>顯示本文，可能含產品資料，不應寫入診斷；不含額外資源所有權。</summary>
             public string text { get; set; }
+            /// <summary>當次 action 有序集合；不含額外資源所有權。</summary>
             public List<ActionClass> actions { get; set; }
         }
 
 
 
 
+        /// <summary>Confirm 推播收件者與訊息序列的可變資料容器；只供產品操作內組裝，不執行 HTTP／授權，不可跨使用者快取。</summary>
         public class PostConfirmClass
         {
+            /// <summary>當次收件 LINE ID，不是授權證明；不含額外資源所有權。</summary>
             public string to { get; set; }
 
+            /// <summary>當次有序訊息集合，不可共享可變清單；不含額外資源所有權。</summary>
             public List<ConfirmMessageClass> messages { get; set; }
         }
+        /// <summary>Confirm 替代文字及樣板的可變資料容器；只供產品操作內組裝，不執行 HTTP／授權，不可跨使用者快取。</summary>
         public class ConfirmMessageClass
         {
+            /// <summary>舊 JSON 型別代碼，保留大小寫；不含額外資源所有權。</summary>
             public string type { get; set; }
+            /// <summary>樣板替代文字；不含額外資源所有權。</summary>
             public string altText { get; set; }
+            /// <summary>操作內可變樣板內容；不含額外資源所有權。</summary>
             public ConfirmClass template { get; set; }
         }
+        /// <summary>Confirm 本文與 action 清單的可變資料容器；只供產品操作內組裝，不執行 HTTP／授權，不可跨使用者快取。</summary>
         public class ConfirmClass
         {
+            /// <summary>舊 JSON 型別代碼，保留大小寫；不含額外資源所有權。</summary>
             public string type { get; set; }
+            /// <summary>顯示本文，可能含產品資料，不應寫入診斷；不含額外資源所有權。</summary>
             public string text { get; set; }
+            /// <summary>當次 action 有序集合；不含額外資源所有權。</summary>
             public List<ActionClass> actions { get; set; }
         }
 
 
 
 
+        /// <summary>Carousel 推播收件者與訊息序列的可變資料容器；只供產品操作內組裝，不執行 HTTP／授權，不可跨使用者快取。</summary>
         public class PostCarouselClass
         {
+            /// <summary>當次收件 LINE ID，不是授權證明；不含額外資源所有權。</summary>
             public string to { get; set; }
 
+            /// <summary>當次有序訊息集合，不可共享可變清單；不含額外資源所有權。</summary>
             public List<CarouselMessageClass> messages { get; set; }
         }
+        /// <summary>Carousel 替代文字及樣板的可變資料容器；只供產品操作內組裝，不執行 HTTP／授權，不可跨使用者快取。</summary>
         public class CarouselMessageClass
         {
+            /// <summary>舊 JSON 型別代碼，保留大小寫；不含額外資源所有權。</summary>
             public string type { get; set; }
+            /// <summary>樣板替代文字；不含額外資源所有權。</summary>
             public string altText { get; set; }
+            /// <summary>操作內可變樣板內容；不含額外資源所有權。</summary>
             public CarouselClass template { get; set; }
         }
 
+        /// <summary>Carousel 欄位序列的可變資料容器；只供產品操作內組裝，不執行 HTTP／授權，不可跨使用者快取。</summary>
         public class CarouselClass
         {
+            /// <summary>舊 JSON 型別代碼，保留大小寫；不含額外資源所有權。</summary>
             public string type { get; set; }
+            /// <summary>當次 Carousel 欄位有序集合；不含額外資源所有權。</summary>
             public List<CarouselColumeClass> columns { get; set; }
         }
 
+        /// <summary>單一 Carousel 圖片、文字及 action的可變資料容器；只供產品操作內組裝，不執行 HTTP／授權，不可跨使用者快取。</summary>
         public class CarouselColumeClass
         {
+            /// <summary>縮圖 URL 字串，本 DTO 不下載；不含額外資源所有權。</summary>
             public string thumbnailImageUrl { get; set; }
+            /// <summary>顯示標題，不作穩定身分；不含額外資源所有權。</summary>
             public string title { get; set; }
+            /// <summary>顯示本文，可能含產品資料，不應寫入診斷；不含額外資源所有權。</summary>
             public string text { get; set; }
+            /// <summary>當次 action 有序集合；不含額外資源所有權。</summary>
             public List<ActionClass> actions { get; set; }
         }
 
 
 
+        /// <summary>Imagemap 推播收件者與訊息序列的可變資料容器；只供產品操作內組裝，不執行 HTTP／授權，不可跨使用者快取。</summary>
         public class PostImageMapClass
         {
+            /// <summary>當次收件 LINE ID，不是授權證明；不含額外資源所有權。</summary>
             public string to { get; set; }
 
+            /// <summary>當次有序訊息集合，不可共享可變清單；不含額外資源所有權。</summary>
             public List<ImageMapMessageClass> messages { get; set; }
         }
+        /// <summary>Imagemap 圖片、尺寸及 action的可變資料容器；只供產品操作內組裝，不執行 HTTP／授權，不可跨使用者快取。</summary>
         public class ImageMapMessageClass
         {
+            /// <summary>舊 JSON 型別代碼，保留大小寫；不含額外資源所有權。</summary>
             public string type { get; set; }
+            /// <summary>Imagemap 圖片基底 URL；不含額外資源所有權。</summary>
             public string baseUrl { get; set; }
+            /// <summary>樣板替代文字；不含額外資源所有權。</summary>
             public string altText { get; set; }
 
+            /// <summary>Imagemap 的基底尺寸；不含額外資源所有權。</summary>
             public BaseSizeClass baseSize { get; set; }
 
+            /// <summary>當次 action 有序集合；不含額外資源所有權。</summary>
             public List<ActionClass> actions { get; set; }
         }
 
+        /// <summary>Imagemap 基底寬高的可變資料容器；只供產品操作內組裝，不執行 HTTP／授權，不可跨使用者快取。</summary>
         public class BaseSizeClass
         {
+            /// <summary>以像素表示的高度；不含額外資源所有權。</summary>
             public int height { get; set; }
+            /// <summary>以像素表示的寬度；不含額外資源所有權。</summary>
             public int width { get; set; }
         }
 
@@ -1105,25 +1352,38 @@ namespace ChurchReport.Tools
 
 
 
+        /// <summary>舊 action 型別、顯示文字、資料及範圍的可變資料容器；只供產品操作內組裝，不執行 HTTP／授權，不可跨使用者快取。</summary>
         public class ActionClass
         {
+            /// <summary>舊 JSON 型別代碼，保留大小寫；不含額外資源所有權。</summary>
             public string type { get; set; }
+            /// <summary>action 顯示標籤，不作身分；不含額外資源所有權。</summary>
             public string label { get; set; }
+            /// <summary>action 原始產品資料，只供當次組裝；不含額外資源所有權。</summary>
             public string data { get; set; }
+            /// <summary>顯示本文，可能含產品資料，不應寫入診斷；不含額外資源所有權。</summary>
             public string text { get; set; }
+            /// <summary>action 目標 URI，本 DTO 不驗證或開啟；不含額外資源所有權。</summary>
             public string uri { get; set; }
+            /// <summary>舊 action 連結 URI，本 DTO 不開啟；不含額外資源所有權。</summary>
             public string linkUri { get; set; }
 
 
+            /// <summary>action 的圖片矩形範圍；不含額外資源所有權。</summary>
             public AreaClass area { get; set; }
 
         }
 
+        /// <summary>Imagemap 可點擊矩形的可變資料容器；只供產品操作內組裝，不執行 HTTP／授權，不可跨使用者快取。</summary>
         public class AreaClass
         {
+            /// <summary>矩形左上角 X 像素；不含額外資源所有權。</summary>
             public int x { get; set; }
+            /// <summary>矩形左上角 Y 像素；不含額外資源所有權。</summary>
             public int y { get; set; }
+            /// <summary>以像素表示的寬度；不含額外資源所有權。</summary>
             public int width { get; set; }
+            /// <summary>以像素表示的高度；不含額外資源所有權。</summary>
             public int height { get; set; }
         }
 
@@ -1133,23 +1393,32 @@ namespace ChurchReport.Tools
 
         #region LINE 訊息資料傳輸類別
 
+        /// <summary>舊媒體長度、類型及操作內位元組的可變資料容器；只供產品操作內組裝，不執行 HTTP／授權，不可跨使用者快取。</summary>
         public class MessageContent
         {
+            /// <summary>媒體位元組長度的舊欄位；不含額外資源所有權。</summary>
             public int ContentLength { get; set; }
+            /// <summary>媒體類型字串；不含額外資源所有權。</summary>
             public string ContentType { get; set; }
+            /// <summary>當次媒體位元組清單，不可長期快取；不含額外資源所有權。</summary>
             public List<byte> RawBytes { get; set; }
         }
 
 
+        /// <summary>舊產品 profile 顯示資料的可變資料容器；只供產品操作內組裝，不執行 HTTP／授權，不可跨使用者快取。</summary>
         public class UserProfile
         {
             //"displayName":"LINE taro",
             //"userId":"Uxxxxxxxxxxxxxx...",
             //"pictureUrl":"http://obs.line-apps.com/...",
             //"statusMessage":"Hello, LINE!"
+            /// <summary>顯示名，不作穩定身分；不含額外資源所有權。</summary>
             public string DisplayName { get; set; }
+            /// <summary>LINE ID；須由外層核對實際產品授權；不含額外資源所有權。</summary>
             public string UserId { get; set; }
+            /// <summary>個人圖片 URL，不在 DTO 下載；不含額外資源所有權。</summary>
             public string PictureUrl { get; set; }
+            /// <summary>profile 顯示狀態文字，僅限當次產品用途；不含額外資源所有權。</summary>
             public string StatusMessage { get; set; }
         }
 

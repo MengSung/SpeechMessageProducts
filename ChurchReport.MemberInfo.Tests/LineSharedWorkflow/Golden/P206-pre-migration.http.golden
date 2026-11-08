@@ -1,0 +1,513 @@
+@@ line.AddRichMenuMessage(String).default
+POST https://api.line.me/v2/bot/user/U11111111111111111111111111111111/richmenu/richmenu-fixed
+Authorization: Bearer ***
+
+
+---
+POST https://api.line.me/v2/bot/message/push
+Authorization: Bearer ***
+Content-Length: 147
+Content-Type: application/json; charset=utf-8
+
+{"to":"U11111111111111111111111111111111","messages":[{"type":"text","text":"Rich menu added"},{"type":"sticker","packageId":"1","stickerId":"5"}]}
+@@ line.DeleteRichMenuMessage(String).default
+DELETE https://api.line.me/v2/bot/user/U11111111111111111111111111111111/richmenu
+Authorization: Bearer ***
+
+
+@@ line.MultiCastTextMessageAsync(IList-1,String).default
+POST https://api.line.me/v2/bot/message/push
+Authorization: Bearer ***
+Content-Length: 93
+Content-Type: application/json; charset=utf-8
+
+{"to":"U11111111111111111111111111111111","messages":[{"type":"text","text":"合成訊息"}]}
+---
+POST https://api.line.me/v2/bot/message/push
+Authorization: Bearer ***
+Content-Length: 93
+Content-Type: application/json; charset=utf-8
+
+{"to":"U22222222222222222222222222222222","messages":[{"type":"text","text":"合成訊息"}]}
+@@ line.PostSerializedConfirm(String,String,String,List-1).default
+POST https://api.line.me/v2/bot/message/push
+Authorization: Bearer ***
+Content-Length: 262
+Content-Type: application/json; charset=utf-8
+
+{"to":"U11111111111111111111111111111111","messages":[{"type":"template","template":{"type":"confirm","text":"合成訊息","actions":[{"type":"message","label":"是","text":"同意"},{"type":"message","label":"否","text":"拒絕"}]},"altText":"替代文字"}]}
+@@ line.PostSerializedFlex(String,FlexMessage).default
+POST https://api.line.me/v2/bot/message/push
+Authorization: Bearer ***
+Content-Length: 143
+Content-Type: application/json; charset=utf-8
+
+{"to":"U11111111111111111111111111111111","messages":[{"type":"flex","contents":{"type":"bubble","direction":"ltr"},"altText":"替代文字"}]}
+@@ line.PostSerializedImageMap(String,String,String,Int32,Int32,List-1).default
+POST https://api.line.me/v2/bot/message/push
+Authorization: Bearer ***
+Content-Length: 275
+Content-Type: application/json; charset=utf-8
+
+{"to":"U11111111111111111111111111111111","messages":[{"type":"imagemap","baseUrl":"https://example.test/imagemap","altText":"替代文字","baseSize":{"width":1040,"height":1040},"actions":[{"type":"message","area":{"x":0,"y":0,"width":100,"height":100},"text":"點擊"}]}]}
+@@ line.PostSerializedTemplate(Entity,String,String,String,String,String,List-1).default
+POST https://api.line.me/v2/bot/message/push
+Authorization: Bearer ***
+Content-Length: 412
+Content-Type: application/json; charset=utf-8
+
+{"to":"U11111111111111111111111111111111","messages":[{"type":"template","template":{"type":"buttons","thumbnailImageUrl":"https://example.test/thumb","imageAspectRatio":"rectangle","imageSize":"cover","imageBackgroundColor":"#FFFFFF","title":"標題","text":"合成訊息","actions":[{"type":"message","label":"是","text":"同意"},{"type":"message","label":"否","text":"拒絕"}]},"altText":"替代文字"}]}
+@@ line.PostSerializedTemplate(String,String,String,String,String,List-1).default
+POST https://api.line.me/v2/bot/message/push
+Authorization: Bearer ***
+Content-Length: 412
+Content-Type: application/json; charset=utf-8
+
+{"to":"U11111111111111111111111111111111","messages":[{"type":"template","template":{"type":"buttons","thumbnailImageUrl":"https://example.test/thumb","imageAspectRatio":"rectangle","imageSize":"cover","imageBackgroundColor":"#FFFFFF","title":"標題","text":"合成訊息","actions":[{"type":"message","label":"是","text":"同意"},{"type":"message","label":"否","text":"拒絕"}]},"altText":"替代文字"}]}
+@@ line.ReplyImage(String,String,String).default
+POST https://api.line.me/v2/bot/message/reply
+Authorization: Bearer ***
+Content-Length: 160
+Content-Type: application/json; charset=utf-8
+
+{"replyToken":"reply-fixed","messages":[{"type":"image","originalContentUrl":"https://example.test/original","previewImageUrl":"https://example.test/preview"}]}
+@@ line.ReplyMessage(String,List-1).default
+POST https://api.line.me/v2/bot/message/reply
+Authorization: Bearer ***
+Content-Length: 130
+Content-Type: application/json; charset=utf-8
+
+{"replyToken":"reply-fixed","messages":[{"type":"text","text":"合成訊息"},{"type":"sticker","packageId":"1","stickerId":"5"}]}
+@@ line.ReplyTextMessage(String,String).default
+POST https://api.line.me/v2/bot/message/reply
+Authorization: Bearer ***
+Content-Length: 79
+Content-Type: application/json; charset=utf-8
+
+{"replyToken":"reply-fixed","messages":[{"type":"text","text":"合成訊息"}]}
+@@ line.SendAudeo(String,String,Int64).default
+POST https://api.line.me/v2/bot/message/push
+Authorization: Bearer ***
+Content-Length: 141
+Content-Type: application/json; charset=utf-8
+
+{"to":"U11111111111111111111111111111111","messages":[{"type":"audio","originalContentUrl":"https://example.test/original","duration":1000}]}
+@@ line.SendImage(String,String,String).default
+POST https://api.line.me/v2/bot/message/push
+Authorization: Bearer ***
+Content-Length: 174
+Content-Type: application/json; charset=utf-8
+
+{"to":"U11111111111111111111111111111111","messages":[{"type":"image","originalContentUrl":"https://example.test/original","previewImageUrl":"https://example.test/preview"}]}
+@@ line.SendLocation(String,String,String,Decimal,Decimal).default
+POST https://api.line.me/v2/bot/message/push
+Authorization: Bearer ***
+Content-Length: 150
+Content-Type: application/json; charset=utf-8
+
+{"to":"U11111111111111111111111111111111","messages":[{"type":"location","title":"標題","address":"合成地址","latitude":25.0,"longitude":25.0}]}
+@@ line.SendMessage(String,List-1).default
+POST https://api.line.me/v2/bot/message/push
+Authorization: Bearer ***
+Content-Length: 144
+Content-Type: application/json; charset=utf-8
+
+{"to":"U11111111111111111111111111111111","messages":[{"type":"text","text":"合成訊息"},{"type":"sticker","packageId":"1","stickerId":"5"}]}
+@@ line.SendMessage(String,String).default
+POST https://api.line.me/v2/bot/message/push
+Authorization: Bearer ***
+Content-Length: 93
+Content-Type: application/json; charset=utf-8
+
+{"to":"U11111111111111111111111111111111","messages":[{"type":"text","text":"合成訊息"}]}
+@@ line.SendMessageAsync(String,String).default
+POST https://api.line.me/v2/bot/message/push
+Authorization: Bearer ***
+Content-Length: 93
+Content-Type: application/json; charset=utf-8
+
+{"to":"U11111111111111111111111111111111","messages":[{"type":"text","text":"合成訊息"}]}
+@@ line.SendSticker(String,Int32,Int32).default
+POST https://api.line.me/v2/bot/message/push
+Authorization: Bearer ***
+Content-Length: 106
+Content-Type: application/json; charset=utf-8
+
+{"to":"U11111111111111111111111111111111","messages":[{"type":"sticker","packageId":"1","stickerId":"1"}]}
+@@ line.SendVideo(String,String,String).default
+POST https://api.line.me/v2/bot/message/push
+Authorization: Bearer ***
+Content-Length: 174
+Content-Type: application/json; charset=utf-8
+
+{"to":"U11111111111111111111111111111111","messages":[{"type":"video","originalContentUrl":"https://example.test/original","previewImageUrl":"https://example.test/preview"}]}
+@@ push.AddRichMenuMessage(String).default
+POST https://api.line.me/v2/bot/user/U11111111111111111111111111111111/richmenu/richmenu-fixed
+Authorization: Bearer ***
+
+
+---
+POST https://api.line.me/v2/bot/message/push
+Authorization: Bearer ***
+Content-Length: 147
+Content-Type: application/json; charset=utf-8
+
+{"to":"U11111111111111111111111111111111","messages":[{"type":"text","text":"Rich menu added"},{"type":"sticker","packageId":"1","stickerId":"5"}]}
+@@ push.CarouselMessage(String).default
+POST https://api.line.me/v2/bot/message/push
+Authorization: Bearer ***
+Content-Length: 4494
+Content-Type: application/json; charset=utf-8
+
+{"to":"U11111111111111111111111111111111","messages":[{"type":"template","template":{"type":"carousel","columns":[{"thumbnailImageUrl":"https://github.com/apple-touch-icon.png","imageBackgroundColor":"#FFFFFF","title":"Casousel 1-1 Title","text":"Casousel 1 Text","actions":[{"type":"message","label":"Message Label","text":"sample data"},{"type":"postback","label":"Postback Label","data":"sample data","displayText":"sample data"},{"type":"uri","label":"Uri Label","uri":"https://github.com/kenakamu"}]},{"thumbnailImageUrl":"https://github.com/apple-touch-icon.png","imageBackgroundColor":"#FFFFFF","title":"Casousel 1-2 Title","text":"Casousel 2 Text","actions":[{"type":"message","label":"Message Label","text":"sample data"},{"type":"postback","label":"Postback Label","data":"sample data","displayText":"sample data"},{"type":"uri","label":"Uri Label","uri":"https://github.com/kenakamu"}]},{"thumbnailImageUrl":"https://github.com/apple-touch-icon.png","imageBackgroundColor":"#FFFFFF","title":"Casousel 1-3 Title","text":"Casousel 3 Text","actions":[{"type":"message","label":"Message Label","text":"sample data"},{"type":"postback","label":"Postback Label","data":"sample data","displayText":"sample data"},{"type":"uri","label":"Uri Label","uri":"https://github.com/kenakamu"}]},{"thumbnailImageUrl":"https://github.com/apple-touch-icon.png","imageBackgroundColor":"#FFFFFF","title":"Casousel 1-4 Title","text":"Casousel 4 Text","actions":[{"type":"message","label":"Message Label","text":"sample data"},{"type":"postback","label":"Postback Label","data":"sample data","displayText":"sample data"},{"type":"uri","label":"Uri Label","uri":"https://github.com/kenakamu"}]},{"thumbnailImageUrl":"https://github.com/apple-touch-icon.png","imageBackgroundColor":"#FFFFFF","title":"Casousel 1-5 Title","text":"Casousel 5 Text","actions":[{"type":"message","label":"Message Label","text":"sample data"},{"type":"postback","label":"Postback Label","data":"sample data","displayText":"sample data"},{"type":"uri","label":"Uri Label","uri":"https://github.com/kenakamu"}]},{"thumbnailImageUrl":"https://github.com/apple-touch-icon.png","imageBackgroundColor":"#FFFFFF","title":"Casousel 1-6 Title","text":"Casousel 6 Text","actions":[{"type":"message","label":"Message Label","text":"sample data"},{"type":"postback","label":"Postback Label","data":"sample data","displayText":"sample data"},{"type":"uri","label":"Uri Label","uri":"https://github.com/kenakamu"}]},{"thumbnailImageUrl":"https://github.com/apple-touch-icon.png","imageBackgroundColor":"#FFFFFF","title":"Casousel 2-1 Title","text":"Casousel 7 Text","actions":[{"type":"datetimepicker","label":"DateTime Picker","data":"DateTime","mode":"datetime","initial":"2017-07-21T13:00"},{"type":"datetimepicker","label":"Date Picker","data":"Date","mode":"date","initial":"2017-07-21"},{"type":"datetimepicker","label":"Time Picker","data":"Time","mode":"time","initial":"13:00"}]},{"thumbnailImageUrl":"https://github.com/apple-touch-icon.png","imageBackgroundColor":"#FFFFFF","title":"Casousel 2-2 Title","text":"Casousel 8 Text","actions":[{"type":"datetimepicker","label":"DateTime Picker","data":"DateTime","mode":"datetime","initial":"2017-07-21T13:00"},{"type":"datetimepicker","label":"Date Picker","data":"Date","mode":"date","initial":"2017-07-21"},{"type":"datetimepicker","label":"Time Picker","data":"Time","mode":"time","initial":"13:00"}]},{"thumbnailImageUrl":"https://github.com/apple-touch-icon.png","imageBackgroundColor":"#FFFFFF","title":"Casousel 2-3 Title","text":"Casousel 9 Text","actions":[{"type":"datetimepicker","label":"DateTime Picker","data":"DateTime","mode":"datetime","initial":"2017-07-21T13:00"},{"type":"datetimepicker","label":"Date Picker","data":"Date","mode":"date","initial":"2017-07-21"},{"type":"datetimepicker","label":"Time Picker","data":"Time","mode":"time","initial":"13:00"}]},{"thumbnailImageUrl":"https://github.com/apple-touch-icon.png","imageBackgroundColor":"#FFFFFF","title":"Casousel 2-4 Title","text":"Casousel 10 Text","actions":[{"type":"datetimepicker","label":"DateTime Picker","data":"DateTime","mode":"datetime","initial":"2017-07-21T13:00"},{"type":"datetimepicker","label":"Date Picker","data":"Date","mode":"date","initial":"2017-07-21"},{"type":"datetimepicker","label":"Time Picker","data":"Time","mode":"time","initial":"13:00"}]}],"imageAspectRatio":"rectangle","imageSize":"cover"},"altText":"Button Template"},{"type":"sticker","packageId":"1","stickerId":"14"}]}
+@@ push.ChurchCarouselMessage(String).default
+POST https://api.line.me/v2/bot/message/push
+Authorization: Bearer ***
+Content-Length: 1460
+Content-Type: application/json; charset=utf-8
+
+{"to":"U11111111111111111111111111111111","messages":[{"type":"template","template":{"type":"carousel","columns":[{"thumbnailImageUrl":"https://od.lk/s/ODdfOTA4MTYyMV8/%E9%AD%8F%E5%A4%96%E6%A5%8A%E8%80%81%E5%B8%AB.jpg","imageBackgroundColor":"#FFFFFF","title":"主題：從頭一天直到如今","text":"講員：魏外楊老師","actions":[{"type":"message","label":"報名","text":"簡如牧師邀請您"},{"type":"uri","label":"說明網頁","uri":"https://www.blccym.org/single-post/2018/05/16/2018520-%E4%B8%BB%E6%97%A5"}]},{"thumbnailImageUrl":"https://od.lk/s/ODdfOTA4MTYyMl8/%E7%B0%A1%E5%A6%82%E7%89%A7%E5%B8%AB.jpg","imageBackgroundColor":"#FFFFFF","title":"你的品格力系列-不可論斷1","text":"講員：湯簡如牧師","actions":[{"type":"message","label":"報名","text":"簡如牧師邀請您"},{"type":"uri","label":"說明網頁","uri":"https://www.blccym.org/single-post/2018/05/16/2018520-%E4%B8%BB%E6%97%A5"}]},{"thumbnailImageUrl":"https://od.lk/s/ODdfOTA4MTYyM18/%E6%99%A8%E7%A6%B1.jpg","imageBackgroundColor":"#FFFFFF","title":"晨禱","text":"時間：每週二至週五，早上7：40～9：20","actions":[{"type":"message","label":"報名","text":"簡如牧師邀請您"},{"type":"uri","label":"說明網頁","uri":"https://www.blccym.org/single-post/2018/05/16/2018520-%E4%B8%BB%E6%97%A5"}]}],"imageAspectRatio":"rectangle","imageSize":"cover"},"altText":"Button Template"},{"type":"sticker","packageId":"1","stickerId":"14"}]}
+@@ push.ConfirmMessage(String).default
+POST https://api.line.me/v2/bot/message/push
+Authorization: Bearer ***
+Content-Length: 331
+Content-Type: application/json; charset=utf-8
+
+{"to":"U11111111111111111111111111111111","messages":[{"type":"template","template":{"type":"confirm","text":"耶和華","actions":[{"type":"message","label":"同意","text":"火熱跟隨"},{"type":"message","label":"反對","text":"我愛耶和華"}]},"altText":"確認按鈕"},{"type":"sticker","packageId":"1","stickerId":"2"}]}
+@@ push.DeleteRichMenuMessage(String).default
+DELETE https://api.line.me/v2/bot/user/U11111111111111111111111111111111/richmenu
+Authorization: Bearer ***
+
+
+@@ push.PostSerializedConfirm(String,String,String,List-1).default
+POST https://api.line.me/v2/bot/message/push
+Authorization: Bearer ***
+Content-Length: 262
+Content-Type: application/json; charset=utf-8
+
+{"to":"U11111111111111111111111111111111","messages":[{"type":"template","template":{"type":"confirm","text":"合成訊息","actions":[{"type":"message","label":"是","text":"同意"},{"type":"message","label":"否","text":"拒絕"}]},"altText":"替代文字"}]}
+@@ push.PostSerializedImageMap(String,String,String,Int32,Int32,List-1).default
+POST https://api.line.me/v2/bot/message/push
+Authorization: Bearer ***
+Content-Length: 275
+Content-Type: application/json; charset=utf-8
+
+{"to":"U11111111111111111111111111111111","messages":[{"type":"imagemap","baseUrl":"https://example.test/imagemap","altText":"替代文字","baseSize":{"width":1040,"height":1040},"actions":[{"type":"message","area":{"x":0,"y":0,"width":100,"height":100},"text":"點擊"}]}]}
+@@ push.PostSerializedTemplate(String,String,String,String,String,List-1).default
+POST https://api.line.me/v2/bot/message/push
+Authorization: Bearer ***
+Content-Length: 412
+Content-Type: application/json; charset=utf-8
+
+{"to":"U11111111111111111111111111111111","messages":[{"type":"template","template":{"type":"buttons","thumbnailImageUrl":"https://example.test/thumb","imageAspectRatio":"rectangle","imageSize":"cover","imageBackgroundColor":"#FFFFFF","title":"標題","text":"合成訊息","actions":[{"type":"message","label":"是","text":"同意"},{"type":"message","label":"否","text":"拒絕"}]},"altText":"替代文字"}]}
+@@ push.SendAudeo(String,String,Int64).default
+POST https://api.line.me/v2/bot/message/push
+Authorization: Bearer ***
+Content-Length: 141
+Content-Type: application/json; charset=utf-8
+
+{"to":"U11111111111111111111111111111111","messages":[{"type":"audio","originalContentUrl":"https://example.test/original","duration":1000}]}
+@@ push.SendImage(String,String,String).default
+POST https://api.line.me/v2/bot/message/push
+Authorization: Bearer ***
+Content-Length: 174
+Content-Type: application/json; charset=utf-8
+
+{"to":"U11111111111111111111111111111111","messages":[{"type":"image","originalContentUrl":"https://example.test/original","previewImageUrl":"https://example.test/preview"}]}
+@@ push.SendLocation(String,String,String,Decimal,Decimal).default
+POST https://api.line.me/v2/bot/message/push
+Authorization: Bearer ***
+Content-Length: 150
+Content-Type: application/json; charset=utf-8
+
+{"to":"U11111111111111111111111111111111","messages":[{"type":"location","title":"標題","address":"合成地址","latitude":25.0,"longitude":25.0}]}
+@@ push.SendMessage(String,List-1).default
+POST https://api.line.me/v2/bot/message/push
+Authorization: Bearer ***
+Content-Length: 144
+Content-Type: application/json; charset=utf-8
+
+{"to":"U11111111111111111111111111111111","messages":[{"type":"text","text":"合成訊息"},{"type":"sticker","packageId":"1","stickerId":"5"}]}
+@@ push.SendMessage(String,String).default
+POST https://api.line.me/v2/bot/message/push
+Authorization: Bearer ***
+Content-Length: 93
+Content-Type: application/json; charset=utf-8
+
+{"to":"U11111111111111111111111111111111","messages":[{"type":"text","text":"合成訊息"}]}
+@@ push.SendMessageOrThrowAsync(String,String).default
+POST https://api.line.me/v2/bot/message/push
+Authorization: Bearer ***
+Content-Length: 93
+Content-Type: application/json; charset=utf-8
+
+{"to":"U11111111111111111111111111111111","messages":[{"type":"text","text":"合成訊息"}]}
+@@ push.SendMessagesOrThrowAsync(String,IReadOnlyList-1).default
+POST https://api.line.me/v2/bot/message/push
+Authorization: Bearer ***
+Content-Length: 144
+Content-Type: application/json; charset=utf-8
+
+{"to":"U11111111111111111111111111111111","messages":[{"type":"text","text":"合成訊息"},{"type":"sticker","packageId":"1","stickerId":"5"}]}
+@@ push.SendReliableMessageAsync(String,String,String).default
+POST https://api.line.me/v2/bot/message/push
+Authorization: Bearer ***
+Content-Length: 93
+Content-Type: application/json; charset=utf-8
+X-Line-Retry-Key: 33333333-3333-3333-3333-333333333333
+
+{"to":"U11111111111111111111111111111111","messages":[{"type":"text","text":"合成訊息"}]}
+@@ push.SendSticker(String,Int32,Int32).default
+POST https://api.line.me/v2/bot/message/push
+Authorization: Bearer ***
+Content-Length: 106
+Content-Type: application/json; charset=utf-8
+
+{"to":"U11111111111111111111111111111111","messages":[{"type":"sticker","packageId":"1","stickerId":"1"}]}
+@@ push.SendVideo(String,String,String).default
+POST https://api.line.me/v2/bot/message/push
+Authorization: Bearer ***
+Content-Length: 174
+Content-Type: application/json; charset=utf-8
+
+{"to":"U11111111111111111111111111111111","messages":[{"type":"video","originalContentUrl":"https://example.test/original","previewImageUrl":"https://example.test/preview"}]}
+@@ reply.EchoAsync(String,String).default
+POST https://api.line.me/v2/bot/message/reply
+Authorization: Bearer ***
+Content-Length: 79
+Content-Type: application/json; charset=utf-8
+
+{"replyToken":"reply-fixed","messages":[{"type":"text","text":"合成訊息"}]}
+@@ reply.EchoAsyncProcessor(MessageEvent).default
+POST https://api.line.me/v2/bot/message/reply
+Authorization: Bearer ***
+Content-Length: 121
+Content-Type: application/json; charset=utf-8
+
+{"replyToken":"reply-fixed","messages":[{"type":"text","text":"您剛剛說了: 合成訊息，願耶穌與您同在!"}]}
+@@ reply.EchoAsyncProcessor(MessageEvent).group
+GET https://api.line.me/v2/bot/group/group-fixed/member/U11111111111111111111111111111111
+Authorization: Bearer ***
+
+
+---
+POST https://api.line.me/v2/bot/message/reply
+Authorization: Bearer ***
+Content-Length: 133
+Content-Type: application/json; charset=utf-8
+
+{"replyToken":"reply-fixed","messages":[{"type":"text","text":"合成會友您剛剛說了: 合成訊息，願耶穌與您同在!"}]}
+@@ reply.EchoAsyncProcessor(MessageEvent).room
+GET https://api.line.me/v2/bot/room/room-fixed/member/U11111111111111111111111111111111
+Authorization: Bearer ***
+
+
+---
+POST https://api.line.me/v2/bot/message/reply
+Authorization: Bearer ***
+Content-Length: 133
+Content-Type: application/json; charset=utf-8
+
+{"replyToken":"reply-fixed","messages":[{"type":"text","text":"合成會友您剛剛說了: 合成訊息，願耶穌與您同在!"}]}
+@@ reply.EchoImageAsync(String,String,String).default
+GET https://api-data.line.me/v2/bot/message/message-fixed/content
+Authorization: Bearer ***
+
+
+@@ reply.PostSerializedConfirm(String,String,String,List-1).default
+POST https://api.line.me/v2/bot/message/reply
+Authorization: Bearer ***
+Content-Length: 248
+Content-Type: application/json; charset=utf-8
+
+{"replyToken":"reply-fixed","messages":[{"type":"template","template":{"type":"confirm","text":"合成訊息","actions":[{"type":"message","label":"是","text":"同意"},{"type":"message","label":"否","text":"拒絕"}]},"altText":"替代文字"}]}
+@@ reply.PostSerializedImageMap(String,String,String,Int32,Int32,List-1).default
+POST https://api.line.me/v2/bot/message/reply
+Authorization: Bearer ***
+Content-Length: 261
+Content-Type: application/json; charset=utf-8
+
+{"replyToken":"reply-fixed","messages":[{"type":"imagemap","baseUrl":"https://example.test/imagemap","altText":"替代文字","baseSize":{"width":1040,"height":1040},"actions":[{"type":"message","area":{"x":0,"y":0,"width":100,"height":100},"text":"點擊"}]}]}
+@@ reply.ReplyMessage(String,List-1).default
+POST https://api.line.me/v2/bot/message/reply
+Authorization: Bearer ***
+Content-Length: 130
+Content-Type: application/json; charset=utf-8
+
+{"replyToken":"reply-fixed","messages":[{"type":"text","text":"合成訊息"},{"type":"sticker","packageId":"1","stickerId":"5"}]}
+@@ reply.ReplyMessageAsync(String,String).default
+POST https://api.line.me/v2/bot/message/reply
+Authorization: Bearer ***
+Content-Length: 79
+Content-Type: application/json; charset=utf-8
+
+{"replyToken":"reply-fixed","messages":[{"type":"text","text":"合成訊息"}]}
+@@ reply.ReplyRandomStickerAsync(String).default
+POST https://api.line.me/v2/bot/message/reply
+Authorization: Bearer ***
+Content-Length: <random-body-length>
+Content-Type: application/json; charset=utf-8
+
+{"replyToken":"reply-fixed","messages":[{"type":"sticker","packageId":"1","stickerId":"<random-existing-range>"}]}
+@@ reply.UploadMediaContentAsync(String,String,String,String).default
+NO HTTP
+@@ tool.CarouselMessage(String).default
+POST https://api.line.me/v2/bot/message/push
+Authorization: Bearer ***
+Content-Length: 4494
+Content-Type: application/json; charset=utf-8
+
+{"to":"U11111111111111111111111111111111","messages":[{"type":"template","template":{"type":"carousel","columns":[{"thumbnailImageUrl":"https://github.com/apple-touch-icon.png","imageBackgroundColor":"#FFFFFF","title":"Casousel 1-1 Title","text":"Casousel 1 Text","actions":[{"type":"message","label":"Message Label","text":"sample data"},{"type":"postback","label":"Postback Label","data":"sample data","displayText":"sample data"},{"type":"uri","label":"Uri Label","uri":"https://github.com/kenakamu"}]},{"thumbnailImageUrl":"https://github.com/apple-touch-icon.png","imageBackgroundColor":"#FFFFFF","title":"Casousel 1-2 Title","text":"Casousel 2 Text","actions":[{"type":"message","label":"Message Label","text":"sample data"},{"type":"postback","label":"Postback Label","data":"sample data","displayText":"sample data"},{"type":"uri","label":"Uri Label","uri":"https://github.com/kenakamu"}]},{"thumbnailImageUrl":"https://github.com/apple-touch-icon.png","imageBackgroundColor":"#FFFFFF","title":"Casousel 1-3 Title","text":"Casousel 3 Text","actions":[{"type":"message","label":"Message Label","text":"sample data"},{"type":"postback","label":"Postback Label","data":"sample data","displayText":"sample data"},{"type":"uri","label":"Uri Label","uri":"https://github.com/kenakamu"}]},{"thumbnailImageUrl":"https://github.com/apple-touch-icon.png","imageBackgroundColor":"#FFFFFF","title":"Casousel 1-4 Title","text":"Casousel 4 Text","actions":[{"type":"message","label":"Message Label","text":"sample data"},{"type":"postback","label":"Postback Label","data":"sample data","displayText":"sample data"},{"type":"uri","label":"Uri Label","uri":"https://github.com/kenakamu"}]},{"thumbnailImageUrl":"https://github.com/apple-touch-icon.png","imageBackgroundColor":"#FFFFFF","title":"Casousel 1-5 Title","text":"Casousel 5 Text","actions":[{"type":"message","label":"Message Label","text":"sample data"},{"type":"postback","label":"Postback Label","data":"sample data","displayText":"sample data"},{"type":"uri","label":"Uri Label","uri":"https://github.com/kenakamu"}]},{"thumbnailImageUrl":"https://github.com/apple-touch-icon.png","imageBackgroundColor":"#FFFFFF","title":"Casousel 1-6 Title","text":"Casousel 6 Text","actions":[{"type":"message","label":"Message Label","text":"sample data"},{"type":"postback","label":"Postback Label","data":"sample data","displayText":"sample data"},{"type":"uri","label":"Uri Label","uri":"https://github.com/kenakamu"}]},{"thumbnailImageUrl":"https://github.com/apple-touch-icon.png","imageBackgroundColor":"#FFFFFF","title":"Casousel 2-1 Title","text":"Casousel 7 Text","actions":[{"type":"datetimepicker","label":"DateTime Picker","data":"DateTime","mode":"datetime","initial":"2017-07-21T13:00"},{"type":"datetimepicker","label":"Date Picker","data":"Date","mode":"date","initial":"2017-07-21"},{"type":"datetimepicker","label":"Time Picker","data":"Time","mode":"time","initial":"13:00"}]},{"thumbnailImageUrl":"https://github.com/apple-touch-icon.png","imageBackgroundColor":"#FFFFFF","title":"Casousel 2-2 Title","text":"Casousel 8 Text","actions":[{"type":"datetimepicker","label":"DateTime Picker","data":"DateTime","mode":"datetime","initial":"2017-07-21T13:00"},{"type":"datetimepicker","label":"Date Picker","data":"Date","mode":"date","initial":"2017-07-21"},{"type":"datetimepicker","label":"Time Picker","data":"Time","mode":"time","initial":"13:00"}]},{"thumbnailImageUrl":"https://github.com/apple-touch-icon.png","imageBackgroundColor":"#FFFFFF","title":"Casousel 2-3 Title","text":"Casousel 9 Text","actions":[{"type":"datetimepicker","label":"DateTime Picker","data":"DateTime","mode":"datetime","initial":"2017-07-21T13:00"},{"type":"datetimepicker","label":"Date Picker","data":"Date","mode":"date","initial":"2017-07-21"},{"type":"datetimepicker","label":"Time Picker","data":"Time","mode":"time","initial":"13:00"}]},{"thumbnailImageUrl":"https://github.com/apple-touch-icon.png","imageBackgroundColor":"#FFFFFF","title":"Casousel 2-4 Title","text":"Casousel 10 Text","actions":[{"type":"datetimepicker","label":"DateTime Picker","data":"DateTime","mode":"datetime","initial":"2017-07-21T13:00"},{"type":"datetimepicker","label":"Date Picker","data":"Date","mode":"date","initial":"2017-07-21"},{"type":"datetimepicker","label":"Time Picker","data":"Time","mode":"time","initial":"13:00"}]}],"imageAspectRatio":"rectangle","imageSize":"cover"},"altText":"Button Template"},{"type":"sticker","packageId":"1","stickerId":"14"}]}
+@@ tool.CarouselMessageAsync(String).default
+POST https://api.line.me/v2/bot/message/push
+Authorization: Bearer ***
+Content-Length: 4494
+Content-Type: application/json; charset=utf-8
+
+{"to":"U11111111111111111111111111111111","messages":[{"type":"template","template":{"type":"carousel","columns":[{"thumbnailImageUrl":"https://github.com/apple-touch-icon.png","imageBackgroundColor":"#FFFFFF","title":"Casousel 1-1 Title","text":"Casousel 1 Text","actions":[{"type":"message","label":"Message Label","text":"sample data"},{"type":"postback","label":"Postback Label","data":"sample data","displayText":"sample data"},{"type":"uri","label":"Uri Label","uri":"https://github.com/kenakamu"}]},{"thumbnailImageUrl":"https://github.com/apple-touch-icon.png","imageBackgroundColor":"#FFFFFF","title":"Casousel 1-2 Title","text":"Casousel 2 Text","actions":[{"type":"message","label":"Message Label","text":"sample data"},{"type":"postback","label":"Postback Label","data":"sample data","displayText":"sample data"},{"type":"uri","label":"Uri Label","uri":"https://github.com/kenakamu"}]},{"thumbnailImageUrl":"https://github.com/apple-touch-icon.png","imageBackgroundColor":"#FFFFFF","title":"Casousel 1-3 Title","text":"Casousel 3 Text","actions":[{"type":"message","label":"Message Label","text":"sample data"},{"type":"postback","label":"Postback Label","data":"sample data","displayText":"sample data"},{"type":"uri","label":"Uri Label","uri":"https://github.com/kenakamu"}]},{"thumbnailImageUrl":"https://github.com/apple-touch-icon.png","imageBackgroundColor":"#FFFFFF","title":"Casousel 1-4 Title","text":"Casousel 4 Text","actions":[{"type":"message","label":"Message Label","text":"sample data"},{"type":"postback","label":"Postback Label","data":"sample data","displayText":"sample data"},{"type":"uri","label":"Uri Label","uri":"https://github.com/kenakamu"}]},{"thumbnailImageUrl":"https://github.com/apple-touch-icon.png","imageBackgroundColor":"#FFFFFF","title":"Casousel 1-5 Title","text":"Casousel 5 Text","actions":[{"type":"message","label":"Message Label","text":"sample data"},{"type":"postback","label":"Postback Label","data":"sample data","displayText":"sample data"},{"type":"uri","label":"Uri Label","uri":"https://github.com/kenakamu"}]},{"thumbnailImageUrl":"https://github.com/apple-touch-icon.png","imageBackgroundColor":"#FFFFFF","title":"Casousel 1-6 Title","text":"Casousel 6 Text","actions":[{"type":"message","label":"Message Label","text":"sample data"},{"type":"postback","label":"Postback Label","data":"sample data","displayText":"sample data"},{"type":"uri","label":"Uri Label","uri":"https://github.com/kenakamu"}]},{"thumbnailImageUrl":"https://github.com/apple-touch-icon.png","imageBackgroundColor":"#FFFFFF","title":"Casousel 2-1 Title","text":"Casousel 7 Text","actions":[{"type":"datetimepicker","label":"DateTime Picker","data":"DateTime","mode":"datetime","initial":"2017-07-21T13:00"},{"type":"datetimepicker","label":"Date Picker","data":"Date","mode":"date","initial":"2017-07-21"},{"type":"datetimepicker","label":"Time Picker","data":"Time","mode":"time","initial":"13:00"}]},{"thumbnailImageUrl":"https://github.com/apple-touch-icon.png","imageBackgroundColor":"#FFFFFF","title":"Casousel 2-2 Title","text":"Casousel 8 Text","actions":[{"type":"datetimepicker","label":"DateTime Picker","data":"DateTime","mode":"datetime","initial":"2017-07-21T13:00"},{"type":"datetimepicker","label":"Date Picker","data":"Date","mode":"date","initial":"2017-07-21"},{"type":"datetimepicker","label":"Time Picker","data":"Time","mode":"time","initial":"13:00"}]},{"thumbnailImageUrl":"https://github.com/apple-touch-icon.png","imageBackgroundColor":"#FFFFFF","title":"Casousel 2-3 Title","text":"Casousel 9 Text","actions":[{"type":"datetimepicker","label":"DateTime Picker","data":"DateTime","mode":"datetime","initial":"2017-07-21T13:00"},{"type":"datetimepicker","label":"Date Picker","data":"Date","mode":"date","initial":"2017-07-21"},{"type":"datetimepicker","label":"Time Picker","data":"Time","mode":"time","initial":"13:00"}]},{"thumbnailImageUrl":"https://github.com/apple-touch-icon.png","imageBackgroundColor":"#FFFFFF","title":"Casousel 2-4 Title","text":"Casousel 10 Text","actions":[{"type":"datetimepicker","label":"DateTime Picker","data":"DateTime","mode":"datetime","initial":"2017-07-21T13:00"},{"type":"datetimepicker","label":"Date Picker","data":"Date","mode":"date","initial":"2017-07-21"},{"type":"datetimepicker","label":"Time Picker","data":"Time","mode":"time","initial":"13:00"}]}],"imageAspectRatio":"rectangle","imageSize":"cover"},"altText":"Button Template"},{"type":"sticker","packageId":"1","stickerId":"14"}]}
+@@ tool.ChurchCarouselMessage(String).default
+POST https://api.line.me/v2/bot/message/push
+Authorization: Bearer ***
+Content-Length: 1460
+Content-Type: application/json; charset=utf-8
+
+{"to":"U11111111111111111111111111111111","messages":[{"type":"template","template":{"type":"carousel","columns":[{"thumbnailImageUrl":"https://od.lk/s/ODdfOTA4MTYyMV8/%E9%AD%8F%E5%A4%96%E6%A5%8A%E8%80%81%E5%B8%AB.jpg","imageBackgroundColor":"#FFFFFF","title":"主題：從頭一天直到如今","text":"講員：魏外楊老師","actions":[{"type":"message","label":"報名","text":"簡如牧師邀請您"},{"type":"uri","label":"說明網頁","uri":"https://www.blccym.org/single-post/2018/05/16/2018520-%E4%B8%BB%E6%97%A5"}]},{"thumbnailImageUrl":"https://od.lk/s/ODdfOTA4MTYyMl8/%E7%B0%A1%E5%A6%82%E7%89%A7%E5%B8%AB.jpg","imageBackgroundColor":"#FFFFFF","title":"你的品格力系列-不可論斷1","text":"講員：湯簡如牧師","actions":[{"type":"message","label":"報名","text":"簡如牧師邀請您"},{"type":"uri","label":"說明網頁","uri":"https://www.blccym.org/single-post/2018/05/16/2018520-%E4%B8%BB%E6%97%A5"}]},{"thumbnailImageUrl":"https://od.lk/s/ODdfOTA4MTYyM18/%E6%99%A8%E7%A6%B1.jpg","imageBackgroundColor":"#FFFFFF","title":"晨禱","text":"時間：每週二至週五，早上7：40～9：20","actions":[{"type":"message","label":"報名","text":"簡如牧師邀請您"},{"type":"uri","label":"說明網頁","uri":"https://www.blccym.org/single-post/2018/05/16/2018520-%E4%B8%BB%E6%97%A5"}]}],"imageAspectRatio":"rectangle","imageSize":"cover"},"altText":"Button Template"},{"type":"sticker","packageId":"1","stickerId":"14"}]}
+@@ tool.ChurchCarouselMessageAsync(String).default
+POST https://api.line.me/v2/bot/message/push
+Authorization: Bearer ***
+Content-Length: 1460
+Content-Type: application/json; charset=utf-8
+
+{"to":"U11111111111111111111111111111111","messages":[{"type":"template","template":{"type":"carousel","columns":[{"thumbnailImageUrl":"https://od.lk/s/ODdfOTA4MTYyMV8/%E9%AD%8F%E5%A4%96%E6%A5%8A%E8%80%81%E5%B8%AB.jpg","imageBackgroundColor":"#FFFFFF","title":"主題：從頭一天直到如今","text":"講員：魏外楊老師","actions":[{"type":"message","label":"報名","text":"簡如牧師邀請您"},{"type":"uri","label":"說明網頁","uri":"https://www.blccym.org/single-post/2018/05/16/2018520-%E4%B8%BB%E6%97%A5"}]},{"thumbnailImageUrl":"https://od.lk/s/ODdfOTA4MTYyMl8/%E7%B0%A1%E5%A6%82%E7%89%A7%E5%B8%AB.jpg","imageBackgroundColor":"#FFFFFF","title":"你的品格力系列-不可論斷1","text":"講員：湯簡如牧師","actions":[{"type":"message","label":"報名","text":"簡如牧師邀請您"},{"type":"uri","label":"說明網頁","uri":"https://www.blccym.org/single-post/2018/05/16/2018520-%E4%B8%BB%E6%97%A5"}]},{"thumbnailImageUrl":"https://od.lk/s/ODdfOTA4MTYyM18/%E6%99%A8%E7%A6%B1.jpg","imageBackgroundColor":"#FFFFFF","title":"晨禱","text":"時間：每週二至週五，早上7：40～9：20","actions":[{"type":"message","label":"報名","text":"簡如牧師邀請您"},{"type":"uri","label":"說明網頁","uri":"https://www.blccym.org/single-post/2018/05/16/2018520-%E4%B8%BB%E6%97%A5"}]}],"imageAspectRatio":"rectangle","imageSize":"cover"},"altText":"Button Template"},{"type":"sticker","packageId":"1","stickerId":"14"}]}
+@@ tool.ConfirmMessage(String).default
+POST https://api.line.me/v2/bot/message/push
+Authorization: Bearer ***
+Content-Length: 331
+Content-Type: application/json; charset=utf-8
+
+{"to":"U11111111111111111111111111111111","messages":[{"type":"template","template":{"type":"confirm","text":"耶和華","actions":[{"type":"message","label":"同意","text":"火熱跟隨"},{"type":"message","label":"反對","text":"我愛耶和華"}]},"altText":"確認按鈕"},{"type":"sticker","packageId":"1","stickerId":"2"}]}
+@@ tool.ConfirmMessageAsync(String).default
+POST https://api.line.me/v2/bot/message/push
+Authorization: Bearer ***
+Content-Length: 331
+Content-Type: application/json; charset=utf-8
+
+{"to":"U11111111111111111111111111111111","messages":[{"type":"template","template":{"type":"confirm","text":"耶和華","actions":[{"type":"message","label":"同意","text":"火熱跟隨"},{"type":"message","label":"反對","text":"我愛耶和華"}]},"altText":"確認按鈕"},{"type":"sticker","packageId":"1","stickerId":"2"}]}
+@@ tool.DeleteRichMenuMessage(String).default
+GET https://api.line.me/v2/bot/user/U11111111111111111111111111111111/richmenu
+Authorization: Bearer ***
+
+
+---
+DELETE https://api.line.me/v2/bot/user/U11111111111111111111111111111111/richmenu
+Authorization: Bearer ***
+
+
+---
+DELETE https://api.line.me/v2/bot/richmenu/richmenu-fixed
+Authorization: Bearer ***
+
+
+@@ tool.MultiCastTextMessageAsync(IList-1,String).default
+POST https://api.line.me/v2/bot/message/multicast
+Authorization: Bearer ***
+Content-Length: 131
+Content-Type: application/json; charset=utf-8
+
+{"to":["U11111111111111111111111111111111","U22222222222222222222222222222222"],"messages":[{"type":"text","text":"合成訊息"}]}
+@@ tool.PostSerializedConfirm(String,String,String,List-1).default
+POST https://api.line.me/v2/bot/message/push
+Authorization: Bearer ***
+Content-Length: 262
+Content-Type: application/json; charset=utf-8
+
+{"to":"U11111111111111111111111111111111","messages":[{"type":"template","template":{"type":"confirm","text":"合成訊息","actions":[{"type":"message","label":"是","text":"同意"},{"type":"message","label":"否","text":"拒絕"}]},"altText":"替代文字"}]}
+@@ tool.PostSerializedImageMap(String,String,String,Int32,Int32,List-1).default
+POST https://api.line.me/v2/bot/message/push
+Authorization: Bearer ***
+Content-Length: 275
+Content-Type: application/json; charset=utf-8
+
+{"to":"U11111111111111111111111111111111","messages":[{"type":"imagemap","baseUrl":"https://example.test/imagemap","altText":"替代文字","baseSize":{"width":1040,"height":1040},"actions":[{"type":"message","area":{"x":0,"y":0,"width":100,"height":100},"text":"點擊"}]}]}
+@@ tool.PostSerializedTemplate(String,String,String,String,String,List-1).default
+POST https://api.line.me/v2/bot/message/push
+Authorization: Bearer ***
+Content-Length: 412
+Content-Type: application/json; charset=utf-8
+
+{"to":"U11111111111111111111111111111111","messages":[{"type":"template","template":{"type":"buttons","thumbnailImageUrl":"https://example.test/thumb","imageAspectRatio":"rectangle","imageSize":"cover","imageBackgroundColor":"#FFFFFF","title":"標題","text":"合成訊息","actions":[{"type":"message","label":"是","text":"同意"},{"type":"message","label":"否","text":"拒絕"}]},"altText":"替代文字"}]}
+@@ tool.SendAudeo(String,String,Int64).default
+POST https://api.line.me/v2/bot/message/push
+Authorization: Bearer ***
+Content-Length: 141
+Content-Type: application/json; charset=utf-8
+
+{"to":"U11111111111111111111111111111111","messages":[{"type":"audio","originalContentUrl":"https://example.test/original","duration":1000}]}
+@@ tool.SendImage(String,String,String).default
+POST https://api.line.me/v2/bot/message/push
+Authorization: Bearer ***
+Content-Length: 174
+Content-Type: application/json; charset=utf-8
+
+{"to":"U11111111111111111111111111111111","messages":[{"type":"image","originalContentUrl":"https://example.test/original","previewImageUrl":"https://example.test/preview"}]}
+@@ tool.SendLocation(String,String,String,Decimal,Decimal).default
+POST https://api.line.me/v2/bot/message/push
+Authorization: Bearer ***
+Content-Length: 150
+Content-Type: application/json; charset=utf-8
+
+{"to":"U11111111111111111111111111111111","messages":[{"type":"location","title":"標題","address":"合成地址","latitude":25.0,"longitude":25.0}]}
+@@ tool.SendMessage(String,List-1).default
+POST https://api.line.me/v2/bot/message/push
+Authorization: Bearer ***
+Content-Length: 144
+Content-Type: application/json; charset=utf-8
+
+{"to":"U11111111111111111111111111111111","messages":[{"type":"text","text":"合成訊息"},{"type":"sticker","packageId":"1","stickerId":"5"}]}
+@@ tool.SendMessage(String,String).default
+POST https://api.line.me/v2/bot/message/push
+Authorization: Bearer ***
+Content-Length: 93
+Content-Type: application/json; charset=utf-8
+
+{"to":"U11111111111111111111111111111111","messages":[{"type":"text","text":"合成訊息"}]}
+@@ tool.SendSticker(String,Int32,Int32).default
+POST https://api.line.me/v2/bot/message/push
+Authorization: Bearer ***
+Content-Length: 106
+Content-Type: application/json; charset=utf-8
+
+{"to":"U11111111111111111111111111111111","messages":[{"type":"sticker","packageId":"1","stickerId":"1"}]}
+@@ tool.SendVideo(String,String,String).default
+POST https://api.line.me/v2/bot/message/push
+Authorization: Bearer ***
+Content-Length: 174
+Content-Type: application/json; charset=utf-8
+
+{"to":"U11111111111111111111111111111111","messages":[{"type":"video","originalContentUrl":"https://example.test/original","previewImageUrl":"https://example.test/preview"}]}
+@@ tool.AddRichMenuMessage(String).default
+POST https://api.line.me/v2/bot/richmenu
+Authorization: Bearer ***
+Content-Length: 250
+Content-Type: application/json; charset=utf-8
+
+{"size":{"width":2500,"height":1686},"selected":false,"name":"nice richmenu","chatBarText":"touch me","areas":[{"bounds":{"x":0,"y":0,"width":2500,"height":1686},"action":{"type":"postback","label":"ButtonA","data":"Menu A","displayText":"Menu A"}}]}
+---
+POST https://api-data.line.me/v2/bot/richmenu/richmenu-fixed/content
+Authorization: Bearer ***
+Content-Length: 67
+Content-Type: image/png
+
+base64:iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+aWQAAAABJRU5ErkJggg==
+---
+POST https://api.line.me/v2/bot/user/U11111111111111111111111111111111/richmenu/richmenu-fixed
+Authorization: Bearer ***
+
+
+---
+POST https://api.line.me/v2/bot/message/push
+Authorization: Bearer ***
+Content-Length: 147
+Content-Type: application/json; charset=utf-8
+
+{"to":"U11111111111111111111111111111111","messages":[{"type":"text","text":"Rich menu added"},{"type":"sticker","packageId":"1","stickerId":"5"}]}

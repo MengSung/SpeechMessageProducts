@@ -1,7 +1,7 @@
 /*
  * 檔案整體說明
  *
- * 目的與定位：階段零的沙箱診斷外殼；只保存不可變註冊設定，執行內容及傳輸資源不得跨執行保留。 Core 擁有每次 HTTP 訊息及十秒逾時；外掛只追蹤安全欄位並在邊界重新拋出真正失敗。
+ * 目的與定位：trace/push及P2-11 member完整通知鏈的沙箱診斷外殼；只保存不可變註冊設定，執行內容及傳輸資源不得跨執行保留。 Core 擁有每次 HTTP 訊息及十秒逾時；外掛只追蹤安全欄位並在邊界重新拋出真正失敗。
  *
  * 主要功能與流程：
  * 本檔宣告 DiagnosticsPingPlugin。
@@ -25,6 +25,9 @@ using System.Threading;
 using System.Threading.Tasks;
 using LineMessagingProcessor.Core;
 using Microsoft.Xrm.Sdk;
+using Microsoft.Xrm.Sdk.Query;
+using ToolUtilityNameSpace.LineRecipients;
+using SpeechMessageProducts.GoodShepherd.Core.Notifications;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using SpeechMessage.Localization;
@@ -39,8 +42,18 @@ public sealed class DiagnosticsPingPlugin : IPlugin
 {
     /// <summary>只包含固定資源的唯讀表，不承載教會、使用者、token 或執行內容。</summary>
     private static readonly SystemTextTable Texts = new();
+    /// <summary>純文化政策常數，不含組織或使用者資料，不對外暴露可變陣列。</summary>
+    private static readonly string[] DiagnosticCultures = { "zh-TW", "qps-ploc" };
     /// <summary>註冊設定的不可變模式；沙箱可重用外掛，但不得寫入此次 Execute 的狀態。</summary>
     private readonly bool pushMode;
+    /// <summary>member只使用部署管理的來源教會，不能由Contact語系改換授權範圍。</summary>
+    private readonly bool memberMode;
+    /// <summary>已部署來源教會身分，沒有快取其資料或執行結果。</summary>
+    private readonly Guid sourceChurchId;
+    /// <summary>此註冊步驟的不可變secure key字串；每次Execute複製解碼並清零位元組。</summary>
+    private readonly string? memberKey;
+    /// <summary>診斷步驟明確opt-in偽語系，不由會友偏好自行開啟。</summary>
+    private readonly bool allowPseudoLocale;
     /// <summary>此註冊步驟選定的文字語系，不改程序或執行緒文化。</summary>
     private readonly string culture;
     /// <summary>只屬此 secure 註冊步驟的不可變憑證；不進 static、追蹤或其他步驟。</summary>
@@ -54,7 +67,7 @@ public sealed class DiagnosticsPingPlugin : IPlugin
 
     /// <summary>供沙箱以註冊設定建立診斷外掛，不接受由執行內容提供的憑證。</summary>
     /// <param name="unsecureConfig">只有模式、語系與測試收件者的 JSON。</param>
-    /// <param name="secureConfig">此步驟專屬測試 channel token；不得追蹤或進入共用狀態。</param>
+    /// <param name="secureConfig">push是測試channel token；member是僅tokenKey的JSON。不得追蹤或跨步驟共享。</param>
     public DiagnosticsPingPlugin(string unsecureConfig, string secureConfig)
         : this(unsecureConfig, secureConfig, new LinePushClient(), ReadUtcNow) { }
 
@@ -71,11 +84,26 @@ public sealed class DiagnosticsPingPlugin : IPlugin
         {
             if (string.IsNullOrWhiteSpace(unsecureConfig) || unsecureConfig.Length > 4096) throw InvalidConfiguration();
             var config = JObject.Parse(unsecureConfig, new JsonLoadSettings { DuplicatePropertyNameHandling = DuplicatePropertyNameHandling.Error });
-            if (config.Properties().Any(property => property.Name is not ("mode" or "culture" or "lineUserId"))) throw InvalidConfiguration();
+            if (config.Properties().Any(property => property.Name is not ("mode" or "culture" or "lineUserId" or "sourceChurchId" or "allowPseudoLocale"))) throw InvalidConfiguration();
             var mode = ReadString(config, "mode");
             culture = ReadString(config, "culture");
-            if (mode is not ("trace" or "push") || culture is not ("zh-TW" or "qps-ploc")) throw InvalidConfiguration();
+            if (mode is not ("trace" or "push" or "member") || culture is not ("zh-TW" or "qps-ploc")) throw InvalidConfiguration();
             pushMode = string.Equals(mode, "push", StringComparison.Ordinal);
+            memberMode = string.Equals(mode, "member", StringComparison.Ordinal);
+            if (memberMode)
+            {
+                if (!Guid.TryParseExact(ReadString(config, "sourceChurchId"), "D", out sourceChurchId) || sourceChurchId == Guid.Empty ||
+                    client is not ILineMemberPushClient || config["lineUserId"] is not null) throw InvalidConfiguration();
+                if (config["allowPseudoLocale"] is not null && config["allowPseudoLocale"]!.Type != JTokenType.Boolean) throw InvalidConfiguration();
+                allowPseudoLocale = config["allowPseudoLocale"]?.Value<bool>() == true;
+                if (string.IsNullOrEmpty(secureConfig) || secureConfig.Length > 256) throw InvalidConfiguration();
+                var secrets = JObject.Parse(secureConfig, new JsonLoadSettings { DuplicatePropertyNameHandling = DuplicatePropertyNameHandling.Error });
+                if (secrets.Properties().Count() != 1) throw InvalidConfiguration();
+                memberKey = ReadString(secrets, "tokenKey");
+                var key = DecodeMemberKey(memberKey);
+                Array.Clear(key, 0, key.Length);
+            }
+            else if (config["sourceChurchId"] is not null || config["allowPseudoLocale"] is not null) throw InvalidConfiguration();
             if (pushMode)
             {
                 userId = ReadString(config, "lineUserId");
@@ -102,9 +130,18 @@ public sealed class DiagnosticsPingPlugin : IPlugin
             tracing.Trace("FrameworkFileVersion={0}", typeof(object).Assembly.GetCustomAttribute<AssemblyFileVersionAttribute>()?.Version);
             tracing.Trace("EnvironmentVersion={0}", Environment.Version.ToString());
             var key = new TextKey("Common.Diagnostics.Ping");
-            tracing.Trace("zh-TW={0}", Texts.GetText("zh-TW", key));
-            tracing.Trace("qps-ploc={0}", Texts.GetText("qps-ploc", key));
+            // member不輸出訊息本文；既有trace/push的雙語診斷相容保留。
+            if (!memberMode)
+            {
+                tracing.Trace("zh-TW={0}", Texts.GetText("zh-TW", key));
+                tracing.Trace("qps-ploc={0}", Texts.GetText("qps-ploc", key));
+            }
             tracing.Trace("Entity={0}; Message={1}", SafeIdentifier(context.PrimaryEntityName), SafeIdentifier(context.MessageName));
+            if (memberMode)
+            {
+                ExecuteMember(serviceProvider, context, tracing);
+                return;
+            }
             if (!pushMode) return;
             var retryKey = context.PrimaryEntityId;
             var text = Texts.GetText(culture, new TextKey("Common.Diagnostics.PushTest"))
@@ -134,6 +171,62 @@ public sealed class DiagnosticsPingPlugin : IPlugin
             tracing.Trace("ExceptionType={0}", exception.GetType().FullName);
             throw;
         }
+    }
+
+    /// <summary>
+    /// 只以task正式ID取關聯Contact，借用執行UserId權限的SDK；key及所有資料只在此次Execute存活。
+    /// 同步SDK由D365擁有且有沙箱執行期限，HTTP由Core十秒期限；所有Task完成才返回，不處置借用SDK。
+    /// </summary>
+    private void ExecuteMember(IServiceProvider provider, IPluginExecutionContext context, ITracingService tracing)
+    {
+        if (!string.Equals(context.PrimaryEntityName, "task", StringComparison.Ordinal) || context.PrimaryEntityId == Guid.Empty ||
+            context.OrganizationId == Guid.Empty) throw InvalidConfiguration();
+        var factory = (IOrganizationServiceFactory)provider.GetService(typeof(IOrganizationServiceFactory));
+        var sdk = factory.CreateOrganizationService(context.UserId);
+        var task = sdk.Retrieve("task", context.PrimaryEntityId, new ColumnSet("regardingobjectid"));
+        if (task is null || task.Id != context.PrimaryEntityId || !string.Equals(task.LogicalName, "task", StringComparison.Ordinal) ||
+            task.GetAttributeValue<EntityReference>("regardingobjectid") is not { LogicalName: "contact" } contact || contact.Id == Guid.Empty)
+            throw InvalidConfiguration();
+        var key = DecodeMemberKey(memberKey!);
+        try
+        {
+            using var source = new LineRecipientQueries(sdk);
+            var options = new LocalizationOptions(allowPseudoLocale ? DiagnosticCultures : null, allowPseudoLocale);
+            var catalog = new TextCatalog(Texts, new EmptyOverrides());
+            var notifier = new MemberNotificationService((ILineMemberPushClient)client, new MemberCultureResolver(options), catalog);
+            var scope = new TextContext(sourceChurchId, "zh-TW", "zh-TW", context.OrganizationId.ToString("D", CultureInfo.InvariantCulture), "GoodShepherd");
+            // SDK與範本準備在此同步邊界完成；Core所有HTTP await均ConfigureAwait(false)，
+            // 直接等待有界傳輸排空，不把D365服務/provider送到自建執行緒或保存在背景工作。
+            var result = notifier.NotifyDiagnosticAsync(source, scope, contact.Id, context.PrimaryEntityId, key,
+                resolved => tracing.Trace("TemplateKey=Diagnostics; Culture={0}", resolved), CancellationToken.None).GetAwaiter().GetResult();
+            var requestId = Guid.TryParse(result.RequestId, out var parsed) ? parsed.ToString("D", CultureInfo.InvariantCulture) : "unavailable";
+            tracing.Trace("Outcome={0}; Status={1}; RequestId={2}; Reason={3}",
+                result.Outcome == LinePushOutcome.Success ? "Accepted" : result.Outcome.ToString(),
+                result.StatusCode.HasValue ? ((int)result.StatusCode.Value).ToString(CultureInfo.InvariantCulture) : "no-response", requestId, result.Reason ?? "none");
+            if (result.Outcome == LinePushOutcome.Retryable)
+                throw new InvalidPluginExecutionException(Texts.GetText("zh-TW", new TextKey("Common.Diagnostics.Retryable"))
+                    .Replace("{retryKey}", context.PrimaryEntityId.ToString("D", CultureInfo.InvariantCulture)), result.TransportException);
+        }
+        finally { Array.Clear(key, 0, key.Length); }
+    }
+
+    /// <summary>secure key只接受canonical64byte Base64，錯誤訊息不回顯材料；本次呼叫擁有並必須清零結果。</summary>
+    private static byte[] DecodeMemberKey(string value)
+    {
+        byte[] key;
+        try { key = Convert.FromBase64String(value); }
+        catch (FormatException) { throw InvalidConfiguration(); }
+        if (key.Length == 64 && string.Equals(Convert.ToBase64String(key), value, StringComparison.Ordinal)) return key;
+        Array.Clear(key, 0, key.Length);
+        throw InvalidConfiguration();
+    }
+
+    /// <summary>診斷鏈只使用系統字典；沒有cache/SDK/教會覆寫，不保存任何context或資料。</summary>
+    private sealed class EmptyOverrides : IChurchTextOverrideSnapshotProvider
+    {
+        /// <summary>每次回同scope空快照，純資料在當次格式化後即可回收，不產生背景工作。</summary>
+        public IChurchTextOverrideSnapshot GetSnapshot(TextContext context) =>
+            new ChurchTextOverrideSnapshot(context, Array.Empty<ChurchTextOverride>());
     }
 
     /// <summary>從 JSON 取出明確字串型別，避免隱含轉型或回顯原始設定。</summary>

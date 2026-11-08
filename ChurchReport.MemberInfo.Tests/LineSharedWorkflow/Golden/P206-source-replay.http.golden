@@ -1,0 +1,54 @@
+@@ group-push
+POST https://api.line.me/v2/bot/message/push
+Authorization: Bearer ***
+Content-Length: 155
+Content-Type: application/json; charset=utf-8
+
+{"to":"Cgroup-fixed","messages":[{"type":"text","text":"合成訊息"},{"type":"audio","originalContentUrl":"https://example.test/audio","duration":1000}]}
+@@ multicast-duplicates
+POST https://api.line.me/v2/bot/message/multicast
+Authorization: Bearer ***
+Content-Length: 167
+Content-Type: application/json; charset=utf-8
+
+{"to":["U11111111111111111111111111111111","U22222222222222222222222222222222","U11111111111111111111111111111111"],"messages":[{"type":"text","text":"合成訊息"}]}
+@@ reply-buttons
+POST https://api.line.me/v2/bot/message/reply
+Authorization: Bearer ***
+Content-Length: 343
+Content-Type: application/json; charset=utf-8
+
+{"replyToken":"reply-fixed","messages":[{"type":"template","template":{"type":"buttons","thumbnailImageUrl":"標題","imageAspectRatio":"rectangle","imageSize":"cover","imageBackgroundColor":"#FFFFFF","title":"https://example.test/thumb","text":"本文","actions":[{"type":"message","label":"是","text":"同意"}]},"altText":"替代文字"}]}
+@@ reply-sender
+POST https://api.line.me/v2/bot/message/reply
+Authorization: Bearer ***
+Content-Length: 144
+Content-Type: application/json; charset=utf-8
+
+{"replyToken":"reply-fixed","messages":[{"sender":{"name":"品牌","iconUrl":"https://example.test/icon"},"type":"text","text":"合成訊息"}]}
+@@ menu-add
+POST https://api.line.me/v2/bot/richmenu
+Authorization: Bearer ***
+Content-Length: 250
+Content-Type: application/json; charset=utf-8
+
+{"size":{"width":2500,"height":1686},"selected":false,"name":"nice richmenu","chatBarText":"touch me","areas":[{"bounds":{"x":0,"y":0,"width":2500,"height":1686},"action":{"type":"postback","label":"ButtonA","data":"Menu A","displayText":"Menu A"}}]}
+---
+POST https://api-data.line.me/v2/bot/richmenu/richmenu-fixed/content
+Authorization: Bearer ***
+Content-Length: 67
+Content-Type: image/png
+
+base64:iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+aWQAAAABJRU5ErkJggg==
+---
+POST https://api.line.me/v2/bot/user/U11111111111111111111111111111111/richmenu/richmenu-fixed
+Authorization: Bearer ***
+
+
+---
+POST https://api.line.me/v2/bot/message/push
+Authorization: Bearer ***
+Content-Length: 147
+Content-Type: application/json; charset=utf-8
+
+{"to":"U11111111111111111111111111111111","messages":[{"type":"text","text":"Rich menu added"},{"type":"sticker","packageId":"1","stickerId":"5"}]}

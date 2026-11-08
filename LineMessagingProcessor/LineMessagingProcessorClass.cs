@@ -3,6 +3,8 @@
  *
  * 目的與定位：提供既有產品使用的LINE功能外觀，集中轉接Messaging SDK的推播、回覆、群組／聊天室profile與RichMenu等能力；頻道設定依主機解析並限定於實例，產品業務決策交各workflow。
  *
+ * P2-06 的任意 SDK／群組／多播相容路徑留 net10，正式會友推播仍只走 Core；LegacySend partial 不讀 private token。
+ *
  * 主要功能與流程：
  * 本檔宣告 LineMessagingProcessorClass、UserProfile。
  * - 解析舊預設建構路徑的一次性部署 token；Lazy 每行程只保存此部署憑證，不含使用者或教會動態狀態。 Development 只套用遮蔽後的 Development JSON，不讀取環境 token；不引用
@@ -37,7 +39,15 @@ using Microsoft.Extensions.Configuration;
 
 namespace LineMessagingProcessor
 {
-    public class LineMessagingProcessorClass : IDisposable
+    /// <summary>
+    /// net10 舊 SDK 功能的頻道範圍外觀；只借用注入的 SDK client，不解析會友授權，也不取代
+    /// P2-04 Core 的正式會友核對。每次操作只使用區域參數，不以 m_UserId/m_Message 作推播來源。
+    /// </summary>
+    /// <remarks>
+    /// 認證、群組、回覆及 RichMenu 請求交 SDK 的唯一 HTTP owner；相容多播與內容生命週期見
+    /// LegacySend partial。呼叫端必須讓此實例與同一頻道 owner 同生滅，不可跨使用者改 token。
+    /// </remarks>
+    public partial class LineMessagingProcessorClass : IDisposable
     {
         // LINE channel access token 是部署環境的機密資料，不能寫死在原始碼。
         // 建構式會統一正規化成 Authorization header 需要的 Bearer 格式。

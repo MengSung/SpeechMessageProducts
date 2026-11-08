@@ -1,0 +1,5 @@
+{"file": "AGENTS.md", "reason": "永久文件隔離與生命週期"}
+{"file": ".trellis/spec/backend/plugin-packaging-contract.md", "reason": "固定四輸入與net462 metadata"}
+{"file": ".trellis/spec/backend/channel-token-contract.md", "reason": "64byte key/最小欄位與通知鏈"}
+{"file": "SpeechMessageProducts.GoodShepherd.Core/Notifications/MemberNotificationService.cs", "reason": "唯一產品通知"}
+{"file": "SpeechMessage.Dynamics.Plugins/Diagnostics/DiagnosticsPingPlugin.cs", "reason": "既有模式與安全追蹤"}

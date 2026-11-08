@@ -71,6 +71,27 @@ public sealed class MemberNotificationServiceTests
         Assert.Equal(1, fixture.Handler.Disposed);
     }
 
+    /// <summary>診斷Flex入口於兩產品目標走真嵌入資源、語言、解密與HTTP；callback只收到選定語系。</summary>
+    [Theory]
+    [InlineData("zh-TW", "連線測試成功")]
+    [InlineData("qps-ploc", "［連線測試成功ǂǂǂ］")]
+    public async Task NotifyDiagnostic_EmbeddedTemplate_UsesResolvedCulture(string language, string expected)
+    {
+        using var fixture = new Fixture();
+        var source = fixture.Source(language: language);
+        string? resolved = null;
+        var record = Guid.NewGuid();
+        var result = await fixture.Service.NotifyDiagnosticAsync(source, Context(source.Church), source.Contact,
+            record, fixture.Key, value => resolved = value, default);
+        Assert.True(result.Success);
+        var sent = Assert.Single(fixture.Handler.Sent);
+        Assert.Equal(expected, sent.Text);
+        Assert.Equal(language, resolved);
+        Assert.Equal(record.ToString("D"), sent.Retry);
+        Assert.Equal(0, fixture.Handler.Active);
+        Assert.Equal(1, fixture.Handler.Disposed);
+    }
+
     /// <summary>來源正式記錄ID原樣成為真正HTTP X-Line-Retry-Key，不重生Guid或使用Contact ID。</summary>
     [Fact]
     public async Task Notify_RetryKeyIsSourceRecordId()
@@ -235,7 +256,7 @@ public sealed class MemberNotificationServiceTests
 #else
                 var json = JObject.Parse(await request.Content!.ReadAsStringAsync(cancellationToken));
 #endif
-                Sent.Enqueue(new Sent(json["to"]!.Value<string>()!, json["messages"]![0]!["text"]!.Value<string>()!,
+                Sent.Enqueue(new Sent(json["to"]!.Value<string>()!, (json["messages"]![0]!["text"] ?? json["messages"]![0]!["altText"])!.Value<string>()!,
                     json["messages"]![0]!["sender"]!["name"]!.Value<string>()!, request.Headers.Authorization!.Parameter!,
                     request.Headers.GetValues("X-Line-Retry-Key").Single()));
                 if (Gate is not null) await Gate();
