@@ -6,6 +6,9 @@
  * 可以模擬 LINE 拒絕、 網路失敗、timeout 或程式錯誤，進而測試 workflow 的錯誤分類邊界。 3. LinkedUsers、ExistingRichMenus 與 Aliases 是記憶體狀態，方便驗證
  * processor 呼叫後是否產生預期副作用。 這種假物件讓 RichMenu 共用核心的測試保持單純、穩定、快速， 也避免把 LINE 官方服務、產品資料庫或任何特定產品流程混進單元測試。
  *
+ * P2-08另以UploadException注入已建立metadata之後的圖檔失敗，驗證handler補償刪除與stream清理；
+ * 此例外只屬單案，不含秘密或真實provider資料，不改動其他測試的預設成功行為。
+ *
  * 主要功能與流程：
  * 本檔宣告 CapturingRichMenuProcessor。
  * - 建立 RichMenu 時要回傳的 richMenuId 佇列。 測試若需要固定 ID，可以先呼叫 EnqueueCreatedRichMenuId； 若沒有預先指定，這個假物件會依照目前清單數量自動產生穩定 ID。
@@ -124,6 +127,9 @@ internal sealed class CapturingRichMenuProcessor : ILineRichMenuProcessor
     /// </summary>
     public int UploadedImageCount { get; private set; }
 
+    /// <summary>單案可注入圖檔上傳故障，保護metadata建立後的遠端補償與確定性stream釋放。</summary>
+    public Exception? UploadException { get; set; }
+
     /// <summary>
     /// 記錄建立 alias 的次數，方便測試 provisioning 是否避免不必要的重複建立。
     /// </summary>
@@ -165,6 +171,7 @@ internal sealed class CapturingRichMenuProcessor : ILineRichMenuProcessor
     {
         Calls.Add($"upload:{richMenuId}");
         UploadedImageCount++;
+        if (UploadException is not null) throw UploadException;
         return Task.CompletedTask;
     }
 

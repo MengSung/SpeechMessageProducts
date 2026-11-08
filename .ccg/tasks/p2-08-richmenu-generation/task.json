@@ -1,0 +1,12 @@
+{
+  "id": "p2-08-richmenu-generation",
+  "title": "P2-08 宮格多語",
+  "status": "in_progress",
+  "complexity": "M",
+  "risk": "medium",
+  "domain": "backend",
+  "currentPhase": "implementation",
+  "nextAction": "按核定計畫TDD，外部審查只階段末一次。",
+  "createdAt": "2026-11-08T13:58:03+08:00",
+  "branch": "1.0.0.11.Integration.P2.Worktree"
+}

@@ -240,11 +240,11 @@ footer{margin-top:36px;color:var(--muted);font-size:12.5px;text-align:center}
  */
 const DATA = {
   "planVersion": "3.4",
-  "snapshot": "2026-11-08 13:55 Asia/Taipei (UTC+08:00)",
-  "lastUpdated": "2026-11-08T13:55:53+08:00",
+  "snapshot": "2026-11-08 13:58 Asia/Taipei (UTC+08:00)",
+  "lastUpdated": "2026-11-08T13:58:03+08:00",
   "branch": "1.0.0.11.Integration.P2.Worktree",
-  "head": "c0b79a94",
-  "headline": "P2-05已驗收；接續P2-08宮格多語。",
+  "head": "f24ae8d6",
+  "headline": "P2-05已驗收推送；P2-08開始宮格多語離線TDD。",
   "notices": [
     {
       "id": "plan-3.4-summary",
@@ -264,9 +264,10 @@ const DATA = {
       "phaseId": "階段 2",
       "level": "info",
       "title": "P2 進度摘要",
-      "lastUpdated": "2026-11-08T13:55:53+08:00",
-      "body": "2026-11-08 13:55 Asia/Taipei (UTC+08:00)：P2-05已驗收，c0b79a94乾淨全方案4,825個測試與全部守門通過。下一步P2-08，不重跑已驗前置。",
+      "lastUpdated": "2026-11-08T13:58:03+08:00",
+      "body": "2026-11-08 13:58 Asia/Taipei (UTC+08:00)：P2-05已驗收推送f24ae8d6，P2-08開始離線TDD。前置不重跑，下包P2-06與P2-09b。",
       "steps": [
+        "2026-11-08 13:58 Asia/Taipei (UTC+08:00)：P2-05已驗收推送f24ae8d6，P2-08開始離線TDD。前置不重跑，下包P2-06與P2-09b。",
         "2026-11-08 13:55 Asia/Taipei (UTC+08:00)：P2-05已驗收，c0b79a94乾淨全方案4,825個測試與全部守門通過。下一步P2-08，不重跑已驗前置。",
         "2026-11-08 13:51 Asia/Taipei (UTC+08:00)：P2-05首次乾淨測試六案失敗，已同步新增鍵清單並補相依方向正反測試，聚焦測試轉綠。修正提交後重驗，尚未驗收、不推送。",
         "2026-11-08 13:35 Asia/Taipei (UTC+08:00)：P2-04已驗收並推送cd48f6f6，P2-05開始離線TDD。下一包P2-08，前置不再重跑。",
@@ -935,7 +936,7 @@ const DATA = {
       "id": "P2-08",
       "phaseId": "階段 2",
       "name": "宮格多語產生器",
-      "status": "todo",
+      "status": "active",
       "deps": "P2-07",
       "live": "無",
       "timebox": "1 天",
@@ -1533,7 +1534,41 @@ const DATA = {
       "note": "首個正式 Plugin 佈署 goodshepherdback 之前"
     }
   ],
-  "active": [],
+  "active": [
+    {
+      "id": "P2-08",
+      "startedAt": "2026-11-08 13:58",
+      "timebox": "1工作天或15提交",
+      "next": "五個同名紅燈→最小實作。",
+      "dod": [
+        [
+          "同名測試",
+          "no",
+          "TDD中。"
+        ],
+        [
+          "乾淨守門",
+          "no",
+          "待產品提交。"
+        ],
+        [
+          "新專案覆蓋率",
+          "na",
+          "無新增專案。"
+        ],
+        [
+          "實機",
+          "na",
+          "本包未要求。"
+        ],
+        [
+          "回報與DATA",
+          "no",
+          "待驗收。"
+        ]
+      ]
+    }
+  ],
   "gates": [
     {
       "item": "方案建置（Release）",

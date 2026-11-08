@@ -44,6 +44,7 @@ This directory contains guidelines for backend development. Fill in each file wi
 | [List and Async SDK Contract](./list-and-async-sdk-contract.md) | Bounded membership writes, full publication, caller cancellation, fault fidelity and deterministic drain | Established |
 | [Core Query Adapter Contract](./core-query-adapter-contract.md) | Pure contract API golden, legacy filter differences, bounded query delegation and borrowed SDK lifecycle | Established |
 | [Activity Publication Contract](./activity-publication-contract.md) | Composite party identities, complete bounded paging, legacy append and borrowed SDK drain | Established |
+| [多語宮格產生契約](./richmenu-generation-contract.md) | Enabled-only eight-page generation, provider identity/capacity, bounded ImageSharp ownership | Established |
 | [Image Input Contract](./image-input-contract.md) | Restricted image formats, pre-decode size limits, safe rejection and bounded ownership | Established |
 | [MemberInfo Tree And Grid Contract](./member-info-tree-contract.md) | Cross-layer MemberInfo authorization, DTO, paging, sorting, cache, and CRM batching rules | Established |
 | [Small Group Background Upload Isolation](./small-group-background-upload-isolation.md) | SaveIntegrate background snapshot, refresh response, resource ownership, and regression contract | Established |
