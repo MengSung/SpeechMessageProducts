@@ -15,11 +15,13 @@
 Enqueue_SameIdempotencyKey_SingleRecord、Enqueue_PayloadWithText_Rejected、Claim_TwoWorkersParallel_OnlyOneExecutes、Retry_429_BackoffSchedule、Retry_ExceedsMax_FailedAndNotified、StaleProcessing_Reclaimed、Shutdown_DrainsCurrentBatch_WithinTimeout、Worker_ResourceCountsReturnToBaseline。
 
 ## 完成定義（00 §7.1，不得加碼）
-- [ ] 1. 上列測試同名存在並通過；Writer雙目標。
-- [ ] 2. 00 §8.1全部命令提交後乾淨複本通過。
+- [x] 1. 上列測試同名存在並通過；Writer雙目標。
+- [x] 2. 00 §8.1全部命令提交後乾淨複本通過。
 - [x] 3. 無新專案，覆蓋率不適用。
 - [x] 4. 本包無實機，不適用。
-- [ ] 5. 一頁回報與3.4 DATA已更新。
+- [x] 5. 一頁回報與3.4 DATA已更新。
 
 ## 時間盒
 開始：2026-11-07 22:26 Asia/Taipei (UTC+08:00)；1個工作天或15個提交。到期依00 §12列三個選項，不加碼硬撐。
+
+驗收：2026-11-08 12:42 Asia/Taipei (UTC+08:00)；產品 413fde67，乾淨守門 49f67029 全部通過；本包無新專案、無實機。

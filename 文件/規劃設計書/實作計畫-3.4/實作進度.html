@@ -240,11 +240,11 @@ footer{margin-top:36px;color:var(--muted);font-size:12.5px;text-align:center}
  */
 const DATA = {
   "planVersion": "3.4",
-  "snapshot": "2026-11-08 12:41 Asia/Taipei (UTC+08:00)",
-  "lastUpdated": "2026-11-08T12:41:32+08:00",
+  "snapshot": "2026-11-08 12:42 Asia/Taipei (UTC+08:00)",
+  "lastUpdated": "2026-11-08T12:42:54+08:00",
   "branch": "1.0.0.11.Integration.P2.Worktree",
-  "head": "ac37eec4",
-  "headline": "P2-07 乾淨複本建置與測試通過；新誤收原始證據使編碼守門失敗，正修正版控邊界後重驗。",
+  "head": "49f67029",
+  "headline": "P2-07 已完成乾淨驗收；接續 P2-04 前置 A，確認原步驟與組件且 FileVersion 尚未遞增。",
   "notices": [
     {
       "id": "plan-3.4-summary",
@@ -264,9 +264,10 @@ const DATA = {
       "phaseId": "階段 2",
       "level": "info",
       "title": "P2 進度摘要",
-      "lastUpdated": "2026-11-08T12:41:32+08:00",
-      "body": "2026-11-08 12:36 Asia/Taipei (UTC+08:00)：P2-07 乾淨複本建置與全方案測試已通過，但 ac37eec4 新收原始證據造成 12 份編碼／腳本問題。原始位元組保留本機，依 D32 修正版控邊界後以新提交重驗，尚未驗收。",
+      "lastUpdated": "2026-11-08T12:42:54+08:00",
+      "body": "2026-11-08 12:42 Asia/Taipei (UTC+08:00)：P2-07 已驗收，49f67029 乾淨複本全方案 4,755 個測試及全部守門通過。下一步 P2-04 前置 A：已確認唯一固定步驟與組件，FileVersion 仍 1.0.0.1，將依既定序號遞增再部署。",
       "steps": [
+        "2026-11-08 12:42 Asia/Taipei (UTC+08:00)：P2-07 已驗收，49f67029 乾淨複本全方案 4,755 個測試及全部守門通過。下一步 P2-04 前置 A：已確認唯一固定步驟與組件，FileVersion 仍 1.0.0.1，將依既定序號遞增再部署。",
         "2026-11-08 12:41 Asia/Taipei (UTC+08:00)：依使用者核定，P2-00 Debug 診斷以 CLI 建置／重建及兩宿主各 41 案通過、IDE 未重現結案歸檔。移到「之後再說」，不再追查或修改中繼路徑。",
         "2026-11-08 12:36 Asia/Taipei (UTC+08:00)：P2-07 乾淨複本建置與全方案測試已通過，但 ac37eec4 新收原始證據造成 12 份編碼／腳本問題。原始位元組保留本機，依 D32 修正版控邊界後以新提交重驗，尚未驗收。",
         "2026-11-08 10:02 Asia/Taipei (UTC+08:00)｜P2-07 CAS／Worker 檢查點｜新增 Hosting-facing 純值契約、每筆 handler scope 與唯一 D365 Core 轉接點；雙 worker 競爭、429 一分鐘退避、第五次逾時終止、stale reclaim、停止排空、resource baseline 及重複正式 ID fail-closed 七個案例通過。SpeechMessage.Hosting.Tests Debug 109 案全過，ToolUtility Debug 建置 0 警告／0 錯誤；目前仍未提交，保留導讀與提交後乾淨複本守門尚未完成。",
@@ -924,13 +925,13 @@ const DATA = {
       "id": "P2-07",
       "phaseId": "階段 2",
       "name": "對外待辦 Writer 與有界 Worker",
-      "status": "active",
+      "status": "done",
       "deps": "P2-01、P2-02",
       "live": "無",
       "timebox": "1 天",
-      "doneAt": "",
-      "commit": "",
-      "note": "Writer、CAS 與有界 Worker 已離線通過；正在補 30／90 天保留設定導讀與提交後乾淨複本守門。"
+      "doneAt": "2026-11-08 12:42",
+      "commit": "49f67029",
+      "note": "八個同名測試及雙目標通過；乾淨全方案4755個測試、Debug tracer7個與全部守門通過。無新專案、無實機；30／90天保留導讀已完成。"
     },
     {
       "id": "P2-08",
@@ -1534,77 +1535,43 @@ const DATA = {
       "note": "首個正式 Plugin 佈署 goodshepherdback 之前"
     }
   ],
-  "active": [
-    {
-      "id": "P2-07",
-      "startedAt": "2026-11-07 22:26",
-      "timebox": "1個工作天或15個提交",
-      "next": "原始證據保留本機並移出版控，流程 JSON 補末尾 CRLF；新提交後重跑全部乾淨守門。",
-      "dod": [
-        [
-          "測試全部同名存在並通過",
-          "ok",
-          "Writer、CAS 與 Worker 八個計畫同名案例均已存在；Worker 六案在 SpeechMessage.Hosting.Tests 通過，CAS 雙宿主通過。"
-        ],
-        [
-          "乾淨複本守門",
-          "no",
-          "ac37eec4 建置與全方案測試 exit 0；Changed 編碼 12 份失敗，後續命令未執行。"
-        ],
-        [
-          "覆蓋率 ≥ 80%",
-          "na",
-          "沒有新專案。"
-        ],
-        [
-          "實機",
-          "na",
-          "本包未要求實機；雙程序實測在P2-12。"
-        ],
-        [
-          "一頁回報與進度頁",
-          "ok",
-          "P2-07 一頁回報已同步更新；本頁於 2026-11-08 10:02 Asia/Taipei (UTC+08:00) 更新。"
-        ]
-      ]
-    }
-  ],
+  "active": [],
   "gates": [
     {
       "item": "方案建置（Release）",
       "result": "ok",
-      "at": "2026-11-08 08:01",
-      "note": "8b2bbb15 短路徑乾淨複本 Release 建置成功，0 個錯誤；不含未提交 CAS 新檔。"
+      "at": "2026-11-08 12:42",
+      "note": "49f67029 乾淨複本 Release 建置23個既有警告、0錯誤。"
     },
     {
       "item": "全方案測試",
       "result": "ok",
-      "at": "2026-11-08 08:01",
-      "note": "8b2bbb15：20 份 TRX 共 4,708 個測試全過，0 失敗／略過；Debug tracer 7 個通過。"
+      "at": "2026-11-08 12:42",
+      "note": "49f67029：20份TRX共4,755個全過，0失敗／略過；Debug tracer7個通過。"
     },
     {
       "item": "檔案說明檢查",
       "result": "ok",
-      "at": "2026-11-08 08:01",
-      "note": "8b2bbb15：檢查 1,292 份檔案，0 個問題。"
+      "at": "2026-11-08 12:42",
+      "note": "49f67029：1,298份檔案說明，0問題。"
     },
     {
       "item": "文字編碼（P2 範圍）",
       "result": "ok",
-      "at": "2026-11-08 08:01",
-      "note": "8b2bbb15：Changed 檢查 235 份檔案，96 份原始證據排除，0 個問題。"
+      "at": "2026-11-08 12:42",
+      "note": "49f67029：Changed檢查247份，排除96份原始證據，0問題。"
     },
     {
       "item": "重複程式掃描",
       "result": "ok",
-      "at": "2026-11-08 08:01",
-      "note": "34 個專案，1,066 個來源檔，0 個新增重複群組。"
+      "at": "2026-11-08 12:42",
+      "note": "49f67029：34個專案、1,072份來源，新增重複0。"
     },
     {
       "item": "I18nCheck verify",
       "result": "ok",
-      "at": "2026-11-08 08:01",
-      "note": "8b2bbb15：verify 成功；兩套進度頁共 27 個測試通過。"
+      "at": "2026-11-08 12:42",
+      "note": "49f67029：I18n verify成功，兩套進度頁27個案例全過。"
     },
     {
       "item": "雲端 CI（GitHub）",
