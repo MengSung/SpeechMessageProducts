@@ -240,11 +240,11 @@ footer{margin-top:36px;color:var(--muted);font-size:12.5px;text-align:center}
  */
 const DATA = {
   "planVersion": "3.4",
-  "snapshot": "2026-11-08 22:21 Asia/Taipei (UTC+08:00)",
-  "lastUpdated": "2026-11-08T22:21:33+08:00",
+  "snapshot": "2026-11-08 22:26 Asia/Taipei (UTC+08:00)",
+  "lastUpdated": "2026-11-08T22:26:11+08:00",
   "branch": "1.0.0.11.Integration.P2.Worktree",
-  "head": "3dfe80ef",
-  "headline": "P2-06編碼失敗已定位並依D32修正，待新提交乾淨守門；P2-11時間盒到期待核定。",
+  "head": "24e97b9e",
+  "headline": "P2-06已驗收；接P2-09b，P2-11時間盒仍待核定。",
   "notices": [
     {
       "id": "plan-3.4-summary",
@@ -264,9 +264,10 @@ const DATA = {
       "phaseId": "階段 2",
       "level": "info",
       "title": "P2 進度摘要",
-      "lastUpdated": "2026-11-08T22:21:33+08:00",
-      "body": "2026-11-08 22:21 Asia/Taipei (UTC+08:00)：P2-06乾淨建置與測試已過，編碼11份缺檔尾使守門失敗；已依D32將新誤收raw只移出版控，流程檔純格式修正，待新提交重驗。P2-11仍待時間盒核定，不重跑已驗前置。",
+      "lastUpdated": "2026-11-08T22:26:11+08:00",
+      "body": "2026-11-08 22:26 Asia/Taipei (UTC+08:00)：P2-06已驗收，24e97b9e乾淨全方案4,935個測試、tracer7個及全部守門通過。下一包P2-09b，P2-11時間盒仍待核定。",
       "steps": [
+        "2026-11-08 22:26 Asia/Taipei (UTC+08:00)：P2-06已驗收，24e97b9e乾淨全方案4,935個測試、tracer7個及全部守門通過。下一包P2-09b，P2-11時間盒仍待核定。",
         "2026-11-08 22:21 Asia/Taipei (UTC+08:00)：P2-06乾淨建置與測試已過，編碼11份缺檔尾使守門失敗；已依D32將新誤收raw只移出版控，流程檔純格式修正，待新提交重驗。P2-11仍待時間盒核定，不重跑已驗前置。",
         "2026-11-08 19:53 Asia/Taipei (UTC+08:00)：PROP-004／005與D4 Emojis延後已核定，宮格補償／alias容量修正列階段審查；原清理告警九個clone已逐一路徑確認不存在並解除。另C:/smv/6d9f7b6b仍存在，未冒稱已清除。",
         "2026-11-08 19:17 Asia/Taipei (UTC+08:00)：P2-11完整35案與GoodShepherd雙目標各50案通過；原四input與唯一一次完整七input探測被metadata拒絕，尚未驗收。已提PROP-004請核定最小包裝子集，不改安全限制或AssemblyVersion。",
@@ -383,6 +384,15 @@ const DATA = {
       "lastUpdated": "2026-11-08T22:02:52+08:00",
       "body": "2026-11-08 22:02 Asia/Taipei (UTC+08:00)：19:50:45起算、21:50:45到期，metadata及合併六案已通過，子集coverage／乾淨守門未完成。建議保留子集方案再延長兩小時；精確允許CSharp方案證據與風險見P2-11一頁回報，未自行放寬。",
       "steps": []
+    },
+    {
+      "id": "p2-temp-cleanup-warning",
+      "phaseId": "階段 2",
+      "level": "warn",
+      "title": "暫存驗證複本清理受平台限制",
+      "lastUpdated": "2026-11-08T22:26:51+08:00",
+      "body": "2026-11-08 22:26 Asia/Taipei (UTC+08:00)：本次對C:/smv/24e97b9e及2c0b9e95的原生Remove-Item清理被平台拒絕，未執行、不繞過。先前6d9f7b6b、f014a4aa亦仍存在，列最後交付清單，不影響已留存驗證證據。",
+      "steps": []
     }
   ],
   "userActions": [
@@ -453,7 +463,9 @@ const DATA = {
       "name": "共用送訊＋對外待辦",
       "planned": "3～5 個工作天（3.4 估）",
       "actual": "進行中（2026-11-07 起）",
-      "current": true
+      "current": true,
+      "done": 9,
+      "active": 1
     },
     {
       "id": "階段 3",
@@ -917,13 +929,13 @@ const DATA = {
       "id": "P2-06",
       "phaseId": "階段 2",
       "name": "合併 PushUtility、ReplyUtility、LineUtilityClass 副本",
-      "status": "active",
+      "status": "done",
       "deps": "P2-04",
       "live": "無",
       "timebox": "1 天",
-      "doneAt": "",
-      "commit": "",
-      "note": "2026-11-08 22:21 Asia/Taipei (UTC+08:00)：R4修正後建置及全方案測試已過，編碼11份失敗已按D32定位修正。待新提交重驗，未驗收、不推送。"
+      "doneAt": "2026-11-08 22:26",
+      "commit": "24e97b9e",
+      "note": "2026-11-08 22:26 Asia/Taipei (UTC+08:00)：legacy唯一入口、舊組件ABI及wire通過，乾淨全方案4,935案與全部守門通過。無新專案、無本包實機，回報P2-06.md。"
     },
     {
       "id": "P2-07",
@@ -1541,39 +1553,6 @@ const DATA = {
   ],
   "active": [
     {
-      "id": "P2-06",
-      "startedAt": "2026-11-08 16:22 Asia/Taipei (UTC+08:00)",
-      "timebox": "1工作天或15提交",
-      "next": "新提交後只跑一份完整乾淨守門，通過即驗收推送並接P2-09b。",
-      "dod": [
-        [
-          "測試",
-          "ok",
-          "原wire證據保留；下移唯一legacy實作與舊組件名稱相容先紅再綠，Workflows36案通過。"
-        ],
-        [
-          "守門",
-          "no",
-          "2c0b9e95建置／全方案測試通過，編碼11份缺檔尾失敗；raw保留原bytes只移出版控，流程檔修正後本機編碼0問題，待新提交重驗。"
-        ],
-        [
-          "新專案覆蓋率",
-          "na",
-          "本包沒有新增專案。"
-        ],
-        [
-          "實機",
-          "na",
-          "P2-06段落未列實機，不追加。"
-        ],
-        [
-          "回報與DATA",
-          "no",
-          "一頁回報已同步核定，驗收結果待守門完成。"
-        ]
-      ]
-    },
-    {
       "id": "P2-11",
       "startedAt": "2026-11-08 16:22 Asia/Taipei (UTC+08:00)",
       "timebox": "1工作天或15提交",
@@ -1611,38 +1590,38 @@ const DATA = {
     {
       "item": "方案建置（Release）",
       "result": "ok",
-      "at": "2026-11-08 13:55",
-      "note": "c0b79a94：Release23個既有警告、0錯誤。"
+      "at": "2026-11-08 22:26",
+      "note": "24e97b9e乾淨§8.1通過；詳細數值與SHA見P2-06回報。"
     },
     {
       "item": "全方案測試",
       "result": "ok",
-      "at": "2026-11-08 13:55",
-      "note": "c0b79a94：20份TRX共4,825個測試全過、0失敗／略過；Debug tracer7案。"
+      "at": "2026-11-08 22:26",
+      "note": "24e97b9e乾淨§8.1通過；詳細數值與SHA見P2-06回報。"
     },
     {
       "item": "檔案說明檢查",
       "result": "ok",
-      "at": "2026-11-08 13:55",
-      "note": "c0b79a94：文件1,314份、0問題。"
+      "at": "2026-11-08 22:26",
+      "note": "24e97b9e乾淨§8.1通過；詳細數值與SHA見P2-06回報。"
     },
     {
       "item": "文字編碼（P2 範圍）",
       "result": "ok",
-      "at": "2026-11-08 13:55",
-      "note": "c0b79a94：Changed296份、0問題。"
+      "at": "2026-11-08 22:26",
+      "note": "24e97b9e乾淨§8.1通過；詳細數值與SHA見P2-06回報。"
     },
     {
       "item": "重複程式掃描",
       "result": "ok",
-      "at": "2026-11-08 13:55",
-      "note": "c0b79a94：34專案1,086份來源，新增重複0。"
+      "at": "2026-11-08 22:26",
+      "note": "24e97b9e乾淨§8.1通過；詳細數值與SHA見P2-06回報。"
     },
     {
       "item": "I18nCheck verify",
       "result": "ok",
-      "at": "2026-11-08 13:55",
-      "note": "c0b79a94：verify通過、46個唯一鍵、生成6份一致。"
+      "at": "2026-11-08 22:26",
+      "note": "24e97b9e乾淨§8.1通過；詳細數值與SHA見P2-06回報。"
     },
     {
       "item": "雲端 CI（GitHub）",

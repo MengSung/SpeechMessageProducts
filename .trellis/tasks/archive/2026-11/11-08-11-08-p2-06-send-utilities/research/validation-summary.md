@@ -102,3 +102,41 @@ f014a4aa乾淨Release建置76警告、0錯誤，方案測試只有Debug／Releas
 | `prop001-valid-links-20261108.txt` | 6910 | `a69c43ebd3914ee3ac74cf020d46a70a7a820f2a2cc1319693517a42352ae16f` |
 
 原始失敗：`clean-2c0b9e95-20261108-221211/05-encoding.log` SHA-256 `35a0ae2e30d62f9d4e309232e3df807e5f1f1d8a40a9e9b0d6d3dc76015115d7`；改由新提交重驗全部命令。
+
+## 最終乾淨守門（2026-11-08 22:26 Asia/Taipei (UTC+08:00)）
+短路徑 `C:/smv/24e97b9e` 對提交 `24e97b9e0ae619433250c5099e2b710bfae10030` 執行00§8.1全部命令及3.4頁面契約，十項exit0。20份Release TRX逐份驗證Counters與實際結果列一致，共4,935個通過、0失敗、0略過；Debug tracer另7個通過。Release76警告、0錯誤；編碼349檔／0問題，文件1,332檔／0失敗，重複36專案1,097檔／0新增；未放寬任何守門。
+
+| 原始證據（本機evidence/clean-24e97b9e-20261108-222206） | SHA-256 |
+|---|---|
+| `01-release-build.log` | `3ee23f496d5770760d1ef37ca256b008062ac3fc056105b6e6d0f6edf8d4f4be` |
+| `02-debug-plugin.log` | `a3440984e5e8d0cc70a580326c36f607c3f5a14f166c3ce41a8a95b5950124d7` |
+| `03-solution-test.log` | `29a36f1d1719711c12a1f782a45acb6952d848646d97a44cd1497717948fc33c` |
+| `04-debug-tracer.log` | `955611ab02a21876605a2ca930615cbd33dac67a1f04beccd2449f7f64b90a48` |
+| `05-encoding.log` | `fe23119d4794f3b057fadeae9a269e6a3af93f4be53b7b1260bb47c1457014fd` |
+| `06-duplicate.log` | `0d72abd0bce9dde07f8160450e314da4b7c9c317f45047bcc3e044391fd0af0c` |
+| `07-i18n.log` | `b7119cc672b83135aebd52867aa2d4055f2510c615d7bc46b3309e78c59877be` |
+| `08-documentation.log` | `c9665e5933855022b1bc2afeb0c8ffcd28b1b9e816f635ea6da8e728ce95ba84` |
+| `09-progress.log` | `0f88b832943ca03b16307c5f21157f01d332dd1d06194372011a227190aef890` |
+| `10-progress34.log` | `c328ef55fbaf4758c358ca617214c86e2f34074fc2310b235c18571333cea05b` |
+| `release-trx/Administrator_LENOVO-LEGION_2026-11-08_22_22_37_net10.0.trx` | `1e5729d93e8527583d90ac229e2be76df937fcd77e04521ffbbdc365fa7589e1` |
+| `release-trx/Administrator_LENOVO-LEGION_2026-11-08_22_22_37_net10.0[10].trx` | `e7710f043d95e8505e48564a0cc2213017296743b6b9be423ecc7ecd8e4e0539` |
+| `release-trx/Administrator_LENOVO-LEGION_2026-11-08_22_22_37_net10.0[1].trx` | `f5be8683e5fcd9c0f559e9086428c86000bac7936c916eb9b867e9747a3735c0` |
+| `release-trx/Administrator_LENOVO-LEGION_2026-11-08_22_22_37_net10.0[2].trx` | `c3168e916e6b8fbbbd0de7d4edb452aa9f570d6039983bda72b6abe9caf92f8a` |
+| `release-trx/Administrator_LENOVO-LEGION_2026-11-08_22_22_37_net10.0[3].trx` | `430a25f72e44f0e2a0cbe4b98a6dbcc59fe0218181f679cdbe56562667985734` |
+| `release-trx/Administrator_LENOVO-LEGION_2026-11-08_22_22_37_net10.0[4].trx` | `61c6b960ce5944de76b9d9dd0014d1a6239daeb247284e2079a3ef7b0d0de7ee` |
+| `release-trx/Administrator_LENOVO-LEGION_2026-11-08_22_22_37_net10.0[5].trx` | `5b38b72cea1d1d18ea3ba6d26e02c5ec040ffa3397cdc31093f8f556ffd10c51` |
+| `release-trx/Administrator_LENOVO-LEGION_2026-11-08_22_22_37_net10.0[6].trx` | `da350642a52f8c0c51f6800243077a5d66249fb641aa205ee31e5f4376c29518` |
+| `release-trx/Administrator_LENOVO-LEGION_2026-11-08_22_22_37_net10.0[7].trx` | `a9ab5191141fc61aa4b4c08f499b490bebc3942314f219c5c41a185bf2b5082d` |
+| `release-trx/Administrator_LENOVO-LEGION_2026-11-08_22_22_37_net10.0[8].trx` | `7390b36f64e737f8f13b78e791c03654238b223e4beea6b2e9290b5700ee998c` |
+| `release-trx/Administrator_LENOVO-LEGION_2026-11-08_22_22_37_net10.0[9].trx` | `11a159a4141854ad2d2be7ea34ad9cc1b6f334796259a1447baca5ceef657a5d` |
+| `release-trx/Administrator_LENOVO-LEGION_2026-11-08_22_22_38_net10.0.trx` | `64c39382aa091b5a3ced576cc320a1e23c7d203729a91226f0801cbc7cbbd07f` |
+| `release-trx/Administrator_LENOVO-LEGION_2026-11-08_22_22_38_net10.0[1].trx` | `467389d938979758f1a278042ebd65a5fb75a9488f797d619e33f0ea42c7c62f` |
+| `release-trx/Administrator_LENOVO-LEGION_2026-11-08_22_22_38_net10.0[2].trx` | `172b75d2da661611ef9b84910e1c0347cbf8c6b17c066ff6d114abd5ac4c5468` |
+| `release-trx/Administrator_LENOVO-LEGION_2026-11-08_22_22_38_net48.trx` | `215b02b304da1d543e1049932528dc587e29d1a28fb9754bc5cfa3b04a095c52` |
+| `release-trx/Administrator_LENOVO-LEGION_2026-11-08_22_22_39_net48.trx` | `1e3fff587c074e8fbf7bfb9a5a5b135d2ddb56b36042a906e787a6d8dd6ab2ba` |
+| `release-trx/Administrator_LENOVO-LEGION_2026-11-08_22_22_39_net48[1].trx` | `7aa437b6aff28886fe826f6928fb8905d36a475ce3328f034973ad475fed8a30` |
+| `release-trx/Administrator_LENOVO-LEGION_2026-11-08_22_22_39_net48[2].trx` | `d1e272f24a44a820d90f7377fb4f2f121e84e0a1ffb64295be90ab152a069a9a` |
+| `release-trx/Administrator_LENOVO-LEGION_2026-11-08_22_22_40_net48.trx` | `790b3d3d4388e9e7fee0a384b60e7e41adb0402ca108c83504da7085f7ddf33d` |
+| `release-trx/Administrator_LENOVO-LEGION_2026-11-08_22_22_40_net48[1].trx` | `195a786297919b7d9a6823a01422136bf8e273952d8c3682184c309a9ac52791` |
+| `summary.log` | `3fc1b764204a903f280ef58f21b17365ca38d9ffebcd3da6d72cb752a164018b` |
+| `tracer-trx/Administrator_LENOVO-LEGION_2026-11-08_22_24_28_net10.0.trx` | `cbb3dfe04b312ad830fe5171082a1272cf7b45f292d4000bd19a6ce3c3da1ff1` |

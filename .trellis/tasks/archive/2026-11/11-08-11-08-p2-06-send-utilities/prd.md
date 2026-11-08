@@ -17,7 +17,7 @@
 - [x] EchoImage 成功／故障的 response、image/thumbnail 及 RichMenu 上傳 stream 在 using owner 釋放。
 - [x] 舊四類標 Obsolete；M1 直接送訊改共用 net10；ChurchReport 既有 Workflows/RichMenu 委派保留。
 - [x] 最終聚焦201個測試通過，文件／位元組檢查結果及SHA-256落入一頁草稿；legacy／Core 邊界已依 PROP-005 核定；最新唯一路由測試及工作流程35案通過，乾淨守門待完成。
-- [ ] 主代理乾淨複本全方案守門、正式驗收／提交推送／封存；本包尚未乾淨驗收。
+- [x] 主代理24e97b9e乾淨複本全部守門通過；2026-11-08 22:26 Asia/Taipei (UTC+08:00)驗收，回報及DATA同步，封存後推送。
 
 ## 非目標與誠實邊界
 沒有實機或整包外部舊方案執行；來源重播、原方法圖片接縫及原先已全綠基線分開標示。舊 ToolUtility 刪除仍假設 menu 獨佔，不能用於 ChurchReport 共用 assignment；是否改此業務策略不由本包擅定。
