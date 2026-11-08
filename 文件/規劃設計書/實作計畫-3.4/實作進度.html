@@ -240,8 +240,8 @@ footer{margin-top:36px;color:var(--muted);font-size:12.5px;text-align:center}
  */
 const DATA = {
   "planVersion": "3.4",
-  "snapshot": "2026-11-08 12:36 Asia/Taipei (UTC+08:00)",
-  "lastUpdated": "2026-11-08T12:36:38+08:00",
+  "snapshot": "2026-11-08 12:41 Asia/Taipei (UTC+08:00)",
+  "lastUpdated": "2026-11-08T12:41:32+08:00",
   "branch": "1.0.0.11.Integration.P2.Worktree",
   "head": "ac37eec4",
   "headline": "P2-07 乾淨複本建置與測試通過；新誤收原始證據使編碼守門失敗，正修正版控邊界後重驗。",
@@ -264,9 +264,10 @@ const DATA = {
       "phaseId": "階段 2",
       "level": "info",
       "title": "P2 進度摘要",
-      "lastUpdated": "2026-11-08T12:36:38+08:00",
+      "lastUpdated": "2026-11-08T12:41:32+08:00",
       "body": "2026-11-08 12:36 Asia/Taipei (UTC+08:00)：P2-07 乾淨複本建置與全方案測試已通過，但 ac37eec4 新收原始證據造成 12 份編碼／腳本問題。原始位元組保留本機，依 D32 修正版控邊界後以新提交重驗，尚未驗收。",
       "steps": [
+        "2026-11-08 12:41 Asia/Taipei (UTC+08:00)：依使用者核定，P2-00 Debug 診斷以 CLI 建置／重建及兩宿主各 41 案通過、IDE 未重現結案歸檔。移到「之後再說」，不再追查或修改中繼路徑。",
         "2026-11-08 12:36 Asia/Taipei (UTC+08:00)：P2-07 乾淨複本建置與全方案測試已通過，但 ac37eec4 新收原始證據造成 12 份編碼／腳本問題。原始位元組保留本機，依 D32 修正版控邊界後以新提交重驗，尚未驗收。",
         "2026-11-08 10:02 Asia/Taipei (UTC+08:00)｜P2-07 CAS／Worker 檢查點｜新增 Hosting-facing 純值契約、每筆 handler scope 與唯一 D365 Core 轉接點；雙 worker 競爭、429 一分鐘退避、第五次逾時終止、stale reclaim、停止排空、resource baseline 及重複正式 ID fail-closed 七個案例通過。SpeechMessage.Hosting.Tests Debug 109 案全過，ToolUtility Debug 建置 0 警告／0 錯誤；目前仍未提交，保留導讀與提交後乾淨複本守門尚未完成。",
         "2026-11-08 08:15 Asia/Taipei (UTC+08:00)｜建置問題盤點｜使用者回報兩個 GoodShepherd 中繼檔找不到路徑；調查時兩檔存在、長度 269／266 個字元、LongPathsEnabled=1。VS 隨附 MSBuild 在原路徑還原／建置／重建均成功，兩宿主各 41 案通過；未證實長路徑或程序競爭。IDE 原錯誤仍可見，08:11 重建開始後視窗最小化，最終結果待核對，不宣稱根因修復；未改產品／建置／系統設定。證據與 SHA 見 P2-00-Debug建置診斷.md。",
@@ -1630,6 +1631,12 @@ const DATA = {
       "text": "伺服器取得支援 4.8 沙箱的更新後，再評估 Plugin 是否升回 net48",
       "source": "D21",
       "addedAt": "2026-11-07 21:10 Asia/Taipei (UTC+08:00)"
+    },
+    {
+      "id": "LATER-004",
+      "text": "Debug IDE 中繼檔診斷已依核定結案；CLI 建置／重建及兩宿主各 41 案通過，IDE 未重現，若日後另有可重現證據再決定。",
+      "source": "P2-00",
+      "addedAt": "2026-11-08 12:41 Asia/Taipei (UTC+08:00)"
     }
   ],
   "proposals": [
