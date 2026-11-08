@@ -240,10 +240,10 @@ footer{margin-top:36px;color:var(--muted);font-size:12.5px;text-align:center}
  */
 const DATA = {
   "planVersion": "3.4",
-  "snapshot": "2026-11-09 00:17 Asia/Taipei (UTC+08:00)",
-  "lastUpdated": "2026-11-09T00:17:14+08:00",
+  "snapshot": "2026-11-09 06:47 Asia/Taipei (UTC+08:00)",
+  "lastUpdated": "2026-11-09T06:47:35+08:00",
   "branch": "1.0.0.11.Integration.P2.Worktree",
-  "head": "c1b01680",
+  "head": "1e2e5605",
   "headline": "P2工作包11／12完成；P2-12實機驗收與階段審查待完成，不啟動P3。",
   "notices": [
     {
@@ -264,9 +264,13 @@ const DATA = {
       "phaseId": "階段 2",
       "level": "info",
       "title": "P2 進度摘要",
-      "lastUpdated": "2026-11-09T00:17:14+08:00",
-      "body": "2026-11-09 00:17 Asia/Taipei (UTC+08:00)：P2-11已於c1b01680完成全部§7.1驗收並推送；P2-12尚待在goodshepherdback實機驗收，完成後做階段審查。P2-04前置不重跑，PROP-004的沙箱快取風險已列入更新回復前置；不啟動P3。",
+      "lastUpdated": "2026-11-09T06:47:35+08:00",
+      "body": "2026-11-09 06:42 Asia/Taipei (UTC+08:00)：P2-01～11已驗收，P2-12進行中；Deployment安全設定格式修正後200個測試通過。尚待完整實機、乾淨守門與階段審查，不啟動P3。",
       "steps": [
+        "2026-11-09 06:47 Asia/Taipei (UTC+08:00)：Release全方案建置0錯誤、76警告，文件說明1334檔0失敗；唯讀盤點非測試LINE ID／letter token／Channel／smoke task均0。編碼守門仍被原始外審證據及自動索引阻擋，未執行D365寫入或推送。",
+        "2026-11-09 06:42 Asia/Taipei (UTC+08:00)：P2-12 member首次建立與既有步驟更新的安全JSON兩案先失敗後通過，Deployment全套200案通過；四項必要秘密只查存在性，測試Channel ID已查證。尚未執行本輪D365寫入。",
+        "2026-11-09 06:42 Asia/Taipei (UTC+08:00)：唯讀ls-remote核對P2分支遠端為1e2e56057da6a9ecea8c0e25b5ac97b9f2ba4e8c，撤回舊摘要未核實的c1b01680推送說法。外部分析入口一次失敗、雙後端均無可用輸出，改用本地分析，不重試。",
+        "2026-11-08 23:26 Asia/Taipei (UTC+08:00)：使用者回覆「繼續」核定延長兩小時至2026-11-09 01:03，原19:50至21:50時間盒保留。2026-11-09 00:17 Asia/Taipei (UTC+08:00)：最終乾淨§8.1已通過，P2-11完成驗收。",
         "2026-11-09 00:17 Asia/Taipei (UTC+08:00)：固定複用C:\\smv\\guard，clean -ffdx成功；c1b01680乾淨§8.1通過，Release全方案4,981案、tracer7案、編碼0問題、重複新增0、文件說明1334檔0失敗、進度頁18/18。",
         "2026-11-09 00:17 Asia/Taipei (UTC+08:00)：P2-11四種member情境及實際子集覆蓋率達標；接受結果Accepted/200/RequestId由測試斷言。P2-12與階段審查未完成；P3維持未開始。",
         "2026-11-08 23:26 Asia/Taipei (UTC+08:00)：P2-11實際net48子集覆蓋率Line.Messaging 94.16%、ToolUtility.Core 85.71%；同名宿主5案通過。包裝樣本6類、metadata10類及合併獨立worker六案通過，CI閉包測試8/8。",
@@ -383,16 +387,22 @@ const DATA = {
       ]
     },
     {
-      "id": "p211-timebox-history",
+      "id": "p212-evidence-encoding",
       "phaseId": "階段 2",
-      "level": "info",
-      "title": "P2-11：PROP-004延長時間盒紀錄",
-      "lastUpdated": "2026-11-08T23:26:56+08:00",
-      "body": "2026-11-08 23:26 Asia/Taipei (UTC+08:00)：使用者回覆「繼續」核定延長兩小時至2026-11-09 01:03，原19:50至21:50時間盒保留。2026-11-09 00:17 Asia/Taipei (UTC+08:00)：最終乾淨§8.1已通過，P2-11完成驗收。",
+      "level": "warn",
+      "title": "P2-12：原始執行證據的版控阻擋",
+      "lastUpdated": "2026-11-09T06:47:35+08:00",
+      "body": "2026-11-09 06:47 Asia/Taipei (UTC+08:00)：編碼守門發現誤提交的外審原始輸出及自動索引不合格式，但既有規則禁止改寫原始證據。建議核定移出版控、保留本機原檔與SHA-256，不改程式、歷史或檢查門檻。",
       "steps": []
     }
   ],
   "userActions": [
+    {
+      "when": "2026-11-09 06:47 Asia/Taipei (UTC+08:00)",
+      "text": "核定將本次誤納版控的外審原始輸出與自動執行索引改為只保存在本機，原檔與SHA-256不變。",
+      "status": "you",
+      "note": "不需操作Git或主機，只需文字核定；程式與歷史提交不改寫，不放寬守門。"
+    },
     {
       "when": "2026-11-07",
       "text": "核定實作計畫 3.4 生效",
@@ -408,8 +418,8 @@ const DATA = {
     {
       "when": "2026-11-08 22:02",
       "text": "核定PROP-004時間盒後續；建議維持子集、不放寬限制，再延長兩小時",
-      "status": "you",
-      "note": "metadata及合併鏈六案已過，缺子集coverage與最終守門；替代方案精確identity及ValueTuple風險已列P2-11一頁回報。"
+      "status": "done",
+      "note": "2026-11-08 23:26 Asia/Taipei (UTC+08:00)：已核定延長兩小時；P2-11於2026-11-09 00:17完成驗收，不再列待使用者。"
     },
     {
       "when": "階段 3 前",
@@ -998,13 +1008,13 @@ const DATA = {
       "id": "P2-12",
       "phaseId": "階段 2",
       "name": "實機驗收：推播整條鏈（Codex 執行）",
-      "status": "todo",
+      "status": "active",
       "deps": "P2-03、P2-04、P2-05、P2-07、P2-08、P2-11",
       "live": "有",
       "timebox": "1 天",
       "doneAt": "",
       "commit": "",
-      "note": "待在goodshepherdback驗收偽語系收訊、異教會不送、重跑不重複與雙Worker唯一認領；先備份、收尾至殘留0並留操作紀錄。"
+      "note": "2026-11-09 06:42 Asia/Taipei (UTC+08:00)：member建立／更新安全設定格式的兩個紅燈已修正，Deployment全套200案通過。尚待goodshepherdback完整實機、乾淨守門與一頁回報，不標驗收。"
     },
     {
       "id": "P3-01",
@@ -1550,35 +1560,35 @@ const DATA = {
   ],
   "active": [
     {
-      "id": "P2-11",
-      "startedAt": "2026-11-08 16:22 Asia/Taipei (UTC+08:00)",
+      "id": "P2-12",
+      "startedAt": "補記 2026-11-09 06:42 Asia/Taipei (UTC+08:00)（原開工時間未記錄）",
       "timebox": "1工作天或15提交",
-      "next": "P2-11已驗收並推送c1b01680；接續P2-12 goodshepherdback實機驗收，不重跑P2-04前置，之後階段審查。",
+      "next": "必要秘密與測試Channel ID已核對；執行備份、推播隔離／去重、雙Worker實機與殘留0收尾，之後階段審查。",
       "dod": [
         [
           "測試",
           "ok",
-          "P2-11聚焦5案通過；Plugin35案、通知雙宿主各50案及真合併鏈六案有證據。"
+          "member安全JSON建立／更新先紅後綠，Deployment全套200案通過；RichMenu原58案證據保留。"
         ],
         [
           "守門",
-          "ok",
-          "c1b01680固定guard乾淨§8.1全過：Release 4,981案、tracer7案及所有靜態守門通過。"
+          "no",
+          "P2-12尚未完成提交後固定guard全套§8.1。"
         ],
         [
           "新專案覆蓋率",
-          "ok",
-          "實際Link子集Line.Messaging 94.16%、ToolUtility.Core 85.71%，分別達80%。"
+          "na",
+          "本包沒有新增專案。"
         ],
         [
           "實機",
-          "na",
-          "P2-11未列實機；P2-12才部署，前置不重跑。"
+          "no",
+          "本輪尚未對D365寫入；須完整實測且殘留0，不用離線結果代替。"
         ],
         [
           "回報與DATA",
-          "ok",
-          "P2-11一頁回報及DATA已更新；本包提交c1b01680並已推送。"
+          "no",
+          "已修正進行中狀態；實機操作紀錄及最終一頁回報待完成。"
         ]
       ]
     }

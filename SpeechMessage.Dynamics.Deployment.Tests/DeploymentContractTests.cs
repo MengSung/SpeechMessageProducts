@@ -11,6 +11,7 @@
  * - 只供 CLI 拒絕案例使用的合成密碼參數範本；呼叫時複製以維持案例隔離。
  * - 只供白名單拒絕案例使用的合成參數範本；每次呼叫複製避免共用可變陣列。
  * - CLI 說明案例的固定輸入，避免每次執行測試重複配置參數陣列。
+ * - member 以首次建立與 trace 更新兩條真實 Apply 路徑驗證單欄 tokenKey JSON，並斷言重新計畫冪等及 plan／export 不含合成秘密。
  * 測試案例入口包含 Plan_EmptyOrganization_CreatesAssemblyTypeAndStep、Plan_SameState_NoOperations、
  * Apply_ConfigurationChanged_UpdatesSameStepAndRemainsIdempotent、
  * Verify_SecretValuesUnchecked_ReturnsIncompleteAndDisclosesScope、
@@ -363,6 +364,40 @@ public sealed class DeploymentContractTests
 
         Assert.Contains("TokenKey", plan.SecretPlaceholders);
         Assert.Equal(0, f.SecretReads);
+    }
+
+    /// <summary>
+    /// 以真實部署核心及離線 SDK 驗證 member 的安全設定建構式契約；
+    /// 首次建立及既有 trace 步驟更新都須把 TokenKey 值包成單欄 JSON，
+    /// 而 plan/export 不得包含合成秘密。fixture 於測試結束清除暫存與假組織。
+    /// </summary>
+    [Theory(DisplayName = "member建立與更新產出Plugin可讀安全JSON")]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void Apply_MemberConfiguration_WritesStrictSecureJson(bool existingTrace)
+    {
+        using var f = new Fixture();
+        if (existingTrace) f.Engine.Apply(f.Plan(), f.Manifest, f.Image);
+        var member = f.Manifest with
+        {
+            Steps = new[]
+            {
+                f.Manifest.Steps[0] with
+                {
+                    UnsecureConfig = "{\"mode\":\"member\",\"culture\":\"qps-ploc\",\"sourceChurchId\":\"11111111-1111-1111-1111-111111111111\",\"allowPseudoLocale\":true}",
+                    SecureConfig = "${secret:TokenKey}"
+                }
+            }
+        };
+        var plan = f.Engine.Plan(member, f.Image, Fixture.Organization);
+        f.Engine.Apply(plan, member, f.Image);
+        var secure = Assert.Single(f.Service.Rows.Where(row => row.LogicalName == "sdkmessageprocessingstepsecureconfig"));
+        using var json = System.Text.Json.JsonDocument.Parse(secure.GetAttributeValue<string>("secureconfig"));
+        Assert.Equal(Fixture.SecretValue, json.RootElement.GetProperty("tokenKey").GetString());
+        Assert.Single(json.RootElement.EnumerateObject());
+        Assert.Empty(f.Engine.Plan(member, f.Image, Fixture.Organization).Operations);
+        Assert.DoesNotContain(Fixture.SecretValue, DeploymentEngine.Markdown(plan), StringComparison.Ordinal);
+        Assert.DoesNotContain(Fixture.SecretValue, File.ReadAllText(Path.Combine(f.Root, "export.json")), StringComparison.Ordinal);
     }
 
     /// <summary>

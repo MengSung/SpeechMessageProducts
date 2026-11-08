@@ -14,6 +14,8 @@ P2-12 只在 `goodshepherdback` 驗收已完成的 P2-11 member Plugin、P2-07 W
 
 `SecureConfig` 只接受完整的 `${secret:TokenKey}` 佔位。`sourceChurchId` 是部署者核准的測試教會正式 ID，不是由 task 或 Contact 輸入推導的授權；Plugin 執行時仍以 D365 組織、task 關聯 Contact、Contact 所屬教會與該教會 Channel 做完整核對。
 
+佔位範本保留不變；只有 Apply 的建立／更新步驟共用 `ResolveSecureConfiguration`，把已解析的 member 金鑰以 JSON API 包成 `{"tokenKey":"..."}`，符合 Plugin 建構式。秘密僅存在本次寫入的區域字串，不快取、不納入計畫、匯出或日誌；CLR 字串無法保證清零，因此不可延長引用範圍。
+
 既有 `trace`／`push` 契約與 `verify` 的秘密未比對回傳碼保留不變。member 不新增 smoke 情境，實機結果以 task 的 Plugin Trace 與 LINE HTTP 受理資料判定。
 
 ## 實機資料流

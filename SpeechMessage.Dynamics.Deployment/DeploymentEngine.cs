@@ -10,6 +10,7 @@
  * - 組合一次性的服務、輸出根、時鐘與秘密來源。秘密委派只在實際建立或更新步驟設定時呼叫。
  * - 將清單、組件 PE 與組織中的受管理 metadata 作離線式比對，建立沒有憑證值的 plan。 此方法只讀取組件、類型、訊息、篩選器與步驟，不讀取業務記錄，也不解析秘密。
  * - 建立可由人工審核的 Markdown 摘要。輸出只列固定欄位、operation、hash 與佔位名稱， 不列出 unsecure／secure 設定實值、帳密、LINE token 或 userId。
+ * - member 安全設定僅在 apply 寫入時組成單欄 tokenKey JSON，建立與更新共用轉換；trace／push 保持原契約，秘密不進 plan、export 或快取。
  * 主要操作入口包含 Plan、Markdown、Apply、WriteExport、Rollback、SmokeAsync、Inspect、CreateAssembly；其餘入口見下方成員契約。
  *
  * 使用邊界與維護：
@@ -500,7 +501,7 @@ internal sealed class DeploymentEngine
             throw new InvalidDataException("Plan 所需訊息篩選器不存在。");
 
         var unsecureConfiguration = ResolvePlaceholders(registration.UnsecureConfig);
-        var secureConfiguration = ResolvePlaceholders(registration.SecureConfig);
+        var secureConfiguration = ResolveSecureConfiguration(registration);
         EntityReference? secureConfigurationReference = null;
         Guid? secureConfigurationId = null;
         if (secureConfiguration.Length > 0)
@@ -619,7 +620,7 @@ internal sealed class DeploymentEngine
         {
             newSecureId = service.Create(new Entity("sdkmessageprocessingstepsecureconfig")
             {
-                ["secureconfig"] = ResolvePlaceholders(registration.SecureConfig)
+                ["secureconfig"] = ResolveSecureConfiguration(registration)
             });
         }
 
@@ -1229,6 +1230,23 @@ internal sealed class DeploymentEngine
         }
 
         return matches.Select(match => match.Groups[1].Value).Distinct(StringComparer.Ordinal).ToArray();
+    }
+
+    /// <summary>
+    /// 僅供 apply 建立或更新步驟時解析安全設定；member 建構式要求單欄 tokenKey JSON，
+    /// 不能直接寫入原始金鑰。以 JSON API 跳脫值，保留 trace 空值及 push 原始 token 契約。
+    /// 結果字串只借給本次 SDK 寫入，不快取或加入 plan／export／日誌；CLR 字串無法保證清零，
+    /// 因此呼叫端不得延長其範圍。缺少秘密時在建立 secure 列之前失敗。
+    /// </summary>
+    /// <param name="registration">已通過格式、模式與秘密佔位驗證的註冊項目。</param>
+    /// <returns>只供本次寫入使用的安全設定，不包含跨組織或跨命令狀態。</returns>
+    private string ResolveSecureConfiguration(StepRegistration registration)
+    {
+        var value = ResolvePlaceholders(registration.SecureConfig);
+        using var configuration = JsonDocument.Parse(registration.UnsecureConfig);
+        return string.Equals(configuration.RootElement.GetProperty("mode").GetString(), "member", StringComparison.Ordinal)
+            ? new JsonObject { ["tokenKey"] = value }.ToJsonString()
+            : value;
     }
 
     /// <summary>僅由 apply 寫入框架呼叫；解析後值不快取、不進計畫或日誌，缺值則停止寫入。</summary>
