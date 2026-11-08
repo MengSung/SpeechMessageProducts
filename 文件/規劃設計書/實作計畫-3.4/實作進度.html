@@ -240,11 +240,11 @@ footer{margin-top:36px;color:var(--muted);font-size:12.5px;text-align:center}
  */
 const DATA = {
   "planVersion": "3.4",
-  "snapshot": "2026-11-08 12:50 Asia/Taipei (UTC+08:00)",
-  "lastUpdated": "2026-11-08T12:50:47+08:00",
+  "snapshot": "2026-11-08 12:59 Asia/Taipei (UTC+08:00)",
+  "lastUpdated": "2026-11-08T12:59:01+08:00",
   "branch": "1.0.0.11.Integration.P2.Worktree",
-  "head": "b0fb5b99",
-  "headline": "P2-07 已驗收推送；P2-04 前置 smoke=0、Accepted／200與有效RequestId、收尾殘留0，接續P2-04＋P2-10。",
+  "head": "0e9e2f71",
+  "headline": "P2-04前置已驗收推送；P2-04＋P2-10離線TDD進行中。",
   "notices": [
     {
       "id": "plan-3.4-summary",
@@ -264,9 +264,10 @@ const DATA = {
       "phaseId": "階段 2",
       "level": "info",
       "title": "P2 進度摘要",
-      "lastUpdated": "2026-11-08T12:50:47+08:00",
-      "body": "2026-11-08 12:50 Asia/Taipei (UTC+08:00)：P2-04 前置只重跑一次，smoke=0、Accepted／200及有效 RequestId，收尾 verify=0、本輪殘留0，已驗收。P2-07 最終封存提交 b0fb5b99 的乾淨守門全過並已推送，接續 P2-04＋P2-10。",
+      "lastUpdated": "2026-11-08T12:59:01+08:00",
+      "body": "2026-11-08 12:59 Asia/Taipei (UTC+08:00)：前置Accepted實機與0e9e2f71乾淨守門均通過，已推送本分支。P2-04＋P2-10開始離線TDD，仍未驗收。",
       "steps": [
+        "2026-11-08 12:59 Asia/Taipei (UTC+08:00)：前置Accepted實機與0e9e2f71乾淨守門均通過，已推送本分支。P2-04＋P2-10開始離線TDD，仍未驗收。",
         "2026-11-08 12:50 Asia/Taipei (UTC+08:00)：P2-04 前置只重跑一次，smoke=0、Accepted／200及有效 RequestId，收尾 verify=0、本輪殘留0，已驗收。P2-07 最終封存提交 b0fb5b99 的乾淨守門全過並已推送，接續 P2-04＋P2-10。",
         "2026-11-08 12:42 Asia/Taipei (UTC+08:00)：P2-07 已驗收，49f67029 乾淨複本全方案 4,755 個測試及全部守門通過。下一步 P2-04 前置 A：已確認唯一固定步驟與組件，FileVersion 仍 1.0.0.1，將依既定序號遞增再部署。",
         "2026-11-08 12:41 Asia/Taipei (UTC+08:00)：依使用者核定，P2-00 Debug 診斷以 CLI 建置／重建及兩宿主各 41 案通過、IDE 未重現結案歸檔。移到「之後再說」，不再追查或修改中繼路徑。",
@@ -881,13 +882,13 @@ const DATA = {
       "id": "P2-04",
       "phaseId": "階段 2",
       "name": "LineMessagingProcessor.Core 完整版與單人推播",
-      "status": "todo",
+      "status": "active",
       "deps": "P2-02、P2-03、P2-04 前置",
       "live": "無",
       "timebox": "1 天",
       "doneAt": "",
       "commit": "",
-      "note": "教會檢查、共用 Channel 各用自己的 sender、Retry Key、宮格綁定"
+      "note": "2026-11-08 12:59 Asia/Taipei (UTC+08:00)：依3.4開始離線TDD，尚未驗收。"
     },
     {
       "id": "P2-05",
@@ -953,13 +954,13 @@ const DATA = {
       "id": "P2-10",
       "phaseId": "階段 2",
       "name": "改字時間輪詢背景服務",
-      "status": "todo",
+      "status": "active",
       "deps": "P2-01",
       "live": "無",
       "timebox": "半天",
       "doneAt": "",
       "commit": "",
-      "note": "只讓有變更的教會快照失效；重疊窗不漏"
+      "note": "2026-11-08 12:59 Asia/Taipei (UTC+08:00)：依3.4開始離線TDD，尚未驗收。"
     },
     {
       "id": "P2-11",
@@ -1527,7 +1528,74 @@ const DATA = {
       "note": "首個正式 Plugin 佈署 goodshepherdback 之前"
     }
   ],
-  "active": [],
+  "active": [
+    {
+      "id": "P2-04",
+      "startedAt": "2026-11-08 12:59",
+      "timebox": "1工作天或15提交",
+      "next": "先確認同名功能紅燈，再做最小實作與守門。",
+      "dod": [
+        [
+          "測試同名存在並通過",
+          "no",
+          "尚在TDD。"
+        ],
+        [
+          "乾淨複本守門",
+          "no",
+          "尚未提交產品實作。"
+        ],
+        [
+          "新專案覆蓋率",
+          "na",
+          "無新增專案。"
+        ],
+        [
+          "實機",
+          "na",
+          "本包未要求實機。"
+        ],
+        [
+          "一頁回報與進度",
+          "no",
+          "已列開始狀態，驗收報告待補。"
+        ]
+      ]
+    },
+    {
+      "id": "P2-10",
+      "startedAt": "2026-11-08 12:59",
+      "timebox": "半天或15提交",
+      "next": "先確認同名功能紅燈，再做最小實作與守門。",
+      "dod": [
+        [
+          "測試同名存在並通過",
+          "no",
+          "尚在TDD。"
+        ],
+        [
+          "乾淨複本守門",
+          "no",
+          "尚未提交產品實作。"
+        ],
+        [
+          "新專案覆蓋率",
+          "na",
+          "無新增專案。"
+        ],
+        [
+          "實機",
+          "na",
+          "本包未要求實機。"
+        ],
+        [
+          "一頁回報與進度",
+          "no",
+          "已列開始狀態，驗收報告待補。"
+        ]
+      ]
+    }
+  ],
   "gates": [
     {
       "item": "方案建置（Release）",

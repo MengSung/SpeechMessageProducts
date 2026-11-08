@@ -79,3 +79,26 @@ cache須包含32 single-flight、A/B千次、版本競態、容量2000/64、fake
 
 2026-11-06真紅：Task.Yield兩次擷取caller同步內容，百scope有48/200弱參照未釋放。
 改owner排程後75/75、回收與排程兩案五輪10/10通過；不得藉延後排程或放寬斷言當作修復。
+
+## P2-10 改字輪詢可執行契約
+
+### 1. 範圍
+Hosting輪詢，ToolUtility只轉接固定部署manager；不得以caller路由更換組織。Host先停止服務再Dispose cache／manager。
+
+### 2. 入口
+`ITextChangeSource.ReadAsync(DateTime sinceUtc, CancellationToken)`回傳最多5000筆`TextChangedChurch(ChurchId, ChangedOnUtc)`；`TextChangePollingService.PollOnceAsync`及BackgroundService共用同一入場旗標。
+
+### 3. 不變條件
+每30秒查嚴格大於上次成功查詢開始時間減2分鐘；僅成功且全部候選驗證後前進watermark。重複／空正式ID或非UTC拒絕整批，先驗候選再Invalidate完整organization/product/church scope；舊快照不清除。組合根必須核對來源manager與輪詢器固定部署範圍相同。SDK完整分頁只取new_textchangedon，按accountid排序，故障／取消標記lease不可重用後歸還。
+
+### 4. 錯誤矩陣
+來源故障：原例外交ExceptionReporting，watermark與快照不變，下輪重試；caller取消：排空、不通知；重疊手動呼叫：立即拒絕、不建等待佇列。
+
+### 5. 正常／基本／禁止
+正常：A改字只讓A世代前進，B保留同一快照；基本：空結果仍前進成功開始時間；禁止：用完成時間當watermark、故障後清cache或靜默Distinct重複ID。
+
+### 6. 驗證
+TextChangePollingServiceTests三個計畫同名測試，加重複ID整批拒絕、正常停止排空及30秒timer Dispose；DataverseTextChangeSourceTests斷言最小ColumnSet、嚴格時間、同時刻不同ID完整保留及原故障淘汰歸還。全部是離線證據。
+
+### 7. 錯誤與正確
+錯誤：`last = completedUtc`後立即Invalidate部分頁；正確：完整讀取驗證後Invalidate指定scope，再將last前進至startedUtc。
