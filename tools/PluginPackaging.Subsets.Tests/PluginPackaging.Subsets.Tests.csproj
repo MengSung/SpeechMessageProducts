@@ -1,0 +1,33 @@
+<!--
+檔案整體說明
+目的與定位：P2-11只供打包來源子集的net48測試宿主，直接instrument兩個AssemblyName與正式輸出相同的來源投影。
+主要功能與流程：引用兩個Compile Link子集，執行LINE協定模型與LineRecipients假SDK案例，由Coverlet逐組件量測。
+使用邊界與維護：不引用Plugin、不建置簽章產物、不讀正式金鑰或連D365/LINE；所有SDK、HTTP與資料均為案例局部合成值，
+測試owner排空後Dispose，沒有共享狀態或背景工作。不得把完整原始產品組件當成子集覆蓋率替代品。
+-->
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net48</TargetFramework>
+    <RootNamespace>SpeechMessage.Tools.PluginPackaging.Subsets.Tests</RootNamespace>
+    <SpeechMessageStrictCode>true</SpeechMessageStrictCode>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <IsTestProject>true</IsTestProject>
+    <IsPackable>false</IsPackable>
+    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
+    <GenerateBindingRedirectsOutputType>true</GenerateBindingRedirectsOutputType>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" />
+    <PackageReference Include="Moq" />
+    <PackageReference Include="Newtonsoft.Json" />
+    <PackageReference Include="coverlet.collector" PrivateAssets="all" />
+    <PackageReference Include="xunit" />
+    <PackageReference Include="xunit.runner.visualstudio" PrivateAssets="all" />
+    <ProjectReference Include="../../build/Line.Messaging.PluginSubset/Line.Messaging.PluginSubset.csproj" />
+    <ProjectReference Include="../../build/ToolUtility.Core.PluginSubset/ToolUtility.Core.PluginSubset.csproj" />
+    <ProjectReference Include="../../SpeechMessage.Localization/SpeechMessage.Localization.csproj" />
+    <ProjectReference Include="../../LineMessagingProcessor.Core/LineMessagingProcessor.Core.csproj" />
+    <Compile Include="../ToolUtility.Tests/DataOperations/LineRecipientQueriesTests.cs" Link="LineRecipients/LineRecipientQueriesTests.cs" />
+  </ItemGroup>
+</Project>

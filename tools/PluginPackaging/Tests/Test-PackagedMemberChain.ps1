@@ -44,9 +44,9 @@ $child = $null
 try {
     $null = New-Item -ItemType Directory -Path $fixture
     Get-ChildItem -LiteralPath ([IO.Path]::GetDirectoryName($test)) -File | Copy-Item -Destination $fixture
-    # 同身分DLL必須在獨立閉包替換；否則LoadFrom會重用未合併Plugin而形成假驗證。
-    $stagedAssembly = Join-Path $fixture 'SpeechMessage.Dynamics.Plugins.dll'
-    Copy-Item -LiteralPath $assembly -Destination $stagedAssembly -Force
+    # 保留未合併測試相依供net48載入；合併簽章產物以不同檔名單獨LoadFrom，避免名稱繫結混用。
+    $stagedAssembly = Join-Path $fixture 'packaged-member.dll'
+    Copy-Item -LiteralPath $assembly -Destination $stagedAssembly
     $stagedTest = Join-Path $fixture ([IO.Path]::GetFileName($test))
     [Environment]::SetEnvironmentVariable('P211_WORKER_ASSEMBLY', $stagedAssembly)
     [Environment]::SetEnvironmentVariable('P211_WORKER_TEST', $stagedTest)
@@ -57,7 +57,8 @@ try {
     ) -Wait -PassThru -WindowStyle Hidden -RedirectStandardOutput $workerOutput -RedirectStandardError $workerError
     $workerText = if (Test-Path -LiteralPath $workerOutput) { [IO.File]::ReadAllText($workerOutput) } else { '' }
     if ($child.ExitCode -ne 0 -or -not $workerText.Contains('PASS merged-member-chain: total=6 failed=0')) {
-        throw 'Merged member chain failed in the isolated worker process.'
+        $workerFailure = if (Test-Path -LiteralPath $workerError) { [IO.File]::ReadAllText($workerError) } else { '' }
+        throw ('Merged member chain worker failed: exit=' + $child.ExitCode + ' stderr=' + $workerFailure)
     }
     Write-Output $workerText.Trim()
 } finally {
