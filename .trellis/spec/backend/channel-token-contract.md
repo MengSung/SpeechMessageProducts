@@ -108,3 +108,35 @@ release-before-report、caller取消／內部timeout、雙重故障與真共用�
 錯誤：using的Dispose故障蓋過SDK故障，或在finally直接throw新例外。
 正確：保留ExceptionDispatchInfo、會合到有界清理點，全部嘗試後聚合原物件，
 成功摘要只在清理真正完成後輸出。
+
+## 8. P2-04 單一會友組合契約
+
+### 適用與介面
+`MemberNotificationService.NotifyAsync(source, sourceContext, contactId, sourceRecordId, tokenKey, messageKey, ct)`
+同步準備後直接回傳Core Task；`ILineRecipientSource.ReadMember/ReadChannel`只回不可變純值，
+`LinePushClient.PushToMemberAsync`、`LinkRichMenuToUserAsync`、`UnlinkRichMenuAsync`共用十秒傳輸owner。
+
+### 輸入與所有權
+Host先驗完整organization/product/church及SDK身分；核心不自行授權。先驗Contact正式ID與所屬教會，
+再讀來源Account.new_linechannelid與正式Channel ID，兩者必須一致。Channel可跨教會共用，sender不得共用。
+SDK只在一次adapter using中借用；通知服務不以async狀態機保存source或tokenKey，不建立cache／queue。
+會友最小欄位為new_lineid、parentcustomerid、new_preferredlanguage；Account四欄name、new_linechannelid、
+new_defaultlanguage、new_enabledlanguages；Channel只取new_accesstokenencrypted（最多4000字元）。
+
+### 驗證及錯誤矩陣
+未綁定→Rejected(NotBound)，錯教會／錯指派→Rejected(ChurchMismatch)，皆不HTTP；錯正式ID／型別／
+超限欄位→固定診斷例外向Host。alias404→Permanent(AliasNotFound)，壞成功本文→Permanent(InvalidResponse)。
+caller取消拋出；內部逾時與傳輸故障保留真Exception交最終入口。公開enum與原string API不改。
+
+### 正常／基礎／禁止例
+正常：兩教會共享Channel但各用自己的sender與會友。基礎：最多5則正式Line.Messaging模型先凍結有界JSON，
+再覆寫server sender，不修改caller模型。禁止：把共享Channel當跨教會授權、把source或key保存到服務欄位。
+
+### 測試與決定性斷言
+P2-04八個同名測試；另驗alias解析後綁定／解除、壞本文不綁定、caller取消與超限零HTTP。
+A/B各100次以真HTTP barrier重疊，active歸零、200份response確定性Dispose；雙宿主實跑。
+
+### 錯誤與正確方式
+錯誤：`new TextMessage(text)`的舊建構式會靜默截斷2000字，無法用它驗5000字邊界。
+正確：`new TextMessage(string.Empty) { Text = text }`保留完整字典值，再由Core明確驗證1～5000字。
+測試用同樣的屬性注入超限值；3000字紅綠證明通知不截斷。不把離線HTTP／SDK契約當實機證據。

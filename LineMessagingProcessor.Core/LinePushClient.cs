@@ -1,7 +1,8 @@
 /*
  * 檔案整體說明
  *
- * 目的與定位：固定 LINE push 端點的單次傳輸實作，沒有重試佇列、背景工作或管理者 notifier。 .NET Framework 的程序級共用 HttpClient 不含使用者狀態，net10 的
+ * 目的與定位：固定LINE端點的單次傳輸owner，供文字相容入口、會友推播及宮格綁定共用；
+ * 沒有重試佇列、背景工作或管理者notifier。.NET Framework的程序級共用HttpClient不含使用者狀態，net10的
  * HttpClient 由主機擁有； 每個操作獨佔 HTTP 訊息、十秒逾時與取消連結，結束前按 using 次序釋放。
  *
  * 主要功能與流程：
@@ -29,11 +30,11 @@ using Newtonsoft.Json;
 namespace LineMessagingProcessor.Core;
 
 /// <summary>
-/// 固定 LINE push 端點的單次傳輸實作，沒有重試佇列、背景工作或管理者 notifier。
+/// 固定LINE端點的共用單次傳輸實作；會友核對與宮格綁定見partial，沒有重試佇列、背景工作或管理者notifier。
 /// .NET Framework 的程序級共用 HttpClient 不含使用者狀態，net10 的 HttpClient 由主機擁有；
 /// 每個操作獨佔 HTTP 訊息、十秒逾時與取消連結，結束前按 using 次序釋放。
 /// </summary>
-public sealed class LinePushClient : ILinePushClient
+public sealed partial class LinePushClient : ILinePushClient, ILineMemberPushClient
 {
     /// <summary>外部或沙箱程序擁有的無狀態連線池，不保存任何當次憑證或結果。</summary>
     private readonly HttpClient _httpClient;
@@ -85,22 +86,29 @@ public sealed class LinePushClient : ILinePushClient
         ArgumentNullException.ThrowIfNull(request);
 #endif
         ct.ThrowIfCancellationRequested();
-
-        using var timeout = _createTimeout(RequestTimeout);
-        using var linked = CancellationTokenSource.CreateLinkedTokenSource(ct, timeout.Token);
-        using var message = new HttpRequestMessage(HttpMethod.Post, "https://api.line.me/v2/bot/message/push");
-        message.Headers.Authorization = new AuthenticationHeaderValue("Bearer", credential.AccessToken);
-        message.Headers.Add("X-Line-Retry-Key", request.RetryKey.ToString("D", CultureInfo.InvariantCulture));
         var body = JsonConvert.SerializeObject(new
         {
             to = request.UserId,
             messages = request.Messages.Select(text => new { type = "text", text }).ToArray()
         });
-        message.Content = new StringContent(body, Encoding.UTF8, "application/json");
+        return (await SendCoreAsync(HttpMethod.Post, "message/push", credential, body, request.RetryKey, null, ct)
+            .ConfigureAwait(false)).Result;
+    }
 
+    /// <summary>唯一HTTP傳輸owner；每次擁有十秒CTS、linked token、request與response，沒有預設標頭狀態。</summary>
+    private async Task<TransportResult> SendCoreAsync(HttpMethod method, string path, LineChannelCredential credential,
+        string? body, Guid? retryKey, string? expectedAlias, CancellationToken ct)
+    {
+        ct.ThrowIfCancellationRequested();
+        using var timeout = _createTimeout(RequestTimeout);
+        using var linked = CancellationTokenSource.CreateLinkedTokenSource(ct, timeout.Token);
+        using var message = new HttpRequestMessage(method, "https://api.line.me/v2/bot/" + path);
+        message.Headers.Authorization = new AuthenticationHeaderValue("Bearer", credential.AccessToken);
+        if (retryKey.HasValue)
+            message.Headers.Add("X-Line-Retry-Key", retryKey.Value.ToString("D", CultureInfo.InvariantCulture));
+        if (body is not null) message.Content = new StringContent(body, Encoding.UTF8, "application/json");
         try
         {
-            // 只需要標頭；不緩衝、不讀取也不保留錯誤本文，回傳前釋放回應及內容串流。
             using var response = await _httpClient.SendAsync(message, HttpCompletionOption.ResponseHeadersRead, linked.Token)
                 .ConfigureAwait(false);
             var status = (int)response.StatusCode;
@@ -112,22 +120,35 @@ public sealed class LinePushClient : ILinePushClient
                 _ => LinePushOutcome.Permanent
             };
             var requestId = response.Headers.TryGetValues("x-line-request-id", out var values) ? values.FirstOrDefault() : null;
-            return new LinePushResult(outcome, response.StatusCode, requestId, null);
+            string? menuId = null;
+            string? reason = expectedAlias is not null && status == 404 ? "AliasNotFound" : null;
+            if (expectedAlias is not null && outcome == LinePushOutcome.Success)
+            {
+                menuId = await ReadMenuIdAsync(response, expectedAlias, linked.Token).ConfigureAwait(false);
+                if (menuId is null) { outcome = LinePushOutcome.Permanent; reason = "InvalidResponse"; }
+            }
+            return new TransportResult(new LinePushResult(outcome, response.StatusCode, requestId, null, reason), menuId);
         }
         catch (OperationCanceledException exception)
         {
-            // caller 取消只在沒有收到 HTTP 回應時中止操作；其他取消來源都是無回應的傳輸失敗。
-            // 一旦 SendAsync 已回傳 response，狀態碼結果優先，避免丟失服務端已知的接受／拒絕資訊。
+            // caller取消才是正常中止；內部十秒或HttpClient逾時保留原例外供最終邊界處理。
             ct.ThrowIfCancellationRequested();
-            return new LinePushResult(LinePushOutcome.Retryable, null, null, exception);
+            return new TransportResult(new LinePushResult(LinePushOutcome.Retryable, null, null, exception), null);
         }
         catch (HttpRequestException exception)
         {
-            // 本層沒有收到 HTTP 回應，原始實例交給最終邊界；不能在可恢復重試階段重複告警。
-            // .NET Framework 不會像 net10 自動把同時發生的 caller 取消正規化，因此在此明確優先辨識。
             ct.ThrowIfCancellationRequested();
-            return new LinePushResult(LinePushOutcome.Retryable, null, null, exception);
+            return new TransportResult(new LinePushResult(LinePushOutcome.Retryable, null, null, exception), null);
         }
+    }
+
+    /// <summary>單次HTTP純值結果，最多保留有效宮格ID，不保存回應、本文、憑證或SDK。</summary>
+    private sealed class TransportResult(LinePushResult result, string? menuId)
+    {
+        /// <summary>已釋放傳輸資源的固定結果。</summary>
+        internal LinePushResult Result { get; } = result;
+        /// <summary>只供本次alias查詢後的綁定使用，不跨請求快取。</summary>
+        internal string? MenuId { get; } = menuId;
     }
 
     /// <summary>跨框架共用的正式排程器，建立具固定期限的獨立來源，由呼叫的 using 確定性釋放。</summary>

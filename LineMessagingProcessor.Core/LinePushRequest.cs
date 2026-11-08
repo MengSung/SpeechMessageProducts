@@ -34,14 +34,7 @@ public sealed class LinePushRequest
     /// <param name="retryKey">同一業務事件重試必須沿用的非空識別碼。</param>
     public LinePushRequest(string userId, IReadOnlyList<string> messages, Guid retryKey)
     {
-        if (userId is null || userId.Length != 33 || userId[0] != 'U')
-            throw new ArgumentException("A valid single-recipient identifier is required.", nameof(userId));
-        for (var index = 1; index < userId.Length; index++)
-        {
-            var character = userId[index];
-            if (character is not (>= '0' and <= '9') and not (>= 'a' and <= 'f'))
-                throw new ArgumentException("A valid single-recipient identifier is required.", nameof(userId));
-        }
+        RequireUserId(userId);
 #if NETFRAMEWORK
         if (messages is null) throw new ArgumentNullException(nameof(messages));
 #else
@@ -65,6 +58,19 @@ public sealed class LinePushRequest
         UserId = userId;
         RetryKey = retryKey;
         Messages = Array.AsReadOnly(snapshot);
+    }
+
+    /// <summary>所有單人推播與宮格API共用的收件ID格式核對；不把語法有效視為授權。</summary>
+    internal static void RequireUserId(string? userId)
+    {
+        if (userId is null || userId.Length != 33 || userId[0] != 'U')
+            throw new ArgumentException("A valid single-recipient identifier is required.", nameof(userId));
+        for (var index = 1; index < userId.Length; index++)
+        {
+            var character = userId[index];
+            if (character is not (>= '0' and <= '9') and not (>= 'a' and <= 'f'))
+                throw new ArgumentException("A valid single-recipient identifier is required.", nameof(userId));
+        }
     }
 
     /// <summary>伺服器已驗證的單一收件 ID，僅用於當次 HTTP 內容，不可當成授權依據。</summary>

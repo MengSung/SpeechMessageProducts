@@ -17,9 +17,11 @@
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
   </PropertyGroup>
   <ItemGroup>
+    <ProjectReference Include="../Line.Messaging/Line.Messaging.csproj" />
     <PackageReference Include="Newtonsoft.Json" />
     <InternalsVisibleTo Include="LineMessagingProcessor.Tests" />
     <InternalsVisibleTo Include="SpeechMessage.Dynamics.Plugins.Tests" />
+    <InternalsVisibleTo Include="SpeechMessageProducts.GoodShepherd.Core.Tests" />
   </ItemGroup>
   <ItemGroup Condition="'$(TargetFramework)' == 'net462'">
     <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" PrivateAssets="all" />

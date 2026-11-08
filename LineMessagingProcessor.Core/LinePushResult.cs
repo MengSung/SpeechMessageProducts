@@ -7,7 +7,7 @@
  * 主要功能與流程：
  * 本檔宣告 LinePushResult。
  * - 只允許傳輸實作建立一致結果；有 HTTP 狀態與無回應故障為互斥路徑。
- * - 只有平台接受或同鍵已接受才成功，Rejected 不在本階段產生。
+ * - 只有平台接受或同鍵已接受才成功，會友／教會前置不符以固定Rejected代碼拒絕且不觸網。
  * - 平台 x-line-request-id；不讀取或保存可能含敏感資訊的錯誤回應本文。
  * - 僅無回應的傳輸失敗保留原始例外；有 HTTP 狀態的結果必須為 null。
  * 主要操作入口包含 ToString。
@@ -38,7 +38,13 @@ public sealed class LinePushResult
     /// <param name="requestId">有回應才提供的平台診斷 ID。</param>
     /// <param name="transportException">只在未收到回應的故障傳入原始實例。</param>
     internal LinePushResult(LinePushOutcome outcome, HttpStatusCode? statusCode, string? requestId, Exception? transportException)
+        : this(outcome, statusCode, requestId, transportException, null) { }
+
+    /// <summary>加入固定端點分類；reason不得放入回應本文或caller資料。</summary>
+    internal LinePushResult(LinePushOutcome outcome, HttpStatusCode? statusCode, string? requestId,
+        Exception? transportException, string? reason)
     {
+        Reason = reason;
         Outcome = outcome;
         StatusCode = statusCode;
         RequestId = requestId;
@@ -48,7 +54,7 @@ public sealed class LinePushResult
     /// <summary>取得 HTTP／傳輸分類，不把可恢復失敗當作成功。</summary>
     public LinePushOutcome Outcome { get; }
 
-    /// <summary>只有平台接受或同鍵已接受才成功，Rejected 不在本階段產生。</summary>
+    /// <summary>只有平台接受或同鍵已接受才成功，教會／未綁定等本地Rejected不算成功。</summary>
     public bool Success => Outcome is LinePushOutcome.Success or LinePushOutcome.AlreadyAccepted;
 
     /// <summary>收到回應時的狀態碼；傳輸失敗沒有 HTTP 狀態碼。</summary>
@@ -56,6 +62,17 @@ public sealed class LinePushResult
 
     /// <summary>平台 x-line-request-id；不讀取或保存可能含敏感資訊的錯誤回應本文。</summary>
     public string? RequestId { get; }
+
+    /// <summary>固定業務拒絕代碼或端點永久分類，不含輸入、憑證或供應商回應本文。</summary>
+    public string? Reason { get; }
+
+    /// <summary>建立不需要 HTTP 的固定業務拒絕；只接受核定代碼，防止診斷注入個資。</summary>
+    public static LinePushResult Reject(string reason)
+    {
+        if (reason is not ("ChurchMismatch" or "NotBound"))
+            throw new ArgumentException("Unknown member rejection code.", nameof(reason));
+        return new LinePushResult(LinePushOutcome.Rejected, null, null, null, reason);
+    }
 
     /// <summary>僅無回應的傳輸失敗保留原始例外；有 HTTP 狀態的結果必須為 null。</summary>
     [JsonIgnore]

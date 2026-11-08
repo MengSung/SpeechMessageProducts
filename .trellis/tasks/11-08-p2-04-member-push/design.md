@@ -1,0 +1,5 @@
+# P2-04 技術設計
+
+沿用LinePushClient的十秒有界傳輸與結果分類；既有string請求ABI保留，新增ISendMessage凍結JSON與server sender。純值recipient/channel包含正式教會／指派身分；先核對兩條教會條件才觸網。ToolUtility.Core提供最小ColumnSet讀取，GoodShepherd以每次操作的查詢、Token解密、resolver與catalog組合；不保存會友或憑證到服務欄位。宮格alias先解析再綁定，404明確AliasNotFound；不改公開enum、固定AssemblyVersion或smoke判定。
+
+所有測試離線、固定UTC與合成ID，不連goodshepherdback；實機集中P2-12。外部審查只階段末一次，主會話inline實作與本地檢查。
