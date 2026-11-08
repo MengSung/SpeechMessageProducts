@@ -63,6 +63,27 @@ public sealed class RichMenuGenerateHandlerTests
         Assert.DoesNotContain(processor.Calls, call => call.StartsWith("create:"));
     }
 
+    /// <summary>
+    /// 以替身注入 993 個既有 alias，再要求八個候選以超過每 Channel 1000 個上限；
+    /// 斷言繪圖、建立及上傳之前即拒絕，既有 alias 完整保留，stream 計數維持零。
+    /// </summary>
+    [Fact]
+    public async Task Generate_AliasCapacityInsufficient_FailsBeforeUpload()
+    {
+        var processor = new CapturingRichMenuProcessor();
+        for (var i = 0; i < 993; i++)
+            processor.Aliases.Add("existing-" + i.ToString("D3"), "richmenu-" + i.ToString("x32"));
+
+        var renderer = new Renderer();
+        await Assert.ThrowsAsync<InvalidOperationException>(() =>
+            Handler(processor, renderer, new Catalog(), ["zh-TW"]).ExecuteAsync(default));
+
+        Assert.Empty(renderer.Texts);
+        Assert.Equal(0, renderer.Active);
+        Assert.DoesNotContain(processor.Calls, call => call.StartsWith("create:", StringComparison.Ordinal));
+        Assert.Equal(993, processor.Aliases.Count);
+    }
+
     /// <summary>SDK會靜默截斷chatBar；必須在設定SDK屬性之前拒絕15字，不可送出14字假成功。</summary>
     [Fact]
     public async Task ChatBarText_TooLong_Rejected()
@@ -119,6 +140,92 @@ public sealed class RichMenuGenerateHandlerTests
         Assert.Equal(count, processor.UploadedImageCount);
         Assert.Equal(8, processor.ExistingRichMenus.Count);
         Assert.Equal(8, processor.Aliases.Count);
+        Assert.Equal(0, renderer.Active);
+    }
+
+    /// <summary>
+    /// 第二次上傳前把第一張的 alias 改指他人 menu，再注入上傳故障；
+    /// 斷言原故障保留、自有 menu 仍被刪除、他人 alias 未被刪改，且 stream 確定性歸零。
+    /// </summary>
+    [Fact]
+    public async Task Generate_CompensationAliasPointsToAnotherMenu_DeletesOwnedMenuAndPreservesAlias()
+    {
+        var failure = new IOException("synthetic second upload fault");
+        var foreignMenuId = "richmenu-" + new string('f', 32);
+        var firstOwnedMenuId = "richmenu-" + 2000.ToString("x32");
+        const string firstAlias = "c31-p1-a-zh-TW";
+        var processor = new CapturingRichMenuProcessor
+        {
+            UploadException = failure,
+            UploadExceptionOnCall = 2
+        };
+        processor.BeforeUploadFailure = () => processor.Aliases[firstAlias] = foreignMenuId;
+
+        var renderer = new Renderer();
+        var exception = await Assert.ThrowsAsync<AggregateException>(() =>
+            Handler(processor, renderer, new Catalog(), ["zh-TW"]).ExecuteAsync(default));
+
+        Assert.Contains(failure, exception.InnerExceptions);
+        Assert.Equal(foreignMenuId, processor.Aliases[firstAlias]);
+        Assert.DoesNotContain(processor.ExistingRichMenus, menu => menu.RichMenuId == firstOwnedMenuId);
+        Assert.Contains(processor.Calls, call => call == "delete:" + firstOwnedMenuId);
+        Assert.DoesNotContain(processor.Calls, call => call == "alias-delete:" + firstAlias);
+        Assert.Equal(0, renderer.Active);
+    }
+
+    /// <summary>
+    /// 第二次上傳失敗後讓補償 alias 查詢也失敗；聚合保留兩個原始故障，
+    /// 但不跳過自有 menu 刪除，並驗證所有繪圖 stream 已由 handler 釋放。
+    /// </summary>
+    [Fact]
+    public async Task Generate_CompensationAliasLookupFails_StillDeletesOwnedMenu()
+    {
+        var failure = new IOException("synthetic second upload fault");
+        var aliasFailure = new InvalidOperationException("synthetic alias lookup fault");
+        var firstOwnedMenuId = "richmenu-" + 2000.ToString("x32");
+        var processor = new CapturingRichMenuProcessor
+        {
+            UploadException = failure,
+            UploadExceptionOnCall = 2,
+            GetAliasException = aliasFailure
+        };
+        var renderer = new Renderer();
+
+        var exception = await Assert.ThrowsAsync<AggregateException>(() =>
+            Handler(processor, renderer, new Catalog(), ["zh-TW"]).ExecuteAsync(default));
+
+        Assert.Contains(failure, exception.InnerExceptions);
+        Assert.Contains(aliasFailure, exception.InnerExceptions);
+        Assert.DoesNotContain(processor.ExistingRichMenus, menu => menu.RichMenuId == firstOwnedMenuId);
+        Assert.Contains(processor.Calls, call => call == "delete:" + firstOwnedMenuId);
+        Assert.Equal(0, renderer.Active);
+    }
+
+    /// <summary>
+    /// 注入第二次上傳與 alias 刪除故障；聚合保留原上傳錯誤及清理錯誤，
+    /// 仍嘗試刪除本次自有 menu，且所有 stream 回到零，不能把補償中斷視為成功。
+    /// </summary>
+    [Fact]
+    public async Task Generate_CompensationAliasDeleteFails_StillDeletesOwnedMenu()
+    {
+        var failure = new IOException("synthetic second upload fault");
+        var aliasFailure = new InvalidOperationException("synthetic alias deletion fault");
+        var firstOwnedMenuId = "richmenu-" + 2000.ToString("x32");
+        var processor = new CapturingRichMenuProcessor
+        {
+            UploadException = failure,
+            UploadExceptionOnCall = 2,
+            DeleteAliasException = aliasFailure
+        };
+        var renderer = new Renderer();
+
+        var exception = await Assert.ThrowsAsync<AggregateException>(() =>
+            Handler(processor, renderer, new Catalog(), ["zh-TW"]).ExecuteAsync(default));
+
+        Assert.Contains(failure, exception.InnerExceptions);
+        Assert.Contains(aliasFailure, exception.InnerExceptions);
+        Assert.DoesNotContain(processor.ExistingRichMenus, menu => menu.RichMenuId == firstOwnedMenuId);
+        Assert.Contains(processor.Calls, call => call.StartsWith("delete:" + firstOwnedMenuId, StringComparison.Ordinal));
         Assert.Equal(0, renderer.Active);
     }
 

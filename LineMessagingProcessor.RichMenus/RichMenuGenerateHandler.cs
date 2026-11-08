@@ -9,7 +9,8 @@
  * 由scope擁有，不在本檔Dispose。每張PNG由handler確定性Dispose；不設cache、timer或背景Task。
  * 現有processor無取消參數，scope必須設定有界HTTP timeout；呼叫一律await完成再清理，
  * 取消在API邊界檢查，不用WaitAsync遺棄傳輸。真正失敗原樣交worker共用告警，不在這裡另建通知器。
- * 驗證：離線同名測試保護啟用語系、字典覆寫、容量、偽語系alias、重複正式ID與故障清理，
+ * 驗證：離線同名測試保護啟用語系、字典覆寫、menu／alias各1000容量、偽語系alias及重複正式ID；
+ * alias異主或查刪失敗均保留錯誤，仍刪本次自有menu，不改動他人的alias，並測故障清理。
  * 不把離線圖檔當成LINE或D365驗收。產品仍負責版面業務內容與既有使用者的換綁生命週期。
  */
 using Line.Messaging;
@@ -139,7 +140,8 @@ public sealed class RichMenuGenerateHandler : IOutboundTaskHandler
             else if (!byId.TryGetValue(id, out var menu) || menu.Name != plan.Menu.Name)
                 throw new InvalidOperationException("Existing rich menu alias requires the product migration workflow.");
         }
-        if (existing.Count + pending.Count > 1000)
+        if (existing.Count + pending.Count > 1000 ||
+            aliases.Count + pending.Count > 1000)
             throw new InvalidOperationException("Rich menu channel capacity is insufficient.");
 
         var created = new List<(string Id, string Alias, bool AliasAttempted)>(pending.Count);
@@ -171,19 +173,36 @@ public sealed class RichMenuGenerateHandler : IOutboundTaskHandler
             // 補償不受已取消的caller token中斷；仍受scope的HTTP timeout約束，且只刪本次自有ID。
             foreach (var item in created.AsEnumerable().Reverse())
             {
-                try
+                if (item.AliasAttempted)
                 {
-                    if (item.AliasAttempted)
+                    try
                     {
-                        try
+                        var current = await _processor.GetRichMenuAliasAsync(item.Alias).ConfigureAwait(false);
+                        if (current.RichMenuId == item.Id)
                         {
-                            var current = await _processor.GetRichMenuAliasAsync(item.Alias).ConfigureAwait(false);
-                            if (current.RichMenuId != item.Id)
-                                throw new InvalidOperationException("Alias ownership changed during compensation.");
                             await _processor.DeleteRichMenuAliasAsync(item.Alias).ConfigureAwait(false);
                         }
-                        catch (LineRichMenuAliasNotFoundException) { /* 未發佈，無須刪除其他alias。 */ }
+                        // 發布後 alias 已改指他人：不刪改他人 alias；下方仍須刪本次自有 menu，
+                        // 不能把 alias 所有權衝突當成跳過自有遠端資源清理的理由。
+                        else
+                        {
+                            errors.Add(new InvalidOperationException("Alias ownership changed during compensation."));
+                        }
                     }
+                    catch (LineRichMenuAliasNotFoundException)
+                    {
+                        // alias 已不存在，無須刪除；仍繼續清理本次自有 menu。
+                    }
+                    catch (Exception cleanup)
+                    {
+                        // alias 清理失敗只加入聚合，不中斷自有 menu 的確定性清理；
+                        // 原始故障與每個清理故障均交給上層告警，不能假稱殘留為零。
+                        errors.Add(cleanup);
+                    }
+                }
+
+                try
+                {
                     await _processor.DeleteRichMenuAsync(item.Id).ConfigureAwait(false);
                 }
                 catch (Exception cleanup) { errors.Add(cleanup); }

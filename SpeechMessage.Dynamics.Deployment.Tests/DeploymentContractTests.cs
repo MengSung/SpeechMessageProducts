@@ -339,6 +339,106 @@ public sealed class DeploymentContractTests
         Assert.Equal(0, f.SecretReads);
     }
 
+    /// <summary>
+    /// member 模式必須接受來源教會正式 GUID、明確的偽語系布林值與 TokenKey 佔位；
+    /// 本案例只跑離線 plan，不解析秘密，也不連線到 D365 或 LINE。
+    /// </summary>
+    [Fact(DisplayName = "member設定接受來源教會與TokenKey佔位")]
+    public void Plan_MemberConfiguration_AcceptsStrictContract()
+    {
+        using var f = new Fixture();
+        var member = f.Manifest with
+        {
+            Steps = new[]
+            {
+                f.Manifest.Steps[0] with
+                {
+                    UnsecureConfig = "{\"mode\":\"member\",\"culture\":\"qps-ploc\",\"sourceChurchId\":\"11111111-1111-1111-1111-111111111111\",\"allowPseudoLocale\":true}",
+                    SecureConfig = "${secret:TokenKey}"
+                }
+            }
+        };
+
+        var plan = f.Engine.Plan(member, f.Image, Fixture.Organization);
+
+        Assert.Contains("TokenKey", plan.SecretPlaceholders);
+        Assert.Equal(0, f.SecretReads);
+    }
+
+    /// <summary>
+    /// member 模式不得以非 canonical D 格式或空 GUID 作為來源教會授權；
+    /// 驗證必須在任何組織寫入前失敗。
+    /// </summary>
+    [Theory(DisplayName = "member來源教會GUID格式錯誤即拒絕")]
+    [InlineData("11111111111111111111111111111111")]
+    [InlineData("00000000-0000-0000-0000-000000000000")]
+    public void Plan_MemberConfiguration_InvalidSourceChurchId_Refuses(string sourceChurchId)
+    {
+        using var f = new Fixture();
+        var member = f.Manifest with
+        {
+            Steps = new[]
+            {
+                f.Manifest.Steps[0] with
+                {
+                    UnsecureConfig = "{\"mode\":\"member\",\"culture\":\"qps-ploc\",\"sourceChurchId\":\"" + sourceChurchId + "\",\"allowPseudoLocale\":true}",
+                    SecureConfig = "${secret:TokenKey}"
+                }
+            }
+        };
+
+        Assert.Throws<InvalidDataException>(() => f.Engine.Plan(member, f.Image, Fixture.Organization));
+        Assert.Empty(f.Service.Writes);
+    }
+
+    /// <summary>
+    /// member 模式的 allowPseudoLocale 是結構化布林值，不接受字串冒充布林；
+    /// 這避免部署設定與 Plugin 執行時的偽語系政策產生隱含轉型差異。
+    /// </summary>
+    [Fact(DisplayName = "member偽語系開關不是布林即拒絕")]
+    public void Plan_MemberConfiguration_NonBooleanPseudoLocale_Refuses()
+    {
+        using var f = new Fixture();
+        var member = f.Manifest with
+        {
+            Steps = new[]
+            {
+                f.Manifest.Steps[0] with
+                {
+                    UnsecureConfig = "{\"mode\":\"member\",\"culture\":\"qps-ploc\",\"sourceChurchId\":\"11111111-1111-1111-1111-111111111111\",\"allowPseudoLocale\":\"true\"}",
+                    SecureConfig = "${secret:TokenKey}"
+                }
+            }
+        };
+
+        Assert.Throws<InvalidDataException>(() => f.Engine.Plan(member, f.Image, Fixture.Organization));
+        Assert.Empty(f.Service.Writes);
+    }
+
+    /// <summary>
+    /// member secure configuration 只能引用部署專用 TokenKey；
+    /// 其他秘密名稱即使格式合法也必須拒絕，避免誤把推播 token 或 userId 帶入 member 外掛。
+    /// </summary>
+    [Fact(DisplayName = "member安全設定只接受TokenKey")]
+    public void Plan_MemberConfiguration_WrongSecretPlaceholder_Refuses()
+    {
+        using var f = new Fixture();
+        var member = f.Manifest with
+        {
+            Steps = new[]
+            {
+                f.Manifest.Steps[0] with
+                {
+                    UnsecureConfig = "{\"mode\":\"member\",\"culture\":\"qps-ploc\",\"sourceChurchId\":\"11111111-1111-1111-1111-111111111111\",\"allowPseudoLocale\":true}",
+                    SecureConfig = "${secret:TestChannelToken}"
+                }
+            }
+        };
+
+        Assert.Throws<InvalidDataException>(() => f.Engine.Plan(member, f.Image, Fixture.Organization));
+        Assert.Empty(f.Service.Writes);
+    }
+
     /// <summary>規劃後組織出現新的組件，apply 必須拒絕且沒有寫入。</summary>
     [Fact(DisplayName = "組織現況已變拒絕套用")]
     public void Apply_OrganizationChangedSincePlan_Refuses()

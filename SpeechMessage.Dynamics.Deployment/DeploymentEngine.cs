@@ -1121,7 +1121,11 @@ internal sealed class DeploymentEngine
         }
     }
 
-    /// <summary>只允許固定模式、語系與秘密佔位；拒絕原始收件者及 token，使 plan 和版控安全。</summary>
+    /// <summary>
+    /// 只允許固定模式、語系、member 來源教會與秘密佔位；拒絕原始收件者及 token，
+    /// 使 plan 和版控安全。member 的 sourceChurchId 是部署者核准的固定正式 ID，
+    /// 不是由 task、Contact 或其他執行輸入推導的授權。
+    /// </summary>
     private static void ValidateConfigurationTemplate(StepRegistration step)
     {
         if (string.IsNullOrWhiteSpace(step.UnsecureConfig) ||
@@ -1138,23 +1142,45 @@ internal sealed class DeploymentEngine
             !root.TryGetProperty("culture", out var culture) ||
             mode.ValueKind != JsonValueKind.String ||
             culture.ValueKind != JsonValueKind.String ||
-            mode.GetString() is not ("trace" or "push") ||
+            mode.GetString() is not ("trace" or "push" or "member") ||
             culture.GetString() is not ("zh-TW" or "qps-ploc"))
         {
             throw new InvalidDataException("Plugin 設定結構不符合 P0 契約。");
         }
 
+        var memberMode = string.Equals(mode.GetString(), "member", StringComparison.Ordinal);
         foreach (var property in root.EnumerateObject())
         {
-            if (property.Name is not ("mode" or "culture" or "lineUserId") ||
-                property.Value.ValueKind != JsonValueKind.String)
+            var valid = property.Name switch
+            {
+                "mode" or "culture" or "lineUserId" or "sourceChurchId" =>
+                    property.Value.ValueKind == JsonValueKind.String,
+                "allowPseudoLocale" =>
+                    property.Value.ValueKind == JsonValueKind.True ||
+                    property.Value.ValueKind == JsonValueKind.False,
+                _ => false
+            };
+            if (!valid)
             {
                 throw new InvalidDataException("Plugin 設定含不支援欄位。");
             }
         }
 
         var pushMode = string.Equals(mode.GetString(), "push", StringComparison.Ordinal);
-        if (pushMode)
+        if (memberMode)
+        {
+            if (!root.TryGetProperty("sourceChurchId", out var sourceChurchId) ||
+                !Guid.TryParseExact(sourceChurchId.GetString(), "D", out var parsedChurchId) ||
+                parsedChurchId == Guid.Empty ||
+                !root.TryGetProperty("allowPseudoLocale", out _ ) ||
+                !IsSingleSecretPlaceholder(step.SecureConfig) ||
+                !string.Equals(step.SecureConfig, "${secret:TokenKey}", StringComparison.Ordinal) ||
+                root.TryGetProperty("lineUserId", out _))
+            {
+                throw new InvalidDataException("member 設定必須包含有效來源教會、布林偽語系開關與 TokenKey 佔位。");
+            }
+        }
+        else if (pushMode)
         {
             if (!root.TryGetProperty("lineUserId", out var lineUserId) ||
                 !IsSingleSecretPlaceholder(lineUserId.GetString()) ||
@@ -1163,7 +1189,10 @@ internal sealed class DeploymentEngine
                 throw new InvalidDataException("推播設定必須只使用 User Secrets 佔位。");
             }
         }
-        else if (root.TryGetProperty("lineUserId", out _) || step.SecureConfig.Length != 0)
+        else if (root.TryGetProperty("lineUserId", out _) ||
+                 root.TryGetProperty("sourceChurchId", out _) ||
+                 root.TryGetProperty("allowPseudoLocale", out _) ||
+                 step.SecureConfig.Length != 0)
         {
             throw new InvalidDataException("追蹤模式不得包含推播識別或 token。");
         }

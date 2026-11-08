@@ -130,6 +130,18 @@ internal sealed class CapturingRichMenuProcessor : ILineRichMenuProcessor
     /// <summary>單案可注入圖檔上傳故障，保護metadata建立後的遠端補償與確定性stream釋放。</summary>
     public Exception? UploadException { get; set; }
 
+    /// <summary>只在指定的上傳呼叫序號注入故障，讓測試保留前一張已建立的自有menu。</summary>
+    public int? UploadExceptionOnCall { get; set; }
+
+    /// <summary>上傳故障前執行的單案回呼；只供測試改變alias擁有權，不保存外部資源。</summary>
+    public Action? BeforeUploadFailure { get; set; }
+
+    /// <summary>alias查詢故障注入；只影響補償查詢，不改變其他processor預設行為。</summary>
+    public Exception? GetAliasException { get; set; }
+
+    /// <summary>alias刪除故障注入；handler仍必須接續刪除自有menu。</summary>
+    public Exception? DeleteAliasException { get; set; }
+
     /// <summary>
     /// 記錄建立 alias 的次數，方便測試 provisioning 是否避免不必要的重複建立。
     /// </summary>
@@ -171,7 +183,11 @@ internal sealed class CapturingRichMenuProcessor : ILineRichMenuProcessor
     {
         Calls.Add($"upload:{richMenuId}");
         UploadedImageCount++;
-        if (UploadException is not null) throw UploadException;
+        if (UploadExceptionOnCall is null || UploadedImageCount == UploadExceptionOnCall)
+        {
+            BeforeUploadFailure?.Invoke();
+            if (UploadException is not null) throw UploadException;
+        }
         return Task.CompletedTask;
     }
 
@@ -302,6 +318,7 @@ internal sealed class CapturingRichMenuProcessor : ILineRichMenuProcessor
     public Task DeleteRichMenuAliasAsync(string richMenuAliasId)
     {
         Calls.Add($"alias-delete:{richMenuAliasId}");
+        if (DeleteAliasException is not null) throw DeleteAliasException;
         Aliases.Remove(richMenuAliasId);
         return Task.CompletedTask;
     }
@@ -315,6 +332,7 @@ internal sealed class CapturingRichMenuProcessor : ILineRichMenuProcessor
     public Task<RichMenuAlias> GetRichMenuAliasAsync(string richMenuAliasId)
     {
         Calls.Add($"alias-get:{richMenuAliasId}");
+        if (GetAliasException is not null) throw GetAliasException;
         if (!Aliases.TryGetValue(richMenuAliasId, out var richMenuId))
         {
             throw new LineRichMenuAliasNotFoundException(richMenuAliasId);
