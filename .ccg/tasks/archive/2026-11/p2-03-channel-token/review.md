@@ -49,3 +49,7 @@ Gemini、Claude、codeagent-wrapper、雙模型 runner 或實作／檢查子代�
 ## 2026-11-08 07:57 Asia/Taipei (UTC+08:00) 更高優先設定要求的雙後端審查嘗試
 
 保留前述 3.3 歷史；目前 3.4 已將 P2-03 離線驗收完成，必要寫入實機移往 P2-04 前置與 P2-12，不再沿用歷史額外門檻。此次依更高優先 review 設定，以專案自癒入口同時要求 Gemini 與 Claude reviewer，run `20261108-073101-p203-required-resume-review-reviewer`：runner exit=2、ok=false、dualModelComplete=false；Gemini 403、Claude 未交付有效 findings，沒有任一後端可用審查，不是雙模型成功或可用降級。Claude 衍生重啟也無完成 summary，未遞迴重試。原始全文不提交；本紀錄僅保存嘗試事實，不把審查失敗新增為 P2-03 的實機門檻。
+
+## 2026-11-08 12:54 Asia/Taipei (UTC+08:00) 舊任務收尾
+
+本輪自癒入口僅嘗試一次，Gemini 503、Claude 90 秒逾時，兩者均無可用輸出；外部審查未完成，不重試。summary.json 保留本機 artifacts/p2/p203-required-review-20261108/20261108-124618-p203-required-current-review-reviewer/，SHA-256 `3ccac9218df3a29f15f4c4b8e316aec688cbcbb09428e05d1b96cbd7f9ae2fb0`。P2-03 已依3.4於2026-11-07 21:57驗收，原先3.3的額外實機門檻不再適用；現封存過期CCG追蹤，不改產品與原驗收事實。真正P2階段末審查另依00 §6.6執行一次。
