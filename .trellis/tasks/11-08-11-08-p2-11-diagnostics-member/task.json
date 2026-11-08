@@ -3,7 +3,7 @@
   "name": "11-08-p2-11-diagnostics-member",
   "title": "P2-11 推播整條鏈骨架驗證",
   "description": "依實作計畫3.4 P2-11，升級 DiagnosticsPingPlugin mode=member，透過 MemberNotificationService 驗證正常、教會不符、未綁定、偽語系四情境。",
-  "status": "in_progress",
+  "status": "completed",
   "dev_type": null,
   "scope": null,
   "package": null,
@@ -11,21 +11,21 @@
   "creator": "codex",
   "assignee": "codex",
   "createdAt": "2026-11-08",
-  "completedAt": null,
+  "completedAt": "2026-11-09",
   "branch": null,
   "base_branch": "1.0.0.11.Integration.P2.Worktree",
   "worktree_path": null,
-  "commit": null,
+  "commit": "c1b016800551d561a75685d18eadfc7a6d992c20",
   "pr_url": null,
   "subtasks": [],
   "children": [],
   "parent": "11-07-integration-p2",
   "relatedFiles": [],
-  "notes": "使用者回覆繼續，核定原限制不變延長兩小時；原時間盒歷史保留。現在完成子集coverage、宿主登錄與打包乾淨守門。",
+  "notes": "2026-11-09 00:17 Asia/Taipei (UTC+08:00)：PROP-004核定的子集coverage、member四情境、合併DLL驗證與固定guard §8.1均通過；在核定延長窗01:03前完成。提交6a9c1d14、c1b01680；回報wp-reports/P2-11.md。P2-11已完成，下一包P2-12。 2026-11-09 06:31 Asia/Taipei (UTC+08:00)：ls-remote顯示origin仍為407a89f11a2c7a9b4aaeba2a15f6f615716faa80，先前推送宣稱不成立；本次提交結案紀錄後補推送再核對遠端。",
   "meta": {
     "subsetTimeboxStartedAt": "2026-11-08T19:50:45.844622+08:00",
     "subsetTimeboxHours": 2,
-    "subsetTimeboxState": "extended_active",
+    "subsetTimeboxState": "completed",
     "subsetTimeboxExpiredAt": "2026-11-08T21:50:45.844622+08:00",
     "subsetTimeboxObservedAt": "2026-11-08T21:53:27+08:00",
     "timeboxDecisionRequestedAt": "2026-11-08T21:55:00+08:00",
@@ -34,7 +34,9 @@
         "authorizedBy": "使用者回覆繼續，延續上一輪延長兩小時請求",
         "startedAt": "2026-11-08T23:03:36+08:00",
         "hours": 2,
-        "expiresAt": "2026-11-09T01:03:36+08:00"
+        "expiresAt": "2026-11-09T01:03:36+08:00",
+        "observedAt": "2026-11-08T23:26:56+08:00",
+        "status": "completed_within_extension"
       }
     ]
   }
