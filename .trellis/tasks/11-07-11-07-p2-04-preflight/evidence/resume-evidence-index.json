@@ -1,0 +1,66 @@
+{
+  "at": "2026-11-08T07:57:54+08:00",
+  "scope": "P2-04 preflight retry, not acceptance",
+  "files": [
+    {
+      "path": "retry-20261108-074103/retry-summary.json",
+      "sha256": "8E88058E1471D592DABC248A533188EE2C570342C48D1D6DF22EF6D333E93AA6",
+      "bytes": 380
+    },
+    {
+      "path": "retry-20261108-074911/retry-summary.json",
+      "sha256": "BE6DC3650E7860D940C6ED1AFA643C735B84434F47EF689E41F23264B6FB8EB3",
+      "bytes": 380
+    },
+    {
+      "path": "retry-20261108-074103/smoke-safe-trace.json",
+      "sha256": "8654A6202390FA25EC7141DD365993D3DAD307CF97AC878B1EDE52D10D08EE0C",
+      "bytes": 959
+    },
+    {
+      "path": "retry-20261108-074911/smoke-safe-trace.json",
+      "sha256": "EB98E06B250F25249E5815EFB569DD24D6DEF5969B4CE643EC4850CB5D1854E0",
+      "bytes": 959
+    },
+    {
+      "path": "merged-contract-audit.json",
+      "sha256": "F9D7E70A4563D67DEAD4CE22CD21DC267636B8A3CC05A693C8D75CD85E1ECFD8",
+      "bytes": 147
+    },
+    {
+      "path": "final-live-cleanup.json",
+      "sha256": "587EF06F1F605D2D5D9A50E538E81483431BF5036A23F310B7D270F8D7026D82",
+      "bytes": 905
+    },
+    {
+      "path": "final-d34-trace-audit.json",
+      "sha256": "9D17BE1B377162FBBC4358804C462F62381707567115B566F838C0C46208DEF2",
+      "bytes": 4964
+    },
+    {
+      "path": "final-legacy-audit.json",
+      "sha256": "F27C4632EE79D51522C7140F7F40F8AC843EB94F95F8500F041B9FC72C6D8405",
+      "bytes": 338
+    },
+    {
+      "path": "diagnostics-contract-red/diagnostics-accepted-red.trx",
+      "sha256": "837BC68B1484F149246CF97F57F144C218D7E099E7D09E06E2D68FBE972BBA70",
+      "bytes": 5349
+    },
+    {
+      "path": "diagnostics-contract-green/plugin-green.trx",
+      "sha256": "055AC78DDCE7FD31BECDB9B71CFE4C11C0C69A96755E51DCB76D19BA1A7EE725",
+      "bytes": 43676
+    },
+    {
+      "path": "deployment-regression/deployment-green.trx",
+      "sha256": "DBD4181D898DC5672715E91BDB25D497DA8ED575E66A18BD673AC30084361933",
+      "bytes": 336386
+    },
+    {
+      "path": "操作紀錄-20261108-0755.md",
+      "sha256": "517D6B30C08442C47EAE32BB52B2B378F60E4F4C4B2252E0AA2B939DDB7E2889",
+      "bytes": 3055
+    }
+  ]
+}

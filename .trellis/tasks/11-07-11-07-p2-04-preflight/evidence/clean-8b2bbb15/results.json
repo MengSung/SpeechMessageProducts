@@ -1,0 +1,79 @@
+[
+  {
+    "name": "01-release-build",
+    "exitCode": 0,
+    "startedAt": "2026-11-08T07:58:45.5001408+08:00",
+    "endedAt": "2026-11-08T07:59:20.3263822+08:00",
+    "log": "01-release-build.log"
+  },
+  {
+    "name": "02-plugin-current-config-without-debug",
+    "exitCode": 0,
+    "startedAt": "2026-11-08T07:59:20.3520563+08:00",
+    "endedAt": "2026-11-08T07:59:22.5264141+08:00",
+    "log": "02-plugin-current-config-without-debug.log"
+  },
+  {
+    "name": "03-plugin-debug-build",
+    "exitCode": 0,
+    "startedAt": "2026-11-08T07:59:22.5282861+08:00",
+    "endedAt": "2026-11-08T07:59:24.9578600+08:00",
+    "log": "03-plugin-debug-build.log"
+  },
+  {
+    "name": "04-solution-tests",
+    "exitCode": 0,
+    "startedAt": "2026-11-08T07:59:24.9606895+08:00",
+    "endedAt": "2026-11-08T08:00:53.6969915+08:00",
+    "log": "04-solution-tests.log"
+  },
+  {
+    "name": "05-debug-tracer",
+    "exitCode": 0,
+    "startedAt": "2026-11-08T08:00:53.6992916+08:00",
+    "endedAt": "2026-11-08T08:01:07.3244976+08:00",
+    "log": "05-debug-tracer.log"
+  },
+  {
+    "name": "06-encoding",
+    "exitCode": 0,
+    "startedAt": "2026-11-08T08:01:07.3269911+08:00",
+    "endedAt": "2026-11-08T08:01:09.7390666+08:00",
+    "log": "06-encoding.log"
+  },
+  {
+    "name": "07-duplicates",
+    "exitCode": 0,
+    "startedAt": "2026-11-08T08:01:09.7402725+08:00",
+    "endedAt": "2026-11-08T08:01:12.3220833+08:00",
+    "log": "07-duplicates.log"
+  },
+  {
+    "name": "08-i18n",
+    "exitCode": 0,
+    "startedAt": "2026-11-08T08:01:12.3229450+08:00",
+    "endedAt": "2026-11-08T08:01:18.1343897+08:00",
+    "log": "08-i18n.log"
+  },
+  {
+    "name": "09-file-docs",
+    "exitCode": 0,
+    "startedAt": "2026-11-08T08:01:18.1355959+08:00",
+    "endedAt": "2026-11-08T08:01:23.3313939+08:00",
+    "log": "09-file-docs.log"
+  },
+  {
+    "name": "10-progress-legacy",
+    "exitCode": 0,
+    "startedAt": "2026-11-08T08:01:23.3326491+08:00",
+    "endedAt": "2026-11-08T08:01:23.6257774+08:00",
+    "log": "10-progress-legacy.log"
+  },
+  {
+    "name": "11-progress34",
+    "exitCode": 0,
+    "startedAt": "2026-11-08T08:01:23.6265712+08:00",
+    "endedAt": "2026-11-08T08:01:23.7518241+08:00",
+    "log": "11-progress34.log"
+  }
+]

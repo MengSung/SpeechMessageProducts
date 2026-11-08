@@ -1,0 +1,34 @@
+{
+  "SecretMatches": 0,
+  "SecretValuesChecked": 3,
+  "Rows": [
+    {
+      "Outcome": "Success",
+      "Status": "200",
+      "Ping": true,
+      "RequestIdValid": true,
+      "DiagnosticFlags": {
+        "certificate": false,
+        "TLS": false,
+        "SSL": false,
+        "System.Text.Json": false,
+        "timed out": false,
+        "NameResolutionFailure": false,
+        "Unauthorized": false,
+        "503": false,
+        "400": false,
+        "401": false,
+        "Could not load file or assembly": false,
+        "Forbidden": false,
+        "Newtonsoft.Json": false
+      },
+      "ExceptionTypes": [],
+      "CorrelationId": "f2432a83-711a-4a59-8e44-2ea82454a8be",
+      "TraceId": "4e412bda-5d70-4996-bf5d-0e60c32872a7",
+      "RequestId": "2b4d535f-0c57-43eb-89a9-1c7a756fffbf",
+      "CreatedOn": "2026-11-07T23:42:07.0000000Z"
+    }
+  ],
+  "TraceCount": 1,
+  "At": "2026-11-08T07:43:07.8579075+08:00"
+}

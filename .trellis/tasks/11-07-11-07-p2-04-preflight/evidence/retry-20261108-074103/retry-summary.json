@@ -1,0 +1,15 @@
+{
+  "StartedAt": "2026-11-08T07:41:03.7762138+08:00",
+  "Plan": 0,
+  "Apply": 0,
+  "VerifyPush": 3,
+  "SmokeStartedAt": "2026-11-08T07:41:15.1031374+08:00",
+  "Smoke": 1,
+  "CleanupPlan": 0,
+  "CleanupApply": 0,
+  "CleanupVerify": 0,
+  "TraceRestored": true,
+  "ManifestRestored": true,
+  "FailureType": null,
+  "CompletedAt": "2026-11-08T07:42:18.6540422+08:00"
+}

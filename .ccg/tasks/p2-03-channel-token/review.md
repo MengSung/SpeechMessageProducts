@@ -45,3 +45,7 @@ Gemini、Claude、codeagent-wrapper、雙模型 runner 或實作／檢查子代�
    同步I/O不保證可中斷。不要把注入reader介面公開給不受信任的request。
 
 結論：可提交已驗證離線檢查點，P2-03維持進行中，不封存、不標P2完成。
+
+## 2026-11-08 07:57 Asia/Taipei (UTC+08:00) 更高優先設定要求的雙後端審查嘗試
+
+保留前述 3.3 歷史；目前 3.4 已將 P2-03 離線驗收完成，必要寫入實機移往 P2-04 前置與 P2-12，不再沿用歷史額外門檻。此次依更高優先 review 設定，以專案自癒入口同時要求 Gemini 與 Claude reviewer，run `20261108-073101-p203-required-resume-review-reviewer`：runner exit=2、ok=false、dualModelComplete=false；Gemini 403、Claude 未交付有效 findings，沒有任一後端可用審查，不是雙模型成功或可用降級。Claude 衍生重啟也無完成 summary，未遞迴重試。原始全文不提交；本紀錄僅保存嘗試事實，不把審查失敗新增為 P2-03 的實機門檻。

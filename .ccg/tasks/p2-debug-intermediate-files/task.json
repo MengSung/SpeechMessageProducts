@@ -1,0 +1,17 @@
+{
+  "id": "p2-debug-intermediate-files",
+  "title": "P2-00 核對 Debug 中繼檔找不到路徑",
+  "status": "in_progress",
+  "complexity": "M",
+  "risk": "low",
+  "domain": "build",
+  "currentPhase": "analysis",
+  "nextAction": "CLI 建置及重建與兩宿主各41案已通過；核對 IDE 最終重建輸出，根因未重現前不改全方案中繼路徑。",
+  "createdAt": "2026-11-08T08:15:52+08:00",
+  "updatedAt": "2026-11-08T08:15:52+08:00",
+  "branch": "1.0.0.11.Integration.P2.Worktree",
+  "parentWorkPackage": "P2-00",
+  "countsAsWorkPackage": false,
+  "evidenceSummarySha256": "6DFC8C257FE504E24F14B080657DB81A943135FE1C48D8112C6BEE644DBBA8BD",
+  "cleanup": "唯讀 TEMP probe 目錄清理被平台政策拒絕，未繞過；詳見一頁診斷報告。"
+}

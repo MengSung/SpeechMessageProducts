@@ -1,0 +1,21 @@
+{
+  "At": "2026-11-08T07:55:19.9807184+08:00",
+  "Organization": "goodshepherdback",
+  "LiveAssemblyHash": "BD97158D57A7CDADE69D44C64FB54EC3A0419EDAEDA9E251FE38708D6DF41DD2",
+  "LocalAssemblyHash": "BD97158D57A7CDADE69D44C64FB54EC3A0419EDAEDA9E251FE38708D6DF41DD2",
+  "AssemblyModifiedOn": "2026-11-07T23:49:22.0000000Z",
+  "StepId": "c3ce836c-48d8-f111-8cc9-00155d007916",
+  "StepDisabled": true,
+  "TraceConfiguration": true,
+  "SecureConfigPresent": false,
+  "OrganizationTrace": 1,
+  "SmokeTaskRows": 0,
+  "UnfinishedOwnedJobs": 0,
+  "OwnedTraceRows": 0,
+  "OwnedJobRows": 0,
+  "DeletedTraces": 2,
+  "DeletedJobs": 2,
+  "BackupPath": "C:\\Users\\Administrator\\AppData\\Local\\SpeechMessageProducts\\evidence\\p2-04-preflight\\20261108-075519\\owned-smoke-resources.dpapi",
+  "BackupSha256": "E3D1EB73CE27B21BC25A009B4AECD4920F51AF9CE6B0D5FAD1763EAF2B672BF8",
+  "Cleanup": true
+}

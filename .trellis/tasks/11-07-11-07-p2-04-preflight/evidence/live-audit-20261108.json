@@ -1,0 +1,14 @@
+{
+  "CapturedAt": "2026-11-08T06:55:02.5199907+08:00",
+  "Organization": "goodshepherdback",
+  "EncryptionKeyConfigured": false,
+  "TestMainLineIds": 1,
+  "NonTestMainLineIds": 0,
+  "ChannelRows": 0,
+  "P0PrefixTaskRows": 0,
+  "EnabledUnmanagedSteps": 2762,
+  "ActiveUnmanagedWorkflows": 139,
+  "ActiveLegacyLineWorkflowCandidates": 0,
+  "CheckedSecretValues": 3,
+  "SecretMatches": 0
+}

@@ -1,0 +1,21 @@
+{
+  "At": "2026-11-08T07:55:11.0662353+08:00",
+  "Organization": "goodshepherdback",
+  "LiveAssemblyHash": "BD97158D57A7CDADE69D44C64FB54EC3A0419EDAEDA9E251FE38708D6DF41DD2",
+  "LocalAssemblyHash": "BD97158D57A7CDADE69D44C64FB54EC3A0419EDAEDA9E251FE38708D6DF41DD2",
+  "AssemblyModifiedOn": "2026-11-07T23:49:22.0000000Z",
+  "StepId": "c3ce836c-48d8-f111-8cc9-00155d007916",
+  "StepDisabled": true,
+  "TraceConfiguration": true,
+  "SecureConfigPresent": false,
+  "OrganizationTrace": 1,
+  "SmokeTaskRows": 0,
+  "UnfinishedOwnedJobs": 0,
+  "OwnedTraceRows": 2,
+  "OwnedJobRows": 2,
+  "DeletedTraces": 0,
+  "DeletedJobs": 0,
+  "BackupPath": null,
+  "BackupSha256": null,
+  "Cleanup": false
+}
