@@ -18,6 +18,7 @@ using System.Threading.Tasks;
 using Line.Messaging;
 using LineMessagingProcessor.Core;
 using LineMessagingProcessor.Core.Security;
+using LineMessagingProcessor.Core.Templates;
 using SpeechMessage.Localization;
 using ToolUtilityNameSpace.LineRecipients;
 
@@ -29,6 +30,7 @@ public sealed class MemberNotificationService
     private readonly ILineMemberPushClient push;
     private readonly IMemberCultureResolver cultures;
     private readonly ITextCatalog catalog;
+    private readonly SenderNameFactory senders;
 
     /// <summary>只借用共用策略及client；不接管連線、catalog或任何秘密的所有權。</summary>
     public MemberNotificationService(ILineMemberPushClient push, IMemberCultureResolver cultures, ITextCatalog catalog)
@@ -36,6 +38,7 @@ public sealed class MemberNotificationService
         this.push = push ?? throw new ArgumentNullException(nameof(push));
         this.cultures = cultures ?? throw new ArgumentNullException(nameof(cultures));
         this.catalog = catalog ?? throw new ArgumentNullException(nameof(catalog));
+        senders = new SenderNameFactory(catalog);
     }
 
     /// <summary>同步準備後直接交回傳輸Task，不讓SDK或TokenKey被async狀態機保留；來源context必須先經Host授權。</summary>
@@ -66,7 +69,7 @@ public sealed class MemberNotificationService
         var resolved = cultures.Resolve(new MemberLanguagePreference(member.Language), record.Locales);
         var context = sourceContext.WithCultures(resolved.TextCulture, resolved.FormatCulture);
         var text = catalog.GetText(context, messageKey);
-        var sender = catalog.GetText(context, new TextKey("Line.Sender.Template"), new TextArg("churchName", record.ChurchName));
+        var sender = senders.Create(context, record.ChurchName);
         var credential = new LineChannelCredential(ChannelTokenProtector.Unprotect(record.EncryptedToken, tokenKey));
         var channel = new ChurchChannel(record.ChurchId, record.AssignedChannelId, record.ChannelId, credential, sender);
         // 舊SDK建構式會靜默截到2000字；用屬性保留完整字典值，由Core以5000字規格明確驗證。

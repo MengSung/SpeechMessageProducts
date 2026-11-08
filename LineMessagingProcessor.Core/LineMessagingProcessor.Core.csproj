@@ -1,7 +1,7 @@
 <!--
 檔案整體說明
 
-目的與定位：定義跨目標最小LINE能力契約的MSBuild專案邊界，集中target、套件及專案參考，讓產品／測試依正確方向編譯。
+目的與定位：定義跨目標LINE傳輸、Flex範本與sender政策的MSBuild專案邊界，集中target、套件及向下參考，讓產品／測試依正確方向編譯。
 
 主要功能與流程：
 宣告的產品／測試target為net462;net10.0；條件評估後的實際輸出以MSBuild為準。
@@ -18,6 +18,7 @@
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="../Line.Messaging/Line.Messaging.csproj" />
+    <ProjectReference Include="../SpeechMessage.Localization/SpeechMessage.Localization.csproj" />
     <PackageReference Include="Newtonsoft.Json" />
     <InternalsVisibleTo Include="LineMessagingProcessor.Tests" />
     <InternalsVisibleTo Include="SpeechMessage.Dynamics.Plugins.Tests" />

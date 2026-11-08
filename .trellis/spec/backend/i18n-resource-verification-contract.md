@@ -31,3 +31,10 @@ ResourceVerificationTests每規則正反例，實際CLI生成後再verify；保�
 Localization雙目標回歸包含resolver→真實生成sender的14字教會名普通／英文回退／pseudo完整答案；所有原精確golden的文案差異要記原因，不放寬斷言。
 
 JSON的逃逸surrogate可能直到JsonProperty.Name/GetString才拋InvalidOperationException；只在LengthLimits的JSON候選解碼邊界轉InvalidData並保留InnerException。禁止把全域catch擴大到任意InvalidOperation來吞程式故障。
+
+## 本機資源生成（P2-05）
+
+顯式生成必須提供`--resx --namespace --class --out`，SharedText的類別名是SharedTextData；
+`generate --check`只讀全量，`generate-completeness`另生成完成度。修改資源後兩份都要重生。
+從W:磁碟根alias執行時，LocalFiles根目錄加分隔符邊界會拒絕檔案；改以同一工作樹的canonical
+D:絕對目錄作workdir執行既有CLI，不改安全檢查、不去父工作樹、不手改生成檔。

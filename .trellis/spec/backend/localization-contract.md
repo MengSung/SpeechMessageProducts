@@ -101,3 +101,32 @@ var text = catalog.GetText(context, key, new TextArg("name", suppliedName));
 
 P1-08 的資料來源及 cache 必須以完整 context 分區，並另實作來源授權、驗證、
 single-flight、invalidate、失敗保留舊快照與 owner drain；本包的純型別不替代這些工作。
+
+## 8. P2-05 Flex／sender組合
+
+### 適用與簽章
+`FlexTemplateEngine(ITextCatalog).Fill(string template, TextContext context, IReadOnlyDictionary<string,string> values)`
+回傳正式FlexMessage；`SenderNameFactory(ITextCatalog).Create(context, churchName)`產生伺服器sender。
+
+### 輸入／輸出與所有權
+模板來自產品Resources/Flex內嵌JSON；altText必須為完整`{{t:Key}}`，值位置只解析一次t／v。
+候選先以唯一屬性、深度32與32Ki輸入解析；值最多256項、單字串及總文字32Ki，跳脫後JSON有界256Ki。
+輸出使用私有IFlexContainer純值投影，不公開JToken；沒有cache、I/O、task或需Dispose的owner。
+Host先驗完整scope；嵌入stream由呼叫端using關閉。資料只在單次通知持有，不能當第二輪模板。
+
+### 驗證／錯誤矩陣
+缺altText key、缺v、壞／重複JSON、壞占位或超限→FormatException，沒有部分訊息。
+字典真故障原樣向Host；sender超20碼元→同scope Brand.ShortName，仍超限或空白→InvalidOperationException。
+Brand.ShortName系統沿用既有助手稱呼，教會可覆寫；不放寬I18nCheck已固定的limits.json schema。
+
+### 正常／基礎／禁止例
+正常：兩個不同context各自取字，固定結構不受資料引號／換行改變。基礎：Diagnostics模板的alt及文字都用Ping key。
+禁止：對原JSON做全域字串Replace、由caller帶sender、對過長sender直接Substring。
+
+### 測試
+六個指定同名測試及每模板固定黃金；真字典qps包框、注入內容不改結構且不二次取字。
+MemberNotificationService真HTTP契約另驗長教會fallback確實接到傳輸；雙宿主都跑，未做本包實機。
+
+### 錯誤與正確
+錯誤：先把資料拼入JSON再Parse，或讓插入的`{{t:Key}}`再執行。
+正確：Parse原結構→只替換原字串JValue一次→完整驗證→發布，JSON serializer負責跳脫。

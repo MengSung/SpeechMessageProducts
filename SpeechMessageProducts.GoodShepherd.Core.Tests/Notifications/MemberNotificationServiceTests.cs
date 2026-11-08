@@ -94,6 +94,19 @@ public sealed class MemberNotificationServiceTests
         Assert.Equal(text, Assert.Single(fixture.Handler.Sent).Text);
     }
 
+    /// <summary>真通知鏈遇長教會名時使用正式Brand.ShortName資源，不能只測獨立factory卻未接入傳輸。</summary>
+    [Fact]
+    public async Task Notify_LongChurch_UsesCatalogShortSender()
+    {
+        using var fixture = new Fixture();
+        var source = fixture.Source(name: new string('A', 30));
+        var result = await fixture.Service.NotifyAsync(source, Context(source.Church), source.Contact, Guid.NewGuid(),
+            fixture.Key, MessageKey, default);
+        Assert.True(result.Success);
+        Assert.Equal("助手", Assert.Single(fixture.Handler.Sent).Sender);
+        Assert.Equal(1, fixture.Handler.Disposed);
+    }
+
     /// <summary>錯來源教會在讀取／解密任何頻道前拒絕，避免以語言或共享頻道繞過教會核對。</summary>
     [Fact]
     public async Task Notify_ForeignMember_RejectsBeforeChannelRead()

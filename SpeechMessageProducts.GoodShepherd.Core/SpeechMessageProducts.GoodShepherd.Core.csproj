@@ -37,6 +37,8 @@ GoodShepherd.Core.Tests 兩目標建置及 P2/P5 工作包。Resources\GoodSheph
   <ItemGroup>
     <!-- 文字由 I18nCheck 讀取並產生固定資料表，不嵌入衛星資源。 -->
     <EmbeddedResource Remove="Resources\**\*.resx" />
+    <!-- JSON僅含結構與取字key，範本以固定組件資源身分交由Core引擎解譯。 -->
+    <EmbeddedResource Include="Resources\Flex\*.json" />
   </ItemGroup>
 
   <ItemGroup Condition="'$(TargetFramework)' == 'net462'">

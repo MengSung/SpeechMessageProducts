@@ -1,0 +1,14 @@
+{
+  "type": "flex",
+  "altText": "{{t:Common.Diagnostics.Ping}}",
+  "contents": {
+    "type": "bubble",
+    "body": {
+      "type": "box",
+      "layout": "vertical",
+      "contents": [
+        { "type": "text", "text": "{{t:Common.Diagnostics.Ping}}" }
+      ]
+    }
+  }
+}

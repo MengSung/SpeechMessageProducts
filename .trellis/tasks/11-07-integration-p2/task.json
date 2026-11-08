@@ -28,7 +28,8 @@
     "11-07-p2-07-outbound",
     "11-07-11-07-p2-04-preflight",
     "11-08-p2-04-member-push",
-    "11-08-p2-10-text-polling"
+    "11-08-p2-10-text-polling",
+    "11-08-p2-05-flex-templates"
   ],
   "parent": null,
   "relatedFiles": [],

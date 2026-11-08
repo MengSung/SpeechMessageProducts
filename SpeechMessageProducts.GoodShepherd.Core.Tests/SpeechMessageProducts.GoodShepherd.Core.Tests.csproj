@@ -44,6 +44,7 @@ GoodShepherd.Core 的單一專案參考。P2-02 先以 smoke 測試確認兩個�
   <ItemGroup>
     <ProjectReference Include="..\SpeechMessageProducts.GoodShepherd.Core\SpeechMessageProducts.GoodShepherd.Core.csproj" />
     <EmbeddedResource Include="Golden\qr-content-legacy.tsv" />
+    <EmbeddedResource Include="Golden\flex-diagnostics.json" />
   </ItemGroup>
 
   <ItemGroup Condition="'$(TargetFramework)' == 'net48'">

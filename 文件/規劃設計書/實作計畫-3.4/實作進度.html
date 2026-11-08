@@ -240,11 +240,11 @@ footer{margin-top:36px;color:var(--muted);font-size:12.5px;text-align:center}
  */
 const DATA = {
   "planVersion": "3.4",
-  "snapshot": "2026-11-08 13:33 Asia/Taipei (UTC+08:00)",
-  "lastUpdated": "2026-11-08T13:33:21+08:00",
+  "snapshot": "2026-11-08 13:35 Asia/Taipei (UTC+08:00)",
+  "lastUpdated": "2026-11-08T13:35:25+08:00",
   "branch": "1.0.0.11.Integration.P2.Worktree",
-  "head": "fa7fa1f9",
-  "headline": "P2-04已驗收；前置不再重跑，接續P2-05與P2-08。",
+  "head": "cd48f6f6",
+  "headline": "P2-04已驗收推送；P2-05開始離線TDD，之後接P2-08。",
   "notices": [
     {
       "id": "plan-3.4-summary",
@@ -264,9 +264,10 @@ const DATA = {
       "phaseId": "階段 2",
       "level": "info",
       "title": "P2 進度摘要",
-      "lastUpdated": "2026-11-08T13:33:21+08:00",
-      "body": "2026-11-08 13:33 Asia/Taipei (UTC+08:00)：P2-04已驗收，fa7fa1f9乾淨全方案4,797個測試及全部守門通過。接續P2-05與P2-08，前置不再重跑。",
+      "lastUpdated": "2026-11-08T13:35:25+08:00",
+      "body": "2026-11-08 13:35 Asia/Taipei (UTC+08:00)：P2-04已驗收並推送cd48f6f6，P2-05開始離線TDD。下一包P2-08，前置不再重跑。",
       "steps": [
+        "2026-11-08 13:35 Asia/Taipei (UTC+08:00)：P2-04已驗收並推送cd48f6f6，P2-05開始離線TDD。下一包P2-08，前置不再重跑。",
         "2026-11-08 13:33 Asia/Taipei (UTC+08:00)：P2-04已驗收，fa7fa1f9乾淨全方案4,797個測試及全部守門通過。接續P2-05與P2-08，前置不再重跑。",
         "2026-11-08 13:10 Asia/Taipei (UTC+08:00)：P2-10已驗收，71326e9d乾淨全方案4,763個測試及全部守門通過。P2-04繼續離線TDD，前置不再重跑。",
         "2026-11-08 12:59 Asia/Taipei (UTC+08:00)：前置Accepted實機與0e9e2f71乾淨守門均通過，已推送本分支。P2-04＋P2-10開始離線TDD，仍未驗收。",
@@ -896,13 +897,13 @@ const DATA = {
       "id": "P2-05",
       "phaseId": "階段 2",
       "name": "Flex 範本引擎與 sender 範本",
-      "status": "todo",
+      "status": "active",
       "deps": "P2-04",
       "live": "無",
       "timebox": "1 天",
       "doneAt": "",
       "commit": "",
-      "note": "{{t:Key}}／{{v:name}}、JSON 跳脫、altText 必填"
+      "note": "2026-11-08 13:35 Asia/Taipei (UTC+08:00)：依核定段落開始雙目標範本與sender TDD，尚未驗收。"
     },
     {
       "id": "P2-06",
@@ -1530,7 +1531,41 @@ const DATA = {
       "note": "首個正式 Plugin 佈署 goodshepherdback 之前"
     }
   ],
-  "active": [],
+  "active": [
+    {
+      "id": "P2-05",
+      "startedAt": "2026-11-08 13:35",
+      "timebox": "1工作天或15提交",
+      "next": "先同名紅燈，再最小實作。",
+      "dod": [
+        [
+          "同名測試",
+          "no",
+          "TDD中。"
+        ],
+        [
+          "乾淨守門",
+          "no",
+          "尚未提交。"
+        ],
+        [
+          "新專案覆蓋率",
+          "na",
+          "無新專案。"
+        ],
+        [
+          "實機",
+          "na",
+          "本包未要求。"
+        ],
+        [
+          "回報與DATA",
+          "no",
+          "待驗收。"
+        ]
+      ]
+    }
+  ],
   "gates": [
     {
       "item": "方案建置（Release）",

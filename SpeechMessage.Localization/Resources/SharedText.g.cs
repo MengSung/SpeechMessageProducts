@@ -25,6 +25,7 @@ namespace SpeechMessage.Localization.Resources
         /// <summary>每列依序為鍵及各語系文字；缺翻譯為 null，鍵依 Ordinal 排序。</summary>
         internal static readonly string?[][] Rows =
         {
+            new string?[] { "Brand.ShortName", "助手", null, "［助手ǂ］" },
             new string?[] { "Common.Diagnostics.Culture", "目前語系：{culture}", null, "［目前語系：{culture}ǂǂ］" },
             new string?[] { "Common.Diagnostics.InvalidConfiguration", "診斷外掛設定格式錯誤。", null, "［診斷外掛設定格式錯誤。ǂǂǂǂǂ］" },
             new string?[] { "Common.Diagnostics.Ping", "連線測試成功", null, "［連線測試成功ǂǂǂ］" },
