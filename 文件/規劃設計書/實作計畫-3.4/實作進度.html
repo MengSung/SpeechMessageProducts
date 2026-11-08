@@ -240,11 +240,11 @@ footer{margin-top:36px;color:var(--muted);font-size:12.5px;text-align:center}
  */
 const DATA = {
   "planVersion": "3.4",
-  "snapshot": "2026-11-08 07:57 Asia/Taipei (UTC+08:00)",
-  "lastUpdated": "2026-11-08T07:57:54+08:00",
+  "snapshot": "2026-11-08 10:02 Asia/Taipei (UTC+08:00)",
+  "lastUpdated": "2026-11-08T10:02:41+08:00",
   "branch": "1.0.0.11.Integration.P2.Worktree",
-  "head": "21efb963",
-  "headline": "P2-04 前置已完成安全收尾、殘留為零；真實推播成功，但沙箱仍執行舊診斷字串，smoke 未通過，先繼續 P2-07。",
+  "head": "8b2bbb15",
+  "headline": "P2-07 CAS 與有界 Worker 六個同名測試通過，正在補保留導讀與乾淨守門；P2-04 前置仍受舊診斷輸出阻塞。",
   "notices": [
     {
       "id": "plan-3.4-summary",
@@ -264,9 +264,12 @@ const DATA = {
       "phaseId": "階段 2",
       "level": "info",
       "title": "P2 進度摘要",
-      "lastUpdated": "2026-11-08T07:57:54+08:00",
-      "body": "2026-11-08 07:57 Asia/Taipei (UTC+08:00)：P2-04 前置安全收尾、殘留零；手機已收訊與 LINE 200 均有證據，但新版 DLL 尚未反映於沙箱診斷，兩次 smoke 失敗，不標驗收。後續先做不依賴推播的 P2-07。",
+      "lastUpdated": "2026-11-08T10:02:41+08:00",
+      "body": "2026-11-08 10:02 Asia/Taipei (UTC+08:00)：P2-07 已完成 RowVersion CAS 與 Hosting 有界 Worker；六個 Worker 同名案例及一個重複正式 ID 防護案例通過，仍待 30／90 天保留導讀與提交後乾淨守門。P2-04 前置仍維持受阻，不影響先做不依賴推播的工作。",
       "steps": [
+        "2026-11-08 10:02 Asia/Taipei (UTC+08:00)｜P2-07 CAS／Worker 檢查點｜新增 Hosting-facing 純值契約、每筆 handler scope 與唯一 D365 Core 轉接點；雙 worker 競爭、429 一分鐘退避、第五次逾時終止、stale reclaim、停止排空、resource baseline 及重複正式 ID fail-closed 七個案例通過。SpeechMessage.Hosting.Tests Debug 109 案全過，ToolUtility Debug 建置 0 警告／0 錯誤；目前仍未提交，保留導讀與提交後乾淨複本守門尚未完成。",
+        "2026-11-08 08:15 Asia/Taipei (UTC+08:00)｜建置問題盤點｜使用者回報兩個 GoodShepherd 中繼檔找不到路徑；調查時兩檔存在、長度 269／266 個字元、LongPathsEnabled=1。VS 隨附 MSBuild 在原路徑還原／建置／重建均成功，兩宿主各 41 案通過；未證實長路徑或程序競爭。IDE 原錯誤仍可見，08:11 重建開始後視窗最小化，最終結果待核對，不宣稱根因修復；未改產品／建置／系統設定。證據與 SHA 見 P2-00-Debug建置診斷.md。",
+        "2026-11-08 08:15 Asia/Taipei (UTC+08:00)｜補記 08:01 乾淨守門｜8b2bbb15 短路徑乾淨複本 11 項命令全部 exit 0；Release 20 份 TRX 共 4,708 個測試全過、無失敗／略過，Debug tracer 7 個通過；編碼 235 份檢查／96 份原始證據排除／0 問題，檔案說明 1,292 份／0 問題，34 個專案與 1,066 份來源／0 新增重複。此為已提交檢查點，不涵蓋未提交 CAS 新檔；原始證據在 P2-04-preflight 的 evidence/clean-8b2bbb15。",
         "2026-11-08 07:57 Asia/Taipei (UTC+08:00)｜P2-04 重驗及收尾｜新版 Plugin 回歸先紅後綠，26 個測試全過；Deployment 193 個測試全過。第二輪 plan/apply=0、push verify=3，LINE 200＋有效 RequestId，敏感值命中 0，但 smoke=1；live/local 新 DLL hash 一致、合併 IL 含 Accepted，實機仍輸出舊 Success，疑似快取未確認。兩次失敗後停止重送；cleanup verify=0、追蹤=1、停用／trace／無 secure；自己 task、trace、作業各 0。建議確認既有主機存取及共用服務影響後安全刷新；另可核定版本策略，或暫延前置先做 P2-07。手機收訊已記為使用者佐證，未代替自動 smoke。操作紀錄與 SHA 見 P2-04-preflight 一頁報告。",
         "2026-11-08 07:47 Asia/Taipei (UTC+08:00)｜實機推播已受理、smoke 尚未通過｜07:41 輪次 plan/apply=0，push verify=3；LINE HTTP 200 且有效 RequestId，使用者確認 2026-11-08 07:41 手機收到 P0 測試訊息。Plugin 輸出 Outcome=Success，但核定 smoke 要求 Accepted，故 smoke=1，不能宣告前置通過。已收尾 trace／空 secure／停用，cleanup verify=0、追蹤回例外=1；先以真實 Core＋假 HTTP 補紅燈回歸，再做最小診斷映射修正及實機重驗，不改公開 enum、不放寬 smoke。",
         "2026-11-08 07:39 Asia/Taipei (UTC+08:00)｜執行設定限制｜本輪高優先設定強制雙模型，已透過自癒入口嘗試 Gemini 與 Claude reviewer；Gemini 403、Claude 未交付實際審查，dualModelComplete=false，無可用雙模型驗收。沒有實作／檢查子代理，不把外部輸出當實機證據。",
@@ -925,7 +928,7 @@ const DATA = {
       "timebox": "1 天",
       "doneAt": "",
       "commit": "",
-      "note": "Writer 與原子入列已雙宿主離線通過；CAS／Worker／包驗收尚未完成。"
+      "note": "Writer、CAS 與有界 Worker 已離線通過；正在補 30／90 天保留設定導讀與提交後乾淨複本守門。"
     },
     {
       "id": "P2-08",
@@ -1534,17 +1537,17 @@ const DATA = {
       "id": "P2-07",
       "startedAt": "2026-11-07 22:26",
       "timebox": "1個工作天或15個提交",
-      "next": "接續 RowVersion 認領與 stale reclaim，再做 Worker 重試、停止排空、資源回基線及保留導讀。",
+      "next": "補齊 30／90 天 D365 大量刪除設定導讀，執行提交後乾淨複本 00 §8.1／§8.2 守門並完成 P2-07 驗收。",
       "dod": [
         [
           "測試全部同名存在並通過",
-          "no",
-          "入列兩個同名測試及補充測試雙宿主通過；其餘六個 Worker 同名測試尚未完成。"
+          "ok",
+          "Writer、CAS 與 Worker 八個計畫同名案例均已存在；Worker 六案在 SpeechMessage.Hosting.Tests 通過，CAS 雙宿主通過。"
         ],
         [
           "乾淨複本守門",
           "no",
-          "入列檢查點 21efb963 全部通過；整包仍需完成 CAS／Worker 後於其提交驗證。"
+          "目前只完成未提交變更的本機建置與 Hosting 109 案；提交後仍須在短路徑複本執行 00 §8.1／§8.2。"
         ],
         [
           "覆蓋率 ≥ 80%",
@@ -1558,8 +1561,8 @@ const DATA = {
         ],
         [
           "一頁回報與進度頁",
-          "no",
-          "已保存進行中一頁回報與逐份 SHA-256；未達整包完成。"
+          "ok",
+          "P2-07 一頁回報已同步更新；本頁於 2026-11-08 10:02 Asia/Taipei (UTC+08:00) 更新。"
         ]
       ]
     }
@@ -1568,38 +1571,38 @@ const DATA = {
     {
       "item": "方案建置（Release）",
       "result": "ok",
-      "at": "2026-11-08 07:25",
-      "note": "21efb963 短路徑乾淨複本 Release 建置成功，0 個錯誤。"
+      "at": "2026-11-08 08:01",
+      "note": "8b2bbb15 短路徑乾淨複本 Release 建置成功，0 個錯誤；不含未提交 CAS 新檔。"
     },
     {
       "item": "全方案測試",
       "result": "ok",
-      "at": "2026-11-08 07:25",
-      "note": "20 份 TRX 共 4,707 個測試全部通過；Debug tracer 7 個通過。"
+      "at": "2026-11-08 08:01",
+      "note": "8b2bbb15：20 份 TRX 共 4,708 個測試全過，0 失敗／略過；Debug tracer 7 個通過。"
     },
     {
       "item": "檔案說明檢查",
       "result": "ok",
-      "at": "2026-11-08 07:25",
-      "note": "1,292 個檔案，0 個問題。"
+      "at": "2026-11-08 08:01",
+      "note": "8b2bbb15：檢查 1,292 份檔案，0 個問題。"
     },
     {
       "item": "文字編碼（P2 範圍）",
       "result": "ok",
-      "at": "2026-11-08 07:25",
-      "note": "Changed 232 個檔案，96 個原始證據排除，0 個問題。"
+      "at": "2026-11-08 08:01",
+      "note": "8b2bbb15：Changed 檢查 235 份檔案，96 份原始證據排除，0 個問題。"
     },
     {
       "item": "重複程式掃描",
       "result": "ok",
-      "at": "2026-11-08 07:25",
+      "at": "2026-11-08 08:01",
       "note": "34 個專案，1,066 個來源檔，0 個新增重複群組。"
     },
     {
       "item": "I18nCheck verify",
       "result": "ok",
-      "at": "2026-11-08 07:25",
-      "note": "verify 成功；兩套進度頁共 27 個測試通過。"
+      "at": "2026-11-08 08:01",
+      "note": "8b2bbb15：verify 成功；兩套進度頁共 27 個測試通過。"
     },
     {
       "item": "雲端 CI（GitHub）",
@@ -1769,6 +1772,15 @@ const DATA = {
     }
   ],
   "timeline": [
+    {
+      "at": "2026-11-08 10:02 Asia/Taipei (UTC+08:00)",
+      "text": "P2-07 新增 RowVersion CAS 與 Hosting 有界 Worker；六個同名離線案例通過，補保留導讀與提交後乾淨守門後才驗收。",
+      "cls": "info"
+    },
+    {
+      "at": "2026-11-08 08:15",
+      "text": "原工作樹 Debug 建置與重建成功，GoodShepherd 雙宿主各 41 個測試通過；IDE 最終結果待核對，尚未證實根因。補入 8b2bbb15 乾淨複本 4,708 個測試及 11 項守門通過證據。"
+    },
     {
       "at": "2026-11-08 07:57",
       "text": "P2-04 第二輪仍執行舊診斷字串；新版 DLL 已核對一致，兩次 smoke 失敗後停止重送。已備份精確清理、殘留零，繼續獨立 P2-07。"

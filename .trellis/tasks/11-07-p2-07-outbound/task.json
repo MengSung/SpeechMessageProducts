@@ -21,9 +21,9 @@
   "children": [],
   "parent": "11-07-integration-p2",
   "relatedFiles": [],
-  "notes": "Writer 與 D365 原子入列已離線雙宿主通過：Writer 各17、store各11；其餘六個同名 Worker 測試與 RowVersion 尚未完成，未驗收、未推送。",
+  "notes": "Writer、D365 原子入列、RowVersion CAS 與 Hosting Worker 已離線通過：Writer 各17、store各11、CAS 各20，Worker 六個計畫同名案例通過；保留導讀、提交後乾淨複本守門及整包驗收尚未完成，未推送。",
   "meta": {
-    "nextAction": "RowVersion 認領與 stale reclaim，接續有界 Worker／重試／停止排空",
+    "nextAction": "補齊30／90天保留設定導讀，執行提交後乾淨複本00 §8.1／§8.2守門並完成P2-07驗收",
     "dispatchMode": "inline",
     "evidenceSummarySha256": "01d5fff0f75760cd25ecf1b5110f0ac0503dd754acc28ec3ffe52bdf8af4a127"
   }

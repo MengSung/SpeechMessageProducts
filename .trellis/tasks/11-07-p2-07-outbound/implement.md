@@ -13,7 +13,8 @@
 
 - [x] Writer 兩個計畫同名測試，先紅後綠；payload／scope／取消／decimal 相容與 Dispose 補驗。
 - [x] 資料庫唯一鍵 Create-or-get、既有內容衝突及同事件兩 store 競爭離線通過。
-- [ ] CAS、候選輪詢、Worker 六個同名測試、保留設定導讀。
+- [x] CAS、候選輪詢、Worker 六個同名測試；離線雙宿主 CAS 與 net10 Hosting worker 均通過。
+- [ ] 完成 30／90 天 D365 大量刪除設定導讀、提交後乾淨複本守門與整包驗收。
 - [ ] 提交後乾淨複本完整守門與包驗收。
 
 先前 net48 缺 JSON runtime 的失敗保留；入列命令改成只處理已驗證 ASCII 識別字、GUID 與數值的封閉 JSON 文法，不建立通用 JSON parser。其餘產品回歸每宿主 41 案通過。
