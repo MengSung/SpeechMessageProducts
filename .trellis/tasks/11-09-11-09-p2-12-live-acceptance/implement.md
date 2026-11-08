@@ -17,3 +17,5 @@
 - [x] 簽章v4（AssemblyVersion仍1.0.0.0）、metadata全過、合併六案通過；尚未部署v4。
 - [ ] 本修正版提交後固定guard全套§8.1；不因守門通過而推送未驗收的P2-12。
 - [ ] 依§9-7取得修正版實機續跑核定，再執行member（含核定同GUID重播）與雙Worker；先備份、精確AllColumns DPAPI錯誤備份、必做清理。
+
+2026-11-09 07:34 Asia/Taipei (UTC+08:00)：修正版已提交 `e2fd52d3`。guard fetch成功，但checkout連續兩次被舊追蹤 `.turns.json` 阻擋；位元組與舊HEAD完全相同，restore無效，已DPAPI備份驗證。未執行clean/reset或§8.1，先依§9-7請核定精確單檔清理，不強制checkout、不改命令順序。

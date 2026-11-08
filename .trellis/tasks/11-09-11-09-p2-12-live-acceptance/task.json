@@ -21,7 +21,7 @@
   "children": [],
   "parent": "11-07-integration-p2",
   "relatedFiles": [],
-  "notes": "2026-11-09 07:29 Asia/Taipei (UTC+08:00)：member兩輪未取得Accepted，均cleanup verify=0、殘留0；Worker已收尾、D365及LINE殘留0。已TDD修正整秒認領與離線部分信任Flex反射失敗，等待修正版實機續跑核定，未驗收、未推送。",
+  "notes": "2026-11-09 07:34 Asia/Taipei (UTC+08:00)：e2fd52d3已提交兩項TDD修復，未推送；會員兩輪失敗後已停止且殘留0。固定guard checkout兩次被舊.turns.json阻擋，檔案與舊HEAD位元組相同、DPAPI備份已驗證；clean/reset/§8.1均未執行。等待一次核定：修正版member／雙Worker實機及guard精確單檔清理。",
   "meta": {
     "offlineDeploymentTests": 200,
     "memberSecureRedCases": 2,
@@ -33,7 +33,7 @@
     "readonlyAuditAt": "2026-11-09T06:43:17+08:00",
     "fullSolutionBuildErrors": 0,
     "fullSolutionBuildWarnings": 68,
-    "encodingGate": "核定清理後通過：checked=365、excluded=120、filesWithIssues=0；尚未提交後乾淨守門",
+    "encodingGate": "worktree Changed367檔、excluded120、issues0；固定guard尚未執行",
     "cleanupAuthorizedAt": "2026-11-09T06:50:10+08:00",
     "cleanupPreservedFiles": 9,
     "memberLiveRunsFailed": 2,
@@ -46,6 +46,14 @@
     "memberPartialTrustTests": 2,
     "builtPluginFileVersion": "1.0.0.4",
     "livePluginFileVersion": "1.0.0.3",
-    "needsLiveRetryAuthorization": true
+    "needsLiveRetryAuthorization": true,
+    "fixCommit": "e2fd52d352a6f4ac5586cc527dea16fe235be0e1",
+    "guardCheckoutFailures": 2,
+    "guardCleanExecuted": false,
+    "guard81Executed": false,
+    "guardHead": "c1b016800551d561a75685d18eadfc7a6d992c20",
+    "guardGeneratedStateBackupVerified": true,
+    "documentationChecked": 1335,
+    "progressTests": 27
   }
 }

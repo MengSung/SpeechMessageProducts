@@ -240,11 +240,11 @@ footer{margin-top:36px;color:var(--muted);font-size:12.5px;text-align:center}
  */
 const DATA = {
   "planVersion": "3.4",
-  "snapshot": "2026-11-09 07:29 Asia/Taipei (UTC+08:00)",
-  "lastUpdated": "2026-11-09T07:29:49+08:00",
+  "snapshot": "2026-11-09 07:34 Asia/Taipei (UTC+08:00)",
+  "lastUpdated": "2026-11-09T07:34:52+08:00",
   "branch": "1.0.0.11.Integration.P2.Worktree",
-  "head": "d4933f1b",
-  "headline": "P2工作包11／12完成；P2-12修正版離線驗證中，待續跑核定；不啟動P3。",
+  "head": "e2fd52d3",
+  "headline": "P2工作包11／12完成；P2-12修復已提交，實機續跑與guard單檔清理待核定，不啟動P3。",
   "notices": [
     {
       "id": "plan-3.4-summary",
@@ -264,9 +264,10 @@ const DATA = {
       "phaseId": "階段 2",
       "level": "info",
       "title": "P2 進度摘要",
-      "lastUpdated": "2026-11-09T07:29:49+08:00",
-      "body": "2026-11-09 07:29 Asia/Taipei (UTC+08:00)：P2-12兩輪會員實機失敗後已停止，四輪操作D365／LINE殘留均0；整秒認領與部分信任Flex已先紅後綠修復。修正版尚未實機驗收、未推送，階段審查待完成。",
+      "lastUpdated": "2026-11-09T07:34:52+08:00",
+      "body": "2026-11-09 07:34 Asia/Taipei (UTC+08:00)：e2fd52d3已提交整秒認領及部分信任Flex修復，離線測試通過；會員兩輪失敗與Worker操作均已收尾殘留0。固定guard checkout連敗兩次尚未執行§8.1，需一次核定修正版實機及guard單檔清理，未推送。",
       "steps": [
+        "2026-11-09 07:34 Asia/Taipei (UTC+08:00)：guard fetch成功，checkout兩次被舊追蹤.turns.json阻擋，與舊HEAD位元組相同但restore無效；已DPAPI備份驗證。未執行clean/reset或§8.1，不強制checkout、不換clone，與實機續跑一併請核定。",
         "2026-11-09 07:29 Asia/Taipei (UTC+08:00)：整秒認領雙宿主各23案、會員套件net10 139案與net48 100案通過；v4簽章／metadata／合併六案通過但未部署。先提交及固定guard，依§9-7取得修正版續跑核定，不盲跑第三輪。",
         "2026-11-09 07:16 Asia/Taipei (UTC+08:00)：雙Worker真CAS一方落敗、一方已寫Processing卻在整秒讀回比對失敗，未進handler。兩程序退出後D365資料、LINE menu／alias殘留0；不得冒稱只產一次驗收通過。",
         "2026-11-09 07:08 Asia/Taipei (UTC+08:00)：07:04及07:06會員實機均未取得Accepted，第二輪安全證據見JsonSerializationException／SerializationException；B及同GUID重播未到達。兩輪cleanup verify=0、trace回例外、步驟停用／空secure，殘留0；原始錯誤未完整備份，不歸因快取。",
@@ -394,9 +395,9 @@ const DATA = {
       "id": "p212-live-retry-approval",
       "phaseId": "階段 2",
       "level": "warn",
-      "title": "P2-12：修正版實機續跑待核定",
-      "lastUpdated": "2026-11-09T07:29:49+08:00",
-      "body": "2026-11-09 07:29 Asia/Taipei (UTC+08:00)：會員操作連續失敗兩次後已停止實機，兩項離線修復與安全收尾完成。建議核定修正版一次member及一次雙Worker驗收，保留同GUID重播核定，不需使用者操作主機。",
+      "title": "P2-12：實機續跑與guard單檔清理待核定",
+      "lastUpdated": "2026-11-09T07:34:52+08:00",
+      "body": "2026-11-09 07:34 Asia/Taipei (UTC+08:00)：會員操作兩輪失敗、guard checkout亦連敗兩次，已停止這兩項操作；D365／LINE殘留0，guard原檔已加密備份驗證。建議核定修正版實機及只清理C:\\smv\\guard內該歷史自動索引，之後原順序守門，不需使用者操作主機。",
       "steps": []
     }
   ],
@@ -1018,7 +1019,7 @@ const DATA = {
       "timebox": "1 天",
       "doneAt": "",
       "commit": "",
-      "note": "2026-11-09 07:29 Asia/Taipei (UTC+08:00)：兩輪會員未驗收、雙Worker認領後秒精度檢查失敗，均已收尾殘留0。整秒及部分信任Flex修正版離線通過，待續跑核定及固定guard；不標done、不推送。"
+      "note": "2026-11-09 07:34 Asia/Taipei (UTC+08:00)：e2fd52d3修復已提交且離線通過，實機兩輪失敗後殘留0。guard checkout兩次被舊自動索引阻擋，待一次核定修正版實機及單檔清理；未驗收、未推送。"
     },
     {
       "id": "P3-01",
@@ -1567,7 +1568,7 @@ const DATA = {
       "id": "P2-12",
       "startedAt": "補記 2026-11-09 06:42 Asia/Taipei (UTC+08:00)（原開工時間未記錄）",
       "timebox": "1工作天或15提交",
-      "next": "提交修正版並固定guard；依連續兩次失敗規則取得實機續跑核定，再驗member及雙Worker，收尾後階段審查。",
+      "next": "請一次核定修正版member／雙Worker實機及guard精確單檔清理；備份後維持fetch→checkout→clean→reset原順序跑§8.1，驗收後才推送。",
       "dod": [
         [
           "測試",
@@ -1577,7 +1578,7 @@ const DATA = {
         [
           "守門",
           "no",
-          "P2-12尚未完成提交後固定guard全套§8.1。"
+          "e2fd52d3提交後guard fetch成功，但checkout兩次被歷史自動索引阻擋；clean/reset/§8.1尚未執行。"
         ],
         [
           "新專案覆蓋率",
@@ -1592,7 +1593,7 @@ const DATA = {
         [
           "回報與DATA",
           "no",
-          "四輪操作紀錄與進行中回報已寫；最終驗收回報及done待實機通過。"
+          "四輪實機操作紀錄、guard阻擋證據及進行中回報已寫；未驗收、不標done。"
         ]
       ]
     }
