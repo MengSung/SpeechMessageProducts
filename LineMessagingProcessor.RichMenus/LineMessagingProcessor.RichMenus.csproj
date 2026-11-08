@@ -5,7 +5,9 @@
 
 主要功能與流程：
 宣告的產品／測試target為net10.0；條件評估後的實際輸出以MSBuild為準。
-專案參考包含Line.Messaging.csproj、LineMessagingProcessor.csproj、SpeechMessage.Hosting.csproj及Localization；不能新增反向相依或將主機狀態引入純核心。
+專案參考包含Line.Messaging.csproj、LineMessagingProcessor.csproj、SpeechMessage.Hosting.csproj及Localization；
+P2-09b以較低層GoodShepherd.Core唯一編碼器產生QR內容，ZXing.Net只供net10影像處理，不進沙箱。
+不能新增反向相依或將主機狀態引入純核心。
 
 使用邊界與維護：修改前先核對引用此檔的專案、頁面、腳本或CI步驟，保留既有參數、輸出及失敗結束碼。
 涉及寫入、外部命令或暫存資源時，依本檔實際實作的owner及清理路徑處理；說明不能取代執行前的範圍驗證。
@@ -22,6 +24,8 @@
   <ItemGroup>
     <PackageReference Include="SixLabors.ImageSharp" />
     <PackageReference Include="SixLabors.ImageSharp.Drawing" />
+    <PackageReference Include="ZXing.Net" />
+    <ProjectReference Include="..\SpeechMessageProducts.GoodShepherd.Core\SpeechMessageProducts.GoodShepherd.Core.csproj" />
     <ProjectReference Include="..\SpeechMessage.Hosting\SpeechMessage.Hosting.csproj" />
     <ProjectReference Include="..\SpeechMessage.Localization\SpeechMessage.Localization.csproj" />
     <ProjectReference Include="..\Line.Messaging\Line.Messaging.csproj" />
