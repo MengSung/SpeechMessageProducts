@@ -78,3 +78,27 @@ f014a4aa乾淨Release建置76警告、0錯誤，方案測試只有Debug／Releas
 | layer-green.log | `7e4a15d7d3c68a5fedd8a4adaf2d5bba9a1c7fcbc4af7088564dbb5d35514ddd` |
 | layer-precommit-build.log | `5e0dbd84e830f05854b86de34ef081f91f45864e416a7cbf77a99f7241defe1b` |
 | 外部analyzer summary.json（原始留本機） | `e93534d239ba0b8722d7892f47d3a7c80b1fd00be57898541736c8bd993cc782` |
+
+## 編碼失敗及D32邊界修正（2026-11-08 22:20 Asia/Taipei (UTC+08:00)）
+2c0b9e95乾淨建置、全方案測試與tracer均exit0；Changed編碼11份缺Final CRLF，因此後續命令未執行，不算守門成功。六份屬e10ba351新誤收的原始證據；查證761e4ae9不存在這16份raw，依既定D32全部只移出版控並留原本機bytes與下列SHA，不修改已凍結的歷史證據、不更改編碼守門或排除規則。其餘五份可維護流程記錄只補檔尾，JSON語義逐份相同，框架自動turn值仍不混入提交。
+
+| 僅留本機的P2-00 evidence檔名 | bytes | SHA-256 |
+|---|---:|---|
+| `Invoke-CleanValidation.ps1` | 4498 | `5821d25805ad08959f238aa75a690ca42b850e0c6b7b22fcbea4640b86573f05` |
+| `archive-integrity.json` | 5318 | `96375bb600d855d0d97d628537e7a53fe9434c74151cb8bd8e0d3e3143542c26` |
+| `clean-34f4f6bb/results.json` | 2609 | `3378f93a92507bd94e5e02e4d4494ee0e3d7661e467d80b5bc7bee5cdd98d112` |
+| `clean-34f4f6bb/summary-and-sha256.json` | 8537 | `f5f4b1f77ad8eda9df804c7e977ea0d420381f1d643e34b939d1db9a0a3eb13a` |
+| `clean-d51acd2d/results.json` | 2609 | `86163492b43dd377acd86bdc2f0262258e9990e9f176c5fa85fd0c3ba7b7d8ed` |
+| `clean-d51acd2d/summary-and-sha256.json` | 9321 | `76ff5d9619591f0614ab21cb0637cca6d043012433805931d8bc7af5d01c09c3` |
+| `debug-path-20261108/summary.json` | 2395 | `6dfc8c257fe504e24f14b080657db81a943135fe1c48d8112c6bee644dbba8bd` |
+| `format-integrity.json` | 1935 | `b17856d3503c0b7a6e109779b787f5b6501bc83a0513d099c2fdfb2bc6f5adb2` |
+| `format-original-0.bin` | 213 | `3022ce1404b9251f295e51198bcd0fd0241bee4d414f2edf9a80f19b6a783c2e` |
+| `format-original-1.bin` | 108 | `1b3bc7798fe73ff1da1473a5b6c12c3425a215f5e34a9e6a7a20ba7cdc785758` |
+| `format-original-2.bin` | 2341 | `0bc498935b8e427a50b2a915d4822be88b140f09bae1ef5bbdbcbd8962f9087e` |
+| `format-original-3.bin` | 1911 | `d3254610620fbe30cc017a6856584d0e13f0550b5e4de90ae0f503ccd0c296cc` |
+| `format-original-4.bin` | 815 | `121975e9de3c2acdcc45e7c51ddcfc4c44b68ae4f553831cf4efe34fc2416019` |
+| `format-original-5.bin` | 223 | `a980a2e5b7823a7eb6242130643655e0f8aa346c33164aff64d54e0012ba291a` |
+| `format-original-6.bin` | 5486 | `e6b65c99421cb4cf7f33cf45761a58087097aa8ea992f8009c2c17b6df591bcb` |
+| `prop001-valid-links-20261108.txt` | 6910 | `a69c43ebd3914ee3ac74cf020d46a70a7a820f2a2cc1319693517a42352ae16f` |
+
+原始失敗：`clean-2c0b9e95-20261108-221211/05-encoding.log` SHA-256 `35a0ae2e30d62f9d4e309232e3df807e5f1f1d8a40a9e9b0d6d3dc76015115d7`；改由新提交重驗全部命令。
