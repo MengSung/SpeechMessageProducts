@@ -67,7 +67,9 @@ $cases = [ordered]@{
             $graph[$project] = @($xml.SelectNodes('//ProjectReference') | ForEach-Object {
                 $include = $_.GetAttribute('Include')
                 if ($include.Contains('$')) { throw 'Unresolved dependency cannot be classified.' }
-                [IO.Path]::GetFullPath((Join-Path ([IO.Path]::GetDirectoryName($path)) $include)).Substring($root.Length + 1).Replace('\', '/')
+                # SUBST磁碟根本身已有分隔符；以正規化prefix長度切割，不能再多吃第一個名稱字元。
+                [IO.Path]::GetFullPath((Join-Path ([IO.Path]::GetDirectoryName($path)) $include)).Substring(
+                    $root.TrimEnd([IO.Path]::DirectorySeparatorChar).Length + 1).Replace('\', '/')
             })
             if (@($xml.SelectNodes('//PackageReference') | Where-Object { $_.GetAttribute('Include') -eq 'DevExtreme.AspNet.Core' }).Count -gt 0) { [void]$excluded.Add($project) }
         }
