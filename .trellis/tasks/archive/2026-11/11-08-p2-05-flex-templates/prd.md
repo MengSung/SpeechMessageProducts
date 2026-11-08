@@ -10,4 +10,4 @@
 - [x] Sender_StillTooLong_Throws
 - [x] Fill_PseudoLocale_AllTextWrapped
 - [x] 每個正式嵌入Flex範本有固定黃金檔測試。
-- [ ] 00 §8.1乾淨守門、回報與DATA；無新增專案／本包無實機。
+- [x] 00 §8.1乾淨守門、回報與DATA；無新增專案／本包無實機。

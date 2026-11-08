@@ -240,11 +240,11 @@ footer{margin-top:36px;color:var(--muted);font-size:12.5px;text-align:center}
  */
 const DATA = {
   "planVersion": "3.4",
-  "snapshot": "2026-11-08 13:51 Asia/Taipei (UTC+08:00)",
-  "lastUpdated": "2026-11-08T13:51:58+08:00",
+  "snapshot": "2026-11-08 13:55 Asia/Taipei (UTC+08:00)",
+  "lastUpdated": "2026-11-08T13:55:53+08:00",
   "branch": "1.0.0.11.Integration.P2.Worktree",
-  "head": "3ad62fe9",
-  "headline": "P2-05乾淨守門修正中；前置已驗收，不重跑。",
+  "head": "c0b79a94",
+  "headline": "P2-05已驗收；接續P2-08宮格多語。",
   "notices": [
     {
       "id": "plan-3.4-summary",
@@ -264,9 +264,10 @@ const DATA = {
       "phaseId": "階段 2",
       "level": "info",
       "title": "P2 進度摘要",
-      "lastUpdated": "2026-11-08T13:51:58+08:00",
-      "body": "2026-11-08 13:51 Asia/Taipei (UTC+08:00)：P2-05首次乾淨測試六案失敗，已同步新增鍵清單並補相依方向正反測試，聚焦測試轉綠。修正提交後重驗，尚未驗收、不推送。",
+      "lastUpdated": "2026-11-08T13:55:53+08:00",
+      "body": "2026-11-08 13:55 Asia/Taipei (UTC+08:00)：P2-05已驗收，c0b79a94乾淨全方案4,825個測試與全部守門通過。下一步P2-08，不重跑已驗前置。",
       "steps": [
+        "2026-11-08 13:55 Asia/Taipei (UTC+08:00)：P2-05已驗收，c0b79a94乾淨全方案4,825個測試與全部守門通過。下一步P2-08，不重跑已驗前置。",
         "2026-11-08 13:51 Asia/Taipei (UTC+08:00)：P2-05首次乾淨測試六案失敗，已同步新增鍵清單並補相依方向正反測試，聚焦測試轉綠。修正提交後重驗，尚未驗收、不推送。",
         "2026-11-08 13:35 Asia/Taipei (UTC+08:00)：P2-04已驗收並推送cd48f6f6，P2-05開始離線TDD。下一包P2-08，前置不再重跑。",
         "2026-11-08 13:33 Asia/Taipei (UTC+08:00)：P2-04已驗收，fa7fa1f9乾淨全方案4,797個測試及全部守門通過。接續P2-05與P2-08，前置不再重跑。",
@@ -379,8 +380,8 @@ const DATA = {
       "phaseId": "階段 2",
       "level": "warn",
       "title": "暫存驗證複本清理受平台限制",
-      "lastUpdated": "2026-11-08T13:33:21+08:00",
-      "body": "2026-11-08 13:33 Asia/Taipei (UTC+08:00)：正常刪除暫存clone遭平台拒絕，未改用其他方法。未清路徑：C:/smv/p207-413fde67、49f67029、b0fb5b99、f7383ab5、0e9e2f71、71326e9d、fa7fa1f9；沒有D365資料或常駐驗證程序。",
+      "lastUpdated": "2026-11-08T13:55:53+08:00",
+      "body": "2026-11-08 13:55 Asia/Taipei (UTC+08:00)：正常刪除暫存clone遭平台拒絕，未改用其他方法。未清路徑：C:/smv/p207-413fde67、49f67029、b0fb5b99、f7383ab5、0e9e2f71、71326e9d、fa7fa1f9、3ad62fe9、c0b79a94。",
       "steps": []
     }
   ],
@@ -898,13 +899,13 @@ const DATA = {
       "id": "P2-05",
       "phaseId": "階段 2",
       "name": "Flex 範本引擎與 sender 範本",
-      "status": "active",
+      "status": "done",
       "deps": "P2-04",
       "live": "無",
       "timebox": "1 天",
-      "doneAt": "",
-      "commit": "",
-      "note": "2026-11-08 13:35 Asia/Taipei (UTC+08:00)：依核定段落開始雙目標範本與sender TDD，尚未驗收。"
+      "doneAt": "2026-11-08 13:55 Asia/Taipei (UTC+08:00)",
+      "commit": "c0b79a94",
+      "note": "六個同名測試、JSON跳脫及逐模板黃金雙宿主通過；4,825案乾淨全過，報告P2-05.md。"
     },
     {
       "id": "P2-06",
@@ -1532,77 +1533,43 @@ const DATA = {
       "note": "首個正式 Plugin 佈署 goodshepherdback 之前"
     }
   ],
-  "active": [
-    {
-      "id": "P2-05",
-      "startedAt": "2026-11-08 13:35",
-      "timebox": "1工作天或15提交",
-      "next": "修正提交後重驗全部乾淨守門。",
-      "dod": [
-        [
-          "同名測試",
-          "ok",
-          "六個名稱與黃金雙宿主通過。"
-        ],
-        [
-          "乾淨守門",
-          "no",
-          "首次六案失敗已修，待新提交重驗。"
-        ],
-        [
-          "新專案覆蓋率",
-          "na",
-          "無新專案。"
-        ],
-        [
-          "實機",
-          "na",
-          "本包未要求。"
-        ],
-        [
-          "回報與DATA",
-          "no",
-          "待驗收。"
-        ]
-      ]
-    }
-  ],
+  "active": [],
   "gates": [
     {
       "item": "方案建置（Release）",
       "result": "ok",
-      "at": "2026-11-08 13:33",
-      "note": "fa7fa1f9：Release23個既有警告、0錯誤。"
+      "at": "2026-11-08 13:55",
+      "note": "c0b79a94：Release23個既有警告、0錯誤。"
     },
     {
       "item": "全方案測試",
       "result": "ok",
-      "at": "2026-11-08 13:33",
-      "note": "fa7fa1f9：20份TRX共4,797個測試通過，0失敗／略過，Debug tracer7個通過。"
+      "at": "2026-11-08 13:55",
+      "note": "c0b79a94：20份TRX共4,825個測試全過、0失敗／略過；Debug tracer7案。"
     },
     {
       "item": "檔案說明檢查",
       "result": "ok",
-      "at": "2026-11-08 13:33",
-      "note": "fa7fa1f9：1,308份文件說明，0問題。"
+      "at": "2026-11-08 13:55",
+      "note": "c0b79a94：文件1,314份、0問題。"
     },
     {
       "item": "文字編碼（P2 範圍）",
       "result": "ok",
-      "at": "2026-11-08 13:33",
-      "note": "fa7fa1f9：Changed278份，原始證據排除96份，0問題。"
+      "at": "2026-11-08 13:55",
+      "note": "c0b79a94：Changed296份、0問題。"
     },
     {
       "item": "重複程式掃描",
       "result": "ok",
-      "at": "2026-11-08 13:33",
-      "note": "fa7fa1f9：34專案1,082份來源，新增重複0。"
+      "at": "2026-11-08 13:55",
+      "note": "c0b79a94：34專案1,086份來源，新增重複0。"
     },
     {
       "item": "I18nCheck verify",
       "result": "ok",
-      "at": "2026-11-08 13:33",
-      "note": "fa7fa1f9：I18n及兩套頁面27案通過。"
+      "at": "2026-11-08 13:55",
+      "note": "c0b79a94：verify通過、46個唯一鍵、生成6份一致。"
     },
     {
       "item": "雲端 CI（GitHub）",
