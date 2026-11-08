@@ -129,10 +129,12 @@ jobs:
             @{ Project='SpeechMessage.Dynamics.Plugins.Tests'; Framework='net48'; Module='SpeechMessage.Dynamics.Plugins' },
             @{ Project='SpeechMessage.Dynamics.Deployment.Tests'; Framework='net10.0'; Module='SpeechMessage.Dynamics.Deployment' },
             @{ Project='tools/I18nCheck.Tests'; Framework='net10.0'; Module='I18nCheck' },
-            @{ Project='tools/PluginPackaging.Tests'; Framework='net10.0'; Module='PluginPackaging' }
+            @{ Project='tools/PluginPackaging.Tests'; Framework='net10.0'; Module='PluginPackaging' },
+            @{ Project='tools/PluginPackaging.Subsets.Tests'; Framework='net48'; Module='Line.Messaging'; Suffix='-PluginSubset' },
+            @{ Project='tools/PluginPackaging.Subsets.Tests'; Framework='net48'; Module='ToolUtility.Core'; Suffix='-PluginSubset' }
           )
           foreach ($case in $cases) {
-            $results = Join-Path 'artifacts/ci/coverage' ($case.Module + '/' + $case.Framework)
+            $results = Join-Path 'artifacts/ci/coverage' ($case.Module + $case['Suffix'] + '/' + $case.Framework)
             if (Test-Path -LiteralPath $results) { throw 'Coverage output must be fresh for every run.' }
             $include = 'DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.Include=[' + $case.Module + ']*'
             dotnet test $case.Project -c Release -f $case.Framework --no-build --collect:"XPlat Code Coverage" --results-directory $results -- $include

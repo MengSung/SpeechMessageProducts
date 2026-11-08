@@ -7,6 +7,7 @@
  * 確定Dispose，SDK由案例借入而不轉移所有權，無background task、連線或快取。
  */
 using System;
+using System.Linq;
 using Microsoft.Xrm.Sdk;
 using Microsoft.Xrm.Sdk.Query;
 using Moq;
@@ -30,7 +31,7 @@ public sealed class LineRecipientsCoverageTests
             {
                 ["name"] = "Alpha", ["new_linechannelid"] = new EntityReference("new_linechannel", ids.Channel)
             },
-            new Entity("new_linechannel", ids.Channel) { ["new_accesstokenencrypted"] = "synthetic-envelope" }));
+            new Entity("new_linechannel", ids.Channel) { ["new_accesstokenencrypted"] = "synthetic-envelope" }).Object);
         var member = source.ReadMember(ids.Contact, default);
         var channel = source.ReadChannel(ids.Church, default);
         Assert.Null(member.LineUserId);
@@ -47,28 +48,28 @@ public sealed class LineRecipientsCoverageTests
     {
         var ids = new Ids();
         using (var source = new LineRecipientQueries(CreateService(ids,
-            new Entity("account", ids.Contact), new Entity("account", ids.Church), new Entity("new_linechannel", ids.Channel))))
+            new Entity("account", ids.Contact), new Entity("account", ids.Church), new Entity("new_linechannel", ids.Channel)).Object))
             Assert.Throws<InvalidOperationException>(() => source.ReadMember(ids.Contact, default));
         using (var source = new LineRecipientQueries(CreateService(ids,
             new Entity("contact", ids.Contact) { ["parentcustomerid"] = new EntityReference("contact", ids.Church) },
-            new Entity("account", ids.Church), new Entity("new_linechannel", ids.Channel))))
+            new Entity("account", ids.Church), new Entity("new_linechannel", ids.Channel)).Object))
             Assert.Throws<InvalidOperationException>(() => source.ReadMember(ids.Contact, default));
         using (var source = new LineRecipientQueries(CreateService(ids,
             new Entity("contact", ids.Contact) { ["parentcustomerid"] = new EntityReference("account", Guid.Empty) },
-            new Entity("account", ids.Church), new Entity("new_linechannel", ids.Channel))))
+            new Entity("account", ids.Church), new Entity("new_linechannel", ids.Channel)).Object))
             Assert.Throws<InvalidOperationException>(() => source.ReadMember(ids.Contact, default));
         using (var source = new LineRecipientQueries(CreateService(ids,
             new Entity("contact", ids.Contact) { ["new_lineid"] = 12, ["parentcustomerid"] = new EntityReference("account", ids.Church) },
-            new Entity("account", ids.Church), new Entity("new_linechannel", ids.Channel))))
+            new Entity("account", ids.Church), new Entity("new_linechannel", ids.Channel)).Object))
             Assert.Throws<InvalidOperationException>(() => source.ReadMember(ids.Contact, default));
         using (var source = new LineRecipientQueries(CreateService(ids,
             new Entity("contact", ids.Contact) { ["parentcustomerid"] = new EntityReference("account", ids.Church) },
             new Entity("account", ids.Church)
             {
                 ["name"] = "Alpha", ["new_linechannelid"] = new EntityReference("new_linechannel", ids.Channel),
-                ["new_enabledlanguages"] = string.Join(",", new string[65]).Replace(",", "zh-TW")
+                ["new_enabledlanguages"] = string.Join(",", Enumerable.Repeat("zh-TW", 65))
             },
-            new Entity("new_linechannel", ids.Channel) { ["new_accesstokenencrypted"] = "envelope" })))
+            new Entity("new_linechannel", ids.Channel) { ["new_accesstokenencrypted"] = "envelope" }).Object))
             Assert.Throws<InvalidOperationException>(() => source.ReadChannel(ids.Church, default));
     }
 

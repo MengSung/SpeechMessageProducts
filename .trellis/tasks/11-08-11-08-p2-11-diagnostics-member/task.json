@@ -21,13 +21,21 @@
   "children": [],
   "parent": "11-07-integration-p2",
   "relatedFiles": [],
-  "notes": "PROP-004兩小時自19:50:45至21:50:45；恢復時已到期，停止子集實作等待核定。metadata及合併六案已通過，覆蓋率／專案登錄／乾淨守門未完成。",
+  "notes": "使用者回覆繼續，核定原限制不變延長兩小時；原時間盒歷史保留。現在完成子集coverage、宿主登錄與打包乾淨守門。",
   "meta": {
     "subsetTimeboxStartedAt": "2026-11-08T19:50:45.844622+08:00",
     "subsetTimeboxHours": 2,
-    "subsetTimeboxState": "expired_waiting_user",
+    "subsetTimeboxState": "extended_active",
     "subsetTimeboxExpiredAt": "2026-11-08T21:50:45.844622+08:00",
     "subsetTimeboxObservedAt": "2026-11-08T21:53:27+08:00",
-    "timeboxDecisionRequestedAt": "2026-11-08T21:55:00+08:00"
+    "timeboxDecisionRequestedAt": "2026-11-08T21:55:00+08:00",
+    "subsetTimeboxExtensions": [
+      {
+        "authorizedBy": "使用者回覆繼續，延續上一輪延長兩小時請求",
+        "startedAt": "2026-11-08T23:03:36+08:00",
+        "hours": 2,
+        "expiresAt": "2026-11-09T01:03:36+08:00"
+      }
+    ]
   }
 }

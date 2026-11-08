@@ -240,11 +240,11 @@ footer{margin-top:36px;color:var(--muted);font-size:12.5px;text-align:center}
  */
 const DATA = {
   "planVersion": "3.4",
-  "snapshot": "2026-11-08 22:41 Asia/Taipei (UTC+08:00)",
+  "snapshot": "2026-11-08 23:03 Asia/Taipei (UTC+08:00)",
   "lastUpdated": "2026-11-08T22:41:35+08:00",
   "branch": "1.0.0.11.Integration.P2.Worktree",
-  "head": "31dd5540",
-  "headline": "P2-09b已驗收，P2工作包10／12完成；P2-11時間盒待核定後續P2-12與階段審查。",
+  "head": "a56bcbaa",
+  "headline": "P2工作包10／12完成；P2-11已核定延長兩小時，接續P2-12及階段審查，結案不開P3。",
   "notices": [
     {
       "id": "plan-3.4-summary",
@@ -382,10 +382,10 @@ const DATA = {
     {
       "id": "p211-timebox-warning",
       "phaseId": "階段 2",
-      "level": "warn",
+      "level": "info",
       "title": "P2-11：PROP-004兩小時時間盒已到",
-      "lastUpdated": "2026-11-08T22:02:52+08:00",
-      "body": "2026-11-08 22:02 Asia/Taipei (UTC+08:00)：19:50:45起算、21:50:45到期，metadata及合併六案已通過，子集coverage／乾淨守門未完成。建議保留子集方案再延長兩小時；精確允許CSharp方案證據與風險見P2-11一頁回報，未自行放寬。",
+      "lastUpdated": "2026-11-08T23:03:36+08:00",
+      "body": "2026-11-08 23:03 Asia/Taipei (UTC+08:00)：使用者回覆繼續，維持PROP-004子集及全部限制，延長兩小時完成coverage與守門。原19:50至21:50時間盒歷史保留，下一步P2-11驗收後接P2-12。",
       "steps": []
     },
     {
@@ -1559,7 +1559,7 @@ const DATA = {
       "id": "P2-11",
       "startedAt": "2026-11-08 16:22 Asia/Taipei (UTC+08:00)",
       "timebox": "1工作天或15提交",
-      "next": "時間盒到期停止子集實作；等待核定後完成coverage、宿主登錄與最終打包／乾淨守門。",
+      "next": "完成實際子集coverage、測試宿主登錄、包裝驗證及乾淨守門；驗收後立即P2-12。",
       "dod": [
         [
           "測試",
@@ -1696,7 +1696,7 @@ const DATA = {
       "evidence": "核定後子集metadata全部checks=true（851,968bytes、AssemblyVersion1.0.0.0），合併DLL六案通過；完整七input仍有CSharp4.0.0.0及ValueTuple4.0.3.0。證據SHA見P2-11一頁回報索引，子集coverage與乾淨守門未完成。",
       "proposal": "明列七輸入；Line.Messaging與LineRecipients各以包裝專用子集專案Compile Include／Link連結原始碼，AssemblyName／AssemblyVersion不變。兩小時或metadata拒絕即停，不放寬限制。",
       "impact": "P2-11／P2-12；等待期間P2-06乾淨守門繼續，不改3.4正文或metadata限制。",
-      "status": "2026-11-08已核定方案；21:50時間盒到期，等待後續核定，待寫入3.5"
+      "status": "2026-11-08已核定；使用者繼續核定延長兩小時，維持限制，待寫入3.5"
     },
     {
       "id": "PROP-005",

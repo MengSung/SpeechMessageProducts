@@ -87,13 +87,24 @@ $cases = [ordered]@{
     Coverage_IncludesBothCoreProductTargets = {
         # 評估 workflow 真正使用的矩陣宣告，不以字串存在代替目標／專案配對驗證。
         $matrix = Get-CoverageMatrix
-        $core = @($matrix | Where-Object { $_.Module -ceq 'ToolUtility.Core' })
+        $core = @($matrix | Where-Object { $_.Module -ceq 'ToolUtility.Core' -and -not $_.ContainsKey('Suffix') })
         if ($core.Count -ne 2 -or @($core | Where-Object { $_.Project -cne 'ToolUtility.Tests' }).Count -gt 0) {
             throw 'Core coverage must use its complete test project for both targets.'
         }
         $frameworks = @($core | ForEach-Object { $_.Framework } | Sort-Object)
         if (@(Compare-Object @('net10.0', 'net48') $frameworks).Count -gt 0) {
             throw 'Core coverage must independently execute net48 and net10.0.'
+        }
+    }
+    Coverage_IncludesActualPackagingSubsets = {
+        # 相同AssemblyName的包裝投影必須用獨立宿主／結果目錄，不可取完整原產品的報告替代。
+        $subsets = @(Get-CoverageMatrix | Where-Object { $_.ContainsKey('Suffix') })
+        if ($subsets.Count -ne 2 -or @($subsets | Where-Object {
+            $_.Project -cne 'tools/PluginPackaging.Subsets.Tests' -or $_.Framework -cne 'net48' -or $_.Suffix -cne '-PluginSubset'
+        }).Count -gt 0) { throw 'Subset coverage must use its isolated net48 host and distinct output.' }
+        $modules = @($subsets | ForEach-Object { $_.Module } | Sort-Object)
+        if (@(Compare-Object @('Line.Messaging', 'ToolUtility.Core') $modules).Count -gt 0) {
+            throw 'Each actual packaging subset requires one independent module coverage check.'
         }
     }
     Coverage_IncludesHostingOwner = {

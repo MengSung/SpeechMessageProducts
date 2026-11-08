@@ -9,6 +9,8 @@ using System;
 using System.Collections.Generic;
 using Line.Messaging;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Converters;
+using Newtonsoft.Json.Serialization;
 using Xunit;
 
 namespace SpeechMessage.Tools.PluginPackaging.Subsets.Tests;
@@ -16,6 +18,17 @@ namespace SpeechMessage.Tools.PluginPackaging.Subsets.Tests;
 /// <summary>走訪沙箱所需模型閉包，真序列化／converter斷言防止只以型別存在充當覆蓋。</summary>
 public sealed class LineSubsetCoverageTests
 {
+    /// <summary>完整SDK的HTTP client不屬核定投影；若相依複製覆蓋子集，必須拒絕這份coverage。</summary>
+    [Fact]
+    public void LoadedAssembly_IsTheActualNet462SubsetNotTheFullSdk()
+    {
+        var assembly = typeof(TextMessage).Assembly;
+        Assert.Null(assembly.GetType("Line.Messaging.LineMessagingClient"));
+        Assert.Equal(".NETFramework,Version=v4.6.2",
+            assembly.GetCustomAttributes(typeof(System.Runtime.Versioning.TargetFrameworkAttribute), false)
+                .Cast<System.Runtime.Versioning.TargetFrameworkAttribute>().Single().FrameworkName);
+    }
+
     /// <summary>建立Flex全部元件、樣式、enum與quick reply，真JSON往返覆蓋來源投影。</summary>
     [Fact]
     public void LinkedFlexGraph_SerializesAllSubsetModelsAndConverters()
@@ -61,25 +74,32 @@ public sealed class LineSubsetCoverageTests
         carousel.AddBubbleContainer(bubble).SetQuickReply(quick);
         var messages = new ISendMessage[] { new TextMessage("純文字", quick) { Sender = new Sender("教會", "https://example.invalid/logo.png") }, bubbleMessage, carousel };
 
-        var json = JsonConvert.SerializeObject(messages);
+        var settings = new JsonSerializerSettings
+        {
+            ContractResolver = new CamelCasePropertyNamesContractResolver(),
+            Converters = { new StringEnumConverter { NamingStrategy = new CamelCaseNamingStrategy() } }
+        };
+        var json = JsonConvert.SerializeObject(messages, settings);
         Assert.Contains("\"type\":\"flex\"", json, StringComparison.Ordinal);
         Assert.Contains("\"3xl\"", json, StringComparison.Ordinal);
-        Assert.Contains("\"richmenuswitch\"", JsonConvert.SerializeObject(TemplateActionType.RichMenuSwitch), StringComparison.Ordinal);
+        Assert.Equal("\"richmenuswitch\"", JsonConvert.SerializeObject(TemplateActionType.RichMenuSwitch, settings));
         Assert.Equal("2:1", new AspectRatio(2, 1).ToString());
+        Assert.Equal("#010203", bubble.Hero.BackgroundColor);
+        Assert.Equal("#0000FF", ColorCode.Blue);
         Assert.Equal("https://example.invalid/desktop", new AltUri("https://example.invalid/desktop").Desktop);
-        Assert.Equal("clipboard", (string)JsonConvert.DeserializeObject("\"clipboard\"", typeof(TemplateActionType))! is string text ? text : "clipboard");
+        Assert.Equal(TemplateActionType.Clipboard, JsonConvert.DeserializeObject<TemplateActionType>("\"clipboard\"", settings));
     }
 
-    /// <summary>自有合成模板动作，不引入SDK或可变全域状态。</summary>
+    /// <summary>自有合成模板動作，不引入SDK或可變全域狀態；隨單案物件圖釋放。</summary>
     private sealed class MessageAction : ITemplateAction
     {
-        /// <summary>建立固定label/value的本案动作。</summary>
+        /// <summary>建立固定label/value的本案動作，不保留外部服務或憑證。</summary>
         internal MessageAction(string label, string value) { Label = label; Value = value; }
-        /// <summary>序列化用稳定动作种类。</summary>
+        /// <summary>序列化用穩定動作種類，供真JSON協定斷言使用。</summary>
         public TemplateActionType Type => TemplateActionType.Message;
-        /// <summary>本案合成显示文字。</summary>
+        /// <summary>本案合成顯示文字，並非真實使用者資料。</summary>
         public string Label { get; }
-        /// <summary>本案合成回传值。</summary>
+        /// <summary>本案合成回傳值，只在此測試的序列化期間保留。</summary>
         public string Value { get; }
     }
 }

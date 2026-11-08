@@ -8,6 +8,8 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>net48</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <DisableTransitiveProjectReferences>true</DisableTransitiveProjectReferences>
     <RootNamespace>SpeechMessage.Tools.PluginPackaging.Subsets.Tests</RootNamespace>
     <SpeechMessageStrictCode>true</SpeechMessageStrictCode>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
@@ -18,6 +20,9 @@
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.CrmSdk.CoreAssemblies" PrivateAssets="all" />
+    <!-- 與既有net48測試一致，以中央已核定版本覆蓋SDK舊傳遞相依，不新增套件種類。 -->
+    <PackageReference Include="System.Text.Json" PrivateAssets="all" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" />
     <PackageReference Include="Moq" />
     <PackageReference Include="Newtonsoft.Json" />
@@ -28,6 +33,5 @@
     <ProjectReference Include="../../build/ToolUtility.Core.PluginSubset/ToolUtility.Core.PluginSubset.csproj" />
     <ProjectReference Include="../../SpeechMessage.Localization/SpeechMessage.Localization.csproj" />
     <ProjectReference Include="../../LineMessagingProcessor.Core/LineMessagingProcessor.Core.csproj" />
-    <Compile Include="../ToolUtility.Tests/DataOperations/LineRecipientQueriesTests.cs" Link="LineRecipients/LineRecipientQueriesTests.cs" />
   </ItemGroup>
 </Project>

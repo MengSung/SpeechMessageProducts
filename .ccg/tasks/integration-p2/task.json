@@ -6,7 +6,7 @@
   "risk": "high",
   "domain": "backend",
   "currentPhase": "implementation",
-  "nextAction": "P2-06與P2-09b已驗收；剩P2-11時間盒待核定、P2-12及階段審查。前置不重跑、不啟動P3。",
+  "nextAction": "P2-11延長兩小時內完成子集coverage與乾淨守門，接續P2-12及階段審查，不啟動P3。",
   "createdAt": "2026-11-07T00:35:03.4037617+00:00",
   "branch": "1.0.0.11.Integration.P2.Worktree",
   "updatedAt": "2026-11-08T22:41:35+08:00"
