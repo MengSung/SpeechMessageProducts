@@ -11,6 +11,6 @@
 - [x] Notify_ColumnSetIsMinimal 同名存在並通過。
 - [x] LinkRichMenu_AliasNotFound_Permanent 同名存在並通過。
 - [x] Notify_ParallelDifferentChurches_NoCrossTalk 同名存在並通過。
-- [ ] 00 §8.1全部乾淨守門通過。
-- [ ] 無新增專案，覆蓋率門檻不另加；本包無實機要求。
-- [ ] 一頁回報、DATA、歸檔與驗收後推送。
+- [x] 00 §8.1全部乾淨守門通過。
+- [x] 無新增專案，覆蓋率門檻不另加；本包無實機要求。
+- [x] 一頁回報、DATA、歸檔與驗收後推送。

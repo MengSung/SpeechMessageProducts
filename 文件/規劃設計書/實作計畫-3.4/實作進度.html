@@ -240,11 +240,11 @@ footer{margin-top:36px;color:var(--muted);font-size:12.5px;text-align:center}
  */
 const DATA = {
   "planVersion": "3.4",
-  "snapshot": "2026-11-08 13:10 Asia/Taipei (UTC+08:00)",
-  "lastUpdated": "2026-11-08T13:10:48+08:00",
+  "snapshot": "2026-11-08 13:33 Asia/Taipei (UTC+08:00)",
+  "lastUpdated": "2026-11-08T13:33:21+08:00",
   "branch": "1.0.0.11.Integration.P2.Worktree",
-  "head": "71326e9d",
-  "headline": "P2-10已驗收；P2-04離線TDD進行中，前置不再重跑。",
+  "head": "fa7fa1f9",
+  "headline": "P2-04已驗收；前置不再重跑，接續P2-05與P2-08。",
   "notices": [
     {
       "id": "plan-3.4-summary",
@@ -264,9 +264,10 @@ const DATA = {
       "phaseId": "階段 2",
       "level": "info",
       "title": "P2 進度摘要",
-      "lastUpdated": "2026-11-08T13:10:48+08:00",
-      "body": "2026-11-08 13:10 Asia/Taipei (UTC+08:00)：P2-10已驗收，71326e9d乾淨全方案4,763個測試及全部守門通過。P2-04繼續離線TDD，前置不再重跑。",
+      "lastUpdated": "2026-11-08T13:33:21+08:00",
+      "body": "2026-11-08 13:33 Asia/Taipei (UTC+08:00)：P2-04已驗收，fa7fa1f9乾淨全方案4,797個測試及全部守門通過。接續P2-05與P2-08，前置不再重跑。",
       "steps": [
+        "2026-11-08 13:33 Asia/Taipei (UTC+08:00)：P2-04已驗收，fa7fa1f9乾淨全方案4,797個測試及全部守門通過。接續P2-05與P2-08，前置不再重跑。",
         "2026-11-08 13:10 Asia/Taipei (UTC+08:00)：P2-10已驗收，71326e9d乾淨全方案4,763個測試及全部守門通過。P2-04繼續離線TDD，前置不再重跑。",
         "2026-11-08 12:59 Asia/Taipei (UTC+08:00)：前置Accepted實機與0e9e2f71乾淨守門均通過，已推送本分支。P2-04＋P2-10開始離線TDD，仍未驗收。",
         "2026-11-08 12:50 Asia/Taipei (UTC+08:00)：P2-04 前置只重跑一次，smoke=0、Accepted／200及有效 RequestId，收尾 verify=0、本輪殘留0，已驗收。P2-07 最終封存提交 b0fb5b99 的乾淨守門全過並已推送，接續 P2-04＋P2-10。",
@@ -376,8 +377,8 @@ const DATA = {
       "phaseId": "階段 2",
       "level": "warn",
       "title": "暫存驗證複本清理受平台限制",
-      "lastUpdated": "2026-11-08T12:50:47+08:00",
-      "body": "2026-11-08 12:50 Asia/Taipei (UTC+08:00)：本輪 C:/smv/p207-413fde67、C:/smv/49f67029 的正常遞迴清理遭平台拒絕，未改用其他方式；C:/smv/b0fb5b99 的驗證已結束，仍須清理。這些都是本機驗證複本，無D365資料或常駐驗證程序。",
+      "lastUpdated": "2026-11-08T13:33:21+08:00",
+      "body": "2026-11-08 13:33 Asia/Taipei (UTC+08:00)：正常刪除暫存clone遭平台拒絕，未改用其他方法。未清路徑：C:/smv/p207-413fde67、49f67029、b0fb5b99、f7383ab5、0e9e2f71、71326e9d、fa7fa1f9；沒有D365資料或常駐驗證程序。",
       "steps": []
     }
   ],
@@ -883,13 +884,13 @@ const DATA = {
       "id": "P2-04",
       "phaseId": "階段 2",
       "name": "LineMessagingProcessor.Core 完整版與單人推播",
-      "status": "active",
+      "status": "done",
       "deps": "P2-02、P2-03、P2-04 前置",
       "live": "無",
       "timebox": "1 天",
-      "doneAt": "",
-      "commit": "",
-      "note": "2026-11-08 12:59 Asia/Taipei (UTC+08:00)：依3.4開始離線TDD，尚未驗收。"
+      "doneAt": "2026-11-08 13:33",
+      "commit": "fa7fa1f9",
+      "note": "2026-11-08 13:33 Asia/Taipei (UTC+08:00)：八個同名測試、雙目標通知及查詢通過，乾淨全方案4,797個測試與全部守門通過。本包無實機，前置維持已驗收。"
     },
     {
       "id": "P2-05",
@@ -1529,77 +1530,43 @@ const DATA = {
       "note": "首個正式 Plugin 佈署 goodshepherdback 之前"
     }
   ],
-  "active": [
-    {
-      "id": "P2-04",
-      "startedAt": "2026-11-08 12:59",
-      "timebox": "1工作天或15提交",
-      "next": "先確認同名功能紅燈，再做最小實作與守門。",
-      "dod": [
-        [
-          "測試同名存在並通過",
-          "no",
-          "尚在TDD。"
-        ],
-        [
-          "乾淨複本守門",
-          "no",
-          "尚未提交產品實作。"
-        ],
-        [
-          "新專案覆蓋率",
-          "na",
-          "無新增專案。"
-        ],
-        [
-          "實機",
-          "na",
-          "本包未要求實機。"
-        ],
-        [
-          "一頁回報與進度",
-          "no",
-          "已列開始狀態，驗收報告待補。"
-        ]
-      ]
-    }
-  ],
+  "active": [],
   "gates": [
     {
       "item": "方案建置（Release）",
       "result": "ok",
-      "at": "2026-11-08 12:42",
-      "note": "49f67029 乾淨複本 Release 建置23個既有警告、0錯誤。"
+      "at": "2026-11-08 13:33",
+      "note": "fa7fa1f9：Release23個既有警告、0錯誤。"
     },
     {
       "item": "全方案測試",
       "result": "ok",
-      "at": "2026-11-08 12:42",
-      "note": "49f67029：20份TRX共4,755個全過，0失敗／略過；Debug tracer7個通過。"
+      "at": "2026-11-08 13:33",
+      "note": "fa7fa1f9：20份TRX共4,797個測試通過，0失敗／略過，Debug tracer7個通過。"
     },
     {
       "item": "檔案說明檢查",
       "result": "ok",
-      "at": "2026-11-08 12:42",
-      "note": "49f67029：1,298份檔案說明，0問題。"
+      "at": "2026-11-08 13:33",
+      "note": "fa7fa1f9：1,308份文件說明，0問題。"
     },
     {
       "item": "文字編碼（P2 範圍）",
       "result": "ok",
-      "at": "2026-11-08 12:42",
-      "note": "49f67029：Changed檢查247份，排除96份原始證據，0問題。"
+      "at": "2026-11-08 13:33",
+      "note": "fa7fa1f9：Changed278份，原始證據排除96份，0問題。"
     },
     {
       "item": "重複程式掃描",
       "result": "ok",
-      "at": "2026-11-08 12:42",
-      "note": "49f67029：34個專案、1,072份來源，新增重複0。"
+      "at": "2026-11-08 13:33",
+      "note": "fa7fa1f9：34專案1,082份來源，新增重複0。"
     },
     {
       "item": "I18nCheck verify",
       "result": "ok",
-      "at": "2026-11-08 12:42",
-      "note": "49f67029：I18n verify成功，兩套進度頁27個案例全過。"
+      "at": "2026-11-08 13:33",
+      "note": "fa7fa1f9：I18n及兩套頁面27案通過。"
     },
     {
       "item": "雲端 CI（GitHub）",

@@ -1,12 +1,12 @@
 {
   "id": "p2-04-member-push",
   "title": "P2-04 共用單人推播與會友通知",
-  "status": "in_progress",
+  "status": "completed",
   "complexity": "L+",
   "risk": "high",
   "domain": "backend",
-  "currentPhase": "implementation",
-  "nextAction": "依已核定計畫TDD；外部審查只在階段末一次。",
+  "currentPhase": "completed",
+  "nextAction": "已驗收fa7fa1f9，封存及推送；外部審查留階段末。",
   "createdAt": "2026-11-08T12:59:01+08:00",
   "branch": "1.0.0.11.Integration.P2.Worktree"
 }
