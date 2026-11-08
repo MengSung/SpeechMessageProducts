@@ -4,7 +4,8 @@
  * 目的與定位：P2-04 的 Core 會友入口，先驗來源教會／會友／頻道指派，才允許共用
  * 傳輸管線碰觸 LINE；頻道池內多教會共用憑證不會共用可變 sender 或訊息。
  * 主要功能與流程：單次輸入最多五則 Line.Messaging 訊息，建立有界 JSON 快照，
- * 覆寫每則 sender 為伺服器教會名稱，Retry Key 原樣沿用來源正式記錄 ID。
+ * 覆寫每則 sender 為伺服器教會名稱，Retry Key 原樣沿用來源正式記錄 ID；私有 Flex
+ * 投影以顯式 converter 寫入，不依賴沙箱非公開反射權限。
  * 使用邊界與維護：不保存 caller 集合、訊息、credential 或教會資料；client 只借用
  * 無狀態 HttpClient。HTTP request／response、逾時及連結取消來源全部由單次傳輸
  * using 擁有，完成後釋放；正常 caller 取消與內部逾時沿用既有契約，不建立重試背景。
@@ -19,6 +20,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Line.Messaging;
+using LineMessagingProcessor.Core.Templates;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 using Newtonsoft.Json.Linq;
@@ -112,6 +114,8 @@ public sealed partial class LinePushClient
             ContractResolver = new CamelCasePropertyNamesContractResolver(),
             NullValueHandling = NullValueHandling.Ignore
         };
+        // 私有範本投影使用明確寫入，不要求 D365 沙箱允許非公開反射；一般 SDK 訊息維持原契約。
+        serializer.Converters.Add(FlexTemplateEngine.CreateContainerConverter());
         serializer.Converters.Add(new StringEnumConverter(new CamelCaseNamingStrategy()));
         using var text = new BoundedMessageWriter();
         using (var writer = new JsonTextWriter(text) { CloseOutput = false }) serializer.Serialize(writer, messages);

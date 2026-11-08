@@ -4,7 +4,8 @@
  * 目的與定位：以離線合成 SDK 驗證 P2-07 的資料庫 CAS；不是 D365 實機驗收。
  * 主要功能與流程：兩個真實 store 經 Barrier 同時入場後才進資料庫裁決，只有一個
  * 版本可認領；認領的新版本供後續完成，舊 owner 必須落敗。另注入重複身分、故障、
- * 缺版本及取消，檢查查詢欄位、上限、狀態與 UTC 卡住界線。
+ * 缺版本及取消，檢查查詢欄位、上限、狀態與 UTC 卡住界線；整秒 SDK 讀回故障保護
+ * 含次秒輸入的認領仍有一致的新版本，不把成功 CAS 誤判為失敗而留下 Processing。
  * 使用邊界與維護：每案獨有 Moq、Barrier 與資料；await 全部競爭者後才 Dispose。
  * 替身不開連線或保存帳密，store 不擁有 SDK；原始 fault 身分及零額外 I/O 為斷言。
  */
@@ -72,6 +73,41 @@ public sealed class OutboundTaskClaimTests
         Assert.Equal("11", won!.RowVersion);
         Assert.Single(claims.Where(c => c is null));
         Assert.Equal(11, version);
+    }
+
+    /// <summary>
+    /// 注入實機 D365 9.1 只保留整秒的認領讀回；輸入含次秒時仍須取得新版本，
+    /// 並精確驗證寫入本身已量化，不以容忍任意時間差或跳過 CAS 掩蓋 Processing 殘留。
+    /// SDK 為本案局部替身，store 借用後 Dispose；沒有連線、背景工作或真實資料。
+    /// </summary>
+    /// <param name="fractionalTicks">同一秒內的時間尾數，涵蓋毫秒與秒尾邊界。</param>
+    [Theory]
+    [InlineData(1)]
+    [InlineData(1234567)]
+    [InlineData(9999999)]
+    public void Claim_SecondPrecisionReadback_KeepsSuccessfulOwnership(int fractionalTicks)
+    {
+        var row = Row(); var candidate = Snapshot(row);
+        var sdk = new Mock<IOrganizationService>(MockBehavior.Strict);
+        sdk.Setup(s => s.Execute(It.IsAny<OrganizationRequest>())).Returns((OrganizationRequest request) =>
+        {
+            var transaction = Assert.IsType<ExecuteTransactionRequest>(request);
+            var update = Assert.IsType<UpdateRequest>(transaction.Requests[0]);
+            Assert.Equal(ConcurrencyBehavior.IfRowVersionMatches, update.ConcurrencyBehavior);
+            Assert.Equal("10", update.Target.RowVersion);
+            Assert.Equal(Now, update.Target["new_claimedon"]);
+            row.RowVersion = "11";
+            row["new_taskstatus"] = new OptionSetValue(100000001);
+            row["new_claimedon"] = DateTime.SpecifyKind(Now, DateTimeKind.Unspecified);
+            return ClaimedResponse(row);
+        });
+        using var store = new D365OutboundTaskStore(sdk.Object);
+        var claim = store.TryClaim(candidate, Now.AddTicks(fractionalTicks), CancellationToken.None);
+        Assert.NotNull(claim);
+        Assert.Equal("11", claim!.RowVersion);
+        Assert.Equal(Now, claim.ClaimedOn);
+        Assert.Equal(DateTimeKind.Utc, claim.ClaimedOn!.Value.Kind);
+        sdk.Verify(s => s.Execute(It.IsAny<OrganizationRequest>()), Times.Once);
     }
 
     /// <summary>卡住 Processing 超過十分鐘可重認領；十分鐘內與尚未到期 Pending 不發寫入。</summary>

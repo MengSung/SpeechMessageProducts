@@ -9,7 +9,8 @@
  * SDK 由呼叫端擁有 transport timeout，先排空同步 I/O 再 Dispose；本物件 Dispose
  * 只清借用參照並拒絕新操作。所有 Entity／交易／結果為操作局部，不保留帳密或跨批資料。
  * 失敗路徑：僅明確版本衝突回落敗；其他例外原樣交 Host 通知，不自行重試不確定結果。
- * 日期按 D365 UTC 欄位語意讀取，不套用本機時區；回寫只容許固定有界錯誤分類，不存例外本文。
+ * 日期按 D365 UTC 欄位語意讀取，不套用本機時區；認領先向下量化為整秒再寫入及精確讀回，
+ * 對齊 D365 9.1 儲存精度（不到一秒的量化差）；回寫只容許固定有界錯誤分類，不存例外本文。
  */
 using System;
 using System.Collections.Generic;
@@ -86,6 +87,8 @@ public sealed class D365OutboundTaskStore : IOutboundTaskStore, IDisposable
     /// <summary>
     /// 用候選版本在同一資料庫交易完成認領與新版本讀回，避免第三個 owner 插入兩步之間。
     /// 不合時機不寫入；只有明確 ConcurrencyVersionMismatch 回空，其他故障不轉為成功或重試。
+    /// 認領 UTC 先向下量化為整秒，避免資料庫捨去次秒後把已成功的 CAS 誤判失敗；
+    /// 量化不改變候選資格或版本柵欄，讀回仍須與實際寫入的整秒值完全相等。
     /// </summary>
     /// <param name="candidate">從固定已授權組織讀出的不可變候選。</param>
     /// <param name="utcNow">認領及卡住判斷的 UTC 時點。</param>
@@ -101,11 +104,12 @@ public sealed class D365OutboundTaskStore : IOutboundTaskStore, IDisposable
         RequireUtc(utcNow);
         var client = Borrow(cancellationToken);
         if (!IsEligible(candidate, utcNow)) return null;
+        var claimedOn = new DateTime(utcNow.Ticks - utcNow.Ticks % TimeSpan.TicksPerSecond, DateTimeKind.Utc);
         var update = new Entity("new_outboundtask", candidate.Id)
         {
             RowVersion = candidate.RowVersion,
             ["new_taskstatus"] = new OptionSetValue((int)OutboundTaskStatus.Processing),
-            ["new_claimedon"] = utcNow,
+            ["new_claimedon"] = claimedOn,
             ["new_nextattempton"] = null
         };
         var transaction = new ExecuteTransactionRequest
@@ -128,7 +132,7 @@ public sealed class D365OutboundTaskStore : IOutboundTaskStore, IDisposable
                 || claim.Type != candidate.Type || !string.Equals(claim.PayloadJson, candidate.PayloadJson, StringComparison.Ordinal)
                 || !string.Equals(claim.IdempotencyKey, candidate.IdempotencyKey, StringComparison.Ordinal)
                 || claim.Attempts != candidate.Attempts || claim.Status != OutboundTaskStatus.Processing
-                || claim.ClaimedOn != utcNow
+                || claim.ClaimedOn != claimedOn
                 || ulong.Parse(claim.RowVersion, NumberStyles.None, CultureInfo.InvariantCulture)
                     <= ulong.Parse(candidate.RowVersion, NumberStyles.None, CultureInfo.InvariantCulture))
                 throw new ArgumentException("Outbound claim identity or version is inconsistent.");

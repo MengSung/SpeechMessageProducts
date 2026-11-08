@@ -3,6 +3,7 @@
  *
  * 目的與定位：雙目標LINE Flex純範本引擎，借用ITextCatalog解析已授權範圍的文字，
  * 不讀D365、網路、檔案或任意CLR型別；輸出正式FlexMessage供Core單次推播凍結。
+ * Core 以顯式 converter 直接寫入私有容器，不要求沙箱授予非公開成員反射權限。
  * 主要功能與流程：先驗有界JSON、唯一屬性及altText取字key，只在字串值單次替換
  * {{t:Key}}與{{v:name}}，以JSON token輸出確保引號、換行與插入模板不改變結構。
  * 使用邊界與維護：每次候選與值由呼叫操作獨占，不保留context、資料、快照或憑證；
@@ -74,6 +75,29 @@ public sealed class FlexTemplateEngine
         if (string.IsNullOrWhiteSpace(resolvedAlt) || resolvedAlt.Length > 400)
             throw new FormatException("Invalid resolved altText size.");
         return new FlexMessage(string.Empty) { AltText = resolvedAlt, Contents = new TemplateContainer(contents) };
+    }
+
+    /// <summary>
+    /// 為當次 Core serializer 建立無狀態容器轉換器，僅匹配本引擎的私有投影。
+    /// 直接寫入已驗證 JSON，避免部分信任沙箱透過反射讀取非公開型別或 extension data。
+    /// 不快取操作資料，也不變更全域 JsonConvert 設定或一般 SDK 容器的序列化行為。
+    /// </summary>
+    /// <returns>由當次 serializer 擁有、沒有可變操作狀態的 converter。</returns>
+    internal static JsonConverter CreateContainerConverter() => new TemplateContainerConverter();
+
+    /// <summary>只寫入本引擎候選的無狀態橋接；不反序列化外部資料、不使用反射。</summary>
+    private sealed class TemplateContainerConverter : JsonConverter
+    {
+        /// <summary>僅本引擎容器使用直接寫入，不攔截任意 SDK 或使用者型別。</summary>
+        public override bool CanConvert(Type objectType) => objectType == typeof(TemplateContainer);
+        /// <summary>本 converter 不接受輸入或建立多型別物件。</summary>
+        public override bool CanRead => false;
+        /// <summary>writer 為呼叫端所有，直接寫當次不可變容器，不保存 writer、serializer 或內容。</summary>
+        public override void WriteJson(JsonWriter writer, object? value, JsonSerializer serializer) =>
+            ((TemplateContainer)value!).WriteJson(writer);
+        /// <summary>防止未來誤用成任意 CLR 型別解析入口，固定拒絕且不讀取本文。</summary>
+        public override object ReadJson(JsonReader reader, Type objectType, object? existingValue, JsonSerializer serializer) =>
+            throw new NotSupportedException("Template container conversion is write-only.");
     }
 
     /// <summary>只遍歷候選JSON原始節點；替換後文字不再進入此遞迴，防止資料被二次解譯。</summary>
@@ -159,7 +183,21 @@ public sealed class FlexTemplateEngine
             foreach (var property in contents.Properties())
                 if (property.Name != "type") fields.Add(property.Name, property.Value);
         }
-        /// <summary>正式容器型別；其餘欄位只由JSON serializer從私有extension data讀取。</summary>
+        /// <summary>按固定協定及已驗證候選順序直接寫入；不回傳可變 JToken，也不依賴反射讀私有欄位。</summary>
+        /// <param name="writer">當次序列化擁有的有界 JSON writer，不由此容器關閉或保存。</param>
+        internal void WriteJson(JsonWriter writer)
+        {
+            writer.WriteStartObject();
+            writer.WritePropertyName("type");
+            writer.WriteValue(Type == FlexContainerType.Bubble ? "bubble" : "carousel");
+            foreach (var field in fields)
+            {
+                writer.WritePropertyName(field.Key);
+                field.Value.WriteTo(writer);
+            }
+            writer.WriteEndObject();
+        }
+        /// <summary>正式容器型別；Core 直接寫入，其餘一般 FullTrust serializer 保留 extension data 相容。</summary>
         public FlexContainerType Type { get; }
     }
 }

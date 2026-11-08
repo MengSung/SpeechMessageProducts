@@ -59,3 +59,12 @@ Framework harness 實載 net462；這些是離線 SDK 契約，不等於 CRM 效
 Dispose 借入 SDK、把內部取消當正常取消、或以高覆蓋率代替原 host 特性先綠。
 不要把相同方法名的 Present／Relationship 契約直接替換 Complex：
 其 weeks GUID 字串、blood TotalRecordCount 門檻、UTC-7 class-end filter 位置與 SDK route 不同。
+
+## P2-12：對外待辦 CAS 的整秒邊界（2026-11-09）
+
+- 適用／介面：`D365OutboundTaskStore.TryClaim(candidate, utcNow, ct)` 的 `new_claimedon` 寫入及交易內讀回。
+- 契約：goodshepherdback D365 9.1 實機讀回只保留整秒；先以 `utcNow.Ticks - utcNow.Ticks % TimeSpan.TicksPerSecond` 向下量化成 UTC 再寫入，並嚴格比對該值。量化差小於一秒；候選資格仍用原始 utcNow，版本與完整 scope 驗證不變。
+- 故障矩陣：含次秒且讀回整秒 → 成功取得新版本；回錯整秒、倒退／未增版本、錯 ID／scope／payload → 仍拒絕。明確版本衝突 → null；其他 SDK 故障原樣上拋。
+- 正常／基本／錯誤：含次秒呼叫可取得 Processing owner；原有整秒輸入不變；不能直接比較未量化的 utcNow 而把已成功的資料庫 CAS 誤判失敗，也不能移除時間／版本核對。
+- 測試：`Claim_SecondPrecisionReadback_KeepsSuccessfulOwnership` 注入1、1234567、9999999 ticks 及 SDK Unspecified Kind；雙宿主驗證寫入整秒、UTC 讀回、版本11及一次 SDK，並保留 `Claim_InconsistentReadbackRejected` 等原矩陣。
+- 反例／正例：錯誤為 `claim.ClaimedOn != utcNow`；正確為與實際寫入的 `claimedOn` 完全相等，不容忍任意一秒時間窗。

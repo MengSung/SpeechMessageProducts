@@ -240,11 +240,11 @@ footer{margin-top:36px;color:var(--muted);font-size:12.5px;text-align:center}
  */
 const DATA = {
   "planVersion": "3.4",
-  "snapshot": "2026-11-09 06:50 Asia/Taipei (UTC+08:00)",
-  "lastUpdated": "2026-11-09T06:50:10+08:00",
+  "snapshot": "2026-11-09 07:29 Asia/Taipei (UTC+08:00)",
+  "lastUpdated": "2026-11-09T07:29:49+08:00",
   "branch": "1.0.0.11.Integration.P2.Worktree",
-  "head": "54647e61",
-  "headline": "P2工作包11／12完成；P2-12實機驗收與階段審查待完成，不啟動P3。",
+  "head": "d4933f1b",
+  "headline": "P2工作包11／12完成；P2-12修正版離線驗證中，待續跑核定；不啟動P3。",
   "notices": [
     {
       "id": "plan-3.4-summary",
@@ -264,9 +264,12 @@ const DATA = {
       "phaseId": "階段 2",
       "level": "info",
       "title": "P2 進度摘要",
-      "lastUpdated": "2026-11-09T06:50:10+08:00",
-      "body": "2026-11-09 06:42 Asia/Taipei (UTC+08:00)：P2-01～11已驗收，P2-12進行中；Deployment安全設定格式修正後200個測試通過。尚待完整實機、乾淨守門與階段審查，不啟動P3。",
+      "lastUpdated": "2026-11-09T07:29:49+08:00",
+      "body": "2026-11-09 07:29 Asia/Taipei (UTC+08:00)：P2-12兩輪會員實機失敗後已停止，四輪操作D365／LINE殘留均0；整秒認領與部分信任Flex已先紅後綠修復。修正版尚未實機驗收、未推送，階段審查待完成。",
       "steps": [
+        "2026-11-09 07:29 Asia/Taipei (UTC+08:00)：整秒認領雙宿主各23案、會員套件net10 139案與net48 100案通過；v4簽章／metadata／合併六案通過但未部署。先提交及固定guard，依§9-7取得修正版續跑核定，不盲跑第三輪。",
+        "2026-11-09 07:16 Asia/Taipei (UTC+08:00)：雙Worker真CAS一方落敗、一方已寫Processing卻在整秒讀回比對失敗，未進handler。兩程序退出後D365資料、LINE menu／alias殘留0；不得冒稱只產一次驗收通過。",
+        "2026-11-09 07:08 Asia/Taipei (UTC+08:00)：07:04及07:06會員實機均未取得Accepted，第二輪安全證據見JsonSerializationException／SerializationException；B及同GUID重播未到達。兩輪cleanup verify=0、trace回例外、步驟停用／空secure，殘留0；原始錯誤未完整備份，不歸因快取。",
         "2026-11-09 06:50 Asia/Taipei (UTC+08:00)：使用者核定清理後，9份原始執行紀錄只移出Git索引、本機原檔及備份SHA-256逐份一致；沒有刪檔、改寫歷史或放寬守門。接續完整實機及最終固定guard驗收。",
         "2026-11-09 06:47 Asia/Taipei (UTC+08:00)：Release全方案建置0錯誤、76警告，文件說明1334檔0失敗；唯讀盤點非測試LINE ID／letter token／Channel／smoke task均0。編碼守門仍被原始外審證據及自動索引阻擋，未執行D365寫入或推送。",
         "2026-11-09 06:42 Asia/Taipei (UTC+08:00)：P2-12 member首次建立與既有步驟更新的安全JSON兩案先失敗後通過，Deployment全套200案通過；四項必要秘密只查存在性，測試Channel ID已查證。尚未執行本輪D365寫入。",
@@ -386,6 +389,15 @@ const DATA = {
         "2026-11-08 22:02 Asia/Taipei (UTC+08:00)：恢復時HEAD已為f014a4aa，保留共享提交，不改寫歷史。P2-11於21:50到期，停止實作等待時間盒核定，P2-06獨立守門繼續。",
         "2026-11-08 22:14 Asia/Taipei (UTC+08:00)：P2-06首輪真實圖拒絕ToolUtility→Workflows，已將唯一實作下移processor並保留型別轉送，未放寬R4。新測試先紅再綠，36案通過；2c0b9e95正在乾淨複本驗證。"
       ]
+    },
+    {
+      "id": "p212-live-retry-approval",
+      "phaseId": "階段 2",
+      "level": "warn",
+      "title": "P2-12：修正版實機續跑待核定",
+      "lastUpdated": "2026-11-09T07:29:49+08:00",
+      "body": "2026-11-09 07:29 Asia/Taipei (UTC+08:00)：會員操作連續失敗兩次後已停止實機，兩項離線修復與安全收尾完成。建議核定修正版一次member及一次雙Worker驗收，保留同GUID重播核定，不需使用者操作主機。",
+      "steps": []
     }
   ],
   "userActions": [
@@ -1006,7 +1018,7 @@ const DATA = {
       "timebox": "1 天",
       "doneAt": "",
       "commit": "",
-      "note": "2026-11-09 06:42 Asia/Taipei (UTC+08:00)：member建立／更新安全設定格式的兩個紅燈已修正，Deployment全套200案通過。尚待goodshepherdback完整實機、乾淨守門與一頁回報，不標驗收。"
+      "note": "2026-11-09 07:29 Asia/Taipei (UTC+08:00)：兩輪會員未驗收、雙Worker認領後秒精度檢查失敗，均已收尾殘留0。整秒及部分信任Flex修正版離線通過，待續跑核定及固定guard；不標done、不推送。"
     },
     {
       "id": "P3-01",
@@ -1540,7 +1552,7 @@ const DATA = {
       "phaseId": "階段 2",
       "name": "階段 2 審查＋一次提出計畫修正提案",
       "status": "todo",
-      "note": "2026-11-08 22:02 Asia/Taipei (UTC+08:00)：待P2全部驗收後只審查一次；同包處理自有menu補償刪除（先紅燈）及每Channel alias上限1000。"
+      "note": "2026-11-09 07:29 Asia/Taipei (UTC+08:00)：alias容量／自有menu補償已於1e2e5605完成並保留58案證據；P2-12驗收後才跑一次階段審查，目前尚未執行。"
     },
     {
       "id": "更新回復前置",
@@ -1555,12 +1567,12 @@ const DATA = {
       "id": "P2-12",
       "startedAt": "補記 2026-11-09 06:42 Asia/Taipei (UTC+08:00)（原開工時間未記錄）",
       "timebox": "1工作天或15提交",
-      "next": "必要秘密與測試Channel ID已核對；執行備份、推播隔離／去重、雙Worker實機與殘留0收尾，之後階段審查。",
+      "next": "提交修正版並固定guard；依連續兩次失敗規則取得實機續跑核定，再驗member及雙Worker，收尾後階段審查。",
       "dod": [
         [
           "測試",
           "ok",
-          "member安全JSON建立／更新先紅後綠，Deployment全套200案通過；RichMenu原58案證據保留。"
+          "整秒認領先紅後綠雙宿主各23案；部分信任bubble／carousel兩案及會員套件139／100案通過，原Deployment200案證據保留。"
         ],
         [
           "守門",
@@ -1575,12 +1587,12 @@ const DATA = {
         [
           "實機",
           "no",
-          "本輪尚未對D365寫入；須完整實測且殘留0，不用離線結果代替。"
+          "會員兩輪失敗，B／同GUID重播未到達；雙Worker秒精度失敗，資料及LINE殘留0。待核定修正版重驗，未完成實機。"
         ],
         [
           "回報與DATA",
           "no",
-          "已修正進行中狀態；實機操作紀錄及最終一頁回報待完成。"
+          "四輪操作紀錄與進行中回報已寫；最終驗收回報及done待實機通過。"
         ]
       ]
     }
@@ -1701,6 +1713,22 @@ const DATA = {
       "proposal": "legacy統一走net10 LineLegacySendWorkflow；P2只要求正式會友推播走Core，不偽造scope或反射SDK token。",
       "impact": "P2-06及階段6相容殼移除；未改3.4正文。",
       "status": "2026-11-08已核定，待寫入3.5"
+    },
+    {
+      "id": "PROP-006",
+      "problem": "P2-12第5步要求重跑已完成系統作業，但D365不接受將已完成asyncoperation重設待執行。",
+      "evidence": "使用者2026-11-09核定續跑及同GUID重播；前次嘗試已保存失敗證據，尚未通過完整會員實機。",
+      "proposal": "先備份、刪除自有task並以同task GUID重建，產生新asyncoperation；Retry Key不變，以AlreadyAccepted／409及有效RequestId判定不重複受理，不要求兩次RequestId相同。",
+      "impact": "P2-12第5步；仍限LINE重試有效期內，不改Core enum或smoke。",
+      "status": "2026-11-09已核定，待實機與寫入3.5"
+    },
+    {
+      "id": "PROP-007",
+      "problem": "只核對DLL hash／FileVersion及FullTrust合併測試，不能證明D365沙箱已執行新碼或具備所需反射權限。",
+      "evidence": "P2-04曾有舊Success；重啟服務及FileVersion遞增同窗後成功，未隔離唯一快取成因。P2-12第二輪見序列化型別，離線部分信任重現私有Flex getter存取失敗；原實機完整trace未保存，不能冒稱成因已證實。",
+      "proposal": "階段5更新回復前置保留只改FileVersion是否足夠的風險，驗實際執行追蹤及部分信任通知鏈；對精確自有錯誤先AllColumns DPAPI備份再清理，不放寬metadata／R2／權限。",
+      "impact": "P2-12修復證據與階段5更新回復前置；不更動AssemblyVersion或計畫3.4正文。",
+      "status": "待階段2結案一次交付；風險已記錄，沙箱快取成因未確定"
     }
   ],
   "decisions": [

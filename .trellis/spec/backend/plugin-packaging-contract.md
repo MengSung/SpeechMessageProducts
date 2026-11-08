@@ -133,3 +133,12 @@ live DLL hash 等於本機、合併 IL 含新字串，不代表沙箱已執行�
 12:46 唯讀核對同一固定 step→plugintype→pluginassembly，唯一型別、Sandbox(2)、Asynchronous(1)、PostOperation(40)；live FileVersion仍1.0.0.1。使用者確認已重啟D365-9.1 Sandbox／Async／IIS並接受共用組織短暫影響（原重啟時間未提供），本次依既定SpeechMessageBuildNumber=2將FileVersion遞增至1.0.0.2，AssemblyVersion仍1.0.0.0。只跑一次plan/apply/smoke後，smoke=0、Accepted／200／有效RequestId、敏感值0，收尾verify=0、trace=1、disabled／無secure，自己task／trace／job殘留0。
 
 本次不啟用舊字串降級路線。服務重啟與FileVersion遞增在同一驗證窗內，不能聲稱已隔離出唯一沙箱快取根因；後續部署仍以實際執行追蹤驗新碼，不以資料庫DLL hash單獨推定生效，不更動固定AssemblyVersion。
+
+## P2-12：部分信任 Flex 序列化（2026-11-09）
+
+- 適用／介面：`FlexTemplateEngine.Fill` 的私有容器進入 `LinePushClient.FreezeMessages`；`CreateContainerConverter()` 只供 Core 當次 serializer 使用，不改公開 API、enum 或全域 JSON 設定。
+- 契約：不能假設 D365 沙箱允許反射存取非公開容器。Core 明確加入無狀態、只寫入且精確匹配 TemplateContainer 的 converter，直接寫 type 與已驗 JSON 節點，writer 仍受原256Ki容量限制；不公開可變 JToken、不快取內容。
+- 故障矩陣：沒有私有反射權限的 Framework AppDomain，舊版會在 TemplateContainer.Type getter 產生 JsonSerializationException／MethodAccessException；修正版須經真 Core 把 bubble／carousel、文字與 server sender 完整交給合成 HTTP handler。既有一般 SDK 型別及 FullTrust JSON 相容保留。
+- 正常／基本／錯誤：明確 converter 不需提高權限；一般 SDK 訊息沿原 serializer；禁止放寬 ReflectionPermission、公開私有投影或放寬 R2／metadata 來消除錯誤。
+- 測試：`MemberFlex_WithoutPrivateReflection_SendsCompleteSnapshot` 兩案，僅 Execution 與測試輸出唯讀；無網路權限、真引擎／Core及合成 handler，finally 卸載 domain，using 排空並 Dispose HTTP 資源。
+- 反例／正例：錯誤為把 FullTrust 合併六案當成沙箱權限驗收；正確為保留合併六案及 metadata，另有部分信任回歸，再由核定後實機證明。離線重現同型錯誤仍不等於已讀到原 trace 的完整根因；本次原 trace 僅備份 metadata，不能宣稱根因已由實機堆疊證實。
