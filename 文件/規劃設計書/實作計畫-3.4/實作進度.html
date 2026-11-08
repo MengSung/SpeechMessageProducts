@@ -240,11 +240,11 @@ footer{margin-top:36px;color:var(--muted);font-size:12.5px;text-align:center}
  */
 const DATA = {
   "planVersion": "3.4",
-  "snapshot": "2026-11-08 12:42 Asia/Taipei (UTC+08:00)",
-  "lastUpdated": "2026-11-08T12:42:54+08:00",
+  "snapshot": "2026-11-08 12:50 Asia/Taipei (UTC+08:00)",
+  "lastUpdated": "2026-11-08T12:50:47+08:00",
   "branch": "1.0.0.11.Integration.P2.Worktree",
-  "head": "49f67029",
-  "headline": "P2-07 已完成乾淨驗收；接續 P2-04 前置 A，確認原步驟與組件且 FileVersion 尚未遞增。",
+  "head": "b0fb5b99",
+  "headline": "P2-07 已驗收推送；P2-04 前置 smoke=0、Accepted／200與有效RequestId、收尾殘留0，接續P2-04＋P2-10。",
   "notices": [
     {
       "id": "plan-3.4-summary",
@@ -264,9 +264,10 @@ const DATA = {
       "phaseId": "階段 2",
       "level": "info",
       "title": "P2 進度摘要",
-      "lastUpdated": "2026-11-08T12:42:54+08:00",
-      "body": "2026-11-08 12:42 Asia/Taipei (UTC+08:00)：P2-07 已驗收，49f67029 乾淨複本全方案 4,755 個測試及全部守門通過。下一步 P2-04 前置 A：已確認唯一固定步驟與組件，FileVersion 仍 1.0.0.1，將依既定序號遞增再部署。",
+      "lastUpdated": "2026-11-08T12:50:47+08:00",
+      "body": "2026-11-08 12:50 Asia/Taipei (UTC+08:00)：P2-04 前置只重跑一次，smoke=0、Accepted／200及有效 RequestId，收尾 verify=0、本輪殘留0，已驗收。P2-07 最終封存提交 b0fb5b99 的乾淨守門全過並已推送，接續 P2-04＋P2-10。",
       "steps": [
+        "2026-11-08 12:50 Asia/Taipei (UTC+08:00)：P2-04 前置只重跑一次，smoke=0、Accepted／200及有效 RequestId，收尾 verify=0、本輪殘留0，已驗收。P2-07 最終封存提交 b0fb5b99 的乾淨守門全過並已推送，接續 P2-04＋P2-10。",
         "2026-11-08 12:42 Asia/Taipei (UTC+08:00)：P2-07 已驗收，49f67029 乾淨複本全方案 4,755 個測試及全部守門通過。下一步 P2-04 前置 A：已確認唯一固定步驟與組件，FileVersion 仍 1.0.0.1，將依既定序號遞增再部署。",
         "2026-11-08 12:41 Asia/Taipei (UTC+08:00)：依使用者核定，P2-00 Debug 診斷以 CLI 建置／重建及兩宿主各 41 案通過、IDE 未重現結案歸檔。移到「之後再說」，不再追查或修改中繼路徑。",
         "2026-11-08 12:36 Asia/Taipei (UTC+08:00)：P2-07 乾淨複本建置與全方案測試已通過，但 ac37eec4 新收原始證據造成 12 份編碼／腳本問題。原始位元組保留本機，依 D32 修正版控邊界後以新提交重驗，尚未驗收。",
@@ -373,17 +374,8 @@ const DATA = {
       "phaseId": "階段 2",
       "level": "warn",
       "title": "暫存驗證複本清理受平台限制",
-      "lastUpdated": "2026-11-07T22:26:41+08:00",
-      "body": "2026-11-07 22:26 Asia/Taipei (UTC+08:00)：先前暫存複本清理遭平台拒絕，未繞過。C:/smv下原六份與12dace71仍保留；沒有存活驗證程序，本輪未操作D365或LINE。",
-      "steps": []
-    },
-    {
-      "id": "p2-04-preflight-active",
-      "phaseId": "階段 2",
-      "level": "warn",
-      "title": "P2-04 前置待解除：沙箱仍執行舊診斷字串",
-      "lastUpdated": "2026-11-08T07:57:54+08:00",
-      "body": "2026-11-08 07:57 Asia/Taipei (UTC+08:00)｜P2-04 重驗及收尾｜新版 Plugin 回歸先紅後綠，26 個測試全過；Deployment 193 個測試全過。第二輪 plan/apply=0、push verify=3，LINE 200＋有效 RequestId，敏感值命中 0，但 smoke=1；live/local 新 DLL hash 一致、合併 IL 含 Accepted，實機仍輸出舊 Success，疑似快取未確認。兩次失敗後停止重送；cleanup verify=0、追蹤=1、停用／trace／無 secure；自己 task、trace、作業各 0。建議確認既有主機存取及共用服務影響後安全刷新；另可核定版本策略，或暫延前置先做 P2-07。手機收訊已記為使用者佐證，未代替自動 smoke。操作紀錄與 SHA 見 P2-04-preflight 一頁報告。",
+      "lastUpdated": "2026-11-08T12:50:47+08:00",
+      "body": "2026-11-08 12:50 Asia/Taipei (UTC+08:00)：本輪 C:/smv/p207-413fde67、C:/smv/49f67029 的正常遞迴清理遭平台拒絕，未改用其他方式；C:/smv/b0fb5b99 的驗證已結束，仍須清理。這些都是本機驗證複本，無D365資料或常駐驗證程序。",
       "steps": []
     }
   ],
@@ -1517,8 +1509,8 @@ const DATA = {
       "id": "P2-04 前置",
       "phaseId": "階段 2",
       "name": "沙箱對 LINE 的測試推播（Codex 執行）",
-      "status": "you",
-      "note": "LINE 200 與手機收訊已確認；smoke 仍因舊 Success 字串兩次失敗。收尾 verify=0、追蹤=1、殘留 0；先核對既有主機存取／服務影響或核定版本策略，不再盲重送。"
+      "status": "done",
+      "note": "2026-11-08 12:48 Asia/Taipei (UTC+08:00)：核對原step→type→assembly後只重跑一次；FileVersion1.0.0.2、AssemblyVersion1.0.0.0，smoke=0、Accepted/200/有效RequestId，cleanup verify=0、殘留0，不使用降級。"
     },
     {
       "id": "M-P2-REVIEW",

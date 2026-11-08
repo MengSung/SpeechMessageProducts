@@ -127,3 +127,9 @@ bin DLL and SDK references remain unchanged for the normal build/test graph.
 錯誤：直接格式化 `result.Outcome` 導致輸出 `Success`，或放寬 smoke 只看 200。正確：只在診斷邊界明確轉譯，保持 Core ABI 與驗收條件。
 
 live DLL hash 等於本機、合併 IL 含新字串，不代表沙箱已執行新碼。2026-11-08 兩輪 smoke 均仍見舊字串；這是觀察，不是已證實的快取根因。停止重送、保存安全證據與收尾，未核對主機／服務隔離前不重啟共用服務，也不擅改版本契約。
+
+## P2-04 前置已通過的後續事實（2026-11-08）
+
+12:46 唯讀核對同一固定 step→plugintype→pluginassembly，唯一型別、Sandbox(2)、Asynchronous(1)、PostOperation(40)；live FileVersion仍1.0.0.1。使用者確認已重啟D365-9.1 Sandbox／Async／IIS並接受共用組織短暫影響（原重啟時間未提供），本次依既定SpeechMessageBuildNumber=2將FileVersion遞增至1.0.0.2，AssemblyVersion仍1.0.0.0。只跑一次plan/apply/smoke後，smoke=0、Accepted／200／有效RequestId、敏感值0，收尾verify=0、trace=1、disabled／無secure，自己task／trace／job殘留0。
+
+本次不啟用舊字串降級路線。服務重啟與FileVersion遞增在同一驗證窗內，不能聲稱已隔離出唯一沙箱快取根因；後續部署仍以實際執行追蹤驗新碼，不以資料庫DLL hash單獨推定生效，不更動固定AssemblyVersion。

@@ -32,3 +32,7 @@
 - [ ] 第 5 步清單回 trace、步驟停用、收尾 verify=0、追蹤回「例外狀況」、測試資料與暫存資源殘留為 0。
 - [ ] 第 6 步一頁操作紀錄完成，保存檔案 SHA-256；原始秘密、追蹤全文與原始 log 不進 repo。
 - [ ] 進度頁 3.4 的 P2 摘要、P2-04 前置里程碑、阻塞與下一步已同步。
+
+## 2026-11-08 12:50 Asia/Taipei (UTC+08:00) 最新核定與驗收
+
+使用者已重啟Sandbox／Async／IIS（重啟時間未提供），核定只再跑一次第2～5步。實際smoke=0、Accepted／200／有效RequestId、敏感值命中0，cleanup verify=0、trace=1、disabled／無secure、本輪task／trace／job皆0；不使用降級，前置已驗收。先前未完成項目是歷史狀態，依本次一頁操作紀錄與wp-reports覆蓋目前狀態；未獨立量測OS TLS，真沙箱HTTPS已通。

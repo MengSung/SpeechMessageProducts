@@ -33,3 +33,7 @@ apply 失敗，未 smoke；trace 已回 1，live DLL／step 與 pre-apply 原況
 ## 2026-11-08 07:57 Asia/Taipei (UTC+08:00) 加密解除後重驗
 
 第 0 步精確盤點、plan/apply、push verify=3 與安全收尾均完成。兩輪真實 LINE 200，但 smoke=1；先紅後綠修正診斷映射，live／local DLL hash 一致仍輸出舊字串，未確認沙箱快取原因。自己 task、trace、已完成作業殘留皆 0；不再盲重試，等待安全刷新／版本策略，獨立 P2-07 可繼續。操作紀錄與 SHA 見一頁報告。
+
+## 2026-11-08 12:50 Asia/Taipei (UTC+08:00) 最新核定與驗收
+
+使用者已重啟Sandbox／Async／IIS（重啟時間未提供），核定只再跑一次第2～5步。實際smoke=0、Accepted／200／有效RequestId、敏感值命中0，cleanup verify=0、trace=1、disabled／無secure、本輪task／trace／job皆0；不使用降級，前置已驗收。先前未完成項目是歷史狀態，依本次一頁操作紀錄與wp-reports覆蓋目前狀態；未獨立量測OS TLS，真沙箱HTTPS已通。
