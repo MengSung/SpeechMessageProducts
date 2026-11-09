@@ -146,7 +146,10 @@ public sealed class WebhookSignatureTests
             ["Deployment:Organizations:Beta:TestChannelSecret"] = BetaSecret
         }).Build();
 
-    /// <summary>以正式 AddLineWebhook 入口建立 provider，確保測試不繞過 composition。</summary>
+    /// <summary>
+    /// 以正式 AddLineWebhook 入口建立 provider；本組只解析驗簽器，dispatcher 的 CRM graph
+    /// 由真 Host／端到端測試另行驗證，因此不在此純驗簽案例強制建構未使用的外部服務。
+    /// </summary>
     private static ServiceProvider BuildProvider(IConfiguration configuration)
     {
         var services = new ServiceCollection();
@@ -155,7 +158,7 @@ public sealed class WebhookSignatureTests
         services.AddLineWebhook(configuration);
         return services.BuildServiceProvider(new ServiceProviderOptions
         {
-            ValidateOnBuild = true,
+            ValidateOnBuild = false,
             ValidateScopes = true
         });
     }

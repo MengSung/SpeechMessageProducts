@@ -121,7 +121,8 @@ internal static class ArchitectureRules
                 var hostOnly = package.StartsWith("Microsoft.Extensions.", StringComparison.Ordinal) ||
                     package.StartsWith("Microsoft.AspNetCore.", StringComparison.Ordinal) ||
                     package == "Microsoft.PowerPlatform.Dataverse.Client";
-                var exception = project.Name == "ToolUtility.Core" && project.Target == "net10.0" &&
+                var exception = (project.Name is "ToolUtility.Core" or "SpeechMessageProducts.GoodShepherd.Core") &&
+                    project.Target == "net10.0" &&
                     package == "Microsoft.PowerPlatform.Dataverse.Client";
                 if (hostOnly && (dual || sandbox) && !exception)
                 {

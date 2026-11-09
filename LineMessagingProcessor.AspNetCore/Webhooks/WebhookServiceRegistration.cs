@@ -34,6 +34,7 @@ public static partial class WebhookServiceRegistration
         RegisterSignature(services, configuration);
         RegisterDeduplication(services, configuration);
         RegisterQueue(services, configuration);
+        RegisterDispatch(services, configuration);
         services.AddRouting();
         services.AddSingleton(options);
         services.AddHostedService<WebhookStartupRegistration>();
@@ -48,6 +49,9 @@ public static partial class WebhookServiceRegistration
 
     /// <summary>P3-05 在 WebhookQueueRegistration.cs 實作此 partial method，註冊有界 queue／背景 drain owner，不改其他包檔案。</summary>
     static partial void RegisterQueue(IServiceCollection services, IConfiguration configuration);
+
+    /// <summary>P3-06 註冊真 scoped SDK event dispatcher、範圍驗證及具名 HTTP adapter。</summary>
+    static partial void RegisterDispatch(IServiceCollection services, IConfiguration configuration);
 
     /// <summary>啟動的短生命週期依賴探測器；scope 自行釋放，從不將 request service 提升成 singleton。</summary>
     private sealed class WebhookStartupRegistration(IServiceScopeFactory scopeFactory) : IHostedLifecycleService

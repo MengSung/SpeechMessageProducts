@@ -210,18 +210,18 @@ public sealed class WebhookContractTests
         Assert.Equal(0, host.Dedupe.Active);
     }
 
-    /// <summary>逐一省略外部替身時真 Host 拒啟動；SQL 缺平台快照、queue 缺 handler、verifier 缺介面，各有精確斷言且能完整關閉。</summary>
+    /// <summary>
+    /// 逐一省略驗簽或去重替身時真 Host 拒啟動；正式 queue 已由 AddLineWebhook 組合，
+    /// 因此 queue 缺 handler 的契約由 P3-05 queue registration tests 保護。
+    /// </summary>
     [Theory]
     [InlineData(typeof(IWebhookSignatureVerifier))]
     [InlineData(typeof(IWebhookEventDeduplicator))]
-    [InlineData(typeof(IWebhookEventQueue))]
     public async Task Webhook_MissingImplementation_StartupFailsClosed(Type missing)
     {
         await using var host = new WebhookTestHost(missing);
         var error = await Assert.ThrowsAsync<InvalidOperationException>(() => host.App.StartAsync());
-        Assert.Equal(missing == typeof(IWebhookEventQueue)
-            ? "Webhook queue requires an envelope handler."
-            : missing == typeof(IWebhookEventDeduplicator)
+        Assert.Equal(missing == typeof(IWebhookEventDeduplicator)
             ? "Webhook requires a valid ConnectionStrings:Platform startup snapshot."
             : "Webhook requires signature, deduplication and queue implementations.", error.Message);
         Assert.Equal(0, host.Signature.Calls); Assert.Empty(host.Queue.Events);

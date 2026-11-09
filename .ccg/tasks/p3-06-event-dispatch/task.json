@@ -1,0 +1,13 @@
+{
+  "id": "p3-06-event-dispatch",
+  "title": "P3-06 事件分派與處理器移植",
+  "status": "in_progress",
+  "complexity": "L",
+  "risk": "high",
+  "domain": "backend",
+  "currentPhase": "review",
+  "nextAction": "完成程式提交後在固定 C:\\smv\\guard 執行完整 §8.2，再驗收推送",
+  "createdAt": "2026-11-09T19:57:38.653349+08:00",
+  "branch": "p3/P3-06",
+  "notes": "2026-11-09 20:00 Asia/Taipei (UTC+08:00)：只開P3-06，依賴均已驗收推送d0878449；Claude分析可用、Gemini未完成，不提前規劃07／08。2026-11-10 01:00 Asia/Taipei (UTC+08:00)：本包實作與離線驗證完成；最新自癒審查Claude可用、Gemini HTTP 403/503無輸出，dualModelComplete=false，不冒稱雙模型成功。"
+}

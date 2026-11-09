@@ -3,11 +3,11 @@
 檔案整體說明
 
 目的與定位：GoodShepherd 產品文字的中性資源來源，供 tools/I18nCheck 驗證並產生
-同模組的固定 C# 資料表；本 P2-02 初始資源刻意為空，不宣稱舊產品文字已搬移。
+同模組的固定 C# 資料表；P3-06 納入 Golden 路由詞彙及可追溯的回覆模板。
 
 主要功能與流程：ResourceCatalog 以 XML 安全讀取本檔及同名語系檔，驗證穩定鍵、
 翻譯參數及資源預算，再由 ResourceGenerator 產生 GoodShepherdText.g.cs。
-文字鍵與翻譯未核定前不得加入虛構產品文案。
+路由資料僅供本包唯一過渡 resolver；P3-07 接管正式字典路由。
 
 使用邊界與維護：本檔只保存編譯時產品文案，不含教會覆寫、使用者輸入、憑證或執行
 狀態；由 I18nCheck 唯讀載入並立即釋放 XML reader，不建立快取或背景資源。
@@ -19,5 +19,194 @@
   <resheader name="version"><value>2.0</value></resheader>
   <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
   <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
-  <!-- P2-02 建立空資源來源；產品文字待核定工作包搬移並驗收後新增。 -->
+  <data name="Webhook.Audio.FileName" xml:space="preserve"><value>聲音檔案.m4a</value></data>
+  <data name="Webhook.Audio.Subject" xml:space="preserve"><value>附加聲音檔案</value></data>
+  <data name="Webhook.Postback.Action" xml:space="preserve"><value>動作</value></data>
+  <data name="Webhook.Postback.Approval" xml:space="preserve"><value>簽核</value></data>
+  <data name="Webhook.Postback.Cash" xml:space="preserve"><value>現金繳費</value></data>
+  <data name="Webhook.Postback.Enrollment" xml:space="preserve"><value>課程報名</value></data>
+  <data name="Webhook.Postback.LessonApproval" xml:space="preserve"><value>課程簽核</value></data>
+  <data name="Webhook.Postback.Menu" xml:space="preserve"><value>換選單</value></data>
+  <data name="Webhook.Postback.Type" xml:space="preserve"><value>訊息類別</value></data>
+  <data name="Webhook.Reply.Approval.V0" xml:space="preserve"><value>正在載入簽核項目...</value></data>
+  <data name="Webhook.Reply.ClassAttendance.V0" xml:space="preserve"><value>系統設定錯誤，無法處理課程簽到。</value></data>
+  <data name="Webhook.Reply.Devotion.V0" xml:space="preserve"><value>系統設定錯誤，無法處理靈修。</value></data>
+  <data name="Webhook.Reply.EnrollQuery.V0" xml:space="preserve"><value>系統設定錯誤，無法處理報名查詢。</value></data>
+  <data name="Webhook.Reply.Enrollment.V0" xml:space="preserve"><value>系統設定錯誤，無法處理報名請求。請聯繫管理員.</value></data>
+  <data name="Webhook.Reply.Enrollment.V1" xml:space="preserve"><value>處理報名請求時發生錯誤，請稍後再試。</value></data>
+  <data name="Webhook.Reply.Equipment.V0" xml:space="preserve"><value>系統設定錯誤，無法處理裝備。</value></data>
+  <data name="Webhook.Reply.HR.V0" xml:space="preserve"><value>人資功能開發中...</value></data>
+  <data name="Webhook.Reply.Help.V0" xml:space="preserve"><value>您可以輸入以下的關鍵字:
+主日出席
+小組出席
+代禱
+緊急代禱
+靈修N次
+靈修心得
+報名
+我的報名
+@見證
+RPG
+247
+------------------------------------
+如果您是小家長則可額外輸入的關鍵字:
+日誌
+簽到
+點名
+------------------------------------
+其他功能:
+人資/休假/差勤
+簽核
+連動 (LINE Notify)
+ID (查詢您的LINE ID)
+</value></data>
+  <data name="Webhook.Reply.Homework.V0" xml:space="preserve"><value>系統設定錯誤，無法處理作業。</value></data>
+  <data name="Webhook.Reply.Journal.V0" xml:space="preserve"><value>系統設定錯誤，無法處理日誌。</value></data>
+  <data name="Webhook.Reply.NotifyLink.V0" xml:space="preserve"><value>LINE Notify連動功能開發中...</value></data>
+  <data name="Webhook.Reply.PastorReply.V0" xml:space="preserve"><value>系統設定錯誤，無法處理牧者回應。</value></data>
+  <data name="Webhook.Reply.Prayer247.V0" xml:space="preserve"><value>系統設定錯誤，無法處理247禱告。</value></data>
+  <data name="Webhook.Reply.PrayerRequest.V0" xml:space="preserve"><value>系統設定錯誤，無法處理代禱。</value></data>
+  <data name="Webhook.Reply.QrCode.V0" xml:space="preserve"><value>QR碼功能開發中...</value></data>
+  <data name="Webhook.Reply.QueryEnrollment.V0" xml:space="preserve"><value>查詢報名功能開發中...</value></data>
+  <data name="Webhook.Reply.QueryUserId.V0" xml:space="preserve"><value>您的 LINE ID: {lineId}</value></data>
+  <data name="Webhook.Reply.Registration.V0" xml:space="preserve"><value>註冊功能開發中...</value></data>
+  <data name="Webhook.Reply.Registration.V1" xml:space="preserve"><value>綁定失敗！請提供完整的註冊資訊，格式：//姓名,電話</value></data>
+  <data name="Webhook.Reply.RollCall.V0" xml:space="preserve"><value>系統設定錯誤，無法處理點名。</value></data>
+  <data name="Webhook.Reply.Rpg.V0" xml:space="preserve"><value>系統設定錯誤，無法處理RPG。</value></data>
+  <data name="Webhook.Reply.SignIn.V0" xml:space="preserve"><value>系統設定錯誤，無法處理簽到。</value></data>
+  <data name="Webhook.Reply.SmallGroupAttendance.V0" xml:space="preserve"><value>系統設定錯誤，無法處理小組出席。</value></data>
+  <data name="Webhook.Reply.StaffMeeting.V0" xml:space="preserve"><value>系統設定錯誤，無法處理同工聚會出席。</value></data>
+  <data name="Webhook.Reply.StaffReport.V0" xml:space="preserve"><value>系統設定錯誤，無法處理同工報告。</value></data>
+  <data name="Webhook.Reply.SundayAttendance.V0" xml:space="preserve"><value>系統設定錯誤，無法處理主日出席。</value></data>
+  <data name="Webhook.Reply.Testimony.V0" xml:space="preserve"><value>系統設定錯誤，無法處理見證。</value></data>
+  <data name="Webhook.Reply.UserReply.V0" xml:space="preserve"><value>用戶回覆處理功能開發中...</value></data>
+  <data name="Webhook.Route.R000.Help.Exact" xml:space="preserve"><value>??</value></data>
+  <data name="Webhook.Route.R001.SignIn.Exact" xml:space="preserve"><value>簽到</value></data>
+  <data name="Webhook.Route.R002.RollCall.Exact" xml:space="preserve"><value>點名</value></data>
+  <data name="Webhook.Route.R003.Equipment.Exact" xml:space="preserve"><value>裝備</value></data>
+  <data name="Webhook.Route.R004.QueryUserId.Exact" xml:space="preserve"><value>ID</value></data>
+  <data name="Webhook.Route.R005.NotifyLink.Exact" xml:space="preserve"><value>連動</value></data>
+  <data name="Webhook.Route.R006.NotifyLink.Exact" xml:space="preserve"><value>Notify</value></data>
+  <data name="Webhook.Route.R007.Approval.Exact" xml:space="preserve"><value>簽核</value></data>
+  <data name="Webhook.Route.R008.Registration.PrefixI" xml:space="preserve"><value>//</value></data>
+  <data name="Webhook.Route.R009.UserReply.PrefixI" xml:space="preserve"><value>$</value></data>
+  <data name="Webhook.Route.R010.Testimony.PrefixI" xml:space="preserve"><value>@見證</value></data>
+  <data name="Webhook.Route.R011.EnrollQuery.PrefixI" xml:space="preserve"><value>報名查詢:</value></data>
+  <data name="Webhook.Route.R012.EnrollQuery.PrefixI" xml:space="preserve"><value>報名查詢：</value></data>
+  <data name="Webhook.Route.R013.Prayer247.PrefixI" xml:space="preserve"><value>247</value></data>
+  <data name="Webhook.Route.R014.QueryEnrollment.PrefixI" xml:space="preserve"><value>我的報名</value></data>
+  <data name="Webhook.Route.R015.QueryEnrollment.PrefixI" xml:space="preserve"><value>查詢報名</value></data>
+  <data name="Webhook.Route.R016.Devotion.PrefixI" xml:space="preserve"><value>靈修心得</value></data>
+  <data name="Webhook.Route.R017.PrayerRequest.PrefixI" xml:space="preserve"><value>緊急代禱</value></data>
+  <data name="Webhook.Route.R018.HR.PrefixI" xml:space="preserve"><value>人資</value></data>
+  <data name="Webhook.Route.R019.HR.PrefixI" xml:space="preserve"><value>休假</value></data>
+  <data name="Webhook.Route.R020.HR.PrefixI" xml:space="preserve"><value>差勤</value></data>
+  <data name="Webhook.Route.R021.Approval.PrefixI" xml:space="preserve"><value>簽核</value></data>
+  <data name="Webhook.Route.R022.PrayerRequest.PrefixI" xml:space="preserve"><value>代禱</value></data>
+  <data name="Webhook.Route.R023.PrayerRequest.PrefixI" xml:space="preserve"><value>Pray</value></data>
+  <data name="Webhook.Route.R024.Devotion.PrefixI" xml:space="preserve"><value>靈修</value></data>
+  <data name="Webhook.Route.R025.Journal.PrefixI" xml:space="preserve"><value>日誌</value></data>
+  <data name="Webhook.Route.R026.Journal.PrefixI" xml:space="preserve"><value>Report</value></data>
+  <data name="Webhook.Route.R027.QrCode.PrefixI" xml:space="preserve"><value>QR</value></data>
+  <data name="Webhook.Route.R028.QrCode.PrefixI" xml:space="preserve"><value>qr</value></data>
+  <data name="Webhook.Route.R029.Rpg.PrefixI" xml:space="preserve"><value>RPG</value></data>
+  <data name="Webhook.Route.R030.Rpg.PrefixI" xml:space="preserve"><value>Rpg</value></data>
+  <data name="Webhook.Route.R031.Rpg.PrefixI" xml:space="preserve"><value>rpg</value></data>
+  <data name="Webhook.Route.R032.Enrollment.Prefix" xml:space="preserve"><value>報名</value></data>
+  <data name="Webhook.Route.R033.Enrollment.Prefix" xml:space="preserve"><value>活動報名</value></data>
+  <data name="Webhook.Route.R034.Enrollment.Prefix" xml:space="preserve"><value>課程報名</value></data>
+  <data name="Webhook.Route.R035.Enrollment.Prefix" xml:space="preserve"><value>我想報名</value></data>
+  <data name="Webhook.Route.R036.Enrollment.Prefix" xml:space="preserve"><value>我要報名</value></data>
+  <data name="Webhook.Route.R037.Enrollment.ExactI" xml:space="preserve"><value>課程</value></data>
+  <data name="Webhook.Route.R038.Enrollment.ExactI" xml:space="preserve"><value>活動</value></data>
+  <data name="Webhook.Route.R039.Enrollment.ExactI" xml:space="preserve"><value>Enroll</value></data>
+  <data name="Webhook.Route.R040.SundayAttendance.ExactI" xml:space="preserve"><value>主日報到</value></data>
+  <data name="Webhook.Route.R041.SundayAttendance.ExactI" xml:space="preserve"><value>主日簽到</value></data>
+  <data name="Webhook.Route.R042.SundayAttendance.ExactI" xml:space="preserve"><value>主日出席</value></data>
+  <data name="Webhook.Route.R043.SundayAttendance.ExactI" xml:space="preserve"><value>主日?席</value></data>
+  <data name="Webhook.Route.R044.SundayAttendance.ExactI" xml:space="preserve"><value>主日1</value></data>
+  <data name="Webhook.Route.R045.SundayAttendance.ExactI" xml:space="preserve"><value>主日2</value></data>
+  <data name="Webhook.Route.R046.SundayAttendance.ExactI" xml:space="preserve"><value>主日6</value></data>
+  <data name="Webhook.Route.R047.SundayAttendance.ExactI" xml:space="preserve"><value>Service</value></data>
+  <data name="Webhook.Route.R048.SundayAttendance.Prefix" xml:space="preserve"><value>主崇實體</value></data>
+  <data name="Webhook.Route.R049.SundayAttendance.Prefix" xml:space="preserve"><value>主崇線上</value></data>
+  <data name="Webhook.Route.R050.SundayAttendance.ExactI" xml:space="preserve"><value>台語場</value></data>
+  <data name="Webhook.Route.R051.SundayAttendance.ExactI" xml:space="preserve"><value>臺語場</value></data>
+  <data name="Webhook.Route.R052.SundayAttendance.ExactI" xml:space="preserve"><value>國語場</value></data>
+  <data name="Webhook.Route.R053.SundayAttendance.ExactI" xml:space="preserve"><value>華語場</value></data>
+  <data name="Webhook.Route.R054.SundayAttendance.ExactI" xml:space="preserve"><value>週六場</value></data>
+  <data name="Webhook.Route.R055.SundayAttendance.ExactI" xml:space="preserve"><value>周六場</value></data>
+  <data name="Webhook.Route.R056.SmallGroupAttendance.Prefix" xml:space="preserve"><value>小組出席</value></data>
+  <data name="Webhook.Route.R057.SmallGroupAttendance.ContainsI" xml:space="preserve"><value>小組出席</value></data>
+  <data name="Webhook.Route.R058.SmallGroupAttendance.Prefix" xml:space="preserve"><value>小組?席</value></data>
+  <data name="Webhook.Route.R059.SmallGroupAttendance.ContainsI" xml:space="preserve"><value>小組?席</value></data>
+  <data name="Webhook.Route.R060.SmallGroupAttendance.Prefix" xml:space="preserve"><value>小家出席</value></data>
+  <data name="Webhook.Route.R061.SmallGroupAttendance.ContainsI" xml:space="preserve"><value>小家出席</value></data>
+  <data name="Webhook.Route.R062.SmallGroupAttendance.Prefix" xml:space="preserve"><value>小家?席</value></data>
+  <data name="Webhook.Route.R063.SmallGroupAttendance.Prefix" xml:space="preserve"><value>Group</value></data>
+  <data name="Webhook.Route.R064.SmallGroupAttendance.Prefix" xml:space="preserve"><value>小組實體</value></data>
+  <data name="Webhook.Route.R065.SmallGroupAttendance.Prefix" xml:space="preserve"><value>小組線上</value></data>
+  <data name="Webhook.Route.R066.StaffMeeting.ExactI" xml:space="preserve"><value>門徒訓練班</value></data>
+  <data name="Webhook.Route.R067.StaffMeeting.ExactI" xml:space="preserve"><value>門徒大聚</value></data>
+  <data name="Webhook.Route.R068.StaffMeeting.ExactI" xml:space="preserve"><value>領袖小講堂</value></data>
+  <data name="Webhook.Route.R069.StaffMeeting.ExactI" xml:space="preserve"><value>領袖大聚</value></data>
+  <data name="Webhook.Route.R070.ClassAttendance.ContainsI" xml:space="preserve"><value>第一課簽到</value></data>
+  <data name="Webhook.Route.R071.ClassAttendance.ContainsI" xml:space="preserve"><value>第二課簽到</value></data>
+  <data name="Webhook.Route.R072.ClassAttendance.ContainsI" xml:space="preserve"><value>第三課簽到</value></data>
+  <data name="Webhook.Route.R073.ClassAttendance.ContainsI" xml:space="preserve"><value>第四課簽到</value></data>
+  <data name="Webhook.Route.R074.ClassAttendance.ContainsI" xml:space="preserve"><value>第五課簽到</value></data>
+  <data name="Webhook.Route.R075.ClassAttendance.ContainsI" xml:space="preserve"><value>第六課簽到</value></data>
+  <data name="Webhook.Route.R076.ClassAttendance.ContainsI" xml:space="preserve"><value>第七課簽到</value></data>
+  <data name="Webhook.Route.R077.ClassAttendance.ContainsI" xml:space="preserve"><value>第八課簽到</value></data>
+  <data name="Webhook.Route.R078.ClassAttendance.ContainsI" xml:space="preserve"><value>第九課簽到</value></data>
+  <data name="Webhook.Route.R079.ClassAttendance.ContainsI" xml:space="preserve"><value>第十課簽到</value></data>
+  <data name="Webhook.Route.R080.ClassAttendance.ContainsI" xml:space="preserve"><value>第十一課簽到</value></data>
+  <data name="Webhook.Route.R081.ClassAttendance.ContainsI" xml:space="preserve"><value>第十二課簽到</value></data>
+  <data name="Webhook.Route.R082.ClassAttendance.ContainsI" xml:space="preserve"><value>第十三課簽到</value></data>
+  <data name="Webhook.Route.R083.ClassAttendance.ContainsI" xml:space="preserve"><value>第十四課簽到</value></data>
+  <data name="Webhook.Route.R084.ClassAttendance.ContainsI" xml:space="preserve"><value>第十五課簽到</value></data>
+  <data name="Webhook.Route.R085.ClassAttendance.ContainsI" xml:space="preserve"><value>第一課簽退</value></data>
+  <data name="Webhook.Route.R086.ClassAttendance.ContainsI" xml:space="preserve"><value>第二課簽退</value></data>
+  <data name="Webhook.Route.R087.ClassAttendance.ContainsI" xml:space="preserve"><value>第三課簽退</value></data>
+  <data name="Webhook.Route.R088.ClassAttendance.ContainsI" xml:space="preserve"><value>第四課簽退</value></data>
+  <data name="Webhook.Route.R089.ClassAttendance.ContainsI" xml:space="preserve"><value>第五課簽退</value></data>
+  <data name="Webhook.Route.R090.ClassAttendance.ContainsI" xml:space="preserve"><value>第六課簽退</value></data>
+  <data name="Webhook.Route.R091.ClassAttendance.ContainsI" xml:space="preserve"><value>第七課簽退</value></data>
+  <data name="Webhook.Route.R092.ClassAttendance.ContainsI" xml:space="preserve"><value>第八課簽退</value></data>
+  <data name="Webhook.Route.R093.ClassAttendance.ContainsI" xml:space="preserve"><value>第九課簽退</value></data>
+  <data name="Webhook.Route.R094.ClassAttendance.ContainsI" xml:space="preserve"><value>第十課簽退</value></data>
+  <data name="Webhook.Route.R095.ClassAttendance.ContainsI" xml:space="preserve"><value>第十一課簽退</value></data>
+  <data name="Webhook.Route.R096.ClassAttendance.ContainsI" xml:space="preserve"><value>第十二課簽退</value></data>
+  <data name="Webhook.Route.R097.ClassAttendance.ContainsI" xml:space="preserve"><value>第十三課簽退</value></data>
+  <data name="Webhook.Route.R098.ClassAttendance.ContainsI" xml:space="preserve"><value>第十四課簽退</value></data>
+  <data name="Webhook.Route.R099.ClassAttendance.ContainsI" xml:space="preserve"><value>第十五課簽退</value></data>
+  <data name="Webhook.Route.R100.StaffReport.Prefix" xml:space="preserve"><value>小組探訪:</value></data>
+  <data name="Webhook.Route.R101.StaffReport.Prefix" xml:space="preserve"><value>小組探訪：</value></data>
+  <data name="Webhook.Route.R102.StaffReport.Prefix" xml:space="preserve"><value>同工守望:</value></data>
+  <data name="Webhook.Route.R103.StaffReport.Prefix" xml:space="preserve"><value>同工守望：</value></data>
+  <data name="Webhook.Route.R104.StaffReport.Prefix" xml:space="preserve"><value>同工RPG:</value></data>
+  <data name="Webhook.Route.R105.StaffReport.Prefix" xml:space="preserve"><value>同工RPG：</value></data>
+  <data name="Webhook.Route.R106.PastorReply.ContainsI" xml:space="preserve"><value>@回應</value></data>
+  <data name="Webhook.Route.R107.Homework.ContainsI" xml:space="preserve"><value>作業</value></data>
+  <data name="Webhook.Route.R108.Journal.ContainsI" xml:space="preserve"><value>日誌</value></data>
+  <data name="Webhook.Route.R109.Journal.ContainsI" xml:space="preserve"><value>Report</value></data>
+  <data name="Webhook.Word.Consent" xml:space="preserve"><value>同意</value></data>
+  <data name="Webhook.Word.Devotion" xml:space="preserve"><value>靈修</value></data>
+  <data name="Webhook.Word.DevotionContent" xml:space="preserve"><value>靈修心得</value></data>
+  <data name="Webhook.Word.EmergencyPrayer" xml:space="preserve"><value>緊急代禱</value></data>
+  <data name="Webhook.Word.Group" xml:space="preserve"><value>群組</value></data>
+  <data name="Webhook.Word.Homework" xml:space="preserve"><value>作業</value></data>
+  <data name="Webhook.Word.Individual" xml:space="preserve"><value>個人</value></data>
+  <data name="Webhook.Word.Online" xml:space="preserve"><value>線上</value></data>
+  <data name="Webhook.Word.Physical" xml:space="preserve"><value>實體</value></data>
+  <data name="Webhook.Word.Prayer" xml:space="preserve"><value>代禱</value></data>
+  <data name="Webhook.Word.Return" xml:space="preserve"><value>退回</value></data>
+  <data name="Webhook.Word.Room" xml:space="preserve"><value>聊天室</value></data>
+  <data name="Webhook.Word.SignOff" xml:space="preserve"><value>簽退</value></data>
+  <data name="Webhook.Word.SignOn" xml:space="preserve"><value>簽到</value></data>
+  <data name="Webhook.Word.StaffRpg" xml:space="preserve"><value>同工RPG</value></data>
+  <data name="Webhook.Word.Testimony" xml:space="preserve"><value>@見證</value></data>
+  <data name="Webhook.Word.Times" xml:space="preserve"><value>次</value></data>
+  <data name="Webhook.Word.Visit" xml:space="preserve"><value>小組探訪</value></data>
+  <data name="Webhook.Word.Watch" xml:space="preserve"><value>同工守望</value></data>
 </root>

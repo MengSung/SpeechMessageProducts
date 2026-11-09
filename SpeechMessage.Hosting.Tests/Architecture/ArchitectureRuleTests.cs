@@ -74,6 +74,22 @@ public sealed class ArchitectureRuleTests
         Assert.Contains(ArchitectureRules.Validate(Graph(project with { Target = "net462" })), x => x.Rule == "DualTargetPackage");
     }
 
+    /// <summary>
+    /// GoodShepherd.Core 在 net10 只為正式 SDK 型別提供 Dataverse 套件；net462 仍使用
+    /// CRM SDK，例外必須精確綁定產品與目標，不能擴大成雙目標共用套件豁免。
+    /// </summary>
+    [Fact]
+    public void GoodShepherdCore_DataverseException_IsTargetSpecific()
+    {
+        var project = Product("SpeechMessageProducts.GoodShepherd.Core", "net10.0", "net462;net10.0") with
+        {
+            Packages = new[] { "Microsoft.PowerPlatform.Dataverse.Client" }
+        };
+        Assert.Empty(ArchitectureRules.Validate(Graph(project)));
+        Assert.Contains(ArchitectureRules.Validate(Graph(project with { Target = "net462" })),
+            x => x.Rule == "DualTargetPackage");
+    }
+
     /// <summary>沙箱只引用可提供 net462 的雙目標產品；net48 宿主不等於合格部署產品。</summary>
     [Fact]
     public void Sandbox_ReferenceToNet48Product_IsRejected()

@@ -44,11 +44,19 @@ GoodShepherd.Core 的單一專案參考。P2-02 先以 smoke 測試確認兩個�
   <ItemGroup>
     <ProjectReference Include="..\SpeechMessageProducts.GoodShepherd.Core\SpeechMessageProducts.GoodShepherd.Core.csproj" />
     <EmbeddedResource Include="Golden\qr-content-legacy.tsv" />
+    <EmbeddedResource Include="..\SpeechMessageProducts.LineWebhook.Tests\Golden\Keywords\routing.json" Link="Golden\webhook-routing.json" />
     <EmbeddedResource Include="Golden\flex-diagnostics.json" />
   </ItemGroup>
 
   <ItemGroup Condition="'$(TargetFramework)' == 'net48'">
     <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.CrmSdk.CoreAssemblies" PrivateAssets="all" />
+    <PackageReference Include="System.Text.Json" PrivateAssets="all" />
     <Reference Include="System.Net.Http" />
+  </ItemGroup>
+  <!-- 與 ToolUtility.Core 相同的條件 SDK 型別參考；不建立 ServiceClient 或引入主機 I/O。 -->
+  <ItemGroup Condition="'$(TargetFramework)' == 'net10.0'">
+    <PackageReference Include="Microsoft.PowerPlatform.Dataverse.Client" PrivateAssets="all" />
+    <PackageReference Include="System.Security.Cryptography.Pkcs" PrivateAssets="all" />
   </ItemGroup>
 </Project>

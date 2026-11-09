@@ -1,0 +1,31 @@
+{
+  "id": "p3-06-event-dispatch",
+  "name": "p3-06-event-dispatch",
+  "title": "P3-06 事件分派與處理器移植",
+  "description": "",
+  "status": "in_progress",
+  "dev_type": null,
+  "scope": null,
+  "package": null,
+  "priority": "P2",
+  "creator": "codex",
+  "assignee": "codex",
+  "createdAt": "2026-11-09",
+  "completedAt": null,
+  "branch": "p3/P3-06",
+  "base_branch": "1.0.0.11.Integration.P3.Worktree",
+  "worktree_path": "C:/smw/P3-06",
+  "commit": null,
+  "pr_url": null,
+  "subtasks": [],
+  "children": [],
+  "parent": "11-09-integration-p3",
+  "relatedFiles": [],
+  "notes": "2026-11-09 20:00 Asia/Taipei (UTC+08:00)：只開P3-06，依賴均已驗收推送d0878449；Claude分析可用、Gemini未完成，不提前規劃07／08。2026-11-10 01:00 Asia/Taipei (UTC+08:00)：實作與離線驗證完成；群組缺userId、停用Contact及課程關聯邊界已鎖定；固定guard、驗收提交、push與封存尚待協調者完成。",
+  "meta": {
+    "baseCommit": "12cfde7279eb3ea250e0226c51324029d8011631",
+    "timebox": "1天",
+    "fileOwnership": "design.md",
+    "startedAt": "2026-11-09T20:00:57+08:00"
+  }
+}
