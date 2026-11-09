@@ -8,7 +8,7 @@
 
 <!-- @@@auto:current-status -->
 - **Active File**: `journal-1.md`
-- **Total Sessions**: 24
+- **Total Sessions**: 25
 - **Last Active**: 2026-11-09
 <!-- @@@/auto:current-status -->
 
@@ -19,7 +19,7 @@
 <!-- @@@auto:active-documents -->
 | File | Lines | Status |
 |------|-------|--------|
-| `journal-1.md` | ~911 | Active |
+| `journal-1.md` | ~945 | Active |
 <!-- @@@/auto:active-documents -->
 
 ---
@@ -29,6 +29,7 @@
 <!-- @@@auto:session-history -->
 | # | Date | Title | Commits | Branch |
 |---|------|-------|---------|--------|
+| 25 | 2026-11-09 | P3-00 切換3.5並停止於階段3開工前 | `7acc1132`, `f65f6d73` | `1.0.0.11.Integration.P2.Worktree` |
 | 24 | 2026-11-09 | P2 完整結案 | `140bbe01`, `5379513d`, `ca973a90` | `1.0.0.11.Integration.P2.Worktree` |
 | 23 | 2026-11-07 | P2-03 安全寫入與stdin生命週期離線檢查點 | `54d78c81` | `1.0.0.11.Integration.P2.Worktree` |
 | 22 | 2026-11-07 | 同階段進度資訊集中呈現 | `a648a451` | `1.0.0.11.Integration.P2.Worktree` |

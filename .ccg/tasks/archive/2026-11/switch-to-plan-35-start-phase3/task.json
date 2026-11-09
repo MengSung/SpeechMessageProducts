@@ -1,0 +1,13 @@
+{
+  "id": "switch-to-plan-35-start-phase3",
+  "title": "P3-00 切換實作計畫3.5後停止",
+  "status": "completed",
+  "complexity": "L+",
+  "risk": "medium",
+  "domain": "integration",
+  "currentPhase": "completed",
+  "nextAction": "P3-00 結束；僅交付紀錄檢查與 SHA 收據，不開工 P3 工作包",
+  "createdAt": "2026-11-09T12:05:00+08:00",
+  "branch": "1.0.0.11.Integration.P2.Worktree",
+  "completedAt": "2026-11-09T12:57:05+08:00"
+}

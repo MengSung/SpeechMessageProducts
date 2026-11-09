@@ -909,3 +909,37 @@ P2總目標不變、0/12驗收。完成Channel protect-token/assign-channel與�
 ### Next Steps
 
 - None - task complete
+
+
+## Session 25: P3-00 切換3.5並停止於階段3開工前
+
+**Date**: 2026-11-09
+**Task**: P3-00 切換3.5並停止於階段3開工前
+**Branch**: `1.0.0.11.Integration.P2.Worktree`
+
+### Summary
+
+完成3.5資料與路徑切換、3.4封存、P2任務收尾及階段3唯讀前置清單。固定guard八項通過，4976 Release／7 tracer／28頁面；P2遠端與P3已核對f65f6d73。外審無可用輸出，本地複核0 Critical/High。最後紀錄提交再走輕量檢查與SHA收據，不開始任何P3工作包。
+
+### Main Changes
+
+(Add details)
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `7acc1132` | (see git log) |
+| `f65f6d73` | (see git log) |
+
+### Testing
+
+- [OK] (Add test results)
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- None - task complete
