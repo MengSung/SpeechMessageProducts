@@ -3,7 +3,7 @@
   "name": "integration-p2",
   "title": "方案整合與國際化 P2 全部必要驗收",
   "description": "",
-  "status": "planning",
+  "status": "completed",
   "dev_type": null,
   "scope": null,
   "package": null,
@@ -11,7 +11,7 @@
   "creator": "codex",
   "assignee": "codex",
   "createdAt": "2026-11-07",
-  "completedAt": null,
+  "completedAt": "2026-11-09T08:29:40+08:00",
   "branch": null,
   "base_branch": "1.0.0.11.Integration.P2.Worktree",
   "worktree_path": null,
@@ -38,6 +38,6 @@
   ],
   "parent": null,
   "relatedFiles": [],
-  "notes": "",
+  "notes": "2026-11-09 08:29 Asia/Taipei (UTC+08:00)：P2所有工作包與階段審查完成；不啟動階段3。",
   "meta": {}
 }

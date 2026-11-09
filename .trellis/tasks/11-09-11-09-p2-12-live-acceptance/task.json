@@ -3,7 +3,7 @@
   "name": "11-09-p2-12-live-acceptance",
   "title": "P2-12 實機驗收推播整條鏈",
   "description": "依實作計畫3.4 P2-12，在 goodshepherdback 完成 member 推播、教會隔離、Retry Key 去重、雙 Worker 唯一認領及殘留清理；先補 Deployment member 設定契約，保存一頁操作紀錄。",
-  "status": "in_progress",
+  "status": "completed",
   "dev_type": null,
   "scope": null,
   "package": null,
@@ -11,17 +11,17 @@
   "creator": "codex",
   "assignee": "codex",
   "createdAt": "2026-11-09",
-  "completedAt": null,
+  "completedAt": "2026-11-09T08:29:40+08:00",
   "branch": null,
   "base_branch": "1.0.0.11.Integration.P2.Worktree",
   "worktree_path": null,
-  "commit": null,
+  "commit": "5379513d97a904072c45fbd3716cb63b99376d1c",
   "pr_url": null,
   "subtasks": [],
   "children": [],
   "parent": "11-07-integration-p2",
   "relatedFiles": [],
-  "notes": "2026-11-09 08:07 Asia/Taipei (UTC+08:00)：P2-12五項完成，已標記進度done；固定guard以140bbe01完整§8.1通過。接續只做一次M-P2-REVIEW，完成後封存此子任務與推送。",
+  "notes": "2026-11-09 08:29 Asia/Taipei (UTC+08:00)：P2-12完成、固定guard對5379513d完整§8.1重驗通過；階段2唯一審查Critical/High為0，PROP-006已同步、PROP-007已交付，準備推送並封存。",
   "meta": {
     "offlineDeploymentTests": 200,
     "memberSecureRedCases": 2,
@@ -77,6 +77,9 @@
     "memberMismatchSeconds": 29.03,
     "memberReplaySeconds": 29.92,
     "memberLiveCompletedAt": "2026-11-09T07:59:34.6224702+08:00",
-    "p212Status": "done"
+    "p212Status": "done",
+    "stage2Review": "single-model fallback: Claude usable, Gemini 503; Critical=0; High=0",
+    "guardEvidencePrepareSha256": "50884dd6d08a76c1868c3939a83bfcbd52c50558cde7f6a101d1fd579d89303a",
+    "guardEvidenceFullSha256": "e6c99e43e6b4fd82e9f29bc4433a1392bc2c915d672d7ce357121544fa23ad47"
   }
 }

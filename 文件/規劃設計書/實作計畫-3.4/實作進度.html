@@ -240,11 +240,11 @@ footer{margin-top:36px;color:var(--muted);font-size:12.5px;text-align:center}
  */
 const DATA = {
   "planVersion": "3.4",
-  "snapshot": "2026-11-09 08:07 Asia/Taipei (UTC+08:00)",
-  "lastUpdated": "2026-11-09T08:07:04+08:00",
+  "snapshot": "2026-11-09 08:31 Asia/Taipei (UTC+08:00)",
+  "lastUpdated": "2026-11-09T08:31:05+08:00",
   "branch": "1.0.0.11.Integration.P2.Worktree",
   "head": "dc0a1e8c",
-  "headline": "P2工作包12完成；P2全部工作包已驗收，階段2審查進行中；不啟動P3。",
+  "headline": "P2工作包12與階段2審查完成；P2-01～P2-12、P2-04前置及M-P2-REVIEW全部done；不啟動P3。",
   "notices": [
     {
       "id": "plan-3.4-summary",
@@ -264,9 +264,10 @@ const DATA = {
       "phaseId": "階段 2",
       "level": "info",
       "title": "P2 進度摘要",
-      "lastUpdated": "2026-11-09T08:07:04+08:00",
-      "body": "2026-11-09 08:07 Asia/Taipei (UTC+08:00)：P2-12會員鏈與雙Worker均完成實機驗收，三項會員案例均60秒內，收尾verify=0、殘留0；P2-01～P2-12全部done，現在只做一次階段2審查。",
+      "lastUpdated": "2026-11-09T08:31:05+08:00",
+      "body": "2026-11-09 08:31 Asia/Taipei (UTC+08:00)：P2-01～P2-12、P2-04前置及階段2審查全部完成，Critical／High為0；固定guard完整§8.1與會員／雙Worker實機證據均已保存，停止於P2不啟動P3。",
       "steps": [
+        "2026-11-09 08:31 Asia/Taipei (UTC+08:00)：階段2審查結案，Claude可用、Gemini因服務端503未產出；guard-5379513d含Git重建及§8.1完整證據，PROP-006已同步、PROP-007已交付。",
         "2026-11-09 08:07 Asia/Taipei (UTC+08:00)：P2-12已以140bbe01驗收，會員操作紀錄、雙Worker紀錄、固定guard全套§8.1證據均已保存；接續只做M-P2-REVIEW。",
         "2026-11-09 08:00 Asia/Taipei (UTC+08:00)：會員鏈完整通過，A28.76秒Accepted／200、B29.03秒ChurchMismatch且no-response、同GUID重播29.92秒AlreadyAccepted／409；收尾verify=0、殘留0。雙Worker已通過，待修正提交後固定guard完整守門與一次階段審查。",
         "2026-11-09 07:57 Asia/Taipei (UTC+08:00)：使用者已核定會員鏈再驗一次，從W:\\啟動並維持60秒追蹤條件；雙Worker已通過不重跑，先備份、完成必做清理。",
@@ -1550,8 +1551,8 @@ const DATA = {
       "id": "M-P2-REVIEW",
       "phaseId": "階段 2",
       "name": "階段 2 審查＋一次提出計畫修正提案",
-      "status": "review",
-      "note": "2026-11-09 08:07 Asia/Taipei (UTC+08:00)：P2-01～P2-12均done；依00 §6.6執行唯一一次階段2審查，完成後只修Critical／High，Medium／Low列後續或計畫修正提案。"
+      "status": "done",
+      "note": "2026-11-09 08:23 Asia/Taipei (UTC+08:00)：唯一一次階段2審查完成；Critical／High均為0。Gemini因服務端503未產出，Claude完成審查；PROP-006文字已同步，PROP-007作為階段5更新回復前置風險一次交付。"
     },
     {
       "id": "更新回復前置",
@@ -1682,10 +1683,10 @@ const DATA = {
     {
       "id": "PROP-006",
       "problem": "P2-12第5步要求重跑已完成系統作業，但D365不接受將已完成asyncoperation重設待執行。",
-      "evidence": "使用者2026-11-09核定續跑及同GUID重播；前次嘗試已保存失敗證據，尚未通過完整會員實機。",
+      "evidence": "使用者2026-11-09核定續跑及同GUID重播；P2-12實機A／B／同GUID重播均在60秒內通過，cleanup verify=0、殘留0。",
       "proposal": "先備份、刪除自有task並以同task GUID重建，產生新asyncoperation；Retry Key不變，以AlreadyAccepted／409及有效RequestId判定不重複受理，不要求兩次RequestId相同。",
       "impact": "P2-12第5步；仍限LINE重試有效期內，不改Core enum或smoke。",
-      "status": "2026-11-09已核定，待實機與寫入3.5"
+      "status": "2026-11-09已核定並完成實機，待寫入3.5"
     },
     {
       "id": "PROP-007",
