@@ -7,7 +7,7 @@
 主要功能與流程：
 從目前工作樹的方案與專案XML建立依賴閉包，僅允許已核定的三個DevExtreme相關排除；
 執行workflow原有run區塊，只以本機函式替換dotnet來記錄命令。覆蓋率從實際PowerShell
-AST取出cases候選，檢查ToolUtility.Core雙目標與Hosting單一net10宿主，缺漏或重複均失敗。
+AST取出cases候選，檢查ToolUtility.Core雙目標、Hosting及LineWebhook單一net10宿主，缺漏、重複或錯配皆失敗。
 
 使用邊界與維護：不真正啟動產品、還原套件、讀秘密或連外；摘要檔只使用每次唯一的合成暫存檔，
 finally恢復原環境變數與工作目錄並移除自建檔。dotnet記錄僅在此程序存活；此測試不是
@@ -52,6 +52,14 @@ function Get-CoverageMatrix {
     }, $true)
     if ($null -eq $assignment) { throw 'Coverage matrix is missing.' }
     return & ([scriptblock]::Create($assignment.Extent.Text + '; $cases'))
+}
+function Assert-LineWebhookCoverage($Matrix) {
+    # 只接受新主機自己的net10測試報告；省略、重複、錯宿主及借用另一target皆拒絕。
+    $webhook = @($Matrix | Where-Object { $_.Module -ceq 'SpeechMessageProducts.LineWebhook' })
+    if ($webhook.Count -ne 1 -or $webhook[0].Project -cne 'SpeechMessageProducts.LineWebhook.Tests' -or
+        $webhook[0].Framework -cne 'net10.0' -or $webhook[0].ContainsKey('Suffix')) {
+        throw 'LineWebhook coverage must execute its own net10.0 test project exactly once.'
+    }
 }
 $cases = [ordered]@{
     Filter_ExcludesExactlyDependencyClosure = {
@@ -118,6 +126,33 @@ $cases = [ordered]@{
         [xml]$project = [IO.File]::ReadAllText((Join-Path $root 'SpeechMessage.Hosting.Tests/SpeechMessage.Hosting.Tests.csproj'))
         if (@($project.SelectNodes('//PackageReference') | Where-Object { $_.GetAttribute('Include') -ceq 'coverlet.collector' }).Count -ne 1) {
             throw 'Hosting coverage requires its collector package.'
+        }
+    }
+    Coverage_IncludesLineWebhookHost = {
+        Assert-LineWebhookCoverage @(Get-CoverageMatrix)
+        [xml]$project = [IO.File]::ReadAllText((Join-Path $root 'SpeechMessageProducts.LineWebhook.Tests/SpeechMessageProducts.LineWebhook.Tests.csproj'))
+        if (@($project.SelectNodes('//PackageReference') | Where-Object { $_.GetAttribute('Include') -ceq 'coverlet.collector' }).Count -ne 1) {
+            throw 'LineWebhook requires its own collector package.'
+        }
+    }
+    Coverage_RejectsMissingDuplicateOrMismatchedLineWebhook = {
+        # 合成正例先過，再逐一故障注入，不以任意失敗冒充正確拒絕。
+        $valid = @{ Project='SpeechMessageProducts.LineWebhook.Tests'; Framework='net10.0'; Module='SpeechMessageProducts.LineWebhook' }
+        Assert-LineWebhookCoverage @($valid)
+        $invalid = @(
+            @{ Entries=@() },
+            @{ Entries=@($valid, $valid) },
+            @{ Entries=@(@{ Project='SpeechMessage.Hosting.Tests'; Framework='net10.0'; Module='SpeechMessageProducts.LineWebhook' }) },
+            @{ Entries=@(@{ Project='SpeechMessageProducts.LineWebhook.Tests'; Framework='net48'; Module='SpeechMessageProducts.LineWebhook' }) }
+        )
+        foreach ($candidate in $invalid) {
+            $rejected = $false
+            try { Assert-LineWebhookCoverage @($candidate.Entries) }
+            catch {
+                if ($_.Exception.Message -cne 'LineWebhook coverage must execute its own net10.0 test project exactly once.') { throw }
+                $rejected = $true
+            }
+            if (-not $rejected) { throw 'Invalid LineWebhook coverage was accepted.' }
         }
     }
     Commands_UseFilteredSolution = {

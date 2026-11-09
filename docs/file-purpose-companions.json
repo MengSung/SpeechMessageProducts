@@ -6,7 +6,7 @@
   "Line.Messaging.Tests/Golden/Template.json": "保存LINE SDK的模板訊息固定JSON黃金樣本，由雙目標測試逐字核對欄位名稱、順序、逸出及既有省略規則；樣本全部為合成資料，不能用解析後相等或依實際輸出重生樣本掩蓋相容性變動。",
   "Line.Messaging.Tests/Golden/Text.json": "保存LINE SDK的純文字固定JSON黃金樣本，由雙目標測試逐字核對欄位名稱、順序、逸出及既有省略規則；樣本全部為合成資料，不能用解析後相等或依實際輸出重生樣本掩蓋相容性變動。",
   "LineMessagingProcessor.Tests/Golden/push-text.json": "保存舊LINE processor一般文字推播的固定JSON黃金樣本，保護轉接到共用SDK後收件者及訊息形狀逐字相容；只使用合成資料，變更須先證明外部協定允許，不能由被測結果自動覆寫期待值。",
-  "SpeechMessageProducts.CI.slnf": "明確選定過渡CI會建置的方案子集合，供既定DevExtreme來源限制下持續驗證可用部分；篩選通過不能聲稱全方案成功，省略專案須在CI摘要揭露並保留本機全方案驗證。P2將Hosting與唯一持有架構測試的Hosting.Tests同步納入，防止搬移後漏跑R4；新增專案仍須與真實方案的完整可納入集合核對。",
+  "SpeechMessageProducts.CI.slnf": "明確選定過渡CI會建置的方案子集合，供既定DevExtreme來源限制下持續驗證可用部分；篩選通過不能聲稱全方案成功，省略專案須在CI摘要揭露並保留本機全方案驗證。P2將Hosting與唯一持有架構測試的Hosting.Tests同步納入，防止搬移後漏跑R4；新增專案仍須與真實方案的完整可納入集合核對。P3-02將LineWebhook主機及自己的測試同步納入eligible集合，仍只排除原三項DevExtreme相依，不可用篩選成功冒稱完整方案驗收。",
   "SpeechMessageProducts.ChurchReport/Properties/launchSettings.json": "提供IDE與dotnet run使用的開發啟動profile、URL及環境名稱，影響本機除錯而非正式部署；環境值僅屬該子程序，不可在此保存帳密或LINE token，啟動後仍須通過測試組織與ICU守門。",
   "SpeechMessageProducts.ChurchReport/appsettings.Development.json": "只為Development主機提供測試組織與開發選項覆寫，配合開發設定入口拒絕正式token／組織後備；此檔不是User Secrets替代品，不得加入實際密碼、私密金鑰或不受限的跨組織路由。",
   "SpeechMessageProducts.ChurchReport/appsettings.Production.json": "提供Production環境相對基底組態的覆寫，沿正式provider順序生效；設定不應因本機除錯被改成測試組織或停用隔離／清理，秘密由受核定的部署來源注入，不複製到文件或測試樣本。",
@@ -28,5 +28,6 @@
   "SpeechMessage.Hosting.Tests/Architecture/unresolved-r2-inventory.json": "逐目標與Debug／Release記錄ChurchReport尚未通過的R2公開型別，身分含規則、專案、目標、組態、來源與完整型別名稱，每筆附理由及移除條件；僅防止未追蹤差距，不是驗收豁免。清冊非空時P2-01 R2仍未驗收，不得由守門綠燈推定完成；更新須比對原始實際掃描證據，禁止自動吞掉新違規。",
   "LineMessagingProcessor.Tests/Golden/channel-token-vectors.json": "P2-03公開合成跨目標加密向量，僅測試用0至63的key與假token；獨立Node產生初始封包，再加入真net462／net10輸出供雙向解密，不可換成實際憑證或把離線結果當實機。",
   "SpeechMessageProducts.GoodShepherd.Core/Resources/Flex/Diagnostics.json": "P2-05正式內嵌診斷Flex範本；只保存LINE協定結構與Common.Diagnostics.Ping取字key，資料與語系由已授權context在當次純引擎替換，不能放入真實會友、教會或憑證。altText必須維持取字key，每份新增／修改範本須有對應固定黃金與雙宿主驗證。",
-  "SpeechMessageProducts.GoodShepherd.Core.Tests/Golden/flex-diagnostics.json": "P2-05診斷Flex範本固定繁中JSON黃金，按正式結構及核定Ping文案手工定義，供真引擎與真資源在雙宿主逐字比對；不能用產品實際輸出自動重生期待值或把離線序列化冒稱LINE實機驗收。"
+  "SpeechMessageProducts.GoodShepherd.Core.Tests/Golden/flex-diagnostics.json": "P2-05診斷Flex範本固定繁中JSON黃金，按正式結構及核定Ping文案手工定義，供真引擎與真資源在雙宿主逐字比對；不能用產品實際輸出自動重生期待值或把離線序列化冒稱LINE實機驗收。",
+  "SpeechMessageProducts.LineWebhook/appsettings.json": "提供LINE Webhook非秘密基底啟動設定，僅明確關閉舊/api/callback；開啟時部署者須另外設定LineWebhook:LegacyChannelId為可信channel識別，仍經同一驗簽。不得存放channel secret、access token、SQL密碼或個資，部署秘密由受信任外部設定提供，三項正式服務未註冊即拒啟動。"
 }

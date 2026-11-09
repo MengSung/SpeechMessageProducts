@@ -35,7 +35,9 @@
       "build\\ToolUtility.Core.PluginSubset\\ToolUtility.Core.PluginSubset.csproj",
       "tools\\PluginPackaging.Subsets.Tests\\PluginPackaging.Subsets.Tests.csproj",
       "SpeechMessageProducts.GoodShepherd.Core\\SpeechMessageProducts.GoodShepherd.Core.csproj",
-      "SpeechMessageProducts.GoodShepherd.Core.Tests\\SpeechMessageProducts.GoodShepherd.Core.Tests.csproj"
+      "SpeechMessageProducts.GoodShepherd.Core.Tests\\SpeechMessageProducts.GoodShepherd.Core.Tests.csproj",
+      "SpeechMessageProducts.LineWebhook\\SpeechMessageProducts.LineWebhook.csproj",
+      "SpeechMessageProducts.LineWebhook.Tests\\SpeechMessageProducts.LineWebhook.Tests.csproj"
     ]
   }
 }

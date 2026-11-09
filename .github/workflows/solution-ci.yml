@@ -1,6 +1,6 @@
 # 檔案整體說明
 #
-# 目的與定位：宣告Windows CI的套件還原、品質守門、建置、測試及選用簽章流程；授權檔與暫存金鑰由job擁有，失敗時仍須清理，過渡篩選範圍不能假稱完整方案通過。
+# 目的與定位：宣告Windows CI的套件還原、品質守門、建置、測試及選用簽章流程，含LineWebhook獨立net10覆蓋率；授權檔與暫存金鑰由job擁有，失敗時仍須清理，過渡篩選範圍不能假稱完整方案通過。
 #
 # 主要功能與流程：
 # 依下方原生宣告執行本檔所述工作；入口、條件及順序須與實際呼叫端一致，不能把示範或預覽視為已套用。
@@ -122,6 +122,7 @@ jobs:
             @{ Project='SpeechMessage.Localization.Tests'; Framework='net10.0'; Module='SpeechMessage.Localization' },
             @{ Project='SpeechMessage.Tenancy.Tests'; Framework='net10.0'; Module='SpeechMessage.Tenancy' },
             @{ Project='SpeechMessage.Hosting.Tests'; Framework='net10.0'; Module='SpeechMessage.Hosting' },
+            @{ Project='SpeechMessageProducts.LineWebhook.Tests'; Framework='net10.0'; Module='SpeechMessageProducts.LineWebhook' },
             @{ Project='ToolUtility.Tests'; Framework='net48'; Module='ToolUtility.Core' },
             @{ Project='ToolUtility.Tests'; Framework='net10.0'; Module='ToolUtility.Core' },
             @{ Project='LineMessagingProcessor.Tests'; Framework='net48'; Module='LineMessagingProcessor.Core' },

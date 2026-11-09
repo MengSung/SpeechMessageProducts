@@ -1,0 +1,25 @@
+<!--
+檔案整體說明
+目的與定位：定義階段三 LINE Webhook 離線契約測試的 net10 專案邊界，僅處理組合根與 HTTP 契約，不提前建立驗簽、SQL 去重或背景佇列正式實作。
+主要功能與流程：參考真正產品並使用 xUnit 與 coverlet，真 Kestrel 只綁定本機 ephemeral 埠，各案例自行釋放 Host、client 與測試替身。套件使用中央版本，新增當下同步方案，Debug／Release 必須有完整映射。
+使用邊界與維護：不包含部署秘密、不連外驗收，不以離線測試宣稱 LINE 或資料庫實機成功。資源由主機或測試 owner 明確關閉，程式與測試需保持嚴格分析、繁中說明及逐目標覆蓋率驗證。
+-->
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <SpeechMessageStrictCode>true</SpeechMessageStrictCode>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <IsTestProject>true</IsTestProject>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" />
+    <PackageReference Include="xunit" />
+    <PackageReference Include="xunit.runner.visualstudio" PrivateAssets="all" />
+    <PackageReference Include="coverlet.collector" PrivateAssets="all" />
+    <ProjectReference Include="..\SpeechMessageProducts.LineWebhook\SpeechMessageProducts.LineWebhook.csproj" />
+  </ItemGroup>
+</Project>
