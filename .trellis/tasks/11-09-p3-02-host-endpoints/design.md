@@ -9,5 +9,6 @@
 - SpeechMessageProducts.sln（新csproj建立同一步加入）
 - docs/file-purpose-companions.json（新增JSON逐檔用途）
 - 必要時LineMessagingProcessor.AspNetCore/LineMessagingProcessor.AspNetCore.csproj；不要改中央套件或架構檢查來遮掩問題。
+- SpeechMessageProducts.CI.slnf、.github/workflows/solution-ci.yml、tools/RepoQuality/Tests/Test-CiTransition.Tests.ps1：只同步新主機與測試的eligible集合、net10主機coverage項及對應拒絕遺漏斷言；維持原三項DevExtreme排除，不擴張排除或降低coverage。這是既有solution-ci-contract的新模組接入契約，不是新增功能。
 
 不可修改AGENTS、進度頁、Trellis、CCG、計畫、設計、其他產品既有行為。無其他WP同時寫碼；P3-01唯讀調查。

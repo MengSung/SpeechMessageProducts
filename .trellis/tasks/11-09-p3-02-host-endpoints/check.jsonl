@@ -7,3 +7,5 @@
 {"file": ".trellis/spec/backend/hosting-culture-contract.md", "reason": "P3-02 required contract"}
 {"file": ".trellis/spec/guides/cross-layer-thinking-guide.md", "reason": "P3-02 required contract"}
 {"file": ".trellis/spec/guides/code-reuse-thinking-guide.md", "reason": "P3-02 required contract"}
+{"file": ".trellis/spec/backend/solution-ci-contract.md", "reason": "新主機與測試接入既有CI／CPM契約，不降低檢查"}
+{"file": ".trellis/spec/backend/central-package-management.md", "reason": "新主機與測試接入既有CI／CPM契約，不降低檢查"}
