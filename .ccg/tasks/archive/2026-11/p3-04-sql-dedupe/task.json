@@ -1,12 +1,12 @@
 {
   "id": "p3-04-sql-dedupe",
   "title": "P3-04 平台SQL去重",
-  "status": "in_progress",
+  "status": "completed",
   "complexity": "L",
   "risk": "high",
   "domain": "backend",
-  "currentPhase": "implementation",
-  "nextAction": "TDD實作；協調者複核及固定守門",
+  "currentPhase": "completed",
+  "nextAction": "已驗收，推送後核對遠端SHA",
   "createdAt": "2026-11-09T18:57:51+08:00",
   "branch": "p3/P3-04"
 }

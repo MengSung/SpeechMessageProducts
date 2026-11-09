@@ -8,4 +8,4 @@
 - [x] 每日清7天前記錄及完整stop／dispose；驗隔離、取消、故障後重送與owner基線。
 - [x] LocalDB實際整合測試、cleanup與殘留0；原始證據只放本task ignored evidence。
 - [x] 相關測試、文件與byte檢查；不commit/push/merge，交協調者複核，規劃納入第一個程式提交。
-- [ ] 協調者rebase／ff、固定guard、一頁報告、DATA驗收、封存、push與ls-remote。
+- [x] 協調者rebase／ff、固定guard、一頁報告、DATA驗收、封存、push與ls-remote。
