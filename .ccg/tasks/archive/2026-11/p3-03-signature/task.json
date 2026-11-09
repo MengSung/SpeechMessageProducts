@@ -1,0 +1,13 @@
+{
+  "id": "p3-03-signature",
+  "title": "P3-03 驗簽",
+  "status": "completed",
+  "complexity": "L",
+  "risk": "high",
+  "domain": "backend",
+  "currentPhase": "completed",
+  "nextAction": "P3-03已驗收；P3-05仍進行中，下一包只在空出名額後規劃",
+  "createdAt": "2026-11-09T14:35:00+08:00",
+  "branch": "p3/P3-03",
+  "completedAt": "2026-11-09T18:41:37+08:00"
+}
