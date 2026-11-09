@@ -240,11 +240,11 @@ footer{margin-top:36px;color:var(--muted);font-size:12.5px;text-align:center}
  */
 const DATA = {
   "planVersion": "3.5",
-  "snapshot": "2026-11-10 06:41 Asia/Taipei (UTC+08:00)",
-  "lastUpdated": "2026-11-10T06:41:15+08:00",
+  "snapshot": "2026-11-10 07:25 Asia/Taipei (UTC+08:00)",
+  "lastUpdated": "2026-11-10T07:25:33+08:00",
   "branch": "1.0.0.11.Integration.P3.Worktree",
-  "head": "538002c7",
-  "headline": "2026-11-10 06:41 Asia/Taipei (UTC+08:00)：P3-08已開工；P3已完成7／9包，進行中1包；P3-09前置仍缺。",
+  "head": "a6921a6a",
+  "headline": "2026-11-10 07:25 Asia/Taipei (UTC+08:00)：依使用者核定回到正式 P3 單一目錄，一次只做一包；P3-06／07 已驗收，P3-08 進行中保存點 a6921a6a 尚未驗收；P3-09 前置仍缺，不開工。已保留原主目錄 20:00 遠端核對歷史。",
   "notices": [
     {
       "id": "plan-3.5-summary",
@@ -414,7 +414,7 @@ const DATA = {
       "phaseId": "階段 3",
       "level": "info",
       "title": "P3 進度摘要",
-      "body": "2026-11-10 06:41 Asia/Taipei (UTC+08:00)：P3-08已開工；P3已完成7／9包，進行中1包；依規則只處理本包，P3-09前置仍缺。",
+      "body": "2026-11-10 07:25 Asia/Taipei (UTC+08:00)：依使用者核定回到正式 P3 單一目錄，一次只做一包；P3-06／07 已驗收，P3-08 進行中保存點 a6921a6a 尚未驗收；P3-09 前置仍缺，不開工。已保留原主目錄 20:00 遠端核對歷史。",
       "steps": [
         "2026-11-09 13:20 Asia/Taipei (UTC+08:00)：P3-01與P3-02新增專案都會更動sln，依檔案歸屬先串行做P3-02；P3-01僅唯讀調查。",
         "2026-11-09 13:20 Asia/Taipei (UTC+08:00)：P3-00原始證據已逐檔核對並複製至耐久ignored evidence，沒有將秘密或原始輸出加入版控。",
@@ -434,9 +434,11 @@ const DATA = {
         "2026-11-10 01:44 Asia/Taipei (UTC+08:00)：P3-06完成離線測試、固定 C:\\smv\\guard 對 ae96f737 的 §8.1 八項守門、驗收回報與首次 push；遠端 SHA 已以 git ls-remote 核對相同。P3-07／P3-08未提前規劃，P3-09仍待前置缺項到位。",
         "2026-11-10 03:37 Asia/Taipei (UTC+08:00)：P3-07開工；只規劃本包，已記錄P3-01黃金實測為110個決策項／104個不同字面值／731筆案例，P3-08未規劃，規劃將併入本包第一個程式提交。",
         "2026-11-10 04:51 Asia/Taipei (UTC+08:00)：P3-07驗收；程式提交b67dbf0a固定guard八項通過，GoodShepherd雙目標79／79、Localization雙目標183／183與185／185、全方案5,211／5,211、Debug tracer 7／7、文件1,433／1,433、進度頁28／28；審查Critical／High為0，Gemini無可用輸出如實記錄。",
-        "2026-11-10 06:41 Asia/Taipei (UTC+08:00)：P3-08開工；回覆、語系／教會sender、入站letter與真實例外傳遞列為本包範圍；規劃內容併入第一個程式提交，P3-09仍不得開工。"
+        "2026-11-10 06:41 Asia/Taipei (UTC+08:00)：P3-08開工；回覆、語系／教會sender、入站letter與真實例外傳遞列為本包範圍；規劃內容併入第一個程式提交，P3-09仍不得開工。",
+        "2026-11-09 20:00 Asia/Taipei (UTC+08:00)：P3-01／04驗收後實際git ls-remote核對d0878449d5021163f7004d2067284367b1858bd5。現在只開P3-06，規劃併本包首程式提交；兩短worktree證據已逐hash耐久保存後清理。",
+        "2026-11-10 07:25 Asia/Taipei (UTC+08:00)：依使用者核定回到正式 P3 單一目錄，一次只做一包；P3-06／07 已驗收，P3-08 進行中保存點 a6921a6a 尚未驗收；P3-09 前置仍缺，不開工。已保留原主目錄 20:00 遠端核對歷史。"
       ],
-      "lastUpdated": "2026-11-10T04:51:27+08:00"
+      "lastUpdated": "2026-11-10T07:25:33+08:00"
     }
   ],
   "userActions": [
@@ -1616,11 +1618,31 @@ const DATA = {
       "startedAt": "2026-11-10 06:41 Asia/Taipei (UTC+08:00)",
       "timebox": "1 天",
       "dod": [
-        ["Reply API 與 bounded detached reply token 完成並有離線測試", "no", "尚未驗收"],
-        ["會員語言／教會名稱／sender 依驗證 scope 隔離", "no", "尚未驗收"],
-        ["入站 letter 穩定 Upsert、directioncode=false 且不觸發 outbound", "no", "尚未驗收"],
-        ["真實 Exception 保留並交給 Hosting 通知入口", "no", "尚未驗收"],
-        ["固定 guard、文件／編碼／重複碼與審查完成", "no", "尚未驗收"]
+        [
+          "Reply API 與 bounded detached reply token 完成並有離線測試",
+          "no",
+          "尚未驗收"
+        ],
+        [
+          "會員語言／教會名稱／sender 依驗證 scope 隔離",
+          "no",
+          "尚未驗收"
+        ],
+        [
+          "入站 letter 穩定 Upsert、directioncode=false 且不觸發 outbound",
+          "no",
+          "尚未驗收"
+        ],
+        [
+          "真實 Exception 保留並交給 Hosting 通知入口",
+          "no",
+          "尚未驗收"
+        ],
+        [
+          "固定 guard、文件／編碼／重複碼與審查完成",
+          "no",
+          "尚未驗收"
+        ]
       ],
       "next": "先建立紅燈測試，再完成 Reply、letter、catalog、scope、DI 與 dispatcher 接線；完成後執行固定 C:\\smv\\guard。"
     }
