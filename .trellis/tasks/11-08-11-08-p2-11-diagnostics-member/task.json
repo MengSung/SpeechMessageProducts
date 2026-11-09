@@ -19,7 +19,7 @@
   "pr_url": null,
   "subtasks": [],
   "children": [],
-  "parent": "11-07-integration-p2",
+  "parent": null,
   "relatedFiles": [],
   "notes": "2026-11-09 00:17 Asia/Taipei (UTC+08:00)：PROP-004核定的子集coverage、member四情境、合併DLL驗證與固定guard §8.1均通過；在核定延長窗01:03前完成。提交6a9c1d14、c1b01680；回報wp-reports/P2-11.md。P2-11已完成，下一包P2-12。 2026-11-09 06:31 Asia/Taipei (UTC+08:00)：ls-remote顯示origin仍為407a89f11a2c7a9b4aaeba2a15f6f615716faa80，先前推送宣稱不成立；本次提交結案紀錄後補推送再核對遠端。 2026-11-09 06:33 Asia/Taipei (UTC+08:00)：已推送；ls-remote遠端SHA=23e99830f1e08d8703cdae95aeeb06a02301e203，與本機一致。",
   "meta": {
