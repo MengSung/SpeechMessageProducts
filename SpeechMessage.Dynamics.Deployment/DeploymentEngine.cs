@@ -1178,7 +1178,7 @@ internal sealed class DeploymentEngine
                 !string.Equals(step.SecureConfig, "${secret:TokenKey}", StringComparison.Ordinal) ||
                 root.TryGetProperty("lineUserId", out _))
             {
-                throw new InvalidDataException("member 設定必須包含有效來源教會、布林偽語系開關與 TokenKey 佔位。");
+                throw new InvalidDataException("Member configuration requires a valid source church, a boolean pseudo-locale switch and the TokenKey placeholder.");
             }
         }
         else if (pushMode)

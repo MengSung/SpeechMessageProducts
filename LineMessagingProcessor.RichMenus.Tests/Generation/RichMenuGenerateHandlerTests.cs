@@ -4,7 +4,8 @@
  * 目的與定位：本檔是P2-08新路徑的離線驗收，使用真實handler與可觀察的既有processor替身，
  * 不連LINE、不讀D365或秘密。八個固定產品組合／頁籤只是合成配置，不冒充正式業務菜單。
  * 主要情境：注入同scope取字覆寫，斷言每個啟用語系恰八張、未啟用為零；
- * 另注入容量不足、過長選單文字、重複正式ID及upload故障，必須在正確邊界拒絕或清理。
+ * 另注入容量不足、過長選單文字、重複正式ID及upload故障，必須在正確邊界拒絕或清理；
+ * 語系尾碼必須轉為provider允許的小寫，業務識別含大寫時拒絕，不暗中合併不同識別。
  * 資源擁有權：每案擁有catalog與processor；renderer回傳可追蹤stream，由handlerDispose，
  * 捕捉上傳位元組只留單案有界資料，失敗亦斷言active stream歸零，不以Mock自己驗自己。
  * 維護驗證：五個計畫同名測試保留，新增反例不放寬穩定ID／語系／資源斷言；
@@ -30,6 +31,32 @@ public sealed class RichMenuGenerateHandlerTests
         Assert.Throws<ArgumentException>(() => RichMenuGenerateHandler.BuildAlias("c/31", "p4", "t1", "zh-TW"));
     }
 
+    /// <summary>
+    /// 輸入標準大小寫語系名稱，驗證真正產生的 alias 僅將語系尾碼標準化為 LINE 接受的小寫；
+    /// 偽語系仍縮寫 qps，不改教會／組合／頁籤識別，也不依賴網路或持有資源。
+    /// </summary>
+    [Theory]
+    [InlineData("zh-TW", "c31-p1-a-zh-tw")]
+    [InlineData("en-US", "c31-p1-a-en-us")]
+    [InlineData("qps-ploc", "c31-p1-a-qps")]
+    public void Alias_CultureSuffix_UsesProviderLowercase(string culture, string expected)
+    {
+        Assert.Equal(expected, RichMenuGenerateHandler.BuildAlias("c31", "p1", "a", culture));
+    }
+
+    /// <summary>
+    /// 分別注入含大寫的教會／組合／頁籤識別；LINE 不接受大寫且不能清洗後合併原本不同的業務識別，
+    /// 因此斷言純候選建構即拒絕，沒有傳輸或遠端資源需要清理。
+    /// </summary>
+    [Theory]
+    [InlineData("C31", "p1", "a")]
+    [InlineData("c31", "P1", "a")]
+    [InlineData("c31", "p1", "A")]
+    public void Alias_UppercaseBusinessIdentity_RejectsRatherThanMerges(string church, string combination, string tab)
+    {
+        Assert.Throws<ArgumentException>(() => RichMenuGenerateHandler.BuildAlias(church, combination, tab, "zh-TW"));
+    }
+
     /// <summary>只傳zh-TW時恰產八張；圖片與chatBar從相同完整教會範圍取覆寫，不另產英文。</summary>
     [Fact]
     public async Task Generate_OnlyEnabledCultures()
@@ -41,7 +68,7 @@ public sealed class RichMenuGenerateHandlerTests
         await handler.ExecuteAsync(default);
         Assert.Equal(8, processor.UploadedImageCount);
         Assert.Equal(8, processor.Aliases.Count);
-        Assert.All(processor.Aliases.Keys, key => Assert.EndsWith("-zh-TW", key));
+        Assert.All(processor.Aliases.Keys, key => Assert.EndsWith("-zh-tw", key));
         Assert.All(processor.ExistingRichMenus, menu => Assert.Equal("override", menu.ChatBarText));
         Assert.All(renderer.Texts, text => Assert.Equal("church-label", text));
         Assert.Equal(8, renderer.Disposed);
@@ -153,7 +180,7 @@ public sealed class RichMenuGenerateHandlerTests
         var failure = new IOException("synthetic second upload fault");
         var foreignMenuId = "richmenu-" + new string('f', 32);
         var firstOwnedMenuId = "richmenu-" + 2000.ToString("x32");
-        const string firstAlias = "c31-p1-a-zh-TW";
+        const string firstAlias = "c31-p1-a-zh-tw";
         var processor = new CapturingRichMenuProcessor
         {
             UploadException = failure,

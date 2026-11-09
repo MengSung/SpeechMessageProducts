@@ -240,11 +240,11 @@ footer{margin-top:36px;color:var(--muted);font-size:12.5px;text-align:center}
  */
 const DATA = {
   "planVersion": "3.4",
-  "snapshot": "2026-11-09 07:34 Asia/Taipei (UTC+08:00)",
-  "lastUpdated": "2026-11-09T07:34:52+08:00",
+  "snapshot": "2026-11-09 08:00 Asia/Taipei (UTC+08:00)",
+  "lastUpdated": "2026-11-09T08:00:45+08:00",
   "branch": "1.0.0.11.Integration.P2.Worktree",
-  "head": "e2fd52d3",
-  "headline": "P2工作包11／12完成；P2-12修復已提交，實機續跑與guard單檔清理待核定，不啟動P3。",
+  "head": "dc0a1e8c",
+  "headline": "P2工作包11／12完成；會員鏈與雙Worker實機均通過、殘留0，待最終guard及階段審查；不啟動P3。",
   "notices": [
     {
       "id": "plan-3.4-summary",
@@ -264,9 +264,15 @@ const DATA = {
       "phaseId": "階段 2",
       "level": "info",
       "title": "P2 進度摘要",
-      "lastUpdated": "2026-11-09T07:34:52+08:00",
-      "body": "2026-11-09 07:34 Asia/Taipei (UTC+08:00)：e2fd52d3已提交整秒認領及部分信任Flex修復，離線測試通過；會員兩輪失敗與Worker操作均已收尾殘留0。固定guard checkout連敗兩次尚未執行§8.1，需一次核定修正版實機及guard單檔清理，未推送。",
+      "lastUpdated": "2026-11-09T08:00:45+08:00",
+      "body": "2026-11-09 08:00 Asia/Taipei (UTC+08:00)：會員鏈完整通過，A28.76秒Accepted／200、B29.03秒ChurchMismatch且no-response、同GUID重播29.92秒AlreadyAccepted／409；收尾verify=0、殘留0。雙Worker已通過，待修正提交後固定guard完整守門與一次階段審查。",
       "steps": [
+        "2026-11-09 08:00 Asia/Taipei (UTC+08:00)：會員鏈完整通過，A28.76秒Accepted／200、B29.03秒ChurchMismatch且no-response、同GUID重播29.92秒AlreadyAccepted／409；收尾verify=0、殘留0。雙Worker已通過，待修正提交後固定guard完整守門與一次階段審查。",
+        "2026-11-09 07:57 Asia/Taipei (UTC+08:00)：使用者已核定會員鏈再驗一次，從W:\\啟動並維持60秒追蹤條件；雙Worker已通過不重跑，先備份、完成必做清理。",
+        "2026-11-09 07:54 Asia/Taipei (UTC+08:00)：雙Worker實機1勝1負、真實產生8張，scope全釋放，D365及LINE殘留0。會員最新重驗在apply路徑檢查即拒絕、未觸發task且已清理；等待一次會員鏈再驗核定，固定guard待修正提交全套重跑，未推送。",
+        "2026-11-09 07:53 Asia/Taipei (UTC+08:00)：會員v4作業58秒完成Accepted／200，trace65秒落盤，未達60秒門檻；雙Worker真認領1勝1負，但alias大寫遭400，均已收尾殘留0。修正版alias先紅7案、全套64案通過，保留原60秒條件。",
+        "2026-11-09 07:53 Asia/Taipei (UTC+08:00)：已收到「核定再驗一次」；會員續驗因實體CWD與W: plan別名不一致，apply=2、未建task，收尾verify=0且殘留0。CLI邊界不放寬；雙Worker續驗中。",
+        "2026-11-09 07:40 Asia/Taipei (UTC+08:00)：已取得修正版實機與guard單檔清理核定；清理命令在執行前遭平台拒絕，單檔仍存在、未執行§8.1。先續跑已核定member與雙Worker實機，guard待使用者手動刪除精確單檔，不繞過。",
         "2026-11-09 07:34 Asia/Taipei (UTC+08:00)：guard fetch成功，checkout兩次被舊追蹤.turns.json阻擋，與舊HEAD位元組相同但restore無效；已DPAPI備份驗證。未執行clean/reset或§8.1，不強制checkout、不換clone，與實機續跑一併請核定。",
         "2026-11-09 07:29 Asia/Taipei (UTC+08:00)：整秒認領雙宿主各23案、會員套件net10 139案與net48 100案通過；v4簽章／metadata／合併六案通過但未部署。先提交及固定guard，依§9-7取得修正版續跑核定，不盲跑第三輪。",
         "2026-11-09 07:16 Asia/Taipei (UTC+08:00)：雙Worker真CAS一方落敗、一方已寫Processing卻在整秒讀回比對失敗，未進handler。兩程序退出後D365資料、LINE menu／alias殘留0；不得冒稱只產一次驗收通過。",
@@ -390,15 +396,6 @@ const DATA = {
         "2026-11-08 22:02 Asia/Taipei (UTC+08:00)：恢復時HEAD已為f014a4aa，保留共享提交，不改寫歷史。P2-11於21:50到期，停止實作等待時間盒核定，P2-06獨立守門繼續。",
         "2026-11-08 22:14 Asia/Taipei (UTC+08:00)：P2-06首輪真實圖拒絕ToolUtility→Workflows，已將唯一實作下移processor並保留型別轉送，未放寬R4。新測試先紅再綠，36案通過；2c0b9e95正在乾淨複本驗證。"
       ]
-    },
-    {
-      "id": "p212-live-retry-approval",
-      "phaseId": "階段 2",
-      "level": "warn",
-      "title": "P2-12：實機續跑與guard單檔清理待核定",
-      "lastUpdated": "2026-11-09T07:34:52+08:00",
-      "body": "2026-11-09 07:34 Asia/Taipei (UTC+08:00)：會員操作兩輪失敗、guard checkout亦連敗兩次，已停止這兩項操作；D365／LINE殘留0，guard原檔已加密備份驗證。建議核定修正版實機及只清理C:\\smv\\guard內該歷史自動索引，之後原順序守門，不需使用者操作主機。",
-      "steps": []
     }
   ],
   "userActions": [
@@ -1019,7 +1016,7 @@ const DATA = {
       "timebox": "1 天",
       "doneAt": "",
       "commit": "",
-      "note": "2026-11-09 07:34 Asia/Taipei (UTC+08:00)：e2fd52d3修復已提交且離線通過，實機兩輪失敗後殘留0。guard checkout兩次被舊自動索引阻擋，待一次核定修正版實機及單檔清理；未驗收、未推送。"
+      "note": "2026-11-09 07:54 Asia/Taipei (UTC+08:00)：雙Worker實機1勝1負、真實產生8張，scope全釋放，D365及LINE殘留0。會員最新重驗在apply路徑檢查即拒絕、未觸發task且已清理；等待一次會員鏈再驗核定，固定guard待修正提交全套重跑，未推送。"
     },
     {
       "id": "P3-01",
@@ -1568,17 +1565,17 @@ const DATA = {
       "id": "P2-12",
       "startedAt": "補記 2026-11-09 06:42 Asia/Taipei (UTC+08:00)（原開工時間未記錄）",
       "timebox": "1工作天或15提交",
-      "next": "請一次核定修正版member／雙Worker實機及guard精確單檔清理；備份後維持fetch→checkout→clean→reset原順序跑§8.1，驗收後才推送。",
+      "next": "修正提交後固定guard全套§8.1；通過即P2-12驗收，再只做一次階段審查。",
       "dod": [
         [
           "測試",
           "ok",
-          "整秒認領先紅後綠雙宿主各23案；部分信任bubble／carousel兩案及會員套件139／100案通過，原Deployment200案證據保留。"
+          "整秒雙宿主各23案、部分信任2案、Deployment200案及宮格64案通過；alias7紅轉綠。"
         ],
         [
           "守門",
           "no",
-          "e2fd52d3提交後guard fetch成功，但checkout兩次被歷史自動索引阻擋；clean/reset/§8.1尚未執行。"
+          "dc0a1e8c固定guard建置／測試／編碼／重複通過，I18n新增一字串失敗；已修本地verify通過，待修正提交全套重驗。"
         ],
         [
           "新專案覆蓋率",
@@ -1587,13 +1584,13 @@ const DATA = {
         ],
         [
           "實機",
-          "no",
-          "會員兩輪失敗，B／同GUID重播未到達；雙Worker秒精度失敗，資料及LINE殘留0。待核定修正版重驗，未完成實機。"
+          "ok",
+          "A／B／同GUID三案均60秒內通過；雙Worker僅一次產8張，全部收尾殘留0。"
         ],
         [
           "回報與DATA",
-          "no",
-          "四輪實機操作紀錄、guard阻擋證據及進行中回報已寫；未驗收、不標done。"
+          "ok",
+          "本次會員操作紀錄及回報已更新，未提前標done。"
         ]
       ]
     }

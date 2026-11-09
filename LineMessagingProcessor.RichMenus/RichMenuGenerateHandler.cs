@@ -4,7 +4,8 @@
  * 目的與定位：P2-08的單筆多語宮格待辦處理器及純值版面契約；由Hosting worker的工作scope
  * 注入已授權的完整文字範圍、正式教會代碼、啟用語系與八個產品版面，不以語言代表授權。
  * 主要功能與流程：先完成全部取字、alias、chatBar及版面候選，再讀provider正式ID與容量；
- * 容量不足或身分衝突不得建立或上傳。逐張產圖、上傳完成才發布alias，失敗補償本次自有資料。
+ * 容量不足或身分衝突不得建立或上傳。alias語系尾碼使用小寫，業務識別含大寫則拒絕，
+ * 不暗中清洗合併不同教會或頁籤；逐張產圖、上傳完成才發布alias，失敗補償本次自有資料。
  * 資源擁有權：handler只存續於單筆scope，不共用教會資料；借用的catalog、processor與renderer
  * 由scope擁有，不在本檔Dispose。每張PNG由handler確定性Dispose；不設cache、timer或背景Task。
  * 現有processor無取消參數，scope必須設定有界HTTP timeout；呼叫一律await完成再清理，
@@ -92,12 +93,18 @@ public sealed class RichMenuGenerateHandler : IOutboundTaskHandler
             throw new ArgumentException("Generation configuration is ambiguous.");
     }
 
-    /// <summary>建立固定格式alias；超長拒絕，不能截斷造成跨教會或頁籤碰撞。</summary>
+    /// <summary>
+    /// 建立固定格式alias；LINE只接受小寫ASCII、數字、底線及連字號。
+    /// 文化標籤不分大小寫，僅尾碼轉小寫；教會／組合／頁籤不可清洗或截斷，避免不同業務識別碰撞。
+    /// 驗證在任何provider I/O之前完成，非法識別或超長一律拒絕。
+    /// </summary>
     public static string BuildAlias(string churchCode, string combination, string tab, string culture)
     {
-        var suffix = string.Equals(culture, "qps-ploc", StringComparison.OrdinalIgnoreCase) ? "qps" : culture;
+        var suffix = string.Equals(culture, "qps-ploc", StringComparison.OrdinalIgnoreCase)
+            ? "qps" : culture?.ToLowerInvariant();
         foreach (var part in new[] { churchCode, combination, tab, suffix })
-            if (string.IsNullOrEmpty(part) || part.Any(c => !char.IsAsciiLetterOrDigit(c) && c is not ('_' or '-')))
+            if (string.IsNullOrEmpty(part) ||
+                part.Any(c => c is not (>= 'a' and <= 'z' or >= '0' and <= '9' or '_' or '-')))
                 throw new ArgumentException("Rich menu alias components are invalid.");
         var result = string.Join("-", churchCode, combination, tab, suffix);
         if (result.Length > 32) throw new ArgumentException("Rich menu alias exceeds 32 characters.");
