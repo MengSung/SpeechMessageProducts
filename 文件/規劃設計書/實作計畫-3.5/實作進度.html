@@ -2,7 +2,7 @@
 <!--
 檔案整體說明
 
-目的與定位：本檔是《實作計畫 3.4》的現行進度頁，給使用者一眼看懂整體進度、目前進行中的工作包、
+目的與定位：本檔是《實作計畫 3.5》的現行進度頁，給使用者一眼看懂整體進度、目前進行中的工作包、
 完成定義達成狀況，以及「需要使用者動手」的時間點。它是靜態快照，不連任何服務、不自動抓取背景進度；
 內容全部來自檔內的 DATA，渲染程式只負責把 DATA 畫出來。
 
@@ -26,7 +26,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>實作進度 3.4</title>
+<title>實作進度 3.5</title>
 <style>
 :root{color-scheme:light;
   --page:#f9f9f7;--surface:#fcfcfb;--surface-2:#f3f2ee;--ink:#0b0b0b;--ink-2:#52514e;--muted:#6f6e69;--hair:#e1e0d9;
@@ -138,7 +138,7 @@ footer{margin-top:36px;color:var(--muted);font-size:12.5px;text-align:center}
 <div class="wrap">
 <header class="top">
   <div>
-    <h1>實作進度｜實作計畫 3.4</h1>
+    <h1>實作進度｜實作計畫 3.5</h1>
     <p class="sub">方案整合、.NET 10 升級與國際化（依設計 v3.4）・規則見 00_總覽與執行規則.md</p>
     <div class="pills"><span class="pill" id="snap"></span><span class="pill" id="branch"></span><span class="pill" id="head"></span></div>
   </div>
@@ -157,7 +157,7 @@ footer{margin-top:36px;color:var(--muted);font-size:12.5px;text-align:center}
 
 <section id="s-you">
   <h2>需要你的事</h2>
-  <p class="lead">3.4 起 Codex 全自主操作測試環境，只有下面這些才需要你。</p>
+  <p class="lead">3.5 起 Codex 全自主操作測試環境，只有下面這些才需要你。</p>
   <ul class="list" id="you"></ul>
 </section>
 
@@ -227,7 +227,7 @@ footer{margin-top:36px;color:var(--muted);font-size:12.5px;text-align:center}
 <section id="s-hist">
   <h2>決定與歷史</h2>
   <details class="info"><summary>使用者核定紀錄</summary><ol class="hist" id="decisions"></ol></details>
-  <details class="info" open><summary>3.4 時間軸</summary><ol class="hist" id="timeline"></ol></details>
+  <details class="info" open><summary>3.5 時間軸</summary><ol class="hist" id="timeline"></ol></details>
   <details class="info"><summary>3.3 時期的紀錄（原文保留，<span id="hist33n"></span> 筆）</summary><ol class="hist" id="hist33"></ol></details>
 </section>
 
@@ -239,24 +239,26 @@ footer{margin-top:36px;color:var(--muted);font-size:12.5px;text-align:center}
  * 本頁所有內容都來自下面的 DATA。更新進度時只改 DATA，不必改版面程式（規則見檔首說明）。
  */
 const DATA = {
-  "planVersion": "3.4",
-  "snapshot": "2026-11-09 08:31 Asia/Taipei (UTC+08:00)",
-  "lastUpdated": "2026-11-09T08:31:05+08:00",
+  "planVersion": "3.5",
+  "snapshot": "2026-11-09 12:33 Asia/Taipei (UTC+08:00)",
+  "lastUpdated": "2026-11-09T12:33:13+08:00",
   "branch": "1.0.0.11.Integration.P2.Worktree",
-  "head": "dc0a1e8c",
-  "headline": "P2工作包12與階段2審查完成；P2-01～P2-12、P2-04前置及M-P2-REVIEW全部done；不啟動P3。",
+  "head": "98541e03",
+  "headline": "P3-00 切換進行中：3.5 路徑及階段父任務已建立；尚待固定 guard、驗收推送及 P3 快轉，不開工 P3 工作包。",
   "notices": [
     {
-      "id": "plan-3.4-summary",
+      "id": "plan-3.5-summary",
       "phaseId": "全計畫",
       "level": "info",
-      "title": "實作計畫 3.4 生效",
-      "lastUpdated": "2026-11-07T21:10:00+08:00",
-      "body": "2026-11-07 21:10 Asia/Taipei (UTC+08:00)：實作計畫 3.4 已放進 repo（文件\\規劃設計書\\實作計畫-3.4\\）。重點：Codex 全自主操作測試環境（D24 修訂）、完成定義固定五項（D29）、驗收後才推送（D30）、最多 2 包平行（D31）、範圍凍結 84 包與時間盒（D35）。Codex 下一件事是 P2-00 切換。",
+      "title": "實作計畫 3.5 生效",
+      "lastUpdated": "2026-11-09T12:33:13+08:00",
+      "body": "2026-11-09 12:33 Asia/Taipei (UTC+08:00)：3.5 已生效；進度與驗收紀錄搬入現行資料夾，3.4 計畫封存；設計 v3.4 不變。P3-00 尚待守門與驗收推送。",
       "steps": [
         "2026-11-07 21:10 Asia/Taipei (UTC+08:00)：設計 v3.4（Word、保姆級圖解、drawio、討論紀錄）放在 E: 規劃資料夾與 repo 的 方案整合NET10升級與國際化_v3.4\\。",
         "2026-11-07 21:10 Asia/Taipei (UTC+08:00)：本頁取代 實作計畫-3.3\\實作進度.html 作為現行進度頁；3.3 的頁面與測試在 P2-00 封存時一併處理，歷史保留在本頁最下方。",
-        "2026-11-07 21:10 Asia/Taipei (UTC+08:00)：工作包總數由 83 改為 84：P2-01 的 R2 清零移到 P6-07（範圍移動，不是新增）；P2-09 拆 a／b 仍計 1 包。"
+        "2026-11-07 21:10 Asia/Taipei (UTC+08:00)：工作包總數由 83 改為 84：P2-01 的 R2 清零移到 P6-07（範圍移動，不是新增）；P2-09 拆 a／b 仍計 1 包。",
+        "2026-11-09 12:33 Asia/Taipei (UTC+08:00)：3.5 生效；驗收紀錄搬入 3.5（不是封存），3.4 剩餘計畫已封存，尚未開始 P3 包。",
+        "2026-11-07 21:10 Asia/Taipei (UTC+08:00)：實作計畫 3.4 已放進 repo（文件\\規劃設計書\\實作計畫-3.4\\）。重點：Codex 全自主操作測試環境（D24 修訂）、完成定義固定五項（D29）、驗收後才推送（D30）、最多 2 包平行（D31）、範圍凍結 84 包與時間盒（D35）。Codex 下一件事是 P2-00 切換。"
       ]
     },
     {
@@ -264,9 +266,10 @@ const DATA = {
       "phaseId": "階段 2",
       "level": "info",
       "title": "P2 進度摘要",
-      "lastUpdated": "2026-11-09T08:31:05+08:00",
-      "body": "2026-11-09 08:31 Asia/Taipei (UTC+08:00)：P2-01～P2-12、P2-04前置及階段2審查全部完成，Critical／High為0；固定guard完整§8.1與會員／雙Worker實機證據均已保存，停止於P2不啟動P3。",
+      "lastUpdated": "2026-11-09T12:33:13+08:00",
+      "body": "2026-11-09 12:33 Asia/Taipei (UTC+08:00)：階段 2 已驗收並封存父任務；目前只處理 P3-00，尚待固定 guard、推送與 P3 快轉。",
       "steps": [
+        "2026-11-09 12:33 Asia/Taipei (UTC+08:00)：P3-00 切換中；階段 3 父任務保持 planning，前置缺項唯讀核對中，不開始 P3-01～P3-09。",
         "2026-11-09 08:31 Asia/Taipei (UTC+08:00)：階段2審查結案，Claude可用、Gemini因服務端503未產出；guard-5379513d含Git重建及§8.1完整證據，PROP-006已同步、PROP-007已交付。",
         "2026-11-09 08:07 Asia/Taipei (UTC+08:00)：P2-12已以140bbe01驗收，會員操作紀錄、雙Worker紀錄、固定guard全套§8.1證據均已保存；接續只做M-P2-REVIEW。",
         "2026-11-09 08:00 Asia/Taipei (UTC+08:00)：會員鏈完整通過，A28.76秒Accepted／200、B29.03秒ChurchMismatch且no-response、同GUID重播29.92秒AlreadyAccepted／409；收尾verify=0、殘留0。雙Worker已通過，待修正提交後固定guard完整守門與一次階段審查。",
@@ -396,7 +399,8 @@ const DATA = {
         "2026-11-07 22:58 Asia/Taipei (UTC+08:00)：User Secrets前置已解除；目前先補建核定net462 Plugin產物，再保存goodshepherdback原況，之後依序執行TLS、push plan/apply/verify、smoke及回復清理。",
         "2026-11-07 22:58 Asia/Taipei (UTC+08:00)：尚未對D365寫入，尚未發送LINE；產物缺少是目前技術前置，不是實機阻塞。",
         "2026-11-08 22:02 Asia/Taipei (UTC+08:00)：恢復時HEAD已為f014a4aa，保留共享提交，不改寫歷史。P2-11於21:50到期，停止實作等待時間盒核定，P2-06獨立守門繼續。",
-        "2026-11-08 22:14 Asia/Taipei (UTC+08:00)：P2-06首輪真實圖拒絕ToolUtility→Workflows，已將唯一實作下移processor並保留型別轉送，未放寬R4。新測試先紅再綠，36案通過；2c0b9e95正在乾淨複本驗證。"
+        "2026-11-08 22:14 Asia/Taipei (UTC+08:00)：P2-06首輪真實圖拒絕ToolUtility→Workflows，已將唯一實作下移processor並保留型別轉送，未放寬R4。新測試先紅再綠，36案通過；2c0b9e95正在乾淨複本驗證。",
+        "2026-11-09 08:31 Asia/Taipei (UTC+08:00)：P2-01～P2-12、P2-04前置及階段2審查全部完成，Critical／High為0；固定guard完整§8.1與會員／雙Worker實機證據均已保存，停止於P2不啟動P3。"
       ]
     }
   ],
@@ -473,10 +477,9 @@ const DATA = {
       "id": "階段 2",
       "name": "共用送訊＋對外待辦",
       "planned": "3～5 個工作天（3.4 估）",
-      "actual": "進行中（2026-11-07 起）",
-      "current": true,
-      "done": 10,
-      "active": 1
+      "actual": "約 2.0 天（2026-11-07～11-09）",
+      "done": 12,
+      "active": 0
     },
     {
       "id": "階段 3",
@@ -1541,6 +1544,13 @@ const DATA = {
       "note": "2026-11-08 15:28 Asia/Taipei (UTC+08:00)：按已核定PROP-001，§14-6只檢查有效依據與失效連結；現行正文歷史提及及封存連結排除。活動路徑檢查通過，正文未改。"
     },
     {
+      "id": "P3-00",
+      "phaseId": "階段 3",
+      "name": "切換到實作計畫 3.5（00 §14）",
+      "status": "active",
+      "note": "2026-11-09 12:33 Asia/Taipei (UTC+08:00)：搬移與引用切換已完成，前置清單核對中；固定 guard、推送與遠端 SHA 尚待驗證。"
+    },
+    {
       "id": "P2-04 前置",
       "phaseId": "階段 2",
       "name": "沙箱對 LINE 的測試推播（Codex 執行）",
@@ -1654,7 +1664,7 @@ const DATA = {
       "evidence": "按使用者2026-11-08核定，現在仍執行00 §8.1原列Debug Plugin建置命令；不得在3.4刪改。",
       "proposal": "建議下一版計畫移除該補建行；目前保留原命令驗證，避免擅改計畫。",
       "impact": "不影響 P2-00／P2-01 的實作或驗收。",
-      "status": "已核定，納入下一版計畫（2026-11-08）"
+      "status": "已寫入 3.5（2026-11-09）"
     },
     {
       "id": "PROP-003",
@@ -1662,7 +1672,7 @@ const DATA = {
       "evidence": "使用者核定：紀錄型提交輕量守門、兩包共HEAD共跑一次§8.1、單一守門程序。2026-11-08另核定只重用C:\\smv\\guard；每次fetch→checkout→clean -ffdx→reset後跑§8.1，不建立sha clone。",
       "proposal": "2026-11-08使用者已核定，待寫入3.5：文件／DATA／任務紀錄提交只跑頁面契約、文件說明與位元組檢查；兩包同HEAD可共跑一次完整§8.1。乾淨驗證固定重用C:\\smv\\guard，依fetch、checkout、clean -ffdx、reset順序還原驗證提交；不建立C:\\smv\\<sha>新clone。",
       "impact": "適用後續工作包收尾與所有乾淨複本驗證；git clean受阻即停止，不繞過。",
-      "status": "2026-11-08使用者已核定，待寫入3.5"
+      "status": "已寫入 3.5（2026-11-09）"
     },
     {
       "id": "PROP-004",
@@ -1678,7 +1688,7 @@ const DATA = {
       "evidence": "P2-06公開方法盤點：非會友、群組、多則、multicast、媒體及樣板不可捏造教會／Contact。",
       "proposal": "legacy統一走net10 LineLegacySendWorkflow；P2只要求正式會友推播走Core，不偽造scope或反射SDK token。",
       "impact": "P2-06及階段6相容殼移除；未改3.4正文。",
-      "status": "2026-11-08已核定，待寫入3.5"
+      "status": "已寫入 3.5（2026-11-09）"
     },
     {
       "id": "PROP-006",
@@ -1686,7 +1696,7 @@ const DATA = {
       "evidence": "使用者2026-11-09核定續跑及同GUID重播；P2-12實機A／B／同GUID重播均在60秒內通過，cleanup verify=0、殘留0。",
       "proposal": "先備份、刪除自有task並以同task GUID重建，產生新asyncoperation；Retry Key不變，以AlreadyAccepted／409及有效RequestId判定不重複受理，不要求兩次RequestId相同。",
       "impact": "P2-12第5步；仍限LINE重試有效期內，不改Core enum或smoke。",
-      "status": "2026-11-09已核定並完成實機，待寫入3.5"
+      "status": "已寫入 3.5（2026-11-09）"
     },
     {
       "id": "PROP-007",
@@ -1694,7 +1704,7 @@ const DATA = {
       "evidence": "P2-04曾有舊Success；重啟服務及FileVersion遞增同窗後成功，未隔離唯一快取成因。P2-12第二輪見序列化型別，離線部分信任重現私有Flex getter存取失敗；原實機完整trace未保存，不能冒稱成因已證實。",
       "proposal": "階段5更新回復前置保留只改FileVersion是否足夠的風險，驗實際執行追蹤及部分信任通知鏈；對精確自有錯誤先AllColumns DPAPI備份再清理，不放寬metadata／R2／權限。",
       "impact": "P2-12修復證據與階段5更新回復前置；不更動AssemblyVersion或計畫3.4正文。",
-      "status": "待階段2結案一次交付；風險已記錄，沙箱快取成因未確定"
+      "status": "已寫入 3.5（2026-11-09）"
     }
   ],
   "decisions": [

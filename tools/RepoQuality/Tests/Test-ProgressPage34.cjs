@@ -1,7 +1,7 @@
 /*
 檔案整體說明
 
-目的與定位：保護現行實作計畫 3.4 的 84 個工作包、固定五項完成定義及同階段單一
+目的與定位：保護現行實作計畫 3.5 的 84 個工作包、固定五項完成定義及同階段單一
 資訊卡，並驗證真實頁面的渲染與狀態統計。舊頁的歷史斷言仍由 Test-ProgressPage.cjs
 唯讀執行，本檔不把頁面通過當成產品、D365 或 LINE 實機驗收。
 
@@ -22,7 +22,7 @@ const path = require('node:path');
 const vm = require('node:vm');
 
 const root = path.resolve(__dirname, '../../..');
-const html = fs.readFileSync(path.join(root, '文件/規劃設計書/實作計畫-3.4/實作進度.html'), 'utf8');
+const html = fs.readFileSync(path.join(root, '文件/規劃設計書/實作計畫-3.5/實作進度.html'), 'utf8');
 const script = html.slice(html.lastIndexOf('<script>') + 8, html.lastIndexOf('</script>'));
 const start = script.indexOf('const DATA = ');
 const end = script.indexOf('\n};', start) + 3;
@@ -58,8 +58,8 @@ function render(change = () => {}) {
   return { elements, buttons, data };
 }
 
-test('Plan34_Data_Has84UniquePackagesAndSupportedStatuses', () => {
-  assert.equal(original.planVersion, '3.4');
+test('Plan35_Data_Has84UniquePackagesAndSupportedStatuses', () => {
+  assert.equal(original.planVersion, '3.5');
   assert.equal(original.wps.length, 84);
   assert.equal(new Set(original.wps.map(w => w.id)).size, 84);
   for (const w of original.wps) assert.ok(['done', 'active', 'todo', 'you'].includes(w.status), w.id);
@@ -69,7 +69,7 @@ test('Plan34_Data_Has84UniquePackagesAndSupportedStatuses', () => {
   assert.equal(original.wps.filter(w => w.id === 'P6-07').length, 1);
 });
 
-test('Plan34_ActiveLimitAndFiveDodItems_AgreeWithData', () => {
+test('Plan35_ActiveLimitAndFiveDodItems_AgreeWithData', () => {
   const active = original.wps.filter(w => w.status === 'active');
   if (active.length > 2) assert.ok(original.notices.some(n =>
     n.level === 'warn' && /上限|超過/.test(n.title + n.body)), 'over-limit transition needs a visible warning');
@@ -85,14 +85,14 @@ test('Plan34_ActiveLimitAndFiveDodItems_AgreeWithData', () => {
   }
 });
 
-test('Plan34_AcceptedPackages_HaveTimeAndCommitEvidence', () => {
+test('Plan35_AcceptedPackages_HaveTimeAndCommitEvidence', () => {
   for (const w of original.wps.filter(w => w.status === 'done')) {
-    assert.match(w.doneAt, /^\d{4}-\d{2}-\d{2} \d{2}:\d{2}$/, w.id);
+    assert.match(w.doneAt, /^\d{4}-\d{2}-\d{2} \d{2}:\d{2}(?: Asia\/Taipei \(UTC\+08:00\))?$/, w.id);
     assert.match(w.commit, /^[a-f0-9]{8,40}$/, w.id);
   }
 });
 
-test('Plan34_InformationalHistory_HasOneCardPerPhaseAndVisibleTaipeiTimestamps', () => {
+test('Plan35_InformationalHistory_HasOneCardPerPhaseAndVisibleTaipeiTimestamps', () => {
   assert.match(original.lastUpdated, /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\+08:00$/);
   assert.match(original.snapshot, timestamp);
   const phases = new Set();
@@ -112,7 +112,7 @@ test('Plan34_InformationalHistory_HasOneCardPerPhaseAndVisibleTaipeiTimestamps',
   assert.doesNotMatch(visible, /<details[^>]*\bopen(?:[\s=>])/);
 });
 
-test('Plan34_RenderedTotalsAndFilters_AreDerivedFromStatuses', () => {
+test('Plan35_RenderedTotalsAndFilters_AreDerivedFromStatuses', () => {
   const { elements, buttons, data } = render(d => {
     d.wps.filter(w => w.phaseId === '階段 2').forEach((w, i) => {
       w.status = ['done', 'active', 'you'][i] || 'todo';
@@ -130,7 +130,7 @@ test('Plan34_RenderedTotalsAndFilters_AreDerivedFromStatuses', () => {
   assert.match(elements.get('wplist').innerHTML, /沒有符合的工作包/);
 });
 
-test('Plan34_EmptyActiveList_RendersWithoutCreatingWork', () => {
+test('Plan35_EmptyActiveList_RendersWithoutCreatingWork', () => {
   const { elements } = render(d => {
     d.active = [];
     for (const w of d.wps) if (w.status === 'active') w.status = 'todo';
@@ -140,7 +140,7 @@ test('Plan34_EmptyActiveList_RendersWithoutCreatingWork', () => {
   assert.match(elements.get('tiles').innerHTML, /0<span class="u">包（上限 2）/);
 });
 
-test('Plan34_Renderer_EscapesAllDisplayedTextSurfaces', () => {
+test('Plan35_Renderer_EscapesAllDisplayedTextSurfaces', () => {
   const attack = '<img src=x onerror="attack">&\'';
   const { elements } = render(d => {
     d.headline = attack;
@@ -169,7 +169,7 @@ test('Plan34_Renderer_EscapesAllDisplayedTextSurfaces', () => {
   }
 });
 
-test('Plan34_NoPendingUserAction_ShowsNoneWithoutInventingRequest', () => {
+test('Plan35_NoPendingUserAction_ShowsNoneWithoutInventingRequest', () => {
   const { elements, data } = render(d => {
     d.userActions = [{ when: '2026-11-07', text: '合成已完成事項', note: '', status: 'done' }];
   });
@@ -178,10 +178,27 @@ test('Plan34_NoPendingUserAction_ShowsNoneWithoutInventingRequest', () => {
   assert.equal(data.userActions[0].status, 'done');
 });
 
-test('Plan34_Page_UsesUtf8WithoutBomAndOnlyCrlf', () => {
-  const bytes = fs.readFileSync(path.join(root, '文件/規劃設計書/實作計畫-3.4/實作進度.html'));
+test('Plan35_Page_UsesUtf8WithoutBomAndOnlyCrlf', () => {
+  const bytes = fs.readFileSync(path.join(root, '文件/規劃設計書/實作計畫-3.5/實作進度.html'));
   assert.notDeepEqual([...bytes.subarray(0, 3)], [239, 187, 191]);
   assert.equal(new TextDecoder('utf-8', { fatal: true }).decode(bytes), html);
   assert.ok(html.endsWith('\r\n'));
   assert.doesNotMatch(html.replace(/\r\n/g, ''), /[\r\n]/);
+});
+
+// 切換屬非工作包里程碑；核對版本、已完成階段與封存邊界，不能多算一包或動到設計版本。
+test('Plan35_Switch_PreservesStage2AndArchivesOnlyTheOldPlan', () => {
+  const phase2 = original.phases.find(p => p.id === '階段 2');
+  assert.equal(phase2.actual, '約 2.0 天（2026-11-07～11-09）');
+  assert.equal(Object.hasOwn(phase2, 'current'), false);
+  for (const id of ['PROP-002', 'PROP-003', 'PROP-005', 'PROP-006', 'PROP-007']) {
+    assert.equal(original.proposals.find(p => p.id === id).status, '已寫入 3.5（2026-11-09）', id);
+  }
+  assert.equal(original.milestones.filter(m => m.id === 'P3-00').length, 1);
+  assert.equal(original.wps.some(w => w.id === 'P3-00'), false);
+  assert.match(html, /<title>實作進度 3\.5<\/title>/);
+  assert.match(html, /依設計 v3\.4/);
+  assert.equal(fs.existsSync(path.join(root, '文件/規劃設計書/實作計畫-3.4')), false);
+  assert.ok(fs.existsSync(path.join(root, '文件/規劃設計書/_封存_請勿依據/實作計畫-3.4/00_總覽與執行規則.md')));
+  assert.ok(fs.existsSync(path.join(root, '文件/規劃設計書/實作計畫-3.5/驗收/P2_推播鏈驗收步驟.md')));
 });

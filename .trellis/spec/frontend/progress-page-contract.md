@@ -1,6 +1,6 @@
 # 實作進度頁狀態契約
 
-`文件/規劃設計書/實作計畫-3.4/實作進度.html` 是靜態驗收快照，不自動取得背景進度。
+`文件/規劃設計書/實作計畫-3.5/實作進度.html` 是靜態驗收快照，不自動取得背景進度。
 更新時須保留一般資訊歷史，只能以實際驗證證據推進工作包。
 
 - 工作包 `status` 只可為 `done`、`active`、`todo`、`you`。`review` 僅屬審查里程碑，不列入包數。
@@ -43,9 +43,9 @@
 - `Test-ProgressPage.cjs` 直接檢查真實 P2 body、每筆 steps、ISO 時區與實際 renderer
   輸出；缺日期、缺分鐘、缺時區或有日期卻沒有實際顯示，均必須失敗。
 
-## 實作計畫 3.4 切換契約
+## 實作計畫 3.5 切換契約
 
 - 現行頁只改 DATA，版面與 renderer 保持原樣；84 個工作包由 wps 計數，P2-09a/b 共用 P2-09 一筆，不新增包數。
-- `node --test tools/RepoQuality/Tests/Test-ProgressPage34.cjs` 核對唯一 ID、四種狀態、活動清單與五項 DoD、逐筆時間、全區塊 HTML 跳脫及實際 renderer 計數／篩選。
+- `node --test tools/RepoQuality/Tests/Test-ProgressPage34.cjs` 核對唯一 ID、四種狀態、活動清單與五項 DoD、逐筆時間、全區塊 HTML 跳脫及實際 renderer 計數／篩選；測試檔名保留歷史相容名稱，輸入頁面改為 3.5。
 - 同時 active 最多兩包；切換期間超額必須有 warn，P2-00 done 後不可超額。done 填時間與提交；歷史未知時分不得猜測，可用完成標記提交的時間並註明來源。
-- Test-ProgressPage.cjs 只讀封存舊頁，保留歷史驗收斷言；不能把舊頁通過當成現行頁通過。每次更新兩套都跑，另逐位元組檢查現行 HTML。
+- Test-ProgressPage.cjs 保留封存舊頁的歷史驗收斷言，並載入 Test-ProgressPage34.cjs 的現行 3.5 契約，使 §8.1 指定入口同時覆蓋兩頁；不能把舊頁通過當成現行頁通過。另逐位元組檢查現行 HTML。

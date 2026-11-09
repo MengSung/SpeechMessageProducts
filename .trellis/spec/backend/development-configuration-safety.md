@@ -1,6 +1,6 @@
 # ChurchReport Development Configuration Safety
 
-The active implementation plan is `文件/規劃設計書/實作計畫-3.4/`. Archived versions and completed WP reports are historical snapshots.
+The active implementation plan is `文件/規劃設計書/實作計畫-3.5/`. Archived versions and completed WP reports are historical snapshots.
 
 - Resolve DOTNET_ENVIRONMENT before ASPNETCORE_ENVIRONMENT, then default to Production. Development matching is ordinal case-insensitive. Never change process environment or current directory in unit tests.
 - `ChurchReportDevelopmentConfiguration` appends optional Development JSON and optional host User Secrets only in Development. Other environments append one `LINE__`-prefixed environment provider after JSON so production aliases can be injected without tracked token values. Preserve each legacy base JSON optional/reload setting and static/Lazy ownership.
@@ -8,7 +8,7 @@ The active implementation plan is `文件/規劃設計書/實作計畫-3.4/`. Ar
 - Validate the merged host configuration before constructing exception LINE senders or CRM services. Development rejects every non-`DevTest` LINE alias with a nonempty token, rejects `LINE_CHANNEL_ACCESS_TOKEN`, and accepts a nonempty DevTest token only when the last provider supplying it is the User Secrets JSON provider. Also reject unsafe default aliases, CRM outside goodshepherdback, and enabled Embedded endpoints outside its host. Failures contain key names and fixed reasons, never values.
 - Do not retain baseline configuration or secrets in new static state. Dispose baseline streams and roots within the guard; new providers do not enable reload watchers. Existing deployment snapshots never contain request/user/tenant mutable state.
 - Tests use synthetic tokens and isolated temporary directories. Passing the test assembly without a UserSecretsId prevents real secrets access. Tests assert tracked base LINE aliases are empty, the `LINE__` provider has the expected prefix, User Secrets provenance is required for DevTest, and production compatibility preserves the complete non-secret key/value sequence. Source architecture tests cover all 11+1 read points and startup ordering.
-- Current plan 3.4 D24 authorizes Codex to perform test-environment operations in goodshepherdback. Before LINE tests, back up and complete D34 cleanup; production organizations still require first-write approval. Never connect during offline quality gates.
+- Current plan 3.5 D24 authorizes Codex to perform test-environment operations in goodshepherdback. Before LINE tests, back up and complete D34 cleanup; production organizations still require first-write approval. Never connect during offline quality gates.
 
 ## User-approved ChurchReport credential storage exception
 
