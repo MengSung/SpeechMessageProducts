@@ -21,7 +21,7 @@
   "children": [],
   "parent": "11-07-integration-p2",
   "relatedFiles": [],
-  "notes": "2026-11-09 08:00 Asia/Taipei (UTC+08:00)：會員鏈完整通過，A28.76秒Accepted／200、B29.03秒ChurchMismatch且no-response、同GUID重播29.92秒AlreadyAccepted／409；收尾verify=0、殘留0。雙Worker已通過，待修正提交後固定guard完整守門與一次階段審查。",
+  "notes": "2026-11-09 08:07 Asia/Taipei (UTC+08:00)：P2-12五項完成，已標記進度done；固定guard以140bbe01完整§8.1通過。接續只做一次M-P2-REVIEW，完成後封存此子任務與推送。",
   "meta": {
     "offlineDeploymentTests": 200,
     "memberSecureRedCases": 2,
@@ -51,7 +51,7 @@
     "guardCheckoutFailures": 2,
     "guardCleanExecuted": true,
     "guard81Executed": true,
-    "guardHead": "dc0a1e8c35b8c9fa646fe19deb8db4042c342944",
+    "guardHead": "140bbe01191cda85d2f64964160162d64b6a70cf",
     "guardGeneratedStateBackupVerified": true,
     "documentationChecked": 1335,
     "progressTests": 27,
@@ -60,7 +60,7 @@
     "guardManualCleanupRequestedAt": "2026-11-09T07:40:33+08:00",
     "guardManualCleanupConfirmed": true,
     "guardPreparationSucceeded": true,
-    "guard81Passed": false,
+    "guard81Passed": true,
     "guard81Failure": "I18n新member驗證字串；已修未提交",
     "memberActualAccepted": true,
     "memberTraceMaterializedSeconds": 65,
@@ -76,6 +76,7 @@
     "memberAcceptedSeconds": 28.76,
     "memberMismatchSeconds": 29.03,
     "memberReplaySeconds": 29.92,
-    "memberLiveCompletedAt": "2026-11-09T07:59:34.6224702+08:00"
+    "memberLiveCompletedAt": "2026-11-09T07:59:34.6224702+08:00",
+    "p212Status": "done"
   }
 }

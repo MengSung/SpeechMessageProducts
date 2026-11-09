@@ -240,11 +240,11 @@ footer{margin-top:36px;color:var(--muted);font-size:12.5px;text-align:center}
  */
 const DATA = {
   "planVersion": "3.4",
-  "snapshot": "2026-11-09 08:00 Asia/Taipei (UTC+08:00)",
-  "lastUpdated": "2026-11-09T08:00:45+08:00",
+  "snapshot": "2026-11-09 08:07 Asia/Taipei (UTC+08:00)",
+  "lastUpdated": "2026-11-09T08:07:04+08:00",
   "branch": "1.0.0.11.Integration.P2.Worktree",
   "head": "dc0a1e8c",
-  "headline": "P2工作包11／12完成；會員鏈與雙Worker實機均通過、殘留0，待最終guard及階段審查；不啟動P3。",
+  "headline": "P2工作包12完成；P2全部工作包已驗收，階段2審查進行中；不啟動P3。",
   "notices": [
     {
       "id": "plan-3.4-summary",
@@ -264,9 +264,10 @@ const DATA = {
       "phaseId": "階段 2",
       "level": "info",
       "title": "P2 進度摘要",
-      "lastUpdated": "2026-11-09T08:00:45+08:00",
-      "body": "2026-11-09 08:00 Asia/Taipei (UTC+08:00)：會員鏈完整通過，A28.76秒Accepted／200、B29.03秒ChurchMismatch且no-response、同GUID重播29.92秒AlreadyAccepted／409；收尾verify=0、殘留0。雙Worker已通過，待修正提交後固定guard完整守門與一次階段審查。",
+      "lastUpdated": "2026-11-09T08:07:04+08:00",
+      "body": "2026-11-09 08:07 Asia/Taipei (UTC+08:00)：P2-12會員鏈與雙Worker均完成實機驗收，三項會員案例均60秒內，收尾verify=0、殘留0；P2-01～P2-12全部done，現在只做一次階段2審查。",
       "steps": [
+        "2026-11-09 08:07 Asia/Taipei (UTC+08:00)：P2-12已以140bbe01驗收，會員操作紀錄、雙Worker紀錄、固定guard全套§8.1證據均已保存；接續只做M-P2-REVIEW。",
         "2026-11-09 08:00 Asia/Taipei (UTC+08:00)：會員鏈完整通過，A28.76秒Accepted／200、B29.03秒ChurchMismatch且no-response、同GUID重播29.92秒AlreadyAccepted／409；收尾verify=0、殘留0。雙Worker已通過，待修正提交後固定guard完整守門與一次階段審查。",
         "2026-11-09 07:57 Asia/Taipei (UTC+08:00)：使用者已核定會員鏈再驗一次，從W:\\啟動並維持60秒追蹤條件；雙Worker已通過不重跑，先備份、完成必做清理。",
         "2026-11-09 07:54 Asia/Taipei (UTC+08:00)：雙Worker實機1勝1負、真實產生8張，scope全釋放，D365及LINE殘留0。會員最新重驗在apply路徑檢查即拒絕、未觸發task且已清理；等待一次會員鏈再驗核定，固定guard待修正提交全套重跑，未推送。",
@@ -1010,13 +1011,13 @@ const DATA = {
       "id": "P2-12",
       "phaseId": "階段 2",
       "name": "實機驗收：推播整條鏈（Codex 執行）",
-      "status": "active",
+      "status": "done",
       "deps": "P2-03、P2-04、P2-05、P2-07、P2-08、P2-11",
       "live": "有",
       "timebox": "1 天",
-      "doneAt": "",
-      "commit": "",
-      "note": "2026-11-09 07:54 Asia/Taipei (UTC+08:00)：雙Worker實機1勝1負、真實產生8張，scope全釋放，D365及LINE殘留0。會員最新重驗在apply路徑檢查即拒絕、未觸發task且已清理；等待一次會員鏈再驗核定，固定guard待修正提交全套重跑，未推送。"
+      "doneAt": "2026-11-09 08:07 Asia/Taipei (UTC+08:00)",
+      "commit": "140bbe01",
+      "note": "2026-11-09 08:07 Asia/Taipei (UTC+08:00)：會員A Accepted／200、B ChurchMismatch且no-response、同GUID重播AlreadyAccepted／409均在60秒內；雙Worker僅一次產8張，收尾verify=0、殘留0。"
     },
     {
       "id": "P3-01",
@@ -1549,8 +1550,8 @@ const DATA = {
       "id": "M-P2-REVIEW",
       "phaseId": "階段 2",
       "name": "階段 2 審查＋一次提出計畫修正提案",
-      "status": "todo",
-      "note": "2026-11-09 07:29 Asia/Taipei (UTC+08:00)：alias容量／自有menu補償已於1e2e5605完成並保留58案證據；P2-12驗收後才跑一次階段審查，目前尚未執行。"
+      "status": "review",
+      "note": "2026-11-09 08:07 Asia/Taipei (UTC+08:00)：P2-01～P2-12均done；依00 §6.6執行唯一一次階段2審查，完成後只修Critical／High，Medium／Low列後續或計畫修正提案。"
     },
     {
       "id": "更新回復前置",
@@ -1560,76 +1561,42 @@ const DATA = {
       "note": "首個正式 Plugin 佈署 goodshepherdback 之前"
     }
   ],
-  "active": [
-    {
-      "id": "P2-12",
-      "startedAt": "補記 2026-11-09 06:42 Asia/Taipei (UTC+08:00)（原開工時間未記錄）",
-      "timebox": "1工作天或15提交",
-      "next": "修正提交後固定guard全套§8.1；通過即P2-12驗收，再只做一次階段審查。",
-      "dod": [
-        [
-          "測試",
-          "ok",
-          "整秒雙宿主各23案、部分信任2案、Deployment200案及宮格64案通過；alias7紅轉綠。"
-        ],
-        [
-          "守門",
-          "no",
-          "dc0a1e8c固定guard建置／測試／編碼／重複通過，I18n新增一字串失敗；已修本地verify通過，待修正提交全套重驗。"
-        ],
-        [
-          "新專案覆蓋率",
-          "na",
-          "本包沒有新增專案。"
-        ],
-        [
-          "實機",
-          "ok",
-          "A／B／同GUID三案均60秒內通過；雙Worker僅一次產8張，全部收尾殘留0。"
-        ],
-        [
-          "回報與DATA",
-          "ok",
-          "本次會員操作紀錄及回報已更新，未提前標done。"
-        ]
-      ]
-    }
-  ],
+  "active": [],
   "gates": [
     {
       "item": "方案建置（Release）",
       "result": "ok",
-      "at": "2026-11-09 00:17",
-      "note": "c1b01680固定guard乾淨§8.1通過；4,981案、tracer7案、Release76警告0錯誤。"
+      "at": "2026-11-09 08:07 Asia/Taipei (UTC+08:00)",
+      "note": "固定 C:\\smv\\guard 以 140bbe01 fetch→checkout→clean -ffdx→reset；Release建置0錯誤、76既有警告。"
     },
     {
       "item": "全方案測試",
       "result": "ok",
-      "at": "2026-11-09 00:17",
-      "note": "c1b01680固定guard乾淨§8.1通過；4,981案、0失敗、0略過。"
+      "at": "2026-11-09 08:07 Asia/Taipei (UTC+08:00)",
+      "note": "固定 C:\\smv\\guard 完整§8.1；全方案0失敗、0略過。"
     },
     {
       "item": "檔案說明檢查",
       "result": "ok",
-      "at": "2026-11-09 00:17",
-      "note": "固定guard乾淨複本檢查1334檔、0失敗。"
+      "at": "2026-11-09 08:07 Asia/Taipei (UTC+08:00)",
+      "note": "固定guard檢查1335檔、0失敗。"
     },
     {
       "item": "文字編碼（P2 範圍）",
       "result": "ok",
-      "at": "2026-11-09 00:17",
-      "note": "固定guard乾淨複本檢查356個Changed範圍檔、0問題。"
+      "at": "2026-11-09 08:07 Asia/Taipei (UTC+08:00)",
+      "note": "固定guard Changed367檔、excluded120、0問題。"
     },
     {
       "item": "重複程式掃描",
       "result": "ok",
-      "at": "2026-11-09 00:17",
-      "note": "固定guard重複程式掃描37專案、1101檔，新增0、過期0。"
+      "at": "2026-11-09 08:07 Asia/Taipei (UTC+08:00)",
+      "note": "固定guard 37專案、1102檔，新增0、過期0。"
     },
     {
       "item": "I18nCheck verify",
       "result": "ok",
-      "at": "2026-11-09 00:17",
+      "at": "2026-11-09 08:07 Asia/Taipei (UTC+08:00)",
       "note": "固定guard I18nCheck verify通過。"
     },
     {
