@@ -7,4 +7,4 @@
 - [x] 複製明確來源至ignored evidence，執行P0-05轉換並編譯實際harness；保留原來源前後hash、轉換manifest及產生命令。
 - [x] 生成全部詞／變形／回覆追溯與12合成事件，分開既有no-op與04要求的後續修正。
 - [x] 跑focused tests、新工具net10 coverage≥80%、位元組及文件守門；自審輸出不含秘密／個資且不依賴本機舊來源。
-- [ ] 本機P3-01提交後回報；協調者rebase＋ff、完整guard、one-page report／進度、驗收推送及ls-remote、保留evidence後清理暫時worktree。
+- [x] 本機P3-01提交後回報；協調者rebase＋ff、完整guard、one-page report／進度、驗收推送及ls-remote、保留evidence後清理暫時worktree。

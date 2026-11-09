@@ -241,10 +241,10 @@ footer{margin-top:36px;color:var(--muted);font-size:12.5px;text-align:center}
 const DATA = {
   "planVersion": "3.5",
   "snapshot": "2026-11-09 18:57 Asia/Taipei (UTC+08:00)",
-  "lastUpdated": "2026-11-09T18:57:51+08:00",
+  "lastUpdated": "2026-11-09T19:53:25+08:00",
   "branch": "1.0.0.11.Integration.P3.Worktree",
-  "head": "7394dd79186d930d6dcf294c2bcb69d7f7fdacb1",
-  "headline": "階段3完成3/9包；目前P3-01黃金資料與P3-04 SQL去重進行中，兩包無相依且檔案互斥。",
+  "head": "9a93c0f4",
+  "headline": "2026-11-09 19:53 Asia/Taipei (UTC+08:00)：P3-01驗收；P3已完成4／9包。目前進行中：P3-04；其餘未開工，09前置仍缺。",
   "notices": [
     {
       "id": "plan-3.5-summary",
@@ -414,7 +414,7 @@ const DATA = {
       "phaseId": "階段 3",
       "level": "info",
       "title": "P3 進度摘要",
-      "body": "2026-11-09 18:57 Asia/Taipei (UTC+08:00)：P3-02／03／05已驗收並推送核對7394dd79；目前P3-01與P3-04兩包進行中，各自短路徑worktree、檔案互斥；其餘未開工。",
+      "body": "2026-11-09 19:53 Asia/Taipei (UTC+08:00)：P3-01驗收；P3已完成4／9包。目前進行中：P3-04；其餘未開工，09前置仍缺。",
       "steps": [
         "2026-11-09 13:20 Asia/Taipei (UTC+08:00)：P3-01與P3-02新增專案都會更動sln，依檔案歸屬先串行做P3-02；P3-01僅唯讀調查。",
         "2026-11-09 13:20 Asia/Taipei (UTC+08:00)：P3-00原始證據已逐檔核對並複製至耐久ignored evidence，沒有將秘密或原始輸出加入版控。",
@@ -426,9 +426,10 @@ const DATA = {
         "2026-11-09 18:15 Asia/Taipei (UTC+08:00)：P3-03與P3-05開工。P3-03從保留停放提交選取自身程式接續；P3-05只改Queue與Queue tests。只規劃即將動工兩包，規劃納入各包第一個程式提交；沒有提前啟動相依包。",
         "2026-11-09 18:41 Asia/Taipei (UTC+08:00)：P3-03驗收：指定三契約、原始bytes／取消／100次A-B隔離、不可改寫清單與1024映射上限通過；Host65、Tenancy84；固定guard八項exit0，行96.00%、分支98.27%。P3-05仍active，規劃／開工紀錄已併P3-03首個程式提交，未增加規劃型提交。",
         "2026-11-09 18:55 Asia/Taipei (UTC+08:00)：P3-05驗收：預設容量1000／4分區、先reserve再Commit、原例外交共用通知、完整drain與計數歸零；guard八項exit0。舊主機兩項斷言已精確對齊正式queue缺handler，未弱化fail-closed。",
-        "2026-11-09 18:57 Asia/Taipei (UTC+08:00)：P3-01與P3-04開工，規劃納入各包程式首提交，不另作規劃紀錄提交。SQL整合先用LocalDB，P3-09仍等待DMZ／遠端權限／測試主機SQL三類缺項。"
+        "2026-11-09 18:57 Asia/Taipei (UTC+08:00)：P3-01與P3-04開工，規劃納入各包程式首提交，不另作規劃紀錄提交。SQL整合先用LocalDB，P3-09仍等待DMZ／遠端權限／測試主機SQL三類缺項。",
+        "2026-11-09 19:53 Asia/Taipei (UTC+08:00)：P3-01驗收。完成真舊比對器黃金工具、731筆合成輸入、12類事件及28個回覆契約。共用9a93c0f4固定完整守門通過；新工具net10行覆蓋率97.95%（478／488）；本包focused37個、整合Host104個通過；無實機要求。"
       ],
-      "lastUpdated": "2026-11-09T18:57:51+08:00"
+      "lastUpdated": "2026-11-09T19:53:25+08:00"
     }
   ],
   "userActions": [
@@ -514,8 +515,8 @@ const DATA = {
       "planned": "4～6 個工作天",
       "actual": "",
       "current": true,
-      "done": 3,
-      "active": 2
+      "done": 4,
+      "active": 1
     },
     {
       "id": "階段 4",
@@ -1057,13 +1058,13 @@ const DATA = {
       "id": "P3-01",
       "phaseId": "階段 3",
       "name": "舊行為的黃金資料：關鍵字、事件樣本、回覆內容",
-      "status": "active",
+      "status": "done",
       "deps": "—",
       "live": "無",
       "timebox": "1 天",
-      "doneAt": "",
-      "commit": "",
-      "note": "2026-11-09 18:57 Asia/Taipei (UTC+08:00)：已開工；P3-02已驗收，與另一包無相依且檔案互斥；未驗收。"
+      "doneAt": "2026-11-09 19:53 Asia/Taipei (UTC+08:00)",
+      "commit": "9a93c0f4",
+      "note": "2026-11-09 19:53 Asia/Taipei (UTC+08:00)：完成真舊比對器黃金工具、731筆合成輸入、12類事件及28個回覆契約。完整guard Release5145另Debug7通過；工具行coverage97.95%；無實機要求。"
     },
     {
       "id": "P3-02",
@@ -1604,39 +1605,6 @@ const DATA = {
   ],
   "active": [
     {
-      "id": "P3-01",
-      "startedAt": "2026-11-09 18:57 Asia/Taipei (UTC+08:00)",
-      "timebox": "1 天",
-      "next": "依本包TDD完成黃金資料；協調者複核後固定guard。",
-      "dod": [
-        [
-          "指定測試",
-          "no",
-          "待實作與驗證"
-        ],
-        [
-          "固定guard",
-          "no",
-          "待產品提交"
-        ],
-        [
-          "新專案覆蓋率",
-          "no",
-          "P3-01工具需80%"
-        ],
-        [
-          "實機",
-          "na",
-          "本包無實機要求"
-        ],
-        [
-          "回報與進度",
-          "no",
-          "開工狀態已更新，待驗收報告"
-        ]
-      ]
-    },
-    {
       "id": "P3-04",
       "startedAt": "2026-11-09 18:57 Asia/Taipei (UTC+08:00)",
       "timebox": "1 天",
@@ -1674,20 +1642,20 @@ const DATA = {
     {
       "item": "方案建置（Release）",
       "result": "ok",
-      "at": "2026-11-09 18:55 Asia/Taipei (UTC+08:00)",
-      "note": "固定C:\\smv\\guard對0516288d完整§8.1；Release建置0錯誤、76個既有警告，本包改檔0警告。"
+      "at": "2026-11-09 19:53 Asia/Taipei (UTC+08:00)",
+      "note": "固定guard對9a93c0f4完整八項通過；Release全方案5,145個、另Debug7個；0失敗，文件0失敗。"
     },
     {
       "item": "全方案測試",
       "result": "ok",
-      "at": "2026-11-09 18:55 Asia/Taipei (UTC+08:00)",
-      "note": "固定guard Release22組5,082個、另Debug tracer7個通過，0失敗／略過。"
+      "at": "2026-11-09 19:53 Asia/Taipei (UTC+08:00)",
+      "note": "固定guard對9a93c0f4完整八項通過；Release全方案5,145個、另Debug7個；0失敗，文件0失敗。"
     },
     {
       "item": "檔案說明檢查",
       "result": "ok",
-      "at": "2026-11-09 18:55 Asia/Taipei (UTC+08:00)",
-      "note": "固定guard文件1,371檔0失敗。"
+      "at": "2026-11-09 19:53 Asia/Taipei (UTC+08:00)",
+      "note": "固定guard對9a93c0f4完整八項通過；Release全方案5,145個、另Debug7個；0失敗，文件0失敗。"
     },
     {
       "item": "文字編碼（P3 範圍）",
