@@ -61,7 +61,12 @@ public sealed class WebhookTextHandler
         if (intent == "Registration") return new WebhookBusinessResult(WebhookBusinessStatus.Rejected, "RegistrationExcluded");
         if (intent is "Help" or "QueryEnrollment" or "QrCode" or "UserReply" or "NotifyLink")
             return new WebhookBusinessResult(WebhookBusinessStatus.ReplyPending, intent + "LegacyReplyPendingP308", "Webhook.Reply." + intent + ".V0");
-        if (intent == "QueryUserId") return new WebhookBusinessResult(WebhookBusinessStatus.ReplyPending, "ActorIdReplyPendingP308");
+        if (intent == "QueryUserId")
+            return new WebhookBusinessResult(
+                WebhookBusinessStatus.ReplyPending,
+                "ActorIdReplyPendingP308",
+                "Webhook.Reply.QueryUserId.V0",
+                replyArguments: new[] { new WebhookReplyArgument("lineId", actor.UserId) });
         if (intent == "Prayer247") return new WebhookBusinessResult(WebhookBusinessStatus.Deferred, "Prayer247BusinessHandlerNotMigrated");
         if (intent == "Unknown") return new WebhookBusinessResult(WebhookBusinessStatus.Ignored, "UnknownText");
         var actorContact = WebhookRecordOperations.ReadActor(service, actor, ct);

@@ -1,0 +1,6 @@
+{"file":".trellis/spec/backend/error-handling.md","reason":"P3-08 的真實 Exception、取消分類、共用 Hosting 通知與 bounded cleanup 契約。"}
+{"file":".trellis/spec/backend/cross-user-isolation-and-performance.md","reason":"回覆 token、scope、語系、CRM 與傳輸資源的跨使用者隔離與生命週期。"}
+{"file":".trellis/spec/backend/duplicate-row-publication-contract.md","reason":"letter stable identity、原子 Upsert、重送與 partial publication 的 fail-closed 契約。"}
+{"file":".trellis/spec/backend/file-documentation-contract.md","reason":"新增／修改 C# 檔案整體說明、繁中 XML 文件與 CRLF／UTF-8 驗證。"}
+{"file":".trellis/spec/frontend/progress-page-contract.md","reason":"開工與驗收只更新進度頁 DATA、日期時區及 active 上限契約。"}
+{"file":".trellis/spec/guides/cross-layer-thinking-guide.md","reason":"Webhook dispatcher、Core、Localization、CRM 與 LINE SDK 跨層資料流檢查。"}

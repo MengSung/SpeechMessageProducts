@@ -6,6 +6,7 @@
 */
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using SpeechMessage.Localization;
 using SpeechMessageProducts.GoodShepherd.Core.Messaging;
 using LineMessagingProcessor.AspNetCore.Webhooks.Dispatch;
@@ -21,12 +22,17 @@ public static partial class WebhookServiceRegistration
     {
         services.AddSingleton<SpeechMessage.Localization.IChurchClock>(_ => new SpeechMessage.Localization.ChurchClock(new SystemChurchUtcClock()));
         services.AddSingleton<IKeywordCatalog>(_ => GoodShepherdKeywordCatalog.Create());
+        services.TryAddSingleton<IMemberCultureResolver>(_ => new MemberCultureResolver(new LocalizationOptions()));
+        services.TryAddSingleton<IChurchTextOverrideSnapshotProvider, EmptyWebhookTextOverrideSnapshotProvider>();
+        services.TryAddSingleton<GoodShepherdTextCatalog>();
         services.AddScoped<IWebhookScopeResolver, WebhookScopeResolver>();
         services.AddScoped<WebhookTextHandler>();
         services.AddHttpClient<WebhookHttpAdapter>(client => client.Timeout = System.Threading.Timeout.InfiniteTimeSpan)
             .ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler
             { UseCookies = false, AllowAutoRedirect = false, MaxConnectionsPerServer = 32 });
         services.AddScoped<WebhookAudioHandler>();
+        services.AddScoped<IWebhookReplySender, LineWebhookReplySender>();
+        services.AddScoped<IWebhookLetterRecorder, WebhookLetterRecorder>();
         if (!services.Any(item => item.ServiceType == typeof(IWebhookEnvelopeHandler)))
             services.AddScoped<IWebhookEnvelopeHandler, WebhookDispatcher>();
     }
@@ -37,4 +43,15 @@ internal sealed class SystemChurchUtcClock : SpeechMessage.Localization.IClock
 {
     /// <summary>直接讀取 UTC 時鐘，無靜態可變資料與程序 local 偏差。</summary>
     public DateTimeOffset UtcNow => DateTimeOffset.UtcNow;
+}
+
+/// <summary>
+/// 沒有啟用教會覆寫來源的純離線／最小 Host 後備；只發布帶本次 scope 的空快照，
+/// 不掩蓋正式 Host 已註冊的 provider，也不保存任何跨事件資料。
+/// </summary>
+internal sealed class EmptyWebhookTextOverrideSnapshotProvider : IChurchTextOverrideSnapshotProvider
+{
+    /// <summary>回傳目前 scope 的空候選，讓 catalog 仍維持完整 scope 驗證。</summary>
+    public IChurchTextOverrideSnapshot GetSnapshot(TextContext context) =>
+        new ChurchTextOverrideSnapshot(context, Array.Empty<ChurchTextOverride>());
 }

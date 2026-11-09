@@ -1,8 +1,8 @@
 /*
 檔案整體說明
-目的與定位：定義供背景處理使用的 detached 不可變事件，只含 channel 識別與單一已解析事件，不保留 HTTP 或部署憑證。
-主要功能與流程：建構時驗證 A.8 channel／event ID 長度及 ASCII 邊界、type 與重送形狀，複製 JsonElement 以切斷原始 body／JsonDocument 的資源所有權。預設字串表示不輸出內容。
-使用邊界與維護：本值不代表完成授權，只有驗簽成功的 adapter 可移交 queue。Event 保存 provider 事件資料（含事件本身 replyToken），不是 channel secret 或 access token；不得序列化作診斷。HTTP adapter 將事件限制於一 MB 以內，成功後由有界 queue 接管；排隊保留上限由 queue owner 依容量與分區界定，每筆執行及停止排空各最多三十秒，結束立即解除參照。本型別不自行計時或宣稱排隊等待也只有三十秒，不能作跨租戶 cache。
+目的與定位：定義供背景處理使用的 detached 不可變事件，只含 channel 識別、單一已解析事件與本事件的一次性 reply token，不保留 HTTP 或部署憑證。
+主要功能與流程：建構時驗證 A.8 channel／event ID 長度及 ASCII 邊界、type、重送形狀與 bounded reply token，複製 JsonElement 以切斷原始 body／JsonDocument 的資源所有權。預設字串表示不輸出內容。
+使用邊界與維護：本值不代表完成授權，只有驗簽成功的 adapter 可移交 queue。ReplyToken 只屬本筆事件，與 Event 一起在 queue 生命週期結束時釋放；它不是 channel secret 或 access token，不得序列化作診斷或跨事件重用。HTTP adapter 將事件限制於一 MB 以內，成功後由有界 queue 接管；排隊保留上限由 queue owner 依容量與分區界定，每筆執行及停止排空各最多三十秒，結束立即解除參照。本型別不自行計時或宣稱排隊等待也只有三十秒，不能作跨租戶 cache。
 */
 using System.Text.Json;
 
@@ -15,6 +15,8 @@ public sealed class WebhookEnvelope
     public string ChannelId { get; }
     /// <summary>provider 的穩定事件 ID，最多六十四個安全 ASCII 字元；不是使用者或資料庫業務記錄身分。</summary>
     public string WebhookEventId { get; }
+    /// <summary>本事件的一次性 reply token；格式正確但可能為 null，絕不跨事件保存或寫入診斷。</summary>
+    public string? ReplyToken { get; }
     /// <summary>provider 指示的重送旗標，只屬本筆投遞，不可用來跳過驗簽或授權。</summary>
     public bool IsRedelivery { get; }
     /// <summary>獨立 clone 的唯讀事件 JSON，供後續 dispatcher 解析；不含原始 body 根或 HTTP 物件。</summary>
@@ -47,6 +49,14 @@ public sealed class WebhookEnvelope
         }
         ChannelId = channelId;
         WebhookEventId = value;
+        if (parsedEvent.TryGetProperty("replyToken", out var replyToken))
+        {
+            if (replyToken.ValueKind != JsonValueKind.String ||
+                replyToken.GetString() is not { Length: > 0 and <= 512 } token ||
+                token.Any(character => character <= 0x20 || character > 0x7e))
+                throw new ArgumentException("Invalid webhook reply token.");
+            ReplyToken = token;
+        }
         Event = parsedEvent.Clone();
     }
 }

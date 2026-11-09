@@ -25,7 +25,8 @@
     "11-09-p3-05-bounded-queue",
     "11-09-p3-04-sql-dedupe",
     "11-09-p3-06-event-dispatch",
-    "11-10-p3-07-keyword-routing"
+    "11-10-p3-07-keyword-routing",
+    "11-10-p3-08-reply-letter-errors"
   ],
   "parent": null,
   "relatedFiles": [],

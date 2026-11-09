@@ -240,11 +240,11 @@ footer{margin-top:36px;color:var(--muted);font-size:12.5px;text-align:center}
  */
 const DATA = {
   "planVersion": "3.5",
-  "snapshot": "2026-11-10 04:51 Asia/Taipei (UTC+08:00)",
-  "lastUpdated": "2026-11-10T04:51:27+08:00",
+  "snapshot": "2026-11-10 06:41 Asia/Taipei (UTC+08:00)",
+  "lastUpdated": "2026-11-10T06:41:15+08:00",
   "branch": "1.0.0.11.Integration.P3.Worktree",
-  "head": "b67dbf0a",
-  "headline": "2026-11-10 04:51 Asia/Taipei (UTC+08:00)：P3-07已驗收；P3已完成7／9包，目前沒有進行中的包；P3-08未規劃，P3-09前置仍缺。",
+  "head": "538002c7",
+  "headline": "2026-11-10 06:41 Asia/Taipei (UTC+08:00)：P3-08已開工；P3已完成7／9包，進行中1包；P3-09前置仍缺。",
   "notices": [
     {
       "id": "plan-3.5-summary",
@@ -414,7 +414,7 @@ const DATA = {
       "phaseId": "階段 3",
       "level": "info",
       "title": "P3 進度摘要",
-      "body": "2026-11-10 04:51 Asia/Taipei (UTC+08:00)：P3-07已完成固定guard、離線測試、驗收回報與審查紀錄；P3已完成7／9包，目前沒有進行中的包；P3-08未規劃，P3-09前置仍缺。",
+      "body": "2026-11-10 06:41 Asia/Taipei (UTC+08:00)：P3-08已開工；P3已完成7／9包，進行中1包；依規則只處理本包，P3-09前置仍缺。",
       "steps": [
         "2026-11-09 13:20 Asia/Taipei (UTC+08:00)：P3-01與P3-02新增專案都會更動sln，依檔案歸屬先串行做P3-02；P3-01僅唯讀調查。",
         "2026-11-09 13:20 Asia/Taipei (UTC+08:00)：P3-00原始證據已逐檔核對並複製至耐久ignored evidence，沒有將秘密或原始輸出加入版控。",
@@ -433,7 +433,8 @@ const DATA = {
         "2026-11-10 01:22 Asia/Taipei (UTC+08:00)：P3-06開工資料修正為頁面契約使用的 active 狀態，active 清單列出唯一進行中包；尚未驗收，不填寫完成提交或完成時間。",
         "2026-11-10 01:44 Asia/Taipei (UTC+08:00)：P3-06完成離線測試、固定 C:\\smv\\guard 對 ae96f737 的 §8.1 八項守門、驗收回報與首次 push；遠端 SHA 已以 git ls-remote 核對相同。P3-07／P3-08未提前規劃，P3-09仍待前置缺項到位。",
         "2026-11-10 03:37 Asia/Taipei (UTC+08:00)：P3-07開工；只規劃本包，已記錄P3-01黃金實測為110個決策項／104個不同字面值／731筆案例，P3-08未規劃，規劃將併入本包第一個程式提交。",
-        "2026-11-10 04:51 Asia/Taipei (UTC+08:00)：P3-07驗收；程式提交b67dbf0a固定guard八項通過，GoodShepherd雙目標79／79、Localization雙目標183／183與185／185、全方案5,211／5,211、Debug tracer 7／7、文件1,433／1,433、進度頁28／28；審查Critical／High為0，Gemini無可用輸出如實記錄。"
+        "2026-11-10 04:51 Asia/Taipei (UTC+08:00)：P3-07驗收；程式提交b67dbf0a固定guard八項通過，GoodShepherd雙目標79／79、Localization雙目標183／183與185／185、全方案5,211／5,211、Debug tracer 7／7、文件1,433／1,433、進度頁28／28；審查Critical／High為0，Gemini無可用輸出如實記錄。",
+        "2026-11-10 06:41 Asia/Taipei (UTC+08:00)：P3-08開工；回覆、語系／教會sender、入站letter與真實例外傳遞列為本包範圍；規劃內容併入第一個程式提交，P3-09仍不得開工。"
       ],
       "lastUpdated": "2026-11-10T04:51:27+08:00"
     }
@@ -522,7 +523,7 @@ const DATA = {
       "actual": "",
       "current": true,
       "done": 7,
-      "active": 0
+      "active": 1
     },
     {
       "id": "階段 4",
@@ -1148,13 +1149,13 @@ const DATA = {
       "id": "P3-08",
       "phaseId": "階段 3",
       "name": "回覆、letter 紀錄、例外處理",
-      "status": "todo",
+      "status": "active",
       "deps": "P3-06",
       "live": "無",
       "timebox": "1 天",
       "doneAt": "",
       "commit": "",
-      "note": "入站寫 letter 但不觸發；移除推給開發者的 LINE"
+      "note": "2026-11-10 06:41 Asia/Taipei (UTC+08:00)：已開工；回覆、會友語言／教會sender、入站letter與真實例外傳遞；規劃併入首個程式提交，P3-09不得開工。"
     },
     {
       "id": "P3-09",
@@ -1609,7 +1610,21 @@ const DATA = {
       "note": "首個正式 Plugin 佈署 goodshepherdback 之前"
     }
   ],
-  "active": [],
+  "active": [
+    {
+      "id": "P3-08",
+      "startedAt": "2026-11-10 06:41 Asia/Taipei (UTC+08:00)",
+      "timebox": "1 天",
+      "dod": [
+        ["Reply API 與 bounded detached reply token 完成並有離線測試", "no", "尚未驗收"],
+        ["會員語言／教會名稱／sender 依驗證 scope 隔離", "no", "尚未驗收"],
+        ["入站 letter 穩定 Upsert、directioncode=false 且不觸發 outbound", "no", "尚未驗收"],
+        ["真實 Exception 保留並交給 Hosting 通知入口", "no", "尚未驗收"],
+        ["固定 guard、文件／編碼／重複碼與審查完成", "no", "尚未驗收"]
+      ],
+      "next": "先建立紅燈測試，再完成 Reply、letter、catalog、scope、DI 與 dispatcher 接線；完成後執行固定 C:\\smv\\guard。"
+    }
+  ],
   "gates": [
     {
       "item": "方案建置（Release）",

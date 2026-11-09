@@ -44,6 +44,7 @@ namespace SpeechMessage.Localization.Resources
             new string?[] { "Deployment.Schema.Plan.SchemaHash", "Schema SHA-256", null, "［Schema SHA-256ǂǂǂǂǂǂ］" },
             new string?[] { "Deployment.Schema.Plan.Title", "P1 結構新增計畫", null, "［P1 結構新增計畫ǂǂǂǂ］" },
             new string?[] { "Line.Sender.Template", "{churchName}助手", null, "［{churchName}助手ǂ］" },
+            new string?[] { "Webhook.Letter.Subject", "LINE 入站訊息", null, "［LINE 入站訊息ǂǂǂǂ］" },
         };
     }
 }

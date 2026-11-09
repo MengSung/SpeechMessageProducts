@@ -33,7 +33,7 @@ public sealed class WebhookDispatchEndToEndTests
         var crm = new DispatchCrm();
         var resolver = new FixedScopeResolver(crm, "123", "token-A");
         var logger = new RecordingLogger<WebhookDispatcher>();
-        var dispatcher = new WebhookDispatcher(resolver, new SpeechMessageProducts.GoodShepherd.Core.Messaging.WebhookTextHandler(new ChurchClock()), new WebhookHttpAdapter(http), new WebhookAudioHandler(new WebhookHttpAdapter(http)), logger);
+        var dispatcher = new WebhookDispatcher(resolver, new SpeechMessageProducts.GoodShepherd.Core.Messaging.WebhookTextHandler(new ChurchClock()), new WebhookHttpAdapter(http), new WebhookAudioHandler(new WebhookHttpAdapter(http)), logger, new RecordingReplySender(), new RecordingLetterRecorder());
 
         var directory = Path.Combine(AppContext.BaseDirectory, "Golden", "Events");
         foreach (var path in Directory.GetFiles(directory, "*.json").OrderBy(static value => value, StringComparer.Ordinal))
@@ -44,7 +44,7 @@ public sealed class WebhookDispatchEndToEndTests
             await dispatcher.HandleAsync(envelope, CancellationToken.None);
         }
 
-        Assert.Equal(6, resolver.Calls);
+        Assert.Equal(9, resolver.Calls);
         Assert.Equal(3, transport.RequestCount);
         Assert.Single(crm.Reads);
         Assert.NotEmpty(crm.Updates);
@@ -53,9 +53,9 @@ public sealed class WebhookDispatchEndToEndTests
             annotation => Assert.Equal("annotation", annotation.LogicalName),
             contact => Assert.Equal("contact", contact.LogicalName));
         Assert.Contains(logger.EventIds, static id => id.Name == "Webhook.LegacyMediaNoOp");
-        Assert.Contains(logger.EventIds, static id => id.Name == "Webhook.MemberJoinReplyPendingP308");
+        Assert.Contains(logger.EventIds, static id => id.Name == "Webhook.MemberJoinNoReplyContract");
         Assert.Contains(logger.EventIds, static id => id.Name == "Webhook.LeaveNoCrmMutation");
-        Assert.Contains(logger.EventIds, static id => id.Name == "Webhook.AccountLinkReplyPendingP308");
+        Assert.Contains(logger.EventIds, static id => id.Name == "Webhook.AccountLinkNoReplyContract");
         Assert.Contains(logger.EventIds, static id => id.Name == "Webhook.Follow.Applied.FollowProfileUpdatedWelcomePendingP308");
         Assert.Contains(logger.EventIds, static id => id.Name == "Webhook.Join.Applied.GroupProfileUpdatedWelcomePendingP308");
         Assert.Contains(logger.EventIds, static id => id.Name == "Webhook.Text.Ignored.UnknownText");
@@ -167,7 +167,9 @@ public sealed class WebhookDispatchEndToEndTests
             new SpeechMessageProducts.GoodShepherd.Core.Messaging.WebhookTextHandler(new ChurchClock()),
             new WebhookHttpAdapter(http),
             new WebhookAudioHandler(new WebhookHttpAdapter(http)),
-            new RecordingLogger<WebhookDispatcher>());
+            new RecordingLogger<WebhookDispatcher>(),
+            new RecordingReplySender(),
+            new RecordingLetterRecorder());
 
         using var document = JsonDocument.Parse(await File.ReadAllTextAsync(
             Path.Combine(AppContext.BaseDirectory, "Golden", "Events", "synthetic-join.json")));
@@ -208,7 +210,9 @@ public sealed class WebhookDispatchEndToEndTests
             new SpeechMessageProducts.GoodShepherd.Core.Messaging.WebhookTextHandler(new ChurchClock()),
             new WebhookHttpAdapter(http),
             new WebhookAudioHandler(new WebhookHttpAdapter(http)),
-            logger);
+            logger,
+            new RecordingReplySender(),
+            new RecordingLetterRecorder());
         using var document = JsonDocument.Parse(
             """
             {
@@ -261,6 +265,38 @@ public sealed class WebhookDispatchEndToEndTests
                 "Asia/Taipei",
                 accessToken,
                 sourceId == crm.UserId ? crm.Contact : null);
+        }
+    }
+
+    /// <summary>只記錄 reply 呼叫數的離線替身；不連 LINE、不保存 token 或訊息正文。</summary>
+    private sealed class RecordingReplySender : IWebhookReplySender
+    {
+        public ValueTask SendAsync(
+            ResolvedWebhookScope scope,
+            string? replyToken,
+            SpeechMessageProducts.GoodShepherd.Core.Messaging.WebhookBusinessResult result,
+            CancellationToken cancellationToken)
+        {
+            Assert.False(string.IsNullOrWhiteSpace(replyToken));
+            Assert.NotNull(result.ReplyKey);
+            cancellationToken.ThrowIfCancellationRequested();
+            return default;
+        }
+    }
+
+    /// <summary>只驗證 letter 交接存在的離線替身；CRM candidate 契約由 P3-08 專用測試直接驗證。</summary>
+    private sealed class RecordingLetterRecorder : IWebhookLetterRecorder
+    {
+        public ValueTask<Guid> RecordAsync(
+            ResolvedWebhookScope scope,
+            string webhookEventId,
+            string messageKind,
+            string description,
+            CancellationToken cancellationToken)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            return ValueTask.FromResult(SpeechMessageProducts.GoodShepherd.Core.Messaging.WebhookRecordOperations.BusinessId(
+                scope.OrganizationId, scope.ChurchId, "test-letter", webhookEventId));
         }
     }
 

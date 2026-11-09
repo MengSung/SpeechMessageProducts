@@ -1,0 +1,5 @@
+{"file":".trellis/spec/backend/error-handling.md","reason":"檢查回覆、letter、queue 例外是否保留原 Exception，正常取消不通知。"}
+{"file":".trellis/spec/backend/cross-user-isolation-and-performance.md","reason":"檢查 token、access token、scope、client、Entity 與 catalog 是否跨事件洩漏或未釋放。"}
+{"file":".trellis/spec/backend/duplicate-row-publication-contract.md","reason":"檢查 letter stable ID、重送 Upsert、方向欄位與重複列防護。"}
+{"file":".trellis/spec/backend/file-documentation-contract.md","reason":"檢查所有 changed C# 的檔首說明、XML 文件、UTF-8 無 BOM、CRLF 與末尾換行。"}
+{"file":".trellis/spec/frontend/progress-page-contract.md","reason":"檢查進度頁只改 DATA 且摘要／歷史含台北日期時間。"}
