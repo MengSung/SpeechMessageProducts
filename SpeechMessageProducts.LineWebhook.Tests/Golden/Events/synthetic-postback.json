@@ -1,0 +1,25 @@
+{
+  "destination": "U00000000000000000000000000000000",
+  "events": [
+    {
+      "type": "postback",
+      "mode": "active",
+      "timestamp": 1735689600000,
+      "source": {
+        "type": "user",
+        "userId": "U00000000000000000000000000000000"
+      },
+      "webhookEventId": "01JGFJJZ000000000000000010",
+      "deliveryContext": {
+        "isRedelivery": false
+      },
+      "replyToken": "00000000000000000000000000000000",
+      "postback": {
+        "data": "action=synthetic",
+        "params": {
+          "date": "2025-01-01"
+        }
+      }
+    }
+  ]
+}

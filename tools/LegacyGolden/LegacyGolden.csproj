@@ -1,0 +1,21 @@
+<!--
+檔案整體說明
+目的與定位：定義 P3-01 離線舊行為黃金資料產生器的 net10 命令列專案，僅消費操作者明確指定且可信的非設定來源，不是 LINE 或 CRM 執行主機。
+主要功能與流程：沿用中央 Roslyn 與 net10 內建 CodePages；嚴格分析與 XML 文件在專案本體啟用，內嵌具完整繁中文件的呼叫橋接範本。既有 Host 測試專案透過內部可見性驗證編譯、轉碼、失敗清理與穩定輸出，無額外測試專案。
+使用邊界與維護：不包含來源副本、憑證或部署設定；新增時同步正式方案、CI 篩選與獨立覆蓋率矩陣。套件版本仍由中央表擁有，不以警告抑制或舊 bin 掩蓋相依失敗。
+-->
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <SpeechMessageStrictCode>true</SpeechMessageStrictCode>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" />
+    <InternalsVisibleTo Include="SpeechMessageProducts.LineWebhook.Tests" />
+    <!-- cs 在多重副檔名可能被 SDK 認作捷克語；本範本固定內嵌主組件，不產生 satellite。 -->
+    <EmbeddedResource Include="HarnessBridge.cs.txt" LogicalName="LegacyGolden.HarnessBridge" WithCulture="false" />
+  </ItemGroup>
+</Project>

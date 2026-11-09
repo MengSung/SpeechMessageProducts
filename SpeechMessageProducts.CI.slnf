@@ -37,7 +37,8 @@
       "SpeechMessageProducts.GoodShepherd.Core\\SpeechMessageProducts.GoodShepherd.Core.csproj",
       "SpeechMessageProducts.GoodShepherd.Core.Tests\\SpeechMessageProducts.GoodShepherd.Core.Tests.csproj",
       "SpeechMessageProducts.LineWebhook\\SpeechMessageProducts.LineWebhook.csproj",
-      "SpeechMessageProducts.LineWebhook.Tests\\SpeechMessageProducts.LineWebhook.Tests.csproj"
+      "SpeechMessageProducts.LineWebhook.Tests\\SpeechMessageProducts.LineWebhook.Tests.csproj",
+      "tools\\LegacyGolden\\LegacyGolden.csproj"
     ]
   }
 }

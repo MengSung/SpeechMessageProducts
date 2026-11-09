@@ -240,11 +240,11 @@ footer{margin-top:36px;color:var(--muted);font-size:12.5px;text-align:center}
  */
 const DATA = {
   "planVersion": "3.5",
-  "snapshot": "2026-11-09 18:55 Asia/Taipei (UTC+08:00)",
-  "lastUpdated": "2026-11-09T18:55:44+08:00",
+  "snapshot": "2026-11-09 18:57 Asia/Taipei (UTC+08:00)",
+  "lastUpdated": "2026-11-09T18:57:51+08:00",
   "branch": "1.0.0.11.Integration.P3.Worktree",
-  "head": "0516288d189d356596991f4df75b02f06f507d30",
-  "headline": "階段3：P3-02、P3-03、P3-05已驗收（3/9包）；現無進行中工作包，下一組P3-01與P3-04。DMZ三類前置仍待確認。",
+  "head": "7394dd79186d930d6dcf294c2bcb69d7f7fdacb1",
+  "headline": "階段3完成3/9包；目前P3-01黃金資料與P3-04 SQL去重進行中，兩包無相依且檔案互斥。",
   "notices": [
     {
       "id": "plan-3.5-summary",
@@ -414,7 +414,7 @@ const DATA = {
       "phaseId": "階段 3",
       "level": "info",
       "title": "P3 進度摘要",
-      "body": "2026-11-09 18:55 Asia/Taipei (UTC+08:00)：P3-02、P3-03、P3-05已驗收，現無進行中工作包；P3-05產品0516288d固定guard八項通過：Release5082另Debug7。推送核對後才開下一組P3-01與P3-04。",
+      "body": "2026-11-09 18:57 Asia/Taipei (UTC+08:00)：P3-02／03／05已驗收並推送核對7394dd79；目前P3-01與P3-04兩包進行中，各自短路徑worktree、檔案互斥；其餘未開工。",
       "steps": [
         "2026-11-09 13:20 Asia/Taipei (UTC+08:00)：P3-01與P3-02新增專案都會更動sln，依檔案歸屬先串行做P3-02；P3-01僅唯讀調查。",
         "2026-11-09 13:20 Asia/Taipei (UTC+08:00)：P3-00原始證據已逐檔核對並複製至耐久ignored evidence，沒有將秘密或原始輸出加入版控。",
@@ -425,9 +425,10 @@ const DATA = {
         "2026-11-09 18:12 Asia/Taipei (UTC+08:00)：更正原測試合計歸屬：依原始守門第2／8區段，Release 22組共5,027個；第3／8區段Debug tracer 7個，合計5,034個。舊記載將合計稱全方案，現已訂正，原始證據未變。",
         "2026-11-09 18:15 Asia/Taipei (UTC+08:00)：P3-03與P3-05開工。P3-03從保留停放提交選取自身程式接續；P3-05只改Queue與Queue tests。只規劃即將動工兩包，規劃納入各包第一個程式提交；沒有提前啟動相依包。",
         "2026-11-09 18:41 Asia/Taipei (UTC+08:00)：P3-03驗收：指定三契約、原始bytes／取消／100次A-B隔離、不可改寫清單與1024映射上限通過；Host65、Tenancy84；固定guard八項exit0，行96.00%、分支98.27%。P3-05仍active，規劃／開工紀錄已併P3-03首個程式提交，未增加規劃型提交。",
-        "2026-11-09 18:55 Asia/Taipei (UTC+08:00)：P3-05驗收：預設容量1000／4分區、先reserve再Commit、原例外交共用通知、完整drain與計數歸零；guard八項exit0。舊主機兩項斷言已精確對齊正式queue缺handler，未弱化fail-closed。"
+        "2026-11-09 18:55 Asia/Taipei (UTC+08:00)：P3-05驗收：預設容量1000／4分區、先reserve再Commit、原例外交共用通知、完整drain與計數歸零；guard八項exit0。舊主機兩項斷言已精確對齊正式queue缺handler，未弱化fail-closed。",
+        "2026-11-09 18:57 Asia/Taipei (UTC+08:00)：P3-01與P3-04開工，規劃納入各包程式首提交，不另作規劃紀錄提交。SQL整合先用LocalDB，P3-09仍等待DMZ／遠端權限／測試主機SQL三類缺項。"
       ],
-      "lastUpdated": "2026-11-09T18:55:44+08:00"
+      "lastUpdated": "2026-11-09T18:57:51+08:00"
     }
   ],
   "userActions": [
@@ -514,7 +515,7 @@ const DATA = {
       "actual": "",
       "current": true,
       "done": 3,
-      "active": 0
+      "active": 2
     },
     {
       "id": "階段 4",
@@ -1056,13 +1057,13 @@ const DATA = {
       "id": "P3-01",
       "phaseId": "階段 3",
       "name": "舊行為的黃金資料：關鍵字、事件樣本、回覆內容",
-      "status": "todo",
+      "status": "active",
       "deps": "—",
       "live": "無",
       "timebox": "1 天",
       "doneAt": "",
       "commit": "",
-      "note": "103 個關鍵字與 12 種事件樣本"
+      "note": "2026-11-09 18:57 Asia/Taipei (UTC+08:00)：已開工；P3-02已驗收，與另一包無相依且檔案互斥；未驗收。"
     },
     {
       "id": "P3-02",
@@ -1092,13 +1093,13 @@ const DATA = {
       "id": "P3-04",
       "phaseId": "階段 3",
       "name": "去重（平台 SQL）",
-      "status": "todo",
+      "status": "active",
       "deps": "P3-02",
       "live": "測試主機 SQL",
       "timebox": "1 天",
       "doneAt": "",
       "commit": "",
-      "note": "Codex 在測試主機建表；逾時回 503"
+      "note": "2026-11-09 18:57 Asia/Taipei (UTC+08:00)：已開工；P3-02已驗收，與另一包無相依且檔案互斥；未驗收。"
     },
     {
       "id": "P3-05",
@@ -1601,7 +1602,74 @@ const DATA = {
       "note": "首個正式 Plugin 佈署 goodshepherdback 之前"
     }
   ],
-  "active": [],
+  "active": [
+    {
+      "id": "P3-01",
+      "startedAt": "2026-11-09 18:57 Asia/Taipei (UTC+08:00)",
+      "timebox": "1 天",
+      "next": "依本包TDD完成黃金資料；協調者複核後固定guard。",
+      "dod": [
+        [
+          "指定測試",
+          "no",
+          "待實作與驗證"
+        ],
+        [
+          "固定guard",
+          "no",
+          "待產品提交"
+        ],
+        [
+          "新專案覆蓋率",
+          "no",
+          "P3-01工具需80%"
+        ],
+        [
+          "實機",
+          "na",
+          "本包無實機要求"
+        ],
+        [
+          "回報與進度",
+          "no",
+          "開工狀態已更新，待驗收報告"
+        ]
+      ]
+    },
+    {
+      "id": "P3-04",
+      "startedAt": "2026-11-09 18:57 Asia/Taipei (UTC+08:00)",
+      "timebox": "1 天",
+      "next": "依本包TDD完成SQL去重；協調者複核後固定guard。",
+      "dod": [
+        [
+          "指定測試",
+          "no",
+          "待實作與驗證"
+        ],
+        [
+          "固定guard",
+          "no",
+          "待產品提交"
+        ],
+        [
+          "新專案覆蓋率",
+          "na",
+          "無新專案"
+        ],
+        [
+          "實機",
+          "no",
+          "本機SQL整合尚待執行"
+        ],
+        [
+          "回報與進度",
+          "no",
+          "開工狀態已更新，待驗收報告"
+        ]
+      ]
+    }
+  ],
   "gates": [
     {
       "item": "方案建置（Release）",
@@ -1734,6 +1802,46 @@ const DATA = {
       "proposal": "階段5更新回復前置保留只改FileVersion是否足夠的風險，驗實際執行追蹤及部分信任通知鏈；對精確自有錯誤先AllColumns DPAPI備份再清理，不放寬metadata／R2／權限。",
       "impact": "P2-12修復證據與階段5更新回復前置；不更動AssemblyVersion或計畫3.4正文。",
       "status": "已寫入 3.5（2026-11-09）"
+    },
+    {
+      "id": "P3-PROP-001",
+      "problem": "P3-01要求工具不進sln，與AGENTS最新所有新csproj立即入sln規則相衝。",
+      "evidence": "使用者已明確核定立即入方案；P3-01規劃及原始要求可追溯。",
+      "proposal": "依使用者授權加入sln，下版統一正文；不改3.5。",
+      "impact": "P3-01；01／02已按檔案衝突串行。",
+      "status": "依最新使用者要求執行，待下版統一"
+    },
+    {
+      "id": "P3-PROP-002",
+      "problem": "AGENTS引用的cross-user-isolation-and-performance指南與review指南目前不存在。",
+      "evidence": "讀取路徑失敗；AGENTS本身已有完整隔離與生命周期硬規則。",
+      "proposal": "先遵AGENTS與現存duplicate-row契約，不新增空白spec冒充；下版補正式指南。",
+      "impact": "所有P3工作包。",
+      "status": "待使用者階段末核定"
+    },
+    {
+      "id": "P3-PROP-003",
+      "problem": "主副本無法支持「103個中文關鍵字」數量。",
+      "evidence": "唯讀調查110判斷、104字面詞、101忽略大小寫、88含漢字；P3-01工具將實算覆核。",
+      "proposal": "以指定主副本完整實測為準，不混Sunny副本湊數，下版修數量描述。",
+      "impact": "P3-01／07。",
+      "status": "P3-01忠實產生，待階段末核定"
+    },
+    {
+      "id": "P3-PROP-004",
+      "problem": "舊Exact／Group大小寫行為與P3-07英文忽略大小寫且100%舊意圖可能衝突。",
+      "evidence": "調查Exact ToFrozenDictionary未帶comparer；P3-01將編譯原函式驗證。",
+      "proposal": "忠實記舊黃金；把新英文契約與明確行為差異分列，不能冒稱完全相同；不明個案留待核定。",
+      "impact": "P3-01／07。",
+      "status": "待黃金實證後於階段末交付"
+    },
+    {
+      "id": "P3-PROP-005",
+      "problem": "副本存在堂次／歡迎／取消等差異，主副本多個媒體handler尚是no-op。",
+      "evidence": "research/legacy-source-findings.md；P3-01回覆與事件追溯將實證。",
+      "proposal": "採可證明主副本，不混無證據業務差異；04明列語音Bearer修正另立測試，原未接通與新增接通分開回報。",
+      "impact": "P3-01／06／08。",
+      "status": "待階段末核定"
     }
   ],
   "decisions": [

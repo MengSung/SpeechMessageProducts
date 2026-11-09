@@ -1,0 +1,18 @@
+{
+  "destination": "U00000000000000000000000000000000",
+  "events": [
+    {
+      "type": "leave",
+      "mode": "active",
+      "timestamp": 1735689600000,
+      "source": {
+        "type": "group",
+        "groupId": "C00000000000000000000000000000000"
+      },
+      "webhookEventId": "01JGFJJZ000000000000000009",
+      "deliveryContext": {
+        "isRedelivery": false
+      }
+    }
+  ]
+}

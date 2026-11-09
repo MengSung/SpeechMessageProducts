@@ -1,0 +1,30 @@
+{
+  "destination": "U00000000000000000000000000000000",
+  "events": [
+    {
+      "type": "message",
+      "mode": "active",
+      "timestamp": 1735689600000,
+      "source": {
+        "type": "user",
+        "userId": "U00000000000000000000000000000000"
+      },
+      "webhookEventId": "01JGFJJZ000000000000000005",
+      "deliveryContext": {
+        "isRedelivery": false
+      },
+      "replyToken": "00000000000000000000000000000000",
+      "message": {
+        "id": "10000000000004",
+        "type": "sticker",
+        "packageId": "1",
+        "stickerId": "1",
+        "stickerResourceType": "STATIC",
+        "keywords": [
+          "synthetic"
+        ],
+        "quoteToken": "synthetic-quote-token"
+      }
+    }
+  ]
+}

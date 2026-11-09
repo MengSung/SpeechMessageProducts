@@ -1,0 +1,25 @@
+/* 檔案整體說明
+目的與定位：本檔由 LegacyCompiler 在記憶體產生，只把合成字串交給真正舊 matcher，並回傳觀察值。
+主要功能與流程：每筆清除上筆階段與規則，執行原 GetHandlerType；觀察版只由插樁寫欄位，原版維持空觀察。
+使用邊界與維護：本型別屬單次 collectible context，唯一 owner 串行執行並最終卸載；不連網、不保存真實資料，不是新 matcher 或外部服務替身。
+*/
+public static class GoldenBridge
+{
+    /// <summary>本次輸入的原始匹配階段；每次執行前重設。</summary>
+    public static string Stage = "Unknown";
+    /// <summary>本次原判斷的字面詞或 rule id；不保存其他請求狀態。</summary>
+    public static string Rule = "";
+    /// <summary>呼叫真正舊來源並回傳純字串值，不傳出舊型別或 context 參照。</summary>
+    public static string[] Run(string message)
+    {
+        Stage = "Unknown"; Rule = "";
+        var result = LineMessagePlugIn.Processors.Keywords.MessageRoutingKeywords.GetHandlerType(message);
+        return new[] { result.ToString(), Stage, Rule };
+    }
+    /// <summary>保留原比較結果與短路順序，只在原判斷為真時記下來源 id。</summary>
+    public static bool Observe(bool value, string rule)
+    {
+        if (value) Rule = rule;
+        return value;
+    }
+}

@@ -1,12 +1,12 @@
 {
   "id": "p3-01-legacy-golden",
   "title": "P3-01 舊行為黃金資料",
-  "status": "planning",
+  "status": "in_progress",
   "complexity": "L",
   "risk": "medium",
   "domain": "tools",
-  "currentPhase": "planning",
-  "nextAction": "P3-02驗收後啟動獨立worktree實作",
+  "currentPhase": "implementation",
+  "nextAction": "TDD實作；協調者複核及固定守門",
   "createdAt": "2026-11-09T13:41:00+08:00",
   "branch": "p3/P3-01"
 }

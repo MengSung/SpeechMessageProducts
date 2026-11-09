@@ -1,0 +1,27 @@
+{
+  "destination": "U00000000000000000000000000000000",
+  "events": [
+    {
+      "type": "message",
+      "mode": "active",
+      "timestamp": 1735689600000,
+      "source": {
+        "type": "user",
+        "userId": "U00000000000000000000000000000000"
+      },
+      "webhookEventId": "01JGFJJZ000000000000000004",
+      "deliveryContext": {
+        "isRedelivery": false
+      },
+      "replyToken": "00000000000000000000000000000000",
+      "message": {
+        "id": "10000000000003",
+        "type": "location",
+        "title": "Synthetic origin",
+        "address": "Synthetic address",
+        "latitude": 0,
+        "longitude": 0
+      }
+    }
+  ]
+}

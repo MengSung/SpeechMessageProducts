@@ -1,0 +1,23 @@
+{
+  "destination": "U00000000000000000000000000000000",
+  "events": [
+    {
+      "type": "accountLink",
+      "mode": "active",
+      "timestamp": 1735689600000,
+      "source": {
+        "type": "user",
+        "userId": "U00000000000000000000000000000000"
+      },
+      "webhookEventId": "01JGFJJZ000000000000000011",
+      "deliveryContext": {
+        "isRedelivery": false
+      },
+      "replyToken": "00000000000000000000000000000000",
+      "link": {
+        "result": "ok",
+        "nonce": "synthetic-nonce-not-a-credential"
+      }
+    }
+  ]
+}

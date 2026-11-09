@@ -1,0 +1,19 @@
+{
+  "destination": "U00000000000000000000000000000000",
+  "events": [
+    {
+      "type": "join",
+      "mode": "active",
+      "timestamp": 1735689600000,
+      "source": {
+        "type": "group",
+        "groupId": "C00000000000000000000000000000000"
+      },
+      "webhookEventId": "01JGFJJZ000000000000000008",
+      "deliveryContext": {
+        "isRedelivery": false
+      },
+      "replyToken": "00000000000000000000000000000000"
+    }
+  ]
+}
