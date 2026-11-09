@@ -23,11 +23,12 @@
     "11-09-p3-01-legacy-golden",
     "11-09-p3-03-signature",
     "11-09-p3-05-bounded-queue",
-    "11-09-p3-04-sql-dedupe"
+    "11-09-p3-04-sql-dedupe",
+    "11-09-p3-06-event-dispatch"
   ],
   "parent": null,
   "relatedFiles": [],
-  "notes": "2026-11-09 19:53 Asia/Taipei (UTC+08:00)：P3-04驗收；P3已完成5／9包。目前進行中：無；其餘未開工，09前置仍缺。",
+  "notes": "2026-11-10 01:44 Asia/Taipei (UTC+08:00)：P3-06驗收完成，固定guard、首次push與ls-remote均核對ae96f737；P3已完成6／9包。目前沒有進行中的包；P3-07～P3-09未開工，09前置仍缺。",
   "meta": {
     "baseCommit": "12cfde7279eb3ea250e0226c51324029d8011631",
     "authorizationAt": "2026-11-09T13:20:00+08:00",

@@ -240,11 +240,11 @@ footer{margin-top:36px;color:var(--muted);font-size:12.5px;text-align:center}
  */
 const DATA = {
   "planVersion": "3.5",
-  "snapshot": "2026-11-10 01:22 Asia/Taipei (UTC+08:00)",
-  "lastUpdated": "2026-11-10T01:22:00+08:00",
+  "snapshot": "2026-11-10 01:44 Asia/Taipei (UTC+08:00)",
+  "lastUpdated": "2026-11-10T01:44:33+08:00",
   "branch": "1.0.0.11.Integration.P3.Worktree",
-  "head": "d0878449",
-  "headline": "2026-11-10 01:22 Asia/Taipei (UTC+08:00)：P3-06開工資料已對齊 3.5 DATA；P3已完成5／9包。目前進行中：P3-06；P3-07～P3-09未開工，09前置仍缺。",
+  "head": "ae96f737",
+  "headline": "2026-11-10 01:44 Asia/Taipei (UTC+08:00)：P3-06已完成固定guard、驗收與首次推送核對；P3已完成6／9包。目前沒有進行中的包；P3-07～P3-09未開工，09前置仍缺。",
   "notices": [
     {
       "id": "plan-3.5-summary",
@@ -414,7 +414,7 @@ const DATA = {
       "phaseId": "階段 3",
       "level": "info",
       "title": "P3 進度摘要",
-      "body": "2026-11-10 01:22 Asia/Taipei (UTC+08:00)：P3-06開工資料已對齊 3.5 DATA；P3已完成5／9包。目前進行中：P3-06；P3-07～P3-09未開工，09前置仍缺。",
+      "body": "2026-11-10 01:44 Asia/Taipei (UTC+08:00)：P3-06已完成固定guard、驗收與首次推送核對；P3已完成6／9包。目前沒有進行中的包；P3-07～P3-09未開工，09前置仍缺。",
       "steps": [
         "2026-11-09 13:20 Asia/Taipei (UTC+08:00)：P3-01與P3-02新增專案都會更動sln，依檔案歸屬先串行做P3-02；P3-01僅唯讀調查。",
         "2026-11-09 13:20 Asia/Taipei (UTC+08:00)：P3-00原始證據已逐檔核對並複製至耐久ignored evidence，沒有將秘密或原始輸出加入版控。",
@@ -430,9 +430,10 @@ const DATA = {
         "2026-11-09 19:53 Asia/Taipei (UTC+08:00)：P3-01驗收。完成真舊比對器黃金工具、731筆合成輸入、12類事件及28個回覆契約。共用9a93c0f4固定完整守門通過；新工具net10行覆蓋率97.95%（478／488）；本包focused37個、整合Host104個通過；無實機要求。",
         "2026-11-09 19:53 Asia/Taipei (UTC+08:00)：P3-04驗收。完成四欄A.8平台SQL去重、五秒操作期限及每日有界清理。共用9a93c0f4固定完整守門通過；沒有新專案；Debug／Release各59個一般測試、協調者真LocalDB10個通過，零失敗／略過；SQL資料庫與mdf／ldf殘留0，LocalDB還原Stopped。這不是P3-09遠端部署。",
         "2026-11-09 20:00 Asia/Taipei (UTC+08:00)：P3-06開工；依P3-01黃金資料與P3-05 queue 契約移植真事件分派、Core業務規則及語音 annotation adapter。只規劃本包，P3-07／P3-08不提前規劃；本包無實機要求，完整驗證與守門由協調者獨占。",
-        "2026-11-10 01:22 Asia/Taipei (UTC+08:00)：P3-06開工資料修正為頁面契約使用的 active 狀態，active 清單列出唯一進行中包；尚未驗收，不填寫完成提交或完成時間。"
+        "2026-11-10 01:22 Asia/Taipei (UTC+08:00)：P3-06開工資料修正為頁面契約使用的 active 狀態，active 清單列出唯一進行中包；尚未驗收，不填寫完成提交或完成時間。",
+        "2026-11-10 01:44 Asia/Taipei (UTC+08:00)：P3-06完成離線測試、固定 C:\\smv\\guard 對 ae96f737 的 §8.1 八項守門、驗收回報與首次 push；遠端 SHA 已以 git ls-remote 核對相同。P3-07／P3-08未提前規劃，P3-09仍待前置缺項到位。"
       ],
-      "lastUpdated": "2026-11-10T01:22:00+08:00"
+      "lastUpdated": "2026-11-10T01:44:33+08:00"
     }
   ],
   "userActions": [
@@ -1121,14 +1122,13 @@ const DATA = {
       "id": "P3-06",
       "phaseId": "階段 3",
       "name": "事件分派與處理器移植",
-      "status": "active",
+      "status": "done",
       "deps": "P3-01、P3-05",
       "live": "無",
       "timebox": "1 天",
-      "doneAt": "",
-      "commit": "",
-      "current": true,
-      "note": "2026-11-09 20:00 Asia/Taipei (UTC+08:00)：依P3-01黃金與P3-05 queue 開工；一次一個事件類型，超過時間盒拆 a／b。"
+      "doneAt": "2026-11-10 01:44 Asia/Taipei (UTC+08:00)",
+      "commit": "ae96f737",
+      "note": "2026-11-09 20:00 Asia/Taipei (UTC+08:00)：依P3-01黃金與P3-05 queue 開工；一次一個事件類型，超過時間盒拆 a／b。2026-11-10 01:44 Asia/Taipei (UTC+08:00)：固定guard、離線測試、審查摘要、驗收回報完成；首次push與ls-remote均核對ae96f737。"
     },
     {
       "id": "P3-07",
@@ -1607,78 +1607,43 @@ const DATA = {
       "note": "首個正式 Plugin 佈署 goodshepherdback 之前"
     }
   ],
-  "active": [
-    {
-      "id": "P3-06",
-      "phaseId": "階段 3",
-      "startedAt": "2026-11-09 20:00 Asia/Taipei (UTC+08:00)",
-      "timebox": "1 天",
-      "dod": [
-        [
-          "真事件分派與 Core 規則接通",
-          "no",
-          "實作與受影響測試已完成，尚待固定 guard 與包驗收。"
-        ],
-        [
-          "群組／聊天室 actor 隔離及正式範圍查詢",
-          "no",
-          "離線隔離測試已完成，尚未完成本包最終驗收。"
-        ],
-        [
-          "語音下載、annotation 與資源清理",
-          "no",
-          "有界串流與清理測試已完成，尚待固定 guard 與驗收證據。"
-        ],
-        [
-          "正式 DI、啟動 fail-closed 與跨層測試",
-          "no",
-          "完整 Release 方案測試已通過，尚未完成固定 guard。"
-        ],
-        [
-          "文件、編碼、審查及固定 guard 全部完成",
-          "no",
-          "文件與 I18n 守門已通過，固定 guard、提交與遠端核對尚未完成。"
-        ]
-      ],
-      "next": "完成本包修正後重跑全套守門，建立首個程式提交並於驗收後 push；不提前規劃 P3-07／P3-08。"
-    }
-  ],
+  "active": [],
   "gates": [
     {
       "item": "方案建置（Release）",
       "result": "ok",
-      "at": "2026-11-09 19:53 Asia/Taipei (UTC+08:00)",
-      "note": "固定guard對9a93c0f4完整八項通過；Release全方案5,145個、另Debug7個；0失敗，文件0失敗。"
+      "at": "2026-11-10 01:42 Asia/Taipei (UTC+08:00)",
+      "note": "固定guard對ae96f737完整八項通過；Release全方案5,223個、另Debug tracer 7個；0失敗／略過。"
     },
     {
       "item": "全方案測試",
       "result": "ok",
-      "at": "2026-11-09 19:53 Asia/Taipei (UTC+08:00)",
-      "note": "固定guard對9a93c0f4完整八項通過；Release全方案5,145個、另Debug7個；0失敗，文件0失敗。"
+      "at": "2026-11-10 01:42 Asia/Taipei (UTC+08:00)",
+      "note": "固定guard對ae96f737完整八項通過；Release全方案5,223個、另Debug tracer 7個；0失敗／略過。"
     },
     {
       "item": "檔案說明檢查",
       "result": "ok",
-      "at": "2026-11-09 19:53 Asia/Taipei (UTC+08:00)",
-      "note": "固定guard對9a93c0f4完整八項通過；Release全方案5,145個、另Debug7個；0失敗，文件0失敗。"
+      "at": "2026-11-10 01:42 Asia/Taipei (UTC+08:00)",
+      "note": "固定guard對ae96f737完整八項通過；Release全方案5,223個、另Debug tracer 7個；0失敗／略過。"
     },
     {
       "item": "文字編碼（P3 範圍）",
       "result": "ok",
-      "at": "2026-11-09 18:55 Asia/Taipei (UTC+08:00)",
-      "note": "固定guard Changed編碼78檔0問題。"
+      "at": "2026-11-10 01:42 Asia/Taipei (UTC+08:00)",
+      "note": "固定guard對ae96f737執行 Changed 編碼檢查，0問題。"
     },
     {
       "item": "重複程式掃描",
       "result": "ok",
-      "at": "2026-11-09 18:55 Asia/Taipei (UTC+08:00)",
-      "note": "固定guard39專案／1,135檔，新增0／過期0。"
+      "at": "2026-11-10 01:42 Asia/Taipei (UTC+08:00)",
+      "note": "固定guard對ae96f737掃描，新增重複0／過期基準0。"
     },
     {
       "item": "I18nCheck verify",
       "result": "ok",
-      "at": "2026-11-09 18:55 Asia/Taipei (UTC+08:00)",
-      "note": "固定guard I18n verify通過。"
+      "at": "2026-11-10 01:42 Asia/Taipei (UTC+08:00)",
+      "note": "固定guard對ae96f737執行 I18nCheck verify，生成檔與資源驗證通過。"
     },
     {
       "item": "雲端 CI（GitHub）",
