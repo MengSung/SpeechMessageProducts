@@ -7,3 +7,4 @@
 - 外部分析：Claude 完成，Gemini 403／503 未完成；不得宣稱雙模型成功。後續仍由專案自復原入口呼叫兩個 backend 審查。
 - 單目錄搬移：正式分支只做 fast-forward，不 merge、不 force push；evidence 逐檔 SHA-256 核對後才刪來源。清理舊分支前核對遠端正式 P3 已包含全部提交。
 - P3-09 前置缺項仍未到位，不開工；不碰 main、PR、設計 v3.4 或階段 4。
+- 2026-11-10 07:51 Asia/Taipei (UTC+08:00)：決策：將 ResolvedWebhookScope 兩個相容建構式的預設 churchName 由 CJK 顯示字串改為 Church。理由：正式 resolver 一律傳入 CRM 實際教會名稱；相容建構式只供離線／既有呼叫端，使用中性非本地化占位可消除 CJK 棘輪新增而不改變正式輸出。

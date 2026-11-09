@@ -43,7 +43,7 @@ public sealed class ResolvedWebhookScope
         string accessToken,
         Entity? contact,
         string organizationName = "GoodShepherd",
-        string churchName = "教會",
+        string churchName = "Church",
         string memberCulture = "zh-TW",
         string formatCulture = "zh-TW",
         string? senderIconUrl = null)
@@ -68,7 +68,7 @@ public sealed class ResolvedWebhookScope
         Entity? contact,
         Entity? displayContact,
         string organizationName = "GoodShepherd",
-        string churchName = "教會",
+        string churchName = "Church",
         string memberCulture = "zh-TW",
         string formatCulture = "zh-TW",
         string? senderIconUrl = null)
