@@ -20,7 +20,8 @@
   "subtasks": [],
   "children": [
     "11-09-p3-02-host-endpoints",
-    "11-09-p3-01-legacy-golden"
+    "11-09-p3-01-legacy-golden",
+    "11-09-p3-03-signature"
   ],
   "parent": null,
   "relatedFiles": [],
