@@ -1,0 +1,12 @@
+{
+  "id": "integration-p3",
+  "title": "階段3 LINE Webhook主機",
+  "status": "in_progress",
+  "complexity": "L+",
+  "risk": "high",
+  "domain": "backend",
+  "currentPhase": "planning",
+  "nextAction": "開工前置與P3-02子代理",
+  "createdAt": "2026-11-09T13:20:00+08:00",
+  "branch": "1.0.0.11.Integration.P3.Worktree"
+}

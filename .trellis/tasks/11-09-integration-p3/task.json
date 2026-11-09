@@ -3,7 +3,7 @@
   "name": "integration-p3",
   "title": "方案整合與國際化 P3 LINE Webhook 主機",
   "description": "依實作計畫 3.5 階段 3 完成 P3-01～P3-09；P3-00 切換提交為本階段起點，先完成 §7.3 前置缺項檢查並於全部到位後執行 P3-09。",
-  "status": "planning",
+  "status": "in_progress",
   "dev_type": null,
   "scope": null,
   "package": null,
@@ -13,7 +13,7 @@
   "createdAt": "2026-11-09",
   "completedAt": null,
   "branch": "1.0.0.11.Integration.P3.Worktree",
-  "base_branch": "1.0.0.11.Integration.P2.Worktree",
+  "base_branch": "1.0.0.11.Integration.P3.Worktree",
   "worktree_path": null,
   "commit": null,
   "pr_url": null,
@@ -22,5 +22,9 @@
   "parent": null,
   "relatedFiles": [],
   "notes": "P3-00 僅建立階段父任務與 preflight；尚未啟動 P3 工作包。",
-  "meta": {}
+  "meta": {
+    "baseCommit": "12cfde7279eb3ea250e0226c51324029d8011631",
+    "authorizationAt": "2026-11-09T13:20:00+08:00",
+    "maxActivePackages": 2
+  }
 }

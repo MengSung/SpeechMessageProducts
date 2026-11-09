@@ -240,11 +240,11 @@ footer{margin-top:36px;color:var(--muted);font-size:12.5px;text-align:center}
  */
 const DATA = {
   "planVersion": "3.5",
-  "snapshot": "2026-11-09 12:57 Asia/Taipei (UTC+08:00)",
-  "lastUpdated": "2026-11-09T12:57:05+08:00",
-  "branch": "1.0.0.11.Integration.P2.Worktree",
-  "head": "f65f6d73",
-  "headline": "P3-00 切換完成：固定 guard 全部通過，P2 推送 SHA 已核對、P3 已快轉；本輪停止，未開始任何 P3 工作包。",
+  "snapshot": "2026-11-09 13:20 Asia/Taipei (UTC+08:00)",
+  "lastUpdated": "2026-11-09T13:20:00+08:00",
+  "branch": "1.0.0.11.Integration.P3.Worktree",
+  "head": "12cfde72",
+  "headline": "階段3已授權開工；先完成前置與P3-02規劃，DMZ等三類缺項不阻擋離線包，P3-09仍待實機條件。",
   "notices": [
     {
       "id": "plan-3.5-summary",
@@ -408,6 +408,18 @@ const DATA = {
         "2026-11-09 12:33 Asia/Taipei (UTC+08:00)：階段 2 已驗收並封存父任務；目前只處理 P3-00，尚待固定 guard、推送與 P3 快轉。",
         "2026-11-09 12:57 Asia/Taipei (UTC+08:00)：本輪完整守門 f65f6d73：Release 4976／4976、Debug tracer 7／7、進度頁 28／28；編碼 388 檔 0 問題、說明 1335 檔 0 失敗、重複碼 new 0、I18n 通過。76 個既有建置警告、0 錯誤；不新增 NoWarn 或 Plugin Debug 補建行。"
       ]
+    },
+    {
+      "id": "phase-3-summary",
+      "phaseId": "階段 3",
+      "level": "info",
+      "title": "P3 進度摘要",
+      "body": "2026-11-09 13:20 Asia/Taipei (UTC+08:00)：已依使用者授權開工階段3，固定起點12cfde72；本機LocalDB前置通過，DMZ／遠端權限／測試主機SQL仍待確認。未進行實機部署。",
+      "steps": [
+        "2026-11-09 13:20 Asia/Taipei (UTC+08:00)：P3-01與P3-02新增專案都會更動sln，依檔案歸屬先串行做P3-02；P3-01僅唯讀調查。",
+        "2026-11-09 13:20 Asia/Taipei (UTC+08:00)：P3-00原始證據已逐檔核對並複製至耐久ignored evidence，沒有將秘密或原始輸出加入版控。"
+      ],
+      "lastUpdated": "2026-11-09T13:20:00+08:00"
     }
   ],
   "userActions": [
@@ -491,7 +503,8 @@ const DATA = {
       "id": "階段 3",
       "name": "LINE Webhook 主機",
       "planned": "4～6 個工作天",
-      "actual": ""
+      "actual": "",
+      "current": true
     },
     {
       "id": "階段 4",
