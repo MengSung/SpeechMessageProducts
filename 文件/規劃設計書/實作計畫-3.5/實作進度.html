@@ -240,11 +240,11 @@ footer{margin-top:36px;color:var(--muted);font-size:12.5px;text-align:center}
  */
 const DATA = {
   "planVersion": "3.5",
-  "snapshot": "2026-11-09 13:20 Asia/Taipei (UTC+08:00)",
-  "lastUpdated": "2026-11-09T13:20:00+08:00",
+  "snapshot": "2026-11-09 13:24 Asia/Taipei (UTC+08:00)",
+  "lastUpdated": "2026-11-09T13:24:53+08:00",
   "branch": "1.0.0.11.Integration.P3.Worktree",
-  "head": "12cfde72",
-  "headline": "階段3已授權開工；先完成前置與P3-02規劃，DMZ等三類缺項不阻擋離線包，P3-09仍待實機條件。",
+  "head": "b3574578",
+  "headline": "階段3：P3-02主機與端點實作中（1包）；P3-01只讀來源調查。三類DMZ前置缺項不阻擋離線包。",
   "notices": [
     {
       "id": "plan-3.5-summary",
@@ -417,9 +417,10 @@ const DATA = {
       "body": "2026-11-09 13:20 Asia/Taipei (UTC+08:00)：已依使用者授權開工階段3，固定起點12cfde72；本機LocalDB前置通過，DMZ／遠端權限／測試主機SQL仍待確認。未進行實機部署。",
       "steps": [
         "2026-11-09 13:20 Asia/Taipei (UTC+08:00)：P3-01與P3-02新增專案都會更動sln，依檔案歸屬先串行做P3-02；P3-01僅唯讀調查。",
-        "2026-11-09 13:20 Asia/Taipei (UTC+08:00)：P3-00原始證據已逐檔核對並複製至耐久ignored evidence，沒有將秘密或原始輸出加入版控。"
+        "2026-11-09 13:20 Asia/Taipei (UTC+08:00)：P3-00原始證據已逐檔核對並複製至耐久ignored evidence，沒有將秘密或原始輸出加入版控。",
+        "2026-11-09 13:24 Asia/Taipei (UTC+08:00)：P3-02子任務與檔案歸屬已建立並開工，只有一包active；所有守門與推送仍由協調者獨占。"
       ],
-      "lastUpdated": "2026-11-09T13:20:00+08:00"
+      "lastUpdated": "2026-11-09T13:24:53+08:00"
     }
   ],
   "userActions": [
@@ -504,7 +505,9 @@ const DATA = {
       "name": "LINE Webhook 主機",
       "planned": "4～6 個工作天",
       "actual": "",
-      "current": true
+      "current": true,
+      "done": 0,
+      "active": 1
     },
     {
       "id": "階段 4",
@@ -1058,13 +1061,13 @@ const DATA = {
       "id": "P3-02",
       "phaseId": "階段 3",
       "name": "LineWebhook 主機專案與端點（只組裝）",
-      "status": "todo",
+      "status": "active",
       "deps": "P2-01",
       "live": "無",
       "timebox": "半天",
       "doneAt": "",
       "commit": "",
-      "note": "新增 2 個 csproj 並同步加入方案"
+      "note": "2026-11-09 13:24 Asia/Taipei (UTC+08:00)：先建立主機／三介面端點與失敗關閉契約，暫時worktree實作；未註冊正式實作拒絕啟動，不代表實機完成。"
     },
     {
       "id": "P3-03",
@@ -1591,7 +1594,41 @@ const DATA = {
       "note": "首個正式 Plugin 佈署 goodshepherdback 之前"
     }
   ],
-  "active": [],
+  "active": [
+    {
+      "id": "P3-02",
+      "startedAt": "2026-11-09 13:24 Asia/Taipei (UTC+08:00)",
+      "timebox": "半天",
+      "next": "隔離子代理TDD實作與相關測試，之後協調者守門。",
+      "dod": [
+        [
+          "測試",
+          "no",
+          "尚在實作"
+        ],
+        [
+          "守門",
+          "no",
+          "待接回後固定guard"
+        ],
+        [
+          "覆蓋率",
+          "no",
+          "新增主機目標待量測"
+        ],
+        [
+          "實機",
+          "na",
+          "本包沒有實機驗收要求"
+        ],
+        [
+          "回報與進度",
+          "no",
+          "先列active，驗收後補一頁回報"
+        ]
+      ]
+    }
+  ],
   "gates": [
     {
       "item": "方案建置（Release）",

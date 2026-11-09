@@ -1,0 +1,9 @@
+{"file": "AGENTS.md", "reason": "P3-02 required contract"}
+{"file": ".trellis/spec/backend/error-handling.md", "reason": "P3-02 required contract"}
+{"file": ".trellis/spec/backend/strict-analyzer-contract.md", "reason": "P3-02 required contract"}
+{"file": ".trellis/spec/backend/directory-structure.md", "reason": "P3-02 required contract"}
+{"file": ".trellis/spec/backend/file-documentation-contract.md", "reason": "P3-02 required contract"}
+{"file": ".trellis/spec/backend/tenancy-channel-contract.md", "reason": "P3-02 required contract"}
+{"file": ".trellis/spec/backend/hosting-culture-contract.md", "reason": "P3-02 required contract"}
+{"file": ".trellis/spec/guides/cross-layer-thinking-guide.md", "reason": "P3-02 required contract"}
+{"file": ".trellis/spec/guides/code-reuse-thinking-guide.md", "reason": "P3-02 required contract"}

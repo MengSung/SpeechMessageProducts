@@ -1,0 +1,31 @@
+{
+  "id": "p3-02-host-endpoints",
+  "name": "p3-02-host-endpoints",
+  "title": "P3-02 主機專案與端點",
+  "description": "",
+  "status": "in_progress",
+  "dev_type": null,
+  "scope": null,
+  "package": null,
+  "priority": "P2",
+  "creator": "codex",
+  "assignee": "codex",
+  "createdAt": "2026-11-09",
+  "completedAt": null,
+  "branch": "p3/P3-02",
+  "base_branch": "1.0.0.11.Integration.P3.Worktree",
+  "worktree_path": "C:/smw/P3-02",
+  "commit": null,
+  "pr_url": null,
+  "subtasks": [],
+  "children": [],
+  "parent": "11-09-integration-p3",
+  "relatedFiles": [],
+  "notes": "",
+  "meta": {
+    "startedAt": "2026-11-09T13:24:53+08:00",
+    "timebox": "半天",
+    "baseCommit": "12cfde7279eb3ea250e0226c51324029d8011631",
+    "fileOwnership": "design.md"
+  }
+}
