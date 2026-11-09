@@ -39,6 +39,18 @@ public enum KeywordMatchMode
     Contains
 }
 
+/// <summary>
+/// 關鍵字表在單一語系的輸入正規化策略；預設策略遵守通用 Localization 契約，
+/// 舊產品相容策略則只移除首尾空白並保留原始大小寫與 Unicode 字面值。
+/// </summary>
+public enum KeywordNormalizationMode
+{
+    /// <summary>使用 NFKC、Unicode 空白合併及 Invariant 小寫。</summary>
+    InvariantNfkc,
+    /// <summary>只沿用舊路由的首尾空白移除，不執行 Unicode 轉換或大小寫折疊。</summary>
+    LegacyTrimOrdinal
+}
+
 /// <summary>關鍵字只回傳穩定意圖代碼，不執行授權、產品業務或資料寫入。</summary>
 public interface IKeywordCatalog
 {
@@ -68,8 +80,10 @@ public sealed class KeywordCatalog : IKeywordCatalog
     /// <param name="cultures">產品可能同時啟用的語系；缺省繁中與英文。</param>
     /// <param name="matchModes">穩定資源鍵對應的伺服器模式，缺省完全比對。</param>
     /// <param name="priorityOrder">產品明確核定的部分比對優先順序；由穩定 key 指定，不以翻譯文字排序取代業務優先序。</param>
+    /// <param name="normalizationModes">依語系指定輸入正規化；未指定的語系使用 NFKC／Invariant 小寫。</param>
     public KeywordCatalog(SystemTextTable system, IReadOnlyList<string>? cultures = null,
-        IReadOnlyDictionary<string, KeywordMatchMode>? matchModes = null, IReadOnlyList<TextKey>? priorityOrder = null)
+        IReadOnlyDictionary<string, KeywordMatchMode>? matchModes = null, IReadOnlyList<TextKey>? priorityOrder = null,
+        IReadOnlyDictionary<string, KeywordNormalizationMode>? normalizationModes = null)
     {
 #if NET10_0_OR_GREATER
         ArgumentNullException.ThrowIfNull(system);
@@ -94,9 +108,18 @@ public sealed class KeywordCatalog : IKeywordCatalog
         var allIntents = new Dictionary<string, string>(StringComparer.Ordinal);
         var usedModeKeys = new HashSet<string>(StringComparer.Ordinal);
         var availableKeys = new HashSet<string>(StringComparer.Ordinal);
+        var usedNormalizationCultures = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         var aliasCount = 0;
         foreach (var culture in selectedCultures)
         {
+            var normalizationMode = KeywordNormalizationMode.InvariantNfkc;
+            if (normalizationModes is not null && normalizationModes.TryGetValue(culture, out var configuredNormalization))
+            {
+                if (configuredNormalization is < KeywordNormalizationMode.InvariantNfkc or > KeywordNormalizationMode.LegacyTrimOrdinal)
+                    throw new ArgumentException("Unknown keyword normalization mode.", nameof(normalizationModes));
+                normalizationMode = configuredNormalization;
+                usedNormalizationCultures.Add(culture);
+            }
             var rules = new List<KeywordRule>();
             foreach (var pair in system.GetTable(culture).OrderBy(pair => pair.Key, StringComparer.Ordinal))
             {
@@ -115,22 +138,25 @@ public sealed class KeywordCatalog : IKeywordCatalog
                 foreach (var alias in original.Split('|'))
                 {
                     if (++aliasCount > 20_000) throw new ArgumentException("Keyword table exceeds its bounded alias count.", nameof(system));
-                    var normalized = Normalize(alias);
+                    var normalized = Normalize(alias, normalizationMode);
                     if (normalized.Length == 0) throw new ArgumentException("Keyword aliases cannot be empty.", nameof(system));
-                    if (allIntents.TryGetValue(normalized, out var existing) && !string.Equals(existing, intent, StringComparison.Ordinal))
+                    var conflictKey = Normalize(alias, KeywordNormalizationMode.InvariantNfkc);
+                    if (allIntents.TryGetValue(conflictKey, out var existing) && !string.Equals(existing, intent, StringComparison.Ordinal))
                         throw new ArgumentException("Normalized keyword maps to conflicting intents.", nameof(system));
-                    allIntents[normalized] = intent;
+                    allIntents[conflictKey] = intent;
                     rules.Add(new KeywordRule(normalized, intent, mode,
                         priorityRanks.TryGetValue(pair.Key, out var rank) ? rank : int.MaxValue));
                 }
             }
-            candidate.Add(culture, new CultureKeywords(rules));
+            candidate.Add(culture, new CultureKeywords(rules, normalizationMode));
         }
         if (!candidate.ContainsKey("zh-TW")) throw new ArgumentException("Keyword cultures must include zh-TW.", nameof(cultures));
         if (matchModes is not null && matchModes.Keys.Any(key => !usedModeKeys.Contains(key)))
             throw new ArgumentException("Keyword mode references an unknown resource key.", nameof(matchModes));
         if (priorityRanks.Keys.Any(key => !availableKeys.Contains(key)))
             throw new ArgumentException("Keyword priority references an unknown resource key.", nameof(priorityOrder));
+        if (normalizationModes is not null && normalizationModes.Keys.Any(key => !usedNormalizationCultures.Contains(key)))
+            throw new ArgumentException("Keyword normalization references an unknown culture.", nameof(normalizationModes));
 #if NET10_0_OR_GREATER
         tables = candidate.ToFrozenDictionary(candidate.Comparer);
 #else
@@ -153,19 +179,16 @@ public sealed class KeywordCatalog : IKeywordCatalog
         intentCode = string.Empty;
         if (string.IsNullOrWhiteSpace(input) || input.Length > 16_384) return false;
         if (churchCultures.Count > 64) throw new ArgumentException("Church cultures exceed their bounded count.", nameof(churchCultures));
-        string normalized;
-        try { normalized = Normalize(input); }
-        catch (ArgumentException) { return false; } // 無效 Unicode 是預期輸入拒絕，不能記錄原始訊息或當成功路由。
-        if (TryCulture(memberCulture, normalized, out intentCode)) return true;
+        if (TryCulture(memberCulture, input, out intentCode)) return true;
         foreach (var culture in churchCultures)
             if (!string.Equals(culture, memberCulture, StringComparison.OrdinalIgnoreCase)
-                && TryCulture(culture, normalized, out intentCode)) return true;
-        return TryCulture("zh-TW", normalized, out intentCode);
+                && TryCulture(culture, input, out intentCode)) return true;
+        return TryCulture("zh-TW", input, out intentCode);
     }
 
     /// <summary>查固定語系表；未知語系不建立新表或永久保存字串。</summary>
     /// <param name="culture">本次候選語系。</param>
-    /// <param name="input">已正規化輸入。</param>
+    /// <param name="input">本次未正規化輸入。</param>
     /// <param name="intent">本次意圖或空字串。</param>
     /// <returns>指定語系明確命中時為真。</returns>
     private bool TryCulture(string culture, string input, out string intent)
@@ -175,12 +198,14 @@ public sealed class KeywordCatalog : IKeywordCatalog
         return false;
     }
 
-    /// <summary>NFKC 後合併所有 Unicode 空白並去除兩端，最後 Invariant 小寫；配置只屬本次操作。</summary>
+    /// <summary>依語系策略建立本次查詢文字；配置只屬本次操作，不保留呼叫輸入。</summary>
     /// <param name="input">固定別名或已限長的輸入。</param>
+    /// <param name="mode">本次語系使用的正規化策略。</param>
     /// <returns>供 Ordinal 比對的字串。</returns>
-    private static string Normalize(string input)
+    private static string Normalize(string input, KeywordNormalizationMode mode)
     {
         if (input.Length > 16_384) throw new ArgumentException("Keyword input exceeds its bounded length.", nameof(input));
+        if (mode == KeywordNormalizationMode.LegacyTrimOrdinal) return input.Trim();
         var normalized = input.Normalize(NormalizationForm.FormKC);
         var builder = new StringBuilder(normalized.Length);
         var pendingSpace = false;
@@ -214,6 +239,8 @@ public sealed class KeywordCatalog : IKeywordCatalog
     /// <summary>單一語系固定表，完全比對優先；部分比對依模式、明確業務優先序、長度及 Ordinal 排序，不在查詢時修改。</summary>
     private sealed class CultureKeywords
     {
+        /// <summary>本語系建立與查詢共同使用的正規化策略，不保存呼叫輸入。</summary>
+        private readonly KeywordNormalizationMode normalizationMode;
 #if NET10_0_OR_GREATER
         /// <summary>唯讀完全比對熱路徑，不配置或鎖定。</summary>
         private readonly FrozenDictionary<string, string> exact;
@@ -226,8 +253,10 @@ public sealed class KeywordCatalog : IKeywordCatalog
 
         /// <summary>候選已完成跨語系衝突檢查；同一意圖同字的等價別名可共享路由項，但不處理資料庫列去重。</summary>
         /// <param name="rules">本次建構獨佔的規則。</param>
-        internal CultureKeywords(IReadOnlyList<KeywordRule> rules)
+        /// <param name="normalizationMode">本語系固定的輸入正規化策略。</param>
+        internal CultureKeywords(IReadOnlyList<KeywordRule> rules, KeywordNormalizationMode normalizationMode)
         {
+            this.normalizationMode = normalizationMode;
             var candidate = new Dictionary<string, string>(StringComparer.Ordinal);
             foreach (var rule in rules)
                 if (rule.Mode == KeywordMatchMode.Exact) candidate[rule.Text] = rule.Intent;
@@ -242,19 +271,22 @@ public sealed class KeywordCatalog : IKeywordCatalog
         }
 
         /// <summary>依已建立的模式查詢；完全未命中確定清空輸出，永不記錄原始輸入。</summary>
-        /// <param name="input">單次正規化文字。</param>
+        /// <param name="input">單次未正規化文字。</param>
         /// <param name="intent">本次意圖或空字串。</param>
         /// <returns>明確匹配時為真。</returns>
         internal bool TryMatch(string input, out string intent)
         {
-            if (exact.TryGetValue(input, out var matched)) { intent = matched; return true; }
+            string normalized;
+            try { normalized = Normalize(input, normalizationMode); }
+            catch (ArgumentException) { intent = string.Empty; return false; }
+            if (exact.TryGetValue(normalized, out var matched)) { intent = matched; return true; }
             foreach (var rule in partial)
             {
-                if (rule.Mode == KeywordMatchMode.Prefix ? input.StartsWith(rule.Text, StringComparison.Ordinal)
+                if (rule.Mode == KeywordMatchMode.Prefix ? normalized.StartsWith(rule.Text, StringComparison.Ordinal)
 #if NET10_0_OR_GREATER
-                    : input.Contains(rule.Text, StringComparison.Ordinal))
+                    : normalized.Contains(rule.Text, StringComparison.Ordinal))
 #else
-                    : input.IndexOf(rule.Text, StringComparison.Ordinal) >= 0)
+                    : normalized.IndexOf(rule.Text, StringComparison.Ordinal) >= 0)
 #endif
                 { intent = rule.Intent; return true; }
             }

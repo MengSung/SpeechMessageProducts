@@ -43,12 +43,6 @@ namespace SpeechMessage.Localization.Resources
             new string?[] { "Deployment.Schema.Plan.Safety", "只新增，既有衝突停止；metadata snapshot 不是資料庫備份。", null, "［只新增，既有衝突停止；metadata snapshot 不是資料庫備份。ǂǂǂǂǂǂǂǂǂǂǂǂǂǂǂ］" },
             new string?[] { "Deployment.Schema.Plan.SchemaHash", "Schema SHA-256", null, "［Schema SHA-256ǂǂǂǂǂǂ］" },
             new string?[] { "Deployment.Schema.Plan.Title", "P1 結構新增計畫", null, "［P1 結構新增計畫ǂǂǂǂ］" },
-            new string?[] { "Keyword.Journal", "日誌|Report", "Report", "［日誌|Reportǂǂǂǂ］" },
-            new string?[] { "Keyword.NotifyLink", "連動|Notify", "Notify", "［連動|Notifyǂǂǂǂ］" },
-            new string?[] { "Keyword.PrayerRequest", "代禱|Pray|緊急代禱", "Pray", "［代禱|Pray|緊急代禱ǂǂǂǂǂ］" },
-            new string?[] { "Keyword.QrCode", "QR|qr", "QR", "［QR|qrǂǂ］" },
-            new string?[] { "Keyword.QueryUserId", "ID|Id|id", "ID", "［ID|Id|idǂǂǂǂ］" },
-            new string?[] { "Keyword.Rpg", "RPG|Rpg|rpg", "RPG", "［RPG|Rpg|rpgǂǂǂǂǂ］" },
             new string?[] { "Line.Sender.Template", "{churchName}助手", null, "［{churchName}助手ǂ］" },
         };
     }

@@ -52,6 +52,19 @@ public sealed class SystemTextTable : ISystemTextCatalog
     /// <summary>從生成的固定資料建立全部語系，建立失敗不發布半成品。</summary>
     public SystemTextTable() : this(SharedTextData.Cultures, SharedTextData.Rows) { }
 
+    /// <summary>
+    /// 從另一個已由資源產生器驗證的固定資料表建立系統文字快照。
+    /// 這個公開接縫讓產品組件可以重用相同的驗證、後備與來源複製流程，
+    /// 不需要複製第二套 resx 解析器；建立完成後不保留呼叫端陣列的可變所有權。
+    /// </summary>
+    /// <param name="cultures">每欄的固定語系識別，必須包含 zh-TW。</param>
+    /// <param name="rows">每列依序為鍵及各語系文字；缺翻譯為 null。</param>
+    /// <returns>已驗證且與輸入資料隔離的不可變系統文字快照。</returns>
+    /// <exception cref="ArgumentNullException">任一輸入為 null。</exception>
+    /// <exception cref="InvalidDataException">語系、列寬、鍵或繁中值不符合既有契約。</exception>
+    public static SystemTextTable FromRows(IReadOnlyList<string> cultures, IReadOnlyList<string?[]> rows) =>
+        new(cultures, rows);
+
     /// <summary>驗證及複製生成資料；不保留外部陣列，重複鍵／語系或不完整列直接拒絕。</summary>
     /// <param name="cultures">每欄的固定語系識別，必須包含 zh-TW。</param>
     /// <param name="rows">每列依序為鍵及各語系文字；缺翻譯為 null。</param>

@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+檔案整體說明
+
+目的與定位：GoodShepherd 產品已核定英文關鍵字資源，供 I18nCheck 與正式 Keyword catalog
+建立英文會友輸入的固定 alias；只包含 P3-07 允許的六個既有英文命令。
+
+主要功能與流程：本檔由資源驗證器與中性 GoodShepherdText.resx 配對讀取，缺少的英文
+Keyword key 由系統表回退到中性文字，但本檔明確宣告的六個 key 才能作為英文來源 alias。
+產生的 GoodShepherdText.g.cs 由 I18nCheck 重生，不能手改。
+
+使用邊界與維護：本檔只保存固定編譯資源，不含 request、使用者、教會、憑證、I/O 或
+背景工作；修改後須執行 generate check 與 verify，並由雙目標測試驗證文化後備。
+-->
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="Keyword.PrayerRequest" xml:space="preserve"><value>Pray</value></data>
+  <data name="Keyword.Journal" xml:space="preserve"><value>Report</value></data>
+  <data name="Keyword.QrCode" xml:space="preserve"><value>QR</value></data>
+  <data name="Keyword.Rpg" xml:space="preserve"><value>RPG</value></data>
+  <data name="Keyword.QueryUserId" xml:space="preserve"><value>ID</value></data>
+  <data name="Keyword.NotifyLink" xml:space="preserve"><value>Notify</value></data>
+</root>

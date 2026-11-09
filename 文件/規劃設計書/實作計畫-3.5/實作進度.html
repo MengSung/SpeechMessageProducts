@@ -240,11 +240,11 @@ footer{margin-top:36px;color:var(--muted);font-size:12.5px;text-align:center}
  */
 const DATA = {
   "planVersion": "3.5",
-  "snapshot": "2026-11-10 01:44 Asia/Taipei (UTC+08:00)",
-  "lastUpdated": "2026-11-10T01:44:33+08:00",
+  "snapshot": "2026-11-10 03:37 Asia/Taipei (UTC+08:00)",
+  "lastUpdated": "2026-11-10T03:37:17+08:00",
   "branch": "1.0.0.11.Integration.P3.Worktree",
-  "head": "ae96f737",
-  "headline": "2026-11-10 01:44 Asia/Taipei (UTC+08:00)：P3-06已完成固定guard、驗收與首次推送核對；P3已完成6／9包。目前沒有進行中的包；P3-07～P3-09未開工，09前置仍缺。",
+  "head": "b155fcd1",
+  "headline": "2026-11-10 03:37 Asia/Taipei (UTC+08:00)：P3-07已開工，規劃與檔案歸屬已建立；P3已完成6／9包，目前只有P3-07進行中；P3-08未規劃，P3-09前置仍缺。",
   "notices": [
     {
       "id": "plan-3.5-summary",
@@ -414,7 +414,7 @@ const DATA = {
       "phaseId": "階段 3",
       "level": "info",
       "title": "P3 進度摘要",
-      "body": "2026-11-10 01:44 Asia/Taipei (UTC+08:00)：P3-06已完成固定guard、驗收與首次推送核對；P3已完成6／9包。目前沒有進行中的包；P3-07～P3-09未開工，09前置仍缺。",
+      "body": "2026-11-10 03:37 Asia/Taipei (UTC+08:00)：P3-07已開工，規劃與檔案歸屬已建立；P3已完成6／9包，目前只有P3-07進行中；P3-08未規劃，P3-09前置仍缺。",
       "steps": [
         "2026-11-09 13:20 Asia/Taipei (UTC+08:00)：P3-01與P3-02新增專案都會更動sln，依檔案歸屬先串行做P3-02；P3-01僅唯讀調查。",
         "2026-11-09 13:20 Asia/Taipei (UTC+08:00)：P3-00原始證據已逐檔核對並複製至耐久ignored evidence，沒有將秘密或原始輸出加入版控。",
@@ -431,9 +431,10 @@ const DATA = {
         "2026-11-09 19:53 Asia/Taipei (UTC+08:00)：P3-04驗收。完成四欄A.8平台SQL去重、五秒操作期限及每日有界清理。共用9a93c0f4固定完整守門通過；沒有新專案；Debug／Release各59個一般測試、協調者真LocalDB10個通過，零失敗／略過；SQL資料庫與mdf／ldf殘留0，LocalDB還原Stopped。這不是P3-09遠端部署。",
         "2026-11-09 20:00 Asia/Taipei (UTC+08:00)：P3-06開工；依P3-01黃金資料與P3-05 queue 契約移植真事件分派、Core業務規則及語音 annotation adapter。只規劃本包，P3-07／P3-08不提前規劃；本包無實機要求，完整驗證與守門由協調者獨占。",
         "2026-11-10 01:22 Asia/Taipei (UTC+08:00)：P3-06開工資料修正為頁面契約使用的 active 狀態，active 清單列出唯一進行中包；尚未驗收，不填寫完成提交或完成時間。",
-        "2026-11-10 01:44 Asia/Taipei (UTC+08:00)：P3-06完成離線測試、固定 C:\\smv\\guard 對 ae96f737 的 §8.1 八項守門、驗收回報與首次 push；遠端 SHA 已以 git ls-remote 核對相同。P3-07／P3-08未提前規劃，P3-09仍待前置缺項到位。"
+        "2026-11-10 01:44 Asia/Taipei (UTC+08:00)：P3-06完成離線測試、固定 C:\\smv\\guard 對 ae96f737 的 §8.1 八項守門、驗收回報與首次 push；遠端 SHA 已以 git ls-remote 核對相同。P3-07／P3-08未提前規劃，P3-09仍待前置缺項到位。",
+        "2026-11-10 03:37 Asia/Taipei (UTC+08:00)：P3-07開工；只規劃本包，已記錄P3-01黃金實測為110個決策項／104個不同字面值／731筆案例，P3-08未規劃，規劃將併入本包第一個程式提交。"
       ],
-      "lastUpdated": "2026-11-10T01:44:33+08:00"
+      "lastUpdated": "2026-11-10T03:37:17+08:00"
     }
   ],
   "userActions": [
@@ -519,7 +520,7 @@ const DATA = {
       "planned": "4～6 個工作天",
       "actual": "",
       "current": true,
-      "done": 5,
+      "done": 6,
       "active": 1
     },
     {
@@ -1134,13 +1135,13 @@ const DATA = {
       "id": "P3-07",
       "phaseId": "階段 3",
       "name": "關鍵字路由改用 IKeywordCatalog",
-      "status": "todo",
+      "status": "active",
       "deps": "P3-01、P3-06",
       "live": "無",
       "timebox": "半天",
       "doneAt": "",
       "commit": "",
-      "note": "舊關鍵字 100% 相同意圖"
+      "note": "2026-11-10 03:37 Asia/Taipei (UTC+08:00)：已開工；依P3-01黃金建立Keyword catalog與handler接入，先做731筆離線回歸；只有本包進行中。"
     },
     {
       "id": "P3-08",
@@ -1607,7 +1608,41 @@ const DATA = {
       "note": "首個正式 Plugin 佈署 goodshepherdback 之前"
     }
   ],
-  "active": [],
+  "active": [
+    {
+      "id": "P3-07",
+      "startedAt": "2026-11-10 03:37 Asia/Taipei (UTC+08:00)",
+      "timebox": "半天",
+      "next": "先補731筆黃金與英文／pseudo指定測試，再接入GoodShepherd catalog與DI；P3-08不提前規劃。",
+      "dod": [
+        [
+          "指定測試",
+          "no",
+          "待紅綠與雙目標"
+        ],
+        [
+          "固定guard",
+          "no",
+          "待程式提交"
+        ],
+        [
+          "新專案覆蓋率",
+          "na",
+          "不新增專案"
+        ],
+        [
+          "實機",
+          "na",
+          "本包無實機要求"
+        ],
+        [
+          "回報與進度",
+          "no",
+          "開工已更新，待驗收"
+        ]
+      ]
+    }
+  ],
   "gates": [
     {
       "item": "方案建置（Release）",

@@ -40,15 +40,15 @@ public sealed class ChurchTextOverrideValidatorTests
         var rows = new List<ChurchTextOverride>
         {
             Row(context, "Common.Diagnostics.Ping", "same"),
-            Row(context, "Keyword.Journal", "same"),
+            Row(context, "Common.Diagnostics.InvalidConfiguration", "same"),
             Row(context, "Common.Diagnostics.Culture", "language={culture}")
         };
         var snapshot = Validator().Validate(context, rows);
         rows.Clear();
         Assert.True(snapshot.TryGetText("*", new TextKey("Common.Diagnostics.Ping"), out var ping));
         Assert.Equal("same", ping);
-        Assert.True(snapshot.TryGetText("*", new TextKey("Keyword.Journal"), out var journal));
-        Assert.Equal("same", journal);
+        Assert.True(snapshot.TryGetText("*", new TextKey("Common.Diagnostics.InvalidConfiguration"), out var invalidConfiguration));
+        Assert.Equal("same", invalidConfiguration);
         Assert.True(snapshot.TryGetText("*", new TextKey("Common.Diagnostics.Culture"), out var culture));
         Assert.Equal("language={culture}", culture);
     }
@@ -74,14 +74,14 @@ public sealed class ChurchTextOverrideValidatorTests
         {
             case "unknown": rows.Add(Row(context, "Unknown.Diagnostics.Ping", "unknown")); break;
             case "missing-parameter": rows.Add(Row(context, "Common.Diagnostics.Culture", "missing")); break;
-            case "extra-parameter": rows.Add(Row(context, "Keyword.Journal", "{extra}")); break;
-            case "text-budget": rows.Add(Row(context, "Keyword.Journal", new string('x', 2001))); break;
-            case "culture-budget": rows.Add(Row(context, "Keyword.Journal", "ok", new string('a', 17))); break;
-            case "invalid-culture": rows.Add(Row(context, "Keyword.Journal", "ok", "en_!")); break;
+            case "extra-parameter": rows.Add(Row(context, "Common.Diagnostics.InvalidConfiguration", "{extra}")); break;
+            case "text-budget": rows.Add(Row(context, "Common.Diagnostics.InvalidConfiguration", new string('x', 2001))); break;
+            case "culture-budget": rows.Add(Row(context, "Common.Diagnostics.InvalidConfiguration", "ok", new string('a', 17))); break;
+            case "invalid-culture": rows.Add(Row(context, "Common.Diagnostics.InvalidConfiguration", "ok", "en_!")); break;
             case "duplicate-key": rows.Add(Row(context, "Common.Diagnostics.Ping", "other")); break;
-            case "duplicate-id": rows.Add(new ChurchTextOverride(rows[0].Id, context.ChurchId, new TextKey("Keyword.Journal"), "*", "other")); break;
-            case "foreign-church": rows.Add(Row(Context(), "Keyword.Journal", "other")); break;
-            case "unicode": rows.Add(Row(context, "Keyword.Journal", "\uD800")); break;
+            case "duplicate-id": rows.Add(new ChurchTextOverride(rows[0].Id, context.ChurchId, new TextKey("Common.Diagnostics.InvalidConfiguration"), "*", "other")); break;
+            case "foreign-church": rows.Add(Row(Context(), "Common.Diagnostics.InvalidConfiguration", "other")); break;
+            case "unicode": rows.Add(Row(context, "Common.Diagnostics.InvalidConfiguration", "\uD800")); break;
         }
         Assert.ThrowsAny<Exception>(() => Validator().Validate(context, rows));
     }
@@ -124,8 +124,8 @@ public sealed class ChurchTextOverrideValidatorTests
     public void Validate_TextBoundaries_AllowExplicitEmptyAndMaximum()
     {
         var context = Context();
-        Assert.NotNull(Validator().Validate(context, new[] { Row(context, "Keyword.Journal", new string('x', 2000)) }));
-        Assert.NotNull(Validator().Validate(context, new[] { Row(context, "Keyword.Journal", string.Empty) }));
+        Assert.NotNull(Validator().Validate(context, new[] { Row(context, "Common.Diagnostics.InvalidConfiguration", new string('x', 2000)) }));
+        Assert.NotNull(Validator().Validate(context, new[] { Row(context, "Common.Diagnostics.InvalidConfiguration", string.Empty) }));
     }
 
     /// <summary>語系大小寫不能繞過同 key/culture 衝突；不同文化同一 key 仍合法。</summary>
@@ -134,9 +134,9 @@ public sealed class ChurchTextOverrideValidatorTests
     {
         var context = Context();
         Assert.ThrowsAny<Exception>(() => Validator().Validate(context, new[]
-        { Row(context, "Keyword.Journal", "one", "en"), Row(context, "Keyword.Journal", "two", "EN") }));
+        { Row(context, "Common.Diagnostics.InvalidConfiguration", "one", "en"), Row(context, "Common.Diagnostics.InvalidConfiguration", "two", "EN") }));
         Assert.NotNull(Validator().Validate(context, new[]
-        { Row(context, "Keyword.Journal", "one", "en"), Row(context, "Keyword.Journal", "two", "zh-TW") }));
+        { Row(context, "Common.Diagnostics.InvalidConfiguration", "one", "en"), Row(context, "Common.Diagnostics.InvalidConfiguration", "two", "zh-TW") }));
     }
 
     /// <summary>使用正式系統資源及完整測試名稱，不縮短 E.4 的字面以讓驗證通過。</summary>

@@ -20,6 +20,7 @@ public static partial class WebhookServiceRegistration
     static partial void RegisterDispatch(IServiceCollection services, IConfiguration configuration)
     {
         services.AddSingleton<SpeechMessage.Localization.IChurchClock>(_ => new SpeechMessage.Localization.ChurchClock(new SystemChurchUtcClock()));
+        services.AddSingleton<IKeywordCatalog>(_ => GoodShepherdKeywordCatalog.Create());
         services.AddScoped<IWebhookScopeResolver, WebhookScopeResolver>();
         services.AddScoped<WebhookTextHandler>();
         services.AddHttpClient<WebhookHttpAdapter>(client => client.Timeout = System.Threading.Timeout.InfiniteTimeSpan)

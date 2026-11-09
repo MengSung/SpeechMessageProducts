@@ -38,8 +38,12 @@ priority 由產品核定，不能讓翻譯字長或字典枚舉順序變更舊�
   日期／數字使用 context.FormatCulture；只替換一次，插入值不能再次成為模板。
 - enabled/released 交集選偏好，再教會預設，最後 zh-TW；英文預設未發布。
   qps-ploc 須 opt-in、教會啟用且格式 en-US；正式啟動用 Validate 拒絕任何偽語系設定。
-- Keyword NFKC、Unicode 空白 trim/collapse、Invariant lower。跨所有可共用文化的同字異意圖建表拒絕。
+- Keyword 預設使用 NFKC、Unicode 空白 trim/collapse、Invariant lower。跨所有可共用文化的同字異意圖建表拒絕。
   會友→教會其他→繁中；各文化 exact 先於 partial，partial 依明確模式與 priority。
+  `KeywordCatalog` 可由產品 factory 以 `normalizationModes` 為特定既有文化明確指定
+  `LegacyTrimOrdinal`（只做首尾空白移除、保留字面大小寫與 Unicode）；未指定文化永遠使用
+  `InvariantNfkc`。此例外只用於已驗收 legacy golden 的相容邊界，不得在 handler、呼叫端或
+  全域預設複製，且建表衝突檢查仍使用 NFKC 等價鍵，避免同字異意圖被策略差異掩蓋。
 - 上限：snapshot 5000 列、模板 32768、參數 256、語系 64、關鍵字別名 20000、輸入 16384。
   不儲存呼叫輸入、偏好、context 或參數值；固定系統資源可長期唯讀共用。
   元件本身無 I/O、timer、queue、背景 Task 或 disposable owner。

@@ -16,8 +16,25 @@ namespace SpeechMessageProducts.GoodShepherd.Core.Messaging;
 public sealed class WebhookTextHandler
 {
     private readonly IChurchClock clock;
-    /// <summary>借入共用教會時鐘，不取得時鐘所有權，不使用程序時區。</summary>
-    public WebhookTextHandler(IChurchClock clock) => this.clock = clock ?? throw new ArgumentNullException(nameof(clock));
+    private readonly IKeywordCatalog keywordCatalog;
+
+    /// <summary>
+    /// 借入共用教會時鐘與已驗證關鍵字 catalog，不取得時鐘或 catalog 的外部資源所有權。
+    /// 這個相容入口只供既有離線呼叫端使用；正式 Host 由 DI 注入 singleton catalog。
+    /// </summary>
+    public WebhookTextHandler(IChurchClock clock) : this(clock, GoodShepherdKeywordCatalog.Create()) { }
+
+    /// <summary>
+    /// 建立單事件文字處理器；catalog 只含固定資源，不能攜帶 request、actor 或租戶狀態。
+    /// </summary>
+    /// <param name="clock">供領域操作使用的借入時鐘。</param>
+    /// <param name="keywordCatalog">由組合根提供的不可變關鍵字 catalog。</param>
+    public WebhookTextHandler(IChurchClock clock, IKeywordCatalog keywordCatalog)
+    {
+        this.clock = clock ?? throw new ArgumentNullException(nameof(clock));
+        this.keywordCatalog = keywordCatalog ?? throw new ArgumentNullException(nameof(keywordCatalog));
+    }
+
     /// <summary>
     /// 保留沒有 display source 的相容入口；單人訊息以 actor Contact 作為顯示來源，
     /// 群組／聊天室文字則由 Host 呼叫下方多來源 overload。
@@ -38,7 +55,9 @@ public sealed class WebhookTextHandler
         CancellationToken ct)
     {
         ct.ThrowIfCancellationRequested();
-        var intent = TransitionalIntentResolver.Resolve(description);
+        var intent = keywordCatalog.TryMatch("zh-TW", Array.Empty<string>(), description, out var matchedIntent)
+            ? matchedIntent
+            : "Unknown";
         if (intent == "Registration") return new WebhookBusinessResult(WebhookBusinessStatus.Rejected, "RegistrationExcluded");
         if (intent is "Help" or "QueryEnrollment" or "QrCode" or "UserReply" or "NotifyLink")
             return new WebhookBusinessResult(WebhookBusinessStatus.ReplyPending, intent + "LegacyReplyPendingP308", "Webhook.Reply." + intent + ".V0");

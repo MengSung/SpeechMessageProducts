@@ -1,0 +1,6 @@
+{"file":".trellis/spec/guides/index.md","reason":"載入共用思考指南與修改前搜尋、跨層資料流契約。"}
+{"file":".trellis/spec/guides/code-reuse-thinking-guide.md","reason":"確保 alias、mode、priority 只由單一產品 factory 擁有。"}
+{"file":".trellis/spec/guides/cross-layer-thinking-guide.md","reason":"追蹤 resx、generated rows、Localization、Core、DI、handler 的跨層資料流。"}
+{"file":".trellis/spec/backend/localization-contract.md","reason":"遵守 IKeywordCatalog 的文化後備、正規化、上限、不可變與隔離契約。"}
+{"file":".trellis/spec/backend/i18n-resource-verification-contract.md","reason":"遵守 resx 唯一來源、Keyword alias 與 generated verify 契約。"}
+{"file":".trellis/spec/backend/file-documentation-contract.md","reason":"新增／修改 C# 檔案時維持繁中檔首說明與文件守門。"}

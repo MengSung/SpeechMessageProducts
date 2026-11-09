@@ -23,6 +23,75 @@ namespace SpeechMessageProducts.GoodShepherd.Core.Tests;
 /// <summary>以窄假 CRM 驗證真正領域入口；不使用會直接回成功的業務 sink。</summary>
 public sealed class WebhookBusinessTests
 {
+    /// <summary>
+    /// 以已驗收 routing.json 逐筆驗證 GoodShepherd catalog；主機預設 zh-TW 仍保留
+    /// 舊 matcher 的大小寫、全形與前後空白結果，Unknown 必須確定不命中。
+    /// </summary>
+    [Fact(DisplayName = "Routing_AllLegacyKeywords_SameIntent")]
+    public void Routing_AllLegacyKeywords_SameIntent()
+    {
+        using var stream = typeof(WebhookBusinessTests).Assembly.GetManifestResourceStream("SpeechMessageProducts.GoodShepherd.Core.Tests.Golden.webhook-routing.json")!;
+        using var reader = new StreamReader(stream);
+        var cases = (JArray)JObject.Parse(reader.ReadToEnd())["cases"]!;
+        var catalog = GoodShepherdKeywordCatalog.Create();
+
+        Assert.Equal(731, cases.Count);
+        foreach (var item in cases)
+        {
+            var expected = (string)item["actualIntent"]!;
+            var matched = catalog.TryMatch("zh-TW", Array.Empty<string>(), (string)item["input"]!, out var intent);
+            Assert.Equal(expected != "Unknown", matched);
+            Assert.Equal(expected, matched ? intent : "Unknown");
+        }
+    }
+
+    /// <summary>英文資源只保留核定的六個既有 alias，並由英文文化策略提供大小寫／全形兼容。</summary>
+    [Theory(DisplayName = "Routing_EnglishKeywordsCaseInsensitive")]
+    [InlineData("ｐＲａｙ", "PrayerRequest")]
+    [InlineData("ＲＥＰＯＲＴ", "Journal")]
+    [InlineData("ｑｒ", "QrCode")]
+    [InlineData("ｒＰｇ", "Rpg")]
+    [InlineData("ｉｄ", "QueryUserId")]
+    [InlineData("ＮＯＴＩＦＹ", "NotifyLink")]
+    public void Routing_EnglishKeywordsCaseInsensitive(string input, string expected)
+    {
+        var catalog = GoodShepherdKeywordCatalog.Create();
+
+        Assert.True(catalog.TryMatch("en", Array.Empty<string>(), input, out var intent));
+        Assert.Equal(expected, intent);
+    }
+
+    /// <summary>偽語系沒有把包裹文字當成業務 alias；未命中後仍由 zh-TW 後備找到中文命令。</summary>
+    [Fact(DisplayName = "Routing_PseudoMember_ChineseKeywordStillWorks")]
+    public void Routing_PseudoMember_ChineseKeywordStillWorks()
+    {
+        var catalog = GoodShepherdKeywordCatalog.Create();
+
+        Assert.True(catalog.TryMatch("qps-ploc", Array.Empty<string>(), "主日出席", out var intent));
+        Assert.Equal("SundayAttendance", intent);
+    }
+
+    /// <summary>
+    /// 注入的 catalog 是 handler 唯一路由來源；連續一次命中與一次未命中時，
+    /// 未命中結果必須清空，不得沿用前次意圖或再次讀取舊 resolver。
+    /// </summary>
+    [Fact(DisplayName = "WebhookTextHandler_UsesInjectedCatalogAndClearsUnknown")]
+    public void WebhookTextHandler_UsesInjectedCatalogAndClearsUnknown()
+    {
+        var catalog = new SequenceKeywordCatalog(("Help", true), (string.Empty, false));
+        var handler = new WebhookTextHandler(new ChurchClock(), catalog);
+        var sdk = new BusinessSdk();
+
+        var first = handler.Handle(sdk, sdk.Actor, "first", CancellationToken.None);
+        var second = handler.Handle(sdk, sdk.Actor, "second", CancellationToken.None);
+
+        Assert.Equal(WebhookBusinessStatus.ReplyPending, first.Status);
+        Assert.Equal("HelpLegacyReplyPendingP308", first.Code);
+        Assert.Equal(WebhookBusinessStatus.Ignored, second.Status);
+        Assert.Equal("UnknownText", second.Code);
+        Assert.Equal(2, catalog.Calls);
+    }
+
     /// <summary>Golden 每個變體都經正式過渡 resolver；保持排序、大小寫及原 matcher 的相容差異。</summary>
     [Fact]
     public void Golden731_UsesRealResolver()
@@ -215,6 +284,25 @@ public sealed class WebhookBusinessTests
         var failure = Assert.Throws<TimeoutException>(() => new WebhookTextHandler(new ChurchClock()).Handle(sdk, sdk.Actor, "RPG", CancellationToken.None));
         Assert.Same(sdk.Failure, failure);
         Assert.Empty(sdk.Updates);
+    }
+
+    /// <summary>只保留本案例的兩次結果，不共享使用者輸入或跨測試狀態。</summary>
+    private sealed class SequenceKeywordCatalog(params (string Intent, bool Matched)[] results) : IKeywordCatalog
+    {
+        private readonly (string Intent, bool Matched)[] results = results;
+        private int index;
+
+        /// <summary>記錄本案例實際經過注入 catalog 的呼叫數。</summary>
+        public int Calls { get; private set; }
+
+        /// <summary>依固定序列回傳合成路由，不執行任何 I/O、背景工作或資源保留。</summary>
+        public bool TryMatch(string memberCulture, IReadOnlyList<string> churchCultures, string input, out string intentCode)
+        {
+            Calls++;
+            var current = results[Math.Min(index++, results.Length - 1)];
+            intentCode = current.Intent;
+            return current.Matched;
+        }
     }
 
     /// <summary>窄 SDK owner 只保存本案例候選與請求，未知操作立即失敗；不連網、不共享狀態。</summary>

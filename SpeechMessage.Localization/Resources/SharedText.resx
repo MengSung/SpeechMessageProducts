@@ -37,10 +37,4 @@
   <data name="Deployment.Schema.Plan.Pending" xml:space="preserve"><value>尚未 Active</value></data>
   <data name="Deployment.Schema.Plan.NoPending" xml:space="preserve"><value>沒有既存待建置索引；新增後仍須重讀確認 Active。</value></data>
   <!-- P1 僅保留六個既有英文命令對應詞；完整 103 詞與產品路由黃金遷移屬 P3-01／P3-07。 -->
-  <data name="Keyword.PrayerRequest" xml:space="preserve"><value>代禱|Pray|緊急代禱</value></data>
-  <data name="Keyword.Journal" xml:space="preserve"><value>日誌|Report</value></data>
-  <data name="Keyword.QrCode" xml:space="preserve"><value>QR|qr</value></data>
-  <data name="Keyword.Rpg" xml:space="preserve"><value>RPG|Rpg|rpg</value></data>
-  <data name="Keyword.QueryUserId" xml:space="preserve"><value>ID|Id|id</value></data>
-  <data name="Keyword.NotifyLink" xml:space="preserve"><value>連動|Notify</value></data>
 </root>

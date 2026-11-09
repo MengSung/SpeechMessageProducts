@@ -1,0 +1,4 @@
+{"file":".trellis/spec/backend/localization-contract.md","reason":"檢查 catalog 正規化、文化 fallback、資源衝突與 bounded lifecycle。"}
+{"file":".trellis/spec/backend/i18n-resource-verification-contract.md","reason":"檢查 resx、generated C#、I18nCheck deterministic generate／verify。"}
+{"file":".trellis/spec/backend/file-documentation-contract.md","reason":"檢查所有變更 C# 與任務文件的說明、UTF-8、CRLF、末尾 CRLF。"}
+{"file":".trellis/spec/guides/cross-layer-thinking-guide.md","reason":"檢查跨 assembly 生成資料、DI 與 handler 邊界，避免資料格式／所有權遺失。"}

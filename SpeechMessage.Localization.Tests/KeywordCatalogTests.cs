@@ -48,7 +48,16 @@ public sealed class KeywordCatalogTests
     [InlineData("notify", "NotifyLink")]
     public void Keyword_EnglishCaseInsensitive(string input, string expected)
     {
-        Assert.True(new KeywordCatalog(new SystemTextTable()).TryMatch("en", ["en"], input, out var intent));
+        var table = new SystemTextTable(["zh-TW", "en"],
+        [
+            ["Keyword.PrayerRequest", "代禱", "Pray"],
+            ["Keyword.Journal", "日誌", "Report"],
+            ["Keyword.QrCode", "QR", "QR"],
+            ["Keyword.Rpg", "RPG", "RPG"],
+            ["Keyword.QueryUserId", "ID", "ID"],
+            ["Keyword.NotifyLink", "連動", "Notify"]
+        ]);
+        Assert.True(new KeywordCatalog(table).TryMatch("en", ["en"], input, out var intent));
         Assert.Equal(expected, intent);
     }
 
@@ -142,5 +151,25 @@ public sealed class KeywordCatalogTests
         Assert.Equal(string.Empty, malformed);
         Assert.False(catalog.TryMatch("en", [], new string('x', 16_385), out var oversized));
         Assert.Equal(string.Empty, oversized);
+    }
+
+    /// <summary>產品可為單一文化固定舊路由的字面比較；這不影響預設 NFKC／Invariant 契約。</summary>
+    [Fact(DisplayName = "關鍵字可選擇舊路由字面正規化")]
+    public void Keyword_LegacyNormalization_PreservesOrdinalTrim()
+    {
+        var table = new SystemTextTable(["zh-TW", "en"], [["Keyword.Legacy", "Group", "group"]]);
+        var catalog = new KeywordCatalog(
+            table,
+            normalizationModes: new Dictionary<string, KeywordNormalizationMode>(StringComparer.OrdinalIgnoreCase)
+            {
+                ["zh-TW"] = KeywordNormalizationMode.LegacyTrimOrdinal
+            });
+
+        Assert.True(catalog.TryMatch("zh-TW", [], " Group ", out var exact));
+        Assert.Equal("Legacy", exact);
+        Assert.False(catalog.TryMatch("zh-TW", [], "GROUP", out _));
+        Assert.False(catalog.TryMatch("zh-TW", [], "Ｇｒｏｕｐ", out _));
+        Assert.True(catalog.TryMatch("en", [], "ＧＲＯＵＰ", out var normalized));
+        Assert.Equal("Legacy", normalized);
     }
 }

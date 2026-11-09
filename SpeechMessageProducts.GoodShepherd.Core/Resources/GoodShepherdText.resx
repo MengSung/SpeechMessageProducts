@@ -209,4 +209,32 @@ ID (查詢您的LINE ID)
   <data name="Webhook.Word.Times" xml:space="preserve"><value>次</value></data>
   <data name="Webhook.Word.Visit" xml:space="preserve"><value>小組探訪</value></data>
   <data name="Webhook.Word.Watch" xml:space="preserve"><value>同工守望</value></data>
+
+  <data name="Keyword.Approval" xml:space="preserve"><value>簽核</value></data>
+  <data name="Keyword.ClassAttendance" xml:space="preserve"><value>第一課簽到|第一課簽退|第七課簽到|第七課簽退|第三課簽到|第三課簽退|第九課簽到|第九課簽退|第二課簽到|第二課簽退|第五課簽到|第五課簽退|第八課簽到|第八課簽退|第六課簽到|第六課簽退|第十一課簽到|第十一課簽退|第十三課簽到|第十三課簽退|第十二課簽到|第十二課簽退|第十五課簽到|第十五課簽退|第十四課簽到|第十四課簽退|第十課簽到|第十課簽退|第四課簽到|第四課簽退</value></data>
+  <data name="Keyword.Devotion" xml:space="preserve"><value>靈修|靈修心得</value></data>
+  <data name="Keyword.EnrollQuery" xml:space="preserve"><value>報名查詢:|報名查詢：</value></data>
+  <data name="Keyword.Enrollment" xml:space="preserve"><value>ENROLL|Enroll|enroll|報名|我想報名|我要報名|活動|活動報名|課程|課程報名</value></data>
+  <data name="Keyword.Equipment" xml:space="preserve"><value>裝備</value></data>
+  <data name="Keyword.HR" xml:space="preserve"><value>人資|休假|差勤</value></data>
+  <data name="Keyword.Help" xml:space="preserve"><value>??</value></data>
+  <data name="Keyword.Homework" xml:space="preserve"><value>作業</value></data>
+  <data name="Keyword.Journal" xml:space="preserve"><value>REPORT|Report|report|日誌</value></data>
+  <data name="Keyword.NotifyLink" xml:space="preserve"><value>Notify|連動</value></data>
+  <data name="Keyword.PastorReply" xml:space="preserve"><value>@回應</value></data>
+  <data name="Keyword.Prayer247" xml:space="preserve"><value>247</value></data>
+  <data name="Keyword.PrayerRequest" xml:space="preserve"><value>PRAY|Pray|pray|代禱|緊急代禱</value></data>
+  <data name="Keyword.QrCode" xml:space="preserve"><value>QR|qr</value></data>
+  <data name="Keyword.QueryEnrollment" xml:space="preserve"><value>我的報名|查詢報名</value></data>
+  <data name="Keyword.QueryUserId" xml:space="preserve"><value>ID</value></data>
+  <data name="Keyword.Registration" xml:space="preserve"><value>//</value></data>
+  <data name="Keyword.RollCall" xml:space="preserve"><value>點名</value></data>
+  <data name="Keyword.Rpg" xml:space="preserve"><value>RPG|Rpg|rpg</value></data>
+  <data name="Keyword.SignIn" xml:space="preserve"><value>簽到</value></data>
+  <data name="Keyword.SmallGroupAttendance" xml:space="preserve"><value>Group|小家?席|小家出席|小組?席|小組出席|小組實體|小組線上</value></data>
+  <data name="Keyword.StaffMeeting" xml:space="preserve"><value>門徒大聚|門徒訓練班|領袖大聚|領袖小講堂</value></data>
+  <data name="Keyword.StaffReport" xml:space="preserve"><value>同工RPG:|同工RPG：|同工守望:|同工守望：|小組探訪:|小組探訪：</value></data>
+  <data name="Keyword.SundayAttendance" xml:space="preserve"><value>SERVICE|Service|service|主崇實體|主崇線上|主日1|主日2|主日6|主日?席|主日出席|主日報到|主日簽到|台語場|周六場|國語場|臺語場|華語場|週六場</value></data>
+  <data name="Keyword.Testimony" xml:space="preserve"><value>@見證</value></data>
+  <data name="Keyword.UserReply" xml:space="preserve"><value>$</value></data>
 </root>

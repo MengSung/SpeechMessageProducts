@@ -38,7 +38,6 @@ public sealed class SystemTextCatalogTests
         "Deployment.Schema.Plan.NoPending", "Deployment.Schema.Plan.Operations", "Deployment.Schema.Plan.Organization",
         "Deployment.Schema.Plan.OrganizationId", "Deployment.Schema.Plan.Pending", "Deployment.Schema.Plan.PlanHash",
         "Deployment.Schema.Plan.Safety", "Deployment.Schema.Plan.SchemaHash", "Deployment.Schema.Plan.Title",
-        "Keyword.Journal", "Keyword.NotifyLink", "Keyword.PrayerRequest", "Keyword.QrCode", "Keyword.QueryUserId", "Keyword.Rpg",
         "Line.Sender.Template"
     };
     /// <summary>
@@ -139,7 +138,7 @@ public sealed class SystemTextCatalogTests
             Assert.False(table is Dictionary<string, string>);
             if (table is IDictionary<string, string> mutable)
                 Assert.Throws<NotSupportedException>(() => mutable["Common.Diagnostics.Ping"] = "caller-change");
-            Assert.Equal(25, table.Count);
+            Assert.Equal(19, table.Count);
             Assert.Equal(ExpectedSystemKeys, table.Keys.OrderBy(key => key, StringComparer.Ordinal));
         }
         Assert.Equal("連線測試成功", catalog.GetText("zh-TW", new TextKey("Common.Diagnostics.Ping")));
@@ -229,7 +228,7 @@ public sealed class SystemTextCatalogTests
     {
         string[] cultures = ["zh-TW", "en"];
         string?[][] rows = [["A.First", "original", null]];
-        var catalog = new SystemTextTable(cultures, rows);
+        var catalog = SystemTextTable.FromRows(cultures, rows);
         cultures[0] = "changed";
         rows[0][1] = "changed";
         rows[0] = ["B.Other", "changed", "changed"];
@@ -296,7 +295,7 @@ public sealed class SystemTextCatalogTests
         var original = catalog.GetTable("zh-TW");
         for (var index = 0; index < 1000; index++) Assert.Same(original, catalog.GetTable("unrecognized-" + index));
         Assert.Same(original, catalog.GetTable("ZH-tw"));
-        Assert.Equal(25, original.Count);
+        Assert.Equal(19, original.Count);
         Assert.Equal(ExpectedSystemKeys, original.Keys.OrderBy(key => key, StringComparer.Ordinal));
     }
 }

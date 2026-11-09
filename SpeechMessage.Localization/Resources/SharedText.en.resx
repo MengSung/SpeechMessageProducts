@@ -5,7 +5,7 @@
 目的與定位：保存SharedText.en的正式文字資源，提供固定key、翻譯與具名參數給I18nCheck驗證及產生器；本檔是文字的單一來源，不在生成C#內手改文案。
 
 主要功能與流程：
-目前宣告6個資源列；鍵身分、參數集合、發布語系與長度受資源守門限制，重複鍵不能用覆寫隱藏。
+目前本檔沒有英文資源列；GoodShepherd 的產品英文關鍵字由產品資源單一來源擁有。
 
 使用邊界與維護：修改前先核對引用此檔的專案、頁面、腳本或CI步驟，保留既有參數、輸出及失敗結束碼。
 涉及寫入、外部命令或暫存資源時，依本檔實際實作的owner及清理路徑處理；說明不能取代執行前的範圍驗證。
@@ -14,10 +14,4 @@
   <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
   <resheader name="version"><value>2.0</value></resheader>
   <!-- 英文仍未預設開放；只提供既有英文命令，不新增顯示文字翻譯。 -->
-  <data name="Keyword.PrayerRequest" xml:space="preserve"><value>Pray</value></data>
-  <data name="Keyword.Journal" xml:space="preserve"><value>Report</value></data>
-  <data name="Keyword.QrCode" xml:space="preserve"><value>QR</value></data>
-  <data name="Keyword.Rpg" xml:space="preserve"><value>RPG</value></data>
-  <data name="Keyword.QueryUserId" xml:space="preserve"><value>ID</value></data>
-  <data name="Keyword.NotifyLink" xml:space="preserve"><value>Notify</value></data>
 </root>
