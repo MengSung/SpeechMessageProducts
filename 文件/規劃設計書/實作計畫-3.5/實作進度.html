@@ -240,11 +240,11 @@ footer{margin-top:36px;color:var(--muted);font-size:12.5px;text-align:center}
  */
 const DATA = {
   "planVersion": "3.5",
-  "snapshot": "2026-11-09 18:06 Asia/Taipei (UTC+08:00)",
-  "lastUpdated": "2026-11-09T18:06:54+08:00",
+  "snapshot": "2026-11-09 18:55 Asia/Taipei (UTC+08:00)",
+  "lastUpdated": "2026-11-09T18:55:44+08:00",
   "branch": "1.0.0.11.Integration.P3.Worktree",
-  "head": "e075ffb2",
-  "headline": "階段3：P3-02主機與端點已驗收（1包）；P3-01只讀來源調查。三類DMZ前置缺項不阻擋離線包。",
+  "head": "0516288d189d356596991f4df75b02f06f507d30",
+  "headline": "階段3：P3-02、P3-03、P3-05已驗收（3/9包）；現無進行中工作包，下一組P3-01與P3-04。DMZ三類前置仍待確認。",
   "notices": [
     {
       "id": "plan-3.5-summary",
@@ -414,7 +414,7 @@ const DATA = {
       "phaseId": "階段 3",
       "level": "info",
       "title": "P3 進度摘要",
-      "body": "2026-11-09 18:41 Asia/Taipei (UTC+08:00)：P3-02與P3-03已驗收；目前只有P3-05有界佇列進行中，其餘未開工。P3-03產品e075ffb2固定guard全通過，Release5050另Debug7；尚未進行實機部署。",
+      "body": "2026-11-09 18:55 Asia/Taipei (UTC+08:00)：P3-02、P3-03、P3-05已驗收，現無進行中工作包；P3-05產品0516288d固定guard八項通過：Release5082另Debug7。推送核對後才開下一組P3-01與P3-04。",
       "steps": [
         "2026-11-09 13:20 Asia/Taipei (UTC+08:00)：P3-01與P3-02新增專案都會更動sln，依檔案歸屬先串行做P3-02；P3-01僅唯讀調查。",
         "2026-11-09 13:20 Asia/Taipei (UTC+08:00)：P3-00原始證據已逐檔核對並複製至耐久ignored evidence，沒有將秘密或原始輸出加入版控。",
@@ -424,9 +424,10 @@ const DATA = {
         "2026-11-09 18:06 Asia/Taipei (UTC+08:00)：依使用者更正，P3-03／P3-05維持planning至P3-02驗收；P3-03原始程式保留在C:/smw/P3-03的a330d711。兩份未追蹤檔已逐檔核對SHA-256後保存在C:/smw/P3-03-preserved-local，主工作樹檔案說明1350檔0失敗。",
         "2026-11-09 18:12 Asia/Taipei (UTC+08:00)：更正原測試合計歸屬：依原始守門第2／8區段，Release 22組共5,027個；第3／8區段Debug tracer 7個，合計5,034個。舊記載將合計稱全方案，現已訂正，原始證據未變。",
         "2026-11-09 18:15 Asia/Taipei (UTC+08:00)：P3-03與P3-05開工。P3-03從保留停放提交選取自身程式接續；P3-05只改Queue與Queue tests。只規劃即將動工兩包，規劃納入各包第一個程式提交；沒有提前啟動相依包。",
-        "2026-11-09 18:41 Asia/Taipei (UTC+08:00)：P3-03驗收：指定三契約、原始bytes／取消／100次A-B隔離、不可改寫清單與1024映射上限通過；Host65、Tenancy84；固定guard八項exit0，行96.00%、分支98.27%。P3-05仍active，規劃／開工紀錄已併P3-03首個程式提交，未增加規劃型提交。"
+        "2026-11-09 18:41 Asia/Taipei (UTC+08:00)：P3-03驗收：指定三契約、原始bytes／取消／100次A-B隔離、不可改寫清單與1024映射上限通過；Host65、Tenancy84；固定guard八項exit0，行96.00%、分支98.27%。P3-05仍active，規劃／開工紀錄已併P3-03首個程式提交，未增加規劃型提交。",
+        "2026-11-09 18:55 Asia/Taipei (UTC+08:00)：P3-05驗收：預設容量1000／4分區、先reserve再Commit、原例外交共用通知、完整drain與計數歸零；guard八項exit0。舊主機兩項斷言已精確對齊正式queue缺handler，未弱化fail-closed。"
       ],
-      "lastUpdated": "2026-11-09T18:41:37+08:00"
+      "lastUpdated": "2026-11-09T18:55:44+08:00"
     }
   ],
   "userActions": [
@@ -512,8 +513,8 @@ const DATA = {
       "planned": "4～6 個工作天",
       "actual": "",
       "current": true,
-      "done": 2,
-      "active": 1
+      "done": 3,
+      "active": 0
     },
     {
       "id": "階段 4",
@@ -1103,13 +1104,13 @@ const DATA = {
       "id": "P3-05",
       "phaseId": "階段 3",
       "name": "有界佇列與背景處理",
-      "status": "active",
+      "status": "done",
       "deps": "P3-02",
       "live": "無",
       "timebox": "1 天",
-      "doneAt": "",
-      "commit": "",
-      "note": "2026-11-09 18:15 Asia/Taipei (UTC+08:00)：依賴P3-02已驗收；獨立短路徑worktree開工，檔案歸屬互斥，尚未驗收。"
+      "doneAt": "2026-11-09 18:55",
+      "commit": "0516288d",
+      "note": "2026-11-09 18:55 Asia/Taipei (UTC+08:00)：總量有界佇列、兩階段handoff及確定性排空完成；完整guard Release5082另Debug7通過，五項DoD完成；無實機要求。"
     },
     {
       "id": "P3-06",
@@ -1600,77 +1601,43 @@ const DATA = {
       "note": "首個正式 Plugin 佈署 goodshepherdback 之前"
     }
   ],
-  "active": [
-    {
-      "id": "P3-05",
-      "startedAt": "2026-11-09 18:15 Asia/Taipei (UTC+08:00)",
-      "timebox": "1 天",
-      "next": "先驗紅燈，再完成實作／相關測試；協調者接回跑完整guard。",
-      "dod": [
-        [
-          "指定測試",
-          "no",
-          "尚待執行"
-        ],
-        [
-          "固定guard",
-          "no",
-          "程式提交後執行"
-        ],
-        [
-          "新專案覆蓋率",
-          "na",
-          "本包不新增專案"
-        ],
-        [
-          "實機",
-          "na",
-          "本包無實機要求"
-        ],
-        [
-          "回報與進度",
-          "no",
-          "開工狀態已更新，驗收報告待完成"
-        ]
-      ]
-    }
-  ],
+  "active": [],
   "gates": [
     {
       "item": "方案建置（Release）",
       "result": "ok",
-      "at": "2026-11-09 16:08 Asia/Taipei (UTC+08:00)",
-      "note": "固定 C:\\smv\\guard 對 bc1b9337 fetch→checkout→clean -ffdx→reset；Release建置0警告、0錯誤。"
+      "at": "2026-11-09 18:55 Asia/Taipei (UTC+08:00)",
+      "note": "固定C:\\smv\\guard對0516288d完整§8.1；Release建置0錯誤、76個既有警告，本包改檔0警告。"
     },
     {
       "item": "全方案測試",
       "result": "ok",
-      "at": "2026-11-09 16:10 Asia/Taipei (UTC+08:00)",
-      "note": "固定 C:\\smv\\guard 完整§8.1；22組Release測試5,027個、另1組Debug tracer 7個通過（合計5,034）、0失敗、0略過。"
+      "at": "2026-11-09 18:55 Asia/Taipei (UTC+08:00)",
+      "note": "固定guard Release22組5,082個、另Debug tracer7個通過，0失敗／略過。"
     },
     {
       "item": "檔案說明檢查",
       "result": "ok",
-      "at": "2026-11-09 16:10 Asia/Taipei (UTC+08:00)",
-      "note": "固定guard檢查1,350檔、0失敗。"
+      "at": "2026-11-09 18:55 Asia/Taipei (UTC+08:00)",
+      "note": "固定guard文件1,371檔0失敗。"
     },
     {
       "item": "文字編碼（P3 範圍）",
       "result": "ok",
-      "at": "2026-11-09 16:10 Asia/Taipei (UTC+08:00)",
-      "note": "固定guard Changed檢查54檔、excluded0、0問題。"
+      "at": "2026-11-09 18:55 Asia/Taipei (UTC+08:00)",
+      "note": "固定guard Changed編碼78檔0問題。"
     },
     {
       "item": "重複程式掃描",
       "result": "ok",
-      "at": "2026-11-09 16:10 Asia/Taipei (UTC+08:00)",
-      "note": "固定guard掃描39專案、1,114檔案，新增0、過期0。"
+      "at": "2026-11-09 18:55 Asia/Taipei (UTC+08:00)",
+      "note": "固定guard39專案／1,135檔，新增0／過期0。"
     },
     {
       "item": "I18nCheck verify",
       "result": "ok",
-      "at": "2026-11-09 16:10 Asia/Taipei (UTC+08:00)",
-      "note": "固定guard I18nCheck verify通過。"
+      "at": "2026-11-09 18:55 Asia/Taipei (UTC+08:00)",
+      "note": "固定guard I18n verify通過。"
     },
     {
       "item": "雲端 CI（GitHub）",
@@ -1892,6 +1859,11 @@ const DATA = {
     }
   ],
   "timeline": [
+    {
+      "at": "2026-11-09 18:55 Asia/Taipei (UTC+08:00)",
+      "text": "P3-05五項DoD驗收：0516288d完整guard通過，Release5082另Debug7；現無active包，推送後開P3-01與P3-04。",
+      "cls": "info"
+    },
     {
       "at": "2026-11-08 10:02 Asia/Taipei (UTC+08:00)",
       "text": "P2-07 新增 RowVersion CAS 與 Hosting 有界 Worker；六個同名離線案例通過，補保留導讀與提交後乾淨守門後才驗收。",
