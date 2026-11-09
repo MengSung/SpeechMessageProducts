@@ -3,7 +3,7 @@
   "name": "p3-05-bounded-queue",
   "title": "P3-05 有界佇列與背景處理",
   "description": "",
-  "status": "planning",
+  "status": "in_progress",
   "dev_type": null,
   "scope": null,
   "package": null,
@@ -12,19 +12,20 @@
   "assignee": "codex",
   "createdAt": "2026-11-09",
   "completedAt": null,
-  "branch": null,
+  "branch": "p3/P3-05",
   "base_branch": "1.0.0.11.Integration.P3.Worktree",
-  "worktree_path": null,
+  "worktree_path": "C:/smw/P3-05",
   "commit": null,
   "pr_url": null,
   "subtasks": [],
   "children": [],
   "parent": "11-09-integration-p3",
   "relatedFiles": [],
-  "notes": "planning only；依賴P3-02驗收，未開工",
+  "notes": "2026-11-09 18:15 Asia/Taipei (UTC+08:00)：P3-02驗收且遠端d931254f核對完成，依D31與另一包無相依／檔案不重疊後開工。規劃隨第一個程式提交，不單獨提交。",
   "meta": {
     "baseCommit": "12cfde7279eb3ea250e0226c51324029d8011631",
     "timebox": "1天",
-    "fileOwnership": "design.md"
+    "fileOwnership": "design.md",
+    "startedAt": "2026-11-09T18:15:28+08:00"
   }
 }

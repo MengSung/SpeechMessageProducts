@@ -1,7 +1,7 @@
 /*
 檔案整體說明
 目的與定位：以真 Kestrel／Host 保護 Webhook 順序、啟動拒絕、channel 隔離及重送交接；三個替身僅替代外部服務，不是正式驗簽或 SQL 實作。
-主要功能與流程：HTTP 驗證一 MB 邊界、驗簽、整批解析、逐事件去重、503 rollback、legacy 開關與原例外安全日誌；固定兩百筆並行事件驗證資源基線。缺端點時各 HTTP 測試應得到 404，不能以編譯失敗當功能紅燈。
+主要功能與流程：HTTP 驗證一 MB 邊界、驗簽、整批解析、逐事件去重、503 rollback、legacy 開關與原例外安全日誌；固定兩百筆並行事件驗證資源基線。正式佇列自動註冊後，省略替身 queue 會改由缺 handler 的正式啟動守門拒絕；測試須精確區分此失敗與三介面缺項，不弱化為任意例外。
 使用邊界與維護：不建立 Golden、不讀秘密、不連外；每個案例 await using 擁有 WebhookTestHost，response 及取消來源確定釋放。反射與 JSON clone 僅保護本包不可變快照，不宣稱正式 SQL 或背景分區已完成。
 */
 using System.Net;
@@ -210,7 +210,7 @@ public sealed class WebhookContractTests
         Assert.Equal(0, host.Dedupe.Active);
     }
 
-    /// <summary>三必要介面各自省略，真 Host.StartAsync 都拒啟動，不以直接呼叫 helper 冒充已接入。</summary>
+    /// <summary>逐一省略外部替身時真 Host 拒啟動；queue 已有正式組合入口，故省略它時須精確驗證缺 handler，另兩項維持三介面守門。</summary>
     [Theory]
     [InlineData(typeof(IWebhookSignatureVerifier))]
     [InlineData(typeof(IWebhookEventDeduplicator))]
@@ -219,7 +219,9 @@ public sealed class WebhookContractTests
     {
         await using var host = new WebhookTestHost(missing);
         var error = await Assert.ThrowsAsync<InvalidOperationException>(() => host.App.StartAsync());
-        Assert.Contains("Webhook requires", error.Message, StringComparison.Ordinal);
+        Assert.Equal(missing == typeof(IWebhookEventQueue)
+            ? "Webhook queue requires an envelope handler."
+            : "Webhook requires signature, deduplication and queue implementations.", error.Message);
         Assert.Equal(0, host.Signature.Calls); Assert.Empty(host.Queue.Events);
     }
 
@@ -233,7 +235,7 @@ public sealed class WebhookContractTests
         Assert.DoesNotContain(host.App.Urls, url => new Uri(url).Port != 0);
     }
 
-    /// <summary>真 Main 未提供三項正式實作時拒啟動，await using 仍完成主機清理，不用未接入 helper 假造產品啟動結果。</summary>
+    /// <summary>真 Main 尚未提供正式事件 handler 時精確拒啟動，await using 仍完成主機清理；不得用任意初始化例外冒充必要依賴檢查。</summary>
     [Fact]
     public async Task Program_Main_WithoutProductionImplementations_FailsClosed()
     {
@@ -243,7 +245,7 @@ public sealed class WebhookContractTests
             "--environment", "Testing", "--contentRoot", owner.DirectoryPath, "--urls", "http://127.0.0.1:0",
             "--ExceptionNotifications:WriteExceptionLog", "true", "--ExceptionNotifications:SendLine", "false"
         ]));
-        Assert.Contains("Webhook requires", error.Message, StringComparison.Ordinal);
+        Assert.Equal("Webhook queue requires an envelope handler.", error.Message);
         Assert.Contains("InvalidOperationException", owner.ExceptionLog, StringComparison.Ordinal);
     }
 
