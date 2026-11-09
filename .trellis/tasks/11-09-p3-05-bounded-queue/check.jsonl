@@ -1,0 +1,7 @@
+{"file": "AGENTS.md", "reason": "P3-05必讀隔離／生命週期與文件契約"}
+{"file": ".trellis/spec/backend/file-documentation-contract.md", "reason": "P3-05必讀隔離／生命週期與文件契約"}
+{"file": ".trellis/spec/backend/strict-analyzer-contract.md", "reason": "P3-05必讀隔離／生命週期與文件契約"}
+{"file": ".trellis/spec/backend/error-handling.md", "reason": "P3-05必讀隔離／生命週期與文件契約"}
+{"file": ".trellis/spec/guides/cross-layer-thinking-guide.md", "reason": "P3-05必讀隔離／生命週期與文件契約"}
+{"file": ".trellis/spec/backend/duplicate-row-publication-contract.md", "reason": "P3-05必讀隔離／生命週期與文件契約"}
+{"file": ".trellis/spec/backend/list-and-async-sdk-contract.md", "reason": "P3-05必讀隔離／生命週期與文件契約"}
