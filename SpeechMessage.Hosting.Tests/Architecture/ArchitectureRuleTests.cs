@@ -7,6 +7,7 @@
  *
  * 主要功能與流程：
  * 本檔宣告 ArchitectureRuleTests。
+ * - P3-01 黃金工具精確分類並保護反向參考與沙箱隔離，未知或相似名稱仍拒絕。
  * - P2-05共用核心向Localization取字合法，反向仍拒絕；雙目標專案不能指向只有 net10 的產品，即使當次建置選到 net10 也不豁免整體雙目標契約。
  * - Extensions、ASP.NET 與 Dataverse 直接套件不得進入共用雙目標；以各套件正反例保護辨識。
  * - ToolUtility.Core 的 Dataverse 例外只限 net10 SDK 型別來源，不能擴大為 net462 或任意 Extensions 豁免。
@@ -103,6 +104,27 @@ public sealed class ArchitectureRuleTests
         Assert.Contains(ArchitectureRules.Validate(Graph(Product("Line.Messaging", "net10.0", "net10.0", "LineMessagingProcessor"), Product("LineMessagingProcessor", "net10.0", "net10.0"))), x => x.Rule == "LayerDirection");
         Assert.Contains(ArchitectureRules.Validate(Graph(Product("ToolUtility", "net10.0", "net10.0", "SpeechMessage.Dynamics.Deployment"), Product("SpeechMessage.Dynamics.Deployment", "net10.0", "net10.0"))), x => x.Rule == "DeploymentIsolation");
         Assert.Contains(ArchitectureRules.Validate(Graph(Product("Unclassified.Product", "net10.0", "net10.0"))), x => x.Rule == "UnknownProject");
+    }
+
+    /// <summary>
+    /// P3-01 黃金工具只能以精確名稱取得工具層級；正例向下使用 SDK，反例保護產品反向參考、
+    /// 工具直接依賴沙箱與相似名稱冒充。所有節點為案例內純值，不載入來源或建立外部資源。
+    /// </summary>
+    [Fact]
+    public void LegacyGolden_ExactToolLayer_PreservesIsolationAndUnknownRejection()
+    {
+        var tool = Product("LegacyGolden", "net10.0", "net10.0", "Line.Messaging");
+        var sdk = Product("Line.Messaging", "net10.0", "net462;net10.0");
+        Assert.Empty(ArchitectureRules.Validate(Graph(tool, sdk)));
+        Assert.Contains(ArchitectureRules.Validate(Graph(
+            Product("SpeechMessageProducts.LineWebhook", "net10.0", "net10.0", tool.Name), tool, sdk)),
+            item => item.Rule == "DeploymentIsolation" && item.Dependency == tool.Name);
+        Assert.Contains(ArchitectureRules.Validate(Graph(
+            Product("LegacyGolden", "net10.0", "net10.0", "SpeechMessage.Dynamics.Plugins"),
+            Product("SpeechMessage.Dynamics.Plugins", "net462", "net462"))),
+            item => item.Rule == "DeploymentIsolation");
+        Assert.Contains(ArchitectureRules.Validate(Graph(Product("LegacyGolden.Other", "net10.0", "net10.0"))),
+            item => item.Rule == "UnknownProject");
     }
 
     /// <summary>

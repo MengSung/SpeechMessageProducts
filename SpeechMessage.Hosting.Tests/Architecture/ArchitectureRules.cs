@@ -5,6 +5,7 @@
  *
  * 主要功能與流程：
  * 本檔宣告 ArchitectureProject、ArchitectureViolation、ArchitectureRules。
+ * - 黃金資料與部署工具各以精確名稱分類；產品不得參考工具，工具不得直接參考沙箱，未知名稱仍拒絕。
  * - 驗證完整評估圖；呼叫端擁有輸入，結果只含固定的架構診斷。
  * - 檢查 NuGet 已選出的 Framework 相依，而不是只相信 csproj 宣告能提供 net462。
  * - 部署端 Plugin 與 Workflow 都受同一個 v4.6.2 沙箱契約約束。
@@ -153,8 +154,7 @@ internal static class ArchitectureRules
                     Add("HostReference", reference);
                 }
 
-                if (reference == "SpeechMessage.Dynamics.Deployment" ||
-                    (project.Name == "SpeechMessage.Dynamics.Deployment" && IsSandbox(reference)))
+                if (IsTool(reference) || (IsTool(project.Name) && IsSandbox(reference)))
                 {
                     Add("DeploymentIsolation", reference);
                 }
@@ -411,7 +411,7 @@ internal static class ArchitectureRules
     private static bool IsHttpClientProjectAllowed(ArchitectureProject project) =>
         project.Name is "Line.Messaging" or "LineMessagingProcessor.Core" ||
         (project.Target == "net10.0" && project.Targets.All(target => target == "net10.0") &&
-         Layer(project.Name) >= 0 && !IsSandbox(project.Name) && project.Name != "SpeechMessage.Dynamics.Deployment");
+         Layer(project.Name) >= 0 && !IsSandbox(project.Name) && !IsTool(project.Name));
 
     /// <summary>僅辨識確定的組織代碼，固定 allowlist 仍須逐精確專案／路徑／值判斷。</summary>
     private static bool IsOrganizationCode(string value) => value is "Jesus" or "JesusBack" or "Sunny" or "SunnyBack" or "Ymllc";
@@ -464,6 +464,9 @@ internal static class ArchitectureRules
         return found;
     }
 
+    /// <summary>只有已核定的兩個工具可取得工具層級；產品不得反向依賴，也不授予傳輸或沙箱權限。</summary>
+    private static bool IsTool(string name) => name is "SpeechMessage.Dynamics.Deployment" or "LegacyGolden";
+
     /// <summary>部署端 Plugin 與 Workflow 都受同一個 v4.6.2 沙箱契約約束。</summary>
     private static bool IsSandbox(string name) => name is "SpeechMessage.Dynamics.Plugins" or "SpeechMessage.Dynamics.Workflows";
 
@@ -489,7 +492,7 @@ internal static class ArchitectureRules
         "ToolUtility" or "LineMessagingProcessor.Workflows" or "LineMessagingProcessor.RichMenus" => 40,
         "LineMessagingProcessor.AspNetCore" or "SpeechMessage.Payments.AspNetCore" => 50,
         "SpeechMessageProducts.ChurchReport" or "SpeechMessageProducts.LineWebhook" or "SpeechMessage.Dynamics.Plugins" or "SpeechMessage.Dynamics.Workflows" => 100,
-        "SpeechMessage.Dynamics.Deployment" => 110,
+        "SpeechMessage.Dynamics.Deployment" or "LegacyGolden" => 110,
         _ => -1
     };
 }
