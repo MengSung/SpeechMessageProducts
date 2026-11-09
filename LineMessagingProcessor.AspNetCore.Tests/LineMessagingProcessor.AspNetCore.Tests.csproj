@@ -4,7 +4,7 @@
 目的與定位：定義自動化測試與契約驗證的MSBuild專案邊界，集中target、套件及專案參考，讓產品／測試依正確方向編譯。
 
 主要功能與流程：
-宣告的產品／測試target為net10.0；條件評估後的實際輸出以MSBuild為準。
+宣告的產品／測試target為net10.0；RunSettingsFilePath 預設排除 SqlIntegration，避免一般測試連線 SQL。手動命令明確 filter 參數 Category=SqlIntegration 才覆寫此篩選，不能以 skip 冒稱通過。
 專案參考包含Line.Messaging.csproj、LineMessagingProcessor.csproj、LineMessagingProcessor.AspNetCore.csproj、LineMessagingProcessor.Workflows.csproj、LineMessagingProcessor.RichMenus.csproj；不能新增反向相依或將主機狀態引入純核心。
 
 使用邊界與維護：修改前先核對引用此檔的專案、頁面、腳本或CI步驟，保留既有參數、輸出及失敗結束碼。
@@ -17,6 +17,7 @@
     <Nullable>enable</Nullable>
     <IsPackable>false</IsPackable>
     <IsTestProject>true</IsTestProject>
+    <RunSettingsFilePath Condition="'$(VSTestTestCaseFilter)' == ''">$(MSBuildThisFileDirectory)SqlIntegration.runsettings</RunSettingsFilePath>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.NET.Test.Sdk" />

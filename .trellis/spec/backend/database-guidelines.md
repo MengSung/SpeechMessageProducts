@@ -49,3 +49,10 @@ Questions to answer:
 <!-- Database-related mistakes your team has made -->
 
 (To be filled by the team)
+
+## P3 SQL acknowledgement and ownership contract
+
+- `SqlWebhookSession.CommitAsync` preserves a COMMIT result after the provider has successfully returned. A late caller cancellation, deadline, or command-disposal error cannot revoke the queue publication obligation. Cleanup failures still reach the shared exception notifier and evict the uncertain connection.
+- An exception or cancellation from the COMMIT operation itself remains an unacknowledged result: do not infer success, retry INSERT, or publish. The four-column deduplication schema is not a durable outbox and cannot promise exactly-once processing when acknowledgement is lost.
+- Every claim owns its connection and commands until awaited drain and disposal. Rollback has an independent bounded cleanup token; caller cancellation cannot abandon it.
+- Regression evidence: `WebhookDedupeAcknowledgementTests` uses the production lease and queue with a narrow provider seam; `WebhookDedupeLifecycleTests` covers unacknowledged failures. SQL integration tests use unique LocalDB databases, verify database/file residuals are zero, and are excluded from ordinary test selection. LocalDB evidence is not remote-host acceptance.

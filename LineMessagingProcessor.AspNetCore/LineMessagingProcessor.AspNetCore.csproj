@@ -4,7 +4,7 @@
 目的與定位：定義LINE共用服務的ASP.NET Core組合入口的MSBuild專案邊界，集中target、套件及專案參考，讓產品／測試依正確方向編譯。
 
 主要功能與流程：
-宣告的產品／測試target為net10.0；條件評估後的實際輸出以MSBuild為準。
+宣告的產品／測試target為net10.0；平台 SQL 去重參考中央管理的 Microsoft.Data.SqlClient，只有執行時由部署提供連線，建置不讀秘密也不建立資料表。
 專案參考包含Line.Messaging、LineMessagingProcessor、Workflows、RichMenus及SpeechMessage.Tenancy；Tenancy提供受部署mapping約束的入站secret解析契約，同屬net10共用層且不反向參考本專案。不能新增反向相依或將主機狀態引入純核心。
 
 使用邊界與維護：修改前先核對引用此檔的專案、頁面、腳本或CI步驟，保留既有參數、輸出及失敗結束碼。
@@ -21,6 +21,9 @@
   </PropertyGroup>
   <ItemGroup>
     <FrameworkReference Include="Microsoft.AspNetCore.App" />
+    <PackageReference Include="Microsoft.Data.SqlClient" />
+    <!-- SqlClient 傳遞的 9.0.13 有 NU1902/NU1903；使用既有中央安全版本，不降低或壓抑稽核。 -->
+    <PackageReference Include="System.Security.Cryptography.Pkcs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Line.Messaging\Line.Messaging.csproj" />

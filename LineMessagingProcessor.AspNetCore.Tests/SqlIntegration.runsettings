@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+檔案整體說明
+目的與定位：設定 AspNetCore 測試專案的預設執行邊界，一般 dotnet test 只跑離線測試。
+主要功能與流程：由 csproj 的 RunSettingsFilePath 載入，排除 Category=SqlIntegration；維運者明確傳入 filter 參數 Category=SqlIntegration 時覆寫此條件，執行真正 LocalDB 整合案例。
+使用邊界與維護：不修改 CI、來源或稽核，不把整合案例標為 skip；此檔不保存連線與機密。每次變更核對預設及手動兩種 TRX 的實際測試名稱，確保隔離有效且未偽造實機結果。
+-->
+<RunSettings>
+  <RunConfiguration>
+    <TestCaseFilter>Category!=SqlIntegration</TestCaseFilter>
+  </RunConfiguration>
+</RunSettings>
