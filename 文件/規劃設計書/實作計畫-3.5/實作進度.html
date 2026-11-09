@@ -240,11 +240,11 @@ footer{margin-top:36px;color:var(--muted);font-size:12.5px;text-align:center}
  */
 const DATA = {
   "planVersion": "3.5",
-  "snapshot": "2026-11-09 13:24 Asia/Taipei (UTC+08:00)",
-  "lastUpdated": "2026-11-09T13:24:53+08:00",
+  "snapshot": "2026-11-09 18:06 Asia/Taipei (UTC+08:00)",
+  "lastUpdated": "2026-11-09T18:06:54+08:00",
   "branch": "1.0.0.11.Integration.P3.Worktree",
-  "head": "b3574578",
-  "headline": "階段3：P3-02主機與端點實作中（1包）；P3-01只讀來源調查。三類DMZ前置缺項不阻擋離線包。",
+  "head": "52edc07e",
+  "headline": "階段3：P3-02主機與端點已驗收（1包）；P3-01只讀來源調查。三類DMZ前置缺項不阻擋離線包。",
   "notices": [
     {
       "id": "plan-3.5-summary",
@@ -414,13 +414,16 @@ const DATA = {
       "phaseId": "階段 3",
       "level": "info",
       "title": "P3 進度摘要",
-      "body": "2026-11-09 13:20 Asia/Taipei (UTC+08:00)：已依使用者授權開工階段3，固定起點12cfde72；本機LocalDB前置通過，DMZ／遠端權限／測試主機SQL仍待確認。未進行實機部署。",
+      "body": "2026-11-09 16:31 Asia/Taipei (UTC+08:00)：P3-02已驗收並推送；固定起點12cfde72，P3-02產品提交bc1b9337，遠端分支核對為52edc07e。P3-03與P3-05待開工；本機LocalDB前置通過，DMZ／遠端權限／測試主機SQL仍待確認。未進行實機部署。",
       "steps": [
         "2026-11-09 13:20 Asia/Taipei (UTC+08:00)：P3-01與P3-02新增專案都會更動sln，依檔案歸屬先串行做P3-02；P3-01僅唯讀調查。",
         "2026-11-09 13:20 Asia/Taipei (UTC+08:00)：P3-00原始證據已逐檔核對並複製至耐久ignored evidence，沒有將秘密或原始輸出加入版控。",
-        "2026-11-09 13:24 Asia/Taipei (UTC+08:00)：P3-02子任務與檔案歸屬已建立並開工，只有一包active；所有守門與推送仍由協調者獨占。"
+        "2026-11-09 13:24 Asia/Taipei (UTC+08:00)：P3-02子任務與檔案歸屬已建立並開工，只有一包active；所有守門與推送仍由協調者獨占。",
+        "2026-11-09 16:10 Asia/Taipei (UTC+08:00)：P3-02固定guard對bc1b9337的§8.1八項全部通過；LineWebhook行覆蓋率96.00%、分支覆蓋率98.27%；Trellis子任務已封存，未讀取秘密、未連D365／LINE／SQL。",
+        "2026-11-09 16:31 Asia/Taipei (UTC+08:00)：P3-02已推送；git ls-remote核對遠端SHA為52edc07e80057feaf48941ff71dd2acab18e1328。下一組只開P3-03與P3-05，兩包互不相依且檔案歸屬不重疊。",
+        "2026-11-09 18:06 Asia/Taipei (UTC+08:00)：依使用者更正，P3-03／P3-05維持planning至P3-02驗收；P3-03原始程式保留在C:/smw/P3-03的a330d711。兩份未追蹤檔已逐檔核對SHA-256後保存在C:/smw/P3-03-preserved-local，主工作樹檔案說明1350檔0失敗。"
       ],
-      "lastUpdated": "2026-11-09T13:24:53+08:00"
+      "lastUpdated": "2026-11-09T18:06:54+08:00"
     }
   ],
   "userActions": [
@@ -506,8 +509,8 @@ const DATA = {
       "planned": "4～6 個工作天",
       "actual": "",
       "current": true,
-      "done": 0,
-      "active": 1
+      "done": 1,
+      "active": 0
     },
     {
       "id": "階段 4",
@@ -1061,13 +1064,13 @@ const DATA = {
       "id": "P3-02",
       "phaseId": "階段 3",
       "name": "LineWebhook 主機專案與端點（只組裝）",
-      "status": "active",
+      "status": "done",
       "deps": "P2-01",
       "live": "無",
       "timebox": "半天",
-      "doneAt": "",
-      "commit": "",
-      "note": "2026-11-09 13:24 Asia/Taipei (UTC+08:00)：先建立主機／三介面端點與失敗關閉契約，暫時worktree實作；未註冊正式實作拒絕啟動，不代表實機完成。"
+      "doneAt": "2026-11-09 16:10 Asia/Taipei (UTC+08:00)",
+      "commit": "bc1b9337",
+      "note": "2026-11-09 16:10 Asia/Taipei (UTC+08:00)：主機／三介面端點與失敗關閉契約完成；固定guard的§8.1八項全部通過，全方案5,034個測試通過、0失敗、0略過；行覆蓋率96.00%、分支覆蓋率98.27%；本包無實機要求。"
     },
     {
       "id": "P3-03",
@@ -1594,76 +1597,42 @@ const DATA = {
       "note": "首個正式 Plugin 佈署 goodshepherdback 之前"
     }
   ],
-  "active": [
-    {
-      "id": "P3-02",
-      "startedAt": "2026-11-09 13:24 Asia/Taipei (UTC+08:00)",
-      "timebox": "半天",
-      "next": "隔離子代理TDD實作與相關測試，之後協調者守門。",
-      "dod": [
-        [
-          "測試",
-          "no",
-          "尚在實作"
-        ],
-        [
-          "守門",
-          "no",
-          "待接回後固定guard"
-        ],
-        [
-          "覆蓋率",
-          "no",
-          "新增主機目標待量測"
-        ],
-        [
-          "實機",
-          "na",
-          "本包沒有實機驗收要求"
-        ],
-        [
-          "回報與進度",
-          "no",
-          "先列active，驗收後補一頁回報"
-        ]
-      ]
-    }
-  ],
+  "active": [],
   "gates": [
     {
       "item": "方案建置（Release）",
       "result": "ok",
-      "at": "2026-11-09 08:07 Asia/Taipei (UTC+08:00)",
-      "note": "固定 C:\\smv\\guard 以 140bbe01 fetch→checkout→clean -ffdx→reset；Release建置0錯誤、76既有警告。"
+      "at": "2026-11-09 16:08 Asia/Taipei (UTC+08:00)",
+      "note": "固定 C:\\smv\\guard 對 bc1b9337 fetch→checkout→clean -ffdx→reset；Release建置0警告、0錯誤。"
     },
     {
       "item": "全方案測試",
       "result": "ok",
-      "at": "2026-11-09 08:07 Asia/Taipei (UTC+08:00)",
-      "note": "固定 C:\\smv\\guard 完整§8.1；全方案0失敗、0略過。"
+      "at": "2026-11-09 16:10 Asia/Taipei (UTC+08:00)",
+      "note": "固定 C:\\smv\\guard 完整§8.1；23組測試共5,034個通過、0失敗、0略過。"
     },
     {
       "item": "檔案說明檢查",
       "result": "ok",
-      "at": "2026-11-09 08:07 Asia/Taipei (UTC+08:00)",
-      "note": "固定guard檢查1335檔、0失敗。"
+      "at": "2026-11-09 16:10 Asia/Taipei (UTC+08:00)",
+      "note": "固定guard檢查1,350檔、0失敗。"
     },
     {
-      "item": "文字編碼（P2 範圍）",
+      "item": "文字編碼（P3 範圍）",
       "result": "ok",
-      "at": "2026-11-09 08:07 Asia/Taipei (UTC+08:00)",
-      "note": "固定guard Changed367檔、excluded120、0問題。"
+      "at": "2026-11-09 16:10 Asia/Taipei (UTC+08:00)",
+      "note": "固定guard Changed檢查54檔、excluded0、0問題。"
     },
     {
       "item": "重複程式掃描",
       "result": "ok",
-      "at": "2026-11-09 08:07 Asia/Taipei (UTC+08:00)",
-      "note": "固定guard 37專案、1102檔，新增0、過期0。"
+      "at": "2026-11-09 16:10 Asia/Taipei (UTC+08:00)",
+      "note": "固定guard掃描39專案、1,114檔案，新增0、過期0。"
     },
     {
       "item": "I18nCheck verify",
       "result": "ok",
-      "at": "2026-11-09 08:07 Asia/Taipei (UTC+08:00)",
+      "at": "2026-11-09 16:10 Asia/Taipei (UTC+08:00)",
       "note": "固定guard I18nCheck verify通過。"
     },
     {

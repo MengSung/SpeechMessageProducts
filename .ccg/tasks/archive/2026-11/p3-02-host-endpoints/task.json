@@ -1,0 +1,13 @@
+{
+  "id": "p3-02-host-endpoints",
+  "title": "P3-02 主機與端點",
+  "status": "completed",
+  "complexity": "L+",
+  "risk": "high",
+  "domain": "backend",
+  "currentPhase": "completed",
+  "nextAction": "P3-02完成；P3-03與P3-05等待開工",
+  "createdAt": "2026-11-09T13:24:53+08:00",
+  "branch": "p3/P3-02",
+  "completedAt": "2026-11-09T18:06:54+08:00"
+}
