@@ -26,7 +26,7 @@
   ],
   "parent": null,
   "relatedFiles": [],
-  "notes": "已依2026-11-09授權開工；P3-02進行中，P3-01僅唯讀調查。DMZ／HTTPS／遠端權限／測試主機SQL缺項已一次交付，不阻擋離線包。",
+  "notes": "2026-11-09 18:18 Asia/Taipei (UTC+08:00)：P3-02已驗收，數量更正d931254f已固定guard輕量通過並推送／ls-remote相符；目前只有P3-03及P3-05在獨立worktree開工。P3-01仍planning，不提前規劃後續包。DMZ／HTTPS／遠端權限／測試主機SQL仍缺，不阻擋離線包。",
   "meta": {
     "baseCommit": "12cfde7279eb3ea250e0226c51324029d8011631",
     "authorizationAt": "2026-11-09T13:20:00+08:00",

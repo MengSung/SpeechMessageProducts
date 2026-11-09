@@ -8,7 +8,12 @@
 
 - SpeechMessage.Tenancy/WebhookChannels/**及SpeechMessage.Tenancy.Tests/WebhookChannel*.cs。
 - LineMessagingProcessor.AspNetCore/Webhooks/Signatures/**及LineMessagingProcessor.AspNetCore.Tests/WebhookSignature*.cs。
-- SpeechMessageProducts.LineWebhook/SignatureFeatureRegistration.cs：只實作P3-02預留的驗簽composition hook。
+- LineMessagingProcessor.AspNetCore/Webhooks/Signatures/WebhookSignatureRegistration.cs：只實作P3-02預留的驗簽composition hook。
 - SpeechMessageProducts.LineWebhook.Tests/WebhookSignature*.cs：真HTTP測401／413及啟動空secret。
 
-不改Program、P3-02三介面／端點／既有註冊、queue、SQL、Golden、字典、方案／csproj、中央套件或其他包檔案。若現有composition接縫不足，由協調者裁決，不擅改共用檔。
+另允許LineMessagingProcessor.AspNetCore/LineMessagingProcessor.AspNetCore.csproj僅新增Tenancy ProjectReference。
+
+不改Program、P3-02三介面／端點／既有註冊、queue、SQL、Golden、字典、方案／其他csproj、中央套件或其他包檔案。若現有composition接縫不足，由協調者裁決，不擅改共用檔。
+
+## 開工裁決
+2026-11-09 18:15 Asia/Taipei (UTC+08:00)：P3-02的partial hook屬AspNetCore組件，同型別只在該組件補實作；不另建主機FeatureRegistration。Gemini分析403／503無可用輸出，Claude分析完成；dualModelComplete=false，不稱雙模型通過。依使用者全自主及既定計畫先實作，階段末仍一次外審；不增加單包審查。

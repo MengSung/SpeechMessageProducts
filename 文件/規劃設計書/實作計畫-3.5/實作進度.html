@@ -243,7 +243,7 @@ const DATA = {
   "snapshot": "2026-11-09 18:06 Asia/Taipei (UTC+08:00)",
   "lastUpdated": "2026-11-09T18:06:54+08:00",
   "branch": "1.0.0.11.Integration.P3.Worktree",
-  "head": "0499acd1",
+  "head": "d931254f",
   "headline": "階段3：P3-02主機與端點已驗收（1包）；P3-01只讀來源調查。三類DMZ前置缺項不阻擋離線包。",
   "notices": [
     {
@@ -414,7 +414,7 @@ const DATA = {
       "phaseId": "階段 3",
       "level": "info",
       "title": "P3 進度摘要",
-      "body": "2026-11-09 18:12 Asia/Taipei (UTC+08:00)：P3-02已驗收並推送，遠端核對0499acd1；Release全方案5,027個、Debug tracer 7個測試通過。P3-03與P3-05仍planning，暫存程式保留；尚未進行實機部署。",
+      "body": "2026-11-09 18:15 Asia/Taipei (UTC+08:00)：P3-02已驗收；目前進行中只有P3-03驗簽、P3-05有界佇列，均依賴已驗收P3-02，分屬獨立worktree與互斥檔案。其餘工作包尚未開工；實機前置缺項仍待補齊。",
       "steps": [
         "2026-11-09 13:20 Asia/Taipei (UTC+08:00)：P3-01與P3-02新增專案都會更動sln，依檔案歸屬先串行做P3-02；P3-01僅唯讀調查。",
         "2026-11-09 13:20 Asia/Taipei (UTC+08:00)：P3-00原始證據已逐檔核對並複製至耐久ignored evidence，沒有將秘密或原始輸出加入版控。",
@@ -422,9 +422,10 @@ const DATA = {
         "2026-11-09 16:10 Asia/Taipei (UTC+08:00)：P3-02固定guard對bc1b9337的§8.1八項全部通過；LineWebhook行覆蓋率96.00%、分支覆蓋率98.27%；Trellis子任務已封存，未讀取秘密、未連D365／LINE／SQL。",
         "2026-11-09 16:31 Asia/Taipei (UTC+08:00)：P3-02已推送；git ls-remote核對遠端SHA為52edc07e80057feaf48941ff71dd2acab18e1328。下一組只開P3-03與P3-05，兩包互不相依且檔案歸屬不重疊。",
         "2026-11-09 18:06 Asia/Taipei (UTC+08:00)：依使用者更正，P3-03／P3-05維持planning至P3-02驗收；P3-03原始程式保留在C:/smw/P3-03的a330d711。兩份未追蹤檔已逐檔核對SHA-256後保存在C:/smw/P3-03-preserved-local，主工作樹檔案說明1350檔0失敗。",
-        "2026-11-09 18:12 Asia/Taipei (UTC+08:00)：更正原測試合計歸屬：依原始守門第2／8區段，Release 22組共5,027個；第3／8區段Debug tracer 7個，合計5,034個。舊記載將合計稱全方案，現已訂正，原始證據未變。"
+        "2026-11-09 18:12 Asia/Taipei (UTC+08:00)：更正原測試合計歸屬：依原始守門第2／8區段，Release 22組共5,027個；第3／8區段Debug tracer 7個，合計5,034個。舊記載將合計稱全方案，現已訂正，原始證據未變。",
+        "2026-11-09 18:15 Asia/Taipei (UTC+08:00)：P3-03與P3-05開工。P3-03從保留停放提交選取自身程式接續；P3-05只改Queue與Queue tests。只規劃即將動工兩包，規劃納入各包第一個程式提交；沒有提前啟動相依包。"
       ],
-      "lastUpdated": "2026-11-09T18:12:59+08:00"
+      "lastUpdated": "2026-11-09T18:15:28+08:00"
     }
   ],
   "userActions": [
@@ -511,7 +512,7 @@ const DATA = {
       "actual": "",
       "current": true,
       "done": 1,
-      "active": 0
+      "active": 2
     },
     {
       "id": "階段 4",
@@ -1077,13 +1078,13 @@ const DATA = {
       "id": "P3-03",
       "phaseId": "階段 3",
       "name": "驗簽",
-      "status": "todo",
+      "status": "active",
       "deps": "P3-02",
       "live": "無",
       "timebox": "半天",
       "doneAt": "",
       "commit": "",
-      "note": "secret 空就拒絕啟動該 Channel"
+      "note": "2026-11-09 18:15 Asia/Taipei (UTC+08:00)：依賴P3-02已驗收；獨立短路徑worktree開工，檔案歸屬互斥，尚未驗收。"
     },
     {
       "id": "P3-04",
@@ -1101,13 +1102,13 @@ const DATA = {
       "id": "P3-05",
       "phaseId": "階段 3",
       "name": "有界佇列與背景處理",
-      "status": "todo",
+      "status": "active",
       "deps": "P3-02",
       "live": "無",
       "timebox": "1 天",
       "doneAt": "",
       "commit": "",
-      "note": "依 userId 分區保序；停機 drain"
+      "note": "2026-11-09 18:15 Asia/Taipei (UTC+08:00)：依賴P3-02已驗收；獨立短路徑worktree開工，檔案歸屬互斥，尚未驗收。"
     },
     {
       "id": "P3-06",
@@ -1598,7 +1599,74 @@ const DATA = {
       "note": "首個正式 Plugin 佈署 goodshepherdback 之前"
     }
   ],
-  "active": [],
+  "active": [
+    {
+      "id": "P3-03",
+      "startedAt": "2026-11-09 18:15 Asia/Taipei (UTC+08:00)",
+      "timebox": "半天",
+      "next": "先驗紅燈，再完成實作／相關測試；協調者接回跑完整guard。",
+      "dod": [
+        [
+          "指定測試",
+          "no",
+          "尚待執行"
+        ],
+        [
+          "固定guard",
+          "no",
+          "程式提交後執行"
+        ],
+        [
+          "新專案覆蓋率",
+          "na",
+          "本包不新增專案"
+        ],
+        [
+          "實機",
+          "na",
+          "本包無實機要求"
+        ],
+        [
+          "回報與進度",
+          "no",
+          "開工狀態已更新，驗收報告待完成"
+        ]
+      ]
+    },
+    {
+      "id": "P3-05",
+      "startedAt": "2026-11-09 18:15 Asia/Taipei (UTC+08:00)",
+      "timebox": "1 天",
+      "next": "先驗紅燈，再完成實作／相關測試；協調者接回跑完整guard。",
+      "dod": [
+        [
+          "指定測試",
+          "no",
+          "尚待執行"
+        ],
+        [
+          "固定guard",
+          "no",
+          "程式提交後執行"
+        ],
+        [
+          "新專案覆蓋率",
+          "na",
+          "本包不新增專案"
+        ],
+        [
+          "實機",
+          "na",
+          "本包無實機要求"
+        ],
+        [
+          "回報與進度",
+          "no",
+          "開工狀態已更新，驗收報告待完成"
+        ]
+      ]
+    }
+  ],
   "gates": [
     {
       "item": "方案建置（Release）",

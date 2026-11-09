@@ -17,3 +17,5 @@
 - 2026-11-09 13:20 Asia/Taipei (UTC+08:00)：LocalDB唯讀查詢由原Stopped自動啟動，查完已正常stop還原基線；sysadmin=1，未建庫。DMZ欄位仍為模板，不把它猜成真主機。
 - 2026-11-09 13:34 Asia/Taipei (UTC+08:00)：開工外部雙模型分析經專案自癒入口已結束；Gemini回403且沒有可用輸出，Claude逾時亦沒有可用輸出，dualModelComplete=false、completedBackends=[]、degradedFallback=false。未取得外部分析，不冒稱雙模型或單模型成功；先依已核定計畫及本機調查繼續，階段末仍依§6.6執行一次外部審查。
 - 2026-11-09 13:34 Asia/Taipei (UTC+08:00)：唯讀舊來源調查已收回並關閉代理，摘要見research/legacy-source-findings.md；實作先採指定根目錄主副本，副本不同或計數無法證明的部分列提案，不混合湊數、不把no-op寫成既有實作。
+
+2026-11-09 18:18 Asia/Taipei (UTC+08:00)：使用者更正D31後，先完成P3-02驗收／推送；03／05退planning及P3-03停放證據均保留。P3-02測試按命令區段更正為Release5027、Debug7，合計5034；d931254f輕量guard通過且遠端相符。現在只開03／05，規劃與開工紀錄併各包第一個程式提交；不另作紀錄型規劃提交、沒有額外唯讀調查代理。
