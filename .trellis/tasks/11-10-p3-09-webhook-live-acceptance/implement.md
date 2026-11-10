@@ -5,11 +5,17 @@
 3. [x] 將 P3-08 三個既有紀錄檔正規化為 UTF-8 無 BOM、CRLF、結尾 CRLF；只改換行，依 §8.3 通過後以 `P3-08 chore:` 提交。
 4. [x] 更新前置紀錄，完成 User Secrets 鍵存在性/格式核對（不讀取或輸出值）；2026-11-10 11:43 Asia/Taipei (UTC+08:00) 核對 Hosting Bundle 10.0.14、ANCM v2、CRM site/app pool、goodshepherdback HTTPS 與兩份暫存檔清除，紀錄見 `evidence/hosting-bundle-install.md`。
 5. [x] 建立 appcmd 備份及 IIS/CRM/SQL 操作前基線；Hosting Bundle 缺少且安裝檔驗證通過。
-6. [ ] 先唯讀檢查 applicationHost.config ACL；建立獨立平台測試 DB 與 A.8 資料表、獨立 Webhook IIS site/app pool，安全部署並設定專用 AppPool 環境變數。新增 hostname+SNI+既有憑證後立即核對 goodshepherdback HTTP 302/原憑證、CRM site/app pool Started、測試 hostname 新站回應；不符即移除 binding，CRM 仍異常才還原備份。
-7. [ ] 執行 04 P3-09 第 1～7 步及 P3-06 三項 Warning 實機核對；記錄確切結果。
-8. [ ] 清理並驗證測試資料/暫存資源為零、CRM 設定與資料庫無變更、秘密無外洩。
-9. [ ] 產出驗收步驟、一頁操作紀錄、一頁 P3-09 回報與階段 3 審查；更新進度頁。
-10. [ ] 按適用的 §8.1 或 §8.3 驗證，提交紀錄，推送 P3 分支並以 `git ls-remote` 核對 SHA；停止，不開始階段 4。
+6. [ ] 使用者在 `goodshepherdback` 建立專用測試教會 A/B 與各自 Contact，A 綁定 User Secrets 的 TestLineUserId；以唯讀 WhoAmI 及正式 GUID 完成 mapping。依核准限制，不用自訂 CRM probe 或 SQL 寫 CRM。
+7. [ ] 建立／沿用隔離測試 DB/A.8、獨立 Webhook IIS site/app pool、部署及專用 AppPool 環境變數；新增 hostname+SNI 後立即核對 goodshepherdback 302／原憑證、CRM site/pool Started、測試 hostname 新站回應，不符即回復。
+8. [ ] 執行 04 P3-09 第 1～7 步、LINE 官方 endpoint test、HMAC 模擬事件、重送、401 及 P3-06 三項 Warning；清理測試資料並確認殘留 0。
+9. [x] 2026-11-10 21:25 Asia/Taipei (UTC+08:00)：驗收步驟、一頁夜間操作紀錄、一頁 P3-09 回報、階段自審、一頁階段 3 總回報、早上待辦與正式秘密保存計畫提案已建立；進度頁標示 P3-09 `you`。沒有宣稱實機完成。
+10. [ ] 完成最後固定 guard §8.1、提交收尾內容，依使用者核定推送 P3 分支並以 `git ls-remote` 核對 SHA；停下，不開始階段 4。
+
+## 2026-11-10 夜間續作狀態
+
+2026-11-10 21:25 Asia/Taipei (UTC+08:00)：P3-09 暫停點從「mapping 不明」更正為「使用者已核定來源，但 CRM 測試 Account／Contact 尚未建立」。本機 Computer Use 控制端無可用 app/browser；既有 Deployment CLI 不提供 CRM Account／Contact CRUD，`LineRecipientQueries` 為唯讀。不得改走自訂 CRM probe 或直接 SQL。部署基礎腳本 Parser=0，未執行；CRM/IIS/SQL/LINE 無本輪寫入。P3-09 改列使用者收尾，其他文件、自審與推送收尾繼續完成。
+
+2026-11-10 21:58 Asia/Taipei (UTC+08:00)：依使用者核定，mapping來源不再是阻塞；OrganizationId由唯讀WhoAmI取得、ChurchId使用測試教會A正式GUID、TimeZone固定`Asia/Taipei`。唯一必要前置仍是CRM UI建立A/B及各自Contact，A Contact綁定秘密中的TestLineUserId。重新以PowerShell Parser檢查部署基礎腳本，錯誤0；操作紀錄檔存在且SHA-256與回報相同。未執行部署或寫入CRM／IIS／SQL／LINE。
 
 ## 停止點（2026-11-10）
 

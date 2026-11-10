@@ -1,1 +1,0 @@
-Gemini CCG adapter error: 以 "0" 引數呼叫 "GetResponse" 時發生例外狀況: "遠端伺服器傳回一個錯誤: (503) 伺服器無法使用。"

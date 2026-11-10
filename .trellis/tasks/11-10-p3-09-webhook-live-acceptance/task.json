@@ -2,7 +2,7 @@
   "id": "p3-09-webhook-live-acceptance",
   "name": "p3-09-webhook-live-acceptance",
   "title": "P3-09 Webhook 實機驗收與階段收尾",
-  "description": "依實作計畫3.5完成P3-09測試主機Webhook實機驗收與階段3收尾；Hosting Bundle與ANCM v2已由使用者安裝並經唯讀核對，接續完成程式回覆紀錄、隔離部署、LINE實機測試、清理、審查及推送。",
+  "description": "P3-01～P3-08已驗收；依實作計畫3.5續作P3-09 Webhook實機驗收。使用者已核定測試mapping與跳過外部雙模型；目前P3-09待使用者在goodshepherdback CRM UI建立測試教會／Contact，尚未完成實機驗收。",
   "status": "in_progress",
   "dev_type": null,
   "scope": null,
@@ -21,6 +21,6 @@
   "children": [],
   "parent": "11-09-integration-p3",
   "relatedFiles": [],
-  "notes": "2026-11-10 11:26 Asia/Taipei (UTC+08:00)：本機系統管理員及PowerShell Direct確認；VM為D365APP01/192.168.50.20；DNS/TLS、MSSQLSERVER與建庫權限通過唯讀查核；User Secrets只做存在性/格式布林檢查。建立appcmd備份P3-09-pre-202611101130並記錄CRM/IIS基線。官方.NET Hosting Bundle完整性通過，但兩次安裝啟動被本機工具政策拒絕；遠端暫存安裝檔清理也遭拒。依00§9-7停止，不使用替代路徑；未安裝、未重啟、未改IIS/SQL/CRM、未呼叫LINE API。詳見P3-09-執行受阻回報.md；P3-09及階段3未完成。2026-11-10 11:39–11:45 Asia/Taipei (UTC+08:00)：使用者親自安裝.NET 10.0.14 Hosting Bundle並刪除兩份安裝檔；Codex依不含密碼操作紀錄與PowerShell Direct唯讀核實ANCM v2、Microsoft.AspNetCore.App/Microsoft.NETCore.App 10.0.14、CRM site及CRMAppPool Started、goodshepherdback TLS/HTTP 302、本機及VM暫存檔不存在。摘要見evidence/hosting-bundle-install.md，原始操作證據留ignored evidence。2026-11-10 16:02 Asia/Taipei (UTC+08:00)：續作中；使用者已核定專用AppPool環境變數與 hostname+SNI 即時驗證／回復流程。2026-11-10 18:57 Asia/Taipei (UTC+08:00)：Release LineWebhook 104/104、部署腳本 PowerShell Parser 通過；唯讀核對測試DB僅A.8空表、專用AppPool Started、部署目錄88檔、CRM site/pool Started且原binding未變。測試站尚未建立；核准User Secrets缺OrganizationId、ChurchId、TimeZone，依fail-closed不猜值、不呼叫LINE API。使用者核定階段審查略過外部雙模型，僅自審，非雙模型結果；階段審查待P3-09完成。詳見P3-09-續作受阻回報-20261110.md；P3-09及階段3未完成。",
+  "notes": "2026-11-10 11:26 Asia/Taipei (UTC+08:00)：本機系統管理員及PowerShell Direct確認；VM為D365APP01/192.168.50.20；DNS/TLS、MSSQLSERVER與建庫權限通過唯讀查核；User Secrets只做存在性/格式布林檢查。建立appcmd備份P3-09-pre-202611101130並記錄CRM/IIS基線。Hosting Bundle安裝啟動當時遭本機工具政策拒絕；後由使用者親自安裝並刪除暫存檔，ANCM v2、.NET 10.0.14、CRM site/pool、goodshepherdback 302及暫存檔不存在均已唯讀核實，摘要見evidence/hosting-bundle-install.md。2026-11-10 18:57 Asia/Taipei (UTC+08:00)：Release LineWebhook 104/104及部署基礎腳本Parser通過；測試DB只有A.8空表、LineWebhookP309 AppPool Started、部署目錄88檔；CRM原binding未變。2026-11-10 21:25 Asia/Taipei (UTC+08:00)：使用者核定CRM測試mapping來源、階段僅自審及即使待收尾仍推送通過守門內容。夜間重讀Reply sender／測試並以Parser核對基礎部署腳本，未執行部署或寫入CRM/IIS/SQL/LINE。Computer Use Native apps／Browser host不可用；既有Deployment CLI無Account/Contact CRUD，LineRecipientQueries唯讀。未自訂CRM probe、不猜GUID、不新增SNI。P3-09保留待使用者在goodshepherdback CRM UI建立A/B教會與Contact後續作；階段3不標完成、不進階段4。審查紀錄明示「使用者核定略過外部雙模型審查，僅自審，非雙模型結果」，程式碼Critical/High均0；實機門檻仍未通過。早上待辦見早上待辦清單.md；操作紀錄SHA見wp-reports/P3-09.md。",
   "meta": {}
 }

@@ -267,6 +267,7 @@ __pycache__/
 .serena/cache/
 .worktrees/
 .ccg/tmp/
+.ccg/dual-model-runs/
 
 # 參考用舊方案容量大且不是本次正式來源，避免將整份副本納入版控。
 .其他解決方案/
