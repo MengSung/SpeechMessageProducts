@@ -1,6 +1,6 @@
 # P3 Webhook 驗收步驟
 
-> 狀態：待使用者收尾。本文是續作清單，不是實機通過證據。2026-11-10 22:25 Asia/Taipei (UTC+08:00) 固定 guard §8.1 八項通過並已推送紀錄提交；P3-09 實機步驟仍未執行。仍未建立 CRM 測試資料、未新增 IIS site／SNI binding、未設定 LINE Webhook URL、未送出事件，也未改 CRM／IIS／SQL／LINE。
+> 狀態：待使用者收尾。本文是續作清單，不是實機通過證據。2026-11-10 22:45 Asia/Taipei (UTC+08:00) 固定 guard §8.1 八項對 `23a6379c` 通過，P3 分支推送且遠端 SHA 相符；這只驗證紀錄提交。P3-09 實機步驟仍未執行，CRM 測試資料未建立，沒有新增 IIS site／SNI binding、設定 LINE Webhook URL 或送出事件。
 
 ## 固定邊界
 

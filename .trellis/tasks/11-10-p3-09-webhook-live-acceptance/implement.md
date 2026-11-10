@@ -9,7 +9,8 @@
 7. [ ] 建立／沿用隔離測試 DB/A.8、獨立 Webhook IIS site/app pool、部署及專用 AppPool 環境變數；新增 hostname+SNI 後立即核對 goodshepherdback 302／原憑證、CRM site/pool Started、測試 hostname 新站回應，不符即回復。
 8. [ ] 執行 04 P3-09 第 1～7 步、LINE 官方 endpoint test、HMAC 模擬事件、重送、401 及 P3-06 三項 Warning；清理測試資料並確認殘留 0。
 9. [x] 2026-11-10 21:25 Asia/Taipei (UTC+08:00)：驗收步驟、一頁夜間操作紀錄、一頁 P3-09 回報、階段自審、一頁階段 3 總回報、早上待辦與正式秘密保存計畫提案已建立；進度頁標示 P3-09 `you`。沒有宣稱實機完成。
-10. [ ] 完成最後固定 guard §8.1、提交收尾內容，依使用者核定推送 P3 分支並以 `git ls-remote` 核對 SHA；停下，不開始階段 4。
+10. [x] 2026-11-10 22:45 Asia/Taipei (UTC+08:00)：紀錄收尾提交 `23a6379c57e0082bb16af49cfc20dbab45a424b2` 在固定 guard 完整通過 §8.1，已推送 P3 並以 `git ls-remote` 核對遠端 SHA 相同；此守門不代表實機驗收完成。
+11. [ ] P3-09 實機七步、P3-06 Warning 核實及本次測試資料殘留 0；CRM UI 測試資料尚待使用者建立。P3-09 未完成前不標記階段 3 done。
 
 ## 2026-11-10 夜間續作狀態
 
