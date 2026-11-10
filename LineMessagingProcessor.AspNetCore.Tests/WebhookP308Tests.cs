@@ -1,12 +1,14 @@
 /*
 檔案整體說明
 
-目的與定位：保護 P3-08 Webhook 回覆、入站 letter、scope 語系與例外交接契約。
+目的與定位：保護 P3-08 Webhook 回覆、P3-09 回覆 API 結構化紀錄及遮罩、入站 letter、scope 語系與例外交接契約。
 
 主要功能與流程：使用 detached JSON、固定 Core catalog、固定 UTC 時鐘、窄 CRM 替身及 dispatcher
 替身驗證 reply token 不跨事件、兩個教會 scope 的 SDK Authorization 不串流、QueryUserId 只使用
-resource key、letter 以事件 ID 原子 Upsert 並填入 directioncode=false 與固定時鐘 scheduledend，
-以及 Reply 傳輸真實 Exception 原樣離開 queue handler。所有測試都是離線合成結果，不連 LINE、D365、IIS 或 SQL。
+resource key、回覆紀錄預設關閉且啟用時包含 event ID／訊息型別／遮罩文字／語系／真實 HTTP 狀態，
+包含非 2xx 回應仍記錄狀態並保留失敗、機密與完整 userId 不進 log、letter 以事件 ID 原子 Upsert 並填入
+directioncode=false 與固定時鐘 scheduledend，以及 Reply 傳輸真實 Exception 原樣離開 queue handler。
+所有測試都是離線合成結果，不連 LINE、D365、IIS 或 SQL。
 
 使用邊界與維護：每個案例獨占 Entity、HTTP handler、scope 與 exception；測試替身
 不保存 token、request、Session 或跨案例 cache，Dispose 由案例的 using／Host fixture
@@ -20,9 +22,11 @@ using System.Net.Http;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
+using Line.Messaging;
 using Line.Messaging.Webhooks;
 using LineMessagingProcessor.AspNetCore.Webhooks;
 using LineMessagingProcessor.AspNetCore.Webhooks.Dispatch;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Xrm.Sdk;
 using Microsoft.Xrm.Sdk.Messages;
@@ -112,8 +116,8 @@ public sealed class WebhookP308Tests
             "Webhook.Reply.QueryUserId.V0",
             replyArguments: new[] { new WebhookReplyArgument("lineId", secondUserId) });
 
-        await sender.SendAsync(firstScope, "reply-token-A", firstResult, CancellationToken.None);
-        await sender.SendAsync(secondScope, "reply-token-B", secondResult, CancellationToken.None);
+        await sender.SendAsync("evt-reply-A", firstScope, "reply-token-A", firstResult, CancellationToken.None);
+        await sender.SendAsync("evt-reply-B", secondScope, "reply-token-B", secondResult, CancellationToken.None);
 
         var firstRequest = handler.Requests[0];
         Assert.Equal(HttpMethod.Post, firstRequest.Method);
@@ -142,6 +146,91 @@ public sealed class WebhookP308Tests
         Assert.All(httpClientFactory.CreatedClients, client => Assert.True(client.IsDisposed));
     }
 
+    /// <summary>回覆內容紀錄預設關閉時不產生事件，且傳輸 client 仍於單次操作後釋放。</summary>
+    [Fact]
+    public async Task ReplySender_LoggingDisabledByDefault_EmitsNothing()
+    {
+        using var handler = new CapturingReplyHandler();
+        var factory = new CapturingHttpClientFactory(handler);
+        var logger = new CapturingLogger<LineWebhookReplySender>();
+        var sender = new LineWebhookReplySender(
+            new GoodShepherdTextCatalog(new EmptyOverrides()),
+            factory,
+            logger);
+
+        await sender.SendAsync(
+            "evt-log-disabled",
+            Scope(new EmptyCrm()),
+            "reply-token-secret",
+            QueryUserIdResult(),
+            CancellationToken.None);
+
+        Assert.Empty(logger.Entries);
+        Assert.True(Assert.Single(factory.CreatedClients).IsDisposed);
+    }
+
+    /// <summary>
+    /// 啟用測試紀錄時檢查固定事件與必要欄位；token、reply token、secret 及完整 LINE userId
+    /// 作為哨兵不得出現在輸出中，並確認實際 HTTP status code 被記錄。
+    /// </summary>
+    [Fact]
+    public async Task ReplySender_EnabledLogging_RecordsResponseAndMasksSensitiveValues()
+    {
+        const string accessToken = "channel-token-secret";
+        const string replyToken = "reply-token-secret";
+        var scope = Scope(new EmptyCrm(), accessToken: accessToken);
+        using var handler = new CapturingReplyHandler();
+        var factory = new CapturingHttpClientFactory(handler);
+        var logger = new CapturingLogger<LineWebhookReplySender>();
+        var sender = new LineWebhookReplySender(
+            new GoodShepherdTextCatalog(new EmptyOverrides()),
+            factory,
+            logger,
+            enableReplyContentLogging: true);
+
+        await sender.SendAsync("evt-log-enabled", scope, replyToken, QueryUserIdResult(), CancellationToken.None);
+
+        var entry = Assert.Single(logger.Entries);
+        Assert.Equal(30610, entry.EventId.Id);
+        Assert.Equal("Webhook.ReplyResponse", entry.EventId.Name);
+        Assert.Equal(LogLevel.Information, entry.Level);
+        Assert.Equal("evt-log-enabled", entry.Fields["WebhookEventId"]);
+        Assert.Equal("text", entry.Fields["MessageType"]);
+        Assert.Equal("您的 LINE ID: U***0000", entry.Fields["Text"]);
+        Assert.Equal("zh-TW", entry.Fields["Culture"]);
+        Assert.Equal((int)HttpStatusCode.OK, entry.Fields["StatusCode"]);
+        var loggedValues = string.Join("|", entry.Fields.Values);
+        Assert.DoesNotContain(UserId, loggedValues, StringComparison.Ordinal);
+        Assert.DoesNotContain(accessToken, loggedValues, StringComparison.Ordinal);
+        Assert.DoesNotContain(replyToken, loggedValues, StringComparison.Ordinal);
+        Assert.DoesNotContain("channel-secret", loggedValues, StringComparison.Ordinal);
+        Assert.True(Assert.Single(factory.CreatedClients).IsDisposed);
+    }
+
+    /// <summary>LINE 非成功狀態仍記錄真實狀態碼後以安全 SDK 例外向上傳遞。</summary>
+    [Fact]
+    public async Task ReplySender_NonSuccessResponse_LogsActualStatusAndPreservesFailure()
+    {
+        using var handler = new CapturingReplyHandler(HttpStatusCode.ServiceUnavailable);
+        var factory = new CapturingHttpClientFactory(handler);
+        var logger = new CapturingLogger<LineWebhookReplySender>();
+        var sender = new LineWebhookReplySender(
+            new GoodShepherdTextCatalog(new EmptyOverrides()),
+            factory,
+            logger,
+            enableReplyContentLogging: true);
+
+        var error = await Assert.ThrowsAsync<LineResponseException>(() =>
+            sender.SendAsync("evt-http-failure", Scope(new EmptyCrm()), "synthetic-reply-token",
+                QueryUserIdResult(), CancellationToken.None).AsTask());
+
+        Assert.Equal(HttpStatusCode.ServiceUnavailable, error.StatusCode);
+        var entry = Assert.Single(logger.Entries);
+        Assert.Equal(503, entry.Fields["StatusCode"]);
+        Assert.Equal("evt-http-failure", entry.Fields["WebhookEventId"]);
+        Assert.True(Assert.Single(factory.CreatedClients).IsDisposed);
+    }
+
     /// <summary>
     /// 注入真 SDK 下層 HttpMessageHandler 傳輸故障，斷言同一個 Exception 由 sender 原樣拋出，
     /// 且唯一的 factory HttpClient 即使失敗也已 Dispose。
@@ -162,7 +251,7 @@ public sealed class WebhookP308Tests
             replyArguments: new[] { new WebhookReplyArgument("lineId", UserId) });
 
         var actual = await Assert.ThrowsAsync<HttpRequestException>(() =>
-            sender.SendAsync(Scope(new EmptyCrm()), "reply-token", result, CancellationToken.None).AsTask());
+            sender.SendAsync("evt-transport-failure", Scope(new EmptyCrm()), "reply-token", result, CancellationToken.None).AsTask());
 
         Assert.Same(expected, actual);
         var client = Assert.Single(httpClientFactory.CreatedClients);
@@ -222,13 +311,14 @@ public sealed class WebhookP308Tests
     {
         var expected = new InvalidOperationException("synthetic reply transport failure");
         var scope = Scope(new EmptyCrm());
+        var replySender = new ThrowingReplySender(expected);
         var dispatcher = new WebhookDispatcher(
             new FixedScopeResolver(scope),
             new WebhookTextHandler(new FixedClock()),
             new WebhookHttpAdapter(new HttpClient(new NeverHandler())),
             new WebhookAudioHandler(new WebhookHttpAdapter(new HttpClient(new NeverHandler()))),
             NullLogger<WebhookDispatcher>.Instance,
-            new ThrowingReplySender(expected),
+            replySender,
             new EmptyLetterRecorder());
 
         using var document = JsonDocument.Parse(EventJson("evt-dispatch", "ID", "reply-token"));
@@ -238,6 +328,7 @@ public sealed class WebhookP308Tests
                 CancellationToken.None).AsTask());
 
         Assert.Same(expected, actual);
+        Assert.Equal("evt-dispatch", replySender.EventId);
     }
 
     /// <summary>建立含正式 Contact 的單事件 scope；文字文化是伺服器解析後的純值。</summary>
@@ -289,6 +380,14 @@ public sealed class WebhookP308Tests
           ]
         }
         """;
+
+    /// <summary>建立使用 LINE ID 查詢資源鍵的固定結果；其輸出本文供遮罩契約斷言。</summary>
+    private static WebhookBusinessResult QueryUserIdResult() =>
+        new(
+            WebhookBusinessStatus.ReplyPending,
+            "QueryUserIdReply",
+            "Webhook.Reply.QueryUserId.V0",
+            replyArguments: new[] { new WebhookReplyArgument("lineId", UserId) });
 
     /// <summary>固定時間替身不讀主機 local 時區，也不擁有背景資源。</summary>
     private sealed class FixedClock : IChurchClock
@@ -343,9 +442,15 @@ public sealed class WebhookP308Tests
     /// <summary>每次回覆都拋出同一個原例外的替身。</summary>
     private sealed class ThrowingReplySender(Exception error) : IWebhookReplySender
     {
+        /// <summary>dispatcher 傳入的當筆 envelope event ID；只由單一測試呼叫設定。</summary>
+        internal string? EventId { get; private set; }
+
         /// <summary>不吞例外或建立背景工作。</summary>
-        public ValueTask SendAsync(ResolvedWebhookScope scope, string? replyToken, WebhookBusinessResult result, CancellationToken cancellationToken) =>
-            ValueTask.FromException(error);
+        public ValueTask SendAsync(string webhookEventId, ResolvedWebhookScope scope, string? replyToken, WebhookBusinessResult result, CancellationToken cancellationToken)
+        {
+            EventId = webhookEventId;
+            return ValueTask.FromException(error);
+        }
     }
 
     /// <summary>letter 交接替身，不連 CRM。</summary>
@@ -378,7 +483,7 @@ public sealed class WebhookP308Tests
     }
 
     /// <summary>只捕獲本案例兩筆合成 Reply 請求並回傳成功；不建立外部連線或背景資源。</summary>
-    private sealed class CapturingReplyHandler : HttpMessageHandler
+    private sealed class CapturingReplyHandler(HttpStatusCode statusCode = HttpStatusCode.OK) : HttpMessageHandler
     {
         /// <summary>只保留已 detached 的短請求欄位，供兩個 scope 的隔離斷言。</summary>
         internal List<CapturedReplyRequest> Requests { get; } = [];
@@ -395,10 +500,47 @@ public sealed class WebhookP308Tests
                 request.RequestUri?.ToString() ?? string.Empty,
                 request.Headers.Authorization?.ToString() ?? string.Empty,
                 body));
-            return new HttpResponseMessage(HttpStatusCode.OK)
+            return new HttpResponseMessage(statusCode)
             {
                 Content = new StringContent("{}")
             };
+        }
+    }
+
+    /// <summary>本案例專用 logger，只保留格式化後的事件，不跨呼叫保存原始 state 或 exception。</summary>
+    private sealed class CapturingLogger<T> : ILogger<T>
+    {
+        /// <summary>測試案例同步產生的格式化 log 結果。</summary>
+        internal List<CapturedLogEntry> Entries { get; } = [];
+
+        /// <summary>回傳無資源 scope；測試不建立 request 或背景生命週期。</summary>
+        public IDisposable? BeginScope<TState>(TState state) where TState : notnull => EmptyScope.Instance;
+
+        /// <summary>複製格式化文字與固定事件欄位，避免保留 logger 原始狀態物件。</summary>
+        public void Log<TState>(
+            LogLevel logLevel,
+            EventId eventId,
+            TState state,
+            Exception? exception,
+            Func<TState, Exception?, string> formatter)
+        {
+            var fields = state is IEnumerable<KeyValuePair<string, object?>> values
+                ? values.ToDictionary(pair => pair.Key, pair => pair.Value)
+                : new Dictionary<string, object?>();
+            Entries.Add(new CapturedLogEntry(logLevel, eventId, formatter(state, exception), fields));
+        }
+
+        /// <summary>只用於測試；此 logger 不過濾資訊層級。</summary>
+        public bool IsEnabled(LogLevel logLevel) => true;
+
+        /// <summary>固定空 scope，不持有可變或可處置資源。</summary>
+        private sealed class EmptyScope : IDisposable
+        {
+            /// <summary>全案例共用的不可變空 scope。</summary>
+            internal static EmptyScope Instance { get; } = new();
+
+            /// <summary>沒有需清理的資源。</summary>
+            public void Dispose() { }
         }
     }
 
@@ -444,6 +586,13 @@ public sealed class WebhookP308Tests
 
     /// <summary>已 detached 的合成 Reply 欄位，只在目前測試案例保留。</summary>
     private sealed record CapturedReplyRequest(HttpMethod Method, string Uri, string Authorization, string Body);
+
+    /// <summary>離線 logger 的純值結果，不保存 token、request 或原始 log state。</summary>
+    private sealed record CapturedLogEntry(
+        LogLevel Level,
+        EventId EventId,
+        string Message,
+        IReadOnlyDictionary<string, object?> Fields);
 
     /// <summary>回傳本次 scope 的空覆寫快照，不保存跨案例資料。</summary>
     private sealed class EmptyOverrides : IChurchTextOverrideSnapshotProvider

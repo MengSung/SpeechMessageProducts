@@ -1,7 +1,7 @@
 /*
 檔案整體說明
 目的與定位：P3-06 正式 queue handler，以真 LINE SDK 事件模型分派至 GoodShepherd 具體核心或 HTTP／CRM adapter。
-主要功能與流程：每筆 envelope 建構單事件 wrapper，使用 WebhookEventParser 解析真實 SDK 型別，依 12 種 Golden 事件逐一窄分派。頻道與使用者只作不可信提示；任何 CRM／profile／letter 行為先由 scope resolver 以組織、account 指派及正式 contact ID 授權。文字與媒體先建立入站 letter，再執行既有業務處理；結果含 reply key 時使用同一事件的 reply token 呼叫 Reply API。
+主要功能與流程：每筆 envelope 建構單事件 wrapper，使用 WebhookEventParser 解析真實 SDK 型別，依 12 種 Golden 事件逐一窄分派。頻道與使用者只作不可信提示；任何 CRM／profile／letter 行為先由 scope resolver 以組織、account 指派及正式 contact ID 授權。文字與媒體先建立入站 letter，再執行既有業務處理；結果含 reply key 時將同一 envelope 的 event ID、reply token 及結果交給 Reply sender，供單次回覆結果紀錄關聯。
 使用邊界與維護：Scoped handler 只活於 queue scope；不保存跨事件 token、Entity 或事件，無 static state。所有 HTTP／CRM／Reply await 於回傳前完成，遵守 queue 事件取消；例外原樣拋交 queue diagnostics，正常 host cancellation 沿取消語義。MemberJoin／AccountLink 沒有核定回覆資源時留下固定安全 disposition，不產生推播。已知 no-op、待後續包或未綁定事件只寫不含事件識別資料的固定 EventId 資訊紀錄；未知 parser 分支也具名紀錄，不能回假成功。
 */
 using Line.Messaging.Webhooks;
@@ -53,7 +53,7 @@ public sealed class WebhookDispatcher(
                 if (scope.Contact is not null)
                 {
                     await RecordInboundLetterAsync(scope, envelope.WebhookEventId, "text", message.Text, cancellationToken).ConfigureAwait(false);
-                    await CompleteAsync("Text", scope, envelope.ReplyToken, text.Handle(
+                    await CompleteAsync("Text", envelope.WebhookEventId, scope, envelope.ReplyToken, text.Handle(
                         scope.Service,
                         scope.Actor(),
                         scope.DisplayContact,
@@ -75,7 +75,7 @@ public sealed class WebhookDispatcher(
                 if (scope.Contact is not null)
                 {
                     await RecordInboundLetterAsync(scope, envelope.WebhookEventId, "audio", string.Empty, cancellationToken).ConfigureAwait(false);
-                    await CompleteAsync("Audio", scope, envelope.ReplyToken,
+                    await CompleteAsync("Audio", envelope.WebhookEventId, scope, envelope.ReplyToken,
                         await audio.HandleAsync(scope, envelope.WebhookEventId, message.Id, cancellationToken).ConfigureAwait(false),
                         cancellationToken).ConfigureAwait(false);
                 }
@@ -118,7 +118,7 @@ public sealed class WebhookDispatcher(
                 }
                 var scope = scopes.Resolve(envelope.ChannelId, actorSourceId, source.Id, cancellationToken);
                 var profile = await http.ReadProfileAsync(scope, cancellationToken).ConfigureAwait(false);
-                await CompleteAsync("Follow", scope, envelope.ReplyToken, WebhookMembershipHandler.Follow(
+                await CompleteAsync("Follow", envelope.WebhookEventId, scope, envelope.ReplyToken, WebhookMembershipHandler.Follow(
                     scope.Service, scope.OrganizationId, scope.ChurchId, scope.SourceId, scope.Contact,
                     profile.DisplayName, profile.PictureUrl, profile.StatusMessage, cancellationToken), cancellationToken).ConfigureAwait(false);
                 return;
@@ -131,7 +131,7 @@ public sealed class WebhookDispatcher(
                     return;
                 }
                 var scope = scopes.Resolve(envelope.ChannelId, actorSourceId, source.Id, cancellationToken);
-                await CompleteAsync("Unfollow", scope, envelope.ReplyToken, WebhookMembershipHandler.Unfollow(
+                await CompleteAsync("Unfollow", envelope.WebhookEventId, scope, envelope.ReplyToken, WebhookMembershipHandler.Unfollow(
                     scope.Service, scope.ChurchId, scope.SourceId, scope.Contact, cancellationToken), cancellationToken).ConfigureAwait(false);
                 return;
             }
@@ -144,7 +144,7 @@ public sealed class WebhookDispatcher(
                         WebhookText.Neutral("Webhook.Word.Room") + "-" + source.Id,
                         string.Empty,
                         string.Empty);
-                await CompleteAsync("Join", scope, envelope.ReplyToken, WebhookMembershipHandler.Join(
+                await CompleteAsync("Join", envelope.WebhookEventId, scope, envelope.ReplyToken, WebhookMembershipHandler.Join(
                     scope.Service,
                     scope.OrganizationId,
                     scope.ChurchId,
@@ -170,7 +170,7 @@ public sealed class WebhookDispatcher(
                 }
                 var scope = scopes.Resolve(envelope.ChannelId, actorSourceId, source.Id, cancellationToken);
                 if (scope.Contact is not null)
-                    await CompleteAsync("Postback", scope, envelope.ReplyToken,
+                    await CompleteAsync("Postback", envelope.WebhookEventId, scope, envelope.ReplyToken,
                         WebhookPostbackHandler.Handle(scope.Service, scope.Actor(), postback.Postback.Data, cancellationToken),
                         cancellationToken).ConfigureAwait(false);
                 else RecordDisposition("Webhook.UnboundPostbackIgnored", "Webhook postback dispatch requires a bound contact.");
@@ -199,6 +199,7 @@ public sealed class WebhookDispatcher(
     /// <summary>記錄安全結果後才交 Reply owner；Reply 傳輸例外原樣離開 dispatcher。</summary>
     private async ValueTask CompleteAsync(
         string operation,
+        string webhookEventId,
         ResolvedWebhookScope scope,
         string? replyToken,
         WebhookBusinessResult result,
@@ -206,7 +207,7 @@ public sealed class WebhookDispatcher(
     {
         RecordBusinessResult(operation, result);
         if (result.ReplyKey is not null)
-            await replies.SendAsync(scope, replyToken, result, cancellationToken).ConfigureAwait(false);
+            await replies.SendAsync(webhookEventId, scope, replyToken, result, cancellationToken).ConfigureAwait(false);
     }
 
     /// <summary>

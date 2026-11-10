@@ -1,7 +1,7 @@
 /*
 檔案整體說明
 目的與定位：保護 P3-06 真 dispatcher 與語音 adapter 的離線端到端契約；測試只使用本包已核定的 Golden 事件及合成 HTTP／CRM 依賴。
-主要功能與流程：每份十二事件 fixture 先建成不可變 WebhookEnvelope，再交給正式 WebhookDispatcher；語音案例另驗固定官方 URL、逐 request Bearer、annotation 的正式 parent 與故障時零寫入。
+主要功能與流程：每份十二事件 fixture 先建成不可變 WebhookEnvelope，再交給正式 WebhookDispatcher；回覆替身接收同一 envelope 的 event ID，驗證 dispatcher 將關聯識別碼交給回覆 owner。語音案例另驗固定官方 URL、逐 request Bearer、annotation 的正式 parent 與故障時零寫入。
 使用邊界與維護：測試替身不連 LINE、D365 或設定，所有 Entity、HTTP response、stream 與 scope 僅由單一案例擁有並在 using／finally 釋放；斷言只證明離線 adapter 契約，不冒稱實機驗收。
 */
 using System.Collections.Concurrent;
@@ -272,6 +272,7 @@ public sealed class WebhookDispatchEndToEndTests
     private sealed class RecordingReplySender : IWebhookReplySender
     {
         public ValueTask SendAsync(
+            string webhookEventId,
             ResolvedWebhookScope scope,
             string? replyToken,
             SpeechMessageProducts.GoodShepherd.Core.Messaging.WebhookBusinessResult result,
