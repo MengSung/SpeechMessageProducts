@@ -3,9 +3,9 @@
 
 目的與定位：保護 P3-08 Webhook 回覆、入站 letter、scope 語系與例外交接契約。
 
-主要功能與流程：使用 detached JSON、固定 Core catalog、窄 CRM 替身及 dispatcher
+主要功能與流程：使用 detached JSON、固定 Core catalog、固定 UTC 時鐘、窄 CRM 替身及 dispatcher
 替身驗證 reply token 不跨事件、QueryUserId 只使用資源 key、letter 以事件 ID 原子
-Upsert 並填入 directioncode=false，以及 Reply sender 的真實 Exception 原樣離開 queue
+Upsert 並填入 directioncode=false 與固定時鐘 scheduledend，以及 Reply sender 的真實 Exception 原樣離開 queue
 handler。所有測試都是離線合成結果，不連 LINE、D365、IIS 或 SQL。
 
 使用邊界與維護：每個案例獨占 Entity、HTTP handler、scope 與 exception；測試替身
@@ -72,13 +72,15 @@ public sealed class WebhookP308Tests
         Assert.Equal(UserId, argument.Value);
     }
 
-    /// <summary>letter 使用相同事件 ID 重送同一正式主鍵，方向與 actor scope 固定為入站。</summary>
+    /// <summary>letter 使用相同事件 ID 重送同一正式主鍵，並驗證入站方向、actor scope 與固定 UTC 時間。</summary>
     [Fact]
     public async Task LetterRecorder_UpsertsStableInboundCandidate()
     {
         var crm = new LetterCrm();
         var scope = Scope(crm);
-        var recorder = new WebhookLetterRecorder(new GoodShepherdTextCatalog(new EmptyOverrides()));
+        var clock = new FixedClock();
+        var recorder = new WebhookLetterRecorder(new GoodShepherdTextCatalog(new EmptyOverrides()), clock);
+        var expectedScheduledEnd = clock.UtcNow.UtcDateTime;
 
         var first = await recorder.RecordAsync(scope, "evt-letter", "text", "第一則內容", CancellationToken.None);
         var second = await recorder.RecordAsync(scope, "evt-letter", "text", "第一則內容", CancellationToken.None);
@@ -92,6 +94,9 @@ public sealed class WebhookP308Tests
         Assert.Equal(1, letter.GetAttributeValue<int>("new_count"));
         Assert.Equal(100000000, letter.GetAttributeValue<OptionSetValue>("new_message_category")!.Value);
         Assert.Equal(ContactId, letter.GetAttributeValue<EntityReference>("regardingobjectid")!.Id);
+        var scheduledEnd = letter.GetAttributeValue<DateTime>("scheduledend");
+        Assert.Equal(expectedScheduledEnd, scheduledEnd);
+        Assert.Equal(DateTimeKind.Utc, scheduledEnd.Kind);
         var party = Assert.Single(letter.GetAttributeValue<EntityCollection>("from").Entities);
         Assert.Equal(ContactId, party.GetAttributeValue<EntityReference>("partyid")!.Id);
     }

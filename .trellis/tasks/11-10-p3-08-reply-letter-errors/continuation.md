@@ -10,3 +10,4 @@
 - 2026-11-10 07:51 Asia/Taipei (UTC+08:00)：決策：將 ResolvedWebhookScope 兩個相容建構式的預設 churchName 由 CJK 顯示字串改為 Church。理由：正式 resolver 一律傳入 CRM 實際教會名稱；相容建構式只供離線／既有呼叫端，使用中性非本地化占位可消除 CJK 棘輪新增而不改變正式輸出。
 - 2026-11-10 08:05 Asia/Taipei (UTC+08:00)：首次固定 guard 的全方案測試發現 Localization 兩目標各一個固定數量斷言仍期待 19，但 P3-08 已正式加入 Webhook.Letter.Subject，實際獨立資源鍵為 20。決策：同步更新獨立 ExpectedSystemKeys、兩個數量斷言及檔案說明，保留明確鍵清單；理由：修正測試契約的真實基準，不降低測試強度，也不補回已刪除的 Plugin Debug 建置行。
 - 2026-11-10 08:12 Asia/Taipei (UTC+08:00)：固定 guard 的 Changed encoding 發現新加入 SpeechMessageProducts.LineWebhook/Properties/launchSettings.json 缺 final CRLF。決策：只補檔尾 CRLF，不改 JSON 內容；理由：符合 .gitattributes 與 AGENTS.md 的 UTF-8 無 BOM／CRLF／末尾 CRLF 契約，且不影響啟動設定語意。
+- 2026-11-10 08:37 Asia/Taipei (UTC+08:00)：使用者明確指示停止雙模型審查，取代前述仍預期呼叫兩個 backend 的安排。決策：不啟動 Gemini、Claude 或雙模型 runner；以本機測試、固定 guard 與協調者自審形成驗收證據，並明確註記未取得外部審查。理由：遵循使用者最新授權，不把先前只有單方完成的分析誤稱為雙模型結果。

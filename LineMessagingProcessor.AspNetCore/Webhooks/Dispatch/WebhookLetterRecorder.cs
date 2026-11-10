@@ -6,7 +6,7 @@
 
 主要功能與流程：以 organization／church／letter／webhookEventId 推導穩定資料庫 ID，
 先在操作區域建立完整 candidate，再以既有 WebhookRecordOperations.Upsert 原子發布。
-candidate 包含 subject、description、LINE ID、regarding contact、scheduledend、
+candidate 包含 subject、description、LINE ID、regarding contact、由 IChurchClock 提供的 scheduledend、
 directioncode=false、new_count=1、new_message_category=100000000 與 from activityparty。
 
 使用邊界與維護：只接受 scope 已核對的 actor，不保存 reply token，不建立 outbound
@@ -40,15 +40,16 @@ public interface IWebhookLetterRecorder
         CancellationToken cancellationToken);
 }
 
-/// <summary>使用 Dataverse Upsert 的正式 letter owner；不依賴程序鎖或先查再建。</summary>
-public sealed class WebhookLetterRecorder(GoodShepherdTextCatalog catalog) : IWebhookLetterRecorder
+/// <summary>使用 Dataverse Upsert 與共用 UTC 時鐘的正式 letter owner；不依賴程序鎖或先查再建。</summary>
+public sealed class WebhookLetterRecorder(GoodShepherdTextCatalog catalog, IChurchClock clock) : IWebhookLetterRecorder
 {
     /// <summary>固定入站分類值，沿用既有 letter 欄位契約。</summary>
     private const int InboundMessageCategory = 100000000;
 
     private readonly GoodShepherdTextCatalog catalog = catalog ?? throw new ArgumentNullException(nameof(catalog));
+    private readonly IChurchClock clock = clock ?? throw new ArgumentNullException(nameof(clock));
 
-    /// <summary>建立完整 candidate 後一次 Upsert；不保留 token 或輸入參照。</summary>
+    /// <summary>建立完整 candidate 後一次 Upsert；時間只經共用 UTC 時鐘，且不保留 token 或輸入參照。</summary>
     public ValueTask<Guid> RecordAsync(
         ResolvedWebhookScope scope,
         string webhookEventId,
@@ -74,7 +75,7 @@ public sealed class WebhookLetterRecorder(GoodShepherdTextCatalog catalog) : IWe
             ["description"] = description.Length == 0 ? messageKind : description,
             ["new_displayed_lineid"] = actor.UserId,
             ["regardingobjectid"] = new EntityReference("contact", actor.ContactId),
-            ["scheduledend"] = DateTime.UtcNow,
+            ["scheduledend"] = clock.UtcNow.UtcDateTime,
             ["directioncode"] = false,
             ["new_count"] = 1,
             ["new_message_category"] = new OptionSetValue(InboundMessageCategory),
