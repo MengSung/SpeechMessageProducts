@@ -1,6 +1,6 @@
 # P3 Webhook 驗收步驟
 
-> 狀態：待使用者收尾。本文是續作清單，不是實機通過證據。2026-11-10 21:58 Asia/Taipei (UTC+08:00) 已再次以 PowerShell Parser 核對部署基礎腳本，錯誤 0；仍未建立 CRM 測試資料、未新增 IIS site／SNI binding、未設定 LINE Webhook URL、未送出事件，也未改 CRM／IIS／SQL／LINE。
+> 狀態：待使用者收尾。本文是續作清單，不是實機通過證據。2026-11-10 22:25 Asia/Taipei (UTC+08:00) 固定 guard §8.1 八項通過並已推送紀錄提交；P3-09 實機步驟仍未執行。仍未建立 CRM 測試資料、未新增 IIS site／SNI binding、未設定 LINE Webhook URL、未送出事件，也未改 CRM／IIS／SQL／LINE。
 
 ## 固定邊界
 

@@ -240,11 +240,11 @@ footer{margin-top:36px;color:var(--muted);font-size:12.5px;text-align:center}
  */
 const DATA = {
   "planVersion": "3.5",
-  "snapshot": "2026-11-10 21:58 Asia/Taipei (UTC+08:00)",
-  "lastUpdated": "2026-11-10T21:58:27+08:00",
+  "snapshot": "2026-11-10 22:25 Asia/Taipei (UTC+08:00)",
+  "lastUpdated": "2026-11-10T22:25:36+08:00",
   "branch": "1.0.0.11.Integration.P3.Worktree",
-  "head": "aeb2fc20",
-  "headline": "2026-11-10 21:58 Asia/Taipei (UTC+08:00)：P3-01～P3-08 已驗收；P3-09 回覆紀錄離線測試104/104，部署基礎腳本PowerShell Parser錯誤0。使用者已核定mapping來源；CRM UI尚未建立測試教會A／B及Contact，故未部署、未設定LINE Webhook或送模擬事件。P3-09標待使用者收尾，階段3未完成，未開始階段4。",
+  "head": "39ce8436",
+  "headline": "2026-11-10 22:25 Asia/Taipei (UTC+08:00)：P3-01～P3-08 已驗收；P3-09 七步仍未執行。固定 guard §8.1 八項通過並已推送，遠端 SHA 核對相同。使用者已核定 mapping 來源；目前待 CRM UI 建立測試教會 A／B 及 Contact。P3-09 待使用者收尾，階段 3 未完成，未開始階段 4。",
   "notices": [
     {
       "id": "plan-3.5-summary",
@@ -414,8 +414,8 @@ const DATA = {
       "phaseId": "階段 3",
       "level": "info",
       "title": "P3 進度摘要",
-      "lastUpdated": "2026-11-10T21:58:27+08:00",
-      "body": "2026-11-10 21:58 Asia/Taipei (UTC+08:00)：P3-01～P3-08 已驗收；P3-09 回覆送出紀錄離線測試104/104，部署基礎腳本PowerShell Parser錯誤0。使用者已核定mapping來源：OrganizationId以唯讀WhoAmI取得、ChurchId使用測試教會A正式GUID、TimeZone為Asia/Taipei；目前唯一必要前置是CRM UI建立A／B與各自Contact。尚未部署、設定LINE Webhook或送事件；P3-09待使用者收尾，階段3未完成。階段審查依使用者核定略過外部雙模型，僅自審，非雙模型結果，Critical 0／High 0。",
+      "lastUpdated": "2026-11-10T22:25:36+08:00",
+      "body": "2026-11-10 22:25 Asia/Taipei (UTC+08:00)：P3-01～P3-08 已驗收；P3-09 七步及實機 Warning 尚未驗收。固定 guard §8.1 八項通過，commit 39ce8436 已推送且 git ls-remote SHA 相同。Mapping 來源已核定；目前唯一必要前置是 CRM UI 建立測試教會 A／B 與各自 Contact；未部署、未設定 LINE URL、未送事件。P3-09 待使用者收尾，階段 3 未完成。階段審查使用者核定略過外部雙模型，僅自審，非雙模型結果，Critical 0／High 0。",
       "steps": [
         "2026-11-09 13:20 Asia/Taipei (UTC+08:00)：P3-01與P3-02新增專案都會更動sln，依檔案歸屬先串行做P3-02；P3-01僅唯讀調查。",
         "2026-11-09 13:20 Asia/Taipei (UTC+08:00)：P3-00原始證據已逐檔核對並複製至耐久ignored evidence，沒有將秘密或原始輸出加入版控。",
@@ -445,9 +445,10 @@ const DATA = {
         "2026-11-10 16:02 Asia/Taipei (UTC+08:00)：P3-09 續作；使用者已核定專用 AppPool 環境變數及 hostname+SNI 即時驗證／回復條件。尚未新增 IIS binding、建立測試 DB 或呼叫 LINE API；階段 3 未完成。",
         "2026-11-10 18:57 Asia/Taipei (UTC+08:00)：Release LineWebhook 測試104/104、部署腳本PowerShell Parser通過。唯讀核對測試DB有且僅有A.8空表、LineWebhookP309 AppPool Started、部署目錄88檔；CRM site與CRMAppPool Started，既有 `*:443:` binding未變。User Secrets核對TestChannelToken、TestChannelSecret、TokenKey、TestLineUserId存在，但OrganizationId、ChurchId、TimeZone缺少；不猜測、不建測試站、不呼叫LINE API。續作受阻回報列出本機發布暫存目錄與遠端測試資源，最終清理腳本待驗收後提供。",
         "2026-11-10 21:58 Asia/Taipei (UTC+08:00)：使用者已核定P3-09 mapping來源與WhoAmI／正式GUID取得方式，覆蓋18:57的過時mapping缺項結論。CRM UI尚未建立測試Account／Contact；既有Deployment CLI沒有CRM CRUD、LineRecipientQueries唯讀，故遵守護欄不猜GUID、不用SQL或自訂probe。重新解析部署基礎腳本Parser錯誤0；操作紀錄存在且SHA-256已核對。階段自審僅一次、Critical 0／High 0，非雙模型結果；實機步驟尚未執行。",
-        "2026-11-10 21:58 Asia/Taipei (UTC+08:00)：依使用者要求，將65個P3-09 .ccg/dual-model-runs分析路徑從Git索引移除並新增忽略規則；本機副本均保留，沒有改寫遠端已有歷史。"
+        "2026-11-10 21:58 Asia/Taipei (UTC+08:00)：依使用者要求，將65個P3-09 .ccg/dual-model-runs分析路徑從Git索引移除並新增忽略規則；本機副本均保留，沒有改寫遠端已有歷史。",
+        "2026-11-10 22:25 Asia/Taipei (UTC+08:00)：P3-09收尾提交39ce8436通過固定guard §8.1八項並已推送；git ls-remote核對遠端SHA相同。這是紀錄收尾提交，不代表P3-09七步完成；CRM UI測試資料仍待使用者建立。"
       ],
-      "lastUpdated": "2026-11-10T21:58:27+08:00"
+      "lastUpdated": "2026-11-10T22:25:36+08:00"
     }
   ],
   "userActions": [
@@ -1191,7 +1192,7 @@ const DATA = {
       "timebox": "1 天",
       "doneAt": "",
       "commit": "",
-      "note": "2026-11-10 21:58 Asia/Taipei (UTC+08:00)：Hosting Bundle 10.0.14／ANCM v2及暫存安裝檔清除已核對；回覆紀錄離線測試104/104，部署基礎腳本PowerShell Parser錯誤0。使用者已核定mapping來源，但CRM UI尚未建立測試教會A／B與Contact，因此尚未建立新站、設定LINE URL或送模擬事件；P3-09標待使用者收尾。階段自審Critical 0／High 0，使用者核定略過外部雙模型審查，僅自審，非雙模型結果；階段3未完成。"
+      "note": "2026-11-10 22:25 Asia/Taipei (UTC+08:00)：Hosting Bundle 10.0.14／ANCM v2及暫存安裝檔清除已核對；回覆紀錄離線測試104/104，部署基礎腳本PowerShell Parser錯誤0。固定guard §8.1八項通過，紀錄提交39ce8436已推送且遠端SHA相同。CRM UI尚未建立測試教會A／B與Contact，因此尚未部署或送LINE模擬事件；P3-09仍待使用者收尾。階段自審Critical 0／High 0，使用者核定略過外部雙模型審查，僅自審，非雙模型結果；階段3未完成。"
     },
     {
       "id": "P4-01",
