@@ -240,11 +240,11 @@ footer{margin-top:36px;color:var(--muted);font-size:12.5px;text-align:center}
  */
 const DATA = {
   "planVersion": "3.5",
-  "snapshot": "2026-11-10 07:25 Asia/Taipei (UTC+08:00)",
-  "lastUpdated": "2026-11-10T07:25:33+08:00",
+  "snapshot": "2026-11-10 09:48 Asia/Taipei (UTC+08:00)",
+  "lastUpdated": "2026-11-10T09:48:00+08:00",
   "branch": "1.0.0.11.Integration.P3.Worktree",
-  "head": "a6921a6a",
-  "headline": "2026-11-10 07:25 Asia/Taipei (UTC+08:00)：依使用者核定回到正式 P3 單一目錄，一次只做一包；P3-06／07 已驗收，P3-08 進行中保存點 a6921a6a 尚未驗收；P3-09 前置仍缺，不開工。已保留原主目錄 20:00 遠端核對歷史。",
+  "head": "1aacdd56",
+  "headline": "2026-11-10 09:48 Asia/Taipei (UTC+08:00)：P3-01～P3-08 已驗收並推送至正式 P3 分支；P3-09 尚未開工，仍缺 DMZ／HTTPS／憑證端點、遠端權限與測試主機 SQL。",
   "notices": [
     {
       "id": "plan-3.5-summary",
@@ -414,7 +414,7 @@ const DATA = {
       "phaseId": "階段 3",
       "level": "info",
       "title": "P3 進度摘要",
-      "body": "2026-11-10 07:25 Asia/Taipei (UTC+08:00)：依使用者核定回到正式 P3 單一目錄，一次只做一包；P3-06／07 已驗收，P3-08 進行中保存點 a6921a6a 尚未驗收；P3-09 前置仍缺，不開工。已保留原主目錄 20:00 遠端核對歷史。",
+      "body": "2026-11-10 09:48 Asia/Taipei (UTC+08:00)：P3-01～P3-08 已驗收並推送至正式 P3 分支；P3-09 尚未開工，仍缺 DMZ／HTTPS／憑證端點、遠端權限與測試主機 SQL。依使用者指示停止雙模型審查，階段審查尚未完成。",
       "steps": [
         "2026-11-09 13:20 Asia/Taipei (UTC+08:00)：P3-01與P3-02新增專案都會更動sln，依檔案歸屬先串行做P3-02；P3-01僅唯讀調查。",
         "2026-11-09 13:20 Asia/Taipei (UTC+08:00)：P3-00原始證據已逐檔核對並複製至耐久ignored evidence，沒有將秘密或原始輸出加入版控。",
@@ -436,9 +436,11 @@ const DATA = {
         "2026-11-10 04:51 Asia/Taipei (UTC+08:00)：P3-07驗收；程式提交b67dbf0a固定guard八項通過，GoodShepherd雙目標79／79、Localization雙目標183／183與185／185、全方案5,211／5,211、Debug tracer 7／7、文件1,433／1,433、進度頁28／28；審查Critical／High為0，Gemini無可用輸出如實記錄。",
         "2026-11-10 06:41 Asia/Taipei (UTC+08:00)：P3-08開工；回覆、語系／教會sender、入站letter與真實例外傳遞列為本包範圍；規劃內容併入第一個程式提交，P3-09仍不得開工。",
         "2026-11-09 20:00 Asia/Taipei (UTC+08:00)：P3-01／04驗收後實際git ls-remote核對d0878449d5021163f7004d2067284367b1858bd5。現在只開P3-06，規劃併本包首程式提交；兩短worktree證據已逐hash耐久保存後清理。",
-        "2026-11-10 07:25 Asia/Taipei (UTC+08:00)：依使用者核定回到正式 P3 單一目錄，一次只做一包；P3-06／07 已驗收，P3-08 進行中保存點 a6921a6a 尚未驗收；P3-09 前置仍缺，不開工。已保留原主目錄 20:00 遠端核對歷史。"
+        "2026-11-10 07:25 Asia/Taipei (UTC+08:00)：依使用者核定回到正式 P3 單一目錄，一次只做一包；P3-06／07 已驗收，P3-08 進行中保存點 a6921a6a 尚未驗收；P3-09 前置仍缺，不開工。已保留原主目錄 20:00 遠端核對歷史。",
+        "2026-11-10 09:40 Asia/Taipei (UTC+08:00)：P3-08 驗收提交 1aacdd5689cc7d8c89d9bf48a07c732a0462b802；AspNetCore Debug／Release 各75/75，固定 guard §8.1 全部通過，回報見封存子任務的 wp-reports/P3-08.md。",
+        "2026-11-10 09:48 Asia/Taipei (UTC+08:00)：P3-01～P3-08 均為 done、目前沒有 active 工作包；P3-09 保持 todo。缺項一頁報告見父任務 P3-09-prerequisites-missing.md，不以離線結果冒充實機驗收。"
       ],
-      "lastUpdated": "2026-11-10T07:25:33+08:00"
+      "lastUpdated": "2026-11-10T09:48:00+08:00"
     }
   ],
   "userActions": [
@@ -471,6 +473,12 @@ const DATA = {
       "text": "正式平台 SQL 連線字串（只有 Codex 自己取不到時）",
       "status": "later",
       "note": "測試環境由 Codex 在測試主機建立"
+    },
+    {
+      "when": "P3-09 前",
+      "text": "提供 DMZ 測試主機 FQDN／IP、公開 HTTPS URL；若已知再提供測試主機 SQL 端點",
+      "status": "you",
+      "note": "P3-09-prerequisites-missing.md 已列出缺項與單行格式；不要提供帳密、Channel secret、token 或連線字串"
     },
     {
       "when": "階段 4 前",
@@ -524,8 +532,8 @@ const DATA = {
       "planned": "4～6 個工作天",
       "actual": "",
       "current": true,
-      "done": 7,
-      "active": 1
+      "done": 8,
+      "active": 0
     },
     {
       "id": "階段 4",
@@ -1151,13 +1159,13 @@ const DATA = {
       "id": "P3-08",
       "phaseId": "階段 3",
       "name": "回覆、letter 紀錄、例外處理",
-      "status": "active",
+      "status": "done",
       "deps": "P3-06",
       "live": "無",
       "timebox": "1 天",
-      "doneAt": "",
-      "commit": "",
-      "note": "2026-11-10 06:41 Asia/Taipei (UTC+08:00)：已開工；回覆、會友語言／教會sender、入站letter與真實例外傳遞；規劃併入首個程式提交，P3-09不得開工。"
+      "doneAt": "2026-11-10 09:40 Asia/Taipei (UTC+08:00)",
+      "commit": "1aacdd56",
+      "note": "2026-11-10 06:41 Asia/Taipei (UTC+08:00)：已開工；回覆、會友語言／教會sender、入站letter與真實例外傳遞。2026-11-10 09:40 Asia/Taipei (UTC+08:00)：固定guard與AspNetCore Debug／Release各75/75通過；驗收回報見.trellis/tasks/archive/2026-11/P3-08-reply-letter-errors/wp-reports/P3-08.md；依使用者指示未執行雙模型審查。"
     },
     {
       "id": "P3-09",
@@ -1612,77 +1620,43 @@ const DATA = {
       "note": "首個正式 Plugin 佈署 goodshepherdback 之前"
     }
   ],
-  "active": [
-    {
-      "id": "P3-08",
-      "startedAt": "2026-11-10 06:41 Asia/Taipei (UTC+08:00)",
-      "timebox": "1 天",
-      "dod": [
-        [
-          "Reply API 與 bounded detached reply token 完成並有離線測試",
-          "no",
-          "尚未驗收"
-        ],
-        [
-          "會員語言／教會名稱／sender 依驗證 scope 隔離",
-          "no",
-          "尚未驗收"
-        ],
-        [
-          "入站 letter 穩定 Upsert、directioncode=false 且不觸發 outbound",
-          "no",
-          "尚未驗收"
-        ],
-        [
-          "真實 Exception 保留並交給 Hosting 通知入口",
-          "no",
-          "尚未驗收"
-        ],
-        [
-          "固定 guard、文件／編碼／重複碼與審查完成",
-          "no",
-          "尚未驗收"
-        ]
-      ],
-      "next": "先建立紅燈測試，再完成 Reply、letter、catalog、scope、DI 與 dispatcher 接線；完成後執行固定 C:\\smv\\guard。"
-    }
-  ],
+  "active": [],
   "gates": [
     {
       "item": "方案建置（Release）",
       "result": "ok",
-      "at": "2026-11-10 01:42 Asia/Taipei (UTC+08:00)",
-      "note": "固定guard對ae96f737完整八項通過；Release全方案5,223個、另Debug tracer 7個；0失敗／略過。"
+      "at": "2026-11-10 09:40 Asia/Taipei (UTC+08:00)",
+      "note": "固定guard對1aacdd568完整八項通過；建置0錯誤；另AspNetCore Debug／Release各75/75。"
     },
     {
       "item": "全方案測試",
       "result": "ok",
-      "at": "2026-11-10 01:42 Asia/Taipei (UTC+08:00)",
-      "note": "固定guard對ae96f737完整八項通過；Release全方案5,223個、另Debug tracer 7個；0失敗／略過。"
+      "at": "2026-11-10 09:40 Asia/Taipei (UTC+08:00)",
+      "note": "固定guard對1aacdd568完整八項通過；全方案測試0失敗，Debug tracer 7/7；AspNetCore Debug／Release各75/75。"
     },
     {
       "item": "檔案說明檢查",
       "result": "ok",
-      "at": "2026-11-10 01:42 Asia/Taipei (UTC+08:00)",
-      "note": "固定guard對ae96f737完整八項通過；Release全方案5,223個、另Debug tracer 7個；0失敗／略過。"
+      "at": "2026-11-10 09:40 Asia/Taipei (UTC+08:00)",
+      "note": "固定guard對1aacdd568通過；檔案說明檢查0失敗。"
     },
     {
       "item": "文字編碼（P3 範圍）",
       "result": "ok",
-      "at": "2026-11-10 01:42 Asia/Taipei (UTC+08:00)",
-      "note": "固定guard對ae96f737執行 Changed 編碼檢查，0問題。"
+      "at": "2026-11-10 09:40 Asia/Taipei (UTC+08:00)",
+      "note": "固定guard對1aacdd568執行 Changed 編碼檢查，0問題。"
     },
     {
       "item": "重複程式掃描",
       "result": "ok",
-      "at": "2026-11-10 01:42 Asia/Taipei (UTC+08:00)",
-      "note": "固定guard對ae96f737掃描，新增重複0／過期基準0。"
+      "at": "2026-11-10 09:40 Asia/Taipei (UTC+08:00)",
+      "note": "固定guard對1aacdd568掃描，新增重複0／過期基準0。"
     },
     {
       "item": "I18nCheck verify",
       "result": "ok",
-      "at": "2026-11-10 01:42 Asia/Taipei (UTC+08:00)",
-      "note": "固定guard對ae96f737執行 I18nCheck verify，生成檔與資源驗證通過。"
+      "at": "2026-11-10 09:40 Asia/Taipei (UTC+08:00)",
+      "note": "固定guard對1aacdd568執行 I18nCheck verify，生成檔與資源驗證通過。"
     },
     {
       "item": "雲端 CI（GitHub）",

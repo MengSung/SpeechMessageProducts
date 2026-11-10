@@ -8,7 +8,7 @@
 6. 執行相關 net10 測試，再執行 GoodShepherd 雙目標、Localization／I18n、文件說明、UTF-8／CRLF、duplicate 檢查；失敗自行修正重跑。
 7. 產生 `.trellis/tasks/11-10-p3-08-reply-letter-errors/wp-reports/P3-08.md` 一頁離線驗收摘要，明確列出沒有實機結果。
 8. 在固定 `C:\smv\guard` 對驗收提交跑完整 §8.1／§8.2；若失敗自行診斷修正並重跑，Critical／High 必須為 0。
-9. 只在守門通過後標 Trellis done、推送 `p3/P3-08`、以 `git ls-remote` 核對遠端 SHA。
+9. 只在守門通過後標 Trellis done、推送 `1.0.0.11.Integration.P3.Worktree`、以 `git ls-remote` 核對遠端 SHA。
 10. 驗收時再次只更新進度頁 DATA，列出 P3-09 前置缺項，保持 P3-09 todo，完成後停止。
 
 ## 變更分組

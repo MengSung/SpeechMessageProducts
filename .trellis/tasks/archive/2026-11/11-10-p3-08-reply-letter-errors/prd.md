@@ -16,12 +16,12 @@
 
 ## Acceptance Criteria
 
-- [ ] Reply token detached、一次性且不進診斷；文字結果包含唯讀 reply arguments。
-- [ ] 綁定會友的文字事件以 Reply API 送出 catalog 文字，sender 使用授權教會與語系；失敗原例外交給 queue／Hosting。
-- [ ] 入站文字／媒體 message 產生方向 `false` 的 letter，穩定事件重送不重複建立；未授權或 scope 衝突 fail closed。
-- [ ] `QueryUserId`、既有 reply keys、sender 語系及 letter 欄位有離線決定性測試；沒有固定開發者 LINE userId。
-- [ ] 相關測試、文件說明、UTF-8／CRLF／I18n／重複檢查及固定 `C:\smv\guard` 完整 §8.1／§8.2 通過；Critical／High 為 0。
-- [ ] 驗收提交已推送 `p3/P3-08` 且 `git ls-remote` SHA 相同，進度頁只改 DATA 並記錄開工與驗收時間；P3-09 仍 todo。
+- [x] Reply token detached、一次性且不進診斷；文字結果包含唯讀 reply arguments。
+- [x] 綁定會友的文字事件以 Reply API 送出 catalog 文字，sender 使用授權教會與語系；失敗原例外交給 queue／Hosting。
+- [x] 入站文字／媒體 message 產生方向 `false` 的 letter，穩定事件重送不重複建立；未授權或 scope 衝突 fail closed。
+- [x] `QueryUserId`、既有 reply keys、sender 語系及 letter 欄位有離線決定性測試；沒有固定開發者 LINE userId。
+- [x] 相關測試、文件說明、UTF-8／CRLF／I18n／重複檢查及固定 `C:\smv\guard` 完整 §8.1／§8.2 通過；本包未作外部審查，依使用者指示停止雙模型審查。
+- [x] 驗收程式提交 `1aacdd5689cc7d8c89d9bf48a07c732a0462b802` 已推送且 `git ls-remote` SHA 相同；進度頁 DATA 記錄開工與驗收時間；P3-09 保持未開始。
 
 ## Constraints
 
