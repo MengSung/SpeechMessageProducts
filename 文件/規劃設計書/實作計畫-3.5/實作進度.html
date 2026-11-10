@@ -240,11 +240,11 @@ footer{margin-top:36px;color:var(--muted);font-size:12.5px;text-align:center}
  */
 const DATA = {
   "planVersion": "3.5",
-  "snapshot": "2026-11-10 09:48 Asia/Taipei (UTC+08:00)",
-  "lastUpdated": "2026-11-10T09:48:00+08:00",
+  "snapshot": "2026-11-10 16:02 Asia/Taipei (UTC+08:00)",
+  "lastUpdated": "2026-11-10T16:02:00+08:00",
   "branch": "1.0.0.11.Integration.P3.Worktree",
-  "head": "1aacdd56",
-  "headline": "2026-11-10 09:48 Asia/Taipei (UTC+08:00)：P3-01～P3-08 已驗收並推送至正式 P3 分支；P3-09 尚未開工，仍缺 DMZ／HTTPS／憑證端點、遠端權限與測試主機 SQL。",
+  "head": "35749d78",
+  "headline": "2026-11-10 16:02 Asia/Taipei (UTC+08:00)：P3-01～P3-08 已驗收；Hosting Bundle 10.0.14、ANCM v2 與暫存檔清除已核實。P3-09 正續作回覆送出紀錄與隔離實機部署，IIS／SQL／LINE 尚未由續作變更；階段 3 未完成。",
   "notices": [
     {
       "id": "plan-3.5-summary",
@@ -414,7 +414,8 @@ const DATA = {
       "phaseId": "階段 3",
       "level": "info",
       "title": "P3 進度摘要",
-      "body": "2026-11-10 09:48 Asia/Taipei (UTC+08:00)：P3-01～P3-08 已驗收並推送至正式 P3 分支；P3-09 尚未開工，仍缺 DMZ／HTTPS／憑證端點、遠端權限與測試主機 SQL。依使用者指示停止雙模型審查，階段審查尚未完成。",
+      "lastUpdated": "2026-11-10T16:02:00+08:00",
+      "body": "2026-11-10 16:02 Asia/Taipei (UTC+08:00)：P3-01～P3-08 已驗收；Hosting Bundle 10.0.14、ANCM v2、CRM site／CRMAppPool Started、goodshepherdback HTTP 302 與本機／VM 安裝檔不存在均已核實。P3-09 正續作回覆送出紀錄與實機部署，尚未完成 LINE 驗收、資料清理及階段審查；階段 3 未完成。",
       "steps": [
         "2026-11-09 13:20 Asia/Taipei (UTC+08:00)：P3-01與P3-02新增專案都會更動sln，依檔案歸屬先串行做P3-02；P3-01僅唯讀調查。",
         "2026-11-09 13:20 Asia/Taipei (UTC+08:00)：P3-00原始證據已逐檔核對並複製至耐久ignored evidence，沒有將秘密或原始輸出加入版控。",
@@ -438,9 +439,12 @@ const DATA = {
         "2026-11-09 20:00 Asia/Taipei (UTC+08:00)：P3-01／04驗收後實際git ls-remote核對d0878449d5021163f7004d2067284367b1858bd5。現在只開P3-06，規劃併本包首程式提交；兩短worktree證據已逐hash耐久保存後清理。",
         "2026-11-10 07:25 Asia/Taipei (UTC+08:00)：依使用者核定回到正式 P3 單一目錄，一次只做一包；P3-06／07 已驗收，P3-08 進行中保存點 a6921a6a 尚未驗收；P3-09 前置仍缺，不開工。已保留原主目錄 20:00 遠端核對歷史。",
         "2026-11-10 09:40 Asia/Taipei (UTC+08:00)：P3-08 驗收提交 1aacdd5689cc7d8c89d9bf48a07c732a0462b802；AspNetCore Debug／Release 各75/75，固定 guard §8.1 全部通過，回報見封存子任務的 wp-reports/P3-08.md。",
-        "2026-11-10 09:48 Asia/Taipei (UTC+08:00)：P3-01～P3-08 均為 done、目前沒有 active 工作包；P3-09 保持 todo。缺項一頁報告見父任務 P3-09-prerequisites-missing.md，不以離線結果冒充實機驗收。"
+        "2026-11-10 09:48 Asia/Taipei (UTC+08:00)：P3-01～P3-08 均為 done、目前沒有 active 工作包；P3-09 保持 todo。缺項一頁報告見父任務 P3-09-prerequisites-missing.md，不以離線結果冒充實機驗收。",
+        "2026-11-10 11:26 Asia/Taipei (UTC+08:00)：P3-09 唯讀前置與 appcmd 備份完成；Hosting Bundle 安裝啟動遭政策拒絕，當時未安裝且兩份暫存檔未清，受阻回報保留為當時狀態，不代表後續現況。",
+        "2026-11-10 11:39 Asia/Taipei (UTC+08:00)：使用者開始安裝 Hosting Bundle 10.0.14 並刪除本機與 VM 兩份安裝檔，操作記錄至 11:45；Codex 唯讀核實 ANCM v2、.NET／ASP.NET Core 10.0.14、CRM site 與 CRMAppPool Started、goodshepherdback HTTPS HTTP 302，摘要見 P3-09 子任務 evidence/hosting-bundle-install.md。",
+        "2026-11-10 16:02 Asia/Taipei (UTC+08:00)：P3-09 續作；使用者已核定專用 AppPool 環境變數及 hostname+SNI 即時驗證／回復條件。尚未新增 IIS binding、建立測試 DB 或呼叫 LINE API；階段 3 未完成。"
       ],
-      "lastUpdated": "2026-11-10T09:48:00+08:00"
+      "lastUpdated": "2026-11-10T16:02:00+08:00"
     }
   ],
   "userActions": [
@@ -1177,7 +1181,7 @@ const DATA = {
       "timebox": "1 天",
       "doneAt": "",
       "commit": "",
-      "note": "測試 IIS 部署、Webhook URL、模擬事件、重送、驗簽"
+      "note": "2026-11-10 16:02 Asia/Taipei (UTC+08:00)：Hosting Bundle 10.0.14／ANCM v2 與兩份暫存安裝檔清除已核對；目前續作回覆送出紀錄、獨立測試 DB／IIS 部署與 P3-09 實機驗收，尚未宣稱完成。使用者核定 hostname+SNI 綁定後立即驗證／回復條件。"
     },
     {
       "id": "P4-01",
