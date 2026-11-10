@@ -4,9 +4,9 @@
 目的與定位：保護 P3-08 Webhook 回覆、入站 letter、scope 語系與例外交接契約。
 
 主要功能與流程：使用 detached JSON、固定 Core catalog、固定 UTC 時鐘、窄 CRM 替身及 dispatcher
-替身驗證 reply token 不跨事件、QueryUserId 只使用資源 key、letter 以事件 ID 原子
-Upsert 並填入 directioncode=false 與固定時鐘 scheduledend，以及 Reply sender 的真實 Exception 原樣離開 queue
-handler。所有測試都是離線合成結果，不連 LINE、D365、IIS 或 SQL。
+替身驗證 reply token 不跨事件、兩個教會 scope 的 SDK Authorization 不串流、QueryUserId 只使用
+resource key、letter 以事件 ID 原子 Upsert 並填入 directioncode=false 與固定時鐘 scheduledend，
+以及 Reply 傳輸真實 Exception 原樣離開 queue handler。所有測試都是離線合成結果，不連 LINE、D365、IIS 或 SQL。
 
 使用邊界與維護：每個案例獨占 Entity、HTTP handler、scope 與 exception；測試替身
 不保存 token、request、Session 或跨案例 cache，Dispose 由案例的 using／Host fixture
@@ -15,6 +15,7 @@ handler。所有測試都是離線合成結果，不連 LINE、D365、IIS 或 SQ
 */
 using System;
 using System.Collections.Generic;
+using System.Net;
 using System.Net.Http;
 using System.Text.Json;
 using System.Threading;
@@ -72,6 +73,120 @@ public sealed class WebhookP308Tests
         Assert.Equal(UserId, argument.Value);
     }
 
+    /// <summary>
+    /// 正式 Reply sender 經真 SDK 離線傳輸；以兩個 scope 與兩個 token 注入 A/B 隔離，
+    /// 並斷言每筆 Reply 的 URI、Authorization、一次性 token、catalog 文案與 sender 欄位。
+    /// Inject 捕獲合成 handler 與追蹤 client 的 IHttpClientFactory；sender 必須對每筆請求使用
+    /// 當筆 scope credential，完成或失敗後釋放 client。測試不連 LINE、D365、IIS 或 SQL。
+    /// </summary>
+    [Fact]
+    public async Task ReplySender_UsesCatalogTextTokenAndScopeSender()
+    {
+        using var handler = new CapturingReplyHandler();
+        var httpClientFactory = new CapturingHttpClientFactory(handler);
+        var catalog = new GoodShepherdTextCatalog(new EmptyOverrides());
+        var sender = new LineWebhookReplySender(catalog, httpClientFactory);
+        var firstScope = Scope(
+            new EmptyCrm(),
+            accessToken: "synthetic-token-A",
+            userId: UserId,
+            churchName: "甲教會",
+            senderIconUrl: "https://example.invalid/a.png");
+        var secondUserId = "U11111111111111111111111111111111";
+        var secondScope = Scope(
+            new EmptyCrm(),
+            accessToken: "synthetic-token-B",
+            userId: secondUserId,
+            churchName: "乙教會",
+            resolvedChurchId: Guid.Parse("44444444-4444-4444-4444-444444444444"),
+            resolvedContactId: Guid.Parse("55555555-5555-5555-5555-555555555555"),
+            senderIconUrl: "https://example.invalid/b.png");
+        var firstResult = new WebhookBusinessResult(
+            WebhookBusinessStatus.ReplyPending,
+            "QueryUserIdReply",
+            "Webhook.Reply.QueryUserId.V0",
+            replyArguments: new[] { new WebhookReplyArgument("lineId", UserId) });
+        var secondResult = new WebhookBusinessResult(
+            WebhookBusinessStatus.ReplyPending,
+            "QueryUserIdReply",
+            "Webhook.Reply.QueryUserId.V0",
+            replyArguments: new[] { new WebhookReplyArgument("lineId", secondUserId) });
+
+        await sender.SendAsync(firstScope, "reply-token-A", firstResult, CancellationToken.None);
+        await sender.SendAsync(secondScope, "reply-token-B", secondResult, CancellationToken.None);
+
+        var firstRequest = handler.Requests[0];
+        Assert.Equal(HttpMethod.Post, firstRequest.Method);
+        Assert.Equal("https://api.line.me/v2/bot/message/reply", firstRequest.Uri);
+        Assert.Equal("Bearer synthetic-token-A", firstRequest.Authorization);
+        AssertReplyBody(
+            firstRequest.Body,
+            "reply-token-A",
+            "您的 LINE ID: " + UserId,
+            "甲教會助手",
+            "https://example.invalid/a.png");
+
+        var secondRequest = handler.Requests[1];
+        Assert.Equal(HttpMethod.Post, secondRequest.Method);
+        Assert.Equal("https://api.line.me/v2/bot/message/reply", secondRequest.Uri);
+        Assert.Equal("Bearer synthetic-token-B", secondRequest.Authorization);
+        AssertReplyBody(
+            secondRequest.Body,
+            "reply-token-B",
+            "您的 LINE ID: " + secondUserId,
+            "乙教會助手",
+            "https://example.invalid/b.png");
+
+        Assert.Equal(2, handler.Requests.Count);
+        Assert.Equal(2, httpClientFactory.CreatedClients.Count);
+        Assert.All(httpClientFactory.CreatedClients, client => Assert.True(client.IsDisposed));
+    }
+
+    /// <summary>
+    /// 注入真 SDK 下層 HttpMessageHandler 傳輸故障，斷言同一個 Exception 由 sender 原樣拋出，
+    /// 且唯一的 factory HttpClient 即使失敗也已 Dispose。
+    /// </summary>
+    [Fact]
+    public async Task ReplySender_TransportFailure_DisposesClientAndPreservesException()
+    {
+        var expected = new HttpRequestException("synthetic reply transport failure");
+        using var handler = new FailingReplyHandler(expected);
+        var httpClientFactory = new CapturingHttpClientFactory(handler);
+        var sender = new LineWebhookReplySender(
+            new GoodShepherdTextCatalog(new EmptyOverrides()),
+            httpClientFactory);
+        var result = new WebhookBusinessResult(
+            WebhookBusinessStatus.ReplyPending,
+            "QueryUserIdReply",
+            "Webhook.Reply.QueryUserId.V0",
+            replyArguments: new[] { new WebhookReplyArgument("lineId", UserId) });
+
+        var actual = await Assert.ThrowsAsync<HttpRequestException>(() =>
+            sender.SendAsync(Scope(new EmptyCrm()), "reply-token", result, CancellationToken.None).AsTask());
+
+        Assert.Same(expected, actual);
+        var client = Assert.Single(httpClientFactory.CreatedClients);
+        Assert.True(client.IsDisposed);
+    }
+
+    /// <summary>逐筆斷言真 SDK 序列化出的 Reply body；只處理測試合成 token 與使用者 ID。</summary>
+    private static void AssertReplyBody(
+        string body,
+        string expectedReplyToken,
+        string expectedText,
+        string expectedSenderName,
+        string expectedSenderIcon)
+    {
+        using var document = JsonDocument.Parse(body);
+        var root = document.RootElement;
+        Assert.Equal(expectedReplyToken, root.GetProperty("replyToken").GetString());
+        var message = Assert.Single(root.GetProperty("messages").EnumerateArray().ToArray());
+        Assert.Equal("text", message.GetProperty("type").GetString());
+        Assert.Equal(expectedText, message.GetProperty("text").GetString());
+        Assert.Equal(expectedSenderName, message.GetProperty("sender").GetProperty("name").GetString());
+        Assert.Equal(expectedSenderIcon, message.GetProperty("sender").GetProperty("iconUrl").GetString());
+    }
+
     /// <summary>letter 使用相同事件 ID 重送同一正式主鍵，並驗證入站方向、actor scope 與固定 UTC 時間。</summary>
     [Fact]
     public async Task LetterRecorder_UpsertsStableInboundCandidate()
@@ -126,17 +241,36 @@ public sealed class WebhookP308Tests
     }
 
     /// <summary>建立含正式 Contact 的單事件 scope；文字文化是伺服器解析後的純值。</summary>
-    private static ResolvedWebhookScope Scope(IOrganizationService service) =>
-        new(service, OrganizationId, ChurchId, "123", UserId, "Asia/Taipei", "token-A",
-            new Entity("contact", ContactId)
+    private static ResolvedWebhookScope Scope(
+        IOrganizationService service,
+        string? senderIconUrl = null,
+        string accessToken = "token-A",
+        string userId = UserId,
+        string churchName = "測試教會",
+        Guid? resolvedChurchId = null,
+        Guid? resolvedContactId = null)
+    {
+        var actualChurchId = resolvedChurchId ?? ChurchId;
+        var actualContactId = resolvedContactId ?? ContactId;
+        return new ResolvedWebhookScope(
+            service,
+            OrganizationId,
+            actualChurchId,
+            "123",
+            userId,
+            "Asia/Taipei",
+            accessToken,
+            new Entity("contact", actualContactId)
             {
-                ["new_lineid"] = UserId,
-                ["parentcustomerid"] = new EntityReference("account", ChurchId)
+                ["new_lineid"] = userId,
+                ["parentcustomerid"] = new EntityReference("account", actualChurchId)
             },
             organizationName: "GoodShepherd",
-            churchName: "測試教會",
+            churchName: churchName,
             memberCulture: "zh-TW",
-            formatCulture: "zh-TW");
+            formatCulture: "zh-TW",
+            senderIconUrl: senderIconUrl);
+    }
 
     /// <summary>建立最小 message JSON；測試只使用合成 event id、文字與 token。</summary>
     private static string EventJson(string eventId, string text, string? replyToken) =>
@@ -242,6 +376,74 @@ public sealed class WebhookP308Tests
         protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken) =>
             Task.FromException<HttpResponseMessage>(new InvalidOperationException("Unexpected HTTP call."));
     }
+
+    /// <summary>只捕獲本案例兩筆合成 Reply 請求並回傳成功；不建立外部連線或背景資源。</summary>
+    private sealed class CapturingReplyHandler : HttpMessageHandler
+    {
+        /// <summary>只保留已 detached 的短請求欄位，供兩個 scope 的隔離斷言。</summary>
+        internal List<CapturedReplyRequest> Requests { get; } = [];
+
+        /// <summary>複製本次必要欄位後立即回傳合成成功，讓 SDK 負責 request／response 清理。</summary>
+        protected override async Task<HttpResponseMessage> SendAsync(
+            HttpRequestMessage request,
+            CancellationToken cancellationToken)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            var body = request.Content is null ? string.Empty : await request.Content.ReadAsStringAsync(cancellationToken);
+            Requests.Add(new CapturedReplyRequest(
+                request.Method,
+                request.RequestUri?.ToString() ?? string.Empty,
+                request.Headers.Authorization?.ToString() ?? string.Empty,
+                body));
+            return new HttpResponseMessage(HttpStatusCode.OK)
+            {
+                Content = new StringContent("{}")
+            };
+        }
+    }
+
+    /// <summary>建立每次由 sender 擁有的短命 HttpClient，並觀察請求完成後的 Dispose。</summary>
+    private sealed class CapturingHttpClientFactory(HttpMessageHandler handler) : IHttpClientFactory
+    {
+        /// <summary>本案例 factory 建立、sender 擁有並應已釋放的 client。</summary>
+        internal List<TrackingHttpClient> CreatedClients { get; } = [];
+
+        /// <summary>只接受正式 Reply sender 的具名 client，handler 生命週期由外層測試控制。</summary>
+        public HttpClient CreateClient(string name)
+        {
+            Assert.Equal("LineWebhookReplySender", name);
+            var client = new TrackingHttpClient(handler);
+            CreatedClients.Add(client);
+            return client;
+        }
+    }
+
+    /// <summary>只注入預先建立的合成傳輸例外，不保存 request、token 或額外背景資源。</summary>
+    private sealed class FailingReplyHandler(Exception error) : HttpMessageHandler
+    {
+        /// <summary>在 SDK HTTP 邊界拋出呼叫端指定的同一例外。</summary>
+        protected override Task<HttpResponseMessage> SendAsync(
+            HttpRequestMessage request,
+            CancellationToken cancellationToken) =>
+            Task.FromException<HttpResponseMessage>(error);
+    }
+
+    /// <summary>只追蹤 HttpClient owner 是否確定釋放，不保留請求、憑證或額外資源。</summary>
+    private sealed class TrackingHttpClient(HttpMessageHandler handler) : HttpClient(handler, disposeHandler: false)
+    {
+        /// <summary>由 sender 完成本次 Reply 後設定；測試確認每次建立的 client 均已處置。</summary>
+        internal bool IsDisposed { get; private set; }
+
+        /// <summary>記錄唯一處置，再由基底清除短期傳輸狀態。</summary>
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing) IsDisposed = true;
+            base.Dispose(disposing);
+        }
+    }
+
+    /// <summary>已 detached 的合成 Reply 欄位，只在目前測試案例保留。</summary>
+    private sealed record CapturedReplyRequest(HttpMethod Method, string Uri, string Authorization, string Body);
 
     /// <summary>回傳本次 scope 的空覆寫快照，不保存跨案例資料。</summary>
     private sealed class EmptyOverrides : IChurchTextOverrideSnapshotProvider

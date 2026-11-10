@@ -5,6 +5,7 @@
 使用邊界與維護：服務集合只活於單一測試，不開啟 HTTP、D365、SQL、背景 task 或計時器；沒有跨案例的使用者狀態。後續實際事件測試另以窄 SDK 與 HTTP 替身驗證行為，此處不可用 descriptor 存在冒稱業務完成。
 */
 using LineMessagingProcessor.AspNetCore.Webhooks;
+using LineMessagingProcessor.AspNetCore.Webhooks.Dispatch;
 using LineMessagingProcessor.AspNetCore.Webhooks.Queue;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -15,7 +16,10 @@ namespace LineMessagingProcessor.AspNetCore.Tests;
 /// <summary>正式註冊接縫的離線契約；僅讀描述，不建立連線或持有須釋放的服務。</summary>
 public sealed class WebhookDispatchRegistrationTests
 {
-    /// <summary>缺少正式 handler 時決定性失敗；唯一 scoped lifetime 防止把事件身分提升為長生命 singleton。</summary>
+    /// <summary>
+    /// 缺少正式 handler 時決定性失敗；同時解析真正 scoped Reply sender，
+    /// 確認新增的 IHttpClientFactory 相依已在正式 AddLineWebhook 組合中可用。
+    /// </summary>
     [Fact]
     public void AddLineWebhook_RegistersOneScopedRealDispatcher()
     {
@@ -26,5 +30,9 @@ public sealed class WebhookDispatchRegistrationTests
         var descriptor = Assert.Single(services.Where(item => item.ServiceType == typeof(IWebhookEnvelopeHandler)));
         Assert.Equal(ServiceLifetime.Scoped, descriptor.Lifetime);
         Assert.Equal("WebhookDispatcher", descriptor.ImplementationType?.Name);
+        using var provider = services.BuildServiceProvider();
+        using var scope = provider.CreateScope();
+        Assert.IsType<LineWebhookReplySender>(
+            scope.ServiceProvider.GetRequiredService<IWebhookReplySender>());
     }
 }
