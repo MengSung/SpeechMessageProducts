@@ -8,3 +8,4 @@
 - 單目錄搬移：正式分支只做 fast-forward，不 merge、不 force push；evidence 逐檔 SHA-256 核對後才刪來源。清理舊分支前核對遠端正式 P3 已包含全部提交。
 - P3-09 前置缺項仍未到位，不開工；不碰 main、PR、設計 v3.4 或階段 4。
 - 2026-11-10 07:51 Asia/Taipei (UTC+08:00)：決策：將 ResolvedWebhookScope 兩個相容建構式的預設 churchName 由 CJK 顯示字串改為 Church。理由：正式 resolver 一律傳入 CRM 實際教會名稱；相容建構式只供離線／既有呼叫端，使用中性非本地化占位可消除 CJK 棘輪新增而不改變正式輸出。
+- 2026-11-10 08:05 Asia/Taipei (UTC+08:00)：首次固定 guard 的全方案測試發現 Localization 兩目標各一個固定數量斷言仍期待 19，但 P3-08 已正式加入 Webhook.Letter.Subject，實際獨立資源鍵為 20。決策：同步更新獨立 ExpectedSystemKeys、兩個數量斷言及檔案說明，保留明確鍵清單；理由：修正測試契約的真實基準，不降低測試強度，也不補回已刪除的 Plugin Debug 建置行。
