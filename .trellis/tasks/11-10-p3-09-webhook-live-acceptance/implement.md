@@ -8,7 +8,7 @@
 6. [x] 使用者已建立測試教會A/B/C；沿用測試教會A。既有 P309 TestDataTool 依正式 GUID 冪等建立 zh-TW／qps-ploc Contact、沿用 mapping 並指派測試 Channel。清理時以相同工具驗證並刪除本次及歷史標記 Contact，殘留 0；未使用自訂 CRM probe。
 7. [x] 2026-11-11 21:50 Asia/Taipei (UTC+08:00)：使用者回報 8443 部署成功；Node 僅新增 webhook hostname 至 VM `192.168.50.20:8443` 路由，無 443 SNI。公開無簽章 POST 401，goodshepherdback 302 且憑證不變。禁止重跑部署或還原舊 IIS 備份。
 8. [ ] LINE 原 Webhook URL 已讀回並記錄，endpoint 更新與官方測試成功；HMAC 共 18 次呼叫（17 個有效 200、錯簽 401），含十個中文關鍵字、正確 qps-ploc 案例與 redelivery。VM 收尾腳本兩次回 RemoteException；唯讀確認 stdout 仍開啟、1 個 stdout 檔、本批 A.8 16 列（redelivery 1、錯簽 0）。P3-06 三項 runtime Warning 均未確認。
-9. [ ] 驗收步驟、一頁操作紀錄、進度頁、P3-09 回報、階段自審與階段總回報均已更新；階段自審明列僅自審、非雙模型結果，程式 Critical／High 0。仍待 VM 清理、三項 Warning 決定性證據、完整固定 guard、提交與 P3 push／ls-remote；實機門檻未達不得結案。
+9. [ ] 驗收步驟、一頁操作紀錄、進度頁、P3-09 回報、階段自審與階段總回報均已更新；階段自審明列僅自審、非雙模型結果，程式 Critical／High 0。固定 guard §8.1 已對紀錄提交 `307432f2` 通過；仍待 VM 清理、三項 Warning 決定性證據、P3 push／ls-remote；實機門檻未達不得結案。
 10. [x] 2026-11-10 22:45 Asia/Taipei (UTC+08:00)：紀錄收尾提交 `23a6379c57e0082bb16af49cfc20dbab45a424b2` 在固定 guard 完整通過 §8.1，已推送 P3 並以 `git ls-remote` 核對遠端 SHA 相同；此守門不代表實機驗收完成。
 11. [ ] P3-09 實機七步、P3-06 Warning 核實及本次測試資料殘留 0；P3-09 未完成前不標記階段 3 done，不開始階段 4。
 
@@ -43,4 +43,4 @@
 
 ## 2026-11-12 續作
 
-2026-11-12 02:22 Asia/Taipei (UTC+08:00)：驗收步驟、操作紀錄、進度頁、P3-09 回報、階段自審與階段總回報已更新。管理員 VM 收尾腳本已交付，Parser 通過、SHA-256 記於協助文件；遠端清理工具政策拒絕後未換執行器。VM stdout／A.8 尚未清理，P3-06 三項 Warning 未確認。進度頁 28/28、文件用途 1,439/1,439 通過；固定 guard、提交與 push 尚未完成。
+2026-11-12 03:13 Asia/Taipei (UTC+08:00)：階段紀錄更新後提交 `307432f2` 的固定 guard §8.1 全通過；本機結果摘要及 transcript SHA 位於 `C:\smv\guard-307432f2-result.md`。驗收文件／進度頁契約、文件說明與編碼檢查通過；推送尚待完成。VM stdout／A.8 清理及 P3-06 三項 Warning 仍未完成，P3-09 不標 done。
