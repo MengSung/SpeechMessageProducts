@@ -32,3 +32,7 @@
 - `Test-ProgressPage.cjs`：28/28 通過。
 - CRLF 修正提交：`35749d78`，`git diff --ignore-space-at-eol` 確認三個目標檔案內容沒有行為/文字差異。
 - CCG analyzer：Claude 有輸出，Gemini 403/503 無輸出，未達 dual-model completion。
+
+## 2026-11-11 一次性 evidence 工具方案例外
+
+2026-11-11 12:12 Asia/Taipei (UTC+08:00)：依使用者核定，`evidence/P309-TestDataTool.csproj` 是不進版控的一次性驗收工具，不是產品專案；其來源位於 `.git/info/exclude` 排除的 evidence 目錄。先前將它及 `.trellis/tasks/evidence` 方案資料夾加入 `SpeechMessageProducts.sln`，造成乾淨 clone 的方案指向不存在專案。已從方案移除該工具、相關方案資料夾及其組態映射；工具留在本機 evidence，以 `dotnet run --project` 單獨執行。此為僅適用於本次 ignored evidence 工具的核定例外，不變更一般「新增產品專案須立即加入方案」規則。
