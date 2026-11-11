@@ -1,29 +1,44 @@
 # P3 Webhook 驗收步驟
 
-> 狀態：待使用者收尾。本文是續作清單，不是實機通過證據。2026-11-10 22:45 Asia/Taipei (UTC+08:00) 固定 guard §8.1 八項對 `23a6379c` 通過，P3 分支推送且遠端 SHA 相符；這只驗證紀錄提交。P3-09 實機步驟仍未執行，CRM 測試資料未建立，沒有新增 IIS site／SNI binding、設定 LINE Webhook URL 或送出事件。
+> 狀態：LINE 平台連線與簽章模擬已完成；VM 日誌／A.8 清理及 P3-06 三項實機 Warning 證據待收尾。不得標示 P3-09 done。更新時間：2026-11-12 01:13 Asia/Taipei (UTC+08:00)。
 
 ## 固定邊界
 
-- 只使用 `goodshepherdback`、`D365-9.1`（`D365APP01`）及測試 Channel `1646814154`。
-- 不修改 CRM site、既有 `*:443:` binding、`CRMAppPool`、既有憑證或 CRM 資料庫。
-- `metadata.json` 是本機唯讀快照，不搬移、不提交；回報只引用既有 SHA-256。
-- Channel secret、token、TokenKey、reply token、TestLineUserId 不輸出、不進命令列、log、evidence 或回報。
-- Mapping 來源已由使用者核定：OrganizationId 以唯讀 WhoAmI 取得、ChurchId 使用測試教會 A 的正式 GUID、TimeZone 為 `Asia/Taipei`、組織為 `goodshepherdback`。目前只缺 CRM UI 建立測試教會 A／B 與各自 Contact；不以猜測、SQL 或自訂 CRM probe 代替。
-- Hosting Bundle／ANCM、SQL 測試 DB/A.8 空表、專用 AppPool 及發布目錄已有前一輪證據；實際建立狀態沿用，不宣稱本輪重查。
+- 只使用 goodshepherdback、測試 VM D365-9.1（D365APP01）及測試 LINE Channel `2006058491`（@556vpxof）。舊 Channel `1646814154` 禁止使用。
+- 沿用使用者已建立的測試教會A；不建立或修改測試教會A/B/C 的既有欄位。Channel 指派保留於測試教會A。完全不碰聖谷行道會、CRM 既有網站、既有 HTTPS binding、`CRMAppPool`、憑證及 CRM 既有資料。
+- 獨立使用 `LineWebhookP309` site／AppPool、專用測試資料庫與 A.8 schema。既有資料庫、空表、AppPool、部署目錄沿用，不重建。
+- `metadata.json` 是本機唯讀快照，不搬移或提交；需要引用時只記 SHA-256。
+- Channel secret、access token、TokenKey、CRM 密碼、reply token、TestLineUserId 及 DPAPI credential 內容不得進 repo、evidence、命令列、log 或回報。秘密只從 User Secrets／核准 credential store 在程序記憶體使用。
 
-## 依序執行
+## 已有證據
 
-1. **建立 CRM 測試資料。** 只在 `goodshepherdback` 建立帶唯一 P3-09 標記的測試教會 A、B 及各自測試 Contact。A 的 Contact 綁定 User Secrets 內的 `TestLineUserId`，語系為 `zh-TW`；B 的 Contact 設為 `qps-ploc`。保存 Account／Contact 正式 GUID，不保存 userId。以既有唯讀 `WhoAmI` 取得 OrganizationId；時區固定 `Asia/Taipei`。不得用 SQL、名稱推測或自訂 CRM probe 建立／查詢資料。
-2. **指派測試 Channel。** 沿用專案 `SpeechMessage.Dynamics.Deployment` 的 `protect-token` 與 `assign-channel`，並用既有 `LineRecipientQueries` 驗證正式 lookup。token、Channel secret 從 User Secrets 於記憶體／有限 stdin 傳遞；不要把秘密放命令列。Channel 指派給測試教會 A。
-3. **部署獨立 IIS 站台。** 執行前先用 PowerShell Parser 驗證 `.trellis/tasks/11-10-p3-09-webhook-live-acceptance/evidence/deploy-p309-infrastructure.ps1`，再執行其可重複部署流程；已存在的 DB／A.8 表、AppPool、部署目錄須沿用並核對。該腳本只建置基礎資源，不建立 site、binding 或 mapping。其後使用獨立 `LineWebhookP309` site／AppPool，依核定 mapping 將設定放在專用 AppPool 環境變數，不落地到 repo。
-4. **新增 SNI 並立即驗證。** 只新增 hostname `linewebhook-test.speechmessage.com.tw`、SNI、既有萬用憑證。立刻確認 `goodshepherdback` 維持 HTTP 302 且憑證指紋不變、CRM site 與 `CRMAppPool` 為 Started、測試 hostname 由新 site 回應。任一項不符，立即移除新 binding；CRM 仍異常才依既有備份 `P3-09-pre-202611101130` 還原並重新檢查。不得改寫 CRM 原 binding 或更換憑證。
-5. **測試 LINE 平台連線。** 以 User Secrets 測試 token 在程序記憶體中呼叫 Messaging API `PUT /v2/bot/channel/webhook/endpoint`，設定 `https://linewebhook-test.speechmessage.com.tw/api/line/webhook/1646814154`；接著呼叫官方 Webhook 測試 API `POST /v2/bot/channel/webhook/test`，記錄不含秘密的成功狀態。官方連線測試送空事件陣列，不能當作事件處理驗收。
-6. **送出簽章模擬事件。** 從 User Secrets 在記憶體取 Channel secret，以 HMAC-SHA256 計算 `X-Line-Signature`，不要輸出簽章或秘密。中文會友依 P3-01 黃金資料挑 10 個常用關鍵字；偽語系會友送「主日出席」及 `Report`，回覆文字應有括號。確認 A.8、回覆事件紀錄與去重結果。模擬 replyToken 無效時 LINE 拒絕回覆是預期；判定為正確收件、驗簽、分派、去重、嘗試 Reply 並記錄 API 狀態，不冒稱真人訊息已送達。
-7. **重送與錯誤簽章。** 同一 `webhookEventId` 以 `isRedelivery=true` 再送兩次，只能處理一次；資料庫同一 Channel/event 僅一列，回覆處理不重複。錯誤簽章應回 401，且不得入列或執行業務處理。
-8. **核實回覆紀錄。** 僅測試站開啟 `LineWebhook:ReplyLog:Enabled`。固定 EventId 為 `30610`；核對 event ID、訊息類型、回覆文字、語系及 LINE API HTTP 狀態碼。確認 `TestLineUserId` 已遮罩；Channel token、reply token、Channel secret 與完整 userId 均不得出現。重啟設定快照前，不以環境變數變更宣稱生效。
-9. **逐項核實 P3-06 三項 Warning。** (a) 每事件 30 秒期限：以可觀察的逾時事件確認取消與資源回到基線；(b) appointment 教會範圍欄位：以實際 CRM metadata／查詢結果確認欄位與 scope；(c) annotation 重送 Upsert：以相同穩定事件識別驗證不產生重複紀錄。沒有決定性實機證據就標「未確認」，不以離線測試代替。
-10. **清理並驗證。** 先按核准流程備份，再依正式 GUID 清除 A／B 教會、Contacts 及 Channel 指派；刪除專用測試 DB 中本次 A.8 測試列，驗證列數為 0。測試 site／AppPool／空 A.8 schema／部署目錄留給 P4-05 共用，不列為測試資料殘留。只清本次建立的 TEMP 發布檔。若清理工具被拒，記下精確目標，不繞過；最終清理腳本須有前置條件檢查。
+- 測試教會A 的正式 GUID、OrganizationId 與測試資料 GUID 留存在既有 CRM audit evidence；本清單不複製敏感 userId。
+- 測試 Contact、Channel `2006058491` 的 `protect-token`／`assign-channel` 已完成，不重做。mapping 固定為 Organization `goodshepherdback`、ChurchId 測試教會A、OrganizationId 以 WhoAmI 取得、TimeZone `Asia/Taipei`。
+- 新 Channel 憑證重發後，`protect-token` 以 stdin 執行成功，LINE Bot Info 回 HTTP 200。離線 Webhook 測試本輪 104/104 通過；這不代表主機實機事件已通過。
+- 部署腳本現版 SHA-256 `BC420A9943C73559C230F7D0EC3153D16EF44D08F035014C130E1AE3B9BA9F30`，PowerShell Parser 0 錯誤；最近一次 `-Apply` exit code 1，錯誤細節未留存，不能宣稱部署完成。
+- 最近外部 HTTPS 探測：goodshepherdback 回 302 且 TLS 驗證成功；Webhook URL 的 GET 與空事件 POST 也回 302 且 TLS 驗證成功，尚未證明請求由新 site 處理。部署後 VM 狀態待唯讀檢查。
 
-## 驗收界線
+## 驗收清單
 
-本輪尚無任何上述 live 步驟的通過結果。LINE 官方連線測試與 HMAC 模擬事件是不同證據；兩者都不能冒稱真人手機補測。真人手機操作不是 04 完成條件，可選做並另列補測。所有步驟完成、測試資料清零、P3-06 Warning 均有結論前，P3-09 與階段 3 不得標示完成。
+1. **部署與共存**：依 2026-11-11 19:35 核定，VM 由專用 HTTPS `*:8443` 接收；本機 Node 轉接只將 `linewebhook-test.speechmessage.com.tw` 導至 `192.168.50.20:8443` 並保留 Host。不得新增 443 SNI binding、改 CRM 或還原 IIS 備份 `P3-09-pre-202611101130`（該備份會移除 ANCM v2 註冊）。使用者 21:50 確認部署成功、公開無簽章 POST 回 401、goodshepherdback 回 302 且憑證指紋不變。
+2. **LINE 平台連線**：以程序內 token 先讀回並記錄原網址 `https://jesus.speechmessage.com.tw:808/api/callback`，再呼叫 Messaging API `PUT /v2/bot/channel/webhook/endpoint` 設定 `https://linewebhook-test.speechmessage.com.tw/api/line/webhook/2006058491`，最後呼叫 `POST /v2/bot/channel/webhook/test`。本輪更新成功且官方測試回 `success=true`（2026-11-11 22:12:07Z）。空事件成功只證明平台連線，不代表業務事件驗收。
+3. **中文關鍵字**：使用 Channel secret 在程序記憶體計算 HMAC-SHA256，依 P3-01 黃金路由送出 `主日出席`、`代禱`、`報名`、`我的報名`、`第一課簽到`、`簽到`、`簽核`、`裝備`、`靈修`、`點名`。本輪十筆模擬請求均回 HTTP 200；業務 disposition、letter 與 reply 結果仍以 VM 日誌及 CRM 記錄核對，不以 HTTP 200 單獨宣稱業務完成。
+4. **偽語系**：對 `qps-ploc` 測試 Contact（其專用合成 LINE ID）送「主日出席」與「Report」，兩筆有效簽章請求均回 HTTP 200。第一輪誤用中文 Contact ID 的兩筆請求不作偽語系通過證據。偽語系回覆括號格式須由安全回覆日誌核實。
+5. **重送與驗簽**：同一 `webhookEventId` 以 `isRedelivery=true` 首次及重送各送一次，兩次 HTTP 均回 200；一筆 A.8 row 及重送旗標仍待 VM 查詢確認。錯誤簽章已回 HTTP 401；其未入 A.8 row 的證據待 VM 查詢確認。
+6. **回覆送出紀錄**：測試站已開啟 `LineWebhook:ReplyLog:Enabled`。收尾工具預定讀取固定 EventId `30610`，僅輸出事件 ID、訊息類型、文字存在與否、語系、API 狀態碼及未遮罩 userId 布林檢查；不保留原始 log line。工具兩次均回 `RemoteException`，安全化回覆欄位尚未取得；不得宣稱遮罩與回覆欄位已核實。
+7. **P3-06 Warning**：逐項留下決定性實機證據：(a) 每事件 30 秒期限及逾時後資源回到基線；(b) appointment 教會範圍欄位及查詢 scope；(c) annotation 同一穩定事件重送 Upsert 不產生重複紀錄。現有程式與離線測試只證明實作契約；本輪三項實機 Warning 均尚未取得決定性證據，必須明標「未確認」。
+8. **清理**：既有 P309 TestDataTool 已清除本次兩個及兩個歷史標記 Contact，確認目前與歷史標記 Contact 均為 0；測試教會A 與 Channel 指派保留。VM 收尾尚未生效；唯讀核對為本批 A.8 16 列（redelivery 一列、錯誤簽章零列）、stdout 開啟且有 1 個檔案。專用空 schema、site、AppPool、部署目錄保留。
+
+模擬事件使用無效 replyToken 時，LINE 拒絕回覆屬預期；判定依據是正確收件、驗簽、分派、去重、嘗試 Reply 並留下安全紀錄，不宣稱真人已收到訊息。真人手機補測可省略並另行註明。
+
+## 本輪結果與待收尾
+
+- 2026-11-11 21:50 使用者執行 8443 部署腳本成功；沒有修改 CRM `*:443`、CRM site／AppPool 或憑證，也不再部署、不還原 IIS 備份。
+- LINE 原 Webhook URL 已記錄，設定新 endpoint 成功，官方 Webhook 測試 `success=true`。
+- HMAC 共送 18 個 HTTP 呼叫：10 個中文關鍵字、誤用中文 Contact ID 的偽語系初次嘗試兩個、正確 `qps-ploc` 中文／英文／「我的報名」三個、同一 redelivery event 兩次、錯誤簽章一筆；17 個有效簽章回 200，錯簽回 401。所有事件均為模擬，非真人手機。偽語系結論只依正確 Contact 的三個案例。
+- HMAC 事件前綴為 `P309-96fd5451e33d-`。VM 收尾腳本 `C:\Users\Administrator\.speechmessage\P3-09-finalize-vm.ps1` 已核對 Parser 通過，第一次因 `<location>` XPath 不符而在變更前失敗；只修正 XPath 後第二次仍回 `RemoteException`。唯讀核對顯示未部分清理：stdout 開啟、1 個 stdout 檔、A.8 16 列（redelivery 1、錯誤簽章 0）、AppPool Started。腳本現 SHA-256 `88A86C0D93E91F69577258B6919F39F14213038B8502A79F2A9376AD27A64322`；不得再部署或還原 IIS 備份。
+- P3-06 三項 runtime Warning 均尚未確認；本輪不將離線測試或程式碼檢閱冒稱為實機證據。真人手機補測省略。
+
+## 收尾門檻
+
+以上 1～8 都要有對應證據，測試資料殘留為 0，且三項 Warning 均有結論，才可標示 P3-09 done。階段審查採使用者核定的自審例外，明寫「使用者核定略過外部雙模型審查，僅自審，非雙模型結果」，Critical／High 為 0。完成後才跑固定 guard §8.1、推送 P3 並用 `git ls-remote` 核對 SHA、更新進度頁與交階段 3 總回報；不得開始階段 4。
