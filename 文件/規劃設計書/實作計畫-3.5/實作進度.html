@@ -240,11 +240,11 @@ footer{margin-top:36px;color:var(--muted);font-size:12.5px;text-align:center}
  */
 const DATA = {
   "planVersion": "3.5",
-  "snapshot": "2026-11-12 03:13 Asia/Taipei (UTC+08:00)",
-  "lastUpdated": "2026-11-12T03:13:02+08:00",
+  "snapshot": "2026-11-12 03:59 Asia/Taipei (UTC+08:00)",
+  "lastUpdated": "2026-11-12T03:59:52+08:00",
   "branch": "1.0.0.11.Integration.P3.Worktree",
-  "head": "307432f2",
-  "headline": "2026-11-12 03:13 Asia/Taipei (UTC+08:00)：P3-01～P3-08 已驗收。P3-09 的 8443 部署、LINE 官方測試、HMAC 模擬與 Contact 清理已完成；VM stdout／A.8 尚未清理，Reply 摘要未核實，P3-06 三項實機 Warning 未確認。紀錄提交 307432f2 通過固定 guard §8.1，待推送；階段 3 未完成，未開始階段 4。",
+  "head": "22a34030",
+  "headline": "2026-11-12 03:59 Asia/Taipei (UTC+08:00)：P3-01～P3-08 已驗收。P3-09 的 8443 部署、LINE 官方測試、HMAC 模擬與 Contact 清理已完成；VM stdout／A.8 尚未清理，Reply 摘要未核實，P3-06 三項實機 Warning 未確認。固定 guard 對紀錄提交 307432f2 通過；P3 分支已推送並核對遠端 SHA。階段 3 未完成，未開始階段 4。",
   "notices": [
     {
       "id": "plan-3.5-summary",
@@ -414,8 +414,8 @@ const DATA = {
       "phaseId": "階段 3",
       "level": "info",
       "title": "P3 進度摘要",
-      "lastUpdated": "2026-11-12T03:13:02+08:00",
-      "body": "2026-11-12 03:13 Asia/Taipei (UTC+08:00)：P3-01～P3-08 已驗收。P3-09 的 8443 部署由使用者確認成功，VM 8443／Node hostname 轉送未改 CRM 443；LINE 原 URL 已記錄、新 endpoint 設定與官方測試成功。HMAC 共 18 次呼叫，17 個有效簽章 200、錯簽 401；包含十個中文關鍵字、正確 qps-ploc、redelivery；Contact 殘留0。VM 收尾受工具政策拒絕，唯讀確認 stdout 開啟且有1檔、A.8本批16列，Reply EventId 30610未核實；已提供 Parser 通過的無密碼腳本與單行指令。P3-06三項runtime Warning未確認。紀錄提交307432f2固定guard §8.1通過，待推送；階段審查僅自審、非雙模型結果，Critical／High 0。實機門檻未完成，階段3未完成，不開始階段4。",
+      "lastUpdated": "2026-11-12T03:59:52+08:00",
+      "body": "2026-11-12 03:59 Asia/Taipei (UTC+08:00)：P3-01～P3-08 已驗收。P3-09 的 8443 部署由使用者確認成功，VM 8443／Node hostname 轉送未改 CRM 443；LINE 原 URL 已記錄、新 endpoint 設定與官方測試成功。HMAC 共 18 次呼叫，17 個有效簽章 200、錯簽 401；包含十個中文關鍵字、正確 qps-ploc、redelivery；Contact 殘留0。VM 收尾受工具政策拒絕，唯讀確認 stdout 開啟且有1檔、A.8本批16列，Reply EventId 30610未核實；已提供 Parser 通過的無密碼腳本與單行指令。P3-06三項runtime Warning未確認。固定guard對紀錄提交307432f2 §8.1通過；記錄同步提交22a34030已推送，git ls-remote核對SHA 22a3403092eaa0bf740cf7d0f1d40229bd3faddd。階段審查僅自審、非雙模型結果，Critical／High 0；實機門檻未完成，階段3未完成，不開始階段4。",
       "steps": [
         "2026-11-09 13:20 Asia/Taipei (UTC+08:00)：P3-01與P3-02新增專案都會更動sln，依檔案歸屬先串行做P3-02；P3-01僅唯讀調查。",
         "2026-11-09 13:20 Asia/Taipei (UTC+08:00)：P3-00原始證據已逐檔核對並複製至耐久ignored evidence，沒有將秘密或原始輸出加入版控。",
@@ -450,9 +450,10 @@ const DATA = {
         "補記 2026-11-10 22:45 Asia/Taipei (UTC+08:00)（原事件時間未記錄）｜紀錄提交23a6379c完整通過固定guard §8.1八項並推送；本輪git ls-remote核對遠端SHA與該提交相同，工作樹乾淨。未執行CRM／IIS／SQL／LINE實機寫入；P3-09仍待使用者建立CRM測試教會與Contact後續作。",
         "2026-11-12 01:13 Asia/Taipei (UTC+08:00)：8443 部署、LINE endpoint test 與 HMAC 模擬已完成，測試 Contact 殘留0。VM 收尾執行遭工具政策拒絕；唯讀確認 stdout 仍開啟、stdout 檔1個、A.8本批16列，Reply EventId 30610尚未核實。已提供無密碼收尾腳本。P3-06三項實機 Warning 未確認；階段自審 Critical／High 0、非雙模型結果。P3-09與階段3未完成。",
         "2026-11-12 02:22 Asia/Taipei (UTC+08:00)：收尾腳本已放在 .speechmessage，PowerShell Parser、UTF-8 BOM／CRLF 核對通過，SHA-256 記於子任務協助文件；管理員一行執行方式及預期結果已提供。工具政策拒絕遠端清理後未改用其他執行器。驗收仍未完成。",
-        "2026-11-12 03:13 Asia/Taipei (UTC+08:00)：紀錄提交307432f2在固定guard C:\\smv\\guard通過完整§8.1；結果摘要與 transcript SHA已記錄於本機 guard-307432f2-result.md。P3推送及git ls-remote待核對；清理與P3-06 Warning尚未完成。"
+        "2026-11-12 03:13 Asia/Taipei (UTC+08:00)：紀錄提交307432f2在固定guard C:\\smv\\guard通過完整§8.1；結果摘要與 transcript SHA已記錄於本機 guard-307432f2-result.md。P3推送及git ls-remote待核對；清理與P3-06 Warning尚未完成。",
+        "2026-11-12 03:59 Asia/Taipei (UTC+08:00)：P3紀錄同步提交22a34030已推送；git ls-remote核對遠端SHA為22a3403092eaa0bf740cf7d0f1d40229bd3faddd。工作包仍因VM stdout／A.8清理與P3-06三項Warning未確認而未完成。"
       ],
-      "lastUpdated": "2026-11-12T03:13:02+08:00"
+      "lastUpdated": "2026-11-12T03:59:52+08:00"
     }
   ],
   "userActions": [
@@ -1196,7 +1197,7 @@ const DATA = {
       "timebox": "1 天",
       "doneAt": "",
       "commit": "",
-      "note": "2026-11-12 03:13 Asia/Taipei (UTC+08:00)：部署、LINE endpoint test與18次HMAC模擬已完成；Contact marker殘留0。VM stdout仍開啟且有1檔、A.8本批16列，Reply EventId 30610未核實；清理工具遭政策拒絕，已提供Parser通過的無密碼腳本。紀錄提交307432f2固定guard §8.1通過，待推送。P3-06三項Warning未確認。階段自審Critical／High 0、僅自審非雙模型結果；P3-09及階段3未完成，不開始階段4。"
+      "note": "2026-11-12 03:59 Asia/Taipei (UTC+08:00)：部署、LINE endpoint test與18次HMAC模擬已完成；Contact marker殘留0。VM stdout仍開啟且有1檔、A.8本批16列，Reply EventId 30610未核實；清理工具遭政策拒絕，已提供Parser通過的無密碼腳本。紀錄提交307432f2固定guard §8.1通過；記錄同步提交22a34030已推送並由git ls-remote核對SHA。P3-06三項Warning未確認。階段自審Critical／High 0、僅自審非雙模型結果；P3-09及階段3未完成，不開始階段4。"
     },
     {
       "id": "P4-01",

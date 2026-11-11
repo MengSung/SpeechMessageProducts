@@ -2,7 +2,7 @@
   "id": "p3-09-webhook-live-acceptance",
   "name": "p3-09-webhook-live-acceptance",
   "title": "P3-09 Webhook 實機驗收與階段收尾",
-  "description": "P3-01～P3-08已驗收；P3-09的8443部署、LINE endpoint test與18次HMAC模擬已完成，測試Contact殘留0。VM清理遭工具政策拒絕，唯讀確認stdout仍開啟且有1檔、A.8本批16列；無密碼管理員腳本已交付。P3-06三項runtime Warning尚未確認。階段審查依使用者核定僅自審，非雙模型結果；提交307432f2固定guard §8.1通過，待推送；不得標記完成或開始階段4。",
+  "description": "P3-01～P3-08已驗收；P3-09的8443部署、LINE endpoint test與18次HMAC模擬已完成，測試Contact殘留0。VM清理遭工具政策拒絕，唯讀確認stdout仍開啟且有1檔、A.8本批16列；無密碼管理員腳本已交付。P3-06三項runtime Warning尚未確認。階段審查依使用者核定僅自審，非雙模型結果；提交307432f2固定guard §8.1通過，記錄已推送P3分支；不得標記完成或開始階段4。",
   "status": "in_progress",
   "dev_type": null,
   "scope": null,
