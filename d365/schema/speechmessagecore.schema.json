@@ -1,5 +1,6 @@
 {
   "schemaVersion": 1,
+  "activePhase": 4,
   "solution": "SpeechMessageCore",
   "publisher": "SpeechMessagePublisher",
   "prefix": "new",

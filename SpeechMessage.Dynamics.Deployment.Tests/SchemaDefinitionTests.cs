@@ -25,13 +25,17 @@ public sealed class SchemaDefinitionTests
     private static readonly int[] LanguageSourceValues = { 100000000, 100000001, 100000002 };
     /// <summary>附錄A.6正式唯一鍵順序，不能由被測清單生成自身oracle。</summary>
     private static readonly string[] LocalizedKeyFields = { "new_accountid", "new_key", "new_culture" };
-    /// <summary>正式清單須含六個受管實體、四新表與四唯一鍵；P4欄不得混入P1，完整日期／加密安全與lookup不可省略。</summary>
+    /// <summary>正式清單須含六個受管實體、四新表與四唯一鍵；核對activePhase、P4欄位階段、日期及安全契約。</summary>
     [Fact]
     public void Load_FormalSchema_MatchesAppendixAAndPhaseBoundaries()
     {
         var schema = SchemaFiles.Load(SchemaPath());
         Assert.Equal("SpeechMessageCore", schema.Solution);
         Assert.Equal("new", schema.Prefix);
+        Assert.Equal(4, schema.ActivePhase);
+        var withoutActivePhase = JsonNode.Parse(File.ReadAllText(SchemaPath(), Encoding.UTF8))!.AsObject();
+        withoutActivePhase.Remove("activePhase");
+        WithFile(withoutActivePhase.ToJsonString(), path => Assert.Equal(1, SchemaFiles.Load(path).ActivePhase));
         Assert.Equal(6, schema.Entities.Count);
         Assert.Equal(4, schema.Entities.Count(entity => entity.IsNew));
         Assert.Equal(4, schema.Entities.Sum(entity => entity.Keys.Count));
@@ -65,6 +69,8 @@ public sealed class SchemaDefinitionTests
     [InlineData("invalid-name")]
     [InlineData("unknown-type")]
     [InlineData("invalid-phase")]
+    [InlineData("active-phase-low")]
+    [InlineData("active-phase-high")]
     [InlineData("missing-key-field")]
     [InlineData("wrong-date")]
     public void Load_InvalidDefinition_RejectsEntireCandidate(string fault)
@@ -82,6 +88,8 @@ public sealed class SchemaDefinitionTests
             case "invalid-name": field["logicalName"] = "new_field</xml>"; break;
             case "unknown-type": field["type"] = "unsupported"; break;
             case "invalid-phase": field["phase"] = 0; break;
+            case "active-phase-low": candidate["activePhase"] = 0; break;
+            case "active-phase-high": candidate["activePhase"] = 9; break;
             case "missing-key-field": candidate["entities"]![2]!["keys"]![0]!["attributes"]![0] = "new_missing"; break;
             case "wrong-date": entity["fields"]![4]!["behavior"] = "DateOnly"; break;
         }

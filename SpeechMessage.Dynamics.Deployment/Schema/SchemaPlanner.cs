@@ -1,8 +1,8 @@
 /*
  * 檔案整體說明
  *
- * 目的與定位：本檔是無I/O的結構差異與完整性核心，依正式SchemaDefinition及一份完整server快照建立只新增計畫。
- * 主要功能：核對唯一組織、solution未受管理、publisher前綴、既有新表ownership/audit/concurrency，以及每個P1欄位與索引的完整功能約束。
+ * 目的與定位：本檔是無I/O的結構差異與完整性核心，依正式SchemaDefinition的ActivePhase及一份完整server快照建立只新增計畫。
+ * 主要功能：核對唯一組織、solution未受管理、publisher前綴、既有新表ownership/audit/concurrency，以及目前作用階段內欄位與索引的完整功能約束。
  * 所有衝突先停止整份候選；不得產生Update/Delete、改欄位型別、關閉安全或用新欄位掩蓋既有衝突。
  * 流程與輸出：新增依publisher→solution→所有表→一般欄→lookup→key排序，最後列需要加入solution的正式元件；獨立列出尚未Active的key。
  * 元件包含只承認精確正式ID的顯式列，或同表根明確Include Subcomponents；未知與外殼不得掩蓋缺漏，功能約束仍完整核對。
@@ -66,7 +66,7 @@ internal static class SchemaPlanner
             // 只接受同一正式entity ID、確為根且官方值0；未知／不包含／僅外殼均仍要求精確子元件身份。
             var includesChildren = existing is not null && snapshot.Components.Any(component =>
                 component.Type == 1 && component.ObjectId == existing.Id && component.RootBehavior == 0 && component.RootId is null);
-            foreach (var field in expected.Fields.Where(field => field.Phase == 1))
+            foreach (var field in expected.Fields.Where(field => field.Phase <= definition.ActivePhase))
             {
                 var actual = existing?.Fields.SingleOrDefault(item => item.LogicalName == field.LogicalName);
                 if (actual is null)

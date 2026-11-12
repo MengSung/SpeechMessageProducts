@@ -1,0 +1,5 @@
+{"file": ".trellis/spec/backend/schema-deployment-contract.md", "reason": "Review the phase filter, no-write plan contract, strict schema parsing, and schema plan test expectations."}
+{"file": ".trellis/spec/backend/development-configuration-safety.md", "reason": "Check configuration diagnostics for credential value leakage and unsafe fallback behavior."}
+{"file": ".trellis/spec/backend/file-documentation-contract.md", "reason": "Check complete file-level documentation and JSON companion coverage."}
+{"file": ".trellis/spec/backend/text-encoding-contract.md", "reason": "Check changed text files at the required byte-level encoding boundary."}
+{"file": ".trellis/spec/backend/quality-guidelines.md", "reason": "Review cross-project payment-core boundary and existing backend test patterns."}

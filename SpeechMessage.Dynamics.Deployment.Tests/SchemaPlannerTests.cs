@@ -2,7 +2,8 @@
  * 檔案整體說明
  *
  * 目的與定位：本檔保護純planner的只新增／完整衝突拒絕與plan完整性；完全以單案純snapshot比對，不呼叫SDK或真環境。
- * 主要情境：只剩基礎表時列精確新增數；完整結構及solution元件一致時零操作；P4欄位不得提前建立。
+ * 主要情境：只剩基礎表且ActivePhase=1時列精確新增數；完整結構及solution元件一致時零操作；
+ * ActivePhase=4時只納入核定的教會永豐設定檔欄位。
  * 故障矩陣：逐一改變型別、長度、日期、安全、owner、entity/field audit、concurrency、key與managed solution，任何衝突都停止而非產生修改。
  * 決定性斷言：pending key不能當Active，failed key不能重建掩蓋；plan hash、正式orgID或版本漂移必須在apply之前拒絕。
  * 依賴與生命週期：正式schema每案重新讀，CompleteSnapshot產生本案獨占合成metadata ID／集合；固定UTC時刻，不修改全域Culture或建立背景資源。
@@ -20,11 +21,11 @@ namespace SpeechMessage.Dynamics.Deployment.Tests;
 /// <summary>純snapshot比對守門，不呼叫SDK；故障逐一改變正式型別/約束，驗證計畫不會將衝突轉成自動修改。</summary>
 public sealed class SchemaPlannerTests
 {
-    /// <summary>沒有solution而只有既有基礎表時只新增四表、32非主名稱欄與四key；不能建立account/contact或P4欄。</summary>
+    /// <summary>明確以ActivePhase=1規劃時，只新增P1實體、欄位與key，不能提前建立account的P4永豐設定檔欄。</summary>
     [Fact]
     public void Plan_OnlyBaseEntities_ContainsOnlyRequiredP1Additions()
     {
-        var definition = Definition();
+        var definition = Definition() with { ActivePhase = 1 };
         var complete = CompleteSnapshot(definition);
         var empty = complete with
         {
@@ -39,6 +40,38 @@ public sealed class SchemaPlannerTests
         Assert.DoesNotContain(plan.Operations, operation => operation.Name == "new_sinopacprofile");
         Assert.DoesNotContain(plan.Operations, operation => operation.Kind is "Update" or "Delete");
         Assert.Equal(64, plan.Sha256.Length);
+    }
+
+    /// <summary>完整P1快照以ActivePhase=4規劃時，只能新增並納入account.new_sinopacprofile，禁止任何更新或刪除。</summary>
+    [Fact]
+    public void Plan_ActivePhase4_AddsSinopacProfileOnly()
+    {
+        var phaseOne = Definition() with { ActivePhase = 1 };
+        var phaseFour = phaseOne with { ActivePhase = 4 };
+        var snapshot = CompleteSnapshot(phaseOne);
+
+        var plan = SchemaPlanner.Create(phaseFour, snapshot, Now);
+
+        Assert.Collection(
+            plan.Operations,
+            operation =>
+            {
+                Assert.Equal("CreateAttribute", operation.Kind);
+                Assert.Equal("account", operation.Entity);
+                Assert.Equal("new_sinopacprofile", operation.Name);
+            },
+            operation =>
+            {
+                Assert.Equal("IncludeAttribute", operation.Kind);
+                Assert.Equal("account", operation.Entity);
+                Assert.Equal("new_sinopacprofile", operation.Name);
+            });
+        Assert.Empty(plan.PendingKeys);
+        Assert.DoesNotContain(plan.Operations, operation => operation.Kind is "Update" or "Delete");
+
+        var p1Plan = SchemaPlanner.Create(phaseOne, snapshot, Now);
+        Assert.Empty(p1Plan.Operations);
+        Assert.Throws<InvalidDataException>(() => SchemaPlanner.ValidatePlan(p1Plan, phaseFour, snapshot));
     }
 
     /// <summary>完整一致且所有元件已納入solution時不得再寫；來源候選只屬本案，不會因規劃而被修改。</summary>
@@ -206,7 +239,7 @@ public sealed class SchemaPlannerTests
     /// <summary>固定UTC計畫時刻，不讀取本機時間、時區或文化。</summary>
     private static readonly DateTimeOffset Now = new(2026, 11, 6, 0, 0, 0, TimeSpan.Zero);
     /// <summary>同worktree唯一正式schema，每案重新讀取，避免mutable清單跨案例共享。</summary>
-    internal static SchemaDefinition Definition() => SchemaFiles.Load(SchemaDefinitionTests.SchemaPath());
+    internal static SchemaDefinition Definition() => SchemaFiles.Load(SchemaDefinitionTests.SchemaPath()) with { ActivePhase = 1 };
 
     /// <summary>建立本案獨佔的完整純metadata候選；不代表SDK建立成功，實際SDK契約由整合案例另驗。</summary>
     internal static SchemaSnapshot CompleteSnapshot(SchemaDefinition definition)

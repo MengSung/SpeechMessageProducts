@@ -4,7 +4,8 @@
  * 目的與定位：本檔在單命令SDK租約內執行結構plan、唯讀export與只新增apply，是純規劃器和實際SDK metadata message之間的協調者。
  * 輸入與依賴：借用Host授權的IOrganizationService、固定操作目錄及TimeProvider；CLI已先驗白名單／路徑，apply必須持同組織寫鎖。
  * 主要流程：重新讀完整server metadata→重驗schema/plan/fingerprint→核對涉及表的published/unpublished功能約束→before快照成功flush/close→依序新增。
- * 一般plan只建立publisher/solution/entity/attribute/lookup/key與AddSolutionComponent；日期明確UserLocal/DateAndTime，加密欄啟用field security，稽核包含欄位層級。
+ * 一般plan只建立publisher/solution/entity/attribute/lookup/key與AddSolutionComponent；欄位依ActivePhase上限選取，主要名稱與key仍限制phase 1。
+ * 日期明確UserLocal/DateAndTime，加密欄啟用field security，稽核包含欄位層級。
  * D3659.1忽略新Lookup稽核時，僅對本次Create回傳ID補IsAuditEnabled=true；部分完成的接續另須原plan/before完整hash與其他約束全符，不能變成通用Update。
  * 新custom表樂觀並行依server預設，outbound必須重讀確認true；產品不反射寫入SDK的唯讀回應屬性，也不修改角色或舊欄位。
  * 發布與驗證：僅定向PublishXml本plan新內容涉及的表，再讀已發布metadata及key狀態；仍有新增差異拋錯，pending key交CLI回不完整結果。
@@ -65,7 +66,7 @@ internal sealed class SchemaDeploymentEngine
             var fields = entity.Fields.Select(field =>
             {
                 if (field.Type != "lookup" || field.Audit != false
-                    || !expected.Fields.Any(item => item.LogicalName == field.LogicalName && item.Phase == 1 && item.Type == "lookup")) return field;
+                    || !expected.Fields.Any(item => item.LogicalName == field.LogicalName && item.Phase <= definition.ActivePhase && item.Type == "lookup")) return field;
                 if (previous?.Fields.Any(item => item.LogicalName == field.LogicalName) == true
                     || !original.Operations.Any(operation => operation.Kind == "CreateLookup" && operation.Entity == entity.LogicalName && operation.Name == field.LogicalName))
                     throw new InvalidDataException("Audit completion cannot modify a field that predates the approved creation plan.");
@@ -169,7 +170,7 @@ internal sealed class SchemaDeploymentEngine
                 case "CreateLookup":
                 {
                     var entity = definition.Entities.Single(entity => entity.LogicalName == operation.Entity);
-                    var field = entity.Fields.Single(field => field.LogicalName == operation.Name && field.Phase == 1);
+                    var field = entity.Fields.Single(field => field.LogicalName == operation.Name && field.Phase <= definition.ActivePhase);
                     var attribute = Attribute(field, entity.IsNew && entity.Audit, before.LanguageCode);
                     Guid id;
                     if (operation.Kind == "CreateLookup")

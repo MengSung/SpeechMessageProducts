@@ -1,0 +1,6 @@
+{"file": ".trellis/spec/backend/development-configuration-safety.md", "reason": "Keep credential provenance, value redaction, and environment/configuration boundaries intact while validating named profiles."}
+{"file": ".trellis/spec/backend/deployment-contract.md", "reason": "Preserve User Secrets-only deployment credentials and offline plan behavior; P4-04 must not connect to D365."}
+{"file": ".trellis/spec/backend/schema-deployment-contract.md", "reason": "Implement ActivePhase without changing phase-1 primary-name/key invariants or widening deployment mutations."}
+{"file": ".trellis/spec/backend/money-contract.md", "reason": "Preserve the shared payment profile boundary and supported money/currency contracts."}
+{"file": ".trellis/spec/backend/file-documentation-contract.md", "reason": "Required Traditional Chinese source-file documentation and JSON companion rules."}
+{"file": ".trellis/spec/backend/text-encoding-contract.md", "reason": "Required UTF-8 without BOM, CRLF, and final CRLF checks for changed files."}

@@ -9,8 +9,8 @@
  *
  * 主要功能與流程：Load 讀取最多 1 MiB 的 schema，ReadPlan 讀取最多 4 MiB 的 plan；
  * 共用的 Read<T> 開啟檔案後再次核對大小，解析深度最多 32，拒絕未知及重複 JSON 屬性。
- * Validate 逐一確認固定 solution／publisher／new 前綴、實體與欄位的穩定邏輯身份、唯一性、
- * 型別／長度／phase、lookup 目標、選項數值與索引欄位；P1 時間點必須為 UserLocal／DateAndTime。
+ * Validate 逐一確認固定 solution／publisher／new 前綴、ActivePhase範圍、實體與欄位的穩定邏輯身份、唯一性、
+ * 型別／長度／phase、lookup 目標、選項數值與索引欄位；主要名稱與索引欄仍要求phase 1，P1時間點必須為UserLocal／DateAndTime。
  * Hash 與 HashValue 對已辨識的純結構計算 SHA-256；它們用於完整性與漂移檢查，不代表使用者授權。
  * WriteNew 與 WritePlanMarkdown 共用 WriteContent，以 UTF-8 無 BOM、CRLF 輸出，最多 100 MiB。
  *
@@ -178,7 +178,7 @@ internal static class SchemaFiles
     internal static void Validate(SchemaDefinition definition)
     {
         ArgumentNullException.ThrowIfNull(definition);
-        if (definition.SchemaVersion != 1 || definition.Solution != "SpeechMessageCore"
+        if (definition.SchemaVersion != 1 || definition.ActivePhase is < 1 or > 8 || definition.Solution != "SpeechMessageCore"
             || definition.Publisher != "SpeechMessagePublisher" || definition.Prefix != "new"
             || definition.Entities is null || definition.Entities.Count is < 1 or > 32)
             throw new InvalidDataException("Unsupported schema identity or budget.");
