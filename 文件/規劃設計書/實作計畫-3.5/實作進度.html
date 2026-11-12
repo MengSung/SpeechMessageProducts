@@ -240,11 +240,11 @@ footer{margin-top:36px;color:var(--muted);font-size:12.5px;text-align:center}
  */
 const DATA = {
   "planVersion": "3.5",
-  "snapshot": "2026-11-12 21:46 Asia/Taipei (UTC+08:00)",
-  "lastUpdated": "2026-11-12T21:46:54+08:00",
+  "snapshot": "2026-11-13 00:07 Asia/Taipei (UTC+08:00)",
+  "lastUpdated": "2026-11-13T00:07:48+08:00",
   "branch": "1.0.0.11.Integration.P4.Worktree",
-  "head": "c5802cdf",
-  "headline": "2026-11-12 21:46 Asia/Taipei (UTC+08:00)：P4-01 已驗收並完成 P4 分支首次推送；git ls-remote 核對遠端 SHA 為 c5802cdf2437c67ba77659aeb3fcd504fe263600。接續 P4-02「金額改用 Money」。D365 verify 退出碼 1、教會 A GUID 與 new_timezone 尚未驗證，P4-06 前由 Codex 再唯讀確認。",
+  "head": "b90fc6be",
+  "headline": "2026-11-13 00:07 Asia/Taipei (UTC+08:00)：P4-02「金額改用 Money」驗收完成；付款測試 62 個、架構測試 58 個通過，全方案 Release 建置 0 個錯誤，固定 guard §8.1 八項通過，§8.3 三項輕量檢查全通過。程式提交 b90fc6be；接續 P4-04「金鑰改為具名設定檔」。P4-00 的 D365 verify 退出碼 1、教會 A GUID 與 new_timezone 尚未驗證，P4-06 前由 Codex 再唯讀確認。",
   "notices": [
     {
       "id": "plan-3.5-summary",
@@ -469,8 +469,8 @@ const DATA = {
       "phaseId": "階段 4",
       "level": "info",
       "title": "P4 進度摘要",
-      "lastUpdated": "2026-11-12T21:46:54+08:00",
-      "body": "2026-11-12 21:46 Asia/Taipei (UTC+08:00)：P4-01 已驗收並完成 P4 分支首次推送；git ls-remote 與本機一致，SHA 為 c5802cdf2437c67ba77659aeb3fcd504fe263600。五個指定測試全通過；最終固定 guard 的 22 個專案／目標摘要共 5,226 次測試執行、0 失敗，§8.1 八項全通過。下一包為 P4-02「金額改用 Money」。P4-00 前置資訊仍有效：設定值未保留；TLS 握手成功、LineWebhookP309 無簽章 POST 回 401；D365 verify 退出碼 1，教會 A GUID 與 new_timezone 尚未驗證，P4-06 前由 Codex 再唯讀確認；未執行部署或 D365 寫入。",
+      "lastUpdated": "2026-11-13T00:07:48+08:00",
+      "body": "2026-11-13 00:07 Asia/Taipei (UTC+08:00)：P4-02 已驗收，Money 模型、三個 provider 的 TWD 能力與不支援幣別送出前拒絕均完成；付款測試 62 個、架構測試 58 個通過，全方案 Release 建置 0 個錯誤，固定 guard §8.1 八項及 §8.3 三項輕量檢查通過。保存的建置 log 有 48 筆 CS0618；guard 終端另曾顯示未修改的 ChurchReport.MemberInfo.Tests 一處舊成員呼叫，但 native stdout 未留存。程式提交 b90fc6be，一頁回報見 P4-02 子任務。下一包 P4-04。P4-00 前置資訊仍有效：設定值未保留；TLS 握手成功、LineWebhookP309 無簽章 POST 回 401；D365 verify 退出碼 1，教會 A GUID 與 new_timezone 尚未驗證，P4-06 前由 Codex 再唯讀確認；未執行部署或 D365 寫入。",
       "steps": [
         "2026-11-12 13:52 Asia/Taipei (UTC+08:00)：P4 分支從 43ea38cd 開始；建立階段父任務及 P4-00 子任務，更新授權文字與進度 DATA。",
         "2026-11-12 13:52 Asia/Taipei (UTC+08:00)：測試商店設定鍵只核對是否存在，未輸出設定值；TLS handshake 成功，未送交易。",
@@ -483,7 +483,8 @@ const DATA = {
         "2026-11-12 17:16 Asia/Taipei (UTC+08:00)：P4-00 一頁回報及原始輸出 SHA-256 已收斂，最終 §8.3 確認後提交、不推送。",
         "2026-11-12 17:23 Asia/Taipei (UTC+08:00)：P4-00 最終編碼檢查 30 個變更檔、0 個問題；檔案說明檢查 1,439 個檔案、0 個失敗；進度頁測試 28 個通過、0 個失敗。",
         "2026-11-12 21:02 Asia/Taipei (UTC+08:00)：P4-01 依 04A §5 完成盤點表、四個合成 Golden、四筆 companions 與五個指定測試；固定 guard 最終提交 3d9e565d 的 §8.1 八項通過，全方案 5,226 次測試執行、0 失敗。首次 guard 找到檔首說明結構不足，文件修正後重新完整通過；一頁回報位於 P4-01 子任務 wp-reports。P4 分支推送與遠端 SHA 尚待驗收後核對。",
-        "2026-11-12 21:46 Asia/Taipei (UTC+08:00)：P4 分支首次推送成功；git ls-remote 核對遠端分支 SHA 與本機相同，為 c5802cdf2437c67ba77659aeb3fcd504fe263600；P4-01 一頁回報及狀態更新。"
+        "2026-11-12 21:46 Asia/Taipei (UTC+08:00)：P4 分支首次推送成功；git ls-remote 核對遠端分支 SHA 與本機相同，為 c5802cdf2437c67ba77659aeb3fcd504fe263600；P4-01 一頁回報及狀態更新。",
+        "2026-11-13 00:07 Asia/Taipei (UTC+08:00)：P4-02 程式提交 b90fc6be 的四個指定測試通過、全方案 Release 建置 0 個錯誤、固定 guard §8.1 八項通過；ChurchReport 與 ChurchReport.MemberInfo.Tests 未修改。紀錄型提交的編碼檢查 70 個檔案、0 個問題；檔案說明檢查 1,445 個檔案、0 個失敗；進度頁測試 28 個通過、0 個失敗。"
       ]
     }
   ],
@@ -592,7 +593,7 @@ const DATA = {
       "planned": "2～3 個工作天",
       "actual": "",
       "current": true,
-      "done": 1,
+      "done": 2,
       "active": 0
     },
     {
@@ -1249,13 +1250,13 @@ const DATA = {
       "id": "P4-02",
       "phaseId": "階段 4",
       "name": "金額改用 Money",
-      "status": "todo",
+      "status": "done",
       "deps": "P4-01",
       "live": "無",
       "timebox": "半天",
-      "doneAt": "",
-      "commit": "",
-      "note": "舊呼叫點 Obsolete 轉接"
+      "doneAt": "2026-11-13 00:05 Asia/Taipei (UTC+08:00)",
+      "commit": "b90fc6be",
+      "note": "2026-11-13 00:05 Asia/Taipei (UTC+08:00)：四個指定測試通過；付款 62 個、架構 58 個，全方案 Release 建置 0 錯誤；固定 guard §8.1 八項及紀錄提交 §8.3 三項通過。保存建置 log 記 48 筆 CS0618；另有一處未修改測試呼叫點只見於未保存 native stdout。"
     },
     {
       "id": "P4-03",
