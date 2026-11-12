@@ -1,7 +1,8 @@
 /*
  * 檔案整體說明
  *
- * 目的與定位：將通用付款請求轉成台新 TSPG REST payload。 台新使用 NTD/小單位金額與 tx_type 區分建單、查詢，這些 provider 細節集中在此檔。
+ * 目的與定位：將 Money-first 付款請求轉成台新 TSPG REST payload。台新使用 NTD／最小單位及 tx_type 區分建單、查詢，
+ * 這些 provider 細節集中在此檔。
  *
  * 主要功能與流程：
  * 本檔宣告 TaishinRequestMapper。
@@ -9,8 +10,8 @@
  * ResolveLayout、FirstNonEmpty。
  *
  * 使用邊界與維護：
- * 本檔的前置條件、錯誤及資源責任以各型別／成員契約為準；此導讀不把呼叫參數視為授權，也不擴張被借入依賴的所有權。
- * 變更介面、資料格式、取消或清理順序時，須一併核對下列合作檔案及對應測試，不能只改目前檔案。
+ * 金額與 ISO 幣別只從 Money 讀取，再依台新協定轉換單位與 NTD 代碼；profile 憑證只在 mapping 呼叫期間讀取。
+ * mapper 不執行 I/O、不保留 request 或 profile 狀態；協定改動須同步核對建單／查詢測試。
  * 可沿 SpeechMessage.Payments.Tests/Providers/Taishin/TaishinProviderTests.cs、
  * SpeechMessage.Payments/Providers/Taishin/TaishinPaymentProvider.cs 追查目前工作樹中的合作／使用位置。
  */
@@ -26,6 +27,10 @@ namespace SpeechMessage.Payments.Providers.Taishin;
 /// </summary>
 internal static class TaishinRequestMapper
 {
+    /// <summary>將 Money-first 付款請求映射為台新建單 payload；不讀取 obsolete Amount／Currency 成員。</summary>
+    /// <param name="profile">resolver 選定且含台新必要設定的商店 profile。</param>
+    /// <param name="request">經 Gateway 幣別驗證的中立付款請求。</param>
+    /// <returns>台新建單 REST payload。</returns>
     public static TaishinPaymentRequest MapCreatePayload(
         PaymentMerchantProfile profile,
         PaymentCreateRequest request)
@@ -37,8 +42,8 @@ internal static class TaishinRequestMapper
         {
             Layout = ResolveLayout(request.PaymentMethod),
             OrderNo = request.ProductOrderId,
-            Amt = ToMinorUnit(request.Amount),
-            Cur = ToTaishinCurrency(request.Currency),
+            Amt = ToMinorUnit(request.Total.Amount),
+            Cur = ToTaishinCurrency(request.Total.Currency),
             OrderDesc = request.Description,
             CaptFlag = request.Metadata.TryGetValue("CaptFlag", out var captFlag) ? captFlag : "0",
             ResultFlag = "1",
@@ -57,6 +62,10 @@ internal static class TaishinRequestMapper
         return payload;
     }
 
+    /// <summary>將中立付款查詢請求映射成台新交易查詢 payload。</summary>
+    /// <param name="profile">resolver 選定的台新 profile。</param>
+    /// <param name="request">含訂單識別與交易參照的中立查詢請求。</param>
+    /// <returns>台新查詢 REST payload。</returns>
     public static TaishinPaymentRequest MapQueryPayload(
         PaymentMerchantProfile profile,
         PaymentQueryRequest request)

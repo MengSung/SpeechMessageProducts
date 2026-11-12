@@ -6,16 +6,18 @@
  *
  * 主要功能與流程：
  * 本檔宣告 MyPayCallbackParser。
- * 主要操作入口包含 Parse、ReadFields、ReadJsonFields、ReadFormEncodedFields、BuildProviderData、CopyIfPresent、ParseAmount、
- * GetValue；其餘入口見下方成員契約。
+ * 主要操作入口包含 Parse、ReadFields、ReadJsonFields、ReadFormEncodedFields、BuildProviderData、CopyIfPresent、
+ * ParsePaidAmount、GetValue；其餘入口見下方成員契約。
  *
  * 使用邊界與維護：
- * 本檔的前置條件、錯誤及資源責任以各型別／成員契約為準；此導讀不把呼叫參數視為授權，也不擴張被借入依賴的所有權。
- * 變更介面、資料格式、取消或清理順序時，須一併核對下列合作檔案及對應測試，不能只改目前檔案。
+ * 回呼欄位是外部輸入；解析結果僅保存受 Money 白名單驗證的付款金額，無效金額不產生 PaidAmount。
+ * 本 parser 不保留 request、付款人、profile 或可變共享狀態，也不執行 I/O；修改正規化規則時須同步核對 callback 測試與 sanitizer。
  * 可沿 SpeechMessage.Payments.Tests/Providers/MyPay/MyPayProviderTests.cs、
  * SpeechMessage.Payments/Providers/MyPay/MyPayPaymentProvider.cs 追查目前工作樹中的合作／使用位置。
  */
+using System.Globalization;
 using Newtonsoft.Json.Linq;
+using SpeechMessage.Localization;
 using SpeechMessage.Payments.Diagnostics;
 using SpeechMessage.Payments.Models;
 
@@ -31,6 +33,9 @@ internal static class MyPayCallbackParser
     private static readonly PaymentCallbackAcknowledgement Acknowledgement =
         PaymentCallbackAcknowledgement.PlainText("8888");
 
+    /// <summary>解析外部 MyPay callback 欄位並驗證簽章；只發布 Money 能接受的金額與已清理診斷。</summary>
+    /// <param name="request">包含 callback 原始投影欄位的中立請求，不會被 parser 保存。</param>
+    /// <returns>狀態、Money 金額、acknowledgement 與 sanitizer 清理後的結果。</returns>
     public static PaymentCallbackResult Parse(PaymentCallbackRequest request)
     {
         var fields = ReadFields(request);
@@ -44,8 +49,10 @@ internal static class MyPayCallbackParser
             Status = status,
             ProductOrderId = GetValue(fields, "order_id"),
             ProviderTransactionId = GetValue(fields, "uid"),
-            Amount = ParseAmount(GetValue(fields, "actual_cost"), GetValue(fields, "cost")),
-            Currency = FirstNonEmpty(GetValue(fields, "actual_currency"), GetValue(fields, "currency"), "TWD"),
+            PaidAmount = ParsePaidAmount(
+                FirstNonEmpty(GetValue(fields, "actual_currency"), GetValue(fields, "currency"), "TWD"),
+                GetValue(fields, "actual_cost"),
+                GetValue(fields, "cost")),
             // MyPay 要求收到 callback 後回覆 8888；這是 provider protocol，不應散落在產品 web 入口。
             Acknowledgement = Acknowledgement,
             Error = error,
@@ -122,13 +129,24 @@ internal static class MyPayCallbackParser
         }
     }
 
-    private static decimal? ParseAmount(params string[] candidates)
+    /// <summary>
+    /// 從 provider 回呼的實收金額欄位建立 Money；使用不受主機文化影響的十進位解析，
+    /// 遇到不合法數字或 Money 不接受的幣別時不發布金額。
+    /// </summary>
+    private static Money? ParsePaidAmount(string currency, params string[] candidates)
     {
         foreach (var candidate in candidates)
         {
-            if (decimal.TryParse(candidate, out var amount))
+            if (decimal.TryParse(candidate, NumberStyles.Number, CultureInfo.InvariantCulture, out var amount))
             {
-                return amount;
+                try
+                {
+                    return new Money(amount, currency);
+                }
+                catch (ArgumentException)
+                {
+                    return null;
+                }
             }
         }
 

@@ -106,12 +106,17 @@ public sealed class PaymentGatewayTests
     private sealed class FakePaymentProvider : IPaymentProvider
     {
         // 測試用 provider：只記錄收到的 profile name，避免 gateway routing 測試碰到真實 provider HTTP 呼叫。
+        private static readonly IReadOnlyCollection<string> CurrencyCodes = Array.AsReadOnly(new[] { "TWD" });
+
         public FakePaymentProvider(PaymentProviderKind providerKind)
         {
             ProviderKind = providerKind;
         }
 
         public PaymentProviderKind ProviderKind { get; }
+
+        /// <summary>測試替身只宣告 TWD，與專案內三家 provider 的建立能力一致。</summary>
+        public IReadOnlyCollection<string> SupportedCurrencies => CurrencyCodes;
         public string ReceivedProfileName { get; private set; } = string.Empty;
 
         public Task<PaymentCreateResult> CreatePaymentAsync(

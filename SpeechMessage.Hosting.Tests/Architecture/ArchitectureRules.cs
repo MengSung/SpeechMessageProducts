@@ -480,7 +480,9 @@ internal static class ArchitectureRules
     /// </summary>
     private static int Layer(string name) => name switch
     {
-        "Line.Messaging" or "Line.Messaging.PluginSubset" or "PowerPlatform.Dataverse.Client" or "SpeechMessage.Payments" => 0,
+        "Line.Messaging" or "Line.Messaging.PluginSubset" or "PowerPlatform.Dataverse.Client" => 0,
+        // P4-02 付款核心向下參考 Localization 的 Money；反向仍由嚴格層序拒絕。
+        "SpeechMessage.Payments" => 8,
         // P2-05明定Localization是共用核心取字底層；反向仍由嚴格層序拒絕。
         "SpeechMessage.Localization" => 5,
         "LineMessagingProcessor.Core" => 10,

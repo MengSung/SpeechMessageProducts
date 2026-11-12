@@ -6,11 +6,11 @@
  * 主要功能與流程：
  * 本檔宣告 TaishinCallbackParser。
  * 主要操作入口包含 Parse、ReadFields、ReadJsonFields、CopyObjectProperties、ReadFormEncodedFields、NormalizeFields、
- * AddNormalized、BuildProviderData；其餘入口見下方成員契約。
+ * AddNormalized、BuildProviderData、ParseMinorAmount；其餘入口見下方成員契約。
  *
  * 使用邊界與維護：
- * 本檔的前置條件、錯誤及資源責任以各型別／成員契約為準；此導讀不把呼叫參數視為授權，也不擴張被借入依賴的所有權。
- * 變更介面、資料格式、取消或清理順序時，須一併核對下列合作檔案及對應測試，不能只改目前檔案。
+ * 回呼欄位是外部輸入；parser 先正規化與驗證，再以 Money 保存可解析且幣別有效的金額。
+ * 本 parser 不保留 request、付款人、profile 或可變共享狀態，也不執行 I/O；失效的金額／幣別不發布 PaidAmount。
  * 可沿 SpeechMessage.Payments.Tests/Providers/Taishin/TaishinProviderTests.cs、
  * SpeechMessage.Payments/Providers/Taishin/TaishinPaymentProvider.cs 追查目前工作樹中的合作／使用位置。
  */
@@ -19,6 +19,7 @@ using Newtonsoft.Json.Linq;
 using SpeechMessage.Payments.Configuration;
 using SpeechMessage.Payments.Diagnostics;
 using SpeechMessage.Payments.Models;
+using SpeechMessage.Localization;
 
 namespace SpeechMessage.Payments.Providers.Taishin;
 
@@ -32,6 +33,10 @@ internal static class TaishinCallbackParser
     private static readonly PaymentCallbackAcknowledgement Acknowledgement =
         PaymentCallbackAcknowledgement.Json("{\"status\":\"success\"}");
 
+    /// <summary>正規化台新 callback 欄位、驗證 hash，並將有效的最小單位金額映射成 Money。</summary>
+    /// <param name="profile">resolver 選定的商店 profile，僅用於本次 hash 驗證。</param>
+    /// <param name="request">宿主投影的 HTTP-neutral callback 欄位，不會被 parser 保存。</param>
+    /// <returns>已清理 callback 結果與 provider acknowledgement 描述。</returns>
     public static PaymentCallbackResult Parse(
         PaymentMerchantProfile profile,
         PaymentCallbackRequest request)
@@ -45,8 +50,9 @@ internal static class TaishinCallbackParser
             Status = status,
             ProductOrderId = GetValue(fields, "order_id"),
             ProviderTransactionId = GetValue(fields, "transaction_id"),
-            Amount = ParseMinorAmount(GetValue(fields, "amount")),
-            Currency = NormalizeCurrency(GetValue(fields, "currency")),
+            PaidAmount = ParseMinorAmount(
+                GetValue(fields, "amount"),
+                NormalizeCurrency(GetValue(fields, "currency"))),
             // TSPG 後端通知預期 JSON acknowledgement；宿主產品只負責把這個 descriptor 轉成實際 web response。
             Acknowledgement = Acknowledgement,
             Error = error,
@@ -175,11 +181,25 @@ internal static class TaishinCallbackParser
         }
     }
 
-    private static decimal? ParseMinorAmount(string amount)
+    /// <summary>
+    /// 將台新回呼的最小單位金額轉成 Money；保留十進位運算並拒絕白名單外幣別，
+    /// 不讓不可信的回呼值透過舊 decimal／Currency 欄位繞過核心契約。
+    /// </summary>
+    private static Money? ParseMinorAmount(string amount, string currency)
     {
-        return decimal.TryParse(amount, NumberStyles.Number, CultureInfo.InvariantCulture, out var parsed)
-            ? parsed / 100m
-            : null;
+        if (!decimal.TryParse(amount, NumberStyles.Number, CultureInfo.InvariantCulture, out var parsed))
+        {
+            return null;
+        }
+
+        try
+        {
+            return new Money(parsed / 100m, currency);
+        }
+        catch (ArgumentException)
+        {
+            return null;
+        }
     }
 
     private static string NormalizeCurrency(string currency)

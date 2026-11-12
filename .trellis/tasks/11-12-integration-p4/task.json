@@ -19,7 +19,8 @@
   "pr_url": null,
   "children": [
     "11-12-p4-00-startup-preflight",
-    "11-12-p4-01-payment-inventory"
+    "11-12-p4-01-payment-inventory",
+    "11-12-11-12-p4-02-money-currency"
   ],
   "parent": null,
   "relatedFiles": [],

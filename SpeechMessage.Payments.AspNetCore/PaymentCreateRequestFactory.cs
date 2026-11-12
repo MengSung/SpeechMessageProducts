@@ -9,16 +9,17 @@
  * - 建立金流核心的付款建立請求。Host 端可以先把自己的表單或 ViewModel 投影成 PaymentCreateRequestInput，再由這裡產生核心 DTO。 真正的 provider SDK payload
  * 仍由 SpeechMessage.Payments 的 provider 實作負責。
  * - 要使用的金流 profile 名稱，通常對應 appsettings 的 Payment:Profiles 設定。
- * - 付款金額，單位由 host 與 provider profile 約定，台灣金流通常為新台幣元。
+ * - 付款金額由 Money 保存完整 decimal 與 ISO 幣別；舊 Amount／Currency 僅保留為 Obsolete 相容轉接。
  * - 付款方式，例如信用卡、ATM、LinePay；provider 會再轉成自己的協定值。
  * 主要操作入口包含 Create。
  *
  * 使用邊界與維護：
- * 本檔的前置條件、錯誤及資源責任以各型別／成員契約為準；此導讀不把呼叫參數視為授權，也不擴張被借入依賴的所有權。
- * 變更介面、資料格式、取消或清理順序時，須一併核對下列合作檔案及對應測試，不能只改目前檔案。
+ * Money 是不可變純值；此 factory 不保留 host request、使用者、租戶或金流 profile 狀態，也不執行 I/O。
+ * 修改金額契約時須同步核對付款核心模型、provider 幣別驗證及 ASP.NET Core adapter 測試。
  * 可沿 SpeechMessage.Payments.AspNetCore/DependencyInjection/PaymentAspNetCoreServiceCollectionExtensions.cs
  * 追查目前工作樹中的合作／使用位置。
  */
+using SpeechMessage.Localization;
 using SpeechMessage.Payments.Models;
 
 namespace SpeechMessage.Payments.AspNetCore;
@@ -42,8 +43,7 @@ public sealed class PaymentCreateRequestFactory
         {
             ProfileName = input.ProfileName,
             ProductOrderId = input.ProductOrderId,
-            Amount = input.Amount,
-            Currency = input.Currency,
+            Total = input.Total,
             Description = input.Description,
             PaymentMethod = input.PaymentMethod,
             PaymentMethodSubType = input.PaymentMethodSubType,
@@ -62,17 +62,36 @@ public sealed class PaymentCreateRequestFactory
 /// </summary>
 public sealed record PaymentCreateRequestInput
 {
+    private Money total = new(0m, "TWD");
+
     /// <summary>要使用的金流 profile 名稱，通常對應 appsettings 的 Payment:Profiles 設定。</summary>
     public string ProfileName { get; init; } = string.Empty;
 
     /// <summary>產品端訂單或收費單編號。</summary>
     public string ProductOrderId { get; init; } = string.Empty;
 
-    /// <summary>付款金額，單位由 host 與 provider profile 約定，台灣金流通常為新台幣元。</summary>
-    public decimal Amount { get; init; }
+    /// <summary>付款總額及 ISO 幣別；provider 不支援時由 gateway 在送出請求前拒絕。</summary>
+    public Money Total
+    {
+        get => total;
+        init => total = value;
+    }
 
-    /// <summary>幣別，預設 TWD。</summary>
-    public string Currency { get; init; } = "TWD";
+    /// <summary>相容既有 host 呼叫端的金額轉接；新程式應設定 <see cref="Total"/>。</summary>
+    [Obsolete("Use Total instead.")]
+    public decimal Amount
+    {
+        get => total.Amount;
+        init => total = new Money(value, total.Currency);
+    }
+
+    /// <summary>相容既有 host 呼叫端的幣別轉接；新程式應設定 <see cref="Total"/>。</summary>
+    [Obsolete("Use Total instead.")]
+    public string Currency
+    {
+        get => total.Currency;
+        init => total = new Money(total.Amount, value);
+    }
 
     /// <summary>顯示給付款者或 provider 後台的付款描述。</summary>
     public string Description { get; init; } = string.Empty;

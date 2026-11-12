@@ -1,7 +1,7 @@
 /*
  * 檔案整體說明
  *
- * 目的與定位：高鉅 MyPay provider 實作。 只處理 MyPay API 呼叫、回應轉換與 callback parser 轉接； 宿主產品的 CRM 更新、通知與畫面導向仍留在產品層。
+ * 目的與定位：高鉅 MyPay provider 實作，宣告支援 TWD；只處理 MyPay API 呼叫、回應轉換與 callback parser 轉接。
  *
  * 主要功能與流程：
  * 本檔宣告 MyPayPaymentProvider。
@@ -9,8 +9,8 @@
  * IsNetworkTransportException。
  *
  * 使用邊界與維護：
- * 本檔的前置條件、錯誤及資源責任以各型別／成員契約為準；此導讀不把呼叫參數視為授權，也不擴張被借入依賴的所有權。
- * 變更介面、資料格式、取消或清理順序時，須一併核對下列合作檔案及對應測試，不能只改目前檔案。
+ * HttpClient 由 DI Host 擁有；每個 response 與 request content 由單次呼叫 using 釋放。Profile 僅在單次方法呼叫借用，不快取憑證或付款人資料。
+ * Workflows 與產品端只接收 Money 正規化金額及安全結果；修改協定時須同步檢查 mapper、錯誤處理及 provider 特性測試。
  * 可沿 SpeechMessage.Payments/DependencyInjection/ServiceCollectionExtensions.cs 追查目前工作樹中的合作／使用位置。
  */
 using System.Net;
@@ -30,14 +30,26 @@ namespace SpeechMessage.Payments.Providers.MyPay;
 internal sealed class MyPayPaymentProvider : IPaymentProvider
 {
     private readonly HttpClient _httpClient;
+    private static readonly IReadOnlyCollection<string> SupportedCurrencyCodes = Array.AsReadOnly(new[] { "TWD" });
 
+    /// <summary>建立 MyPay provider；HttpClient 由 DI typed-client 管理，本實作不保存 profile 或付款人資料。</summary>
+    /// <param name="httpClient">由 DI 提供並由 Host 管理生命週期的 HTTP client。</param>
     public MyPayPaymentProvider(HttpClient httpClient)
     {
         _httpClient = httpClient;
     }
 
+    /// <summary>提供 Gateway 對應 MyPay profile 的固定 provider 種類。</summary>
     public PaymentProviderKind ProviderKind => PaymentProviderKind.MyPay;
 
+    /// <summary>MyPay provider 目前只允許以 TWD 建立付款。</summary>
+    public IReadOnlyCollection<string> SupportedCurrencies => SupportedCurrencyCodes;
+
+    /// <summary>建立 MyPay 付款表單並送至 profile 指定端點；金額及幣別讀取 Money 欄位。</summary>
+    /// <param name="profile">resolver 選定的商店設定，只在本次請求使用。</param>
+    /// <param name="request">含 Money 總額與付款資料的中立請求。</param>
+    /// <param name="cancellationToken">呼叫端取消權杖，傳遞至 HTTP 傳輸。</param>
+    /// <returns>正規化的建立結果；不把 MyPay 原始回應物件交給產品層。</returns>
     public async Task<PaymentCreateResult> CreatePaymentAsync(
         PaymentMerchantProfile profile,
         PaymentCreateRequest request,
@@ -119,6 +131,11 @@ internal sealed class MyPayPaymentProvider : IPaymentProvider
         }
     }
 
+    /// <summary>MyPay 目前沒有遷移至共用核心的查詢 API，因此回傳明確的 UnsupportedOperation。</summary>
+    /// <param name="profile">resolver 選定的 profile；本方法不進行 I/O。</param>
+    /// <param name="request">含產品訂單與 provider 交易參照的中立查詢請求。</param>
+    /// <param name="cancellationToken">呼叫端取消權杖；目前不啟動背景工作或外部傳輸。</param>
+    /// <returns>狀態為 Unknown 並帶 UnsupportedOperation 的結果。</returns>
     public Task<PaymentStatusResult> QueryPaymentAsync(
         PaymentMerchantProfile profile,
         PaymentQueryRequest request,
@@ -138,6 +155,11 @@ internal sealed class MyPayPaymentProvider : IPaymentProvider
         });
     }
 
+    /// <summary>使用 MyPay parser 驗證並正規化中立 callback；不更新產品資料或保存跨請求資料。</summary>
+    /// <param name="profile">resolver 選定的 profile；目前 MyPay parser 不需讀取其憑證。</param>
+    /// <param name="request">宿主投影的 HTTP-neutral callback 欄位。</param>
+    /// <param name="cancellationToken">呼叫端取消權杖；純解析路徑不執行 I/O。</param>
+    /// <returns>帶 MyPay acknowledgement 描述及已清理欄位的 callback 結果。</returns>
     public Task<PaymentCallbackResult> ParseCallbackAsync(
         PaymentMerchantProfile profile,
         PaymentCallbackRequest request,

@@ -1,26 +1,30 @@
 /*
  * 檔案整體說明
  *
- * 目的與定位：將產品中性訂單草稿映射為gateway的付款建立請求，保持欄位與metadata對齊；本層刻意是薄映射，產品授權、價格驗證與補資料由上游負責。
+ * 目的與定位：將 workflow 訂單草稿映射為金流核心付款請求；保留上游產品欄位並將草稿 decimal／幣別驗證後轉成 Money。
  *
  * 主要功能與流程：
  * 本檔宣告 PaymentOrderDraftMapper。
- * 主要操作入口包含 Map、AddIfNotEmpty。
+ * Map 建立 Money-first 總額與商品明細，AddIfNotEmpty 僅投影非空產品中繼資料。
  *
  * 使用邊界與維護：
- * 本檔的前置條件、錯誤及資源責任以各型別／成員契約為準；此導讀不把呼叫參數視為授權，也不擴張被借入依賴的所有權。
- * 變更介面、資料格式、取消或清理順序時，須一併核對下列合作檔案及對應測試，不能只改目前檔案。
+ * 草稿中的金額與幣別僅是產品輸入；Money 建構會拒絕白名單外幣別。mapper 不保留草稿、使用者或共享狀態，也不執行 I/O。
+ * 修改金額契約須同步核對 PaymentCreateRequest、PaymentLineItem 與 workflow mapper 測試。
  */
 using SpeechMessage.Payments.Models;
 
 namespace SpeechMessage.Payments.Workflows;
 
 /// <summary>
-/// Converts host-product payment drafts into the provider-neutral create request used by the gateway.
-/// This mapper is intentionally thin: validation and product enrichment stay in the host product.
+/// 將產品付款草稿轉成 Gateway 使用的 provider-neutral 建立請求。
+/// 產品授權與補資料留在產品層；金額欄位在此經 Money 建構式驗證後才進入共用核心。
 /// </summary>
 public sealed class PaymentOrderDraftMapper
 {
+    /// <summary>將單次產品訂單草稿的金額、商品、付款者及中繼資料投影為金流核心 DTO。</summary>
+    /// <param name="draft">由呼叫端建立並擁有的付款草稿，不會被 mapper 保存或修改。</param>
+    /// <returns>以 Money 表達總額與每項單價的中立付款請求。</returns>
+    /// <exception cref="ArgumentException">任一草稿幣別不在 Money 白名單時由 Money 建構式拒絕。</exception>
     public PaymentCreateRequest Map(PaymentOrderDraft draft)
     {
         ArgumentNullException.ThrowIfNull(draft);
@@ -56,8 +60,7 @@ public sealed class PaymentOrderDraftMapper
                 {
                     Name = item.Name,
                     Quantity = item.Quantity,
-                    UnitPrice = item.UnitPrice,
-                    Currency = item.Currency
+                    Price = new SpeechMessage.Localization.Money(item.UnitPrice, item.Currency)
                 };
             })
             .ToArray();
@@ -66,8 +69,7 @@ public sealed class PaymentOrderDraftMapper
         {
             ProfileName = draft.ProfileName,
             ProductOrderId = draft.ProductOrderId,
-            Amount = draft.Amount,
-            Currency = draft.Currency,
+            Total = new SpeechMessage.Localization.Money(draft.Amount, draft.Currency),
             Description = draft.Description,
             PaymentMethod = draft.Method.Method,
             PaymentMethodSubType = draft.Method.SubType,

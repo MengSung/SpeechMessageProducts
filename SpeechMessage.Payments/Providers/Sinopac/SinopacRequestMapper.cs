@@ -1,7 +1,8 @@
 /*
  * 檔案整體說明
  *
- * 目的與定位：將通用付款請求轉成永豐 QPay 建單/查詢 payload。 QPay 欄位名稱仍保留在 provider core 內，宿主產品不再直接建立 CreOrderReq。
+ * 目的與定位：將 Money-first 通用請求轉成永豐 QPay 建單／查詢 payload。QPay 欄位與最小單位換算僅留在 provider core，
+ * 宿主產品不直接建立 CreOrderReq。
  *
  * 主要功能與流程：
  * 本檔宣告 SinopacRequestMapper。
@@ -9,8 +10,8 @@
  * NormalizeCurrency、ResolvePayType；其餘入口見下方成員契約。
  *
  * 使用邊界與維護：
- * 本檔的前置條件、錯誤及資源責任以各型別／成員契約為準；此導讀不把呼叫參數視為授權，也不擴張被借入依賴的所有權。
- * 變更介面、資料格式、取消或清理順序時，須一併核對下列合作檔案及對應測試，不能只改目前檔案。
+ * 建單金額由 PaymentCreateRequest.Total.Amount 轉為整數分，幣別取 Money.Currency；profile 憑證只在單次 mapping 取用，不由 mapper 保存。
+ * 本檔不執行網路或跨請求共享狀態；DateTime.Now 到期日既有行為不在 P4-02 修改範圍。
  * 可沿 SpeechMessage.Payments.Tests/Providers/Sinopac/SinopacProviderTests.cs、
  * SpeechMessage.Payments/Providers/Sinopac/SinopacCrypto.cs、
  * SpeechMessage.Payments/Providers/Sinopac/SinopacPaymentProvider.cs 追查目前工作樹中的合作／使用位置。
@@ -27,6 +28,10 @@ namespace SpeechMessage.Payments.Providers.Sinopac;
 /// </summary>
 internal static class SinopacRequestMapper
 {
+    /// <summary>將已由 Gateway 驗證為 provider 支援幣別的 Money 請求映射成永豐建單 payload。</summary>
+    /// <param name="profile">resolver 選定且含必要商店欄位的 profile；只在此映射期間讀取。</param>
+    /// <param name="request">付款請求；金額來源固定為 Total，不讀取 obsolete Amount／Currency。</param>
+    /// <returns>永豐協定建單資料，金額以最小單位整數表示。</returns>
     public static SinopacOrderCreateRequest MapCreateRequest(
         PaymentMerchantProfile profile,
         PaymentCreateRequest request)
@@ -36,8 +41,8 @@ internal static class SinopacRequestMapper
         {
             ShopNo = GetRequiredCredential(profile, "ShopNo"),
             OrderNo = request.ProductOrderId,
-            Amount = ToMinorUnit(request.Amount),
-            CurrencyID = NormalizeCurrency(request.Currency),
+            Amount = ToMinorUnit(request.Total.Amount),
+            CurrencyID = NormalizeCurrency(request.Total.Currency),
             PrdtName = request.Description,
             ReturnURL = FirstNonEmpty(request.Callbacks.ReturnUrl, request.Callbacks.SuccessUrl),
             BackendURL = request.Callbacks.BackendUrl,
@@ -81,6 +86,10 @@ internal static class SinopacRequestMapper
         return payload;
     }
 
+    /// <summary>將中立付款查詢參照映射成永豐 PayToken 查詢 payload。</summary>
+    /// <param name="profile">resolver 選定的永豐商店 profile。</param>
+    /// <param name="request">含產品訂單與 provider 交易參照的查詢請求。</param>
+    /// <returns>不含宿主型別的永豐查詢 payload。</returns>
     public static SinopacOrderPayQueryRequest MapOrderPayQuery(
         PaymentMerchantProfile profile,
         PaymentQueryRequest request)
@@ -92,6 +101,10 @@ internal static class SinopacRequestMapper
         };
     }
 
+    /// <summary>取得非空的指定永豐憑證；訊息只回報 profile 名稱及缺少的鍵名，不回報憑證值。</summary>
+    /// <param name="profile">本次操作選定的永豐 profile。</param>
+    /// <param name="key">必要憑證鍵名。</param>
+    /// <returns>該憑證值，供呼叫端即時使用。</returns>
     internal static string GetRequiredCredential(PaymentMerchantProfile profile, string key)
     {
         if (TryGetCredential(profile, key, out var value))
@@ -102,6 +115,9 @@ internal static class SinopacRequestMapper
         throw new PaymentConfigurationException($"Sinopac profile '{profile.Name}' is missing credential '{key}'.");
     }
 
+    /// <summary>取得永豐 X-KeyID 標頭值，接受舊設定鍵大小寫別名但不輸出憑證。</summary>
+    /// <param name="profile">本次操作選定的永豐 profile。</param>
+    /// <returns>本次 HTTP 請求所需的 X-KeyID。</returns>
     internal static string GetXKeyId(PaymentMerchantProfile profile)
     {
         if (TryGetCredential(profile, "XKeyId", out var value) ||

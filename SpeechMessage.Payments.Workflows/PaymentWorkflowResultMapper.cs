@@ -6,7 +6,7 @@
  * 主要功能與流程：
  * 本檔宣告 PaymentWorkflowResultMapper、PaymentWorkflowResult。
  * - 從 PaymentCallbackResult 取出產品流程常用欄位。 Provider 原始資料保留在 PaymentWorkflowResult.ProviderData， 供產品端在必要時做對帳、紀錄或通知訊息。
- * - callback 中確認到的付款金額；部分 provider 或失敗狀態可能為空。
+ * - callback 中確認到的付款金額使用 Money；部分 provider 或失敗狀態可能為空。
  * 主要操作入口包含 Map、ReadProviderMessage。
  *
  * 使用邊界與維護：
@@ -14,6 +14,7 @@
  * 變更介面、資料格式、取消或清理順序時，須一併核對下列合作檔案及對應測試，不能只改目前檔案。
  * 可沿 SpeechMessage.Payments.Workflows/PaymentPostPaymentContext.cs 追查目前工作樹中的合作／使用位置。
  */
+using SpeechMessage.Localization;
 using SpeechMessage.Payments.Models;
 
 namespace SpeechMessage.Payments.Workflows;
@@ -37,8 +38,7 @@ public sealed class PaymentWorkflowResultMapper
             Status = result.Status,
             ProductOrderId = result.ProductOrderId,
             ProviderTransactionId = result.ProviderTransactionId,
-            Amount = result.Amount,
-            Currency = result.Currency,
+            PaidAmount = result.PaidAmount,
             ProviderMessage = ReadProviderMessage(result.ProviderData),
             ProviderData = result.ProviderData
         };
@@ -64,16 +64,51 @@ public sealed class PaymentWorkflowResultMapper
 /// </summary>
 public sealed record PaymentWorkflowResult
 {
+    private Money? paidAmount;
+    private string legacyCurrency = "TWD";
+
     /// <summary>金流核心正規化後的付款狀態。</summary>
     public PaymentStatus Status { get; init; } = PaymentStatus.Unknown;
     /// <summary>產品端原始訂單號。</summary>
     public string ProductOrderId { get; init; } = string.Empty;
     /// <summary>金流供應商交易流水號或授權交易識別碼。</summary>
     public string ProviderTransactionId { get; init; } = string.Empty;
-    /// <summary>callback 中確認到的付款金額；部分 provider 或失敗狀態可能為空。</summary>
-    public decimal? Amount { get; init; }
-    /// <summary>付款幣別，預設為 TWD。</summary>
-    public string Currency { get; init; } = "TWD";
+    /// <summary>callback 中確認到的付款金額及 ISO 幣別；部分 provider 或失敗狀態可能為 null。</summary>
+    public Money? PaidAmount
+    {
+        get => paidAmount;
+        init
+        {
+            paidAmount = value;
+            if (value.HasValue)
+            {
+                legacyCurrency = value.Value.Currency;
+            }
+        }
+    }
+
+    /// <summary>相容既有產品呼叫端的金額轉接；新程式應使用 <see cref="PaidAmount"/>。</summary>
+    [Obsolete("Use PaidAmount instead.")]
+    public decimal? Amount
+    {
+        get => paidAmount?.Amount;
+        init => paidAmount = value.HasValue ? new Money(value.Value, legacyCurrency) : null;
+    }
+
+    /// <summary>相容既有產品呼叫端的幣別轉接；新程式應使用 <see cref="PaidAmount"/>。</summary>
+    [Obsolete("Use PaidAmount instead.")]
+    public string Currency
+    {
+        get => paidAmount?.Currency ?? legacyCurrency;
+        init
+        {
+            legacyCurrency = value;
+            if (paidAmount.HasValue)
+            {
+                paidAmount = new Money(paidAmount.Value.Amount, value);
+            }
+        }
+    }
     /// <summary>供產品端紀錄或通知使用的 provider 訊息。</summary>
     public string ProviderMessage { get; init; } = string.Empty;
     /// <summary>經過金流核心清理後的 provider 原始延伸欄位。</summary>

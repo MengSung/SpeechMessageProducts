@@ -1,12 +1,13 @@
 <!--
 檔案整體說明
 
-目的與定位：定義中性付款契約及供應商協定核心的MSBuild專案邊界，集中target、套件及專案參考，讓產品／測試依正確方向編譯。
+目的與定位：定義中性付款契約及供應商協定核心的MSBuild邊界；直接參考Localization取得Money純值，不引入產品或主機依賴。
 
 主要功能與流程：
 宣告的產品／測試target為net10.0；條件評估後的實際輸出以MSBuild為準。
 
-使用邊界與維護：修改前先核對引用此檔的專案、頁面、腳本或CI步驟，保留既有參數、輸出及失敗結束碼。
+使用邊界與維護：產品可使用本專案公開的Money-first付款模型；Localization保持較低架構層級，付款核心不能被其反向參考。
+修改前先核對引用此檔的專案、頁面、腳本或CI步驟，保留既有target、套件、輸出及失敗結束碼。
 涉及寫入、外部命令或暫存資源時，依本檔實際實作的owner及清理路徑處理；說明不能取代執行前的範圍驗證。
 -->
 <Project Sdk="Microsoft.NET.Sdk">
@@ -18,6 +19,9 @@
     <AssemblyName>SpeechMessage.Payments</AssemblyName>
     <RootNamespace>SpeechMessage.Payments</RootNamespace>
   </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\SpeechMessage.Localization\SpeechMessage.Localization.csproj" />
+  </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" />
     <PackageReference Include="Microsoft.Extensions.Http" />

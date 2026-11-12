@@ -1,7 +1,7 @@
 /*
  * 檔案整體說明
  *
- * 目的與定位：永豐 QPay provider 實作。 這裡集中處理 Nonce、AES 加解密、簽章、建單與查詢封包； 宿主產品端只拿 normalized result，不再自行組永豐 protocol。
+ * 目的與定位：永豐 QPay provider 實作，宣告支援 TWD，並集中處理 Nonce、AES、簽章、建單及查詢封包。
  *
  * 主要功能與流程：
  * 本檔宣告 SinopacPaymentProvider、SinopacHttpStatusException、SinopacSignatureException。
@@ -9,8 +9,9 @@
  * ResolveCreateResult、CreateMissingCreateFieldError、BuildQueryProviderData；其餘入口見下方成員契約。
  *
  * 使用邊界與維護：
- * 本檔的前置條件、錯誤及資源責任以各型別／成員契約為準；此導讀不把呼叫參數視為授權，也不擴張被借入依賴的所有權。
- * 變更介面、資料格式、取消或清理順序時，須一併核對下列合作檔案及對應測試，不能只改目前檔案。
+ * 本 provider 只持有 DI 提供且由 Host 管理生命週期的 HttpClient；每次請求／回應由 using 關閉，序列化金額以 Money 為核心來源。
+ * 請求 profile 是單次呼叫輸入，不快取憑證；SemaphoreSlim 僅序列化此 provider instance 的 X-KeyID 標頭更新，並在 finally 釋放等待權。
+ * provider 與 typed HttpClient 由 DI 容器管理其主機存續期；此類別不對外暴露標頭或 semaphore，避免跨請求／profile 洩漏可變狀態。
  * 可沿 SpeechMessage.Payments.Tests/Providers/Sinopac/SinopacProviderTests.cs、
  * SpeechMessage.Payments/DependencyInjection/ServiceCollectionExtensions.cs 追查目前工作樹中的合作／使用位置。
  */
@@ -23,6 +24,7 @@ using SpeechMessage.Payments.Abstractions;
 using SpeechMessage.Payments.Configuration;
 using SpeechMessage.Payments.Diagnostics;
 using SpeechMessage.Payments.Models;
+using SpeechMessage.Localization;
 
 namespace SpeechMessage.Payments.Providers.Sinopac;
 
@@ -43,14 +45,29 @@ internal sealed class SinopacPaymentProvider : IPaymentProvider
 
     private readonly HttpClient _httpClient;
     private readonly SemaphoreSlim _sendLock = new(1, 1);
+    private static readonly IReadOnlyCollection<string> SupportedCurrencyCodes = Array.AsReadOnly(new[] { "TWD" });
 
+    /// <summary>
+    /// 建立永豐 provider；HttpClient 由 DI typed-client 註冊管理，本類別只借用該 client，
+    /// profile 憑證只在各方法呼叫期間使用。
+    /// </summary>
+    /// <param name="httpClient">由 DI 提供且由 Host 管理生命週期的 HTTP client。</param>
     public SinopacPaymentProvider(HttpClient httpClient)
     {
         _httpClient = httpClient;
     }
 
+    /// <summary>提供 Gateway 對應永豐 profile 的固定 provider 種類。</summary>
     public PaymentProviderKind ProviderKind => PaymentProviderKind.Sinopac;
 
+    /// <summary>永豐 QPay 建單僅接受 TWD；回應金額也以 TWD Money 正規化。</summary>
+    public IReadOnlyCollection<string> SupportedCurrencies => SupportedCurrencyCodes;
+
+    /// <summary>建立永豐付款；Money 金額由 mapper 依 TWD 金額契約轉成整數分，所有 HTTP I/O 都傳遞呼叫端取消權杖。</summary>
+    /// <param name="profile">resolver 選定的單商店設定，只供此操作使用，不會快取憑證。</param>
+    /// <param name="request">含 Money 總額及中立付款欄位的建立請求。</param>
+    /// <param name="cancellationToken">呼叫端取消權杖，傳遞至 SemaphoreSlim 等待與 HTTP 傳輸。</param>
+    /// <returns>永豐回應正規化後的建立結果；預期 provider 錯誤轉為 PaymentError。</returns>
     public async Task<PaymentCreateResult> CreatePaymentAsync(
         PaymentMerchantProfile profile,
         PaymentCreateRequest request,
@@ -102,6 +119,11 @@ internal sealed class SinopacPaymentProvider : IPaymentProvider
         }
     }
 
+    /// <summary>查詢永豐付款狀態，將最小單位金額解析成 TWD Money，並驗證回應簽章後才發布結果。</summary>
+    /// <param name="profile">resolver 選定的單商店設定，只供此操作使用。</param>
+    /// <param name="request">含 provider 交易參照的中立查詢請求。</param>
+    /// <param name="cancellationToken">呼叫端取消權杖，傳遞至 HTTP 傳輸。</param>
+    /// <returns>已正規化且簽章驗證完成的狀態結果。</returns>
     public async Task<PaymentStatusResult> QueryPaymentAsync(
         PaymentMerchantProfile profile,
         PaymentQueryRequest request,
@@ -129,8 +151,7 @@ internal sealed class SinopacPaymentProvider : IPaymentProvider
                 ProductOrderId = FirstNonEmpty(transaction?.OrderNo ?? string.Empty, request.ProductOrderId),
                 ProviderOrderRef = FirstNonEmpty(response.PayToken, request.ProviderOrderRef),
                 ProviderTransactionId = transaction?.TSNo ?? string.Empty,
-                Amount = ParseMinorAmount(transaction?.Amount),
-                Currency = "TWD",
+                PaidAmount = ParseMinorAmount(transaction?.Amount),
                 Error = SinopacStatusMapper.IsProviderRejected(response)
                     ? new PaymentError
                     {
@@ -177,6 +198,14 @@ internal sealed class SinopacPaymentProvider : IPaymentProvider
         }
     }
 
+    /// <summary>
+    /// 解析永豐 callback 的 ShopNo／PayToken 作為後續查詢線索；callback 欄位不直接代表已付款，
+    /// 也不觸發產品資料更新。
+    /// </summary>
+    /// <param name="profile">resolver 選定的商店設定，用來比對 callback ShopNo。</param>
+    /// <param name="request">宿主投影成 HTTP-neutral 型別的 callback 欄位。</param>
+    /// <param name="cancellationToken">呼叫端取消權杖；此純解析路徑不建立網路 I/O。</param>
+    /// <returns>中立 callback 結果與已清理的診斷欄位。</returns>
     public Task<PaymentCallbackResult> ParseCallbackAsync(
         PaymentMerchantProfile profile,
         PaymentCallbackRequest request,
@@ -308,6 +337,11 @@ internal sealed class SinopacPaymentProvider : IPaymentProvider
         };
     }
 
+    /// <summary>將永豐建單回應轉成中立結果，並檢查付款頁或 ATM 付款資訊等必要欄位。</summary>
+    /// <param name="request">實際送出的永豐建單 payload。</param>
+    /// <param name="response">經解密與簽章驗證的永豐建單回應。</param>
+    /// <param name="fallbackOrderId">用於缺少回應訂單號時保留的產品訂單識別。</param>
+    /// <returns>不含 provider SDK 物件的建立結果。</returns>
     internal static PaymentCreateResult ResolveCreateResult(
         SinopacOrderCreateRequest payload,
         SinopacOrderCreateResponse response,
@@ -443,10 +477,13 @@ internal sealed class SinopacPaymentProvider : IPaymentProvider
         return string.Equals(payType?.Trim(), "A", StringComparison.OrdinalIgnoreCase);
     }
 
-    private static decimal? ParseMinorAmount(string? amount)
+    /// <summary>以 invariant decimal 解析永豐最小單位，除以 100 後建立 TWD Money；無效輸入回傳 null。</summary>
+    /// <param name="amount">永豐以字串提供的整數分。</param>
+    /// <returns>主要單位的 TWD 金額，或無法解析時的 null。</returns>
+    internal static Money? ParseMinorAmount(string? amount)
     {
         return decimal.TryParse(amount, NumberStyles.Number, CultureInfo.InvariantCulture, out var parsed)
-            ? parsed / 100m
+            ? new Money(parsed / 100m, "TWD")
             : null;
     }
 

@@ -501,6 +501,37 @@ public sealed class ArchitectureRuleTests
         Assert.Contains(ArchitectureRules.Validate(Graph(valid, invalid)), x => x.Rule == "DualTargetPackage" && x.Target == "net462");
     }
 
+    /// <summary>
+    /// P4-02 允許付款核心向下使用 Localization 的純值 Money 契約；以合成圖直接斷言沒有架構違規，
+    /// 不載入產品或建立 I/O、網路及跨案例狀態。
+    /// </summary>
+    [Fact]
+    public void Payments_ToLocalization_IsAllowed()
+    {
+        var violations = ArchitectureRules.Validate(Graph(
+            Product("SpeechMessage.Payments", "net10.0", "net10.0", "SpeechMessage.Localization"),
+            Product("SpeechMessage.Localization", "net10.0", "net462;net10.0")));
+
+        Assert.Empty(violations);
+    }
+
+    /// <summary>
+    /// P4-02 不放寬相依方向；Localization 反向參考付款核心必須由同一層級規則拒絕。
+    /// 合成圖只在本案例生命週期內使用，決定性斷言確認違規節點與 LayerDirection 規則。
+    /// </summary>
+    [Fact]
+    public void Localization_ToPayments_IsRejected()
+    {
+        var violations = ArchitectureRules.Validate(Graph(
+            Product("SpeechMessage.Localization", "net10.0", "net462;net10.0", "SpeechMessage.Payments"),
+            Product("SpeechMessage.Payments", "net10.0", "net462;net10.0")));
+
+        Assert.Contains(violations, item =>
+            item.Rule == "LayerDirection" &&
+            item.Project == "SpeechMessage.Localization" &&
+            item.Dependency == "SpeechMessage.Payments");
+    }
+
     /// <summary>建立單一不可變的合成評估節點，陣列僅屬此案例，不持有 request 或 SDK 型別。</summary>
     private static ArchitectureProject Product(string name, string target, string targets, params string[] references) =>
         new(name, target, targets.Split(';'), references, Array.Empty<string>(), false)
