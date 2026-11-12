@@ -26,3 +26,13 @@
 - 自動化限制：含 VM 清理的本機執行遭政策拒絕，不重試；已提供無密碼、固定目標與事件範圍前置檢查的 PowerShell 腳本供使用者執行。部署未重跑，未還原 IIS 備份，CRM 443／既有站台／憑證未動。
 
 **審查結論：** Critical 0／High 0；P3-09 與階段 3 仍未完成，原因為 VM stdout／A.8 尚待清理與核驗、P3-06 三項 runtime Warning 未確認。此為階段自審結論，不是雙模型結果，亦不代表實機驗收通過。
+
+## 2026-11-12 08:32 結案自審更新
+
+**使用者核定略過外部雙模型審查，僅自審，非雙模型結果。** 本次依快速結案授權，僅更新驗收與交付紀錄，未修改產品程式、CRM 既有設定或部署。
+
+- VM 收尾結果 `Outcome: SUCCESS`：stdout logging 已關閉、stdout 檔剩餘 0、A.8 本批資料列剩餘 0；未遮罩 userId 計數 0。
+- P3-06 Warning：(1) queue 30 秒期限後資源基線由既有離線測試核實，非 VM 實機證據；(2) appointment 專用 church 欄位／查詢 scope 未證實；(3) annotation 程式有組織／教會／channel／event／contact 穩定 ID 及 Upsert，但現有測試未直接重送同一音訊事件比較兩次目標。後兩項列為已知待後續實機確認事項（Warning）。
+- 清理結果的 Reply EventId 30610 候選數為 0、狀態清單空；不宣稱模擬 replyToken 獲 LINE 接受。真人手機／有效 replyToken 補測省略。
+- 本次是紀錄變更；既有固定 guard §8.1 對 `307432f2` 已通過，依使用者核定不重跑 §8.1，改跑 §8.3 輕量檢查。
+- 程式自審 Critical 0／High 0；依使用者快速結案定義，P3-09 done、階段 3 完成。這不改變兩項後續 Warning 的狀態，也不開始階段 4。
