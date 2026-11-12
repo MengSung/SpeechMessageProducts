@@ -23,7 +23,9 @@
     <FrameworkReference Include="Microsoft.AspNetCore.App" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\SpeechMessage.Hosting\SpeechMessage.Hosting.csproj" />
     <ProjectReference Include="..\SpeechMessage.Payments\SpeechMessage.Payments.csproj" />
     <ProjectReference Include="..\SpeechMessage.Payments.Workflows\SpeechMessage.Payments.Workflows.csproj" />
+    <ProjectReference Include="..\ToolUtility\ToolUtility.csproj" />
   </ItemGroup>
 </Project>

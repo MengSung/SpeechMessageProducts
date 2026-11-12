@@ -3,11 +3,13 @@
  *
  * 目的與定位：P2-07 的雙目標資料庫 CAS 適配器；只借用固定已授權組織的 SDK，
  * 不建立連線、不以程序鎖代替 D365 RowVersion，實機驗證集中於 P2-12。
- * 主要功能與流程：最多五十筆到期／卡住候選，完整驗證唯一正式 ID 才發布唯讀快照；
- * 以交易內 Update IfRowVersionMatches＋Retrieve 原子取得認領新版本；完成亦守版本柵欄。
+ * 主要功能與流程：最多五十筆到期／卡住候選，選用類型 allowlist 直接套用於 D365
+ * 查詢，完整驗證唯一正式 ID 才發布唯讀快照；以交易內 Update IfRowVersionMatches＋
+ * Retrieve 原子取得認領新版本；完成亦守版本柵欄。
  * 使用邊界與維護：每個 store 只限同一已授權組織，教會值來自 SDK，不把格式當授權。
  * SDK 由呼叫端擁有 transport timeout，先排空同步 I/O 再 Dispose；本物件 Dispose
  * 只清借用參照並拒絕新操作。所有 Entity／交易／結果為操作局部，不保留帳密或跨批資料。
+ * 未傳 allowlist 時保留舊查詢樹；有傳時只複製最多三個已核定類型，不保留 caller 集合。
  * 失敗路徑：僅明確版本衝突回落敗；其他例外原樣交 Host 通知，不自行重試不確定結果。
  * 日期按 D365 UTC 欄位語意讀取，不套用本機時區；認領先向下量化為整秒再寫入及精確讀回，
  * 對齊 D365 9.1 儲存精度（不到一秒的量化差）；回寫只容許固定有界錯誤分類，不存例外本文。
@@ -34,13 +36,26 @@ public sealed class D365OutboundTaskStore : IOutboundTaskStore, IDisposable
     };
     /// <summary>外借 SDK 的參照；入場時取局部快照，Dispose 不會提前釋放正在使用的外借資源。</summary>
     private IOrganizationService? service;
+    /// <summary>可選且建構時複製的 D365 類型代碼；null 明確代表保留舊有不限類型查詢。</summary>
+    private readonly int[]? allowedTypeValues;
 
-    /// <summary>借用已驗證組織的 SDK，不接管連線與 transport timeout，也不接受每次請求切換組織。</summary>
+    /// <summary>
+    /// 借用已驗證組織的 SDK，不接管連線與 transport timeout，也不接受每次請求切換組織。
+    /// 選用 allowlist 會在建構時複製、限制為一至三種核定類型，並直接加到候選 D365
+    /// 查詢；null 保留舊有查詢行為。caller 集合不會被 store 保存或跨操作共用。
+    /// </summary>
     /// <param name="service">呼叫端須先授權並在所有同步操作返回後才 Dispose 的 SDK。</param>
-    public D365OutboundTaskStore(IOrganizationService service) =>
+    /// <param name="allowedTypes">選填的工作類型白名單；null 表示不限制類型以維持相容，明確清單不可為空、重複或含未知值。</param>
+    public D365OutboundTaskStore(IOrganizationService service, IEnumerable<OutboundTaskType>? allowedTypes = null)
+    {
         this.service = service ?? throw new ArgumentNullException(nameof(service));
+        allowedTypeValues = SnapshotAllowedTypeValues(allowedTypes);
+    }
 
-    /// <summary>精確查詢到期 Pending 或超過十分鐘的 Processing，全部驗證後才發布至多五十筆不可變值。</summary>
+    /// <summary>
+    /// 精確查詢到期 Pending 或超過十分鐘的 Processing，並在 D365 查詢套用建構時指定的
+    /// 類型白名單；無白名單時不改原查詢樹。全部驗證後才發布至多五十筆不可變值。
+    /// </summary>
     /// <param name="utcNow">明確 UTC 時點；等於十分鐘尚不視為超過。</param>
     /// <param name="maximum">一至五十筆的資料庫 TopCount。</param>
     /// <param name="cancellationToken">入場及唯讀結果發布前檢查；不提前釋放未返回的 SDK。</param>
@@ -68,6 +83,16 @@ public sealed class D365OutboundTaskStore : IOutboundTaskStore, IDisposable
         query.Criteria.AddFilter(pending);
         query.Criteria.AddFilter(processing);
         query.AddOrder("new_outboundtaskid", OrderType.Ascending);
+        if (allowedTypeValues is not null)
+        {
+            var eligibleStatuses = query.Criteria;
+            var typeValues = new object[allowedTypeValues.Length];
+            for (var index = 0; index < allowedTypeValues.Length; index++)
+                typeValues[index] = allowedTypeValues[index];
+            query.Criteria = new FilterExpression(LogicalOperator.And);
+            query.Criteria.AddCondition("new_type", ConditionOperator.In, typeValues);
+            query.Criteria.AddFilter(eligibleStatuses);
+        }
         var rows = client.RetrieveMultiple(query);
         cancellationToken.ThrowIfCancellationRequested();
         if (rows is null || rows.Entities.Count > maximum || rows.MoreRecords)
@@ -225,6 +250,33 @@ public sealed class D365OutboundTaskStore : IOutboundTaskStore, IDisposable
     private static bool IsEligible(OutboundTaskRecord record, DateTime utcNow) =>
         record.Status == OutboundTaskStatus.Pending && (!record.NextAttemptOn.HasValue || record.NextAttemptOn <= utcNow)
         || record.Status == OutboundTaskStatus.Processing && record.ClaimedOn < utcNow.AddMinutes(-10);
+
+    /// <summary>
+    /// 將 caller allowlist 複製為有界的 D365 option 值；拒絕空集合、重複值及非核定
+    /// 類型，避免可變輸入在查詢期間改變或由無界列舉造成資源消耗。
+    /// </summary>
+    /// <param name="allowedTypes">建構時提供的可選型別列舉。</param>
+    /// <returns>null 表示相容的全類型查詢；否則為一至三個穩定整數選項。</returns>
+    private static int[]? SnapshotAllowedTypeValues(IEnumerable<OutboundTaskType>? allowedTypes)
+    {
+        if (allowedTypes is null) return null;
+
+        var values = new List<int>(3);
+        var seen = new HashSet<OutboundTaskType>();
+        foreach (var type in allowedTypes)
+        {
+            if (values.Count == 3)
+                throw new ArgumentException("Outbound type allowlist exceeds the supported type count.", nameof(allowedTypes));
+            if (type is not (OutboundTaskType.RichMenuGenerate or OutboundTaskType.QrImageGenerate or OutboundTaskType.AllotQuery))
+                throw new ArgumentOutOfRangeException(nameof(allowedTypes), "Outbound type allowlist contains an unsupported type.");
+            if (!seen.Add(type))
+                throw new ArgumentException("Outbound type allowlist contains a duplicate type.", nameof(allowedTypes));
+            values.Add((int)type);
+        }
+        if (values.Count == 0)
+            throw new ArgumentException("Outbound type allowlist cannot be empty.", nameof(allowedTypes));
+        return values.ToArray();
+    }
 
     /// <summary>只接受 SDK 正式身分與完整必要欄位；不讓缺值默認成有效 Pending／零次。</summary>
     /// <param name="row">操作局部的 SDK 記錄，不保留參照。</param>

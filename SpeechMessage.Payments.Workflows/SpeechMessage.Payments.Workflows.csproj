@@ -1,19 +1,27 @@
 <!--
 檔案整體說明
 
-目的與定位：定義產品中性訂單草稿及付款後流程的MSBuild專案邊界，集中target、套件及專案參考，讓產品／測試依正確方向編譯。
+目的與定位：定義產品中性付款草稿、付款後流程及對外撥款處理器的MSBuild專案邊界，集中target、套件及專案參考，讓產品／測試依正確方向編譯。
 
 主要功能與流程：
-宣告的產品／測試target為net10.0；條件評估後的實際輸出以MSBuild為準。
-專案參考包含SpeechMessage.Payments.csproj；不能新增反向相依或將主機狀態引入純核心。
+宣告的產品target為net10.0；條件評估後的實際輸出以MSBuild為準。
+專案參考包含Payments、Hosting、GoodShepherd.Core及Localization，使付款編排可消費Money、
+單筆待辦契約與產品核心的純費用規則；Dataverse SDK只供同步讀寫介面型別，不在此建立連線。
+相依方向必須維持Workflows高於這些共用層與產品核心，不可引入ASP.NET Core主機。
 
-使用邊界與維護：修改前先核對引用此檔的專案、頁面、腳本或CI步驟，保留既有參數、輸出及失敗結束碼。
-涉及寫入、外部命令或暫存資源時，依本檔實際實作的owner及清理路徑處理；說明不能取代執行前的範圍驗證。
+使用邊界與維護：修改前核對架構測試、引用專案與套件閉包。SDK服務由單筆handler scope借用，
+工作結束後由scope釋放；本專案不保存跨教會狀態或背景資源。離線測試驗證流程與錯誤分類，
+不代表D365或永豐實機結果。
 -->
 <Project Sdk="Microsoft.NET.Sdk">
 
   <ItemGroup>
     <ProjectReference Include="..\SpeechMessage.Payments\SpeechMessage.Payments.csproj" />
+    <ProjectReference Include="..\SpeechMessage.Hosting\SpeechMessage.Hosting.csproj" />
+    <ProjectReference Include="..\SpeechMessageProducts.GoodShepherd.Core\SpeechMessageProducts.GoodShepherd.Core.csproj" />
+    <ProjectReference Include="..\SpeechMessage.Localization\SpeechMessage.Localization.csproj" />
+    <PackageReference Include="Microsoft.PowerPlatform.Dataverse.Client" />
+    <PackageReference Include="System.Security.Cryptography.Pkcs" />
   </ItemGroup>
 
   <PropertyGroup>

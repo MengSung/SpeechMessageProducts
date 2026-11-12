@@ -1,17 +1,17 @@
 /*
  * 檔案整體說明
  *
- * 目的與定位：永豐 QPay provider 實作，宣告支援 TWD，並集中處理 Nonce、AES、簽章、建單及查詢封包。
+ * 目的與定位：永豐 QPay provider 實作，宣告支援 TWD，並集中處理 Nonce、AES、簽章、建單、付款查詢及撥款查詢封包。
  *
  * 主要功能與流程：
  * 本檔宣告 SinopacPaymentProvider、SinopacHttpStatusException、SinopacSignatureException。
  * 主要操作入口包含 CreatePaymentAsync、QueryPaymentAsync、ParseCallbackAsync、ResolveEndpoint、BuildCreateProviderData、
- * ResolveCreateResult、CreateMissingCreateFieldError、BuildQueryProviderData；其餘入口見下方成員契約。
+ * QueryAllotAsync、ResolveCreateResult、CreateMissingCreateFieldError、BuildQueryProviderData；其餘入口見下方成員契約。
  *
  * 使用邊界與維護：
- * 本 provider 只持有 DI 提供且由 Host 管理生命週期的 HttpClient；每次請求／回應由 using 關閉，序列化金額以 Money 為核心來源。
- * 請求 profile 是單次呼叫輸入，不快取憑證；SemaphoreSlim 僅序列化此 provider instance 的 X-KeyID 標頭更新，並在 finally 釋放等待權。
- * provider 與 typed HttpClient 由 DI 容器管理其主機存續期；此類別不對外暴露標頭或 semaphore，避免跨請求／profile 洩漏可變狀態。
+ * 本 provider 只借用 DI 提供且由 Host 管理生命週期的 HttpClient；每次請求／回應由 using 關閉，序列化金額以 Money 為核心來源。
+ * 請求 profile 是單次呼叫輸入，不快取憑證；X-KeyID 僅寫入該次 HttpRequestMessage，不使用共享 DefaultRequestHeaders 或跨呼叫鎖。
+ * typed HttpClient 的共用 handler 關閉 cookie 與自動轉址，避免商店 session 被保留或敏感標頭跟隨轉址；DI 是 handler 的唯一 owner。
  * 可沿 SpeechMessage.Payments.Tests/Providers/Sinopac/SinopacProviderTests.cs、
  * SpeechMessage.Payments/DependencyInjection/ServiceCollectionExtensions.cs 追查目前工作樹中的合作／使用位置。
  */
@@ -33,7 +33,7 @@ namespace SpeechMessage.Payments.Providers.Sinopac;
 /// 這裡集中處理 Nonce、AES 加解密、簽章、建單與查詢封包；
 /// 宿主產品端只拿 normalized result，不再自行組永豐 protocol。
 /// </summary>
-internal sealed class SinopacPaymentProvider : IPaymentProvider
+internal sealed class SinopacPaymentProvider : IPaymentProvider, IPaymentAllotProvider
 {
     private const string CurrentVersion = "1.0.0";
 
@@ -44,7 +44,6 @@ internal sealed class SinopacPaymentProvider : IPaymentProvider
     };
 
     private readonly HttpClient _httpClient;
-    private readonly SemaphoreSlim _sendLock = new(1, 1);
     private static readonly IReadOnlyCollection<string> SupportedCurrencyCodes = Array.AsReadOnly(new[] { "TWD" });
 
     /// <summary>
@@ -66,7 +65,7 @@ internal sealed class SinopacPaymentProvider : IPaymentProvider
     /// <summary>建立永豐付款；Money 金額由 mapper 依 TWD 金額契約轉成整數分，所有 HTTP I/O 都傳遞呼叫端取消權杖。</summary>
     /// <param name="profile">resolver 選定的單商店設定，只供此操作使用，不會快取憑證。</param>
     /// <param name="request">含 Money 總額及中立付款欄位的建立請求。</param>
-    /// <param name="cancellationToken">呼叫端取消權杖，傳遞至 SemaphoreSlim 等待與 HTTP 傳輸。</param>
+    /// <param name="cancellationToken">呼叫端取消權杖，傳遞至各次 HTTP 傳輸。</param>
     /// <returns>永豐回應正規化後的建立結果；預期 provider 錯誤轉為 PaymentError。</returns>
     public async Task<PaymentCreateResult> CreatePaymentAsync(
         PaymentMerchantProfile profile,
@@ -199,6 +198,96 @@ internal sealed class SinopacPaymentProvider : IPaymentProvider
     }
 
     /// <summary>
+    /// 查詢永豐撥款批次；使用同一 Nonce→AES→Sign 封包流程，只有 response 驗簽完成且狀態成功才建立批次結果。
+    /// provider 錯誤轉為固定分類與安全訊息，避免把回應本文、憑證或 transport 例外文字帶入結果。
+    /// </summary>
+    /// <param name="profile">由 gateway resolver 選定的單一商店 profile，僅供本次操作使用。</param>
+    /// <param name="request">含查詢日期及 C/M/A 付款類型的中立請求。</param>
+    /// <param name="cancellationToken">呼叫端取消權杖，傳遞至 Nonce 與 Order HTTP 傳輸。</param>
+    /// <returns>已完成驗簽的撥款批次，或標準化的錯誤結果；簽章錯誤時批次為空。</returns>
+    public async Task<PaymentAllotQueryResult> QueryAllotAsync(
+        PaymentMerchantProfile profile,
+        PaymentAllotQueryRequest request,
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            var payload = SinopacRequestMapper.MapAllotQuery(profile, request);
+            var response = await SendOrderAsync<SinopacAllotQueryRequest, SinopacAllotQueryResponse>(
+                profile,
+                payload,
+                SinopacApiService.AllotQuery,
+                cancellationToken);
+
+            if (!string.Equals(response.Status, "S", StringComparison.OrdinalIgnoreCase))
+            {
+                return new PaymentAllotQueryResult
+                {
+                    ProviderStatus = response.Status,
+                    ProviderDescription = response.Description,
+                    Error = new PaymentError
+                    {
+                        Kind = PaymentErrorKind.ProviderRejected,
+                        Code = "ProviderRejected",
+                        Message = "Sinopac rejected the allot query."
+                    }
+                };
+            }
+
+            return new PaymentAllotQueryResult
+            {
+                ProviderStatus = response.Status,
+                ProviderDescription = response.Description,
+                Batches = MapAllotBatches(response.Allot)
+            };
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            throw;
+        }
+        catch (PaymentConfigurationException)
+        {
+            return AllotQueryError(PaymentErrorKind.ConfigurationInvalid, "ConfigurationInvalid");
+        }
+        catch (ArgumentException)
+        {
+            return AllotQueryError(PaymentErrorKind.RequestInvalid, "RequestInvalid");
+        }
+        catch (SinopacHttpStatusException)
+        {
+            return AllotQueryError(PaymentErrorKind.ProviderUnavailable, "ProviderUnavailable");
+        }
+        catch (SinopacSignatureException)
+        {
+            return AllotQueryError(PaymentErrorKind.SignatureInvalid, "SignatureInvalid");
+        }
+        catch (JsonException)
+        {
+            return AllotQueryError(PaymentErrorKind.SerializationFailure, "SerializationFailure");
+        }
+        catch (CryptographicException)
+        {
+            return AllotQueryError(PaymentErrorKind.SerializationFailure, "SerializationFailure");
+        }
+        catch (FormatException)
+        {
+            return AllotQueryError(PaymentErrorKind.SerializationFailure, "SerializationFailure");
+        }
+        catch (OverflowException)
+        {
+            return AllotQueryError(PaymentErrorKind.SerializationFailure, "SerializationFailure");
+        }
+        catch (OperationCanceledException)
+        {
+            return AllotQueryError(PaymentErrorKind.NetworkFailure, "NetworkFailure");
+        }
+        catch (Exception ex) when (IsNetworkTransportException(ex))
+        {
+            return AllotQueryError(PaymentErrorKind.NetworkFailure, "NetworkFailure");
+        }
+    }
+
+    /// <summary>
     /// 解析永豐 callback 的 ShopNo／PayToken 作為後續查詢線索；callback 欄位不直接代表已付款，
     /// 也不觸發產品資料更新。
     /// </summary>
@@ -241,7 +330,8 @@ internal sealed class SinopacPaymentProvider : IPaymentProvider
         {
             Version = CurrentVersion,
             ShopNo = payload.ShopNo,
-            APIService = apiService.ToString(),
+            // 永豐協定要求數字服務碼；Enum.ToString() 會輸出名稱而非固定代碼。
+            APIService = ((int)apiService).ToString(CultureInfo.InvariantCulture),
             Nonce = nonceResponse.Nonce,
             Message = encryptedMessage,
             // 簽章由 provider core 產生，產品層不需要也不應知道永豐簽章欄位規則。
@@ -273,33 +363,34 @@ internal sealed class SinopacPaymentProvider : IPaymentProvider
         object payload,
         CancellationToken cancellationToken)
     {
-        using var requestContent = new StringContent(
-            JsonConvert.SerializeObject(payload, SerializerSettings),
-            Encoding.UTF8,
-            "application/json");
-
-        await _sendLock.WaitAsync(cancellationToken);
-        try
+        using var request = new HttpRequestMessage(
+            HttpMethod.Post,
+            ResolveEndpoint(profile, route))
         {
-            // HttpClient header 是 instance 狀態；此 provider 用 semaphore 避免並行呼叫時 X-KeyID 被交錯覆蓋。
-            _httpClient.DefaultRequestHeaders.Remove("X-KeyID");
-            _httpClient.DefaultRequestHeaders.TryAddWithoutValidation("X-KeyID", SinopacRequestMapper.GetXKeyId(profile));
+            Content = new StringContent(
+                JsonConvert.SerializeObject(payload, SerializerSettings),
+                Encoding.UTF8,
+                "application/json")
+        };
 
-            using var response = await _httpClient.PostAsync(ResolveEndpoint(profile, route), requestContent, cancellationToken);
-            var content = await response.Content.ReadAsStringAsync(cancellationToken);
-
-            if (!response.IsSuccessStatusCode)
-            {
-                throw new SinopacHttpStatusException(route, response.StatusCode, content);
-            }
-
-            return JsonConvert.DeserializeObject<TResponse>(content)
-                ?? throw new JsonException("Sinopac returned an empty response.");
-        }
-        finally
+        // Profile-specific 商店識別只隨目前 request 傳送，不能留在可能重用的 HttpClient instance 上。
+        if (!request.Headers.TryAddWithoutValidation(
+                "X-KeyID",
+                SinopacRequestMapper.GetXKeyId(profile)))
         {
-            _sendLock.Release();
+            throw new PaymentConfigurationException("Sinopac X-KeyID could not be added to the request.");
         }
+
+        using var response = await _httpClient.SendAsync(request, cancellationToken);
+        var content = await response.Content.ReadAsStringAsync(cancellationToken);
+
+        if (!response.IsSuccessStatusCode)
+        {
+            throw new SinopacHttpStatusException(route, response.StatusCode, content);
+        }
+
+        return JsonConvert.DeserializeObject<TResponse>(content)
+            ?? throw new JsonException("Sinopac returned an empty response.");
     }
 
     private static Uri ResolveEndpoint(PaymentMerchantProfile profile, string route)
@@ -454,6 +545,79 @@ internal sealed class SinopacPaymentProvider : IPaymentProvider
             ["transaction_status"] = transaction?.Status ?? string.Empty,
             ["transaction_description"] = transaction?.Description ?? string.Empty,
             ["cc_token"] = transaction?.CCToken ?? string.Empty
+        };
+    }
+
+    /// <summary>
+    /// 將已驗簽且成功的 provider 批次投影成唯讀中立集合；遇到不合法日期或非整數分值時整體拒絕發布。
+    /// </summary>
+    /// <param name="allotments">已驗簽 response 中的批次清單。</param>
+    /// <returns>每筆批次及其 TWD 明細的唯讀副本。</returns>
+    private static IReadOnlyList<PaymentAllotBatch> MapAllotBatches(
+        IReadOnlyCollection<SinopacAllotMain>? allotments)
+    {
+        var batches = (allotments ?? Array.Empty<SinopacAllotMain>())
+            .Select(allotment => new PaymentAllotBatch
+            {
+                AllotNo = allotment.AllotNo,
+                AllotDate = ParseAllotDate(allotment.AllotDate),
+                Items = Array.AsReadOnly((allotment.List ?? new List<SinopacAllotDetail>())
+                    .Select(detail => new PaymentAllotItem
+                    {
+                        OrderNo = detail.OrderNO,
+                        Amount = ConvertMinorUnit(detail.Amount),
+                        Fee = ConvertMinorUnit(detail.Fee)
+                    })
+                    .ToArray())
+            })
+            .ToArray();
+
+        return Array.AsReadOnly(batches);
+    }
+
+    /// <summary>將永豐 yyyyMMdd 整數轉成純日曆日期，格式或日期無效時拒絕該 response。</summary>
+    /// <param name="providerDate">永豐批次日期整數。</param>
+    /// <returns>沒有時區或時間部分的撥款日期。</returns>
+    private static DateOnly ParseAllotDate(int providerDate)
+    {
+        var value = providerDate.ToString(CultureInfo.InvariantCulture);
+        return DateOnly.TryParseExact(
+            value,
+            "yyyyMMdd",
+            CultureInfo.InvariantCulture,
+            DateTimeStyles.None,
+            out var date)
+            ? date
+            : throw new JsonException("Sinopac allot date is invalid.");
+    }
+
+    /// <summary>驗證 provider 回報整數分值並以 decimal / 100 建立 TWD Money，不經浮點或格式化字串。</summary>
+    /// <param name="minorUnits">永豐回報的整數最小貨幣單位。</param>
+    /// <returns>主要貨幣單位的 TWD Money。</returns>
+    private static Money ConvertMinorUnit(decimal minorUnits)
+    {
+        if (minorUnits != decimal.Truncate(minorUnits))
+        {
+            throw new JsonException("Sinopac allot amount is not an integer minor unit.");
+        }
+
+        return new Money(minorUnits / 100m, "TWD");
+    }
+
+    /// <summary>建立只含穩定分類碼與固定訊息的撥款錯誤，不回傳例外文字或 HTTP response 本文。</summary>
+    /// <param name="kind">標準付款錯誤分類。</param>
+    /// <param name="code">不包含設定值或 provider payload 的穩定分類碼。</param>
+    /// <returns>不含撥款批次的失敗結果。</returns>
+    private static PaymentAllotQueryResult AllotQueryError(PaymentErrorKind kind, string code)
+    {
+        return new PaymentAllotQueryResult
+        {
+            Error = new PaymentError
+            {
+                Kind = kind,
+                Code = code,
+                Message = code
+            }
         };
     }
 

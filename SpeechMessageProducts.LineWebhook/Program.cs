@@ -1,13 +1,15 @@
 /*
 檔案整體說明
-目的與定位：階段三 LINE Webhook 的唯一組合根，只負責主機組裝與執行，不承接產品業務規則。
-主要功能與流程：由受信任 builder 組裝 Hosting、Localization、固定 GoodShepherd ToolUtility 及 Webhook 轉接。Console provider 僅允許固定 Reply sender category 的 Information 回覆 API 紀錄；其他一般資訊不輸出，Error/Critical 維持由安全診斷 provider 處理。三個正式依賴不足時必須啟動拒絕，不使用假驗簽或記憶體去重掩蓋缺項。
-使用邊界與維護：builder 與組態不是路由權限，成功建立後由 WebApplication 擁有；Main 以 await using 關閉主機、排空服務並釋放容器。建立失敗時組態仍由呼叫端釋放；Host 啟動及執行例外由 Hosting 安全 logger 接入，建立前的組態驗證失敗原樣交回呼叫端，不宣稱尚未建立的診斷 owner 已記錄。不啟動階段四 Payments。
+目的與定位：LINE Webhook 的唯一組合根，只負責主機組裝與執行，不承接付款或產品資料規則。
+主要功能與流程：由受信任 builder 組裝 Hosting、Localization、固定 GoodShepherd ToolUtility、Webhook 與共用付款 gateway。付款對外待辦僅在 Payment:Outbound:Enabled 明確為 true 時註冊；缺少 Payment 區段仍維持原有主機組合。Console provider 僅允許固定 Reply sender category 的 Information 回覆 API 紀錄，Error/Critical 由安全診斷 provider 處理。
+使用邊界與維護：builder 與組態不是路由權限，成功建立後由 WebApplication 擁有；Main 以 await using 關閉主機、排空服務並釋放容器。每筆 outbound handler 與每次 store 操作都建立獨立 scope，避免跨教會重用 scoped SDK。建立失敗時組態仍由呼叫端釋放；Host 例外由 Hosting 安全 logger 接入，不宣稱尚未建立的診斷 owner 已記錄。
 */
 using ChurchReport.Logging;
 using LineMessagingProcessor.AspNetCore.Webhooks;
 using LineMessagingProcessor.AspNetCore.Webhooks.Dispatch;
 using SpeechMessage.Hosting;
+using SpeechMessage.Payments.AspNetCore.Outbound;
+using SpeechMessage.Payments.DependencyInjection;
 using ToolUtilityNameSpace.DependencyInjection;
 using ToolUtilityNameSpace.Diagnostics;
 using Microsoft.Extensions.Logging.Console;
@@ -54,6 +56,8 @@ public static class Program
         builder.Services.AddHostedService<LineWebhookDiagnosticsRegistration>();
         builder.Services.AddSpeechMessageLocalization(builder.Configuration, builder.Environment.IsProduction());
         builder.Services.AddToolUtility(builder.Configuration, "GoodShepherd");
+        builder.Services.AddSpeechMessagePayments(builder.Configuration.GetSection("Payment"));
+        builder.Services.AddSpeechMessagePaymentOutbound(builder.Configuration);
         builder.Services.AddLineWebhook(builder.Configuration);
         var app = builder.Build();
         app.MapLineWebhook();

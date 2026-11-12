@@ -1,13 +1,13 @@
 /*
  * 檔案整體說明
  *
- * 目的與定位：provider-neutral gateway router。負責 profile/provider 選擇、建立付款的 Money 幣別能力驗證及錯誤正規化，
+ * 目的與定位：provider-neutral gateway router。負責 profile/provider 選擇、建立付款的 Money 幣別能力驗證、撥款查詢路由及錯誤正規化，
  * 不處理宿主產品 CRM、LINE 通知、畫面導向或 provider 封包細節。
  *
  * 主要功能與流程：
  * 本檔宣告 PaymentGateway、ProviderSelection。
- * 主要操作入口包含 CreatePaymentAsync、QueryPaymentAsync、ParseCallbackAsync、ResolveProvider、ProviderSelection、Success、
- * Failed。
+ * 主要操作入口包含 CreatePaymentAsync、QueryPaymentAsync、ParseCallbackAsync、QueryAllotAsync、ResolveProvider、
+ * ProviderSelection、CreateAllotFailure。
  *
  * 使用邊界與維護：
  * Gateway 只持有 resolver 與 provider routing 表，不保存 request、profile、憑證或使用者狀態；provider 實例生命週期由 DI Host 擁有。
@@ -27,22 +27,27 @@ namespace SpeechMessage.Payments.Gateway;
 /// 這裡只負責 profile/provider 選擇與錯誤正規化，不處理任何宿主產品 CRM、
 /// LINE 通知、畫面導向或 provider 封包細節。
 /// </summary>
-internal sealed class PaymentGateway : IPaymentGateway
+internal sealed class PaymentGateway : IPaymentGateway, IPaymentAllotGateway
 {
     private readonly IPaymentProfileResolver _profileResolver;
     private readonly IReadOnlyDictionary<PaymentProviderKind, IPaymentProvider> _providers;
+    private readonly IReadOnlyDictionary<PaymentProviderKind, IPaymentAllotProvider> _allotProviders;
 
     /// <summary>
     /// 建立只負責路由的 Gateway。Provider 實例由 DI 建立並由 DI 容器管理；Gateway 不自行 Dispose 或延長外部資源所有權。
     /// </summary>
     /// <param name="profileResolver">依產品指定名稱解析商店 profile 的 resolver。</param>
-    /// <param name="providers">按固定 provider 種類索引的實作集合；本物件只保存路由參照。</param>
+    /// <param name="providers">按固定 provider 種類索引的實作集合；撥款能力由相同 provider instance 提供。</param>
     public PaymentGateway(IPaymentProfileResolver profileResolver, IEnumerable<IPaymentProvider> providers)
     {
         _profileResolver = profileResolver;
-        _providers = providers
+        var providerArray = providers.ToArray();
+        _providers = providerArray
             .GroupBy(provider => provider.ProviderKind)
             .ToDictionary(group => group.Key, group => group.First());
+        _allotProviders = _providers.Values
+            .OfType<IPaymentAllotProvider>()
+            .ToDictionary(provider => provider.ProviderKind);
     }
 
     /// <summary>
@@ -124,6 +129,41 @@ internal sealed class PaymentGateway : IPaymentGateway
             : selected.Provider!.ParseCallbackAsync(selected.Profile!, request, cancellationToken);
     }
 
+    /// <summary>
+    /// 依 request.ProfileName 解析 server-side profile，並委派給同一 provider instance 提供的撥款查詢能力。
+    /// 失敗只回標準分類，不將 profile resolver 例外本文或呼叫端資料寫入錯誤訊息。
+    /// </summary>
+    /// <param name="request">中立撥款查詢日期與付款類型；profile 名稱只用於設定查找。</param>
+    /// <param name="cancellationToken">呼叫端取消權杖，原樣傳遞至 provider。</param>
+    /// <returns>provider-neutral 撥款結果；不支援時回傳空批次與穩定錯誤分類。</returns>
+    public Task<PaymentAllotQueryResult> QueryAllotAsync(
+        PaymentAllotQueryRequest request,
+        CancellationToken cancellationToken = default)
+    {
+        PaymentMerchantProfile profile;
+        try
+        {
+            profile = _profileResolver.Resolve(request.ProfileName);
+        }
+        catch (PaymentConfigurationException)
+        {
+            return Task.FromResult(CreateAllotFailure(
+                PaymentErrorKind.ConfigurationInvalid,
+                "ConfigurationInvalid",
+                "Payment profile configuration is invalid."));
+        }
+
+        if (!_allotProviders.TryGetValue(profile.Provider, out var provider))
+        {
+            return Task.FromResult(CreateAllotFailure(
+                PaymentErrorKind.UnsupportedOperation,
+                "UnsupportedOperation",
+                "The configured payment provider does not support allot queries."));
+        }
+
+        return provider.QueryAllotAsync(profile, request, cancellationToken);
+    }
+
     private ProviderSelection ResolveProvider(string? profileName, PaymentProviderKind? providerHint)
     {
         PaymentMerchantProfile profile;
@@ -169,6 +209,27 @@ internal sealed class PaymentGateway : IPaymentGateway
             Error = new PaymentError
             {
                 Kind = PaymentErrorKind.RequestInvalid,
+                Message = message
+            }
+        };
+    }
+
+    /// <summary>建立空批次撥款失敗結果，確保 gateway 路由錯誤不洩漏 resolver 或設定細節。</summary>
+    /// <param name="kind">標準錯誤分類。</param>
+    /// <param name="code">穩定且不含呼叫端資料的錯誤碼。</param>
+    /// <param name="message">固定安全說明。</param>
+    /// <returns>不含撥款明細的失敗結果。</returns>
+    private static PaymentAllotQueryResult CreateAllotFailure(
+        PaymentErrorKind kind,
+        string code,
+        string message)
+    {
+        return new PaymentAllotQueryResult
+        {
+            Error = new PaymentError
+            {
+                Kind = kind,
+                Code = code,
                 Message = message
             }
         };

@@ -1,0 +1,6 @@
+{"file":".trellis/spec/backend/duplicate-row-publication-contract.md","reason":"Review church boundaries, stable fee identity, duplicate/retry behavior, caller mutation isolation, and resource drain."}
+{"file":".trellis/spec/backend/money-contract.md","reason":"Review exact amount conversion, currency identity, and no implicit exchange or rounding."}
+{"file":".trellis/spec/backend/church-clock-contract.md","reason":"Review church-local query dates, UTC-midnight behavior, and date-only writes."}
+{"file":".trellis/spec/backend/error-handling.md","reason":"Review retryable versus terminal errors, safe diagnostics, cancellation, and shared notifier ownership."}
+{"file":".trellis/spec/backend/file-documentation-contract.md","reason":"Review Traditional Chinese file-level purpose, API documentation, failure contracts, and test owner cleanup."}
+{"file":".trellis/spec/backend/text-encoding-contract.md","reason":"Review UTF-8/BOM/CRLF/final-CRLF compliance of all changed files."}

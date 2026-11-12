@@ -1,12 +1,12 @@
 /*
  * 檔案整體說明
  *
- * 目的與定位：將 Money-first 通用請求轉成永豐 QPay 建單／查詢 payload。QPay 欄位與最小單位換算僅留在 provider core，
+ * 目的與定位：將中立付款及撥款請求轉成永豐 QPay 建單／付款查詢／撥款查詢 payload。QPay 欄位與最小單位換算僅留在 provider core，
  * 宿主產品不直接建立 CreOrderReq。
  *
  * 主要功能與流程：
  * 本檔宣告 SinopacRequestMapper。
- * 主要操作入口包含 MapCreateRequest、MapOrderPayQuery、GetRequiredCredential、GetXKeyId、TryGetCredential、ToMinorUnit、
+ * 主要操作入口包含 MapCreateRequest、MapOrderPayQuery、MapAllotQuery、GetRequiredCredential、GetXKeyId、TryGetCredential、ToMinorUnit、
  * NormalizeCurrency、ResolvePayType；其餘入口見下方成員契約。
  *
  * 使用邊界與維護：
@@ -98,6 +98,37 @@ internal static class SinopacRequestMapper
         {
             ShopNo = GetRequiredCredential(profile, "ShopNo"),
             PayToken = request.ProviderOrderRef
+        };
+    }
+
+    /// <summary>
+    /// 將中立撥款查詢映射成永豐舊協定欄位；日期固定為 invariant yyyyMMdd，付款類型只接受 C、M、A。
+    /// 商店編號僅從 resolver 選出的 profile 讀取，不接受 request 覆寫。
+    /// </summary>
+    /// <param name="profile">本次操作選定的永豐 profile，credential 只在 mapping 時讀取。</param>
+    /// <param name="request">包含日期區間及受限付款類型的中立撥款請求。</param>
+    /// <returns>具備 ShopNo、AllotDateS、AllotDateE、PayType 的永豐內部 request DTO。</returns>
+    /// <exception cref="ArgumentException">日期區間倒置或付款類型不在核准集合。</exception>
+    public static SinopacAllotQueryRequest MapAllotQuery(
+        PaymentMerchantProfile profile,
+        PaymentAllotQueryRequest request)
+    {
+        if (request.FromDate > request.ToDate)
+        {
+            throw new ArgumentException("Allot query date range is invalid.", nameof(request));
+        }
+
+        if (request.PaymentType is not ("C" or "M" or "A"))
+        {
+            throw new ArgumentException("Allot query payment type is invalid.", nameof(request));
+        }
+
+        return new SinopacAllotQueryRequest
+        {
+            ShopNo = GetRequiredCredential(profile, "ShopNo"),
+            AllotDateS = request.FromDate.ToString("yyyyMMdd", CultureInfo.InvariantCulture),
+            AllotDateE = request.ToDate.ToString("yyyyMMdd", CultureInfo.InvariantCulture),
+            PayType = request.PaymentType
         };
     }
 

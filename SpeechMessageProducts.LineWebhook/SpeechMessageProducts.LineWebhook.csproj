@@ -15,6 +15,7 @@
   <ItemGroup>
     <ProjectReference Include="..\SpeechMessage.Hosting\SpeechMessage.Hosting.csproj" />
     <ProjectReference Include="..\SpeechMessage.Localization\SpeechMessage.Localization.csproj" />
+    <ProjectReference Include="..\SpeechMessage.Payments.AspNetCore\SpeechMessage.Payments.AspNetCore.csproj" />
     <ProjectReference Include="..\ToolUtility\ToolUtility.csproj" />
     <ProjectReference Include="..\LineMessagingProcessor.AspNetCore\LineMessagingProcessor.AspNetCore.csproj" />
   </ItemGroup>

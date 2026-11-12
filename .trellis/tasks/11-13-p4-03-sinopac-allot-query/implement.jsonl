@@ -1,0 +1,7 @@
+{"file":".trellis/spec/backend/duplicate-row-publication-contract.md","reason":"Carry forward authoritative row identity, publish-after-validation, idempotent business-event writes, and bounded request-owned result rules for D365 fee reconciliation."}
+{"file":".trellis/spec/backend/money-contract.md","reason":"Keep provider allotment amounts as exact decimal Money with explicit TWD; avoid floating-point or formatting conversions."}
+{"file":".trellis/spec/backend/church-clock-contract.md","reason":"Calculate the query window from the server-authorized church timezone and preserve the date-only allotment calendar day."}
+{"file":".trellis/spec/backend/error-handling.md","reason":"Preserve retry classification, original exception propagation, cancellation semantics, and the existing notification owner boundary."}
+{"file":".trellis/spec/backend/development-configuration-safety.md","reason":"Ensure optional Payment configuration does not weaken LineWebhook startup safety or create payment services when disabled."}
+{"file":".trellis/spec/backend/file-documentation-contract.md","reason":"Require complete Traditional Chinese file-level explanations and test lifecycle documentation for every changed C# file."}
+{"file":".trellis/spec/backend/text-encoding-contract.md","reason":"Keep changed Trellis, source, test, project, and companion files UTF-8 without BOM, CRLF, and final CRLF."}

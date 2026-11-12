@@ -2,10 +2,10 @@
  * 檔案整體說明
  *
  * 目的與定位：以離線合成 SDK 驗證 P2-07 的資料庫 CAS；不是 D365 實機驗收。
- * 主要功能與流程：兩個真實 store 經 Barrier 同時入場後才進資料庫裁決，只有一個
- * 版本可認領；認領的新版本供後續完成，舊 owner 必須落敗。另注入重複身分、故障、
- * 缺版本及取消，檢查查詢欄位、上限、狀態與 UTC 卡住界線；整秒 SDK 讀回故障保護
- * 含次秒輸入的認領仍有一致的新版本，不把成功 CAS 誤判為失敗而留下 Processing。
+ * 主要功能與流程：兩個以合成 SDK 驅動的實際 store 經 Barrier 同時入場後才進資料庫
+ * 裁決，只有一個版本可認領；認領的新版本供後續完成，舊 owner 必須落敗。另注入重複身分、故障、
+ * 缺版本、取消及類型 allowlist，檢查查詢條件、adapter enum 映射、欄位、上限、
+ * 狀態與 UTC 卡住界線；整秒 SDK 讀回故障仍驗證認領一致性，不把成功 CAS 誤判失敗。
  * 使用邊界與維護：每案獨有 Moq、Barrier 與資料；await 全部競爭者後才 Dispose。
  * 替身不開連線或保存帳密，store 不擁有 SDK；原始 fault 身分及零額外 I/O 為斷言。
  */
@@ -194,6 +194,72 @@ public sealed class OutboundTaskClaimTests
         });
         using var store = new D365OutboundTaskStore(sdk.Object);
         Assert.Single(store.ReadCandidates(Now, 50, CancellationToken.None));
+    }
+
+    /// <summary>
+    /// 驗證 Core 與 net10 adapter 的 AllotQuery allowlist 都由 D365 查詢條件限制，
+    /// 而非讀回後才過濾；另以無 allowlist 的預設建構式確認原本的 OR 狀態條件、
+    /// 分組及查詢結構完全保留。所有列與 IOrganizationService 都是本測試建立的
+    /// 合成替身，不連線或持有外部資源，store／adapter 在各自區塊結束時解除借用。
+    /// </summary>
+    [Fact]
+    public void Store_AllowedTypes_QueriesOnlyThoseTypes()
+    {
+        var queries = new List<QueryExpression>();
+        var sdk = new Mock<IOrganizationService>(MockBehavior.Strict);
+        sdk.Setup(s => s.RetrieveMultiple(It.IsAny<QueryBase>())).Returns((QueryBase raw) =>
+        {
+            queries.Add(Assert.IsType<QueryExpression>(raw));
+            return new EntityCollection();
+        });
+
+        using (var unfilteredStore = new D365OutboundTaskStore(sdk.Object))
+            Assert.Empty(unfilteredStore.ReadCandidates(Now, 50, CancellationToken.None));
+
+        using (var filteredStore = new D365OutboundTaskStore(
+                   sdk.Object, new[] { OutboundTaskType.AllotQuery }))
+            Assert.Empty(filteredStore.ReadCandidates(Now, 50, CancellationToken.None));
+
+        var unfilteredQuery = queries[0];
+        Assert.Equal(LogicalOperator.Or, unfilteredQuery.Criteria.FilterOperator);
+        Assert.Empty(unfilteredQuery.Criteria.Conditions);
+        Assert.Equal(2, unfilteredQuery.Criteria.Filters.Count);
+        Assert.Equal("new_outboundtask", unfilteredQuery.EntityName);
+        Assert.Equal(50, unfilteredQuery.TopCount);
+
+        var filteredQuery = queries[1];
+        Assert.Equal(LogicalOperator.And, filteredQuery.Criteria.FilterOperator);
+        var typeCondition = Assert.Single(filteredQuery.Criteria.Conditions);
+        Assert.Equal("new_type", typeCondition.AttributeName);
+        Assert.Equal(ConditionOperator.In, typeCondition.Operator);
+        Assert.Equal(new object[] { (int)OutboundTaskType.AllotQuery }, typeCondition.Values.ToArray());
+        var statusFilter = Assert.Single(filteredQuery.Criteria.Filters);
+        Assert.Equal(LogicalOperator.Or, statusFilter.FilterOperator);
+        Assert.Equal(2, statusFilter.Filters.Count);
+        sdk.Verify(s => s.RetrieveMultiple(It.IsAny<QueryBase>()), Times.Exactly(2));
+
+#if NET10_0_OR_GREATER
+        using (var adapter = new D365OutboundWorkStoreAdapter(
+                   sdk.Object, new[] { SpeechMessage.Hosting.Outbound.OutboundWorkType.AllotQuery }))
+            Assert.Empty(adapter.ReadCandidates(Now, 50, CancellationToken.None));
+
+        var adapterQuery = queries[2];
+        Assert.Equal(LogicalOperator.And, adapterQuery.Criteria.FilterOperator);
+        var adapterTypeCondition = Assert.Single(adapterQuery.Criteria.Conditions);
+        Assert.Equal("new_type", adapterTypeCondition.AttributeName);
+        Assert.Equal(ConditionOperator.In, adapterTypeCondition.Operator);
+        Assert.Equal(new object[] { (int)OutboundTaskType.AllotQuery }, adapterTypeCondition.Values.ToArray());
+        Assert.Single(adapterQuery.Criteria.Filters);
+
+        using (var unfilteredAdapter = new D365OutboundWorkStoreAdapter(sdk.Object))
+            Assert.Empty(unfilteredAdapter.ReadCandidates(Now, 50, CancellationToken.None));
+
+        var unfilteredAdapterQuery = queries[3];
+        Assert.Equal(LogicalOperator.Or, unfilteredAdapterQuery.Criteria.FilterOperator);
+        Assert.Empty(unfilteredAdapterQuery.Criteria.Conditions);
+        Assert.Equal(2, unfilteredAdapterQuery.Criteria.Filters.Count);
+        sdk.Verify(s => s.RetrieveMultiple(It.IsAny<QueryBase>()), Times.Exactly(4));
+#endif
     }
 
     /// <summary>非版本故障保持同一例外且不重試；取消與 Dispose 都在入場前拒絕新 I/O。</summary>
