@@ -240,11 +240,11 @@ footer{margin-top:36px;color:var(--muted);font-size:12.5px;text-align:center}
  */
 const DATA = {
   "planVersion": "3.5",
-  "snapshot": "2026-11-12 09:32 Asia/Taipei (UTC+08:00)",
-  "lastUpdated": "2026-11-12T09:32:00+08:00",
+  "snapshot": "2026-11-12 11:26 Asia/Taipei (UTC+08:00)",
+  "lastUpdated": "2026-11-12T11:26:00+08:00",
   "branch": "1.0.0.11.Integration.P3.Worktree",
   "head": "2cd3095b",
-  "headline": "2026-11-12 09:32 Asia/Taipei (UTC+08:00)：P3-01～P3-09 已驗收。P3-09 的 8443 部署、LINE 官方測試、HMAC 模擬、Contact 清理及 VM stdout／A.8 清理已完成；P3-06 一項 Warning 由既有離線測試核實，兩項列後續實機確認。階段自審 Critical／High 為 0，使用者核定略過外部雙模型審查，僅自審，非雙模型結果。階段 3 完成，未開始階段 4。",
+  "headline": "2026-11-12 11:26 Asia/Taipei (UTC+08:00)：P3-09 維持 done，階段 3 完成。11-12 發現 VM 內部無法解析 goodshepherdback，昨晚至 hosts 修正前的事件在建立 CRM 連線時失敗；HTTP 200 僅代表收件驗簽。使用者以 VM hosts 加入 192.168.50.20 goodshepherdback.speechmessage.com.tw 修正（備份 hosts.P3-09-20261112-101803.bak），11:17 手機實測收到回覆且 CRM 記錄入站訊息，改以手機實測為準。出席回覆行為與 RegistrationExcluded 列為不阻擋後續事項；不開始階段 4。",
   "notices": [
     {
       "id": "plan-3.5-summary",
@@ -414,8 +414,8 @@ const DATA = {
       "phaseId": "階段 3",
       "level": "info",
       "title": "P3 進度摘要",
-      "lastUpdated": "2026-11-12T09:32:00+08:00",
-      "body": "2026-11-12 09:32 Asia/Taipei (UTC+08:00)：P3-01～P3-09 已驗收。P3-09 的 8443 部署、LINE endpoint test、18次 HMAC 模擬、Contact 清理與 VM 收尾均完成；stdout 已關閉且檔案0、A.8本批列0。P3-06 30秒逾時後資源基線由既有離線測試核實，appointment church scope與annotation同事件重送比對列為後續 Warning。固定guard §8.1 已對307432f2通過；本次僅紀錄變更，依核定改跑§8.3。階段自審僅自審、非雙模型結果，Critical／High 0；階段3完成，不開始階段4。",
+      "lastUpdated": "2026-11-12T11:26:00+08:00",
+      "body": "2026-11-12 11:26 Asia/Taipei (UTC+08:00)：P3-01～P3-09 驗收完成，階段3完成。11-12 發現 VM 內部無法解析 goodshepherdback，昨晚至 hosts 修正前的模擬事件均在建立 CRM 連線時失敗；HTTP 200 僅代表收件驗簽。使用者以 VM hosts 加入 192.168.50.20 goodshepherdback.speechmessage.com.tw 修正（備份 hosts.P3-09-20261112-101803.bak）。11:17 手機實測「ID」、「??」、「我的報名」均收到回覆且 CRM 記錄入站訊息，作決定性驗收。P3-06 appointment church scope／annotation 重送、出席回覆差異及 RegistrationExcluded 列為非阻擋後續事項。固定guard §8.1 已對307432f2通過；本次紀錄變更依核定跑§8.3。階段自審僅自審、非雙模型結果，Critical／High 0；不開始階段4。",
       "steps": [
         "2026-11-09 13:20 Asia/Taipei (UTC+08:00)：P3-01與P3-02新增專案都會更動sln，依檔案歸屬先串行做P3-02；P3-01僅唯讀調查。",
         "2026-11-09 13:20 Asia/Taipei (UTC+08:00)：P3-00原始證據已逐檔核對並複製至耐久ignored evidence，沒有將秘密或原始輸出加入版控。",
@@ -452,9 +452,11 @@ const DATA = {
         "2026-11-12 02:22 Asia/Taipei (UTC+08:00)：收尾腳本已放在 .speechmessage，PowerShell Parser、UTF-8 BOM／CRLF 核對通過，SHA-256 記於子任務協助文件；管理員一行執行方式及預期結果已提供。工具政策拒絕遠端清理後未改用其他執行器。驗收仍未完成。",
         "2026-11-12 03:13 Asia/Taipei (UTC+08:00)：紀錄提交307432f2在固定guard C:\\smv\\guard通過完整§8.1；結果摘要與 transcript SHA已記錄於本機 guard-307432f2-result.md。P3推送及git ls-remote待核對；清理與P3-06 Warning尚未完成。",
         "2026-11-12 03:59 Asia/Taipei (UTC+08:00)：P3紀錄同步提交22a34030已推送；git ls-remote核對遠端SHA為22a3403092eaa0bf740cf7d0f1d40229bd3faddd。工作包仍因VM stdout／A.8清理與P3-06三項Warning未確認而未完成。",
-        "2026-11-12 09:32 Asia/Taipei (UTC+08:00)：使用者提供 VM 收尾 SUCCESS；stdout 已關閉、stdout 檔與 A.8 本批列均為0。既有 queue 測試核實30秒逾時後資源回基線；appointment church scope與annotation同事件重送比對列為後續 Warning。P3-09 標 done、階段3完成；僅自審、非雙模型結果，Critical／High 0；本次紀錄變更不重跑已通過的§8.1，完成後不開始階段4。"
+        "2026-11-12 09:32 Asia/Taipei (UTC+08:00)：使用者提供 VM 收尾 SUCCESS；stdout 已關閉、stdout 檔與 A.8 本批列均為0。既有 queue 測試核實30秒逾時後資源回基線；appointment church scope與annotation同事件重送比對列為後續 Warning。P3-09 標 done、階段3完成；僅自審、非雙模型結果，Critical／High 0；本次紀錄變更不重跑已通過的§8.1，完成後不開始階段4。",
+        "2026-11-12 11:17 Asia/Taipei (UTC+08:00)：使用者手機實測回報通過：在「好牧人教會系統（非線上展示系統）」傳送「ID」、「??」、「我的報名」均收到回覆；CRM 有撥入 LINE 訊息記錄。依使用者驗收以手機結果為決定性證據。",
+        "2026-11-12 11:26 Asia/Taipei (UTC+08:00)：更正昨晚模擬驗收：11-12 發現 VM 內部無法解析 goodshepherdback，hosts 修正前所有事件在建立 CRM 連線時失敗；HTTP 200 僅代表收件驗簽。使用者以 VM hosts 加入 192.168.50.20 goodshepherdback.speechmessage.com.tw 修正，備份 hosts.P3-09-20261112-101803.bak；改以手機實測為準。新增不阻擋後續事項：AtomicPresentAndWeeklyCreationRequired 出席回覆差異（待決定是否補回覆）及 RegistrationExcluded 排除「報名」。"
       ],
-      "lastUpdated": "2026-11-12T09:32:00+08:00"
+      "lastUpdated": "2026-11-12T11:26:00+08:00"
     }
   ],
   "userActions": [
@@ -1197,9 +1199,9 @@ const DATA = {
       "deps": "P3-02～P3-08",
       "live": "有",
       "timebox": "1 天",
-      "doneAt": "2026-11-12 09:32 Asia/Taipei (UTC+08:00)",
+      "doneAt": "2026-11-12 11:17 Asia/Taipei (UTC+08:00)",
       "commit": "2cd3095b",
-      "note": "2026-11-12 09:32 Asia/Taipei (UTC+08:00)：8443部署、LINE endpoint test、18次HMAC模擬、Contact清理與VM收尾完成；stdout已關閉、stdout檔及A.8本批列殘留0。P3-06 30秒timeout資源基線由既有離線測試核實；appointment church scope及annotation同音訊event重送比對列後續Warning。自審Critical／High 0，使用者核定略過外部雙模型審查，僅自審、非雙模型結果。固定guard §8.1已對307432f2通過，本次紀錄變更依核定不重跑§8.1；階段3完成，不開始階段4。"
+      "note": "2026-11-12 11:17 Asia/Taipei (UTC+08:00)：使用者手機實測通過：「ID」、「??」、「我的報名」均收到回覆，CRM有撥入LINE訊息記錄。11:26更正昨晚驗收：11-12發現VM內部無法解析goodshepherdback，hosts修正前所有事件在建立CRM連線時失敗；HTTP 200僅代表收件驗簽。使用者以VM hosts加入192.168.50.20 goodshepherdback.speechmessage.com.tw修正（備份hosts.P3-09-20261112-101803.bak），改以手機實測為準。出席類AtomicPresentAndWeeklyCreationRequired回覆差異（待決定是否補回覆）及RegistrationExcluded排除「報名」列為不阻擋後續事項。P3-06 appointment church scope與annotation同事件重送仍列後續Warning。P3-09維持done、階段3完成；不開始階段4。"
     },
     {
       "id": "P4-01",
