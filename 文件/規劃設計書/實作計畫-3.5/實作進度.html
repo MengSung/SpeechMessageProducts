@@ -240,11 +240,11 @@ footer{margin-top:36px;color:var(--muted);font-size:12.5px;text-align:center}
  */
 const DATA = {
   "planVersion": "3.5",
-  "snapshot": "2026-11-12 21:02 Asia/Taipei (UTC+08:00)",
-  "lastUpdated": "2026-11-12T21:02:05+08:00",
+  "snapshot": "2026-11-12 21:46 Asia/Taipei (UTC+08:00)",
+  "lastUpdated": "2026-11-12T21:46:54+08:00",
   "branch": "1.0.0.11.Integration.P4.Worktree",
-  "head": "3d9e565d",
-  "headline": "2026-11-12 21:02 Asia/Taipei (UTC+08:00)：P4-01 已驗收，指定測試 5 個全通過；固定 guard 全方案 5,226 次測試執行、0 失敗，§8.1 八項全通過。驗收後執行 P4 分支首次推送並核對遠端 SHA，接續 P4-02。D365 verify 退出碼 1、教會 A GUID 與 new_timezone 尚未驗證，P4-06 前由 Codex 再唯讀確認。",
+  "head": "c5802cdf",
+  "headline": "2026-11-12 21:46 Asia/Taipei (UTC+08:00)：P4-01 已驗收並完成 P4 分支首次推送；git ls-remote 核對遠端 SHA 為 c5802cdf2437c67ba77659aeb3fcd504fe263600。接續 P4-02「金額改用 Money」。D365 verify 退出碼 1、教會 A GUID 與 new_timezone 尚未驗證，P4-06 前由 Codex 再唯讀確認。",
   "notices": [
     {
       "id": "plan-3.5-summary",
@@ -469,8 +469,8 @@ const DATA = {
       "phaseId": "階段 4",
       "level": "info",
       "title": "P4 進度摘要",
-      "lastUpdated": "2026-11-12T21:02:05+08:00",
-      "body": "2026-11-12 21:02 Asia/Taipei (UTC+08:00)：P4-01 已驗收，五個指定測試全通過；最終固定 guard 的 22 個專案／目標摘要共 5,226 次測試執行、0 失敗，§8.1 八項全通過。等待驗收後首次推送及遠端 SHA 核對，之後接續 P4-02。P4-00 前置資訊仍有效：設定值未保留；TLS 握手成功、LineWebhookP309 無簽章 POST 回 401；D365 verify 退出碼 1，教會 A GUID 與 new_timezone 尚未驗證，P4-06 前由 Codex 再唯讀確認；未執行部署或 D365 寫入。",
+      "lastUpdated": "2026-11-12T21:46:54+08:00",
+      "body": "2026-11-12 21:46 Asia/Taipei (UTC+08:00)：P4-01 已驗收並完成 P4 分支首次推送；git ls-remote 與本機一致，SHA 為 c5802cdf2437c67ba77659aeb3fcd504fe263600。五個指定測試全通過；最終固定 guard 的 22 個專案／目標摘要共 5,226 次測試執行、0 失敗，§8.1 八項全通過。下一包為 P4-02「金額改用 Money」。P4-00 前置資訊仍有效：設定值未保留；TLS 握手成功、LineWebhookP309 無簽章 POST 回 401；D365 verify 退出碼 1，教會 A GUID 與 new_timezone 尚未驗證，P4-06 前由 Codex 再唯讀確認；未執行部署或 D365 寫入。",
       "steps": [
         "2026-11-12 13:52 Asia/Taipei (UTC+08:00)：P4 分支從 43ea38cd 開始；建立階段父任務及 P4-00 子任務，更新授權文字與進度 DATA。",
         "2026-11-12 13:52 Asia/Taipei (UTC+08:00)：測試商店設定鍵只核對是否存在，未輸出設定值；TLS handshake 成功，未送交易。",
@@ -482,7 +482,8 @@ const DATA = {
         "2026-11-12 17:09 Asia/Taipei (UTC+08:00)：P4-00 最終編碼檢查為 30 個變更檔、0 個問題；檔案說明檢查 1,439 個檔案、0 個失敗；進度頁測試 28 個通過、0 個失敗。",
         "2026-11-12 17:16 Asia/Taipei (UTC+08:00)：P4-00 一頁回報及原始輸出 SHA-256 已收斂，最終 §8.3 確認後提交、不推送。",
         "2026-11-12 17:23 Asia/Taipei (UTC+08:00)：P4-00 最終編碼檢查 30 個變更檔、0 個問題；檔案說明檢查 1,439 個檔案、0 個失敗；進度頁測試 28 個通過、0 個失敗。",
-        "2026-11-12 21:02 Asia/Taipei (UTC+08:00)：P4-01 依 04A §5 完成盤點表、四個合成 Golden、四筆 companions 與五個指定測試；固定 guard 最終提交 3d9e565d 的 §8.1 八項通過，全方案 5,226 次測試執行、0 失敗。首次 guard 找到檔首說明結構不足，文件修正後重新完整通過；一頁回報位於 P4-01 子任務 wp-reports。P4 分支推送與遠端 SHA 尚待驗收後核對。"
+        "2026-11-12 21:02 Asia/Taipei (UTC+08:00)：P4-01 依 04A §5 完成盤點表、四個合成 Golden、四筆 companions 與五個指定測試；固定 guard 最終提交 3d9e565d 的 §8.1 八項通過，全方案 5,226 次測試執行、0 失敗。首次 guard 找到檔首說明結構不足，文件修正後重新完整通過；一頁回報位於 P4-01 子任務 wp-reports。P4 分支推送與遠端 SHA 尚待驗收後核對。",
+        "2026-11-12 21:46 Asia/Taipei (UTC+08:00)：P4 分支首次推送成功；git ls-remote 核對遠端分支 SHA 與本機相同，為 c5802cdf2437c67ba77659aeb3fcd504fe263600；P4-01 一頁回報及狀態更新。"
       ]
     }
   ],
@@ -1242,7 +1243,7 @@ const DATA = {
       "timebox": "1 天",
       "doneAt": "2026-11-12 21:02 Asia/Taipei (UTC+08:00)",
       "commit": "3d9e565d",
-      "note": "2026-11-12 21:02 Asia/Taipei (UTC+08:00)：5 個指定測試全通過；固定 guard 5,226 次測試執行、0 失敗，§8.1 八項通過；首次推送與遠端 SHA 核對待執行。"
+      "note": "2026-11-12 21:46 Asia/Taipei (UTC+08:00)：5 個指定測試全通過；固定 guard 5,226 次測試執行、0 失敗，§8.1 八項通過；P4 分支首次推送及 git ls-remote SHA 核對已通過（c5802cdf2437c67ba77659aeb3fcd504fe263600）。"
     },
     {
       "id": "P4-02",
