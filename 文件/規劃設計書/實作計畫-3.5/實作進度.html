@@ -240,11 +240,11 @@ footer{margin-top:36px;color:var(--muted);font-size:12.5px;text-align:center}
  */
 const DATA = {
   "planVersion": "3.5",
-  "snapshot": "2026-11-13 04:58 Asia/Taipei (UTC+08:00)",
-  "lastUpdated": "2026-11-13T04:58:38+08:00",
+  "snapshot": "2026-11-13 05:02 Asia/Taipei (UTC+08:00)",
+  "lastUpdated": "2026-11-13T05:02:16+08:00",
   "branch": "1.0.0.11.Integration.P4.Worktree",
-  "head": "0df6e6f7",
-  "headline": "2026-11-13 04:58 Asia/Taipei (UTC+08:00)：P4-03 已驗收，指定測試、固定 guard §8.1 八項及紀錄型 §8.3 三項均通過；全方案 Release 5,238 個測試通過、0 失敗、0 略過。P4-04 亦已完成；P4 分支遠端目前為 1851b094c7afa86b98af5a4abe5d01ddd54c0592。P4-03 收尾紀錄待提交與推送核對，接續 P4-05。",
+  "head": "a66feb9d",
+  "headline": "2026-11-13 05:02 Asia/Taipei (UTC+08:00)：P4-03 已驗收，指定測試、固定 guard §8.1 八項及紀錄型 §8.3 三項均通過；全方案 Release 5,238 個測試通過、0 失敗、0 略過。收尾提交 a66feb9db99b72b9c20cc45ff97e330b4b220b81 已推送，`git ls-remote` 回傳相同 SHA。P4-04 亦已完成；接續 P4-05。",
   "notices": [
     {
       "id": "plan-3.5-summary",
@@ -469,8 +469,8 @@ const DATA = {
       "phaseId": "階段 4",
       "level": "info",
       "title": "P4 進度摘要",
-      "lastUpdated": "2026-11-13T04:58:38+08:00",
-      "body": "2026-11-13 04:58 Asia/Taipei (UTC+08:00)：P4-01、P4-02、P4-04、P4-03 均已驗收；P4-03 程式提交 e0f6b66c，子任務紀錄格式修正提交 0df6e6f7，固定 guard §8.1 八項及紀錄型 §8.3 三項全過，全方案 Release 5,238 個測試通過、0 失敗、0 略過。P4-04 採 Payment:Profiles（D4-1），只規劃新增 account.new_sinopacprofile，沒有連 D365；其歷史推送核對於 02:12 記錄為 787fd8e4，目前遠端後續紀錄提交為 1851b094c7afa86b98af5a4abe5d01ddd54c0592。P4-03 未連 D365／永豐沙箱；下一步驗收紀錄推送後執行 P4-05。P4-00 前置資料不含設定值；D365 verify、教會 A GUID 與 new_timezone 仍待 P4-06 唯讀核對。",
+      "lastUpdated": "2026-11-13T05:02:16+08:00",
+      "body": "2026-11-13 05:02 Asia/Taipei (UTC+08:00)：P4-01、P4-02、P4-04、P4-03 均已驗收；P4-03 程式提交 e0f6b66c，子任務紀錄格式修正提交 0df6e6f7，固定 guard §8.1 八項及紀錄型 §8.3 三項全過，全方案 Release 5,238 個測試通過、0 失敗、0 略過。P4-03 收尾提交 a66feb9db99b72b9c20cc45ff97e330b4b220b81 已推送，`git ls-remote` 回傳相同 SHA；未連 D365／永豐沙箱。P4-04 採 Payment:Profiles（D4-1），只規劃新增 account.new_sinopacprofile；02:12 歷史核對 SHA 為 787fd8e4，其後紀錄提交為 1851b094c7afa86b98af5a4abe5d01ddd54c0592。下一步執行 P4-05。P4-00 前置資料不含設定值；D365 verify、教會 A GUID 與 new_timezone 仍待 P4-06 唯讀核對。",
       "steps": [
         "2026-11-12 13:52 Asia/Taipei (UTC+08:00)：P4 分支從 43ea38cd 開始；建立階段父任務及 P4-00 子任務，更新授權文字與進度 DATA。",
         "2026-11-12 13:52 Asia/Taipei (UTC+08:00)：測試商店設定鍵只核對是否存在，未輸出設定值；TLS handshake 成功，未送交易。",
@@ -491,7 +491,8 @@ const DATA = {
         "2026-11-13 02:01 Asia/Taipei (UTC+08:00)：P4-04 CCG 審查只有 Claude 可用；Gemini 403／503 兩次無輸出，dualModelComplete=false。Claude 未列 Critical；診斷彙整、啟動驗證與 phase-4 engine／verify 測試建議放入「之後再說」，P4-PROP-003 已登錄待核定。",
         "2026-11-13 02:12 Asia/Taipei (UTC+08:00)：P4-04 封存回報提交 787fd8e4 已推送；`git ls-remote origin refs/heads/1.0.0.11.Integration.P4.Worktree` 當時核對遠端 SHA `787fd8e48ac50960651a53c849a7a9ed72c7f6d5` 與本機一致。",
         "2026-11-13 04:50 Asia/Taipei (UTC+08:00)：P4-03 指定 19 個測試同名存在並通過；Core net10／net48 各 87 個測試，Hosting scope 釋放案例執行 100 次並回到 0。固定 guard 對 0df6e6f7 的 §8.1 八項通過；首輪 JSON CRLF 問題已修正，僅以成功輸出作為驗收證據。",
-        "2026-11-13 04:58 Asia/Taipei (UTC+08:00)：封存工具造成的 task.json 檔尾 CRLF 已修復；紀錄型 §8.3 編碼、檔案說明、進度頁三項檢查均通過，P4-03 完成封存。"
+        "2026-11-13 04:58 Asia/Taipei (UTC+08:00)：封存工具造成的 task.json 檔尾 CRLF 已修復；紀錄型 §8.3 編碼、檔案說明、進度頁三項檢查均通過，P4-03 完成封存。",
+        "2026-11-13 05:02 Asia/Taipei (UTC+08:00)：P4-03 收尾提交 a66feb9db99b72b9c20cc45ff97e330b4b220b81 已推送；`git ls-remote origin refs/heads/1.0.0.11.Integration.P4.Worktree` 回傳相同 SHA。"
       ]
     }
   ],
@@ -1275,7 +1276,7 @@ const DATA = {
       "timebox": "1 天",
       "doneAt": "2026-11-13 04:58 Asia/Taipei (UTC+08:00)",
       "commit": "0df6e6f7",
-      "note": "2026-11-13 04:58 Asia/Taipei (UTC+08:00)：04A §5 指定 19 個測試同名通過；固定 guard §8.1 與紀錄型 §8.3 三項通過，未連 D365／永豐沙箱。收尾提交後推送並核對遠端 SHA。"
+      "note": "2026-11-13 05:02 Asia/Taipei (UTC+08:00)：04A §5 指定 19 個測試同名通過；固定 guard §8.1 與紀錄型 §8.3 三項通過；收尾提交 a66feb9db99b72b9c20cc45ff97e330b4b220b81 推送後，`git ls-remote` SHA 核對一致。未連 D365／永豐沙箱。"
     },
     {
       "id": "P4-04",
