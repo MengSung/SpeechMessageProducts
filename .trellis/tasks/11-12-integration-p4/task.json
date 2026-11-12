@@ -18,7 +18,8 @@
   "commit": null,
   "pr_url": null,
   "children": [
-    "11-12-p4-00-startup-preflight"
+    "11-12-p4-00-startup-preflight",
+    "11-12-p4-01-payment-inventory"
   ],
   "parent": null,
   "relatedFiles": [],

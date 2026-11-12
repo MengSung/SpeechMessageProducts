@@ -1,0 +1,273 @@
+{
+  "cases": [
+    {
+      "id": "credit-card-match",
+      "input": {
+        "paymentWay": 100000001,
+        "orderNumbers": {
+          "cardOrderNo": "SYN-CARD-001",
+          "paidCardOrderNo": "",
+          "atmOrderNo": "",
+          "paidAtmOrderNo": ""
+        },
+        "feeDate": "2026-03-10",
+        "today": "2026-03-20",
+        "response": {
+          "allot": [
+            {
+              "allotNo": "SYN-ALLOT-001",
+              "allotDate": "2026-03-18",
+              "details": [{ "orderNo": "SYN-CARD-001", "amount": 123456, "fee": 456 }]
+            }
+          ]
+        }
+      },
+      "expected": {
+        "queryType": "C",
+        "dateRange": { "start": "20260309", "end": "20260320" },
+        "writes": {
+          "new_allot_amount": 1230,
+          "new_allot_fee": 4.56,
+          "new_allot_date": "2026-03-18",
+          "new_allot_no": "SYN-ALLOT-001"
+        }
+      }
+    },
+    {
+      "id": "atm-match",
+      "input": {
+        "paymentWay": 100000002,
+        "orderNumbers": {
+          "cardOrderNo": "",
+          "paidCardOrderNo": "",
+          "atmOrderNo": "SYN-ATM-001",
+          "paidAtmOrderNo": ""
+        },
+        "feeDate": "2026-03-10",
+        "today": "2026-03-20",
+        "response": {
+          "allot": [
+            {
+              "allotNo": "SYN-ALLOT-ATM-001",
+              "allotDate": "2026-03-19",
+              "details": [{ "orderNo": "SYN-ATM-001", "amount": 50000, "fee": 500 }]
+            }
+          ]
+        }
+      },
+      "expected": {
+        "queryType": "A",
+        "dateRange": { "start": "20260309", "end": "20260320" },
+        "writes": {
+          "new_allot_amount": 495,
+          "new_allot_fee": 5,
+          "new_allot_date": "2026-03-19",
+          "new_allot_no": "SYN-ALLOT-ATM-001"
+        }
+      }
+    },
+    {
+      "id": "mobile-payment-match",
+      "input": {
+        "paymentWay": 100000007,
+        "orderNumbers": {
+          "cardOrderNo": "SYN-MOBILE-001",
+          "paidCardOrderNo": "",
+          "atmOrderNo": "",
+          "paidAtmOrderNo": ""
+        },
+        "feeDate": "2026-03-10",
+        "today": "2026-03-20",
+        "response": {
+          "allot": [
+            {
+              "allotNo": "SYN-ALLOT-MOBILE-001",
+              "allotDate": "2026-03-17",
+              "details": [{ "orderNo": "SYN-MOBILE-001", "amount": 75000, "fee": 750 }]
+            }
+          ]
+        }
+      },
+      "expected": {
+        "queryType": "M",
+        "dateRange": { "start": "20260309", "end": "20260320" },
+        "writes": {
+          "new_allot_amount": 742.5,
+          "new_allot_fee": 7.5,
+          "new_allot_date": "2026-03-17",
+          "new_allot_no": "SYN-ALLOT-MOBILE-001"
+        }
+      }
+    },
+    {
+      "id": "no-matching-order",
+      "input": {
+        "paymentWay": 100000001,
+        "orderNumbers": {
+          "cardOrderNo": "SYN-CARD-404",
+          "paidCardOrderNo": "",
+          "atmOrderNo": "",
+          "paidAtmOrderNo": ""
+        },
+        "feeDate": "2026-03-10",
+        "today": "2026-03-20",
+        "response": {
+          "allot": [
+            {
+              "allotNo": "SYN-ALLOT-OTHER",
+              "allotDate": "2026-03-18",
+              "details": [{ "orderNo": "SYN-CARD-OTHER", "amount": 10000, "fee": 100 }]
+            }
+          ]
+        }
+      },
+      "expected": {
+        "queryType": "C",
+        "dateRange": { "start": "20260309", "end": "20260320" },
+        "writes": null
+      }
+    },
+    {
+      "id": "last-of-multiple-matches-wins",
+      "input": {
+        "paymentWay": 100000001,
+        "orderNumbers": {
+          "cardOrderNo": "SYN-CARD-MULTI",
+          "paidCardOrderNo": "",
+          "atmOrderNo": "",
+          "paidAtmOrderNo": ""
+        },
+        "feeDate": "2026-03-10",
+        "today": "2026-03-20",
+        "response": {
+          "allot": [
+            {
+              "allotNo": "SYN-ALLOT-MULTI",
+              "allotDate": "2026-03-18",
+              "details": [
+                { "orderNo": "SYN-CARD-MULTI", "amount": 10000, "fee": 100 },
+                { "orderNo": "SYN-CARD-MULTI", "amount": 25000, "fee": 250 }
+              ]
+            }
+          ]
+        }
+      },
+      "expected": {
+        "queryType": "C",
+        "dateRange": { "start": "20260309", "end": "20260320" },
+        "writes": {
+          "new_allot_amount": 247.5,
+          "new_allot_fee": 2.5,
+          "new_allot_date": "2026-03-18",
+          "new_allot_no": "SYN-ALLOT-MULTI"
+        }
+      }
+    },
+    {
+      "id": "fee-exceeds-payment",
+      "input": {
+        "paymentWay": 100000001,
+        "orderNumbers": {
+          "cardOrderNo": "SYN-CARD-NEGATIVE",
+          "paidCardOrderNo": "",
+          "atmOrderNo": "",
+          "paidAtmOrderNo": ""
+        },
+        "feeDate": "2026-03-10",
+        "today": "2026-03-20",
+        "response": {
+          "allot": [
+            {
+              "allotNo": "SYN-ALLOT-NEGATIVE",
+              "allotDate": "2026-03-18",
+              "details": [{ "orderNo": "SYN-CARD-NEGATIVE", "amount": 100, "fee": 250 }]
+            }
+          ]
+        }
+      },
+      "expected": {
+        "queryType": "C",
+        "dateRange": { "start": "20260309", "end": "20260320" },
+        "writes": {
+          "new_allot_amount": -1.5,
+          "new_allot_fee": 2.5,
+          "new_allot_date": "2026-03-18",
+          "new_allot_no": "SYN-ALLOT-NEGATIVE"
+        }
+      }
+    },
+    {
+      "id": "unsupported-payment-way",
+      "input": {
+        "paymentWay": 100000099,
+        "orderNumbers": {
+          "cardOrderNo": "SYN-UNKNOWN-001",
+          "paidCardOrderNo": "",
+          "atmOrderNo": "",
+          "paidAtmOrderNo": ""
+        },
+        "feeDate": "2026-03-10",
+        "today": "2026-03-20",
+        "response": { "allot": [] }
+      },
+      "expected": {
+        "queryType": null,
+        "dateRange": null,
+        "writes": null
+      }
+    },
+    {
+      "id": "blank-fee-date-legacy-range",
+      "input": {
+        "paymentWay": 100000001,
+        "orderNumbers": {
+          "cardOrderNo": "SYN-CARD-NO-DATE",
+          "paidCardOrderNo": "",
+          "atmOrderNo": "",
+          "paidAtmOrderNo": ""
+        },
+        "feeDate": "",
+        "today": "2026-03-20",
+        "response": { "allot": [] }
+      },
+      "expected": {
+        "queryType": "C",
+        "dateRange": { "start": "09991231", "end": "20260320" },
+        "writes": null
+      }
+    },
+    {
+      "id": "blank-order-legacy-equality-match",
+      "input": {
+        "paymentWay": 100000001,
+        "orderNumbers": {
+          "cardOrderNo": "",
+          "paidCardOrderNo": "",
+          "atmOrderNo": "",
+          "paidAtmOrderNo": ""
+        },
+        "feeDate": "2026-03-10",
+        "today": "2026-03-20",
+        "response": {
+          "allot": [
+            {
+              "allotNo": "SYN-ALLOT-BLANK",
+              "allotDate": "2026-03-18",
+              "details": [{ "orderNo": "", "amount": 12345, "fee": 345 }]
+            }
+          ]
+        }
+      },
+      "expected": {
+        "queryType": "M",
+        "dateRange": { "start": "20260309", "end": "20260320" },
+        "writes": {
+          "new_allot_amount": 120,
+          "new_allot_fee": 3.45,
+          "new_allot_date": "2026-03-18",
+          "new_allot_no": "SYN-ALLOT-BLANK"
+        }
+      }
+    }
+  ]
+}

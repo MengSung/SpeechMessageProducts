@@ -35,4 +35,9 @@
     <ProjectReference Include="..\SpeechMessage.Payments\SpeechMessage.Payments.csproj" />
     <ProjectReference Include="..\SpeechMessage.Payments.Workflows\SpeechMessage.Payments.Workflows.csproj" />
   </ItemGroup>
+  <ItemGroup>
+    <None Update="Golden\**\*.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
 </Project>
