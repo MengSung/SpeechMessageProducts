@@ -1,15 +1,19 @@
 /*
  * 檔案整體說明
  *
- * 目的與所屬模組：本檔位於 SpeechMessage.Payments.Tests 的永豐 provider 測試層，以固定合成資料鎖定已搬入主方案的舊 QPay 金鑰、
+ * 目的與定位：本檔位於 SpeechMessage.Payments.Tests 的永豐 provider 測試層，以固定合成資料鎖定已搬入主方案的舊 QPay 金鑰、
  * 簽章、封包加解密、建單序列化與付款查詢回應解析行為；不呼叫外部銀行、CRM、LINE 或任何正式／測試商店。
  *
- * 主要功能與資料流程：各測試以明確標示的合成憑證片段、nonce、payload 及 Golden JSON 呼叫 SpeechMessage.Payments 內部純函式，
+ * 主要功能與流程：各測試以明確標示的合成憑證片段、nonce、payload 及 Golden JSON 呼叫 SpeechMessage.Payments 內部純函式，
  * 將結果與獨立 Node.js crypto 腳本建立的固定向量或手工定義的合成 JSON 黃金逐字比較。所有檔案由測試輸出目錄的 Golden/Sinopac
  * 複本讀取；測試不寫入共用狀態、不建立網路資源，輸入與結果生命週期僅限單一測試呼叫。
  *
  * 適用範圍與不變條件：這些測試只描述既有協定相容性，不代表永豐實機或付款成功；樣本商店、訂單、會友及憑證字串均為合成值。
  * 若協定、序列化欄位或密碼學結果改變，必須先由核定規格確認，再同步更新明確預期值，禁止用被測程式輸出自動重生 Golden。
+ *
+ * 使用邊界與維護：每個測試只持有區域合成 DTO 與字串，不讀 User Secrets、不連網、不保存跨測試或跨使用者狀態。
+ * ReadGolden 以 File.ReadAllText 完成唯讀載入並關閉檔案 handle；測試結束後區域參考即不再保留，Golden 不會被測試覆寫。
+ * 任何向量或樣本變更都須維持合成性並重新執行指定 filter；本機獨立腳本與原始輸出不提交。
  *
  * 失敗處理與驗證：固定測試名稱由 P4-01 的 dotnet test filter 執行；雜湊、AES key、ciphertext、JSON 差異或缺少 Golden
  * 都使測試失敗。向量計算原始腳本只保存在此子任務的本機 evidence，不納入版控；本檔無持續性、快取、背景工作或需 Dispose 的自有資源。
