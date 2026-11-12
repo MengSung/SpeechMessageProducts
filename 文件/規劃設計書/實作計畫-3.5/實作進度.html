@@ -240,11 +240,11 @@ footer{margin-top:36px;color:var(--muted);font-size:12.5px;text-align:center}
  */
 const DATA = {
   "planVersion": "3.5",
-  "snapshot": "2026-11-12 11:26 Asia/Taipei (UTC+08:00)",
-  "lastUpdated": "2026-11-12T11:26:00+08:00",
-  "branch": "1.0.0.11.Integration.P3.Worktree",
-  "head": "2cd3095b",
-  "headline": "2026-11-12 11:26 Asia/Taipei (UTC+08:00)：P3-09 維持 done，階段 3 完成。11-12 發現 VM 內部無法解析 goodshepherdback，昨晚至 hosts 修正前的事件在建立 CRM 連線時失敗；HTTP 200 僅代表收件驗簽。使用者以 VM hosts 加入 192.168.50.20 goodshepherdback.speechmessage.com.tw 修正（備份 hosts.P3-09-20261112-101803.bak），11:17 手機實測收到回覆且 CRM 記錄入站訊息，改以手機實測為準。出席回覆行為與 RegistrationExcluded 列為不阻擋後續事項；不開始階段 4。",
+  "snapshot": "2026-11-12 17:23 Asia/Taipei (UTC+08:00)",
+  "lastUpdated": "2026-11-12T17:23:31+08:00",
+  "branch": "1.0.0.11.Integration.P4.Worktree",
+  "head": "43ea38cd",
+  "headline": "2026-11-12 17:23 Asia/Taipei (UTC+08:00)：P4-00 最終 §8.3 三項輕量檢查通過；設定只記鍵名與存在狀態，不保留設定值。P4-00 不計入 84 個工作包且不推送，接續 P4-01。D365 verify 退出碼 1、教會 A GUID 與 new_timezone 尚未驗證，P4-06 前由 Codex 再唯讀確認。",
   "notices": [
     {
       "id": "plan-3.5-summary",
@@ -262,7 +262,13 @@ const DATA = {
         "2026-11-09 12:33 Asia/Taipei (UTC+08:00)：3.5 已生效；進度與驗收紀錄搬入現行資料夾，3.4 計畫封存；設計 v3.4 不變。P3-00 尚待守門與驗收推送。",
         "2026-11-09 12:57 Asia/Taipei (UTC+08:00)：§7.3 前置檢查已集中父任務 preflight.md；三個秘密鍵存在且格式通過（未輸出值）。DMZ／HTTPS／憑證、遠端權限、SQL 端點與建庫權限共三類未確認；不以離線結果冒充 P3-09。",
         "2026-11-09 12:57 Asia/Taipei (UTC+08:00)：外部 Gemini／Claude 審查均無可用結果；依 00 §6.6 本地自審與獨立代理複核，Critical 0／High 0／Warning 0，不冒稱雙模型完成。",
-        "2026-11-09 12:57 Asia/Taipei (UTC+08:00)：f65f6d73819ea2401067b9f985ffbb9922408dda 已推 P2 並 ls-remote 核對，P3 fast-forward 到同一 SHA；接續只有紀錄型收尾，不開工 P3-01～P3-09。"
+        "2026-11-09 12:57 Asia/Taipei (UTC+08:00)：f65f6d73819ea2401067b9f985ffbb9922408dda 已推 P2 並 ls-remote 核對，P3 fast-forward 到同一 SHA；接續只有紀錄型收尾，不開工 P3-01～P3-09。",
+        "2026-11-12 13:52 Asia/Taipei (UTC+08:00)：依使用者 2026-11-12 授權啟動階段 4（P4-00、P4-01～P4-06 與階段審查）；依 04A 執行，不啟動階段 5。",
+        "2026-11-12 16:05 Asia/Taipei (UTC+08:00)：P4-00 開工切換與前置紀錄完成；三項 §8.3 輕量檢查通過。P4-00 不計入 84 個工作包、不推送，接續 P4-01。",
+        "2026-11-12 16:32 Asia/Taipei (UTC+08:00)：修正前置紀錄，只保留設定鍵名與存在狀態，不保留任何設定值；P4-06 執行前再次確認測試環境。",
+        "2026-11-12 17:09 Asia/Taipei (UTC+08:00)：P4-00 最終編碼、檔案說明與進度頁契約檢查通過，原始輸出 SHA-256 已列入一頁回報。",
+        "2026-11-12 17:16 Asia/Taipei (UTC+08:00)：收斂 P4-00 一頁回報與證據摘要，準備最終 §8.3 確認；完成後提交且不推送。",
+        "2026-11-12 17:23 Asia/Taipei (UTC+08:00)：P4-00 最終編碼、檔案說明及進度頁契約檢查通過，原始輸出 SHA-256 已列入回報。"
       ]
     },
     {
@@ -457,6 +463,26 @@ const DATA = {
         "2026-11-12 11:26 Asia/Taipei (UTC+08:00)：更正昨晚模擬驗收：11-12 發現 VM 內部無法解析 goodshepherdback，hosts 修正前所有事件在建立 CRM 連線時失敗；HTTP 200 僅代表收件驗簽。使用者以 VM hosts 加入 192.168.50.20 goodshepherdback.speechmessage.com.tw 修正，備份 hosts.P3-09-20261112-101803.bak；改以手機實測為準。新增不阻擋後續事項：AtomicPresentAndWeeklyCreationRequired 出席回覆差異（待決定是否補回覆）及 RegistrationExcluded 排除「報名」。"
       ],
       "lastUpdated": "2026-11-12T11:26:00+08:00"
+    },
+    {
+      "id": "phase-4-summary",
+      "phaseId": "階段 4",
+      "level": "info",
+      "title": "P4 進度摘要",
+      "lastUpdated": "2026-11-12T17:23:31+08:00",
+      "body": "2026-11-12 17:23 Asia/Taipei (UTC+08:00)：P4-00 最終三項 §8.3 輕量檢查通過，階段 4 為 current；P4-01～P4-06 尚未驗收。設定鍵只記存在狀態，值未保留；TLS 握手成功，LineWebhookP309 無簽章 POST 回 401。D365 verify 退出碼 1，教會 A GUID 與 new_timezone 尚未驗證，P4-06 前由 Codex 再唯讀確認；未執行部署或 D365 寫入。",
+      "steps": [
+        "2026-11-12 13:52 Asia/Taipei (UTC+08:00)：P4 分支從 43ea38cd 開始；建立階段父任務及 P4-00 子任務，更新授權文字與進度 DATA。",
+        "2026-11-12 13:52 Asia/Taipei (UTC+08:00)：測試商店設定鍵只核對是否存在，未輸出設定值；TLS handshake 成功，未送交易。",
+        "2026-11-12 13:52 Asia/Taipei (UTC+08:00)：LineWebhookP309 無簽章 POST 回 401；未重新部署、未在本機啟動主機。",
+        "2026-11-12 13:52 Asia/Taipei (UTC+08:00)：goodshepherdback 唯讀 verify 退出碼 1；教會 A GUID 未在可用 P3-09 紀錄找到，P4-06 前待 Codex 再唯讀確認。",
+        "2026-11-12 16:05 Asia/Taipei (UTC+08:00)：P4-00 依 04A §5 完成；編碼檢查、檔案說明檢查及進度頁測試均通過。原始輸出留在子任務本機 evidence，回報記錄 SHA-256。",
+        "2026-11-12 16:05 Asia/Taipei (UTC+08:00)：P4-00 為不計數的開工包，沒有推送；D365 verify 與教會 A GUID／new_timezone 維持未驗證，P4-06 前由 Codex 再唯讀確認。",
+        "2026-11-12 16:32 Asia/Taipei (UTC+08:00)：設定回報修正為只記鍵名與存在狀態、不保留值；P4-06 前由 Codex 再確認測試環境。",
+        "2026-11-12 17:09 Asia/Taipei (UTC+08:00)：P4-00 最終編碼檢查為 30 個變更檔、0 個問題；檔案說明檢查 1,439 個檔案、0 個失敗；進度頁測試 28 個通過、0 個失敗。",
+        "2026-11-12 17:16 Asia/Taipei (UTC+08:00)：P4-00 一頁回報及原始輸出 SHA-256 已收斂，最終 §8.3 確認後提交、不推送。",
+        "2026-11-12 17:23 Asia/Taipei (UTC+08:00)：P4-00 最終編碼檢查 30 個變更檔、0 個問題；檔案說明檢查 1,439 個檔案、0 個失敗；進度頁測試 28 個通過、0 個失敗。"
+      ]
     }
   ],
   "userActions": [
@@ -506,9 +532,9 @@ const DATA = {
     },
     {
       "when": "階段 4 前",
-      "text": "永豐測試商店金鑰（若尚未有），放進 User Secrets",
-      "status": "later",
-      "note": ""
+      "text": "若永豐測試商店設定缺值，由使用者把測試金鑰放進 LineWebhook User Secrets",
+      "status": "done",
+      "note": "2026-11-12 17:23 Asia/Taipei (UTC+08:00)：六個憑證鍵、ApiBaseUrl 與 Environment 鍵均已核對存在；未記錄任何設定值。P4-06 由 Codex 以標準輸入移轉至 LineWebhook User Secrets，並於實機測試前再次確認環境。"
     },
     {
       "when": "階段 7",
@@ -554,7 +580,6 @@ const DATA = {
       "id": "階段 3",
       "name": "LINE Webhook 主機",
       "planned": "4～6 個工作天",
-      "current": true,
       "done": 9,
       "actual": "約 2 天（含管理員操作等待）",
       "active": 0
@@ -563,7 +588,10 @@ const DATA = {
       "id": "階段 4",
       "name": "金流＋幣別",
       "planned": "2～3 個工作天",
-      "actual": ""
+      "actual": "",
+      "current": true,
+      "done": 0,
+      "active": 0
     },
     {
       "id": "階段 5",

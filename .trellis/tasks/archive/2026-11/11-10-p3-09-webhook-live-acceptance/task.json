@@ -11,7 +11,7 @@
   "creator": "codex",
   "assignee": "codex",
   "createdAt": "2026-11-10",
-  "completedAt": "2026-11-12T09:32:00+08:00",
+  "completedAt": "2026-11-12",
   "branch": null,
   "base_branch": "1.0.0.11.Integration.P3.Worktree",
   "worktree_path": null,
@@ -19,7 +19,7 @@
   "pr_url": null,
   "subtasks": [],
   "children": [],
-  "parent": "11-09-integration-p3",
+  "parent": null,
   "relatedFiles": [],
   "notes": "2026-11-10 11:26 Asia/Taipei (UTC+08:00)：本機系統管理員及PowerShell Direct確認；VM為D365APP01/192.168.50.20；DNS/TLS、MSSQLSERVER與建庫權限通過唯讀查核；User Secrets只做存在性/格式布林檢查。建立appcmd備份P3-09-pre-202611101130並記錄CRM/IIS基線。Hosting Bundle安裝啟動當時遭本機工具政策拒絕；後由使用者親自安裝並刪除暫存檔，ANCM v2、.NET 10.0.14、CRM site/pool、goodshepherdback 302及暫存檔不存在均已唯讀核實，摘要見evidence/hosting-bundle-install.md。2026-11-10 18:57 Asia/Taipei (UTC+08:00)：Release LineWebhook 104/104及部署基礎腳本Parser通過；測試DB只有A.8空表、LineWebhookP309 AppPool Started、部署目錄88檔；CRM原binding未變。2026-11-10 21:25 Asia/Taipei (UTC+08:00)：使用者核定CRM測試mapping來源、階段僅自審及即使待收尾仍推送通過守門內容。夜間重讀Reply sender／測試並以Parser核對基礎部署腳本，未執行部署或寫入CRM/IIS/SQL/LINE。Computer Use Native apps／Browser host不可用；既有Deployment CLI無Account/Contact CRUD，LineRecipientQueries唯讀。未自訂CRM probe、不猜GUID、不新增SNI。2026-11-12 09:32 Asia/Taipei (UTC+08:00)：使用者提供VM收尾SUCCESS結果，stdout已關閉且stdout／A.8本批殘留0；依使用者快速結案完成P3-09。P3-06一項Warning以離線測試核實，appointment church scope與annotation同事件Upsert比對列後續Warning；階段3完成。自審僅自審、非雙模型結果，Critical／High 0。固定guard §8.1已對307432f2通過，本次純紀錄變更只執行§8.3；不開始階段4。回報見wp-reports/P3-09.md及wp-reports/階段3總回報.md。",
   "meta": {}
