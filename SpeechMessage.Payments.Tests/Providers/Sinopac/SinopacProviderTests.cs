@@ -12,7 +12,8 @@
  * Status_mapper_maps_declined_order_pay_response_to_failed、
  * Create_result_fails_when_card_payment_success_response_has_no_payment_page_url、
  * Create_result_preserves_provider_rejection_when_card_payment_page_url_is_missing、
- * Create_result_preserves_atm_virtual_account_in_provider_data；其餘入口見下方成員契約。
+ * Create_result_preserves_atm_virtual_account_in_provider_data、
+ * Allot_query_preserves_http_status_when_error_body_root_is_not_an_object；其餘入口見下方成員契約。
  *
  * 使用邊界與維護：
  * 以本檔實際安排的輸入、替身及斷言判定契約；測試名稱只說明案例，不能代替執行結果。
@@ -307,6 +308,36 @@ public sealed class SinopacProviderTests
         result.Error.Message.Should().NotContain(responseMarker);
     }
 
+    /// <summary>
+    /// 保護 APIM 錯誤本文的根 JSON 為非物件時仍保留 Order 階段與 HTTP 狀態；
+    /// 序列 handler 先回合成 Nonce，再回 500 與陣列本文，決定性斷言為固定 Order:500，
+    /// 且原始本文不進入回傳錯誤。HttpClient 由本測試唯一擁有並在結束時 Dispose。
+    /// </summary>
+    [Fact]
+    public async Task Allot_query_preserves_http_status_when_error_body_root_is_not_an_object()
+    {
+        const string responseBody = "[]";
+        using var httpClient = new HttpClient(new SequenceResponseHandler(
+            (HttpStatusCode.OK, "{\"Nonce\":\"synthetic-nonce\"}"),
+            (HttpStatusCode.InternalServerError, responseBody)));
+        var provider = new SinopacPaymentProvider(httpClient);
+
+        var result = await provider.QueryAllotAsync(
+            CreateProfile(),
+            new PaymentAllotQueryRequest
+            {
+                FromDate = new DateOnly(2026, 11, 1),
+                ToDate = new DateOnly(2026, 11, 2),
+                PaymentType = "C"
+            },
+            CancellationToken.None);
+
+        result.Error.Kind.Should().Be(PaymentErrorKind.ProviderUnavailable);
+        result.Error.Code.Should().Be("Order:500");
+        result.Error.Message.Should().Be("Order:500");
+        result.Error.Message.Should().NotContain(responseBody);
+    }
+
     [Theory]
     [InlineData("", "PAYTOKEN-1234567890")]
     [InlineData("NA0149_001", "")]
@@ -424,6 +455,37 @@ public sealed class SinopacProviderTests
             return Task.FromResult(new HttpResponseMessage(_statusCode)
             {
                 Content = new StringContent(_content)
+            });
+        }
+    }
+
+    /// <summary>
+    /// 依呼叫順序回傳固定合成 HTTP 結果，僅供離線協定測試使用；
+    /// 隊列只保存狀態與合成本文字串，不持有 request、設定或外部資源。
+    /// </summary>
+    private sealed class SequenceResponseHandler : HttpMessageHandler
+    {
+        private readonly Queue<(HttpStatusCode StatusCode, string Content)> _responses;
+
+        public SequenceResponseHandler(params (HttpStatusCode StatusCode, string Content)[] responses)
+        {
+            _responses = new Queue<(HttpStatusCode StatusCode, string Content)>(responses);
+        }
+
+        protected override Task<HttpResponseMessage> SendAsync(
+            HttpRequestMessage request,
+            CancellationToken cancellationToken)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            if (_responses.Count == 0)
+            {
+                throw new InvalidOperationException("No synthetic HTTP response is configured.");
+            }
+
+            var response = _responses.Dequeue();
+            return Task.FromResult(new HttpResponseMessage(response.StatusCode)
+            {
+                Content = new StringContent(response.Content)
             });
         }
     }

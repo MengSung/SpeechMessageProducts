@@ -745,6 +745,11 @@ internal sealed class SinopacPaymentProvider : IPaymentProvider, IPaymentAllotPr
         try
         {
             using var document = System.Text.Json.JsonDocument.Parse(responseBody);
+            if (document.RootElement.ValueKind != System.Text.Json.JsonValueKind.Object)
+            {
+                return string.Empty;
+            }
+
             if (!document.RootElement.TryGetProperty("code", out var codeElement))
             {
                 return string.Empty;
