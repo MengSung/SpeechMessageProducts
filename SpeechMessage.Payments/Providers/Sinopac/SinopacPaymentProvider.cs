@@ -1,7 +1,8 @@
 /*
  * 檔案整體說明
  *
- * 目的與定位：永豐 QPay provider 實作，宣告支援 TWD，並集中處理 Nonce、AES、簽章、建單、付款查詢及撥款查詢封包。
+ * 目的與定位：永豐 QPay provider 實作，宣告支援 TWD，並集中處理 Nonce、AES、簽章、建單、付款查詢及撥款查詢封包；
+ * 外層 APIService 一律由固定對照輸出規格服務名稱，不使用 enum 數值。
  *
  * 主要功能與流程：
  * 本檔宣告 SinopacPaymentProvider、SinopacRequestException、SinopacSignatureException。
@@ -251,6 +252,10 @@ internal sealed class SinopacPaymentProvider : IPaymentProvider, IPaymentAllotPr
         {
             return AllotQueryError(PaymentErrorKind.ConfigurationInvalid, "ConfigurationInvalid");
         }
+        catch (ArgumentOutOfRangeException)
+        {
+            throw;
+        }
         catch (ArgumentException)
         {
             return AllotQueryError(PaymentErrorKind.RequestInvalid, "RequestInvalid");
@@ -312,6 +317,8 @@ internal sealed class SinopacPaymentProvider : IPaymentProvider, IPaymentAllotPr
         CancellationToken cancellationToken)
         where TRequest : ISinopacRequest
     {
+        var apiServiceName = ResolveApiServiceName(apiService);
+
         // 永豐 QPay 每次呼叫都先取 Nonce，再用 A1/A2/B1/B2 推導出的 AES key 加密 Message。
         // AES key 的大小寫與位元組內容必須完全符合舊 QPay Toolkit，否則銀行會回 HTTP 400。
         var aesKey = SinopacCrypto.BuildAesKey(profile);
@@ -332,8 +339,8 @@ internal sealed class SinopacPaymentProvider : IPaymentProvider, IPaymentAllotPr
         {
             Version = CurrentVersion,
             ShopNo = payload.ShopNo,
-            // 永豐協定要求數字服務碼；Enum.ToString() 會輸出名稱而非固定代碼。
-            APIService = ((int)apiService).ToString(CultureInfo.InvariantCulture),
+            // V2.6 §5.1.1 要求送出服務名稱；舊 QPayToolkit 同樣以 apiService.ToString() 序列化名稱。
+            APIService = apiServiceName,
             Nonce = nonceResponse.Nonce,
             Message = encryptedMessage,
             // 簽章由 provider core 產生，產品層不需要也不應知道永豐簽章欄位規則。
@@ -357,6 +364,27 @@ internal sealed class SinopacPaymentProvider : IPaymentProvider, IPaymentAllotPr
         }
 
         return innerResult;
+    }
+
+    /// <summary>
+    /// 將內部服務列舉明確轉為 QPay V2.6 §5.1.1 所需的外層服務名稱。
+    /// enum 保留舊數值只供內部識別，不得將其數字序列化到 APIService；未知成員屬程式錯誤並 fail fast。
+    /// </summary>
+    /// <param name="apiService">本次 provider 操作使用的內部服務識別。</param>
+    /// <returns>與 QPay APIService wire contract 完全相符的服務名稱。</returns>
+    /// <exception cref="ArgumentOutOfRangeException">enum 值未明確列入服務對照表。</exception>
+    internal static string ResolveApiServiceName(SinopacApiService apiService)
+    {
+        return apiService switch
+        {
+            SinopacApiService.OrderCreate => "OrderCreate",
+            SinopacApiService.OrderPayQuery => "OrderPayQuery",
+            SinopacApiService.AllotQuery => "AllotQuery",
+            _ => throw new ArgumentOutOfRangeException(
+                nameof(apiService),
+                apiService,
+                "The Sinopac API service has no documented wire name.")
+        };
     }
 
     private async Task<TResponse> PostJsonAsync<TResponse>(

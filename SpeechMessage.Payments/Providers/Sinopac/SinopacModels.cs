@@ -36,16 +36,19 @@ internal sealed class SinopacSignExcludeAttribute : Attribute
 {
 }
 
-/// <summary>永豐 QPay API 服務的固定數字代碼；封裝欄位必須輸出代碼而非列舉名稱。</summary>
+/// <summary>
+/// 永豐 QPay API 服務的內部列舉識別；既有數值僅供程式內部保留，不能序列化為外層 APIService。
+/// wire value 必須由 provider 明確對照為規格服務名稱。
+/// </summary>
 internal enum SinopacApiService
 {
-    /// <summary>建單操作在永豐 QPay 協定中的固定服務代碼。</summary>
+    /// <summary>建單操作的內部識別；外層 APIService wire value 為服務名稱 OrderCreate。</summary>
     OrderCreate = 1,
 
-    /// <summary>付款狀態查詢操作在永豐 QPay 協定中的固定服務代碼。</summary>
+    /// <summary>付款狀態查詢的內部識別；外層 APIService wire value 為服務名稱 OrderPayQuery。</summary>
     OrderPayQuery = 5,
 
-    /// <summary>撥款檔查詢操作在永豐 QPay 協定中的固定服務代碼。</summary>
+    /// <summary>撥款檔查詢的內部識別；外層 APIService wire value 為服務名稱 AllotQuery。</summary>
     AllotQuery = 7
 }
 

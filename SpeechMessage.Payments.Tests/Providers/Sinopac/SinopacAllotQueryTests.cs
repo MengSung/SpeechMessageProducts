@@ -4,7 +4,7 @@
  * 目的與定位：驗證 Payments provider 的永豐撥款查詢契約；測試只涵蓋協定 mapping、Nonce／AES／簽章傳輸及可信回應轉成中立撥款批次，
  * 不執行 reconciliation、CRM 更新或任何實際付款。
  *
- * 主要功能與流程：以固定 nonce、明確合成憑證及手工固定的 request envelope 驗證 AllotQuery 服務碼與欄位序列化；
+ * 主要功能與流程：以固定 nonce、明確合成憑證及手工固定的 request envelope 驗證 AllotQuery 服務名稱與欄位序列化；
  * response 測試僅讀取核准的 Golden/Sinopac/allot-query-response.json，經 fake HTTP handler 回應 nonce、密文與簽章；
  * 合成 APIM 狀態、缺少 Nonce、逾時與惡意本文案例鎖定階段碼分類及不洩漏契約。
  * 另以兩個不同 profile 同時呼叫同一 provider，確認 X-KeyID 僅掛在各自的 HttpRequestMessage、兩筆 Nonce 可併行，
@@ -56,7 +56,7 @@ public sealed class SinopacAllotQueryTests
     };
 
     /// <summary>
-    /// 保護核准的 legacy request 欄位名稱、順序、JSON、簽章、AES 封裝及 APIService=7。
+    /// 保護核准的 legacy request 欄位名稱、順序、JSON、簽章、AES 封裝及 APIService="AllotQuery"。
     /// 假 handler 固定回傳 nonce；斷言兩次 HTTP 呼叫的第二個 body 與獨立固定向量逐字相同。
     /// </summary>
     [Fact]
@@ -88,7 +88,7 @@ public sealed class SinopacAllotQueryTests
             {
                 Version = "1.0.0",
                 ShopNo = "SYNTHETIC-SHOP-001",
-                APIService = "7",
+                APIService = "AllotQuery",
                 Sign = SyntheticRequestSign,
                 Nonce = SyntheticNonce,
                 Message = SyntheticRequestMessage
@@ -448,7 +448,7 @@ public sealed class SinopacAllotQueryTests
         {
             Version = "1.0.0",
             ShopNo = "SYNTHETIC-SHOP-001",
-            APIService = "7",
+            APIService = "AllotQuery",
             Sign = sign,
             Nonce = SyntheticNonce,
             Message = encrypted

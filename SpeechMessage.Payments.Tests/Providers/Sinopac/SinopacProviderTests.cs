@@ -5,7 +5,7 @@
  * key derivation，避免抽離後破壞既有奉獻流程。
  *
  * 主要功能與流程：
- * 本檔宣告 SinopacProviderTests、StaticResponseHandler。
+ * 本檔宣告 SinopacProviderTests、StaticResponseHandler 與只擷取 envelope 服務名稱的假 HTTP handler。
  * 測試案例入口包含 Request_mapper_maps_create_request_to_qpay_order_create_payload、
  * Request_mapper_maps_query_provider_order_ref_to_qpay_pay_token、Crypto_builds_legacy_uppercase_aes_key、
  * Status_mapper_maps_successful_order_pay_response_to_succeeded、
@@ -13,6 +13,8 @@
  * Create_result_fails_when_card_payment_success_response_has_no_payment_page_url、
  * Create_result_preserves_provider_rejection_when_card_payment_page_url_is_missing、
  * Create_result_preserves_atm_virtual_account_in_provider_data、
+ * Envelope_ApiService_UsesDocumentedServiceName、Envelope_ApiService_NeverNumeric、
+ * Envelope_ApiService_RejectsUnknownEnumValue、
  * Allot_query_preserves_http_status_when_error_body_root_is_not_an_object；其餘入口見下方成員契約。
  *
  * 使用邊界與維護：
@@ -23,6 +25,8 @@ using FluentAssertions;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using System.Net;
+using Newtonsoft.Json;
+using SpeechMessage.Localization;
 using SpeechMessage.Payments.Abstractions;
 using SpeechMessage.Payments.Configuration;
 using SpeechMessage.Payments.DependencyInjection;
@@ -96,6 +100,63 @@ public sealed class SinopacProviderTests
 
         payload.ShopNo.Should().Be("NA0149_001");
         payload.PayToken.Should().Be("PAYTOKEN-1234567890");
+    }
+
+    /// <summary>
+    /// 保護 QPay 外層封包使用規格所定義的服務名稱；假 HTTP handler 回傳合成 Nonce，並在 Order 階段拒絕請求。
+    /// 決定性斷言只讀取第二個 request body 的 APIService 欄位，不保存或輸出完整 envelope；HttpClient 擁有並釋放 handler。
+    /// </summary>
+    [Theory]
+    [InlineData(1, "OrderCreate")]
+    [InlineData(5, "OrderPayQuery")]
+    [InlineData(7, "AllotQuery")]
+    public async Task Envelope_ApiService_UsesDocumentedServiceName(
+        int apiServiceValue,
+        string expectedServiceName)
+    {
+        var apiService = (SinopacApiService)apiServiceValue;
+        var handler = new ApiServiceCaptureHandler();
+        using var httpClient = new HttpClient(handler);
+        var provider = new SinopacPaymentProvider(httpClient);
+
+        await InvokeProviderOperationAsync(provider, apiService);
+
+        handler.RequestCount.Should().Be(2);
+        handler.CapturedApiService.Should().Be(expectedServiceName);
+    }
+
+    /// <summary>
+    /// 保護所有已定義服務的 wire value 都不是 enum 數字；逐一走公開 provider 操作並檢查假傳輸擷取的 APIService。
+    /// 測試不連外網、不保留完整 request body，且每次呼叫的 HttpClient 在迴圈內確定性 Dispose。
+    /// </summary>
+    [Fact]
+    public async Task Envelope_ApiService_NeverNumeric()
+    {
+        foreach (var apiService in Enum.GetValues<SinopacApiService>())
+        {
+            var handler = new ApiServiceCaptureHandler();
+            using var httpClient = new HttpClient(handler);
+            var provider = new SinopacPaymentProvider(httpClient);
+
+            await InvokeProviderOperationAsync(provider, apiService);
+
+            handler.RequestCount.Should().Be(2);
+            handler.CapturedApiService.Should().NotBeNullOrWhiteSpace();
+            handler.CapturedApiService!.All(char.IsDigit).Should().BeFalse();
+        }
+    }
+
+    /// <summary>
+    /// 未知 enum 是 provider 程式錯誤，不得退化成數字 wire value 或可重試的 HTTP 呼叫。
+    /// 直接驗證純對照入口拋出 ArgumentOutOfRangeException；此路徑不建立 transport 或保存任何請求資料。
+    /// </summary>
+    [Fact]
+    public void Envelope_ApiService_RejectsUnknownEnumValue()
+    {
+        Action mapUnknownService = () =>
+            SinopacPaymentProvider.ResolveApiServiceName((SinopacApiService)0);
+
+        mapUnknownService.Should().Throw<ArgumentOutOfRangeException>();
     }
 
     [Fact]
@@ -437,6 +498,64 @@ public sealed class SinopacProviderTests
         };
     }
 
+    /// <summary>
+    /// 依 enum 成員呼叫實際公開 provider 入口，讓假傳輸觀察真正建立的 Order envelope。
+    /// 請求資料與設定均為本測試專用合成值，不會讀取 User Secrets 或發出真實付款。
+    /// </summary>
+    private static async Task InvokeProviderOperationAsync(
+        SinopacPaymentProvider provider,
+        SinopacApiService apiService)
+    {
+        var profile = CreateProfile();
+        switch (apiService)
+        {
+            case SinopacApiService.OrderCreate:
+                await provider.CreatePaymentAsync(
+                    profile,
+                    new PaymentCreateRequest
+                    {
+                        ProductOrderId = "SYNTHETIC-ORDER-001",
+                        Total = new Money(1200m, "TWD"),
+                        Description = "Synthetic envelope contract",
+                        PaymentMethod = "C",
+                        Callbacks = new PaymentCallbacks
+                        {
+                            ReturnUrl = "https://example.test/return",
+                            BackendUrl = "https://example.test/backend"
+                        }
+                    },
+                    CancellationToken.None);
+                return;
+
+            case SinopacApiService.OrderPayQuery:
+                await provider.QueryPaymentAsync(
+                    profile,
+                    new PaymentQueryRequest
+                    {
+                        ProductOrderId = "SYNTHETIC-ORDER-001",
+                        ProviderOrderRef = "SYNTHETIC-PAYTOKEN-001"
+                    },
+                    CancellationToken.None);
+                return;
+
+            case SinopacApiService.AllotQuery:
+                await provider.QueryAllotAsync(
+                    profile,
+                    new PaymentAllotQueryRequest
+                    {
+                        ProfileName = profile.Name,
+                        FromDate = new DateOnly(2026, 7, 1),
+                        ToDate = new DateOnly(2026, 7, 8),
+                        PaymentType = "C"
+                    },
+                    CancellationToken.None);
+                return;
+
+            default:
+                throw new ArgumentOutOfRangeException(nameof(apiService), apiService, null);
+        }
+    }
+
     private sealed class StaticResponseHandler : HttpMessageHandler
     {
         private readonly HttpStatusCode _statusCode;
@@ -487,6 +606,48 @@ public sealed class SinopacProviderTests
             {
                 Content = new StringContent(response.Content)
             });
+        }
+    }
+
+    /// <summary>
+    /// 離線擷取第二次 HTTP POST 的 APIService 欄位；只保留服務名稱，不保留 envelope 的 nonce、簽章或密文。
+    /// 假 handler 回傳合成 Nonce，再以固定 HTTP 400 結束流程；HttpClient 是唯一 handler owner。
+    /// </summary>
+    private sealed class ApiServiceCaptureHandler : HttpMessageHandler
+    {
+        private int _requestCount;
+
+        /// <summary>取得目前測試收到的請求數，預期為 Nonce 與 Order 各一筆。</summary>
+        public int RequestCount => Volatile.Read(ref _requestCount);
+
+        /// <summary>取得第二個 request body 中解析出的 APIService；不保存其他封包欄位。</summary>
+        public string? CapturedApiService { get; private set; }
+
+        /// <summary>為 Nonce 回覆固定合成資料，並僅從 Order 本文解析服務名稱。</summary>
+        protected override async Task<HttpResponseMessage> SendAsync(
+            HttpRequestMessage request,
+            CancellationToken cancellationToken)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            var requestNumber = Interlocked.Increment(ref _requestCount);
+            if (request.RequestUri!.AbsolutePath.EndsWith("/Nonce", StringComparison.Ordinal))
+            {
+                return new HttpResponseMessage(HttpStatusCode.OK)
+                {
+                    Content = new StringContent(
+                        "{\"Nonce\":\"SYNTHETIC-NONCE-ONLY\"}",
+                        System.Text.Encoding.UTF8,
+                        "application/json")
+                };
+            }
+
+            if (requestNumber == 2)
+            {
+                var body = await request.Content!.ReadAsStringAsync(cancellationToken);
+                CapturedApiService = JsonConvert.DeserializeObject<SinopacWebApiMessage>(body)?.APIService;
+            }
+
+            return new HttpResponseMessage(HttpStatusCode.BadRequest);
         }
     }
 }
