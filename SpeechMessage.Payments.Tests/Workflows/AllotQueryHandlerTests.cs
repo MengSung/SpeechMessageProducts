@@ -95,7 +95,7 @@ public sealed class AllotQueryHandlerTests
         Assert.Equal(0, fixture.Sdk.UpdateCalls);
     }
 
-    /// <summary>相同伺服器待辦重跑會重新讀取並產生相同的完整回寫值，不沿用前次操作的 mutable SDK Entity。</summary>
+    /// <summary>相同伺服器待辦重跑會重新讀取並產生相同的完整回寫值；撥款日期須以教會午夜轉成 UTC，且不沿用前次操作的 mutable SDK Entity。</summary>
     [Fact]
     public async Task Handler_SameTaskTwice_SameResult()
     {
@@ -113,7 +113,7 @@ public sealed class AllotQueryHandlerTests
                 update.Target["new_allot_amount"]));
             Assert.Equal(new Microsoft.Xrm.Sdk.Money(0.45m), Assert.IsType<Microsoft.Xrm.Sdk.Money>(
                 update.Target["new_allot_fee"]));
-            Assert.Equal(new DateTime(2026, 11, 10), Assert.IsType<DateTime>(
+            Assert.Equal(new DateTime(2026, 11, 9, 16, 0, 0, DateTimeKind.Utc), Assert.IsType<DateTime>(
                 update.Target["new_allot_date"]));
             Assert.Equal("SYN-ALLOT-001", Assert.IsType<string>(update.Target["new_allot_no"]));
         });
