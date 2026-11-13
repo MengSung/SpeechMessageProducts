@@ -240,11 +240,11 @@ footer{margin-top:36px;color:var(--muted);font-size:12.5px;text-align:center}
  */
 const DATA = {
   "planVersion": "3.5",
-  "snapshot": "2026-11-13 08:33 Asia/Taipei (UTC+08:00)",
-  "lastUpdated": "2026-11-13T08:33:37+08:00",
+  "snapshot": "2026-11-13 12:25 Asia/Taipei (UTC+08:00)",
+  "lastUpdated": "2026-11-13T12:25:23+08:00",
   "branch": "1.0.0.11.Integration.P4.Worktree",
-  "head": "d131ddb0",
-  "headline": "2026-11-13 08:33 Asia/Taipei (UTC+08:00)：P4-06 開始；必要設定鍵已由標準輸入移轉至 LineWebhook User Secrets，CRM／Sandbox 邊界與教會識別證據一致。一般測試 113/113 通過且未執行實機案；new_timezone 與三個實機案例待驗證。",
+  "head": "ec79ed61",
+  "headline": "2026-11-13 12:25 Asia/Taipei (UTC+08:00)：P4-06 進行中。UserLocal 日期測試期待已修正；進度頁 active 摘要已補齊，專屬契約測試 28/28 通過。ec79ed61 其餘七項守門通過，新提交完整守門待重跑；尚未執行本輪三個 PaymentsLive 案例。",
   "notices": [
     {
       "id": "plan-3.5-summary",
@@ -469,8 +469,8 @@ const DATA = {
       "phaseId": "階段 4",
       "level": "info",
       "title": "P4 進度摘要",
-      "lastUpdated": "2026-11-13T08:33:37+08:00",
-      "body": "2026-11-13 07:06 Asia/Taipei (UTC+08:00)：P4-01、P4-02、P4-04、P4-03、P4-05 均已驗收。P4-05 程式提交 7350dc99534c0cc8114154a0a0fbbcfa294d3f8a 的六個指定測試及 LineWebhook 113 個測試通過；固定 guard §8.1 八項均為退出碼 0。Claude 審查未列 Critical／High；Gemini 服務端 503、無可用結果，未完成雙模型審查。驗收紀錄提交 4f5d49d0ba80fa65e98132a71c1c3b9e40126928 已推送，`git ls-remote` 回傳相同 SHA。2026-11-13 08:33 Asia/Taipei (UTC+08:00)：P4-06 active；必要鍵已移轉至 LineWebhook User Secrets，Development CRM／永豐 Sandbox endpoint 核對通過，P3 教會識別 evidence 一致。一般測試 113 項通過；new_timezone 與三個實機案例仍待驗證。設定值未記錄。",
+      "lastUpdated": "2026-11-13T12:25:23+08:00",
+      "body": "2026-11-13 07:06 Asia/Taipei (UTC+08:00)：P4-01、P4-02、P4-04、P4-03、P4-05 均已驗收。P4-05 程式提交 7350dc99534c0cc8114154a0a0fbbcfa294d3f8a 的六個指定測試及 LineWebhook 113 個測試通過；固定 guard §8.1 八項均為退出碼 0。Claude 審查未列 Critical／High；Gemini 服務端 503、無可用結果，未完成雙模型審查。驗收紀錄提交 4f5d49d0ba80fa65e98132a71c1c3b9e40126928 已推送，`git ls-remote` 回傳相同 SHA。2026-11-13 08:33 Asia/Taipei (UTC+08:00)：P4-06 active；必要鍵已移轉至 LineWebhook User Secrets，Development CRM／永豐 Sandbox endpoint 核對通過，P3 教會識別 evidence 一致。2026-11-13 12:25 Asia/Taipei (UTC+08:00)：修正測試對 UserLocal 撥款日的 UTC 期待。ec79ed61 的 §8.1 其餘七項檢查通過；進度頁測試發現 active 摘要缺 P4-06，補齊後專屬測試 28/28 通過。新提交完整守門待重跑；三個 live 案例尚未重跑；設定值未記錄。",
       "steps": [
         "2026-11-12 13:52 Asia/Taipei (UTC+08:00)：P4 分支從 43ea38cd 開始；建立階段父任務及 P4-00 子任務，更新授權文字與進度 DATA。",
         "2026-11-12 13:52 Asia/Taipei (UTC+08:00)：測試商店設定鍵只核對是否存在，未輸出設定值；TLS handshake 成功，未送交易。",
@@ -495,7 +495,9 @@ const DATA = {
         "2026-11-13 05:02 Asia/Taipei (UTC+08:00)：P4-03 收尾提交 a66feb9db99b72b9c20cc45ff97e330b4b220b81 已推送；`git ls-remote origin refs/heads/1.0.0.11.Integration.P4.Worktree` 回傳相同 SHA。",
         "2026-11-13 07:04 Asia/Taipei (UTC+08:00)：P4-05 程式提交 7350dc99534c0cc8114154a0a0fbbcfa294d3f8a 的六個具名測試通過，LineWebhook 主機測試 113 個通過；固定 guard §8.1 八項全過。Claude 未列 Critical／High；Gemini 服務端 503，審查結果為單一模型。04A 完成摘要「五個測試」與步驟的六個名稱不一致，依六個名稱驗收。",
         "2026-11-13 07:06 Asia/Taipei (UTC+08:00)：P4-05 驗收紀錄提交 4f5d49d0ba80fa65e98132a71c1c3b9e40126928 已推送；`git ls-remote origin refs/heads/1.0.0.11.Integration.P4.Worktree` 回傳相同 SHA。",
-        "2026-11-13 08:33 Asia/Taipei (UTC+08:00)：P4-06 以 task.py start 開始；ChurchReport Development 必要 CRM／Sandbox profile 鍵完整，安全 endpoint 核對通過；P3 ignored evidence 中兩份教會識別一致。設定只經標準輸入移轉至 LineWebhook User Secrets，未輸出值。一般測試 113 項通過並排除三個 live 案例；D365 new_timezone 與實機驗收待續。"
+        "2026-11-13 08:33 Asia/Taipei (UTC+08:00)：P4-06 以 task.py start 開始；ChurchReport Development 必要 CRM／Sandbox profile 鍵完整，安全 endpoint 核對通過；P3 ignored evidence 中兩份教會識別一致。設定只經標準輸入移轉至 LineWebhook User Secrets，未輸出值。一般測試 113 項通過並排除三個 live 案例；D365 new_timezone 與實機驗收待續。",
+        "2026-11-13 12:23 Asia/Taipei (UTC+08:00)：ec79ed61 固定 guard 的建置、全方案測試、Debug tracer、編碼、重複碼、I18nCheck 與檔案說明檢查通過；進度頁測試 27 項通過、1 項因 active 摘要缺少 P4-06 失敗。依測試契約補足 DATA，live 案例尚未執行。",
+        "2026-11-13 12:25 Asia/Taipei (UTC+08:00)：P4-06 active 摘要已補五項完成定義與未完成原因；進度頁 28 項測試全部通過。DATA 修正提交後重跑完整守門，再開始本輪實機案例。"
       ]
     }
   ],
@@ -1686,7 +1688,21 @@ const DATA = {
       "note": "首個正式 Plugin 佈署 goodshepherdback 之前"
     }
   ],
-  "active": [],
+  "active": [
+    {
+      "id": "P4-06",
+      "startedAt": "2026-11-13 08:33 Asia/Taipei (UTC+08:00)",
+      "timebox": "半天",
+      "dod": [
+        ["測試", "no", "完整守門通過後，尚待依序各重跑一次三個 PaymentsLive 案例。"],
+        ["固定守門", "no", "ec79ed61 的進度頁契約測試原先失敗；DATA 已修正，新提交尚待完整重跑 §8.1。"],
+        ["覆蓋率", "na", "P4-06 未新增專案，不適用新專案覆蓋率門檻。"],
+        ["實機驗收", "no", "尚待完成三個實機案例及測試資料殘留為 0 的核對。"],
+        ["一頁回報與進度頁", "no", "wp-reports/P4-06.md 與最終驗收狀態尚待 live 測試後完成。"]
+      ],
+      "next": "提交本次進度 DATA 並重跑完整 §8.1；通過後依序執行合成回寫、真實沙箱、冪等三案，各一次，任一失敗即停。"
+    }
+  ],
   "gates": [
     {
       "item": "方案建置（Release）",
