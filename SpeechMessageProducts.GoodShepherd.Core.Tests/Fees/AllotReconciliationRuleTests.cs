@@ -9,7 +9,10 @@
  * 04A §4A 核准的差異以明確 case id 覆寫測試期望，原 golden JSON 保持不變。
  * 專用案例證明空白訂單號永不比對；合成 SDK 記錄 fee、contact、account 的精確
  * ID 與欄位投影，驗證 contact.parentcustomerid 必須屬於授權 church；更新測試
- * 斷言 IfRowVersionMatches、原始 row version、Money 欄位及撥款日期同日午夜。
+ * 斷言 IfRowVersionMatches、原始 row version、Money 欄位及撥款日期 UserLocal 邊界：
+ * 教會日期先轉成教會午夜的 UTC 瞬間寫入；D365 UTC 日期回應則轉回教會日期。
+ * 指定回歸案例使用 UTC 16:00 與 23:59:59、其台北日期已不同的合成時間；不注入故障，
+ * 離線 SDK 替身只回傳明確 Kind 的欄位值，不連線 D365 或永豐。
  *
  * 使用邊界與維護：每個測試自行建立不可跨案例共用的合成列、查詢紀錄
  * 與替身；生產方法接收的 SDK 由呼叫端擁有，本測試不建立連線、快取、工作或計時器。
@@ -26,6 +29,7 @@ using System.Threading;
 using Microsoft.Xrm.Sdk;
 using Microsoft.Xrm.Sdk.Messages;
 using Microsoft.Xrm.Sdk.Query;
+using SpeechMessage.Localization;
 using SpeechMessageProducts.GoodShepherd.Core.Fees;
 using Xunit;
 using DomainMoney = SpeechMessage.Localization.Money;
@@ -205,7 +209,7 @@ public sealed class AllotReconciliationRuleTests
 
     /// <summary>
     /// 驗證更新只送四個核定欄位，列版本條件為 IfRowVersionMatches，
-    /// 並將撥款日維持同一曆日午夜，不依本機或 UTC 時區換算。
+    /// 並將台北教會 2026-03-18 午夜寫為 UTC 2026-03-17 16:00。
     /// </summary>
     [Fact]
     public void Apply_UsesRowVersionAndCalendarMidnight()
@@ -233,13 +237,67 @@ public sealed class AllotReconciliationRuleTests
         Assert.Equal(4.56m, request.Target.GetAttributeValue<Microsoft.Xrm.Sdk.Money>("new_allot_fee").Value);
         Assert.Equal("SYN-ALLOT-001", request.Target.GetAttributeValue<string>("new_allot_no"));
         var writtenDate = request.Target.GetAttributeValue<DateTime>("new_allot_date");
-        Assert.Equal(new DateTime(2026, 3, 18), writtenDate);
-        Assert.Equal(DateTimeKind.Unspecified, writtenDate.Kind);
+        Assert.Equal(new DateTime(2026, 3, 17, 16, 0, 0, DateTimeKind.Utc), writtenDate);
+        Assert.Equal(DateTimeKind.Utc, writtenDate.Kind);
+    }
+
+    /// <summary>
+    /// D365 UserLocal／DateOnly 寫入契約：以教會授權時區將曆日午夜轉為 UTC Kind，
+    /// 即使 provider 傳入 UTC 當天稍晚時間，日期仍取該值的曆日部分。
+    /// </summary>
+    [Fact]
+    public void AllotDate_UserLocal_WritesChurchMidnightAsUtc()
+    {
+        var feeId = Guid.NewGuid();
+        var churchId = Guid.NewGuid();
+        var contactId = Guid.NewGuid();
+        var sdk = new FeeRecordsSdk(feeId, contactId, churchId, churchId);
+        var record = FeeAllotRecords.Read(sdk, feeId, churchId, CancellationToken.None);
+        var update = new FeeAllotUpdate(
+            new DomainMoney(1234m, "TWD"),
+            new DomainMoney(23m, "TWD"),
+            new DateTime(2026, 3, 11, 23, 59, 59, DateTimeKind.Utc),
+            "SYN-ALLOT-USERLOCAL");
+
+        FeeAllotRecords.Apply(sdk, record, update, CancellationToken.None);
+
+        var writtenDate = Assert.IsType<UpdateRequest>(sdk.UpdateRequest)
+            .Target.GetAttributeValue<DateTime>("new_allot_date");
+        Assert.Equal(new DateTime(2026, 3, 10, 16, 0, 0, DateTimeKind.Utc), writtenDate);
+        Assert.Equal(DateTimeKind.Utc, writtenDate.Kind);
+        Assert.Equal(1, sdk.ExecuteCount);
+    }
+
+    /// <summary>
+    /// D365 UserLocal／DateOnly 讀取契約：UTC 16:00 與 23:59:59 都落在台北次日，
+    /// 必須使用該 fee 已驗證教會時區轉回曆日，而不能直接取 UTC Date。
+    /// </summary>
+    [Theory]
+    [InlineData(16, 0, 0)]
+    [InlineData(23, 59, 59)]
+    public void PayDate_UserLocal_ReadsChurchCalendarDay(int hour, int minute, int second)
+    {
+        var feeId = Guid.NewGuid();
+        var churchId = Guid.NewGuid();
+        var contactId = Guid.NewGuid();
+        var utcPayDate = new DateTime(2026, 3, 10, hour, minute, second, DateTimeKind.Utc);
+        var sdk = new FeeRecordsSdk(
+            feeId,
+            contactId,
+            churchId,
+            churchId,
+            utcPayDate,
+            "Asia/Taipei");
+
+        var record = FeeAllotRecords.Read(sdk, feeId, churchId, CancellationToken.None);
+
+        Assert.Equal(new DateTime(2026, 3, 11), record.Snapshot.PayDate);
+        Assert.Equal("Asia/Taipei", record.TimeZoneId);
     }
 
     /// <summary>
     /// P4-03 的正式命名案例：撥款日期含 UTC Kind 與非午夜時間時，
-    /// 寫入仍採 provider 所給的曆日並正規化為 Dataverse 日期欄位的午夜。
+    /// 寫入仍採 provider 所給的曆日，並存為該教會午夜對應的 UTC 瞬間。
     /// </summary>
     [Fact]
     public void Update_AllotDate_IsSameCalendarDay()
@@ -260,11 +318,9 @@ public sealed class AllotReconciliationRuleTests
 
         var request = Assert.IsType<UpdateRequest>(sdk.UpdateRequest);
         var writtenDate = request.Target.GetAttributeValue<DateTime>("new_allot_date");
-        Assert.Equal(2026, writtenDate.Year);
-        Assert.Equal(12, writtenDate.Month);
-        Assert.Equal(31, writtenDate.Day);
-        Assert.Equal(TimeSpan.Zero, writtenDate.TimeOfDay);
-        Assert.Equal(DateTimeKind.Unspecified, writtenDate.Kind);
+        Assert.Equal(new DateTime(2026, 12, 30, 16, 0, 0, DateTimeKind.Utc), writtenDate);
+        Assert.Equal(TimeSpan.FromHours(16), writtenDate.TimeOfDay);
+        Assert.Equal(DateTimeKind.Utc, writtenDate.Kind);
         Assert.Equal(1, sdk.ExecuteCount);
     }
 
@@ -343,18 +399,27 @@ public sealed class AllotReconciliationRuleTests
         private readonly Guid? contactId;
         private readonly Guid? memberChurchId;
         private readonly Guid? requestedChurchId;
+        private readonly DateTime payDate;
+        private readonly string timeZoneId;
 
         /// <summary>建立純 Apply 案例的替身，或建立三段讀取流程所需的合成身份。</summary>
         public FeeRecordsSdk(
             Guid? feeId = null,
             Guid? contactId = null,
             Guid? memberChurchId = null,
-            Guid? requestedChurchId = null)
+            Guid? requestedChurchId = null,
+            DateTime? payDate = null,
+            string timeZoneId = "Asia/Taipei")
         {
             this.feeId = feeId;
             this.contactId = contactId;
             this.memberChurchId = memberChurchId;
             this.requestedChurchId = requestedChurchId;
+            this.payDate = payDate ?? new ChurchClock().ToUtc(
+                new LocalDateTimeOfChurch(
+                    new DateTime(2026, 3, 10, 0, 0, 0, DateTimeKind.Unspecified),
+                    timeZoneId));
+            this.timeZoneId = timeZoneId;
         }
 
         /// <summary>保存每次讀取的實體與 ID，不保存回應欄位或個人資料。</summary>
@@ -387,7 +452,7 @@ public sealed class AllotReconciliationRuleTests
                     "new_q_pay_order_atm_no", "new_q_paid_order_atm_no", "versionnumber");
                 var fee = new Entity("new_fee", id) { RowVersion = "synthetic-row-version-17" };
                 fee["new_pay_way"] = new OptionSetValue(100000001);
-                fee["new_pay_date"] = new DateTime(2026, 3, 10);
+                fee["new_pay_date"] = payDate;
                 fee["new_contact_new_fee"] = new EntityReference("contact", contactId!.Value);
                 fee["new_q_pay_card_order_no"] = "SYN-CARD-001";
                 fee["new_q_paid_card_order_no"] = string.Empty;
@@ -408,7 +473,7 @@ public sealed class AllotReconciliationRuleTests
             if (entityName == "account" && id == requestedChurchId)
             {
                 AssertColumns(columnSet, "new_timezone");
-                return new Entity("account", id) { ["new_timezone"] = "Asia/Taipei" };
+                return new Entity("account", id) { ["new_timezone"] = timeZoneId };
             }
 
             throw new InvalidOperationException("Unexpected synthetic retrieve identity.");

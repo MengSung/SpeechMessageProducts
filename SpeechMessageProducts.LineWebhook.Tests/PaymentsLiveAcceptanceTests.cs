@@ -3,8 +3,8 @@
  *
  * 目的與定位：承接 P4-06 唯一核准的永豐沙箱與 goodshepherdback 實機驗收；案例使用正式 Payments gateway、Outbound registration、Worker 與 D365 儲存層，不啟動 LineWebhook HTTP 主機。
  * 主要功能與流程：每案先從 LineWebhook User Secrets 讀取固定教會 ID、Development CRM 與 Sandbox profile，確認 CRM HTTPS 主機、沙箱 API 主機、必要設定鍵及 account.new_timezone，再建立本次專屬 Contact、Fee、Outbound Task。測試完成後按正式資料 ID 刪除待辦、收費單與會友，並只在 account 設定仍等於本次測試值時恢復原 profile。
- * 信任與資源邊界：User Secrets 是設定來源，不是教會授權；教會 ID 必須是前置檢查取得的正式 ID，profile 由 account 欄位提供。每個 xUnit 案例擁有獨立 Host、DI scope、Dataverse 服務與測試資料；Worker 停止並排空後才清理資料、釋放 scope、Host 與設定根，不共用跨案例狀態。
- * 失敗與驗證：任何環境不符都在建立資料前 fail closed；測試只使用沙箱，不送真實付款。即時查詢案例要求待辦在 60 秒內完成且 provider 狀態已驗簽；寫回案例以合成 gateway 比對舊公式並明標不是永豐實回；冪等案例核對正式待辦 ID、attempts、modifiedon 與單次 gateway 呼叫。每案最後以精確識別查詢確認殘留為零。失敗診斷只保留固定 worker operation、例外型別、allowlisted D365 錯誤分類、呼叫次數及合成欄位／日期比對，不讀取例外本文或輸出秘密。
+ * 使用邊界與維護：User Secrets 是設定來源，不是教會授權；教會 ID 必須是前置檢查取得的正式 ID，profile 由 account 欄位提供。每個 xUnit 案例擁有獨立 Host、DI scope、Dataverse 服務與測試資料；Worker 停止並排空後才清理資料、釋放 scope、Host 與設定根，不共用跨案例狀態。
+ * 失敗與驗證：任何環境不符都在建立資料前 fail closed；測試只使用沙箱，不送真實付款。即時查詢案例要求待辦在 60 秒內完成且 provider 狀態已驗簽；寫回案例以合成 gateway 比對舊公式並明標不是永豐實回，日期依 account 教會時區轉換；冪等案例核對正式待辦 ID、attempts、modifiedon 與單次 gateway 呼叫。合成寫回前唯讀查 TWD 幣別精度，並在本機測試輸出記錄 D365 讀回金額與精度。每案最後以精確識別查詢確認殘留為零。失敗診斷不讀取例外本文或輸出秘密。
  */
 using System;
 using System.Collections.Concurrent;
@@ -81,13 +81,15 @@ public sealed class PaymentsLiveAcceptanceTests
     public async Task Live_AllotWriteBack_SyntheticBatch_MatchesLegacy()
     {
         var allotDate = DateOnly.FromDateTime(TimeProvider.System.GetUtcNow().UtcDateTime);
+        var syntheticAllotAmount = 0m;
+        var syntheticAllotFee = 0m;
         SyntheticAllotGateway? gateway = null;
         await using var fixture = await LiveFixture.CreateAsync(
             _output,
             orderNo =>
             {
                 gateway = new SyntheticAllotGateway(
-                    new PaymentAllotQueryResult
+                    () => new PaymentAllotQueryResult
                     {
                         ProviderStatus = "SYNTHETIC",
                         Batches = new[]
@@ -101,8 +103,8 @@ public sealed class PaymentsLiveAcceptanceTests
                                     new PaymentAllotItem
                                     {
                                         OrderNo = orderNo,
-                                        Amount = new LocalizationMoney(1234.56m, "TWD"),
-                                        Fee = new LocalizationMoney(23.45m, "TWD")
+                                        Amount = new LocalizationMoney(syntheticAllotAmount, "TWD"),
+                                        Fee = new LocalizationMoney(syntheticAllotFee, "TWD")
                                     }
                                 }
                             }
@@ -110,6 +112,17 @@ public sealed class PaymentsLiveAcceptanceTests
                     });
                 return gateway;
             });
+        var currencyPrecision = fixture.ReadTwdCurrencyPrecision();
+        syntheticAllotAmount = currencyPrecision < 2 ? 1234m : 1234.56m;
+        syntheticAllotFee = currencyPrecision < 2 ? 23m : 23.45m;
+        var expectedAllotAmount = syntheticAllotAmount - syntheticAllotFee;
+        _output.WriteLine(
+            "Synthetic provider values: amount={0}; fee={1}; expected new_allot_amount={2}; expected new_allot_fee={3}; transactioncurrency.currencyprecision={4}",
+            syntheticAllotAmount.ToString(System.Globalization.CultureInfo.InvariantCulture),
+            syntheticAllotFee.ToString(System.Globalization.CultureInfo.InvariantCulture),
+            expectedAllotAmount.ToString(System.Globalization.CultureInfo.InvariantCulture),
+            syntheticAllotFee.ToString(System.Globalization.CultureInfo.InvariantCulture),
+            currencyPrecision.ToString(System.Globalization.CultureInfo.InvariantCulture));
         fixture.CreateTestRows();
         var taskId = fixture.EnqueueAllotQuery();
 
@@ -118,8 +131,13 @@ public sealed class PaymentsLiveAcceptanceTests
             await fixture.RunWorkerUntilCompletedAsync(taskId, TimeSpan.FromSeconds(60));
 
             var updated = fixture.ReadFeeSnapshot();
-            Assert.Equal((decimal?)1211.11m, updated.AllotAmount);
-            Assert.Equal((decimal?)23.45m, updated.AllotFee);
+            _output.WriteLine(
+                "Synthetic D365 read-back: new_allot_amount={0}; new_allot_fee={1}; transactioncurrency.currencyprecision={2}",
+                updated.AllotAmount?.ToString(System.Globalization.CultureInfo.InvariantCulture) ?? "null",
+                updated.AllotFee?.ToString(System.Globalization.CultureInfo.InvariantCulture) ?? "null",
+                currencyPrecision.ToString(System.Globalization.CultureInfo.InvariantCulture));
+            Assert.Equal((decimal?)expectedAllotAmount, updated.AllotAmount);
+            Assert.Equal((decimal?)syntheticAllotFee, updated.AllotFee);
             Assert.NotNull(updated.AllotDate);
             Assert.Equal(allotDate, DateOnly.FromDateTime(updated.AllotDate.Value));
             Assert.StartsWith("P4-06-SYNTHETIC-", updated.AllotNo, StringComparison.Ordinal);
@@ -130,7 +148,10 @@ public sealed class PaymentsLiveAcceptanceTests
                 "synthetic",
                 taskId,
                 gateway!.CallCount,
-                allotDate);
+                allotDate,
+                expectedAllotAmount,
+                syntheticAllotFee,
+                currencyPrecision);
             _output.WriteLine("Synthetic case failure type: {0}", exception.GetType().Name);
             throw;
         }
@@ -200,6 +221,8 @@ public sealed class PaymentsLiveAcceptanceTests
         private bool _cleanupCompleted;
         private int _workerFailureCount;
         private RecordingAllotGateway? _recordingGateway;
+        private int? _twdCurrencyPrecision;
+        private string _timeZoneId = "Asia/Taipei";
         private string _timeZoneState = "未讀取";
 
         /// <summary>只由工廠建立；整個案例使用獨立的教會、資料 ID 與資源 owner。</summary>
@@ -245,14 +268,16 @@ public sealed class PaymentsLiveAcceptanceTests
             if (_contactId == Guid.Empty)
                 throw new InvalidOperationException("The test contact did not receive a Dataverse identity.");
 
+            var churchClock = _host!.Services.GetRequiredService<IChurchClock>();
+            var churchPayDay = churchClock.TodayInChurch(_timeZoneId);
+            var churchPayMidnight = DateTime.SpecifyKind(churchPayDay.Date, DateTimeKind.Unspecified);
             var fee = new Entity("new_fee")
             {
                 ["new_name"] = _feeName,
                 ["new_contact_new_fee"] = new EntityReference("contact", _contactId),
                 ["new_pay_way"] = new OptionSetValue(AllotQueryPaymentWay),
-                ["new_pay_date"] = DateTime.SpecifyKind(
-                    TimeProvider.System.GetUtcNow().UtcDateTime.Date,
-                    DateTimeKind.Unspecified),
+                ["new_pay_date"] = churchClock.ToUtc(
+                    new LocalDateTimeOfChurch(churchPayMidnight, _timeZoneId)),
                 ["new_q_pay_card_order_no"] = _orderNo,
                 ["new_q_paid_card_order_no"] = string.Empty,
                 ["new_q_pay_order_atm_no"] = string.Empty,
@@ -323,6 +348,35 @@ public sealed class PaymentsLiveAcceptanceTests
             throw new TimeoutException("The P4-06 outbound task did not complete within 60 seconds.");
         }
 
+        /// <summary>
+        /// 唯讀查詢本組織唯一 TWD 幣別的小數位數；查詢最多取兩列並在寫入測試資料前完成，
+        /// 結果只保留於本 fixture，供合成金額選擇與操作紀錄使用。
+        /// </summary>
+        internal int ReadTwdCurrencyPrecision()
+        {
+            if (_twdCurrencyPrecision.HasValue)
+                return _twdCurrencyPrecision.Value;
+
+            var query = new QueryExpression("transactioncurrency")
+            {
+                ColumnSet = new ColumnSet("currencyprecision"),
+                TopCount = 2
+            };
+            query.Criteria.AddCondition("isocurrencycode", ConditionOperator.Equal, "TWD");
+            var currencies = _sdk!.RetrieveMultiple(query).Entities;
+            if (currencies.Count != 1
+                || !currencies[0].Attributes.TryGetValue("currencyprecision", out var rawPrecision)
+                || rawPrecision is not int precision
+                || precision < 0
+                || precision > 4)
+            {
+                throw new InvalidOperationException("The TWD currency precision could not be read uniquely.");
+            }
+
+            _twdCurrencyPrecision = precision;
+            return precision;
+        }
+
         /// <summary>讀取 fee 的四個撥款欄位，轉成不保留 SDK Entity 的比較純值。</summary>
         internal FeeSnapshot ReadFeeSnapshot()
         {
@@ -331,10 +385,14 @@ public sealed class PaymentsLiveAcceptanceTests
                 "new_fee",
                 _feeId,
                 new ColumnSet("new_allot_amount", "new_allot_fee", "new_allot_date", "new_allot_no"));
+            var rawAllotDate = fee.GetAttributeValue<DateTime?>("new_allot_date");
+            DateTime? churchAllotDate = rawAllotDate.HasValue
+                ? ToChurchCalendarDate(rawAllotDate.Value)
+                : null;
             return new FeeSnapshot(
                 fee.GetAttributeValue<DataverseMoney>("new_allot_amount")?.Value,
                 fee.GetAttributeValue<DataverseMoney>("new_allot_fee")?.Value,
-                fee.GetAttributeValue<DateTime?>("new_allot_date"),
+                churchAllotDate,
                 fee.GetAttributeValue<string>("new_allot_no"));
         }
 
@@ -498,7 +556,10 @@ public sealed class PaymentsLiveAcceptanceTests
             string responseSource,
             Guid taskId,
             int gatewayCallCount,
-            DateOnly expectedDate)
+            DateOnly expectedDate,
+            decimal expectedAllotAmount,
+            decimal expectedAllotFee,
+            int currencyPrecision)
         {
             try
             {
@@ -507,19 +568,24 @@ public sealed class PaymentsLiveAcceptanceTests
                 var actualDate = fee.AllotDate.HasValue
                     ? DateOnly.FromDateTime(fee.AllotDate.Value).ToString("yyyy-MM-dd", System.Globalization.CultureInfo.InvariantCulture)
                     : "missing";
-                var amountMatches = fee.AllotAmount == 1211.11m;
-                var feeMatches = fee.AllotFee == 23.45m;
+                var amountMatches = fee.AllotAmount == expectedAllotAmount;
+                var feeMatches = fee.AllotFee == expectedAllotFee;
                 var allotNoMatches = fee.AllotNo?.StartsWith("P4-06-SYNTHETIC-", StringComparison.Ordinal) == true;
                 var dateMatches = fee.AllotDate.HasValue
                     && DateOnly.FromDateTime(fee.AllotDate.Value) == expectedDate;
                 _output.WriteLine(
-                    "P4-06 safe diagnostics: source={0}; taskStatus={1}; attempts={2}; errorClass={3}; gatewayCalls={4}; workerFailures={5}; amountMatch={6}; feeMatch={7}; allotNoMatch={8}; dateMatch={9}; expectedDate={10}; actualDate={11}",
+                    "P4-06 safe diagnostics: source={0}; taskStatus={1}; attempts={2}; errorClass={3}; gatewayCalls={4}; workerFailures={5}; expected new_allot_amount={6}; actual new_allot_amount={7}; expected new_allot_fee={8}; actual new_allot_fee={9}; transactioncurrency.currencyprecision={10}; amountMatch={11}; feeMatch={12}; allotNoMatch={13}; dateMatch={14}; expectedDate={15}; actualDate={16}",
                     responseSource,
                     task.Status,
                     task.Attempts,
                     task.ErrorCode,
                     gatewayCallCount,
                     string.Join(",", _workerFailures.ToArray()),
+                    expectedAllotAmount.ToString(System.Globalization.CultureInfo.InvariantCulture),
+                    fee.AllotAmount?.ToString(System.Globalization.CultureInfo.InvariantCulture) ?? "null",
+                    expectedAllotFee.ToString(System.Globalization.CultureInfo.InvariantCulture),
+                    fee.AllotFee?.ToString(System.Globalization.CultureInfo.InvariantCulture) ?? "null",
+                    currencyPrecision.ToString(System.Globalization.CultureInfo.InvariantCulture),
                     amountMatches,
                     feeMatches,
                     allotNoMatches,
@@ -567,6 +633,23 @@ public sealed class PaymentsLiveAcceptanceTests
             _sdk = _crmScope.ServiceProvider.GetRequiredService<IOrganizationService>();
         }
 
+        /// <summary>
+        /// 依 Dataverse UserLocal 語意將 SDK 回傳的 UTC 瞬間換成教會日期；
+        /// Unspecified 只補 UTC Kind，Local Kind 拒絕以開發機時區推測。
+        /// </summary>
+        private DateTime ToChurchCalendarDate(DateTime value)
+        {
+            var utc = value.Kind switch
+            {
+                DateTimeKind.Utc => value,
+                DateTimeKind.Unspecified => DateTime.SpecifyKind(value, DateTimeKind.Utc),
+                _ => throw new InvalidOperationException("The D365 fee date has an invalid time kind.")
+            };
+            return _host!.Services.GetRequiredService<IChurchClock>()
+                .ToChurchTime(utc, _timeZoneId)
+                .Date;
+        }
+
         /// <summary>唯讀驗證 ChurchId 確實存在且 account timezone/profile 欄位型別可安全處理。</summary>
         private void ReadAndValidateChurchBeforeWrites()
         {
@@ -584,16 +667,28 @@ public sealed class PaymentsLiveAcceptanceTests
 
             if (!church.Attributes.TryGetValue("new_timezone", out var timeZoneValue) || timeZoneValue is null)
             {
+                _timeZoneId = "Asia/Taipei";
                 _timeZoneState = "空白，依既定 Asia/Taipei fallback";
             }
             else if (timeZoneValue is string timeZone)
             {
-                _timeZoneState = string.IsNullOrWhiteSpace(timeZone) ? "空白，依既定 Asia/Taipei fallback" : "已有值";
+                if (string.IsNullOrWhiteSpace(timeZone))
+                {
+                    _timeZoneId = "Asia/Taipei";
+                    _timeZoneState = "空白，依既定 Asia/Taipei fallback";
+                }
+                else
+                {
+                    _timeZoneId = timeZone;
+                    _timeZoneState = "已有值";
+                }
             }
             else
             {
                 throw new InvalidOperationException("The church timezone has an invalid data type.");
             }
+
+            _ = _host!.Services.GetRequiredService<IChurchClock>().TodayInChurch(_timeZoneId);
         }
 
         /// <summary>
@@ -889,21 +984,21 @@ public sealed class PaymentsLiveAcceptanceTests
     }
 
     /// <summary>供 P4-06 案例使用的 operation-local 撥款回應替身，不保存 CRM 或 profile 狀態。</summary>
-    private sealed class SyntheticAllotGateway(PaymentAllotQueryResult result) : IPaymentAllotGateway
+    private sealed class SyntheticAllotGateway(Func<PaymentAllotQueryResult> resultFactory) : IPaymentAllotGateway
     {
         private int _callCount;
 
         /// <summary>以原子讀取提供此合成案例的呼叫數，不保存任何教會或設定狀態。</summary>
         internal int CallCount => Volatile.Read(ref _callCount);
 
-        /// <summary>回傳建構時提供的合成 provider-neutral 結果；不建立 HTTP client 或連接永豐。</summary>
+        /// <summary>每次呼叫以合成值建立 provider-neutral 結果；不建立 HTTP client 或連接永豐。</summary>
         public Task<PaymentAllotQueryResult> QueryAllotAsync(
             PaymentAllotQueryRequest request,
             CancellationToken cancellationToken = default)
         {
             cancellationToken.ThrowIfCancellationRequested();
             Interlocked.Increment(ref _callCount);
-            return Task.FromResult(result);
+            return Task.FromResult(resultFactory());
         }
     }
 

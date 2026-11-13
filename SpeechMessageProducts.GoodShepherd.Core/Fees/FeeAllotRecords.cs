@@ -9,7 +9,8 @@
  * 主要功能與流程：Read 僅投影必要 fee/member/church 欄位，驗證實體身份、必要型別、
  * row version 與教會歸屬，回傳操作區域純值及原列版本；空白教會時區使用 Asia/Taipei。
  * Apply 建立只含四個撥款欄位的 request，以原列版本執行 IfRowVersionMatches，將撥款日
- * 寫為 provider 日期的相同曆日午夜，再讀回日期欄位並比較整秒值，任何衝突或不符都向上拋出。
+ * 的教會曆日午夜轉成 UTC 寫入 UserLocal 欄位，再把 D365 UTC 讀值轉回同一教會時區取日期。
+ * new_pay_date 亦使用相同 UTC→教會日期規則，避免撥款查詢區間早一天。
  *
  * 使用邊界與維護：IOrganizationService 由呼叫端擁有，本類只同步借用、不 Dispose、不快取；
  * 每個 SDK I/O 前後檢查 caller token，已進入的同步呼叫不能被 token 中斷。SDK Entity 與 row
@@ -22,6 +23,8 @@ using System.Threading;
 using Microsoft.Xrm.Sdk;
 using Microsoft.Xrm.Sdk.Messages;
 using Microsoft.Xrm.Sdk.Query;
+using ChurchClock = SpeechMessage.Localization.ChurchClock;
+using LocalDateTimeOfChurch = SpeechMessage.Localization.LocalDateTimeOfChurch;
 
 namespace SpeechMessageProducts.GoodShepherd.Core.Fees;
 
@@ -35,6 +38,7 @@ public static class FeeAllotRecords
     private const string MemberChurchField = "parentcustomerid";
     private const string ChurchTimeZoneField = "new_timezone";
     private const string DefaultChurchTimeZone = "Asia/Taipei";
+    private static readonly ChurchClock DateClock = new();
 
     private static readonly string[] FeeColumns =
     {
@@ -116,7 +120,7 @@ public static class FeeAllotRecords
         var snapshot = new FeeAllotSnapshot(
             fee.Id,
             RequireOptionSet(fee, "new_pay_way"),
-            ReadOptionalDate(fee, "new_pay_date"),
+            ReadOptionalDate(fee, "new_pay_date", timeZoneId),
             ReadOptionalString(fee, "new_q_pay_card_order_no"),
             ReadOptionalString(fee, "new_q_paid_card_order_no"),
             ReadOptionalString(fee, "new_q_pay_order_atm_no"),
@@ -128,7 +132,7 @@ public static class FeeAllotRecords
 
     /// <summary>
     /// 只更新四個撥款欄位，以 Read 取得的原 row version 執行樂觀並行控制；
-    /// 日期保留 provider 的曆日並寫成 unspecified midnight，成功後讀回並按整秒核對。
+    /// 日期取 provider 曆日，轉成 record 所屬教會午夜的 UTC 瞬間寫入，再以同一時區核對讀回日期。
     /// </summary>
     /// <param name="sdk">呼叫端擁有的 Dataverse 服務；本方法借用但不 Dispose。</param>
     /// <param name="record">同一操作先前由 Read 建立的收費資料列與原 row version。</param>
@@ -179,7 +183,7 @@ public static class FeeAllotRecords
         };
         target["new_allot_amount"] = new Money(update.AllotAmount.Amount);
         target["new_allot_fee"] = new Money(update.AllotFee.Amount);
-        target["new_allot_date"] = ToUnspecifiedMidnight(update.AllotDate);
+        target["new_allot_date"] = ToUtcChurchMidnight(update.AllotDate, record.TimeZoneId);
         target["new_allot_no"] = update.AllotNo;
 
         ct.ThrowIfCancellationRequested();
@@ -195,7 +199,7 @@ public static class FeeAllotRecords
         RequireIdentity(written, FeeEntityName, original.Id);
         if (!written.Attributes.TryGetValue("new_allot_date", out var rawDate)
             || rawDate is not DateTime actualDate
-            || TruncateToSecond(actualDate).Ticks != TruncateToSecond(update.AllotDate).Ticks)
+            || ReadChurchCalendarDate(actualDate, record.TimeZoneId).Date != update.AllotDate.Date)
         {
             throw new InvalidOperationException("Fee allot date read-back did not match.");
         }
@@ -235,8 +239,11 @@ public static class FeeAllotRecords
         return option.Value;
     }
 
-    /// <summary>讀取選填付款日期欄位；不存在或 null 表示缺日，錯誤型別不猜測轉型。</summary>
-    private static DateTime? ReadOptionalDate(Entity entity, string attribute)
+    /// <summary>
+    /// 讀取選填 D365 UserLocal 日期；SDK 的 Utc 保持原瞬間，Unspecified 依 D365 UTC 語意正規化，
+    /// 再使用已授權教會時區轉回曆日。Local Kind 不猜伺服器時區，缺值維持 null。
+    /// </summary>
+    private static DateTime? ReadOptionalDate(Entity entity, string attribute, string timeZoneId)
     {
         if (!entity.Attributes.TryGetValue(attribute, out var raw) || raw is null)
         {
@@ -248,7 +255,7 @@ public static class FeeAllotRecords
             throw new InvalidOperationException("Fee payment date has an invalid type.");
         }
 
-        return date.Date;
+        return ReadChurchCalendarDate(date, timeZoneId);
     }
 
     /// <summary>讀取選填訂單欄位；缺少或 null 正規化為不參與比對的空字串。</summary>
@@ -283,11 +290,50 @@ public static class FeeAllotRecords
         return string.IsNullOrWhiteSpace(timeZoneId) ? DefaultChurchTimeZone : timeZoneId;
     }
 
-    /// <summary>保留指定年月日並明確設定午夜及 Unspecified Kind，避免資料庫日期跨日偏移。</summary>
-    private static DateTime ToUnspecifiedMidnight(DateTime value) =>
-        new(value.Year, value.Month, value.Day, 0, 0, 0, DateTimeKind.Unspecified);
+    /// <summary>
+    /// 將 provider 的年月日視為教會曆日，先建立教會午夜再轉成 UTC Kind。
+    /// 只使用 Read 已驗證並保存在本次 record 的教會時區，不以伺服器時區解讀純日期。
+    /// </summary>
+    private static DateTime ToUtcChurchMidnight(DateTime value, string timeZoneId)
+    {
+        var localMidnight = new DateTime(value.Year, value.Month, value.Day, 0, 0, 0, DateTimeKind.Unspecified);
+        try
+        {
+            return DateClock.ToUtc(new LocalDateTimeOfChurch(localMidnight, timeZoneId));
+        }
+        catch (Exception exception) when (IsTimeZoneConversionFailure(exception))
+        {
+            throw new InvalidOperationException("Fee allot date conversion failed.");
+        }
+    }
 
-    /// <summary>按不晚於整秒的方式正規化 Dataverse 讀回值，忽略 SDK 未承諾的次秒精度。</summary>
-    private static DateTime TruncateToSecond(DateTime value) =>
-        new(value.Ticks - value.Ticks % TimeSpan.TicksPerSecond, DateTimeKind.Unspecified);
+    /// <summary>
+    /// 把 D365 UserLocal UTC 瞬間轉為教會曆日。SDK 的 Unspecified 只補上 UTC 標記；
+    /// Local Kind 代表無法依本契約確認的輸入，拒絕用執行主機時區猜測。
+    /// </summary>
+    private static DateTime ReadChurchCalendarDate(DateTime value, string timeZoneId)
+    {
+        var utc = value.Kind switch
+        {
+            DateTimeKind.Utc => value,
+            DateTimeKind.Unspecified => DateTime.SpecifyKind(value, DateTimeKind.Utc),
+            _ => throw new InvalidOperationException("Fee date has an invalid time kind.")
+        };
+
+        try
+        {
+            return DateClock.ToChurchTime(utc, timeZoneId).Date;
+        }
+        catch (Exception exception) when (IsTimeZoneConversionFailure(exception))
+        {
+            throw new InvalidOperationException("Fee date conversion failed.");
+        }
+    }
+
+    /// <summary>只包裝時區資料、DST 與可表示範圍錯誤；不把教會設定或日期值帶入診斷文字。</summary>
+    private static bool IsTimeZoneConversionFailure(Exception exception) =>
+        exception is ArgumentException
+            or TimeZoneNotFoundException
+            or InvalidTimeZoneException
+            or OverflowException;
 }
