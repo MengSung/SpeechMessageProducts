@@ -4,7 +4,7 @@
  * 目的與定位：承接 P4-06 唯一核准的永豐沙箱與 goodshepherdback 實機驗收；案例使用正式 Payments gateway、Outbound registration、Worker 與 D365 儲存層，不啟動 LineWebhook HTTP 主機。
  * 主要功能與流程：每案先從 LineWebhook User Secrets 讀取固定教會 ID、Development CRM 與 Sandbox profile，確認 CRM HTTPS 主機、沙箱 API 主機、必要設定鍵及 account.new_timezone，再建立本次專屬 Contact、Fee、Outbound Task。測試完成後按正式資料 ID 刪除待辦、收費單與會友，並只在 account 設定仍等於本次測試值時恢復原 profile。
  * 使用邊界與維護：User Secrets 是設定來源，不是教會授權；教會 ID 必須是前置檢查取得的正式 ID，profile 由 account 欄位提供。每個 xUnit 案例擁有獨立 Host、DI scope、Dataverse 服務與測試資料；Worker 停止並排空後才清理資料、釋放 scope、Host 與設定根，不共用跨案例狀態。
- * 失敗與驗證：任何環境不符都在建立資料前 fail closed；測試只使用沙箱，不送真實付款。即時查詢案例要求待辦在 60 秒內完成且 provider 狀態已驗簽；寫回案例以合成 gateway 比對舊公式並明標不是永豐實回，日期依 account 教會時區轉換；冪等案例核對正式待辦 ID、attempts、modifiedon 與單次 gateway 呼叫。合成寫回前唯讀查 TWD 幣別精度，並在本機測試輸出記錄 D365 讀回金額與精度。每案最後以精確識別查詢確認殘留為零。失敗診斷不讀取例外本文或輸出秘密。
+ * 失敗與驗證：任何環境不符都在建立資料前 fail closed；測試只使用沙箱，不送真實付款。即時查詢案例最多等待 120 秒；逾時時只記錄待辦固定狀態、attempts、錯誤分類、gateway 呼叫階段、已驗簽狀態碼及固定 worker 例外型別，藉此區分待辦未認領、處理中與供應商呼叫未完成，不讀取例外本文、request、response body 或秘密。離線測試以受控未完成工作驗證 gateway 階段診斷。寫回案例以合成 gateway 比對舊公式並明標不是永豐實回，收費日與撥款日共用同一個教會曆日，且逐欄精確比對金額、手續費、日期及撥款編號。合成寫回前唯讀查 TWD 幣別精度及兩個 Money 欄位精度，並在本機測試輸出記錄讀回金額與精度；純值回歸測試保護合成金額選擇不受幣別／欄位精度混淆。冪等案例核對正式待辦 ID、attempts、modifiedon 與單次 gateway 呼叫。每案最後以精確識別查詢確認殘留為零。
  */
 using System;
 using System.Collections.Concurrent;
@@ -51,8 +51,65 @@ public sealed class PaymentsLiveAcceptanceTests
         _output = output ?? throw new ArgumentNullException(nameof(output));
 
     /// <summary>
+    /// 以未完成的合成 gateway 工作注入明確等待狀態，確認診斷可區別呼叫已進入但尚未返回；
+    /// finally 會完成受控工作，確保離線測試不留下未完成 Task 或背景資源。
+    /// </summary>
+    [Fact]
+    [Trait("Category", "PaymentsOffline")]
+    public async Task RecordingGateway_TracksInFlightUntilVerifiedResult()
+    {
+        var completion = new TaskCompletionSource<PaymentAllotQueryResult>(
+            TaskCreationOptions.RunContinuationsAsynchronously);
+        var gateway = new RecordingAllotGateway(new DeferredAllotGateway(completion.Task));
+        var operation = gateway.QueryAllotAsync(new PaymentAllotQueryRequest());
+
+        try
+        {
+            Assert.Equal(1, gateway.CallsStarted);
+            Assert.Equal(0, gateway.CallsCompleted);
+            Assert.Equal("InFlight", gateway.LastOutcome);
+        }
+        finally
+        {
+            completion.TrySetResult(new PaymentAllotQueryResult
+            {
+                ProviderStatus = "S",
+                Batches = Array.Empty<PaymentAllotBatch>()
+            });
+        }
+
+        var result = await operation;
+        Assert.Equal("S", result.ProviderStatus);
+        Assert.Equal(1, gateway.CallsCompleted);
+        Assert.Equal("Success", gateway.LastOutcome);
+    }
+
+    /// <summary>
+    /// 先依幣別精度選擇合成金額；離線回歸測試會確認欄位固定精度也必須納入決策。
+    /// </summary>
+    private static (decimal Amount, decimal Fee) SelectSyntheticAmounts(
+        int currencyPrecision,
+        AllotMoneyPrecision moneyPrecision)
+    {
+        var amountSupportsFractions = SupportsFractionalDigits(currencyPrecision, moneyPrecision.AllotAmount);
+        var feeSupportsFractions = SupportsFractionalDigits(currencyPrecision, moneyPrecision.AllotFee);
+        return amountSupportsFractions && feeSupportsFractions
+            ? (1234.56m, 23.45m)
+            : (1234m, 23m);
+    }
+
+    /// <summary>只在欄位metadata明確允許至少兩位小數時選小數合成值；未知來源採整數保守值。</summary>
+    private static bool SupportsFractionalDigits(int currencyPrecision, MoneyFieldPrecision field) =>
+        field.PrecisionSource switch
+        {
+            0 => field.Precision is >= 2,
+            2 => currencyPrecision >= 2,
+            _ => false
+        };
+
+    /// <summary>
     /// 經真實永豐 Sandbox gateway 執行一次撥款查詢；唯一測試訂單不可能預先存在，
-    /// 因此要求 Worker 於 60 秒內完成、回應已驗簽且四個撥款欄位保持原值。
+    /// 因此要求 Worker 於 120 秒內完成、回應已驗簽且四個撥款欄位保持原值。
     /// </summary>
     [Fact]
     [Trait("Category", "PaymentsLive")]
@@ -63,13 +120,43 @@ public sealed class PaymentsLiveAcceptanceTests
         var before = fixture.ReadFeeSnapshot();
         var taskId = fixture.EnqueueAllotQuery();
 
-        await fixture.RunWorkerUntilCompletedAsync(taskId, TimeSpan.FromSeconds(60));
+        await fixture.RunWorkerUntilCompletedAsync(taskId, TimeSpan.FromSeconds(120));
 
         Assert.Equal(before, fixture.ReadFeeSnapshot());
         var status = fixture.VerifiedProviderStatus;
         Assert.False(string.IsNullOrWhiteSpace(status));
         _output.WriteLine("Verified Sinopac sandbox provider status: {0}", status);
         await fixture.CleanupAndVerifyZeroResidueAsync();
+    }
+
+    /// <summary>
+    /// 離線保護合成回應金額必須同時符合 currency 與 Money 欄位精度；
+    /// 固定 PrecisionSource=0、Precision=0 的合成metadata可重現本次欄位捨入案例，不連 D365。
+    /// </summary>
+    [Theory]
+    [Trait("Category", "PaymentsOffline")]
+    [InlineData(2, 0, 0, 0, 0, 1234, 23)]
+    [InlineData(2, 2, 0, 2, 0, 1234.56, 23.45)]
+    [InlineData(2, 0, 2, 0, 2, 1234.56, 23.45)]
+    [InlineData(0, 2, 2, 2, 2, 1234, 23)]
+    [InlineData(2, 2, 1, 2, 1, 1234, 23)]
+    public void SyntheticAmounts_RespectD365FieldPrecision(
+        int currencyPrecision,
+        int allotAmountPrecision,
+        int allotAmountPrecisionSource,
+        int allotFeePrecision,
+        int allotFeePrecisionSource,
+        decimal expectedAmount,
+        decimal expectedFee)
+    {
+        var actual = SelectSyntheticAmounts(
+            currencyPrecision,
+            new AllotMoneyPrecision(
+                new MoneyFieldPrecision(allotAmountPrecision, allotAmountPrecisionSource),
+                new MoneyFieldPrecision(allotFeePrecision, allotFeePrecisionSource)));
+
+        Assert.Equal(expectedAmount, actual.Amount);
+        Assert.Equal(expectedFee, actual.Fee);
     }
 
     /// <summary>
@@ -80,7 +167,8 @@ public sealed class PaymentsLiveAcceptanceTests
     [Trait("Category", "PaymentsLive")]
     public async Task Live_AllotWriteBack_SyntheticBatch_MatchesLegacy()
     {
-        var allotDate = DateOnly.FromDateTime(TimeProvider.System.GetUtcNow().UtcDateTime);
+        DateOnly? syntheticAllotDate = null;
+        var syntheticAllotNo = "P4-06-SYNTHETIC-" + Guid.NewGuid().ToString("N");
         var syntheticAllotAmount = 0m;
         var syntheticAllotFee = 0m;
         SyntheticAllotGateway? gateway = null;
@@ -96,8 +184,9 @@ public sealed class PaymentsLiveAcceptanceTests
                         {
                             new PaymentAllotBatch
                             {
-                                AllotNo = "P4-06-SYNTHETIC-" + Guid.NewGuid().ToString("N"),
-                                AllotDate = allotDate,
+                                AllotNo = syntheticAllotNo,
+                                AllotDate = syntheticAllotDate
+                                    ?? throw new InvalidOperationException("The synthetic church date was not initialized."),
                                 Items = new[]
                                 {
                                     new PaymentAllotItem
@@ -113,8 +202,12 @@ public sealed class PaymentsLiveAcceptanceTests
                 return gateway;
             });
         var currencyPrecision = fixture.ReadTwdCurrencyPrecision();
-        syntheticAllotAmount = currencyPrecision < 2 ? 1234m : 1234.56m;
-        syntheticAllotFee = currencyPrecision < 2 ? 23m : 23.45m;
+        var moneyPrecision = fixture.ReadAllotMoneyPrecision();
+        var allotDate = fixture.TodayInChurch;
+        syntheticAllotDate = allotDate;
+        var syntheticAmounts = SelectSyntheticAmounts(currencyPrecision, moneyPrecision);
+        syntheticAllotAmount = syntheticAmounts.Amount;
+        syntheticAllotFee = syntheticAmounts.Fee;
         var expectedAllotAmount = syntheticAllotAmount - syntheticAllotFee;
         _output.WriteLine(
             "Synthetic provider values: amount={0}; fee={1}; expected new_allot_amount={2}; expected new_allot_fee={3}; transactioncurrency.currencyprecision={4}",
@@ -123,7 +216,7 @@ public sealed class PaymentsLiveAcceptanceTests
             expectedAllotAmount.ToString(System.Globalization.CultureInfo.InvariantCulture),
             syntheticAllotFee.ToString(System.Globalization.CultureInfo.InvariantCulture),
             currencyPrecision.ToString(System.Globalization.CultureInfo.InvariantCulture));
-        fixture.CreateTestRows();
+        fixture.CreateTestRows(allotDate);
         var taskId = fixture.EnqueueAllotQuery();
 
         try
@@ -140,7 +233,7 @@ public sealed class PaymentsLiveAcceptanceTests
             Assert.Equal((decimal?)syntheticAllotFee, updated.AllotFee);
             Assert.NotNull(updated.AllotDate);
             Assert.Equal(allotDate, DateOnly.FromDateTime(updated.AllotDate.Value));
-            Assert.StartsWith("P4-06-SYNTHETIC-", updated.AllotNo, StringComparison.Ordinal);
+            Assert.Equal(syntheticAllotNo, updated.AllotNo);
         }
         catch (Exception exception)
         {
@@ -149,6 +242,7 @@ public sealed class PaymentsLiveAcceptanceTests
                 taskId,
                 gateway!.CallCount,
                 allotDate,
+                syntheticAllotNo,
                 expectedAllotAmount,
                 syntheticAllotFee,
                 currencyPrecision);
@@ -231,6 +325,11 @@ public sealed class PaymentsLiveAcceptanceTests
         /// <summary>供即時案例取得驗簽成功的供應商狀態碼；合成案例不使用此值。</summary>
         internal string? VerifiedProviderStatus => _recordingGateway?.VerifiedProviderStatus;
 
+        /// <summary>從已唯讀驗證的教會時區取得純日曆日期，不使用開發機時區。</summary>
+        internal DateOnly TodayInChurch =>
+            DateOnly.FromDateTime(
+                _host!.Services.GetRequiredService<IChurchClock>().TodayInChurch(_timeZoneId));
+
         /// <summary>建立案例設定、檢查沙箱邊界、連線唯讀讀取 account，最後才建立測試資料。</summary>
         internal static async Task<LiveFixture> CreateAsync(
             ITestOutputHelper output,
@@ -254,9 +353,12 @@ public sealed class PaymentsLiveAcceptanceTests
 
         /// <summary>
         /// 建立本次唯一 contact 與 fee，確認每次 SDK Create 均回傳非空正式 ID；
-        /// 最後才將 account profile 切至本測試使用的沙箱 profile。
+        /// 可指定教會純日期讓 fee 與合成撥款批次共用曆日；最後才切換 account profile。
         /// </summary>
-        internal void CreateTestRows()
+        /// <param name="churchPayDate">
+        /// 可選教會曆日；未提供時使用已驗證教會時區的今日。寫入前會將該日午夜轉為 UTC。
+        /// </param>
+        internal void CreateTestRows(DateOnly? churchPayDate = null)
         {
             var contact = new Entity("contact")
             {
@@ -269,8 +371,11 @@ public sealed class PaymentsLiveAcceptanceTests
                 throw new InvalidOperationException("The test contact did not receive a Dataverse identity.");
 
             var churchClock = _host!.Services.GetRequiredService<IChurchClock>();
-            var churchPayDay = churchClock.TodayInChurch(_timeZoneId);
-            var churchPayMidnight = DateTime.SpecifyKind(churchPayDay.Date, DateTimeKind.Unspecified);
+            var churchPayDay = churchPayDate
+                ?? DateOnly.FromDateTime(churchClock.TodayInChurch(_timeZoneId));
+            var churchPayMidnight = DateTime.SpecifyKind(
+                churchPayDay.ToDateTime(TimeOnly.MinValue),
+                DateTimeKind.Unspecified);
             var fee = new Entity("new_fee")
             {
                 ["new_name"] = _feeName,
@@ -319,10 +424,13 @@ public sealed class PaymentsLiveAcceptanceTests
             return taskId;
         }
 
-        /// <summary>最多等待指定時間，直到真實 D365 store 與 Worker 將本次 task 標記 Completed。</summary>
+        /// <summary>
+        /// 最多等待指定時間，直到真實 D365 store 與 Worker 將本次 task 標記 Completed；
+        /// 上限為永豐沙箱核准的 120 秒，等待期間僅讀取本次 task。
+        /// </summary>
         internal async Task RunWorkerUntilCompletedAsync(Guid taskId, TimeSpan timeout)
         {
-            if (taskId == Guid.Empty || timeout <= TimeSpan.Zero || timeout > TimeSpan.FromSeconds(60))
+            if (taskId == Guid.Empty || timeout <= TimeSpan.Zero || timeout > TimeSpan.FromSeconds(120))
                 throw new ArgumentOutOfRangeException(nameof(timeout));
 
             _workerStarted = true;
@@ -345,7 +453,64 @@ public sealed class PaymentsLiveAcceptanceTests
                 await Task.Delay(TimeSpan.FromSeconds(1), TimeProvider.System).ConfigureAwait(false);
             }
 
-            throw new TimeoutException("The P4-06 outbound task did not complete within 60 seconds.");
+            WriteSandboxTimeoutDiagnostics(taskId);
+            throw new TimeoutException(
+                "The P4-06 outbound task did not complete within "
+                + timeout.TotalSeconds.ToString(System.Globalization.CultureInfo.InvariantCulture)
+                + " seconds.");
+        }
+
+        /// <summary>
+        /// 逾時時只讀取本次 task 的固定狀態與安全分類，並附上 gateway 進出計數；
+        /// 不輸出 task ID、payload、provider本文、例外本文、設定值或憑證。
+        /// </summary>
+        internal void WriteSandboxTimeoutDiagnostics(Guid taskId)
+        {
+            try
+            {
+                var task = ReadTaskSnapshot(taskId);
+                var gateway = _recordingGateway;
+                _output.WriteLine(
+                    "Sandbox timeout diagnostic: taskStatus={0}; attempts={1}; errorClass={2}; gatewayStarted={3}; gatewayCompleted={4}; gatewayOutcome={5}; verifiedProviderStatus={6}; workerFailures={7}",
+                    SafeTaskStatus(task.Status),
+                    task.Attempts,
+                    task.ErrorCode,
+                    gateway?.CallsStarted ?? 0,
+                    gateway?.CallsCompleted ?? 0,
+                    gateway?.LastOutcome ?? "NotResolved",
+                    SafeProviderStatus(gateway?.VerifiedProviderStatus),
+                    string.Join(",", _workerFailures.ToArray()));
+            }
+            catch (Exception diagnosticException)
+            {
+                _output.WriteLine(
+                    "Sandbox timeout diagnostic unavailable: {0}",
+                    diagnosticException.GetType().Name);
+            }
+        }
+
+        /// <summary>只輸出程式定義的待辦狀態名稱，未知 Dataverse 選項值以 Other 隱去。</summary>
+        private static string SafeTaskStatus(int status) => status switch
+        {
+            (int)OutboundWorkStatus.Pending => "Pending",
+            (int)OutboundWorkStatus.Processing => "Processing",
+            (int)OutboundWorkStatus.Completed => "Completed",
+            (int)OutboundWorkStatus.Failed => "Failed",
+            _ => "Other"
+        };
+
+        /// <summary>限制狀態碼只接受短 ASCII 識別字；其他外部字串不寫入測試輸出。</summary>
+        private static string SafeProviderStatus(string? status)
+        {
+            if (string.IsNullOrWhiteSpace(status))
+                return "not-received";
+            if (status.Length > 16 || status.Any(character =>
+                    !char.IsAsciiLetterOrDigit(character) && character is not ('_' or '-')))
+            {
+                return "unrecognized";
+            }
+
+            return status;
         }
 
         /// <summary>
@@ -375,6 +540,45 @@ public sealed class PaymentsLiveAcceptanceTests
 
             _twdCurrencyPrecision = precision;
             return precision;
+        }
+
+        /// <summary>
+        /// 只向已驗證的 goodshepherdback 讀取兩個已發布 Money 欄位的精度中繼資料；
+        /// 不讀取或輸出業務資料、組態、憑證或個人資訊。
+        /// </summary>
+        internal AllotMoneyPrecision ReadAllotMoneyPrecision()
+        {
+            var allotAmount = ReadMoneyAttributePrecision("new_allot_amount");
+            var allotFee = ReadMoneyAttributePrecision("new_allot_fee");
+            WriteMoneyAttributePrecision("new_allot_amount", allotAmount);
+            WriteMoneyAttributePrecision("new_allot_fee", allotFee);
+            return new AllotMoneyPrecision(allotAmount, allotFee);
+        }
+
+        /// <summary>讀取單一固定 new_fee Money 欄位的已發布精度與精度來源。</summary>
+        private MoneyFieldPrecision ReadMoneyAttributePrecision(string attributeName)
+        {
+            var response = (RetrieveAttributeResponse)_sdk!.Execute(new RetrieveAttributeRequest
+            {
+                EntityLogicalName = "new_fee",
+                LogicalName = attributeName,
+                RetrieveAsIfPublished = false
+            });
+            var metadata = response.AttributeMetadata as Microsoft.Xrm.Sdk.Metadata.MoneyAttributeMetadata
+                ?? throw new InvalidOperationException("The D365 allot attribute is not published Money metadata.");
+            if (!string.Equals(metadata.LogicalName, attributeName, StringComparison.Ordinal))
+                throw new InvalidOperationException("The D365 Money attribute identity did not match the requested field.");
+            return new MoneyFieldPrecision(metadata.Precision, metadata.PrecisionSource);
+        }
+
+        /// <summary>只記錄固定欄位名稱與已發布 precision metadata，不輸出 D365 業務值。</summary>
+        private void WriteMoneyAttributePrecision(string attributeName, MoneyFieldPrecision precision)
+        {
+            _output.WriteLine(
+                "Read-only D365 Money metadata: attribute={0}; precision={1}; precisionSource={2}",
+                attributeName,
+                precision.Precision?.ToString(System.Globalization.CultureInfo.InvariantCulture) ?? "null",
+                precision.PrecisionSource?.ToString(System.Globalization.CultureInfo.InvariantCulture) ?? "null");
         }
 
         /// <summary>讀取 fee 的四個撥款欄位，轉成不保留 SDK Entity 的比較純值。</summary>
@@ -557,6 +761,7 @@ public sealed class PaymentsLiveAcceptanceTests
             Guid taskId,
             int gatewayCallCount,
             DateOnly expectedDate,
+            string expectedAllotNo,
             decimal expectedAllotAmount,
             decimal expectedAllotFee,
             int currencyPrecision)
@@ -570,7 +775,7 @@ public sealed class PaymentsLiveAcceptanceTests
                     : "missing";
                 var amountMatches = fee.AllotAmount == expectedAllotAmount;
                 var feeMatches = fee.AllotFee == expectedAllotFee;
-                var allotNoMatches = fee.AllotNo?.StartsWith("P4-06-SYNTHETIC-", StringComparison.Ordinal) == true;
+                var allotNoMatches = string.Equals(fee.AllotNo, expectedAllotNo, StringComparison.Ordinal);
                 var dateMatches = fee.AllotDate.HasValue
                     && DateOnly.FromDateTime(fee.AllotDate.Value) == expectedDate;
                 _output.WriteLine(
@@ -964,22 +1169,81 @@ public sealed class PaymentsLiveAcceptanceTests
         internal sealed record TaskSnapshot(int Status, int Attempts, string ErrorCode);
     }
 
+    /// <summary>已發布單一 Money 欄位的純精度快照，不保留 SDK metadata 物件或外部服務參照。</summary>
+    /// <param name="Precision">欄位宣告的小數位數；null 代表服務未提供精度。</param>
+    /// <param name="PrecisionSource">欄位宣告的精度來源代碼；null 時合成資料採保守整數值。</param>
+    internal sealed record MoneyFieldPrecision(int? Precision, int? PrecisionSource);
+
+    /// <summary>本次合成寫回所需的兩個 Money 欄位精度純值。</summary>
+    /// <param name="AllotAmount">new_allot_amount 的已發布精度metadata。</param>
+    /// <param name="AllotFee">new_allot_fee 的已發布精度metadata。</param>
+    internal sealed record AllotMoneyPrecision(
+        MoneyFieldPrecision AllotAmount,
+        MoneyFieldPrecision AllotFee);
+
     /// <summary>讓真實 gateway 的驗簽後狀態碼只保留在本案例記錄中，不攔截或改寫任何請求。</summary>
     private sealed class RecordingAllotGateway(IPaymentAllotGateway inner) : IPaymentAllotGateway
     {
         private string? _verifiedProviderStatus;
+        private string? _lastOutcome;
+        private int _callsStarted;
+        private int _callsCompleted;
 
         /// <summary>取得最後一筆已完成 provider 呼叫的狀態碼；錯誤回應的狀態仍由原 gateway 分類。</summary>
         internal string? VerifiedProviderStatus => Volatile.Read(ref _verifiedProviderStatus);
 
-        /// <summary>原樣委派真實永豐查詢，僅在返回標準化結果後記錄安全的 provider 狀態碼。</summary>
+        /// <summary>以原子讀取回報進入 provider gateway 的呼叫數，不暴露請求欄位。</summary>
+        internal int CallsStarted => Volatile.Read(ref _callsStarted);
+
+        /// <summary>以原子讀取回報已返回或已失敗的 gateway 呼叫數。</summary>
+        internal int CallsCompleted => Volatile.Read(ref _callsCompleted);
+
+        /// <summary>只保留 InFlight、Success、固定 provider 錯誤分類或 CLR 例外型別。</summary>
+        internal string LastOutcome => Volatile.Read(ref _lastOutcome) ?? "NotStarted";
+
+        /// <summary>原樣委派查詢，僅記錄固定進出階段、標準化錯誤分類與已驗簽狀態碼。</summary>
         public async Task<PaymentAllotQueryResult> QueryAllotAsync(
             PaymentAllotQueryRequest request,
             CancellationToken cancellationToken = default)
         {
-            var result = await inner.QueryAllotAsync(request, cancellationToken).ConfigureAwait(false);
-            Volatile.Write(ref _verifiedProviderStatus, result.ProviderStatus);
-            return result;
+            Interlocked.Increment(ref _callsStarted);
+            Volatile.Write(ref _lastOutcome, "InFlight");
+            try
+            {
+                var result = await inner.QueryAllotAsync(request, cancellationToken).ConfigureAwait(false);
+                Volatile.Write(ref _verifiedProviderStatus, result.ProviderStatus);
+                Volatile.Write(
+                    ref _lastOutcome,
+                    result.Error is { HasError: true } error ? error.Kind.ToString() : "Success");
+                return result;
+            }
+            catch (Exception exception)
+            {
+                Volatile.Write(ref _lastOutcome, exception.GetType().Name);
+                throw;
+            }
+            finally
+            {
+                Interlocked.Increment(ref _callsCompleted);
+            }
+        }
+    }
+
+    /// <summary>
+    /// 離線診斷測試專用 gateway；回傳由測試 owner 控制完成的 Task，不建立網路或保留資料列。
+    /// </summary>
+    private sealed class DeferredAllotGateway(Task<PaymentAllotQueryResult> result) : IPaymentAllotGateway
+    {
+        private readonly Task<PaymentAllotQueryResult> _result = result
+            ?? throw new ArgumentNullException(nameof(result));
+
+        /// <summary>傳回受控合成結果；若呼叫端已取消則在轉交前拒絕執行。</summary>
+        public Task<PaymentAllotQueryResult> QueryAllotAsync(
+            PaymentAllotQueryRequest request,
+            CancellationToken cancellationToken = default)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            return _result;
         }
     }
 
