@@ -23,7 +23,8 @@
     "11-12-11-12-p4-02-money-currency",
     "11-13-p4-04-named-payment-profile",
     "11-13-p4-03-sinopac-allot-query",
-    "11-13-p4-05-payment-callback"
+    "11-13-p4-05-payment-callback",
+    "11-13-11-13-p4-06-sinopac-sandbox-live"
   ],
   "parent": null,
   "relatedFiles": [],

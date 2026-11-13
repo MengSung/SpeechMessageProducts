@@ -11,6 +11,7 @@
     <Nullable>enable</Nullable>
     <SpeechMessageStrictCode>true</SpeechMessageStrictCode>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <UserSecretsId>8f1d090e-cfd8-47b9-ac67-7566a4da3b3d</UserSecretsId>
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\SpeechMessage.Hosting\SpeechMessage.Hosting.csproj" />

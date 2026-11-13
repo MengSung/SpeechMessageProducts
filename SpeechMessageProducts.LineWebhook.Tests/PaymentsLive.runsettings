@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+檔案整體說明
+目的與定位：隔離 P4-06 連接測試組織與永豐沙箱的 PaymentsLive 案例，避免一般 dotnet test 意外產生外部寫入或付款端點呼叫。
+主要功能與流程：由 LineWebhook 測試專案的 RunSettingsFilePath 載入，預設排除 Category=PaymentsLive；明確傳入 VSTest filter 時由命令列篩選覆寫本預設。
+使用邊界與維護：本檔不含連線字串、秘密或外部服務設定；更新後以一般測試確認三案未執行，再以明確 Category=PaymentsLive 執行核准的實機案例，不能用 skip 冒稱實機驗收。
+-->
+<RunSettings>
+  <RunConfiguration>
+    <TestCaseFilter>Category!=PaymentsLive</TestCaseFilter>
+  </RunConfiguration>
+</RunSettings>
