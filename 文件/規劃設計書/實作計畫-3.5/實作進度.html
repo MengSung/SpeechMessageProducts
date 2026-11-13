@@ -240,11 +240,11 @@ footer{margin-top:36px;color:var(--muted);font-size:12.5px;text-align:center}
  */
 const DATA = {
   "planVersion": "3.5",
-  "snapshot": "2026-11-13 17:38 Asia/Taipei (UTC+08:00)",
-  "lastUpdated": "2026-11-13T17:38:31+08:00",
+  "snapshot": "2026-11-13 20:06 Asia/Taipei (UTC+08:00)",
+  "lastUpdated": "2026-11-13T20:06:48+08:00",
   "branch": "1.0.0.11.Integration.P4.Worktree",
-  "head": "bcdaaf95",
-  "headline": "2026-11-13 17:38 Asia/Taipei (UTC+08:00)：階段 4 結案自審完成。P4-06 已驗收（沙箱連線未驗證）：合成回寫、冪等及離線診斷通過；永豐 Order 回 HTTP 400、無 APIM 代碼，原因未明。沙箱補驗列為階段 7 首次正式組織切換前置，不代表全部通過。",
+  "head": "d23d3a47",
+  "headline": "2026-11-13 20:06 Asia/Taipei (UTC+08:00)：P4-06 APIService 修正後的 Sandbox AllotQuery 通過 1/1，驗簽供應商狀態 S；合成回寫與冪等仍各 1/1 通過。P4-06 已驗收、P4-PROP-008 已解除；本次沒有撥款明細證據或真實付款，P4-PROP-009 待核定，階段 5 未啟動。",
   "notices": [
     {
       "id": "plan-3.5-summary",
@@ -469,8 +469,8 @@ const DATA = {
       "phaseId": "階段 4",
       "level": "info",
       "title": "P4 進度摘要",
-      "lastUpdated": "2026-11-13T17:38:31+08:00",
-      "body": "2026-11-13 17:38 Asia/Taipei (UTC+08:00)：P4-01～P4-05 已驗收；P4-06 已驗收（沙箱連線未驗證）。合成回寫、冪等及離線診斷測試通過；修正後唯一一次沙箱案例仍在 Order 階段 HTTP 400，沒有 APIM 代碼或已驗證供應商狀態，原因未明，測試殘留為 0。這不是全部通過；依使用者條件式結案決定收尾，P4-PROP-008 要求階段 7 首次正式組織切換前補驗。",
+      "lastUpdated": "2026-11-13T20:06:48+08:00",
+      "body": "2026-11-13 20:06 Asia/Taipei (UTC+08:00)：P4-01～P4-05 已驗收；P4-06 APIService 修正後的唯一一次 Sandbox AllotQuery 補驗通過 1/1，取得已驗簽 provider status=S，cleanup 殘留為 0。P4-06 已驗收，P4-PROP-008 已解除；本次未取得撥款明細筆數證據，未進行真實付款。APIService 線上契約防回歸列 P4-PROP-009 待核定；階段 5 未啟動。",
       "steps": [
         "2026-11-12 13:52 Asia/Taipei (UTC+08:00)：P4 分支從 43ea38cd 開始；建立階段父任務及 P4-00 子任務，更新授權文字與進度 DATA。",
         "2026-11-12 13:52 Asia/Taipei (UTC+08:00)：測試商店設定鍵只核對是否存在，未輸出設定值；TLS handshake 成功，未送交易。",
@@ -502,16 +502,9 @@ const DATA = {
         "補記 2026-11-13 14:32 Asia/Taipei (UTC+08:00)（原事件時間未記錄）：依使用者 2026-11-13 決定，階段 4 剩餘工作的時間盒取消；此決定不修改 3.5 計畫正文。",
         "補記 2026-11-13 17:09 Asia/Taipei (UTC+08:00)（原事件時間未記錄）：離線測試重現 ExtractApimCode 對非物件 JSON 根節點呼叫 TryGetProperty 會丟 InvalidOperationException；新增保護與回歸測試，提交 bcdaaf95，provider 測試 15/15、完整固定 guard §8.1 通過。17:05 修正後唯一一次 Live_AllotQuery_SandboxRoundTrip 仍失敗：task Failed、attempts=0、new_lasterror=Unhandled；gateway 1/1，安全診斷 Order:400，HTTP 400、無 APIM code、未取得 verified provider status；cleanup 確認測試 Contact、Fee、Outbound Task 均為 0。原始 TRX SHA-256 DE3ADAE2655F45A0C2C953E2E7FABB6F5FF07E8DBBCD709D705FAD94FF1E07D4；console SHA-256 2F62CA66E8BD16107888AADE7953C0364EABC44BF2049C53361C9C2BC114D3E0；guard SHA-256 51772D625CA3DA6E6D7F65C48337836C084C6363A579AFE731032346CB0140F3。HTTP 400 無 APIM 代碼，未能判明請求或供應商原因。",
         "2026-11-13 17:17 Asia/Taipei (UTC+08:00)：依使用者 2026-11-13 結案決定，P4-06 標為「已驗收（沙箱連線未驗證）」；僅代表合成回寫、冪等與離線診斷已驗證，不代表永豐沙箱通過。Order HTTP 400 原因未明；登錄 P4-PROP-008，要求階段 7 首次正式組織切換前補驗並由使用者向永豐確認 IP 白名單可能性、測試金鑰與商店代號配套。階段 4 剩餘工作取消時間盒，依使用者 2026-11-13 決定；不修改計畫正文。",
-        "2026-11-13 17:38 Asia/Taipei (UTC+08:00)：階段 4 自我審查完成，檢視跨教會隔離、撥款日期與金額、對外待辦資源生命週期、回呼端點三道檢查及秘密不外洩；Critical 0、High 0。依使用者核定未取得外部審查，不宣稱外部審查通過；詳見 P4-06 子任務 wp-reports/M-P4-REVIEW.md。"
+        "2026-11-13 17:38 Asia/Taipei (UTC+08:00)：階段 4 自我審查完成，檢視跨教會隔離、撥款日期與金額、對外待辦資源生命週期、回呼端點三道檢查及秘密不外洩；Critical 0、High 0。依使用者核定未取得外部審查，不宣稱外部審查通過；詳見 P4-06 子任務 wp-reports/M-P4-REVIEW.md。",
+        "2026-11-13 20:00 Asia/Taipei (UTC+08:00)：修正 Sinopac 外層 APIService 數字序列化回歸，三個 wire name 契約及 AllotQuery 測試通過；固定 guard 對 d23d3a47 的完整 §8.1 八項通過。唯一一次修正後 Live_AllotQuery_SandboxRoundTrip 通過 1/1，已驗簽 provider status=S，Fee snapshot 不變，測試 Contact、Fee、Outbound Task 清理均為 0；TRX 未記錄撥款明細筆數，未進行真實付款。P4-PROP-008 解除，新增 P4-PROP-009 待核定。"
       ]
-    },
-    {
-      "id": "p4-06-sandbox-blocker",
-      "phaseId": "階段 4",
-      "level": "warn",
-      "title": "P4-06 已驗收（沙箱連線未驗證）",
-      "lastUpdated": "2026-11-13T17:38:31+08:00",
-      "body": "2026-11-13 17:38 Asia/Taipei (UTC+08:00)：合成回寫、冪等及離線診斷通過；真實永豐 Sandbox 在 Order 階段回 HTTP 400，無 APIM code，原因未明。補驗必須在階段 7 首次正式組織切換前完成；此狀態不代表全部通過。"
     }
   ],
   "userActions": [
@@ -572,10 +565,10 @@ const DATA = {
       "note": "Codex 會先給你一頁 plan、影響、回復方式與時段"
     },
     {
-      "when": "階段 7 首次正式組織切換前",
-      "text": "向永豐確認或申請 Sandbox Order HTTP 400 的原因與排除方式；確認開發機對外 IP 是否須加入測試環境白名單，並確認測試金鑰與測試商店代號配套。不得在對話或紀錄提供秘密值。",
-      "status": "later",
-      "note": "P4-PROP-008；待永豐回覆後安排永豐沙箱補驗，未驗證前不得開始階段 7 首次正式組織切換。"
+      "when": "2026-11-13 20:00 Asia/Taipei (UTC+08:00)",
+      "text": "修正 APIService 後執行核准的永豐 Sandbox AllotQuery 補驗",
+      "status": "done",
+      "note": "TRX 1/1 Passed，已驗簽 provider status=S，清理殘留 0；P4-PROP-008 解除，未取得撥款明細筆數證據，未進行真實付款。"
     },
     {
       "when": "階段 8",
@@ -1333,9 +1326,9 @@ const DATA = {
       "deps": "P4-02～P4-05",
       "live": "有",
       "timebox": "半天",
-      "doneAt": "2026-11-13 17:17 Asia/Taipei (UTC+08:00)",
-      "commit": "bcdaaf95",
-      "note": "2026-11-13 08:33 Asia/Taipei (UTC+08:00)：開始 P4-06。必要設定鍵已移轉至 LineWebhook User Secrets；CRM／永豐 Sandbox endpoint 核對通過；教會識別 evidence 一致。new_timezone 與三個 live 案例待驗證。同一筆只執行一次；不做真實付款。2026-11-13 14:22 Asia/Taipei (UTC+08:00)：合成回寫及冪等各 1/1 通過；Sandbox 最後診斷失敗，P4-06 未驗收，無階段審查或推送。補記 2026-11-13 17:09 Asia/Taipei (UTC+08:00)（原事件時間未記錄）：新增 APIM 非物件 JSON 根節點離線回歸修正 bcdaaf95，完整 guard 通過；唯一一次修正後沙箱重跑為 Order HTTP 400、無 APIM code／verified provider status、原因未明，cleanup 殘留 0。2026-11-13 17:17 Asia/Taipei (UTC+08:00)：依使用者補充結案決定，狀態為「已驗收（沙箱連線未驗證）」；不宣稱永豐沙箱通過。P4-PROP-008 要求階段 7 首次正式組織切換前由使用者向永豐確認外部 IP 白名單與測試金鑰／商店代號配套，完成後補驗。階段 4 剩餘工作取消時間盒（使用者 2026-11-13 決定）；未修改 3.5 計畫正文。"
+      "doneAt": "2026-11-13 20:00 Asia/Taipei (UTC+08:00)",
+      "commit": "d23d3a47",
+      "note": "2026-11-13 08:33 Asia/Taipei (UTC+08:00)：開始 P4-06。必要設定鍵已移轉至 LineWebhook User Secrets；CRM／永豐 Sandbox endpoint 核對通過；教會識別 evidence 一致。new_timezone 與三個 live 案例待驗證。同一筆只執行一次；不做真實付款。2026-11-13 14:22 Asia/Taipei (UTC+08:00)：合成回寫及冪等各 1/1 通過；Sandbox 曾失敗，詳見後續修正紀錄。補記 2026-11-13 17:09 Asia/Taipei (UTC+08:00)（原事件時間未記錄）：APIM 非物件錯誤根節點修正提交 bcdaaf95，修正後 Sandbox 仍回 Order HTTP 400。2026-11-13 17:17 Asia/Taipei (UTC+08:00)：依使用者條件式結案決定暫標已驗收（沙箱連線未驗證），並登錄 P4-PROP-008。2026-11-13 20:00 Asia/Taipei (UTC+08:00)：APIService 修正提交 d23d3a47；provider 20/20、AllotQuery 11/11、固定 guard §8.1 通過；唯一一次核准 Sandbox 補驗通過 1/1，已驗簽 provider status=S、Fee snapshot 相同、cleanup Contact／Fee／Outbound Task 各 0。因補驗成功改標已驗收並解除 P4-PROP-008；TRX 未記錄撥款明細筆數，未進行真實付款。階段 4 剩餘工作取消時間盒（使用者 2026-11-13 決定）；未修改 3.5 計畫正文。"
     },
     {
       "id": "P5-01",
@@ -1951,9 +1944,17 @@ const DATA = {
     {
       "id": "P4-PROP-008",
       "problem": "P4-06 的永豐 Sandbox 撥款查詢未取得可驗證供應商狀態；唯一一次修正後重跑在 Order 階段收到 HTTP 400，沒有 APIM 代碼，原因未明。",
-      "evidence": "Live_AllotQuery_SandboxRoundTrip 1 案失敗；gateway 呼叫 1/1，Error.Code=Order:400，沒有可驗證 APIM／供應商代碼。合成回寫與冪等實機案例各 1/1 通過，離線診斷測試通過，測試資料殘留 0。",
-      "proposal": "永豐 Sandbox 連線與撥款查詢必須在階段 7 第一個正式組織切換前補驗。使用者向永豐確認 HTTP 400 的排除方式、開發機對外 IP 是否須加入測試白名單，以及測試金鑰與測試商店代號配套；Codex 收到確認後只重跑核定的 Sandbox 案例，不接觸正式環境或真實付款。",
-      "impact": "階段 7 第一個正式組織切換的前置阻擋；未補驗前不得開始該次正式組織切換。",
+      "evidence": "歷史測試曾於 Order 階段回 HTTP 400；APIService 修正後 `Live_AllotQuery_SandboxRoundTrip-20261113.trx` 1/1 Passed，SHA-256 B05B3A689D82699F2D08ACE521D8FBF60EFE7C8BBF117BC2501F1A1B51428517，provider status=S，測試資料殘留 0。TRX 未記錄撥款明細筆數，亦未進行真實付款。",
+      "proposal": "已依核准流程完成 Sandbox 連線補驗，取得已驗簽狀態 S；解除本提案的階段 7 前置阻擋。不得將此結果解讀為取得撥款明細或完成付款。",
+      "impact": "原階段 7 首次切換前置阻擋已解除；正式組織首次寫入仍依既有核准流程處理。",
+      "status": "已解除（補驗通過，2026-11-13）"
+    },
+    {
+      "id": "P4-PROP-009",
+      "problem": "Sinopac 外層 APIService 曾將 enum 數字序列化，造成實際 Sandbox Order HTTP 400；既有測試未完整鎖定三種服務的 wire name。",
+      "evidence": "`Envelope_ApiService_UsesDocumentedServiceName` 與 `Envelope_ApiService_NeverNumeric` 驗證 OrderCreate、OrderPayQuery、AllotQuery；修正後 Sandbox AllotQuery 驗簽狀態 S。",
+      "proposal": "後續版本保留 provider 外層封包的精確 APIService 字串契約測試，並在協定變更時對照 QPay 規格；不改變既有簽章、Message 或內層 JSON 契約。",
+      "impact": "Sinopac QPay provider 防回歸；待核定，不阻擋已完成階段 4。",
       "status": "待核定"
     }
   ],
