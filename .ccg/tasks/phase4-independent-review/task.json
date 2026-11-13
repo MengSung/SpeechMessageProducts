@@ -1,0 +1,12 @@
+{
+  "id": "phase4-independent-review",
+  "title": "階段 4 金流與幣別獨立審查",
+  "status": "in_progress",
+  "complexity": "L",
+  "risk": "high",
+  "domain": "backend",
+  "currentPhase": "analysis",
+  "nextAction": "交叉核對 P4 計畫、實際程式差異、測試原始證據與進度結案紀錄",
+  "createdAt": "2026-11-13T20:41:31+08:00",
+  "branch": "1.0.0.11.Integration.P4.Worktree"
+}
