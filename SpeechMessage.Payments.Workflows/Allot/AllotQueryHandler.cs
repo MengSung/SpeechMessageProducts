@@ -13,7 +13,8 @@
  * 使用邊界與維護：隔離、生命週期與失敗處理：工作與 SDK 僅借用於本筆 handler scope；scope 是唯一資源 owner，
  * worker 完成、失敗或取消後釋放 scope，handler 不跨工作保存或快取教會、profile、Entity 或憑證。
  * payload、教會或 profile 不合法以及 provider 明確拒絕一律以固定代碼失敗；網路、供應商不可用
- * 與不可讀回應轉成 HTTP 503 類例外供既有 worker 重試。取消權杖傳給 gateway，SDK 同步 I/O
+ * 與不可讀回應轉成 HTTP 503 類例外供既有 worker 重試，並只帶入通過白名單驗證的階段／狀態碼。
+ * 取消權杖傳給 gateway，SDK 同步 I/O
  * 由 Core 在每次呼叫前後檢查；列版本衝突原樣向上傳遞，不重試寫入或吞掉原始例外。
  * 離線契約由 AllotQueryHandlerTests 驗證，不代表已連線永豐或 D365。
  */
@@ -196,12 +197,55 @@ public sealed class AllotQueryHandler : IOutboundTaskHandler
             or PaymentErrorKind.SerializationFailure)
         {
             throw new HttpRequestException(
-                "AllotQueryRetryable",
+                "AllotQueryRetryable:" + SafeProviderErrorCode(error.Code),
                 null,
                 HttpStatusCode.ServiceUnavailable);
         }
 
-        throw new InvalidOperationException(error.Kind.ToString());
+        throw new InvalidOperationException(SafeProviderErrorCode(error.Code, error.Kind.ToString()));
+    }
+
+    /// <summary>
+    /// 只傳遞 provider 定義的短診斷代碼；任意 gateway 訊息可能含供應商本文或憑證，
+    /// 因此不會進入 worker 失敗紀錄或 Dataverse 的 new_lasterror。
+    /// </summary>
+    private static string SafeProviderErrorCode(string? code, string fallback = "ProviderFailure")
+    {
+        if (code is "NetworkFailure" or "ProviderUnavailable" or "SignatureInvalid"
+            or "SerializationFailure" or "ConfigurationInvalid" or "RequestInvalid"
+            or "ProviderRejected" or "Timeout" or "Transport" or "Unreadable"
+            or "NonceMissing")
+        {
+            return code;
+        }
+
+        if (string.IsNullOrWhiteSpace(code) || code.Length > 24)
+            return fallback;
+
+        var parts = code.Split(':');
+        if (parts.Length is < 2 or > 3 || parts[0] is not ("Nonce" or "Order"))
+            return fallback;
+
+        if (parts.Length == 2 && parts[1] is "NonceMissing" or "Timeout" or "Transport" or "Unreadable")
+            return code;
+
+        if (!int.TryParse(
+                parts[1],
+                System.Globalization.NumberStyles.None,
+                System.Globalization.CultureInfo.InvariantCulture,
+                out var statusCode)
+            || statusCode is < 100 or > 599)
+        {
+            return fallback;
+        }
+
+        if (parts.Length == 2)
+            return code;
+
+        return parts[2].Length is > 0 and <= 4
+            && parts[2].All(character => character is >= '0' and <= '9')
+                ? code
+                : fallback;
     }
 
     /// <summary>將 provider DTO 轉成操作區域 Core 純值；金額及 TWD 幣別沿用已驗簽 gateway 結果。</summary>

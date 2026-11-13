@@ -4,12 +4,13 @@
  * 目的與定位：永豐 QPay provider 實作，宣告支援 TWD，並集中處理 Nonce、AES、簽章、建單、付款查詢及撥款查詢封包。
  *
  * 主要功能與流程：
- * 本檔宣告 SinopacPaymentProvider、SinopacHttpStatusException、SinopacSignatureException。
+ * 本檔宣告 SinopacPaymentProvider、SinopacRequestException、SinopacSignatureException。
  * 主要操作入口包含 CreatePaymentAsync、QueryPaymentAsync、ParseCallbackAsync、ResolveEndpoint、BuildCreateProviderData、
  * QueryAllotAsync、ResolveCreateResult、CreateMissingCreateFieldError、BuildQueryProviderData；其餘入口見下方成員契約。
  *
  * 使用邊界與維護：
  * 本 provider 只借用 DI 提供且由 Host 管理生命週期的 HttpClient；每次請求／回應由 using 關閉，序列化金額以 Money 為核心來源。
+ * 撥款查詢只將固定階段、數字 HTTP 狀態與符合格式的短 APIM code 暴露給呼叫端；任何回應本文都不進例外訊息或診斷欄位。
  * 請求 profile 是單次呼叫輸入，不快取憑證；X-KeyID 僅寫入該次 HttpRequestMessage，不使用共享 DefaultRequestHeaders 或跨呼叫鎖。
  * typed HttpClient 的共用 handler 關閉 cookie 與自動轉址，避免商店 session 被保留或敏感標頭跟隨轉址；DI 是 handler 的唯一 owner。
  * 可沿 SpeechMessage.Payments.Tests/Providers/Sinopac/SinopacProviderTests.cs、
@@ -88,9 +89,9 @@ internal sealed class SinopacPaymentProvider : IPaymentProvider, IPaymentAllotPr
         {
             return CreateError(request.ProductOrderId, PaymentErrorKind.ConfigurationInvalid, ex.Message);
         }
-        catch (SinopacHttpStatusException ex)
+        catch (SinopacRequestException ex)
         {
-            return CreateError(request.ProductOrderId, PaymentErrorKind.ProviderUnavailable, ex.Message);
+            return CreateError(request.ProductOrderId, ex.ErrorKind, ex.DiagnosticCode);
         }
         catch (SinopacSignatureException ex)
         {
@@ -167,9 +168,9 @@ internal sealed class SinopacPaymentProvider : IPaymentProvider, IPaymentAllotPr
         {
             return QueryError(request, PaymentErrorKind.ConfigurationInvalid, ex.Message);
         }
-        catch (SinopacHttpStatusException ex)
+        catch (SinopacRequestException ex)
         {
-            return QueryError(request, PaymentErrorKind.ProviderUnavailable, ex.Message);
+            return QueryError(request, ex.ErrorKind, ex.DiagnosticCode);
         }
         catch (SinopacSignatureException ex)
         {
@@ -221,15 +222,16 @@ internal sealed class SinopacPaymentProvider : IPaymentProvider, IPaymentAllotPr
 
             if (!string.Equals(response.Status, "S", StringComparison.OrdinalIgnoreCase))
             {
+                var providerDescription = SafeProviderDescription(response.Status, response.Description);
                 return new PaymentAllotQueryResult
                 {
                     ProviderStatus = response.Status,
-                    ProviderDescription = response.Description,
+                    ProviderDescription = providerDescription,
                     Error = new PaymentError
                     {
                         Kind = PaymentErrorKind.ProviderRejected,
-                        Code = "ProviderRejected",
-                        Message = "Sinopac rejected the allot query."
+                        Code = providerDescription,
+                        Message = providerDescription
                     }
                 };
             }
@@ -237,7 +239,7 @@ internal sealed class SinopacPaymentProvider : IPaymentProvider, IPaymentAllotPr
             return new PaymentAllotQueryResult
             {
                 ProviderStatus = response.Status,
-                ProviderDescription = response.Description,
+                ProviderDescription = SafeProviderDescription(response.Status, response.Description),
                 Batches = MapAllotBatches(response.Allot)
             };
         }
@@ -253,9 +255,9 @@ internal sealed class SinopacPaymentProvider : IPaymentProvider, IPaymentAllotPr
         {
             return AllotQueryError(PaymentErrorKind.RequestInvalid, "RequestInvalid");
         }
-        catch (SinopacHttpStatusException)
+        catch (SinopacRequestException ex)
         {
-            return AllotQueryError(PaymentErrorKind.ProviderUnavailable, "ProviderUnavailable");
+            return AllotQueryError(ex.ErrorKind, ex.DiagnosticCode);
         }
         catch (SinopacSignatureException)
         {
@@ -263,27 +265,27 @@ internal sealed class SinopacPaymentProvider : IPaymentProvider, IPaymentAllotPr
         }
         catch (JsonException)
         {
-            return AllotQueryError(PaymentErrorKind.SerializationFailure, "SerializationFailure");
+            return AllotQueryError(PaymentErrorKind.SerializationFailure, "Order:Unreadable");
         }
         catch (CryptographicException)
         {
-            return AllotQueryError(PaymentErrorKind.SerializationFailure, "SerializationFailure");
+            return AllotQueryError(PaymentErrorKind.SerializationFailure, "Order:Unreadable");
         }
         catch (FormatException)
         {
-            return AllotQueryError(PaymentErrorKind.SerializationFailure, "SerializationFailure");
+            return AllotQueryError(PaymentErrorKind.SerializationFailure, "Order:Unreadable");
         }
         catch (OverflowException)
         {
-            return AllotQueryError(PaymentErrorKind.SerializationFailure, "SerializationFailure");
+            return AllotQueryError(PaymentErrorKind.SerializationFailure, "Order:Unreadable");
         }
         catch (OperationCanceledException)
         {
-            return AllotQueryError(PaymentErrorKind.NetworkFailure, "NetworkFailure");
+            return AllotQueryError(PaymentErrorKind.NetworkFailure, "Order:Timeout");
         }
         catch (Exception ex) when (IsNetworkTransportException(ex))
         {
-            return AllotQueryError(PaymentErrorKind.NetworkFailure, "NetworkFailure");
+            return AllotQueryError(PaymentErrorKind.NetworkFailure, "Order:Transport");
         }
     }
 
@@ -321,7 +323,7 @@ internal sealed class SinopacPaymentProvider : IPaymentProvider, IPaymentAllotPr
 
         if (string.IsNullOrWhiteSpace(nonceResponse.Nonce))
         {
-            throw new SinopacHttpStatusException("Sinopac did not return a nonce.");
+            throw new SinopacRequestException("Nonce", "NonceMissing", 200);
         }
 
         var innerJson = JsonConvert.SerializeObject(payload, SerializerSettings);
@@ -381,16 +383,40 @@ internal sealed class SinopacPaymentProvider : IPaymentProvider, IPaymentAllotPr
             throw new PaymentConfigurationException("Sinopac X-KeyID could not be added to the request.");
         }
 
-        using var response = await _httpClient.SendAsync(request, cancellationToken);
-        var content = await response.Content.ReadAsStringAsync(cancellationToken);
-
-        if (!response.IsSuccessStatusCode)
+        try
         {
-            throw new SinopacHttpStatusException(route, response.StatusCode, content);
-        }
+            using var response = await _httpClient.SendAsync(request, cancellationToken);
+            var content = await response.Content.ReadAsStringAsync(cancellationToken);
+            if (!response.IsSuccessStatusCode)
+            {
+                throw new SinopacRequestException(
+                    route,
+                    (int)response.StatusCode,
+                    ExtractApimCode(content));
+            }
 
-        return JsonConvert.DeserializeObject<TResponse>(content)
-            ?? throw new JsonException("Sinopac returned an empty response.");
+            try
+            {
+                return JsonConvert.DeserializeObject<TResponse>(content)
+                    ?? throw new SinopacRequestException(route, "Unreadable", 200);
+            }
+            catch (JsonException)
+            {
+                throw new SinopacRequestException(route, "Unreadable", 200);
+            }
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            throw;
+        }
+        catch (OperationCanceledException)
+        {
+            throw new SinopacRequestException(route, "Timeout");
+        }
+        catch (HttpRequestException)
+        {
+            throw new SinopacRequestException(route, "Transport");
+        }
     }
 
     private static Uri ResolveEndpoint(PaymentMerchantProfile profile, string route)
@@ -694,37 +720,108 @@ internal sealed class SinopacPaymentProvider : IPaymentProvider, IPaymentAllotPr
             exception.GetType().Name == "Http" + "RequestException";
     }
 
-    private sealed class SinopacHttpStatusException : Exception
+    private static PaymentErrorKind ClassifyHttpFailure(int statusCode)
     {
-        public SinopacHttpStatusException(string route, HttpStatusCode statusCode, string responseBody)
-            : base(FormatHttpStatusMessage(route, statusCode, responseBody))
+        if (statusCode == 0)
         {
+            return PaymentErrorKind.NetworkFailure;
         }
 
-        public SinopacHttpStatusException(string message)
-            : base(message)
+        if (statusCode is 401 or 403 or 404 or 405 or 415 or 499)
         {
+            return PaymentErrorKind.ConfigurationInvalid;
         }
 
-        private static string FormatHttpStatusMessage(
-            string route,
-            HttpStatusCode statusCode,
-            string responseBody)
+        if (statusCode is 429 or >= 500)
         {
-            var message = $"Sinopac {route} returned HTTP {(int)statusCode} {statusCode}.";
-            if (string.IsNullOrWhiteSpace(responseBody))
+            return PaymentErrorKind.ProviderUnavailable;
+        }
+
+        return PaymentErrorKind.ProviderRejected;
+    }
+
+    private static string ExtractApimCode(string responseBody)
+    {
+        try
+        {
+            using var document = System.Text.Json.JsonDocument.Parse(responseBody);
+            if (!document.RootElement.TryGetProperty("code", out var codeElement))
             {
-                return message;
+                return string.Empty;
             }
 
-            var trimmedBody = responseBody.Trim();
-            if (trimmedBody.Length > 500)
+            var code = codeElement.ValueKind switch
             {
-                trimmedBody = trimmedBody[..500] + "...";
-            }
-
-            return $"{message} Response: {trimmedBody}";
+                System.Text.Json.JsonValueKind.String => codeElement.GetString(),
+                System.Text.Json.JsonValueKind.Number => codeElement.GetRawText(),
+                _ => null
+            };
+            return code is { Length: > 0 and <= 4 } &&
+                code.All(character => character is >= '0' and <= '9')
+                    ? code
+                    : string.Empty;
         }
+        catch (System.Text.Json.JsonException)
+        {
+            return string.Empty;
+        }
+    }
+
+    private static string SafeProviderDescription(string? status, string? description)
+    {
+        if (!string.Equals(status, "F", StringComparison.OrdinalIgnoreCase))
+        {
+            return description ?? string.Empty;
+        }
+
+        if (description is { Length: >= 5 }
+            && description[0] == 'E'
+            && description.AsSpan(1, 4).IndexOfAnyExceptInRange('0', '9') < 0)
+        {
+            return description[..5];
+        }
+
+        return string.Empty;
+    }
+
+    private sealed class SinopacRequestException : Exception
+    {
+        public SinopacRequestException(string stage, int statusCode, string apimCode)
+            : base(BuildDiagnosticCode(stage, statusCode, apimCode))
+        {
+            Stage = stage;
+            StatusCode = statusCode;
+            ErrorKind = ClassifyHttpFailure(statusCode);
+            DiagnosticCode = BuildDiagnosticCode(stage, statusCode, apimCode);
+        }
+
+        public SinopacRequestException(string stage, string failureCode, int statusCode = 0)
+            : base(BuildDiagnosticCode(stage, failureCode))
+        {
+            Stage = stage;
+            StatusCode = statusCode;
+            ErrorKind = failureCode switch
+            {
+                "NonceMissing" => PaymentErrorKind.ProviderUnavailable,
+                "Unreadable" => PaymentErrorKind.SerializationFailure,
+                _ when statusCode != 0 => ClassifyHttpFailure(statusCode),
+                _ => PaymentErrorKind.NetworkFailure
+            };
+            DiagnosticCode = BuildDiagnosticCode(stage, failureCode);
+        }
+
+        public string Stage { get; }
+        public int StatusCode { get; }
+        public PaymentErrorKind ErrorKind { get; }
+        public string DiagnosticCode { get; }
+
+        private static string BuildDiagnosticCode(string stage, int statusCode, string apimCode) =>
+            string.IsNullOrEmpty(apimCode)
+                ? $"{stage}:{statusCode.ToString(CultureInfo.InvariantCulture)}"
+                : $"{stage}:{statusCode.ToString(CultureInfo.InvariantCulture)}:{apimCode}";
+
+        private static string BuildDiagnosticCode(string stage, string failureCode) =>
+            $"{stage}:{failureCode}";
     }
 
     private sealed class SinopacSignatureException : Exception

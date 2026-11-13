@@ -5,7 +5,8 @@
  * 不執行 reconciliation、CRM 更新或任何實際付款。
  *
  * 主要功能與流程：以固定 nonce、明確合成憑證及手工固定的 request envelope 驗證 AllotQuery 服務碼與欄位序列化；
- * response 測試僅讀取核准的 Golden/Sinopac/allot-query-response.json，經 fake HTTP handler 回應 nonce、密文與簽章。
+ * response 測試僅讀取核准的 Golden/Sinopac/allot-query-response.json，經 fake HTTP handler 回應 nonce、密文與簽章；
+ * 合成 APIM 狀態、缺少 Nonce、逾時與惡意本文案例鎖定階段碼分類及不洩漏契約。
  * 另以兩個不同 profile 同時呼叫同一 provider，確認 X-KeyID 僅掛在各自的 HttpRequestMessage、兩筆 Nonce 可併行，
  * HttpClient 不保留 profile 標頭；斷言並涵蓋批次日期、TWD Money 與簽章錯誤時不發布批次。
  *
@@ -31,8 +32,8 @@ using Xunit;
 namespace SpeechMessage.Payments.Tests.Providers.Sinopac;
 
 /// <summary>
-/// 鎖定永豐 AllotQuery 的合成請求向量與已驗簽回應映射。
-/// 透過假 HTTP 傳輸注入固定 nonce 與合成 response envelope，決定性驗證資料只能在驗簽後發布。
+/// 鎖定永豐 AllotQuery 的合成請求向量、已驗簽回應映射及安全失敗診斷。
+/// 假 HTTP 傳輸注入固定 nonce、APIM 狀態、逾時與合成 response envelope；斷言秘密與任意本文不離開 provider 邊界。
 /// </summary>
 public sealed class SinopacAllotQueryTests
 {
@@ -181,6 +182,162 @@ public sealed class SinopacAllotQueryTests
         Assert.False(client.DefaultRequestHeaders.Contains("X-KeyID"));
     }
 
+    /// <summary>HTTP 401 的合成 Nonce 回應只發布階段、狀態與 APIM 代碼，並分類為不可重試設定錯誤。</summary>
+    [Fact]
+    public async Task AllotQuery_NonceHttp401_ReportsNonceStageAndIsNotRetryable()
+    {
+        var handler = new ScriptedResponseHandler(
+            (_, _) => Task.FromResult(JsonResponse(HttpStatusCode.Unauthorized, "{\"code\":\"9999\",\"message\":\"synthetic\"}")));
+        using var client = new HttpClient(handler);
+        var provider = new SinopacPaymentProvider(client);
+
+        var result = await provider.QueryAllotAsync(
+            CreateSyntheticProfile(),
+            CreateQueryRequest(),
+            CancellationToken.None);
+
+        Assert.Equal(PaymentErrorKind.ConfigurationInvalid, result.Error.Kind);
+        Assert.Equal("Nonce:401:9999", result.Error.Code);
+        Assert.Equal("Nonce:401:9999", result.Error.Message);
+    }
+
+    /// <summary>HTTP 499 的合成 Order 回應保留 APIM 純數字代碼，但不保留回應本文。</summary>
+    [Fact]
+    public async Task AllotQuery_OrderHttp499_ReportsOrderStageAndApimCode()
+    {
+        var handler = new ScriptedResponseHandler((request, _) =>
+            Task.FromResult(request.RequestUri!.AbsolutePath.EndsWith("/Nonce", StringComparison.Ordinal)
+                ? JsonResponse(HttpStatusCode.OK, "{\"Nonce\":\"NONCE-SYNTHETIC-001\"}")
+                : JsonResponse(ToHttpStatusCode(499), "{\"code\":\"9998\",\"message\":\"synthetic body marker\"}")));
+        using var client = new HttpClient(handler);
+        var provider = new SinopacPaymentProvider(client);
+
+        var result = await provider.QueryAllotAsync(
+            CreateSyntheticProfile(),
+            CreateQueryRequest(),
+            CancellationToken.None);
+
+        Assert.Equal(PaymentErrorKind.ConfigurationInvalid, result.Error.Kind);
+        Assert.Equal("Order:499:9998", result.Error.Code);
+        Assert.Equal("Order:499:9998", result.Error.Message);
+        Assert.DoesNotContain("synthetic body marker", result.Error.Code, StringComparison.Ordinal);
+    }
+
+    /// <summary>HTTP 500 的合成 Order 回應可供 worker 重試，且診斷指出 Order 階段與狀態。</summary>
+    [Fact]
+    public async Task AllotQuery_OrderHttp500_IsRetryableWithStage()
+    {
+        var handler = new ScriptedResponseHandler((request, _) =>
+            Task.FromResult(request.RequestUri!.AbsolutePath.EndsWith("/Nonce", StringComparison.Ordinal)
+                ? JsonResponse(HttpStatusCode.OK, "{\"Nonce\":\"NONCE-SYNTHETIC-001\"}")
+                : JsonResponse(HttpStatusCode.InternalServerError, "{\"message\":\"synthetic body marker\"}")));
+        using var client = new HttpClient(handler);
+        var provider = new SinopacPaymentProvider(client);
+
+        var result = await provider.QueryAllotAsync(
+            CreateSyntheticProfile(),
+            CreateQueryRequest(),
+            CancellationToken.None);
+
+        Assert.Equal(PaymentErrorKind.ProviderUnavailable, result.Error.Kind);
+        Assert.Equal("Order:500", result.Error.Code);
+        Assert.Equal("Order:500", result.Error.Message);
+    }
+
+    /// <summary>HTTP 200 但 Nonce 欄位空白須明確回報 NonceMissing，而非混成一般供應商不可用。</summary>
+    [Fact]
+    public async Task AllotQuery_NonceMissing_ReportsNonceMissing()
+    {
+        var handler = new ScriptedResponseHandler(
+            (_, _) => Task.FromResult(JsonResponse(HttpStatusCode.OK, "{\"Nonce\":\"\"}")));
+        using var client = new HttpClient(handler);
+        var provider = new SinopacPaymentProvider(client);
+
+        var result = await provider.QueryAllotAsync(
+            CreateSyntheticProfile(),
+            CreateQueryRequest(),
+            CancellationToken.None);
+
+        Assert.Equal(PaymentErrorKind.ProviderUnavailable, result.Error.Kind);
+        Assert.Equal("Nonce:NonceMissing", result.Error.Code);
+    }
+
+    /// <summary>非呼叫端取消的合成 HTTP 等待逾時標記發生於 Order，且不攜帶例外本文。</summary>
+    [Fact]
+    public async Task AllotQuery_OrderTimeout_ReportsOrderTimeout()
+    {
+        var handler = new ScriptedResponseHandler((request, _) =>
+            request.RequestUri!.AbsolutePath.EndsWith("/Nonce", StringComparison.Ordinal)
+                ? Task.FromResult(JsonResponse(HttpStatusCode.OK, "{\"Nonce\":\"NONCE-SYNTHETIC-001\"}"))
+                : Task.FromException<HttpResponseMessage>(new TaskCanceledException("synthetic timeout detail")));
+        using var client = new HttpClient(handler);
+        var provider = new SinopacPaymentProvider(client);
+
+        var result = await provider.QueryAllotAsync(
+            CreateSyntheticProfile(),
+            CreateQueryRequest(),
+            CancellationToken.None);
+
+        Assert.Equal(PaymentErrorKind.NetworkFailure, result.Error.Kind);
+        Assert.Equal("Order:Timeout", result.Error.Code);
+        Assert.Equal("Order:Timeout", result.Error.Message);
+    }
+
+    /// <summary>已驗簽的供應商 F 回應只保留文件格式代碼，不保留描述中的任意文字。</summary>
+    [Fact]
+    public async Task AllotQuery_ProviderStatusF_KeepsOnlyDocumentedCode()
+    {
+        var golden = ReadAllotGolden();
+        var response = CreateAllotResponseJson(
+            golden,
+            tamperSignature: false,
+            providerStatus: "F",
+            providerDescription: "E3103 synthetic private detail");
+        var handler = new ScriptedResponseHandler((request, _) =>
+            Task.FromResult(request.RequestUri!.AbsolutePath.EndsWith("/Nonce", StringComparison.Ordinal)
+                ? JsonResponse(HttpStatusCode.OK, "{\"Nonce\":\"" + SyntheticNonce + "\"}")
+                : JsonResponse(HttpStatusCode.OK, response)));
+        using var client = new HttpClient(handler);
+        var provider = new SinopacPaymentProvider(client);
+
+        var result = await provider.QueryAllotAsync(
+            CreateSyntheticProfile(),
+            CreateQueryRequest(),
+            CancellationToken.None);
+
+        Assert.Equal(PaymentErrorKind.ProviderRejected, result.Error.Kind);
+        Assert.Equal("E3103", result.ProviderDescription);
+        Assert.DoesNotContain("synthetic private detail", result.ProviderDescription, StringComparison.Ordinal);
+    }
+
+    /// <summary>失敗回應含假秘密與本文時，所有公開錯誤文字均只能包含固定安全診斷碼。</summary>
+    [Fact]
+    public async Task AllotQuery_Diagnostics_NeverContainSecretsOrBody()
+    {
+        const string fakeSecret = "FAKE-XKEY-DO-NOT-LEAK";
+        const string fakeNonce = "FAKE-NONCE-DO-NOT-LEAK";
+        const string fakeBody = "FAKE-RESPONSE-BODY-DO-NOT-LEAK";
+        var handler = new ScriptedResponseHandler((request, _) =>
+            Task.FromResult(request.RequestUri!.AbsolutePath.EndsWith("/Nonce", StringComparison.Ordinal)
+                ? JsonResponse(HttpStatusCode.OK, "{\"Nonce\":\"" + SyntheticNonce + "\"}")
+                : JsonResponse(HttpStatusCode.BadRequest,
+                    "{\"code\":\"12345\",\"message\":\"" + fakeBody + fakeSecret + fakeNonce + "\"}")));
+        using var client = new HttpClient(handler);
+        var provider = new SinopacPaymentProvider(client);
+
+        var result = await provider.QueryAllotAsync(
+            CreateSyntheticProfile(xKeyId: fakeSecret),
+            CreateQueryRequest(),
+            CancellationToken.None);
+
+        var diagnostics = string.Join("|", result.Error.Code, result.Error.Message, result.ProviderDescription);
+        Assert.Equal("Order:400", result.Error.Code);
+        Assert.DoesNotContain(fakeSecret, diagnostics, StringComparison.Ordinal);
+        Assert.DoesNotContain(fakeNonce, diagnostics, StringComparison.Ordinal);
+        Assert.DoesNotContain(fakeBody, diagnostics, StringComparison.Ordinal);
+        Assert.DoesNotContain("12345", diagnostics, StringComparison.Ordinal);
+    }
+
     /// <summary>
     /// 保護 DI 建立的永豐 transport 不保留 Cookie、不跟隨 redirect，也不採用主機預設認證。
     /// 測試建構正式 typed-client handler 但不送出網路請求，並由 ServiceProvider 確定性釋放 handler pool。
@@ -266,12 +423,21 @@ public sealed class SinopacAllotQueryTests
     }
 
     /// <summary>以核准合成 Golden 產生單次假 response envelope，不讀取或輸出商店設定。</summary>
-    private static string CreateAllotResponseJson(string golden, bool tamperSignature)
+    private static string CreateAllotResponseJson(
+        string golden,
+        bool tamperSignature,
+        string? providerStatus = null,
+        string? providerDescription = null)
     {
         var response = JsonConvert.DeserializeObject<SinopacAllotQueryResponse>(golden)
             ?? throw new InvalidOperationException("Synthetic allot-query Golden is empty.");
+        if (providerStatus is not null)
+            response.Status = providerStatus;
+        if (providerDescription is not null)
+            response.Description = providerDescription;
         var aesKey = SyntheticAesKey;
-        var encrypted = SinopacCrypto.Encrypt(aesKey, golden, SyntheticNonce);
+        var responseJson = JsonConvert.SerializeObject(response, SyntheticSerializerSettings);
+        var encrypted = SinopacCrypto.Encrypt(aesKey, responseJson, SyntheticNonce);
         var sign = SinopacSigner.GenerateSign(response, aesKey, SyntheticNonce);
         if (tamperSignature)
         {
@@ -295,6 +461,21 @@ public sealed class SinopacAllotQueryTests
     /// 僅回覆固定 nonce 與預先構造的合成 envelope，並在本測試期間記錄 request body 以比對固定向量。
     /// Handler 不連外網；HttpClient Dispose 後 handler 及其測試資料不再被保留。
     /// </summary>
+    private sealed class ScriptedResponseHandler(
+        Func<HttpRequestMessage, CancellationToken, Task<HttpResponseMessage>> responder) : HttpMessageHandler
+    {
+        /// <summary>依當次合成 request 回傳受控回應，不建立外網連線或保存跨測試狀態。</summary>
+        protected override Task<HttpResponseMessage> SendAsync(
+            HttpRequestMessage request,
+            CancellationToken cancellationToken) =>
+            responder(request, cancellationToken);
+    }
+
+    private static HttpResponseMessage JsonResponse(HttpStatusCode statusCode, string body) =>
+        new(statusCode) { Content = new StringContent(body, Encoding.UTF8, "application/json") };
+
+    private static HttpStatusCode ToHttpStatusCode(int statusCode) => (HttpStatusCode)statusCode;
+
     private sealed class CapturingNonceHandler : HttpMessageHandler
     {
         private readonly string _nonce;

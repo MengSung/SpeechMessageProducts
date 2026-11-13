@@ -68,6 +68,34 @@ public sealed class AllotQueryHandlerTests
         Assert.Equal(0, fixture.Sdk.UpdateCalls);
     }
 
+    /// <summary>永久設定錯誤使用 provider 階段碼回報並只執行一次，不轉成 worker 可重試的 503。</summary>
+    [Fact]
+    public async Task Handler_ConfigurationHttpStatus_NotRetried()
+    {
+        var fixture = CreateFixture(Failure(PaymentErrorKind.ConfigurationInvalid, "Nonce:401:9999"));
+
+        var exception = await Assert.ThrowsAsync<InvalidOperationException>(
+            () => fixture.Handler().ExecuteAsync(CancellationToken.None));
+
+        Assert.Equal("Nonce:401:9999", exception.Message);
+        Assert.Equal(1, fixture.Gateway.Calls);
+        Assert.Equal(0, fixture.Sdk.UpdateCalls);
+    }
+
+    /// <summary>暫時性 provider 狀態仍轉成 503，例外訊息攜帶可安全診斷的階段與狀態碼。</summary>
+    [Fact]
+    public async Task Handler_Failure_CarriesStageAndStatusCode()
+    {
+        var fixture = CreateFixture(Failure(PaymentErrorKind.ProviderUnavailable, "Order:500"));
+
+        var exception = await Assert.ThrowsAsync<HttpRequestException>(
+            () => fixture.Handler().ExecuteAsync(CancellationToken.None));
+
+        Assert.Equal(HttpStatusCode.ServiceUnavailable, exception.StatusCode);
+        Assert.Equal("AllotQueryRetryable:Order:500", exception.Message);
+        Assert.Equal(0, fixture.Sdk.UpdateCalls);
+    }
+
     /// <summary>供應商明確拒絕屬終止失敗，例外只含固定分類碼且不更新 D365。</summary>
     [Fact]
     public async Task Handler_ProviderRejected_NotRetried()
@@ -218,10 +246,10 @@ public sealed class AllotQueryHandlerTests
     private static PaymentAllotQueryResult Success(params PaymentAllotBatch[] batches) =>
         new() { Error = PaymentError.None, Batches = batches };
 
-    private static PaymentAllotQueryResult Failure(PaymentErrorKind kind) =>
+    private static PaymentAllotQueryResult Failure(PaymentErrorKind kind, string? code = null) =>
         new()
         {
-            Error = new PaymentError { Kind = kind, Code = kind.ToString(), Message = "SYNTHETIC-PRIVATE-MARKER" }
+            Error = new PaymentError { Kind = kind, Code = code ?? kind.ToString(), Message = "SYNTHETIC-PRIVATE-MARKER" }
         };
 
     private static PaymentAllotBatch MatchingBatch() =>

@@ -4,7 +4,7 @@
  * 目的與定位：承接 P4-06 唯一核准的永豐沙箱與 goodshepherdback 實機驗收；案例使用正式 Payments gateway、Outbound registration、Worker 與 D365 儲存層，不啟動 LineWebhook HTTP 主機。
  * 主要功能與流程：每案先從 LineWebhook User Secrets 讀取固定教會 ID、Development CRM 與 Sandbox profile，確認 CRM HTTPS 主機、沙箱 API 主機、必要設定鍵及 account.new_timezone，再建立本次專屬 Contact、Fee、Outbound Task。測試完成後按正式資料 ID 刪除待辦、收費單與會友，並只在 account 設定仍等於本次測試值時恢復原 profile。
  * 使用邊界與維護：User Secrets 是設定來源，不是教會授權；教會 ID 必須是前置檢查取得的正式 ID，profile 由 account 欄位提供。每個 xUnit 案例擁有獨立 Host、DI scope、Dataverse 服務與測試資料；Worker 停止並排空後才清理資料、釋放 scope、Host 與設定根，不共用跨案例狀態。
- * 失敗與驗證：任何環境不符都在建立資料前 fail closed；測試只使用沙箱，不送真實付款。即時查詢案例最多等待 120 秒；逾時時只記錄待辦固定狀態、attempts、錯誤分類、gateway 呼叫階段、已驗簽狀態碼及固定 worker 例外型別，藉此區分待辦未認領、處理中與供應商呼叫未完成，不讀取例外本文、request、response body 或秘密。離線測試以受控未完成工作驗證 gateway 階段診斷。寫回案例以合成 gateway 比對舊公式並明標不是永豐實回，收費日與撥款日共用同一個教會曆日，且逐欄精確比對金額、手續費、日期及撥款編號。合成寫回前唯讀查 TWD 幣別精度及兩個 Money 欄位精度，並在本機測試輸出記錄讀回金額與精度；純值回歸測試保護合成金額選擇不受幣別／欄位精度混淆。冪等案例核對正式待辦 ID、attempts、modifiedon 與單次 gateway 呼叫。每案最後以精確識別查詢確認殘留為零。
+ * 失敗與驗證：任何環境不符都在建立資料前 fail closed；測試只使用新永豐沙箱端點，不送真實付款。即時查詢案例最多等待 120 秒；一旦看到 Failed 或 Pending 且 attempts 大於零，立即停止 Worker、記錄安全的 new_lasterror 與 gateway 階段診斷並失敗，避免等待完整 timeout。診斷只接受固定階段／錯誤代碼、數字 HTTP 狀態與合規 APIM 數字碼，不讀取例外本文、request、response body 或秘密。寫回案例以合成 gateway 比對舊公式並明標不是永豐實回，收費日與撥款日共用同一個教會曆日，且逐欄精確比對金額、手續費、日期及撥款編號。合成寫回前唯讀查 TWD 幣別精度及兩個 Money 欄位精度，並在本機測試輸出記錄讀回金額與精度；純值回歸測試保護合成金額選擇不受幣別／欄位精度混淆。冪等案例核對正式待辦 ID、attempts、modifiedon 與單次 gateway 呼叫。每案最後以精確識別查詢確認殘留為零。
  */
 using System;
 using System.Collections.Concurrent;
@@ -49,6 +49,41 @@ public sealed class PaymentsLiveAcceptanceTests
     /// <param name="output">由測試執行器擁有且僅在本案例期間使用的輸出介面。</param>
     public PaymentsLiveAcceptanceTests(ITestOutputHelper output) =>
         _output = output ?? throw new ArgumentNullException(nameof(output));
+
+    /// <summary>
+    /// 將待辦錯誤欄位限制為 provider 固定代碼或階段／HTTP／APIM 格式；
+    /// D365 中可能存在舊資料或外部寫入內容，不直接把任意字串送入測試輸出。
+    /// </summary>
+    private static string SafeDiagnosticErrorCode(string? value)
+    {
+        if (string.IsNullOrEmpty(value))
+            return "None";
+
+        if (value is "NetworkFailure" or "ProviderUnavailable" or "SignatureInvalid"
+            or "SerializationFailure" or "ConfigurationInvalid" or "RequestInvalid"
+            or "ProviderRejected" or "Timeout" or "Http429" or "Http5xx" or "Unhandled")
+            return value;
+
+        var parts = value.Split(':');
+        if (parts.Length is < 2 or > 3 || parts[0] is not ("Nonce" or "Order"))
+            return "Other";
+
+        if (parts.Length == 2 && parts[1] is "NonceMissing" or "Timeout" or "Transport" or "Unreadable")
+            return value;
+
+        if (!int.TryParse(parts[1], System.Globalization.NumberStyles.None,
+                System.Globalization.CultureInfo.InvariantCulture, out var statusCode)
+            || statusCode is < 100 or > 599)
+            return "Other";
+
+        if (parts.Length == 2)
+            return value;
+
+        return parts[2].Length is > 0 and <= 4
+            && parts[2].All(character => character is >= '0' and <= '9')
+                ? value
+                : "Other";
+    }
 
     /// <summary>
     /// 以未完成的合成 gateway 工作注入明確等待狀態，確認診斷可區別呼叫已進入但尚未返回；
@@ -288,7 +323,7 @@ public sealed class PaymentsLiveAcceptanceTests
     /// </summary>
     private sealed class LiveFixture : IAsyncDisposable
     {
-        private const string SandboxApiHost = "sandbox.sinopac.com";
+        private const string SandboxApiHost = "apisbx.sinopac.com";
         private const int AllotQueryPaymentWay = 100000001;
         private const int AllotQueryTaskStatusCompleted = 100000002;
         private readonly ITestOutputHelper _output;
@@ -425,8 +460,9 @@ public sealed class PaymentsLiveAcceptanceTests
         }
 
         /// <summary>
-        /// 最多等待指定時間，直到真實 D365 store 與 Worker 將本次 task 標記 Completed；
-        /// 上限為永豐沙箱核准的 120 秒，等待期間僅讀取本次 task。
+        /// 最多等待指定時間，直到真實 D365 store 與 Worker 將本次 task 標記 Completed。
+        /// 若 Worker 已記錄失敗或完成一次可重試嘗試後回到 Pending，立即停止它並輸出安全診斷，
+        /// 不再等待後續退避重試；測試 owner 隨即透過 finally 清理本次資料與設定。
         /// </summary>
         internal async Task RunWorkerUntilCompletedAsync(Guid taskId, TimeSpan timeout)
         {
@@ -441,18 +477,23 @@ public sealed class PaymentsLiveAcceptanceTests
                 var snapshot = ReadTaskSnapshot(taskId);
                 if (snapshot.Status == AllotQueryTaskStatusCompleted)
                 {
-                    using var stopDeadline = new CancellationTokenSource(TimeSpan.FromSeconds(20));
-                    await _host.StopAsync(stopDeadline.Token).ConfigureAwait(false);
-                    _workerStopped = true;
+                    await StopWorkerAsync().ConfigureAwait(false);
                     return;
                 }
 
-                if (snapshot.Status == (int)OutboundWorkStatus.Failed)
-                    throw new InvalidOperationException("The P4-06 outbound task reached Failed status.");
+                if (snapshot.Status == (int)OutboundWorkStatus.Failed
+                    || snapshot.Status == (int)OutboundWorkStatus.Pending && snapshot.Attempts > 0)
+                {
+                    await StopWorkerAsync().ConfigureAwait(false);
+                    WriteSandboxFailureDiagnostics(taskId, ReadTaskSnapshot(taskId));
+                    throw new InvalidOperationException(
+                        "The P4-06 outbound task did not complete: " + snapshot.ErrorCode);
+                }
 
                 await Task.Delay(TimeSpan.FromSeconds(1), TimeProvider.System).ConfigureAwait(false);
             }
 
+            await StopWorkerAsync().ConfigureAwait(false);
             WriteSandboxTimeoutDiagnostics(taskId);
             throw new TimeoutException(
                 "The P4-06 outbound task did not complete within "
@@ -460,9 +501,36 @@ public sealed class PaymentsLiveAcceptanceTests
                 + " seconds.");
         }
 
+        /// <summary>只輸出已清理的 new_lasterror 與固定 gateway 分類；不讀取 provider 原始訊息。</summary>
+        private void WriteSandboxFailureDiagnostics(Guid taskId, TaskSnapshot task)
+        {
+            var gateway = _recordingGateway;
+            _output.WriteLine(
+                "Sandbox attempt diagnostic: taskStatus={0}; attempts={1}; new_lasterror={2}; gatewayStarted={3}; gatewayCompleted={4}; gatewayOutcome={5}; verifiedProviderStatus={6}; workerFailures={7}",
+                SafeTaskStatus(task.Status),
+                task.Attempts,
+                task.ErrorCode,
+                gateway?.CallsStarted ?? 0,
+                gateway?.CallsCompleted ?? 0,
+                gateway?.LastOutcome ?? "NotResolved",
+                SafeProviderStatus(gateway?.VerifiedProviderStatus),
+                string.Join(",", _workerFailures.ToArray()));
+        }
+
+        /// <summary>對本案例唯一 Worker 設定有界停止期限；只在成功停止後發布 drained 狀態。</summary>
+        private async Task StopWorkerAsync()
+        {
+            if (_host is null || !_workerStarted || _workerStopped)
+                return;
+
+            using var stopDeadline = new CancellationTokenSource(TimeSpan.FromSeconds(20));
+            await _host.StopAsync(stopDeadline.Token).ConfigureAwait(false);
+            _workerStopped = true;
+        }
+
         /// <summary>
-        /// 逾時時只讀取本次 task 的固定狀態與安全分類，並附上 gateway 進出計數；
-        /// 不輸出 task ID、payload、provider本文、例外本文、設定值或憑證。
+        /// 120 秒上限屆滿時只讀取本次 task 的固定狀態與白名單 new_lasterror，並附上 gateway 進出計數；
+        /// 不輸出 task ID、payload、provider 本文、例外本文、設定值或憑證。
         /// </summary>
         internal void WriteSandboxTimeoutDiagnostics(Guid taskId)
         {
@@ -471,7 +539,7 @@ public sealed class PaymentsLiveAcceptanceTests
                 var task = ReadTaskSnapshot(taskId);
                 var gateway = _recordingGateway;
                 _output.WriteLine(
-                    "Sandbox timeout diagnostic: taskStatus={0}; attempts={1}; errorClass={2}; gatewayStarted={3}; gatewayCompleted={4}; gatewayOutcome={5}; verifiedProviderStatus={6}; workerFailures={7}",
+                    "Sandbox timeout diagnostic: taskStatus={0}; attempts={1}; new_lasterror={2}; gatewayStarted={3}; gatewayCompleted={4}; gatewayOutcome={5}; verifiedProviderStatus={6}; workerFailures={7}",
                     SafeTaskStatus(task.Status),
                     task.Attempts,
                     task.ErrorCode,
@@ -610,15 +678,7 @@ public sealed class PaymentsLiveAcceptanceTests
                 taskId,
                 new ColumnSet("new_taskstatus", "new_attempts", "new_lasterror"));
             var errorCode = task.GetAttributeValue<string>("new_lasterror");
-            var safeErrorCode = errorCode switch
-            {
-                "Timeout" => "Timeout",
-                "Http429" => "Http429",
-                "Http5xx" => "Http5xx",
-                "Unhandled" => "Unhandled",
-                null or "" => "None",
-                _ => "Other"
-            };
+            var safeErrorCode = SafeDiagnosticErrorCode(errorCode);
             return new TaskSnapshot(
                 task.GetAttributeValue<OptionSetValue>("new_taskstatus")?.Value ?? -1,
                 task.GetAttributeValue<int>("new_attempts"),
@@ -705,7 +765,11 @@ public sealed class PaymentsLiveAcceptanceTests
             if (!Uri.TryCreate(apiBaseUrl, UriKind.Absolute, out var apiUri)
                 || !string.Equals(apiUri.Scheme, Uri.UriSchemeHttps, StringComparison.OrdinalIgnoreCase)
                 || !apiUri.IsDefaultPort
-                || !string.Equals(apiUri.Host, SandboxApiHost, StringComparison.OrdinalIgnoreCase))
+                || !string.Equals(apiUri.Host, SandboxApiHost, StringComparison.OrdinalIgnoreCase)
+                || !string.Equals(
+                    apiUri.AbsolutePath.TrimEnd('/'),
+                    "/funBIZ-Sbx/QPay.WebAPI/api",
+                    StringComparison.Ordinal))
                 throw new InvalidOperationException("The payment endpoint is not the approved Sinopac Sandbox HTTPS host.");
         }
 
@@ -1214,7 +1278,9 @@ public sealed class PaymentsLiveAcceptanceTests
                 Volatile.Write(ref _verifiedProviderStatus, result.ProviderStatus);
                 Volatile.Write(
                     ref _lastOutcome,
-                    result.Error is { HasError: true } error ? error.Kind.ToString() : "Success");
+                    result.Error is { HasError: true } error
+                        ? SafeDiagnosticErrorCode(error.Code)
+                        : "Success");
                 return result;
             }
             catch (Exception exception)
