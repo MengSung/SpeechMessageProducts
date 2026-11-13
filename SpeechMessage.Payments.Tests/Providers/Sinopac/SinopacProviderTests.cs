@@ -1,7 +1,7 @@
 /*
  * 檔案整體說明
  *
- * 目的與定位：驗證永豐 QPay provider 的 request mapping、AES key、狀態轉換、callback 與 HTTP 錯誤正規化。 這些測試特別保護付款頁 URL、ATM 虛擬帳號與 legacy
+ * 目的與定位：驗證永豐 QPay provider 的 request mapping、AES key、狀態轉換、callback 與 HTTP 錯誤正規化。HTTP 失敗只公開固定階段／狀態碼，不回傳回應本文。這些測試特別保護付款頁 URL、ATM 虛擬帳號與 legacy
  * key derivation，避免抽離後破壞既有奉獻流程。
  *
  * 主要功能與流程：
@@ -275,14 +275,14 @@ public sealed class SinopacProviderTests
         result.Error.Message.Should().Contain("ATM virtual account");
     }
 
+    /// <summary>HTTP 失敗回傳固定階段與狀態碼；合成回應本文不得進入 PaymentError 或診斷訊息。</summary>
     [Fact]
-    public async Task Create_payment_includes_route_and_response_body_when_http_status_fails()
+    public async Task Create_payment_excludes_http_response_body_from_safe_diagnostic()
     {
-        // 銀行 HTTP status 失敗時，錯誤訊息要包含 route 與 sanitized response body，
-        // 否則現場只會看到 BadRequest，難以判斷是 nonce、create order 或 payload 哪一段失敗。
+        const string responseMarker = "synthetic response body must not escape";
         using var httpClient = new HttpClient(new StaticResponseHandler(
             HttpStatusCode.BadRequest,
-            "invalid request payload"));
+            responseMarker));
         var provider = new SinopacPaymentProvider(httpClient);
 
         var result = await provider.CreatePaymentAsync(
@@ -302,9 +302,9 @@ public sealed class SinopacProviderTests
             CancellationToken.None);
 
         result.Status.Should().Be(PaymentStatus.Failed);
-        result.Error.Kind.Should().Be(PaymentErrorKind.ProviderUnavailable);
-        result.Error.Message.Should().Contain("Sinopac Nonce returned HTTP 400 BadRequest");
-        result.Error.Message.Should().Contain("invalid request payload");
+        result.Error.Kind.Should().Be(PaymentErrorKind.ProviderRejected);
+        result.Error.Message.Should().Be("Nonce:400");
+        result.Error.Message.Should().NotContain(responseMarker);
     }
 
     [Theory]
