@@ -1,6 +1,6 @@
 # P5-03a 前置核對與 F16 停止紀錄
 
-更新時間：2026-11-14 21:53 Asia/Taipei (UTC+08:00)；原前置記錄時間為 21:28。
+更新時間：2026-11-14 22:33 Asia/Taipei (UTC+08:00)；原前置記錄時間為 21:28。
 本頁是進行中的前置證據，不是 P5-03a 或 P5-03 整包驗收回報。
 
 ## 已完成的本地提交
@@ -13,7 +13,7 @@
 - `dbb9dd6b P5-03a`：新增 CRUD 情境 factory，接線 metadata、核定共享別名、owned lookup 與安全 expected 投影；19 項新測試含真正 runtime 清理，未支援種類明確拒絕。
 - `0323f4cd P5-03a`：修正 ActivityFeeds 的 Microsoft 來源分類；兩個已查證完整組件名同時具公開簽章識別及 managed=true 才排除，同名偽裝／缺值仍保留。
 
-最新離線結果：Deployment Release **626／626**；檔案說明 **1558 檔、0 失敗**；本次兩個分類修正 C# 檔的 Changed 位元組檢查 **0 問題**。
+最新離線結果：Deployment Release **648／648**；檔案說明 **1560 檔、0 失敗**；本次各提交的 Changed 位元組檢查 **0 問題**。
 這些不是完整固定 guard 或實機影子驗收結果。
 
 ## Shadow 測試身分
@@ -77,8 +77,17 @@ F16 為分類誤判已釐清，撤回使用者處置需求；不需要使用者�
 
 ## 後續未完成
 
-- shadow CLI 與受控 legacy switch 接線、同步追蹤識別、關聯 observe、新增列及推播意圖、實機映像一致性與整合驗證。
+- 受控 legacy switch 與 live 基準的受審 token 欄位盤點接線、關聯 observe、新增列及推播意圖、外部修改摘要與整合驗證；同步追蹤 RequestId 已離線接通，仍須實機查證。
 - 完整固定 guard 與 diagnostics 實機驗收（F16 誤分類已解除，但本次仍未執行）。
 - P5-03b 及 P5-03 整包驗收。
 - 原訂 2026-11-14 23:30 Asia/Taipei (UTC+08:00) 驗收估計不再承諾；CLI 與離線契約仍未完成，完成後再估實機與整包驗收時間。
 - P5-02 工具修正的三小時時限仍未開始；維持 P5-03 驗收後、P5-05 前執行。
+
+## 2026-11-14 22:33 Asia/Taipei (UTC+08:00)：真 CLI 與同步追蹤接線
+
+- `35448977`、`edc7c060`：完整 CLR 型別名不再誤判成 JWT；獨立掃描點分字串內的 LINE ID／長憑證，四項 reader 新測試包含先紅後綠。
+- `3b88dd97`：公開 `shadow --scenario-root` 使用固定模組黃金目錄、既有同組織寫鎖及單一 lease。new／reading／legacy-golden 新輪串接身分、部署 PE／註冊比對、metadata、factory、runtime、runner 與報告；live 基準尚無受審盤點接線時拒絕，不靜默跳過舊輪。
+- `247bdfe2`：正式同步 mode 改送獨立 RequestId，查詢同 requestid／pluginstepid／typename／mode／時間窗的唯一追蹤；不等待 asyncoperation。18 項真 CLI 測試涵蓋同步歧義、同步／非同步送達後取消、失敗清理、秘密 ID 錯配、註冊漂移、寫鎖及同日報告歷史。
+- 本次離線全套 648 項通過、0 略過／失敗；`C:\smv\p5-03a-final-local.log` SHA-256 `EA25C0A63A5CB062091CED3920B5936F3DBC0CFA9323CEECA1B0329BA46B4E85`。文件 1560 檔零失敗，個別提交編碼零問題；不是整包固定 guard 或實機驗收。
+- 22:32 唯讀 ls-remote 仍為 `a653de0887d96c51de280ad06192dfa0dd42c68a`；本次沒有推送或實機寫入，沒有等待使用者的事項。
+- StorLesson 只讀重核：csproj 明列 ProjectReference 到同份 LineUtility；四處呼叫仍是兩參數，但現存 LineUtilityClass.cs 第 100 行只有三參數建構式。來源版本不一致仍未證明實際 DLL 的後備路徑，不能憑兩參數呼叫宣稱已確認寫死 token，亦不可未核對就執行舊輪。

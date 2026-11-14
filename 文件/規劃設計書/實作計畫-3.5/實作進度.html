@@ -240,11 +240,11 @@ footer{margin-top:36px;color:var(--muted);font-size:12.5px;text-align:center}
  */
 const DATA = {
   "planVersion": "3.5",
-  "snapshot": "2026-11-14 21:54 Asia/Taipei (UTC+08:00)",
-  "lastUpdated": "2026-11-14T21:54:09+08:00",
+  "snapshot": "2026-11-14 22:33 Asia/Taipei (UTC+08:00)",
+  "lastUpdated": "2026-11-14T22:33:38+08:00",
   "branch": "1.0.0.11.Integration.P5.Worktree",
-  "head": "0323f4cd",
-  "headline": "2026-11-14 21:54 Asia/Taipei (UTC+08:00)：P5-03a續作，0323f4cd修正Microsoft ActivityFeeds誤分類；公開簽章、managed狀態及ActivityFeedsCore／microsoftdynamics方案關聯已唯讀核對，39個平台步驟未啟停。新版export-legacy回0、舊步驟及流程啟用各0，F16處置需求解除。Deployment Release626/626、文件1558檔零失敗；CRUD factory已接線，shadow CLI、同步追蹤、關聯observe、新增列／推播及實機映像等仍未完成。整包guard與diagnostics實機未執行，P5-03未驗收、本輪未推送；離線契約完成後再估驗收時間，目前不需使用者操作。",
+  "head": "edc7c060",
+  "headline": "2026-11-14 22:33 Asia/Taipei (UTC+08:00)：P5-03a續作，3b88dd97接通shadow新輪CLI，247bdfe2接通同步RequestId追蹤；new／reading／legacy-golden的CRUD新輪已走真CLI、權威身分／部署映像核對、SDK owner、清理與安全報告，18項CLI測試含取消後停用、租約歸還、歧義追蹤及同日證據不覆寫。Deployment Release648/648、文件1560檔零失敗。受審token盤點的舊輪CLI、關聯observe／新增列、推播及外部修改摘要仍待完成；同步追蹤只有離線證據，整包固定guard與diagnostics實機尚未執行，P5-03未驗收、未推送。目前沒有等待使用者的事項，離線契約完成後再估驗收時間。",
   "notices": [
     {
       "id": "plan-3.5-summary",
@@ -511,8 +511,8 @@ const DATA = {
       "phaseId": "階段 5",
       "level": "info",
       "title": "P5 進度摘要",
-      "lastUpdated": "2026-11-14T21:54:09+08:00",
-      "body": "2026-11-14 21:54 Asia/Taipei (UTC+08:00)：P5-03a續作，0323f4cd修正Microsoft ActivityFeeds誤分類；公開簽章、managed狀態及ActivityFeedsCore／microsoftdynamics方案關聯已唯讀核對，39個平台步驟未啟停。新版export-legacy回0、舊步驟及流程啟用各0，F16處置需求解除。Deployment Release626/626、文件1558檔零失敗；CRUD factory已接線，shadow CLI、同步追蹤、關聯observe、新增列／推播及實機映像等仍未完成。整包guard與diagnostics實機未執行，P5-03未驗收、本輪未推送；離線契約完成後再估驗收時間，目前不需使用者操作。",
+      "lastUpdated": "2026-11-14T22:33:38+08:00",
+      "body": "2026-11-14 22:33 Asia/Taipei (UTC+08:00)：P5-03a續作，3b88dd97接通shadow新輪CLI，247bdfe2接通同步RequestId追蹤；new／reading／legacy-golden的CRUD新輪已走真CLI、權威身分／部署映像核對、SDK owner、清理與安全報告，18項CLI測試含取消後停用、租約歸還、歧義追蹤及同日證據不覆寫。Deployment Release648/648、文件1560檔零失敗。受審token盤點的舊輪CLI、關聯observe／新增列、推播及外部修改摘要仍待完成；同步追蹤只有離線證據，整包固定guard與diagnostics實機尚未執行，P5-03未驗收、未推送。目前沒有等待使用者的事項，離線契約完成後再估驗收時間。",
       "steps": [
         "2026-11-14 08:26 Asia/Taipei (UTC+08:00)：已確認目標殘留目錄不是 Git worktree，移除後正式 P4／P5 worktree 清單不受影響。",
         "2026-11-14 08:26 Asia/Taipei (UTC+08:00)：export-metadata 唯讀結構快照建立成功；verify 因本機部署執行檔／連線前置失敗，未宣稱 goodshepherdback verify=0。",
@@ -542,7 +542,8 @@ const DATA = {
         "2026-11-14 21:14 Asia/Taipei (UTC+08:00)：419f24a9完成P5-02基準及D5-18更正；a6eed0d2加入精確metadata值轉換，02cbb811區分reading／僅黃金與真實兩輪，無舊輪時比較固定不可比。Deployment 572/572、文件1554檔零失敗；P5-03未驗收。三小時工具修正排在P5-03驗收後、P5-05前，尚未開始。",
         "2026-11-14 21:29 Asia/Taipei (UTC+08:00)：9de66ceb完成唯讀權威metadata adapter；f5c294be修正D5-5逐意圖比較，避免最終值相同掩蓋多寫，Deployment 599/599。21:27權威查詢核對兩個測試GUID並寫入User Secrets；隨後export-legacy發現啟用步驟39／流程0，依F16停止。證據SHA256=635779F2261D72C883F58FF4F003CBD7B8445E471086F170E5BD9AE9371FDD95，詳wp-reports/P5-03a-preflight.md。",
         "2026-11-14 21:46 Asia/Taipei (UTC+08:00)：P5-03a離線續作：dbb9dd6b接線CRUD情境與SDK owner，19項新增測試、Deployment Release618/618、文件1558檔零失敗。21:27匯出的39個啟用步驟離線分組為ActivityFeeds.Plugins29及ActivityFeeds.Filtering.Plugins10，其他匯出組件啟用步驟0；尚未確認發布者，F16停止點保留，未自行改分類或停用。Shadow IDs已權威核對存Secrets；CLI、同步追蹤、關聯observe與實機映像等仍未完成，未整包驗收、未推送，23:30估計暫停。",
-        "2026-11-14 21:54 Asia/Taipei (UTC+08:00)：P5-03a續作，0323f4cd修正Microsoft ActivityFeeds誤分類；公開簽章、managed狀態及ActivityFeedsCore／microsoftdynamics方案關聯已唯讀核對，39個平台步驟未啟停。新版export-legacy回0、舊步驟及流程啟用各0，F16處置需求解除。Deployment Release626/626、文件1558檔零失敗；CRUD factory已接線，shadow CLI、同步追蹤、關聯observe、新增列／推播及實機映像等仍未完成。整包guard與diagnostics實機未執行，P5-03未驗收、本輪未推送；離線契約完成後再估驗收時間，目前不需使用者操作。"
+        "2026-11-14 21:54 Asia/Taipei (UTC+08:00)：P5-03a續作，0323f4cd修正Microsoft ActivityFeeds誤分類；公開簽章、managed狀態及ActivityFeedsCore／microsoftdynamics方案關聯已唯讀核對，39個平台步驟未啟停。新版export-legacy回0、舊步驟及流程啟用各0，F16處置需求解除。Deployment Release626/626、文件1558檔零失敗；CRUD factory已接線，shadow CLI、同步追蹤、關聯observe、新增列／推播及實機映像等仍未完成。整包guard與diagnostics實機未執行，P5-03未驗收、本輪未推送；離線契約完成後再估驗收時間，目前不需使用者操作。",
+        "2026-11-14 22:33 Asia/Taipei (UTC+08:00)：P5-03a續作，3b88dd97接通shadow新輪CLI，247bdfe2接通同步RequestId追蹤；new／reading／legacy-golden的CRUD新輪已走真CLI、權威身分／部署映像核對、SDK owner、清理與安全報告，18項CLI測試含取消後停用、租約歸還、歧義追蹤及同日證據不覆寫。Deployment Release648/648、文件1560檔零失敗。受審token盤點的舊輪CLI、關聯observe／新增列、推播及外部修改摘要仍待完成；同步追蹤只有離線證據，整包固定guard與diagnostics實機尚未執行，P5-03未驗收、未推送。目前沒有等待使用者的事項，離線契約完成後再估驗收時間。"
       ]
     }
   ],
@@ -669,10 +670,10 @@ const DATA = {
       "id": "階段 5",
       "name": "Plugin／Workflow 重建（36 個 DLL → 2 個）",
       "planned": "8～12 個工作天",
-      "actual": "2026-11-14 21:54 Asia/Taipei (UTC+08:00)：P5-03a續作，0323f4cd修正Microsoft ActivityFeeds誤分類；公開簽章、managed狀態及ActivityFeedsCore／microsoftdynamics方案關聯已唯讀核對，39個平台步驟未啟停。新版export-legacy回0、舊步驟及流程啟用各0，F16處置需求解除。Deployment Release626/626、文件1558檔零失敗；CRUD factory已接線，shadow CLI、同步追蹤、關聯observe、新增列／推播及實機映像等仍未完成。整包guard與diagnostics實機未執行，P5-03未驗收、本輪未推送；離線契約完成後再估驗收時間，目前不需使用者操作。",
+      "actual": "2026-11-14 22:33 Asia/Taipei (UTC+08:00)：P5-03a續作，3b88dd97接通shadow新輪CLI，247bdfe2接通同步RequestId追蹤；new／reading／legacy-golden的CRUD新輪已走真CLI、權威身分／部署映像核對、SDK owner、清理與安全報告，18項CLI測試含取消後停用、租約歸還、歧義追蹤及同日證據不覆寫。Deployment Release648/648、文件1560檔零失敗。受審token盤點的舊輪CLI、關聯observe／新增列、推播及外部修改摘要仍待完成；同步追蹤只有離線證據，整包固定guard與diagnostics實機尚未執行，P5-03未驗收、未推送。目前沒有等待使用者的事項，離線契約完成後再估驗收時間。",
       "current": true,
-      "done": 1,
-      "active": 0
+      "done": 2,
+      "active": 1
     },
     {
       "id": "階段 6",
@@ -1412,7 +1413,7 @@ const DATA = {
       "timebox": "1 天",
       "doneAt": "",
       "commit": "",
-      "note": "2026-11-14 21:54 Asia/Taipei (UTC+08:00)：P5-03a續作，0323f4cd修正Microsoft ActivityFeeds誤分類；公開簽章、managed狀態及ActivityFeedsCore／microsoftdynamics方案關聯已唯讀核對，39個平台步驟未啟停。新版export-legacy回0、舊步驟及流程啟用各0，F16處置需求解除。Deployment Release626/626、文件1558檔零失敗；CRUD factory已接線，shadow CLI、同步追蹤、關聯observe、新增列／推播及實機映像等仍未完成。整包guard與diagnostics實機未執行，P5-03未驗收、本輪未推送；離線契約完成後再估驗收時間，目前不需使用者操作。"
+      "note": "2026-11-14 22:33 Asia/Taipei (UTC+08:00)：P5-03a續作，3b88dd97接通shadow新輪CLI，247bdfe2接通同步RequestId追蹤；new／reading／legacy-golden的CRUD新輪已走真CLI、權威身分／部署映像核對、SDK owner、清理與安全報告，18項CLI測試含取消後停用、租約歸還、歧義追蹤及同日證據不覆寫。Deployment Release648/648、文件1560檔零失敗。受審token盤點的舊輪CLI、關聯observe／新增列、推播及外部修改摘要仍待完成；同步追蹤只有離線證據，整包固定guard與diagnostics實機尚未執行，P5-03未驗收、未推送。目前沒有等待使用者的事項，離線契約完成後再估驗收時間。"
     },
     {
       "id": "P5-04",
@@ -1771,17 +1772,17 @@ const DATA = {
         [
           "先舊後新 shadow 兩輪與 observe",
           "no",
-          "兩輪核心與SDK runtime已離線測試；shadow CLI、同步追蹤及關聯observe待完成"
+          "CRUD新輪CLI與同步RequestId追蹤已離線接通；受審舊輪CLI、關聯observe／新增列與推播比較待完成"
         ],
         [
           "失敗／取消還原與資料清理",
           "no",
-          "失敗／取消、overflow及清理已有離線測試；實機殘留與還原待核對"
+          "真CLI的送達後失敗、同步／非同步取消已驗證停用、清理及lease歸還；實機殘留與還原待核對"
         ],
         [
           "固定守門及P5-03a回報",
           "no",
-          "兩個Shadow GUID已權威核對並存User Secrets；export-legacy發現39啟用舊步驟，依F16停止，未進diagnostics實機及固定guard"
+          "Shadow GUID已權威核對並存User Secrets；ActivityFeeds誤分類已解除、唯讀匯出舊步驟／流程啟用各0；固定guard與diagnostics實機仍未執行"
         ]
       ]
     }

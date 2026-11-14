@@ -144,3 +144,11 @@ phases. This acceptance did not exercise LINE delivery or prove hosted CI succes
 兩輪推播均獲真實 LINE 200，但 smoke 的外部診斷契約仍未達成。收尾 verify=0、追蹤=1、同一步驟 trace／停用／空 secure，依精確 trace ID＋correlation 與 owning step 備份後只清掉自己的兩個 trace／已完成作業；不得清其他作業或平台步驟。手機收訊與 HTTPS 成功不等於獨立量測 OS TLS 協定版本，也不能取代 smoke=0。
 
 本機診斷腳本使用 PowerShell 對 SDK 查詢時，管線 `object[]` 可能含 PSObject 包裝，導致 DataContract 序列化失敗。對 GUID 的 In 條件建立 `ConditionExpression`，逐一 `Values.Add(Guid.Parse(...))`，先離線序列化確認；不要把此失敗誤判為伺服器資料錯誤。live CLI 與會改寫其 bin 的建置不可並行；改用獨立輸出或等 lease／程序釋放後重建。
+
+## P5-03a 命令接線與同步追蹤（2026-11-14，實作中）
+
+`shadow` 與 `apply` 共用組織 OS 寫鎖及單一 lease；只讀固定模組 Golden 目錄。整批情境、權威 Shadow ID、部署 PE／清單及即時註冊核對成功後才可寫 trace 或 seed。現在 new／reading／legacy-golden 的 CRUD 新輪已由真 CLI 測試；未接通的 live 舊輪盤點、關聯新增列與推播等必須拒絕，不能改基準假稱通過。
+
+runner 的 readLegacy 委派同時用於 finally 停用，不能捕捉已取消的 caller token；清理明確使用 CancellationToken.None，正常流程仍在各界面檢查 caller 取消。同步 step 由當下註冊 mode 提供，trigger 用獨立 RequestId 的 SDK request；追蹤查詢同時限制 requestid、pluginstepid、typename、mode=0 與開始時間，不等待同步步驟不存在的 asyncoperation。這只有離線證據，05A §8 的實機識別查證仍待完成。
+
+安全報告放在 artifacts/shadow 的唯一操作子目錄，每份仍保留日期-module.md，不覆寫同日既有證據。情境的秘密樣式掃描先獨立檢查 LINE ID、長憑證及 Bearer，再對點分候選驗實際 JSON JWT header；不能把合法完整 CLR 名稱誤擋，也不能因點分候選吞掉內含憑證。不對 type／entrypoint 開略過掃描例外。
