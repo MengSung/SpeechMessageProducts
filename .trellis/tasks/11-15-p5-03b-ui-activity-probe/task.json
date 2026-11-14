@@ -3,7 +3,7 @@
   "name": "p5-03b-ui-activity-probe",
   "title": "P5-03b 畫面元件與活動測試流程",
   "description": "",
-  "status": "in_progress",
+  "status": "completed",
   "dev_type": null,
   "scope": null,
   "package": null,
@@ -11,7 +11,7 @@
   "creator": "Codex",
   "assignee": "Codex",
   "createdAt": "2026-11-15",
-  "completedAt": null,
+  "completedAt": "2026-11-15 04:16 Asia/Taipei (UTC+08:00)",
   "branch": null,
   "base_branch": "1.0.0.11.Integration.P5.Worktree",
   "worktree_path": null,
@@ -21,6 +21,6 @@
   "children": [],
   "parent": "11-14-integration-p5",
   "relatedFiles": [],
-  "notes": "2026-11-15 04:06 Asia/Taipei (UTC+08:00)：UI封裝器、D26共用表單隔離、ui-export／ui-import白名單命令與活動探針已完成；UiSolutionArchive／ActivityProbe離線測試15／15與2／2通過，Deployment全套765／765。尚未跑本次提交後固定guard、尚未寫一頁回報與進度頁；P5-03a仍未驗收，故不宣稱P5-03完成或推送。",
+  "notes": "# P5-03b 畫面元件與活動測試流程驗收回報\n\n更新時間：2026-11-15 04:16 Asia/Taipei (UTC+08:00)\n\n## 範圍與實機邊界\n\nP5-03b 僅完成離線工具與合成 SDK 驗證；沒有在 goodshepherdback 執行 `ui-export`／`ui-import`，沒有啟用活動新 Live，也沒有讓舊、新步驟同時啟用。P5-03a 的 diagnostics 實機追蹤待選處置不阻擋本段離線工作，但 P5-03 整包仍未驗收。",
   "meta": {}
 }
