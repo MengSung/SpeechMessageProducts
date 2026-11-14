@@ -104,7 +104,7 @@ internal static class ArchitectureRules
 
             // 直接保護產品輸出，不依賴是否已有 Plugin／其他 core 消費這個專案。
             // net48 僅限上面已排除的測試宿主；不能藉孤立節點漏過沙箱 Framework 上限。
-            if (project.Target != "net462" && project.Target != "net10.0")
+            if (!IsTool(project.Name) && project.Target != "net462" && project.Target != "net10.0")
             {
                 Add("ProductTarget", project.Target);
             }
@@ -466,7 +466,7 @@ internal static class ArchitectureRules
     }
 
     /// <summary>只有已核定的兩個工具可取得工具層級；產品不得反向依賴，也不授予傳輸或沙箱權限。</summary>
-    private static bool IsTool(string name) => name is "SpeechMessage.Dynamics.Deployment" or "LegacyGolden";
+    private static bool IsTool(string name) => name is "SpeechMessage.Dynamics.Deployment" or "LegacyGolden" or "PluginHarness";
 
     /// <summary>部署端 Plugin 與 Workflow 都受同一個 v4.6.2 沙箱契約約束。</summary>
     private static bool IsSandbox(string name) => name is "SpeechMessage.Dynamics.Plugins" or "SpeechMessage.Dynamics.Workflows";
@@ -495,7 +495,7 @@ internal static class ArchitectureRules
         "ToolUtility" or "LineMessagingProcessor.Workflows" or "LineMessagingProcessor.RichMenus" => 40,
         "LineMessagingProcessor.AspNetCore" or "SpeechMessage.Payments.AspNetCore" => 50,
         "SpeechMessageProducts.ChurchReport" or "SpeechMessageProducts.LineWebhook" or "SpeechMessage.Dynamics.Plugins" or "SpeechMessage.Dynamics.Workflows" => 100,
-        "SpeechMessage.Dynamics.Deployment" or "LegacyGolden" => 110,
+        "SpeechMessage.Dynamics.Deployment" or "LegacyGolden" or "PluginHarness" => 110,
         _ => -1
     };
 }
