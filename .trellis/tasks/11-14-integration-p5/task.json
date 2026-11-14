@@ -1,0 +1,28 @@
+{
+  "id": "integration-p5",
+  "name": "integration-p5",
+  "title": "階段 5 Plugin Workflow 重建",
+  "description": "依實作計畫 3.5 與 05A 執行 P5-00、P4 審查修補、P5-01～P5-13、階段審查；階段審查完成後停下，不建立階段 6。",
+  "status": "in_progress",
+  "dev_type": null,
+  "scope": null,
+  "package": null,
+  "priority": "P1",
+  "creator": "Codex",
+  "assignee": "Codex",
+  "createdAt": "2026-11-14",
+  "completedAt": null,
+  "branch": null,
+  "base_branch": "1.0.0.11.Integration.P5.Worktree",
+  "worktree_path": null,
+  "commit": null,
+  "pr_url": null,
+  "subtasks": [],
+  "children": [
+    "11-14-p5-00-startup-preflight"
+  ],
+  "parent": null,
+  "relatedFiles": [],
+  "notes": "P5-00 已完成待提交；下一包為 P4 審查修補。",
+  "meta": {}
+}
