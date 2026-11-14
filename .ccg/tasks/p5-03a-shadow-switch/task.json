@@ -1,0 +1,12 @@
+{
+  "id": "p5-03a-shadow-switch",
+  "title": "P5-03a 部署清單與影子切換",
+  "status": "in_progress",
+  "complexity": "L",
+  "risk": "high",
+  "domain": "backend",
+  "currentPhase": "implementation",
+  "nextAction": "接線唯讀export-legacy；實作映像活動及互斥兩輪；包驗收前不推送",
+  "createdAt": "2026-11-14T19:28:56+08:00",
+  "branch": "1.0.0.11.Integration.P5.Worktree"
+}

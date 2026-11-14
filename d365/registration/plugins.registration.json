@@ -1,21 +1,32 @@
 {
-  "schemaVersion": 1,
-  "assemblyName": "SpeechMessage.Dynamics.Plugins",
-  "steps": [
+  "schemaVersion": 2,
+  "assemblies": [
     {
-      "type": "SpeechMessage.Dynamics.Plugins.Diagnostics.DiagnosticsPingPlugin",
-      "message": "Create",
-      "entity": "task",
-      "stage": "PostOperation",
-      "mode": "Asynchronous",
-      "rank": 1,
-      "filteringAttributes": [],
-      "images": [],
-      "unsecureConfig": "{\"mode\":\"trace\",\"culture\":\"zh-TW\"}",
-      "secureConfig": "",
-      "enabledByOrganization": {
-        "goodshepherdback": false
-      }
+      "assemblyName": "SpeechMessage.Dynamics.Plugins",
+      "steps": [
+        {
+          "type": "SpeechMessage.Dynamics.Plugins.Diagnostics.DiagnosticsPingPlugin",
+          "message": "Create",
+          "entity": "task",
+          "stage": "PostOperation",
+          "mode": "Asynchronous",
+          "rank": 1,
+          "filteringAttributes": [],
+          "images": [],
+          "unsecureConfig": "{\"mode\":\"trace\",\"culture\":\"zh-TW\"}",
+          "secureConfig": "",
+          "enabledByOrganization": {
+            "goodshepherdback": false
+          },
+          "module": "diagnostics",
+          "legacy": [],
+          "shadowReport": {
+            "file": "",
+            "differences": null,
+            "basis": ""
+          }
+        }
+      ]
     }
   ]
 }

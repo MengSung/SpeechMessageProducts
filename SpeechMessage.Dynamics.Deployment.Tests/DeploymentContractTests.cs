@@ -214,7 +214,7 @@ public sealed class DeploymentContractTests
         Directory.CreateDirectory(pluginDirectory);
         var manifestPath = Path.Combine(manifestDirectory, "plugins.registration.json");
         File.WriteAllText(Path.Combine(f.Root, "SpeechMessageProducts.sln"), string.Empty);
-        File.WriteAllText(manifestPath, System.Text.Json.JsonSerializer.Serialize(f.Manifest));
+        File.WriteAllText(manifestPath, System.Text.Json.JsonSerializer.Serialize(new RegistrationDocument { Assemblies = new[] { f.Manifest } }, RegistrationManifestLoader.Json));
         File.Copy(f.Emit(), Path.Combine(pluginDirectory, "SpeechMessage.Dynamics.Plugins.dll"));
         var connector = new TrackingConnector(f.Service);
         using var output = new StringWriter(CultureInfo.InvariantCulture);
@@ -241,7 +241,7 @@ public sealed class DeploymentContractTests
             {
                 Steps = new[] { f.Manifest.Steps[0] with { EnabledByOrganization = new Dictionary<string, bool>(StringComparer.Ordinal) } }
             };
-            File.WriteAllText(manifestPath, System.Text.Json.JsonSerializer.Serialize(disabled));
+            File.WriteAllText(manifestPath, System.Text.Json.JsonSerializer.Serialize(new RegistrationDocument { Assemblies = new[] { disabled } }, RegistrationManifestLoader.Json));
             Assert.Equal(0, DeploymentCli.Run(
                 new[] { "plan", "--org", Fixture.Organization }, connector, output, reports.Add, cliArtifacts));
             var disablePlan = Assert.Single(Directory.GetFiles(cliArtifacts, "plan.json", SearchOption.AllDirectories)

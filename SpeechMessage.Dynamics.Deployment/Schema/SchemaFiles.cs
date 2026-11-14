@@ -159,7 +159,7 @@ internal static class SchemaFiles
     internal static string HashValue<T>(T value) => Convert.ToHexString(SHA256.HashData(JsonSerializer.SerializeToUtf8Bytes(value, Json)));
 
     /// <summary>逐層拒絕同物件重複屬性，避免last-write-wins把人工審核內容與反序列化結果分開。</summary>
-    private static void RejectDuplicateProperties(JsonElement element)
+    internal static void RejectDuplicateProperties(JsonElement element)
     {
         if (element.ValueKind == JsonValueKind.Object)
         {

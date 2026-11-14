@@ -14,7 +14,7 @@
   "SpeechMessageProducts.ChurchReport/bower.json": "宣告舊前端套件及版本需求，供Bower相容工具辨識；目前頁面仍以實際資源引用為準，變更不能自行下載替換已核定DevExtreme／Bootstrap，套件內容及授權須另外核對。",
   "SpeechMessageProducts.ChurchReport/runtimeconfig.template.json": "提供.NET主機runtimeconfig的發佈範本，讓建置輸出採用核定執行階段選項；修改會影響程序行為，須核對Debug／Release、GC及ICU相關啟動守門，不以模板存在當實際啟動驗證。",
   "SpeechMessageProducts.sln": "列出正式方案的產品、共用層及測試專案與組態映射，供IDE、dotnet及架構工具取得權威依賴範圍；新增／移除專案須同步核對中央套件、測試、target及重複來源守門，不能只改資料夾。",
-  "d365/registration/plugins.registration.json": "宣告SpeechMessage沙箱外掛組件、型別與step註冊需求，供Deployment CLI離線驗證及plan／apply比對；清單只可含受管metadata與秘密佔位，不保存真實secure configuration、憑證或收件者資料。只允許核定測試組織的受控命令消費，清單本身沒有授權能力。",
+  "d365/registration/plugins.registration.json": "宣告schemaVersion 2的SpeechMessage沙箱多組件、型別、模組與step註冊需求，含legacy對照與尚未驗收的shadowReport欄位，供Deployment CLI離線驗證及plan／apply比對；清單只可含受管metadata與秘密佔位，不保存真實secure configuration、憑證或收件者資料。只允許核定測試組織的受控命令消費，清單本身沒有授權能力。",
   "d365/schema/speechmessagecore.schema.json": "宣告SpeechMessageCore受管實體、欄位、lookup、日期行為與alternate key需求；頂層activePhase限制本次規劃可納入的最高欄位phase，現行值4使new_sinopacprofile進入只新增plan。讀取或產生plan不代表已在D365建立欄位；不得以此自動修改既有欄位，所有寫入仍需組織白名單、即時metadata及plan hash核對。",
   "docs/portable/member-info-portable-kit/manifest.json": "記錄可攜會友功能套件的檔案相對身分與完整性資訊，由verify-package.ps1核對交付內容；參考實作是特定版本快照，不能冒充目前工作樹的正式產品來源或藉更新manifest掩蓋缺漏。",
   "docs/publication-contracts.json": "宣告跨產品資料列發布的契約覆蓋範圍與可追溯實作／測試入口，供PublicationContractManifestTests檢查；新增產品須登記穩定ID、完整快照、隔離與排空證據，不能只增加檔名聲稱已完成。",

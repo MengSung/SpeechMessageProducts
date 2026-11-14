@@ -28,6 +28,6 @@
   ],
   "parent": null,
   "relatedFiles": [],
-  "notes": "P5-02未驗收。PresentRecord D5-3前置盤點已於59cd3bef完成；入口為Update/Create new_present_record，需PresentRecordLineImage，Update差異才推播。:75寫死LINE收件識別，完整閉包仍安全拒絕。工具覆蓋率83.47%、矩陣0/29/0；待使用者決定D5-3，固定guard未完成，不推送。",
+  "notes": "P5-02已重新驗收，Release4926項與固定guard通過，6a2f0b07已推送核對；更新回復前置12:54完成。P5-03a離線實作中，30d81f32完成影子解析比較；manifest v2格式與唯讀匯出核心282項測試通過。未實機、整包未驗收未推送，Shadow IDs待確認。",
   "meta": {}
 }

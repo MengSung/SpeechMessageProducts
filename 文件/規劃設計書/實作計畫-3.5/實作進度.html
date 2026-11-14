@@ -240,11 +240,11 @@ footer{margin-top:36px;color:var(--muted);font-size:12.5px;text-align:center}
  */
 const DATA = {
   "planVersion": "3.5",
-  "snapshot": "2026-11-14 18:45 Asia/Taipei (UTC+08:00)",
-  "lastUpdated": "2026-11-14T18:45:00+08:00",
+  "snapshot": "2026-11-14 19:28 Asia/Taipei (UTC+08:00)",
+  "lastUpdated": "2026-11-14T19:28:56+08:00",
   "branch": "1.0.0.11.Integration.P5.Worktree",
-  "head": "36119ac2",
-  "headline": "2026-11-14 18:45 Asia/Taipei (UTC+08:00)：更新回復前置12:54已完成；P5-02已依D5-3／D5-18完成重新驗收，a段採legacy-live-only閱讀對照，b段完成36個專案／29個入口矩陣；完整Release測試4926項與固定guard全通過，驗收提交6a2f0b07已推送並以git ls-remote核對。",
+  "head": "30d81f32",
+  "headline": "2026-11-14 19:28 Asia/Taipei (UTC+08:00)：更新回復前置12:54與P5-02驗收已完成；P5-03a離線實作中，追蹤解析／比較、manifest v2格式與唯讀舊註冊匯出核心已通過Deployment 282項測試。多組件命令、映像／活動註冊、switch及兩輪shadow尚待完成，整包未驗收、未推送。",
   "notices": [
     {
       "id": "plan-3.5-summary",
@@ -511,8 +511,8 @@ const DATA = {
       "phaseId": "階段 5",
       "level": "info",
       "title": "P5 進度摘要",
-      "lastUpdated": "2026-11-14T18:45:00+08:00",
-      "body": "2026-11-14 18:56 Asia/Taipei (UTC+08:00)：更新回復前置12:54完成；P5-02已驗收、推送並核對遠端。P5-03a開始離線實作manifest v2、export-legacy、switch與先舊後新shadow；實機前核對發現兩個Shadow ID尚未在User Secrets，未猜測、不進實機。",
+      "lastUpdated": "2026-11-14T19:28:56+08:00",
+      "body": "2026-11-14 19:28 Asia/Taipei (UTC+08:00)：更新回復前置12:54與P5-02驗收已完成；P5-03a離線實作中，追蹤解析／比較、manifest v2格式與唯讀舊註冊匯出核心已通過Deployment 282項測試。多組件命令、映像／活動註冊、switch及兩輪shadow尚待完成，整包未驗收、未推送。",
       "steps": [
         "2026-11-14 08:26 Asia/Taipei (UTC+08:00)：已確認目標殘留目錄不是 Git worktree，移除後正式 P4／P5 worktree 清單不受影響。",
         "2026-11-14 08:26 Asia/Taipei (UTC+08:00)：export-metadata 唯讀結構快照建立成功；verify 因本機部署執行檔／連線前置失敗，未宣稱 goodshepherdback verify=0。",
@@ -535,7 +535,8 @@ const DATA = {
         "2026-11-14 17:57 Asia/Taipei (UTC+08:00)：f99bc2af完成D5-18盤點，確認PresentRecordLinePlugIn.cs:75寫死LINE收件識別；不得跑第一輪，替代基準待使用者決定。沒有保存識別值，未產生黃金、未操作組織。",
         "2026-11-14 17:59 Asia/Taipei (UTC+08:00)：59cd3bef完成PresentRecord D5-3前置盤點，記錄觸發、欄位、映像、例外與寫死收件識別風險；未建立替代黃金，待使用者決定。",
         "2026-11-14 18:15 Asia/Taipei (UTC+08:00)：88c4c6c9建立PresentRecord D5-3閱讀對照expected.json；四個情境均有完整預期投影，declaredDifferences逐筆引用舊檔名與行號，ExpectedGoldenTests雙目標35/35通過。因D5-18不實跑舊入口，沒有legacy.json；固定guard、整包驗收與推送仍待完成。",
-        "2026-11-14 18:45 Asia/Taipei (UTC+08:00)：a89d696c修正PluginHarness架構例外後，固定guard checkout重新執行；完整Release測試20個組件／4926項全過，I18n、打包、duplicate、Changed encoding、文件及進度頁守門全過。P5-02完成重新驗收，尚未推送；P5-03a開始規劃；實機待Shadow ID確認。"
+        "2026-11-14 18:45 Asia/Taipei (UTC+08:00)：a89d696c修正PluginHarness架構例外後，固定guard checkout重新執行；完整Release測試20個組件／4926項全過，I18n、打包、duplicate、Changed encoding、文件及進度頁守門全過。P5-02完成重新驗收，尚未推送；P5-03a開始規劃；實機待Shadow ID確認。",
+        "2026-11-14 19:28 Asia/Taipei (UTC+08:00)：30d81f32已提交有界影子追蹤解析／精確比較；manifest v2與唯讀匯出核心的局部Release測試282項、文件1529檔通過。未連組織；兩個Shadow ID尚待確認，未完成整包固定guard，不推送。"
       ]
     }
   ],
@@ -1399,7 +1400,7 @@ const DATA = {
       "timebox": "1 天",
       "doneAt": "",
       "commit": "",
-      "note": "2026-11-14 18:56 Asia/Taipei (UTC+08:00)：P5-02已推送並核對；P5-03a開始規劃manifest v2、export-legacy、switch與先舊後新shadow契約。實機前發現User Secrets尚未有ShadowTestChurchId／ShadowTestContactId，未猜測、不進實機，先做離線實作。"
+      "note": "2026-11-14 19:28 Asia/Taipei (UTC+08:00)：P5-03a離線實作中；已通過追蹤解析／比較、manifest v2格式與舊註冊匯出核心測試。映像／活動套用、多組件CLI、switch與shadow runner尚待完成；未實機、整包未驗收。"
     },
     {
       "id": "P5-04",
@@ -1748,12 +1749,12 @@ const DATA = {
         [
           "註冊清單 v2、映像與活動註冊",
           "no",
-          "已建立P5-03a規劃；尚未實作"
+          "v2格式與同型別多步驟規劃通過；映像／活動註冊及多組件命令待完成"
         ],
         [
           "export-legacy 與 switch 互斥切換",
           "no",
-          "離線契約待實作；舊新步驟不可同時啟用"
+          "唯讀export-legacy核心已測試；CLI與switch互斥切換待完成"
         ],
         [
           "先舊後新 shadow 兩輪與 observe",

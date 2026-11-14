@@ -432,6 +432,7 @@ internal sealed class DeploymentEngine
 
         var messageByName = new Dictionary<string, Entity>(StringComparer.Ordinal);
         var filterByIdentity = new Dictionary<string, Entity>(StringComparer.Ordinal);
+        var plannedTypes = new HashSet<string>(StringComparer.Ordinal);
         foreach (var step in manifest.Steps)
         {
             if (!messageByName.TryGetValue(step.Message, out var message))
@@ -452,7 +453,7 @@ internal sealed class DeploymentEngine
                 string.Equals(type.GetAttributeValue<string>("typename"), step.Type, StringComparison.Ordinal));
             if (pluginType is null)
             {
-                operations.Add(new DeploymentOperation("CreateType", step.Type));
+                if (plannedTypes.Add(step.Type)) operations.Add(new DeploymentOperation("CreateType", step.Type));
                 operations.Add(new DeploymentOperation("CreateStep", StepKey(step)));
                 continue;
             }
@@ -1157,10 +1158,15 @@ internal sealed class DeploymentEngine
         {
             manifest.SchemaVersion,
             manifest.AssemblyName,
+            manifest.ActivityGroup,
+            Activities = manifest.Activities.OrderBy(activity => activity.Type, StringComparer.Ordinal),
             Steps = manifest.Steps
                 .OrderBy(step => StepKey(step), StringComparer.Ordinal)
                 .Select(step => new
                 {
+                    step.Module,
+                    step.Legacy,
+                    step.ShadowReport,
                     step.Type,
                     step.Message,
                     step.Entity,
@@ -1168,7 +1174,7 @@ internal sealed class DeploymentEngine
                     step.Mode,
                     step.Rank,
                     FilteringAttributes = step.FilteringAttributes.OrderBy(value => value, StringComparer.Ordinal),
-                    Images = step.Images.OrderBy(value => value, StringComparer.Ordinal),
+                    Images = step.Images.OrderBy(value => value.Name, StringComparer.Ordinal),
                     step.UnsecureConfig,
                     step.SecureConfig,
                     EnabledByOrganization = step.EnabledByOrganization.OrderBy(pair => pair.Key, StringComparer.Ordinal)
@@ -1199,7 +1205,7 @@ internal sealed class DeploymentEngine
     /// <summary>驗證 P0 唯一支援的範圍及穩定身份唯一性；不支援欄位不可靜默忽略。</summary>
     private static void ValidateManifest(RegistrationManifest manifest, AssemblyImage image)
     {
-        if (manifest.SchemaVersion != 1 ||
+        if (manifest.SchemaVersion != 2 ||
             !string.Equals(manifest.AssemblyName, image.Name, StringComparison.Ordinal) ||
             manifest.Steps.Count == 0)
         {
@@ -1207,6 +1213,7 @@ internal sealed class DeploymentEngine
         }
 
         var keys = new HashSet<string>(StringComparer.Ordinal);
+        RegistrationManifestLoader.Validate(manifest);
         foreach (var step in manifest.Steps)
         {
             if (step.Rank <= 0 ||
@@ -1231,7 +1238,7 @@ internal sealed class DeploymentEngine
     /// 使 plan 和版控安全。member 的 sourceChurchId 是部署者核准的固定正式 ID，
     /// 不是由 task、Contact 或其他執行輸入推導的授權。
     /// </summary>
-    private static void ValidateConfigurationTemplate(StepRegistration step)
+    internal static void ValidateConfigurationTemplate(StepRegistration step)
     {
         if (string.IsNullOrWhiteSpace(step.UnsecureConfig) ||
             step.UnsecureConfig.Length > 4096 ||
