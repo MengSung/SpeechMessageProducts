@@ -43,3 +43,19 @@ seed 相符，後像值依 trigger 覆蓋 seed；Create 前像、Delete 後像�
 僅接受能由明列可寫 seed 欄位重現的映像值；唯讀／系統欄值、平台預設值或其他
 前置 Plugin 改寫後的值，未有獨立證據前仍拒絕。此核對是情境可重現性的前置檢查，
 不能宣稱量測了實機 context；正式映像仍由平台產生，實機驗收另列。
+
+## 外部既有記錄摘要接線（2026-11-15）
+
+固定受審入口盤點另明列 externalWrites（entity、churchAttribute）；空陣列表示
+來源審查未宣告外部寫入，缺欄位不是零筆。CLI 以正式 metadata 核對教會 lookup
+指向 account 及 versionnumber 型別，再將正式主鍵接到命令區域 observer。
+
+observer 在 seed 前及舊輪完成後，以權威測試教會 ID 精確篩選，僅取正式主鍵、
+教會 lookup 與 versionnumber；每表最多64筆、最多16表。分頁、超量、身分重複、
+缺版本及錯教會皆失敗；只對觸發前已存在的記錄計算版本變更或離開範圍的筆數，
+不讀訊息、名稱或其他業務值，不還原或清除既有列。新增測試列仍由原owned／related
+清冊清理，不能把此摘要當成新增列清冊。並行外部寫入可能影響版本，因此報告說明
+是受審範圍在測試期間的變動，不冒稱具有Dataverse全域寫入攔截或唯一因果證據。
+
+快照只存活一輪，owner Dispose清除ID／版本；報告只輸出實體及筆數，無盤點範圍
+明標none-declared，尚未接線明標unavailable，兩者不能以預設空集合假造零變動。
