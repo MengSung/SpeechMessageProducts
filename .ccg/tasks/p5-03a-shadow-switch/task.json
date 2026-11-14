@@ -6,7 +6,7 @@
   "risk": "high",
   "domain": "backend",
   "currentPhase": "implementation",
-  "nextAction": "2026-11-14 21:46 Asia/Taipei (UTC+08:00)：P5-02已驗收，基準更正419f24a9；P5-03a本地dbb9dd6b，Deployment618/618，19項factory整合測試綠。兩個Shadow ID已權威核對存Secrets。F16的39個步驟全屬兩個ActivityFeeds組件，其他匯出組件啟用0，發布者尚待釐清；不自行改分類或停用。CLI、同步追蹤、關聯observe等續作，未整包guard、未驗收未推送；工具3小時修正尚未開始。",
+  "nextAction": "2026-11-14 21:54 Asia/Taipei (UTC+08:00)：P5-03a續作，0323f4cd修正Microsoft ActivityFeeds誤分類；公開簽章、managed狀態及ActivityFeedsCore／microsoftdynamics方案關聯已唯讀核對，39個平台步驟未啟停。新版export-legacy回0、舊步驟及流程啟用各0，F16處置需求解除。Deployment Release626/626、文件1558檔零失敗；CRUD factory已接線，shadow CLI、同步追蹤、關聯observe、新增列／推播及實機映像等仍未完成。整包guard與diagnostics實機未執行，P5-03未驗收、本輪未推送；離線契約完成後再估驗收時間，目前不需使用者操作。 P5-02工具3小時修正排P5-03驗收後、P5-05前，尚未開始。",
   "createdAt": "2026-11-14T19:28:56+08:00",
   "branch": "1.0.0.11.Integration.P5.Worktree"
 }

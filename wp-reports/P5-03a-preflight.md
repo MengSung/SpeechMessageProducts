@@ -1,6 +1,6 @@
 # P5-03a 前置核對與 F16 停止紀錄
 
-更新時間：2026-11-14 21:46 Asia/Taipei (UTC+08:00)；原前置記錄時間為 21:28。
+更新時間：2026-11-14 21:53 Asia/Taipei (UTC+08:00)；原前置記錄時間為 21:28。
 本頁是進行中的前置證據，不是 P5-03a 或 P5-03 整包驗收回報。
 
 ## 已完成的本地提交
@@ -11,8 +11,9 @@
 - `9de66ceb P5-03a`：唯讀 metadata adapter，核對正式主鍵、欄位存在與 Create／Update 可寫性。
 - `f5c294be P5-03a`：新輪同時檢查最終欄值及完整意圖，防止額外欄位或中間寫入被最終值掩蓋。
 - `dbb9dd6b P5-03a`：新增 CRUD 情境 factory，接線 metadata、核定共享別名、owned lookup 與安全 expected 投影；19 項新測試含真正 runtime 清理，未支援種類明確拒絕。
+- `0323f4cd P5-03a`：修正 ActivityFeeds 的 Microsoft 來源分類；兩個已查證完整組件名同時具公開簽章識別及 managed=true 才排除，同名偽裝／缺值仍保留。
 
-最新離線結果：Deployment Release **618／618**；檔案說明 **1558 檔、0 失敗**；本次兩個新 C# 檔的 Changed 位元組檢查 **0 問題**。
+最新離線結果：Deployment Release **626／626**；檔案說明 **1558 檔、0 失敗**；本次兩個分類修正 C# 檔的 Changed 位元組檢查 **0 問題**。
 這些不是完整固定 guard 或實機影子驗收結果。
 
 ## Shadow 測試身分
@@ -61,10 +62,23 @@ SHA-256：
 21:45 唯讀 `git ls-remote` 查得遠端為 `a653de0887d96c51de280ad06192dfa0dd42c68a`；
 本輪未推送，不能把它描述為本包已驗收或遠端等於本機。
 
+2026-11-14 21:48～21:52 Asia/Taipei (UTC+08:00)：唯讀核對兩個組件的
+`publickeytoken=31bf3856ad364e35`、`ismanaged=true`，兩者均有 managed
+`ActivityFeedsCore` 的正式方案關聯，其發布者為 `microsoftdynamics`、前綴 `msdyn`。
+只讀 metadata，業務與註冊寫入皆為 0；證據
+`activityfeeds-publisher-20261114-214849.json`，
+SHA-256 `705E589882575053B0F910C90A00496DB55F1DBF481C93E5AEDAFFF59E393FD7`。
+八項分類回歸測試包含兩項先紅後綠及六項保守保留，修正後 CLI 唯讀匯出回 0：
+31 個舊組件、18 個舊步驟，啟用步驟 **0**、啟用流程 **0**。
+證據 `legacy-20261114-135228-5435182-feeac1853b094aa99e35c50a8b9455a6.json`，
+SHA-256 `4AB26B858FA9B89CE64E8A997102529CDBE9D9CD2FB2DCEFAFC4E46519BCF812`。
+兩份證據都只在本機上述 artifacts 目錄；39 個 ActivityFeeds 步驟完全沒有啟停。
+F16 為分類誤判已釐清，撤回使用者處置需求；不需要使用者停用任何平台步驟。
+
 ## 後續未完成
 
 - shadow CLI 與受控 legacy switch 接線、同步追蹤識別、關聯 observe、新增列及推播意圖、實機映像一致性與整合驗證。
-- F16 處置後的固定 guard 與 diagnostics 實機驗收。
+- 完整固定 guard 與 diagnostics 實機驗收（F16 誤分類已解除，但本次仍未執行）。
 - P5-03b 及 P5-03 整包驗收。
-- 原訂 2026-11-14 23:30 Asia/Taipei (UTC+08:00) 驗收估計暫停，待 F16 狀態釐清重估。
+- 原訂 2026-11-14 23:30 Asia/Taipei (UTC+08:00) 驗收估計不再承諾；CLI 與離線契約仍未完成，完成後再估實機與整包驗收時間。
 - P5-02 工具修正的三小時時限仍未開始；維持 P5-03 驗收後、P5-05 前執行。
