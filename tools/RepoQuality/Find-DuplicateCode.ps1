@@ -129,7 +129,7 @@ function Get-ProjectSourceFiles {
         foreach ($item in $pending.Pop().EnumerateFileSystemInfos()) {
             if (($item.Attributes -band [IO.FileAttributes]::ReparsePoint) -ne 0) { continue }
             if (($item.Attributes -band [IO.FileAttributes]::Directory) -ne 0) {
-                if ($item.Name -match '^(bin|obj|docs|\.worktrees|\.ccg|\.\u5176\u4ED6\u89E3\u6C7A\u65B9\u6848)$') { continue }
+                if ($item.Name -match '^(bin|obj|docs|\.worktrees|\.ccg|\.\u5176\u4ED6\u89E3\u6C7A\u65B9\u6848|PluginHarness)$') { continue }
                 $pending.Push([IO.DirectoryInfo]$item)
             }
             elseif ($item.Extension -eq '.cs' -and $item.Name -notmatch '(?i)(\.g\.cs|\.Designer\.cs)$') { $item.FullName }
