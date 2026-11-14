@@ -41,9 +41,12 @@ internal static class ShadowScenarioFiles
     private const int MaximumBytes = 1_048_576;
     private const int MaximumRows = 64;
     private const int MaximumFields = 128;
-    // 與離線 harness 相同的解碼後樣式檢查；固定逾時且不保留 Match 或原文字串。
+    // 先獨立檢查明確憑證，避免點分候選吞掉內含 LINE ID／長 token；皆固定逾時且不快取 Match。
     private static readonly Regex SecretPattern = new(
-        @"U[0-9a-fA-F]{32}|[A-Za-z0-9+/=_-]{101,}|[A-Za-z0-9_-]{8,}\.[A-Za-z0-9_-]{8,}\.[A-Za-z0-9_-]+|Bearer\s+",
+        @"U[0-9a-fA-F]{32}|[A-Za-z0-9+/=_-]{101,}|Bearer\s+",
+        RegexOptions.CultureInvariant | RegexOptions.NonBacktracking, TimeSpan.FromSeconds(1));
+    private static readonly Regex JwtCandidates = new(
+        @"[A-Za-z0-9_-]{8,}\.[A-Za-z0-9_-]{8,}\.[A-Za-z0-9_-]+",
         RegexOptions.CultureInvariant | RegexOptions.NonBacktracking, TimeSpan.FromSeconds(1));
 
     /// <summary>
@@ -167,11 +170,11 @@ internal static class ShadowScenarioFiles
     /// </summary>
     private static bool LooksLikeSecret(string value)
     {
-        foreach (Match match in SecretPattern.Matches(value))
+        if (SecretPattern.IsMatch(value)) return true;
+        foreach (Match match in JwtCandidates.Matches(value))
         {
             var candidate = match.Value;
             var dot = candidate.IndexOf('.', StringComparison.Ordinal);
-            if (dot < 0) return true;
             var header = candidate[..dot].Replace('-', '+').Replace('_', '/');
             if (header.Length > 100) return true;
             header = header.PadRight(header.Length + ((4 - header.Length % 4) % 4), '=');

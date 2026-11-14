@@ -220,6 +220,8 @@ public sealed class ShadowScenarioFilesTests
     [Theory]
     [InlineData("secret")]
     [InlineData("jwt")]
+    [InlineData("credential-in-dotted-string")]
+    [InlineData("recipient-in-dotted-string")]
     [InlineData("nested-duplicate")]
     public void Shadow_Files_DecodedSecretAndNestedDuplicates(string fault)
     {
@@ -230,6 +232,8 @@ public sealed class ShadowScenarioFilesTests
         {
             "secret" => System.Text.Json.JsonSerializer.Serialize("U" + new string('0', 32)),
             "jwt" => "\"eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJzeW50aGV0aWMifQ.c3ludGhldGlj\"",
+            "credential-in-dotted-string" => System.Text.Json.JsonSerializer.Serialize("NamespaceName.AnotherThing." + new string('a', 110)),
+            "recipient-in-dotted-string" => System.Text.Json.JsonSerializer.Serialize("NamespaceName.AnotherThing.U" + new string('0', 32)),
             _ => "1, \"amount\":2"
         };
         text = text.Replace("1234567890.1234567890123456789", replacement, StringComparison.Ordinal);
