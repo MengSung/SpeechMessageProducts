@@ -523,7 +523,8 @@ const DATA = {
         "2026-11-14 11:17 Asia/Taipei (UTC+08:00)：保留使用者新增本機提交 d8c0b64d，後續審查修正另行提交；最終雙模型 runner 未完成，第一輪 Claude 有可用審查，Gemini503無結果，第二輪Claude額度限制，不冒稱雙模型成功。獨立複核發現的High2與Warning2已補紅綠回歸測試。",
         "2026-11-14 11:25 Asia/Taipei (UTC+08:00)：fee2e909c1b0a5b3d5d94923250a7e228208011e 已推送並核對遠端一致；一頁回報 wp-reports/P5-01.md。固定 guard full.log SHA-256 3BA8014896AEE49A215694D5572997F4DE661647466F975420797DF894A55CD4；保留原始實機限制與所有歷史，不把本包離線結果當成部署驗收。",
         "2026-11-14 11:38 Asia/Taipei (UTC+08:00)：更新回復前置建立子任務；外部分析 Gemini403/503、Claude額度限制，未取得外部分析，不冒稱雙模型或成功降級。以本地分析與獨立複核續做離線部分。",
-        "2026-11-14 11:58 Asia/Taipei (UTC+08:00)：獨立複核W1共用correlation誤判已先紅2案再修復，Deployment236/236；合併驗證器改分辨抽象外殼與唯一具體入口，6/6通過。W2已補Live真解密與MAC拒絕，但卸載CSP例外仍列阻擋，不以VSTest exit0冒稱資源清理通過。"
+        "2026-11-14 11:58 Asia/Taipei (UTC+08:00)：獨立複核W1共用correlation誤判已先紅2案再修復，Deployment236/236；合併驗證器改分辨抽象外殼與唯一具體入口，6/6通過。W2已補Live真解密與MAC拒絕，但卸載CSP例外仍列阻擋，不以VSTest exit0冒稱資源清理通過。",
+        "2026-11-14 12:27 Asia/Taipei (UTC+08:00)：CSP根因已獨立定位；最小Framework相容修正經真程序紅綠驗證，Plugins Release172/172、CAS Debug5/5、加密雙宿主各33/33、合併member6/6與metadata通過。仍待完整guard及實機三次版本，不標前置驗收。"
       ]
     }
   ],
@@ -1726,7 +1727,7 @@ const DATA = {
       "phaseId": "階段 5",
       "name": "Plugin FileVersion 追蹤、只更新 FileVersion、回復（Codex 執行）",
       "status": "active",
-      "note": "2026-11-14 11:58 Asia/Taipei (UTC+08:00)：自身版本與安全smoke已測；CAS Live域卸載CSP清理仍阻擋，未跑完整守門與實機換版，不標驗收。"
+      "note": "2026-11-14 12:27 Asia/Taipei (UTC+08:00)：自身版本、安全smoke與CAS清理修正已離線驗證；完整guard與實機換版回復尚待，不標驗收。"
     }
   ],
   "active": [],

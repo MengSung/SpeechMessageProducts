@@ -140,3 +140,26 @@ A/B各100次以真HTTP barrier重疊，active歸零、200份response確定性Dis
 錯誤：`new TextMessage(text)`的舊建構式會靜默截斷2000字，無法用它驗5000字邊界。
 正確：`new TextMessage(string.Empty) { Text = text }`保留完整字典值，再由Core明確驗證1～5000字。
 測試用同樣的屬性注入超限值；3000字紅綠證明通知不截斷。不把離線HTTP／SDK契約當實機證據。
+
+## P5 更新回復前置：Framework HMAC 卸載相容性（2026-11-14）
+
+本機 Framework 4.8.10008.0 的 HMACSHA256 exact-type 快速路徑借用 NativeHmac
+靜態 CSP provider；當次 HMAC/hash/key 已 Dispose，受限 AppDomain 卸載仍於
+SafeCspHandle.CryptReleaseContext 發生 SecurityException。獨立程序三次重現，
+不能把 VSTest exit=0 或 quiet 不顯示訊息當成清理成功。
+
+NETFRAMEWORK 的 ComputeMac 使用 private sealed HMACSHA256 子類，只呼叫 base(key)，
+沒有欄位、演算法、Initialize 或 Dispose 覆寫；每次 using，延續 Framework 自有
+繼承相容及 FIPS policy 選擇。net10 保持原實作，v1 協定、MAC 長度、子 key、
+認證後解密及固定時間比較均不變。不反射釋放靜態 provider、不擴權、不設定全域 mapping。
+
+此 workaround 依賴 runtime；servicing 更新須重跑 PluginPartialTrustTests 的獨立
+Framework 程序案例，要求兩個受限域真正卸載後的標記、空 stderr、零退出碼。
+原輸出閉包以 ApplicationBase 定位，不能使用 xUnit 分散 shadow-copy 的 Assembly.Location。
+父 owner 三十秒期限，逾時終止、等待退出、排空 stdout/stderr 並 Dispose；不啟動巢狀 runner。
+
+驗證保留雙目標33案（獨立Node及歷史雙端封包、有效MAC壞padding/UTF8、A/B並行、
+caller key不變、handle/GC基線）及真會員通知有效/壞MAC兩路CAS。短跑合成成本為
+額外1424 bytes/call，約0.30–0.42微秒；受限域十次卸載、handle增量0，並非長期soak。
+FIPS=True環境未測，不宣稱認證或所有runtime可用；目標環境未通過時保持部署阻擋，
+不得以停用政策或授權產品FullTrust繞過。

@@ -143,3 +143,5 @@ https://raw.githubusercontent.com/microsoft/referencesource/main/mscorlib/system
 ### 收尾完成
 
 原 scratch 已用原生 PowerShell Move-Item 可逆移到本 research 下已由 git check-ignore 確認 ignored 的 bin/cas-crypto-scratch-231ee8a2a3874ffebb50ad9e4d332c47。來源與目的完整絕對路徑、共同 research 邊界、目的不存在與來源非 reparse point 均先確認；沒有再嘗試刪除。原路徑已不存在，R: subst 已移除，原始執行檔與編譯來源保留為可回復證據。沒有修改其他工作者檔案。
+
+主流程交接：原始 cas-crypto-evidence 於2026-11-14 12:23可逆移至本機 ignored `.ccg/dual-model-runs/p5-cas-crypto-evidence/`；上述來源與hash保留，原始IL／輸出不提交。

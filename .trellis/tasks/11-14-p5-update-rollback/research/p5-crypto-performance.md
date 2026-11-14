@@ -57,7 +57,7 @@
 - 探針：`R:\probe.exe`（無參數）；exit **0**、timeout **false**、**956 ms**、stdout **6,275 chars**、stderr **0 chars/bytes**。
 - stdout 最後一行原樣：`PASS digests=140400 keyUnmodified=True allBounds=True`；10 組 BEFORE_UNLOAD／AFTER_UNLOAD 全部存在。
 - runner 唯一擁有 Process：啟動後非同步讀取 stdout/stderr，編譯 deadline 30 s、探針 90 s；逾時 Kill → WaitForExit → drain，再 finally Dispose。本次沒有逾時。全部程序已退出；R: 已解除。
-- stdout／stderr 直接保留 ReadToEnd 結果，未過濾／改行尾／刪除例外；輸出為 ASCII，寫為 UTF-8 無 BOM。result.json 記錄精確 exit、timeout、elapsed 及字數。CodeDom temp 僅在 ignored scratch，由 provider Dispose；exe／來源／原始 log 保留，不進行刪除。
+- stdout／stderr 直接保留 ReadToEnd 結果，未過濾／改行尾／刪除例外；輸出為 ASCII，寫為 UTF-8 無 BOM。result.json 記錄精確 exit、timeout、elapsed 及字數。CodeDom temp 僅在 ignored scratch；編譯後保留的實際檔案清冊已檢查，provider 在 finally Dispose；exe／來源／原始 log 保留，不進行刪除。
 
 ## 環境與限制
 
@@ -81,3 +81,10 @@
 - `probe.stderr.log` SHA256 `E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855`。
 
 文件／位元組檢查結果由本次後續驗證段落追加。
+
+## 最終驗證
+
+- `python tools/RepoQuality/check_file_documentation.py`：exit 0，checked=1495、failures=0。
+- 報告及本次 probe-source.txt／compile.ps1／run.ps1：嚴格 UTF-8、無 BOM、純 CRLF、末尾 CRLF；位元組檢查通過。
+- 原始 stdout 決定性檢查：140,400 比對摘要、10 次 AFTER_UNLOAD、compile/probe exit=0、timeout=false、stderr=0 bytes，全部通過。
+- `git check-ignore` 確認 probe.exe 位於 ignored bin；R: 已不存在。沒有產品／測試／共享 bin 或其他工作者檔案寫入。
