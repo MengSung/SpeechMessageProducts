@@ -138,7 +138,8 @@ internal static class ArchitectureProjectReader
                     ValidateLocalPath(root, assetsPath);
                     using var stream = File.OpenRead(assetsPath);
                     using var assets = JsonDocument.Parse(stream);
-                    var violations = ArchitectureRules.ValidateFrameworkAssets(assets.RootElement.GetProperty("targets").GetProperty(target));
+                    var violations = ArchitectureRules.ValidateFrameworkAssets(
+                        assets.RootElement.GetProperty("targets").GetProperty(target), target);
                     if (violations.Count != 0) throw new InvalidDataException("Framework restore selected an incompatible product: " + string.Join(",", violations));
                 }
 

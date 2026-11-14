@@ -413,6 +413,21 @@ public sealed class ArchitectureRuleTests
     }
 
     /// <summary>
+    /// P5-02 的 net48 PluginHarness 只建立記錄用 HttpClient 替身；它不是部署產品，
+    /// 允許此精確節點不代表其他 net48 工具或任何產品可直接持有傳輸 client。
+    /// </summary>
+    [Fact]
+    public void R9_PluginHarnessNet48_RecordingTransportIsAllowed()
+    {
+        var project = Product("PluginHarness", "net48", "net48") with
+        {
+            Sources = new[] { Source("Transport.cs", "using System.Net.Http; internal class Transport { HttpClient client; }") }
+        };
+        Assert.DoesNotContain(ArchitectureRules.ValidateSource(Graph(project)),
+            item => item.Rule == "R9HttpClientProject");
+    }
+
+    /// <summary>
     /// 公開 Plugin 的介面別名、間接繼承及 Workflow 基底均依真正 SDK metadata 辨識。
     /// 正反例只在 Roslyn 中編譯來源模型，不執行入口；同命名空間的偽造介面仍須拒絕。
     /// </summary>

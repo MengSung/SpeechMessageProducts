@@ -316,15 +316,18 @@ internal static class ArchitectureRules
 
     /// <summary>檢查 NuGet 已選出的 Framework 相依，而不是只相信 csproj 宣告能提供 net462。</summary>
     /// <param name="target">已還原的單一 Framework target 節點。</param>
+    /// <param name="targetFramework">目前被驗證的目標框架；只有 net48 測試宿主可保留 PluginHarness net48 相依。</param>
     /// <returns>沙箱不可接受的產品名稱，不回傳完整本機路徑。</returns>
-    internal static IReadOnlyList<string> ValidateFrameworkAssets(JsonElement target)
+    internal static IReadOnlyList<string> ValidateFrameworkAssets(JsonElement target, string targetFramework = "net462")
     {
         var violations = new List<string>();
         foreach (var dependency in target.EnumerateObject())
         {
             if (dependency.Value.GetProperty("type").GetString() == "project" &&
                 (!dependency.Value.TryGetProperty("framework", out var framework) ||
-                 framework.GetString() != ".NETFramework,Version=v4.6.2"))
+                 (framework.GetString() != ".NETFramework,Version=v4.6.2"
+                  && !(targetFramework == "net48"
+                       && dependency.Name.StartsWith("LegacyGolden.PluginHarness/", StringComparison.Ordinal)))))
             {
                 violations.Add(dependency.Name.Split('/')[0]);
             }
@@ -411,9 +414,13 @@ internal static class ArchitectureRules
                 symbol.ToDisplayString(), "System.Drawing"));
     }
 
-    /// <summary>傳輸雙目標例外只有兩個正式核心，其餘僅允許已分類且所有產品目標都是 net10 的主機／共用層。</summary>
+    /// <summary>
+    /// 正式產品的傳輸雙目標例外只有兩個核心；P5-02 的 net48 PluginHarness
+    /// 只允許自己的記錄替身使用 HttpClient，不能把例外擴到其他工具或產品。
+    /// </summary>
     private static bool IsHttpClientProjectAllowed(ArchitectureProject project) =>
         project.Name is "Line.Messaging" or "LineMessagingProcessor.Core" ||
+        (project.Name == "PluginHarness" && project.Target == "net48") ||
         (project.Target == "net10.0" && project.Targets.All(target => target == "net10.0") &&
          Layer(project.Name) >= 0 && !IsSandbox(project.Name) && !IsTool(project.Name));
 

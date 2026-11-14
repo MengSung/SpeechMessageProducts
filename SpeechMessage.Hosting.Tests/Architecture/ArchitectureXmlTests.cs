@@ -108,6 +108,17 @@ public sealed class ArchitectureXmlTests
     }
 
     /// <summary>
+    /// PluginHarness 是 net48 的舊程式離線宿主；只有 net48 測試宿主允許其保留
+    /// net48 project reference，其他 net462 沙箱依賴仍須拒絕，避免把相容例外擴成全域放寬。
+    /// </summary>
+    [Fact]
+    public void RestoredAssets_Net48TestHost_AllowsOnlyPluginHarnessNet48()
+    {
+        using var valid = JsonDocument.Parse("{\"LegacyGolden.PluginHarness/1.0.0\":{\"type\":\"project\",\"framework\":\".NETFramework,Version=v4.8\"},\"Core/1.0.0\":{\"type\":\"project\",\"framework\":\".NETFramework,Version=v4.8\"}}");
+        Assert.Equal("Core", Assert.Single(ArchitectureRules.ValidateFrameworkAssets(valid.RootElement, "net48")));
+    }
+
+    /// <summary>
     /// 真正 MSBuild 評估應依 Debug／Release 分別解析 Compile、普通組件及條件常數。
     /// 兩檔來源由本案例建立並確定刪除；不執行建置、載入產品或連接外部系統。
     /// </summary>
