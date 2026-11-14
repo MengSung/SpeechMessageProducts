@@ -21,6 +21,6 @@
   "children": [],
   "parent": "11-14-integration-p5",
   "relatedFiles": [],
-  "notes": "2026-11-14 22:33 Asia/Taipei (UTC+08:00)：P5-03a續作，3b88dd97接通shadow新輪CLI，247bdfe2接通同步RequestId追蹤；new／reading／legacy-golden的CRUD新輪已走真CLI、權威身分／部署映像核對、SDK owner、清理與安全報告，18項CLI測試含取消後停用、租約歸還、歧義追蹤及同日證據不覆寫。Deployment Release648/648、文件1560檔零失敗。受審token盤點的舊輪CLI、關聯observe／新增列、推播及外部修改摘要仍待完成；同步追蹤只有離線證據，整包固定guard與diagnostics實機尚未執行，P5-03未驗收、未推送。目前沒有等待使用者的事項，離線契約完成後再估驗收時間。 P5-02工具三小時修正維持P5-03驗收後、P5-05前，尚未開始。",
+  "notes": "2026-11-14 22:47 Asia/Taipei (UTC+08:00)：P5-03a續作，6ac56760接通關聯observe與Create別名，721dd5c5補強子列清理失敗的父列保留與重試；related只接受指向本輪owned seed的正式lookup，讀回後更新ID映射，歧義不任取第一筆，送達後失敗／取消也重新查回並先刪子列。新增26項離線測試，Deployment Release674/674、文件1560檔零失敗。受審token盤點的舊輪CLI、推播／外部修改摘要及映像接線仍待完成；同步追蹤仍待實機查證，整包固定guard與diagnostics實機未執行，P5-03未驗收、未推送。目前沒有等待使用者的事項，離線契約完成後再估驗收時間。 P5-02工具三小時修正維持P5-03驗收後、P5-05前，尚未開始。",
   "meta": {}
 }

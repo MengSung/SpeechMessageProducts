@@ -147,8 +147,14 @@ phases. This acceptance did not exercise LINE delivery or prove hosted CI succes
 
 ## P5-03a 命令接線與同步追蹤（2026-11-14，實作中）
 
-`shadow` 與 `apply` 共用組織 OS 寫鎖及單一 lease；只讀固定模組 Golden 目錄。整批情境、權威 Shadow ID、部署 PE／清單及即時註冊核對成功後才可寫 trace 或 seed。現在 new／reading／legacy-golden 的 CRUD 新輪已由真 CLI 測試；未接通的 live 舊輪盤點、關聯新增列與推播等必須拒絕，不能改基準假稱通過。
+`shadow` 與 `apply` 共用組織 OS 寫鎖及單一 lease；只讀固定模組 Golden 目錄。整批情境、權威 Shadow ID、部署 PE／清單及即時註冊核對成功後才可寫 trace 或 seed。現在 new／reading／legacy-golden 的 CRUD 新輪已由真 CLI 測試；未接通的 live 舊輪盤點與推播等必須拒絕，不能改基準假稱通過。
 
 runner 的 readLegacy 委派同時用於 finally 停用，不能捕捉已取消的 caller token；清理明確使用 CancellationToken.None，正常流程仍在各界面檢查 caller 取消。同步 step 由當下註冊 mode 提供，trigger 用獨立 RequestId 的 SDK request；追蹤查詢同時限制 requestid、pluginstepid、typename、mode=0 與開始時間，不等待同步步驟不存在的 asyncoperation。這只有離線證據，05A §8 的實機識別查證仍待完成。
 
 安全報告放在 artifacts/shadow 的唯一操作子目錄，每份仍保留日期-module.md，不覆寫同日既有證據。情境的秘密樣式掃描先獨立檢查 LINE ID、長憑證及 Bearer，再對點分候選驗實際 JSON JWT header；不能把合法完整 CLR 名稱誤擋，也不能因點分候選吞掉內含憑證。不對 type／entrypoint 開略過掃描例外。
+
+## P5-03a 關聯列觀察及清理（2026-11-14，離線證據）
+
+observe 可選填 `related: {attribute, alias}`，alias 必須是本輪 owned seed，不可指向共用教會／會友。factory 驗正式 lookup Targets、唯一 selector、Create 期望相同父參照及有序建立／刪除，CLI 同時載入 observe 的 metadata。舊輪以精確父 ID 查回並核對每列 lookup；新輪以 Create 意圖而非最後快照配對，避免 Create 後 Delete 丟失別名。runner 在觀察／追蹤完成後才重新讀取動態 alias 映射。
+
+trigger 送達後失敗或 caller 取消也要在停用後發現子列，先刪子再刪 seed；只對本輪父 ID 的有界完整回應登錄所有子 ID。查詢分頁、錯父 lookup、重複 ID 或子列刪除失敗必須失敗並保留父列作重試範圍，不能假稱零殘留。每個 selector 最多讀 64 列，超量不取部分；同 selector 多列可清理但不可任取第一筆配對。影子意圖 GUID 只供比較，永不加入遠端刪除清冊。這些測試不代表已執行實機舊輪。
