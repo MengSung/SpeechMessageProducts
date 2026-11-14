@@ -21,6 +21,6 @@
   "children": [],
   "parent": "11-14-integration-p5",
   "relatedFiles": [],
-  "notes": "P5-02仍未驗收。ce8dcea4完成b段queryResults連接，172項通過；net48工具覆蓋率63.16%，矩陣0/29成功。PresentRecord待使用者決定D5-3，固定guard未完成。",
+  "notes": "P5-02未驗收。60822743工具Release293項全過、覆蓋率83.47%，Debug195項、80.55%；Rest誤擋已修復。PresentRecord仍缺實跑黃金待使用者決定D5-3，固定guard未完成，不推送。",
   "meta": {}
 }

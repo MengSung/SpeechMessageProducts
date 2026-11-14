@@ -240,11 +240,11 @@ footer{margin-top:36px;color:var(--muted);font-size:12.5px;text-align:center}
  */
 const DATA = {
   "planVersion": "3.5",
-  "snapshot": "2026-11-14 16:04 Asia/Taipei (UTC+08:00)",
-  "lastUpdated": "2026-11-14T16:04:46+08:00",
+  "snapshot": "2026-11-14 16:24 Asia/Taipei (UTC+08:00)",
+  "lastUpdated": "2026-11-14T16:24:04+08:00",
   "branch": "1.0.0.11.Integration.P5.Worktree",
-  "head": "ce8dcea4",
-  "headline": "2026-11-14 16:04 Asia/Taipei (UTC+08:00)：P5-01與更新回復前置（12:54）已完成。P5-02a尚缺PresentRecord實跑黃金，待使用者決定整包D5-3；b段queryResults已連接，相關172項全過，36專案／29入口只編譯矩陣成功0、失敗29。新工具net48覆蓋率63.16%未達80%，固定guard未完成，無法承諾驗收時間；本輪未推送。",
+  "head": "60822743",
+  "headline": "2026-11-14 16:24 Asia/Taipei (UTC+08:00)：P5-01與更新回復前置（12:54）已完成。P5-02a尚缺PresentRecord實跑黃金，待使用者決定整包D5-3；b段queryResults已連接。Release全測試293項通過，工具net48覆蓋率83.47%達80%；Debug相關195項通過、覆蓋率80.55%。固定guard未完成，驗收時間待基準決定後重估；本輪未推送。",
   "notices": [
     {
       "id": "plan-3.5-summary",
@@ -511,8 +511,8 @@ const DATA = {
       "phaseId": "階段 5",
       "level": "info",
       "title": "P5 進度摘要",
-      "lastUpdated": "2026-11-14T16:04:46+08:00",
-      "body": "2026-11-14 16:04 Asia/Taipei (UTC+08:00)：P5-01與更新回復前置（12:54）已完成。P5-02a尚缺PresentRecord實跑黃金，待使用者決定整包D5-3；b段queryResults已連接，相關172項全過，36專案／29入口只編譯矩陣成功0、失敗29。新工具net48覆蓋率63.16%未達80%，固定guard未完成，無法承諾驗收時間；本輪未推送。",
+      "lastUpdated": "2026-11-14T16:24:04+08:00",
+      "body": "2026-11-14 16:24 Asia/Taipei (UTC+08:00)：P5-01與更新回復前置（12:54）已完成。P5-02a尚缺PresentRecord實跑黃金，待使用者決定整包D5-3；b段queryResults已連接。Release全測試293項通過，工具net48覆蓋率83.47%達80%；Debug相關195項通過、覆蓋率80.55%。固定guard未完成，驗收時間待基準決定後重估；本輪未推送。",
       "steps": [
         "2026-11-14 08:26 Asia/Taipei (UTC+08:00)：已確認目標殘留目錄不是 Git worktree，移除後正式 P4／P5 worktree 清單不受影響。",
         "2026-11-14 08:26 Asia/Taipei (UTC+08:00)：export-metadata 唯讀結構快照建立成功；verify 因本機部署執行檔／連線前置失敗，未宣稱 goodshepherdback verify=0。",
@@ -529,7 +529,8 @@ const DATA = {
         "2026-11-14 13:44 Asia/Taipei (UTC+08:00)：撤回P5-02完成與P5-03啟動標記；既有原型未執行舊入口，不能把合成值當作舊行為證據；正在補齊05A全部驗收。",
         "2026-11-14 15:44 Asia/Taipei (UTC+08:00)：依使用者更正撤回六個逐情境合成小檔，固定三檔契約不以手寫 legacy 補數；保留使用者的兩處設計 v3.4。dde961fb 曾於驗收前推送，保留歷史；後續僅該包驗收及固定 guard 通過才推送，再以 git ls-remote 核對。工作包內自行分析，外部審查僅於階段結束執行。",
         "2026-11-14 15:50 Asia/Taipei (UTC+08:00)：157項局部測試及1519檔文件檢查通過；綠燈小段提交 37e54bf8。PresentRecord 尚缺實跑黃金，編譯固定診斷與未完成條件見 research/p5-02a-checkpoint.md；沒有將局部綠燈當整包驗收。",
-        "2026-11-14 16:04 Asia/Taipei (UTC+08:00)：ce8dcea4連接queryResults，十五項新增測試先紅後綠；依序答案、同名不同ID、案例隔離及拒絕契約通過。正式矩陣重跑全部29入口CompileFailed，沒有執行舊入口。覆蓋率63.16%及原始證據SHA見子任務wp-reports/P5-02.md；只讀查得遠端842b049f，本輪沒有推送。"
+        "2026-11-14 16:04 Asia/Taipei (UTC+08:00)：ce8dcea4連接queryResults，十五項新增測試先紅後綠；依序答案、同名不同ID、案例隔離及拒絕契約通過。正式矩陣重跑全部29入口CompileFailed，沒有執行舊入口。覆蓋率63.16%及原始證據SHA見子任務wp-reports/P5-02.md；只讀查得遠端842b049f，本輪沒有推送。",
+        "2026-11-14 16:24 Asia/Taipei (UTC+08:00)：90ddb24a補執行域假服務契約；ddba3f0a修正Rest離線相容型別遭組件安全檢查誤擋，先紅五項後綠，直接工具API仍拒絕；60822743補容量故障及清理。Release293項全過、工具覆蓋率83.47%，Debug195項全過、80.55%。只編譯確認PresentRecord仍被QPay／ToolUtility／Trace拒絕，無實跑黃金。固定guard未完成，未驗收、未推送。"
       ]
     }
   ],
@@ -1381,7 +1382,7 @@ const DATA = {
       "timebox": "1 天",
       "doneAt": "",
       "commit": "",
-      "note": "2026-11-14 16:04 Asia/Taipei (UTC+08:00)：P5-01與更新回復前置（12:54）已完成。P5-02a尚缺PresentRecord實跑黃金，待使用者決定整包D5-3；b段queryResults已連接，相關172項全過，36專案／29入口只編譯矩陣成功0、失敗29。新工具net48覆蓋率63.16%未達80%，固定guard未完成，無法承諾驗收時間；本輪未推送。"
+      "note": "2026-11-14 16:24 Asia/Taipei (UTC+08:00)：P5-01與更新回復前置（12:54）已完成。P5-02a尚缺PresentRecord實跑黃金，待使用者決定整包D5-3；b段queryResults已連接。Release全測試293項通過，工具net48覆蓋率83.47%達80%；Debug相關195項通過、覆蓋率80.55%。固定guard未完成，驗收時間待基準決定後重估；本輪未推送。"
     },
     {
       "id": "P5-03",
@@ -1747,7 +1748,7 @@ const DATA = {
         [
           "傳輸與檔案安全攔截",
           "no",
-          "局部測試157/157；正式閉包尚未通過，不代表完整驗收"
+          "離線安全整合測試與Release293項全過；實際舊閉包仍拒絕，不代表完整驗收"
         ],
         [
           "出席實際黃金與期望差異契約",
@@ -1757,7 +1758,7 @@ const DATA = {
         [
           "a 段覆蓋率80%；b 段矩陣查詢補強",
           "no",
-          "工具net48覆蓋率63.16%未達80%；b段queryResults通過，29入口編譯均失敗"
+          "工具Release覆蓋率83.47%、Debug80.55%達門檻；b段queryResults通過，矩陣保留歷史結果，非實跑"
         ],
         [
           "固定守門及驗收回報",

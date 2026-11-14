@@ -10,3 +10,7 @@
 ## 2026-11-14 16:04 Asia/Taipei (UTC+08:00) 續跑
 
 b段 queryResults 連接提交 ce8dcea4，十五個新增案例先紅後綠，相關一百七十二項通過；新工具 net48 行覆蓋率63.16%，不得排除連結Fakes以抬高結果。正式矩陣重跑0 Generated／29 CompileFailed／0 BlockedByNetworkApi，原始檔與SHA見wp-reports/P5-02.md。a段尚缺黃金、固定guard未完成，不將b局部成功當整包驗收。
+
+## 2026-11-14 16:24 Asia/Taipei (UTC+08:00) 驗證續跑
+
+60822743：實際執行域假服務與Rest／scratch安全契約補強；Rest相容型別的HarnessApiRefused先紅五項後修復，仍拒絕直接工具API。Release全測試293項、工具覆蓋率83.47%；Debug相關195項、80.55%，兩者各自通過既有Test-Coverage。PresentRecord只編譯仍被反射／設定／實體CRM入口拒絕，未擴充支援；實跑黃金及固定guard未完成，待使用者D5-3決定。
