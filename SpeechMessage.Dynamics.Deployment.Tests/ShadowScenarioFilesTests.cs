@@ -20,6 +20,18 @@ namespace SpeechMessage.Dynamics.Deployment.Tests;
 /// <summary>針對檔案邊界及語意拒絕的離線測試；不以 runtime 補足 reader 的驗證。</summary>
 public sealed class ShadowScenarioFilesTests
 {
+    /// <summary>正式完整型別名不是 JWT；既有廣泛字串模式不得把合法命令永遠擋在讀檔。</summary>
+    [Fact]
+    public void Shadow_Files_QualifiedPluginNameIsNotCredential()
+    {
+        using var f = new Files();
+        const string type = "SpeechMessage.Dynamics.Plugins.Diagnostics.DiagnosticsPingPlugin";
+        f.Scenarios["cases"]![0]!["trigger"]!["type"] = type;
+        f.Expected["cases"]![0]!["entrypoint"] = type;
+        f.Save();
+        Assert.Equal(type, Assert.Single(ShadowScenarioFiles.Load(f.Root, "attendance")).Entrypoint);
+    }
+
     /// <summary>成功解析保留高精度原文及所有必要資料，來源刪除後仍有效且不同載入互相隔離。</summary>
     [Fact]
     public void Shadow_Files_LoadDetachedAndPreservePrecision()
@@ -207,15 +219,20 @@ public sealed class ShadowScenarioFilesTests
     /// <param name="fault">合成秘密樣式或巢狀重複鍵。</param>
     [Theory]
     [InlineData("secret")]
+    [InlineData("jwt")]
     [InlineData("nested-duplicate")]
     public void Shadow_Files_DecodedSecretAndNestedDuplicates(string fault)
     {
         using var f = new Files();
         var path = Path.Combine(f.DirectoryPath, "scenarios.json");
         var text = File.ReadAllText(path);
-        text = fault == "secret"
-            ? text.Replace("1234567890.1234567890123456789", System.Text.Json.JsonSerializer.Serialize("U" + new string('0', 32)), StringComparison.Ordinal)
-            : text.Replace("1234567890.1234567890123456789", "1, \"amount\":2", StringComparison.Ordinal);
+        var replacement = fault switch
+        {
+            "secret" => System.Text.Json.JsonSerializer.Serialize("U" + new string('0', 32)),
+            "jwt" => "\"eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJzeW50aGV0aWMifQ.c3ludGhldGlj\"",
+            _ => "1, \"amount\":2"
+        };
+        text = text.Replace("1234567890.1234567890123456789", replacement, StringComparison.Ordinal);
         File.WriteAllText(path, text);
         Assert.Throws<InvalidDataException>(() => ShadowScenarioFiles.Load(f.Root, "attendance"));
     }

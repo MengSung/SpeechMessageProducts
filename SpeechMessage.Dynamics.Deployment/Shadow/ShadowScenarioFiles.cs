@@ -9,6 +9,8 @@
  * 的唯讀 JSON 與集合，保留數字原文精度，無跨請求快取或背景工作。DTO 的生命期由
  * 命令呼叫端擁有，不含連線及憑證。活動僅保存並標記，是否可執行由 runtime 明確拒絕。
  * observe 目前只接受 alias/entity/fields，關聯查詢須另行核定 schema 後才能擴充。
+ * 點分字串先驗是否真有 JWT JSON header；完整 CLR 型別名不得因三個長片段誤判，
+ * 其餘 LINE ID、長憑證及 Bearer 樣式仍逐層拒絕，不對 type 欄位開跳過掃描例外。
  * 固定錯誤不回顯檔案本文；秘密樣式掃描是輔助守門，不能代替人工合成資料審查。
  */
 using System;
@@ -149,13 +151,43 @@ internal static class ShadowScenarioFiles
             var names = new HashSet<string>(StringComparer.Ordinal);
             foreach (var property in element.EnumerateObject())
             {
-                if (!names.Add(property.Name) || SecretPattern.IsMatch(property.Name)) throw Invalid();
+                if (!names.Add(property.Name) || LooksLikeSecret(property.Name)) throw Invalid();
                 Visit(property.Value);
             }
         }
         else if (element.ValueKind == JsonValueKind.Array)
             foreach (var child in element.EnumerateArray()) Visit(child);
-        else if (element.ValueKind == JsonValueKind.String && SecretPattern.IsMatch(element.GetString()!)) throw Invalid();
+        else if (element.ValueKind == JsonValueKind.String && LooksLikeSecret(element.GetString()!)) throw Invalid();
+    }
+
+    /// <summary>
+    /// 候選點分片段必須解出含 alg 的 JSON header 才視為 JWT，而非任何三段 CLR 名稱。
+    /// 只解碼固定 regex 命中的短 header；長片段已先由一百字元憑證規則拒絕。
+    /// bytes 及 JsonDocument 只活於本次掃描，不輸出內容，沒有 type／entrypoint 欄位豁免。
+    /// </summary>
+    private static bool LooksLikeSecret(string value)
+    {
+        foreach (Match match in SecretPattern.Matches(value))
+        {
+            var candidate = match.Value;
+            var dot = candidate.IndexOf('.', StringComparison.Ordinal);
+            if (dot < 0) return true;
+            var header = candidate[..dot].Replace('-', '+').Replace('_', '/');
+            if (header.Length > 100) return true;
+            header = header.PadRight(header.Length + ((4 - header.Length % 4) % 4), '=');
+            try
+            {
+                using var json = JsonDocument.Parse(Convert.FromBase64String(header),
+                    new JsonDocumentOptions { MaxDepth = 8 });
+                if (json.RootElement.ValueKind == JsonValueKind.Object &&
+                    json.RootElement.TryGetProperty("alg", out _)) return true;
+            }
+            catch (Exception failure) when (failure is FormatException or JsonException)
+            {
+                // 無法解成 header 的點分名稱不是 JWT；仍逐一檢查同字串中的其他候選。
+            }
+        }
+        return false;
     }
 
     /// <summary>只允許明列必要與選填屬性；缺值與未知鍵均不採寬鬆反序列化。</summary>
