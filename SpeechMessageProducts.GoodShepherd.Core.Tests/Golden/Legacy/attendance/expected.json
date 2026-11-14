@@ -1,0 +1,98 @@
+{
+  "module": "attendance",
+  "basis": "legacy-live-only",
+  "cases": [
+    {
+      "name": "attendance-reply-changed",
+      "entrypoint": "PresentRecordLinePlugIn.PresentRecordLinePlugIn",
+      "writes": [],
+      "lineCalls": [
+        {
+          "method": "POST",
+          "endpoint": "/v2/bot/message/multicast",
+          "recipients": [ "contact-1" ],
+          "messageCount": 1
+        }
+      ],
+      "outputs": {
+        "observed": {
+          "entity": "new_present_record",
+          "alias": "present-1",
+          "changedFields": [ "new_paster_reply" ]
+        }
+      },
+      "exception": null
+    },
+    {
+      "name": "attendance-reply-unchanged",
+      "entrypoint": "PresentRecordLinePlugIn.PresentRecordLinePlugIn",
+      "writes": [],
+      "lineCalls": [],
+      "outputs": {
+        "observed": {
+          "entity": "new_present_record",
+          "alias": "present-1",
+          "changedFields": []
+        }
+      },
+      "exception": null
+    },
+    {
+      "name": "attendance-created-no-push",
+      "entrypoint": "PresentRecordLinePlugIn.PresentRecordLinePlugIn",
+      "writes": [],
+      "lineCalls": [],
+      "outputs": {
+        "observed": {
+          "entity": "new_present_record",
+          "alias": "present-1",
+          "changedFields": []
+        }
+      },
+      "exception": null
+    },
+    {
+      "name": "attendance-depth3-update-blocked",
+      "entrypoint": "PresentRecordLinePlugIn.PresentRecordLinePlugIn",
+      "writes": [],
+      "lineCalls": [],
+      "outputs": {
+        "observed": {
+          "execution": "blocked-by-depth",
+          "depth": 3
+        }
+      },
+      "exception": null
+    }
+  ],
+  "declaredDifferences": [
+    {
+      "case": "attendance-reply-changed",
+      "position": "$.cases[0].lineCalls[0]",
+      "category": 5,
+      "reason": "D5-3 閱讀對照：Update 只在 new_paster_reply 與 PresentRecordLineImage 不同時組訊息並推播；依 PresentRecordLinePlugIn/PresentRecordLinePlugInClass.cs:236-271。",
+      "test": "Attendance_ReadingComparison_ReplyChanged"
+    },
+    {
+      "case": "attendance-reply-unchanged",
+      "position": "$.cases[1].lineCalls",
+      "category": 5,
+      "reason": "D5-3 閱讀對照：回覆與前映像相同時不推播；依 PresentRecordLinePlugIn/PresentRecordLinePlugInClass.cs:236-251。",
+      "test": "Attendance_ReadingComparison_ReplyUnchanged"
+    },
+    {
+      "case": "attendance-created-no-push",
+      "position": "$.cases[2].lineCalls",
+      "category": 5,
+      "reason": "D5-3 閱讀對照：Create 的 directioncode 分支推播呼叫為註解，實際路徑不產生 LINE 呼叫；依 PresentRecordLinePlugIn/PresentRecordLinePlugInClass.cs:216-224。",
+      "test": "Attendance_ReadingComparison_CreateNoPush"
+    },
+    {
+      "case": "attendance-depth3-update-blocked",
+      "position": "$.cases[3].outputs.observed.execution",
+      "category": 5,
+      "reason": "D5-3 閱讀對照：Depth 3 的非 Create 入口在外層直接返回，不建立服務或推播；依 PresentRecordLinePlugIn/PresentRecordLinePlugIn.cs:32-36。",
+      "test": "Attendance_ReadingComparison_DepthGuard"
+    }
+  ]
+}

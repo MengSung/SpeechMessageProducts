@@ -50,14 +50,22 @@ public sealed class ExpectedGoldenTests
         foreach (var module in modules)
         {
             var scenarios = ReadResource(prefix + module + ".scenarios.json");
-            var legacy = ReadResource(prefix + module + ".legacy.json");
             var expected = ReadResource(prefix + module + ".expected.json");
-            Validate(scenarios, legacy, expected);
-            Assert.Equal(module, (string?)legacy["module"]);
-            if (string.Equals(module, "attendance", StringComparison.Ordinal))
-                Assert.Contains((JArray)legacy["cases"]!, item =>
-                    string.Equals((string?)item["name"], "attendance-reply-changed", StringComparison.Ordinal)
-                    && ((JArray)item["lineCalls"]!).Count > 0);
+            var legacyName = prefix + module + ".legacy.json";
+            if (resources.Contains(legacyName, StringComparer.Ordinal))
+            {
+                var legacy = ReadResource(legacyName);
+                Validate(scenarios, legacy, expected);
+                Assert.Equal(module, (string?)legacy["module"]);
+                if (string.Equals(module, "attendance", StringComparison.Ordinal))
+                    Assert.Contains((JArray)legacy["cases"]!, item =>
+                        string.Equals((string?)item["name"], "attendance-reply-changed", StringComparison.Ordinal)
+                        && ((JArray)item["lineCalls"]!).Count > 0);
+            }
+            else
+            {
+                ValidateReadingOnlyExpected(scenarios, expected);
+            }
         }
     }
 
@@ -261,6 +269,48 @@ public sealed class ExpectedGoldenTests
         foreach (var path in differences.Keys)
             Require(declared.Contains(path), "UndeclaredDifference:" + path);
     }
+
+    /// <summary>
+    /// 驗證 D5-3 的閱讀對照期望檔。這條路徑只在 D5-18 阻止舊入口安全執行時使用；
+    /// 它確認每個合成情境都有完整的預期投影、固定替代基準及可追溯的舊檔案行號，
+    /// 但不把人工閱讀結果冒稱為 legacy.json 或舊程式實跑證據。
+    /// </summary>
+#pragma warning disable CA2249 // net48 沒有採用 StringComparison 的 string.Contains 多載。
+    private static void ValidateReadingOnlyExpected(JObject scenarios, JObject expected)
+    {
+        Require(expected["module"]?.Type == JTokenType.String && !string.IsNullOrWhiteSpace((string?)expected["module"]), "ModuleMissing");
+        Require((string?)expected["basis"] == "legacy-live-only", "ReadingBasisMissing");
+        Require(expected.Properties().All(property => property.Name is "module" or "basis" or "cases" or "declaredDifferences"), "UnknownRootField");
+        Require(expected["declaredDifferences"] is JArray, "DeclarationsMissing");
+
+        var names = new HashSet<string>(StringComparer.Ordinal);
+        foreach (var scenario in (JArray?)scenarios["cases"] ?? throw new InvalidDataException("ScenariosMissing"))
+            Require(names.Add(Text(scenario["name"])), "DuplicateScenario");
+
+        var cases = Cases(expected, names);
+        var seenDeclarations = new HashSet<string>(StringComparer.Ordinal);
+        foreach (var item in (JArray)expected["declaredDifferences"]!)
+        {
+            Require(item is JObject, "DeclarationInvalid");
+            var path = Text(item["position"]);
+            var caseName = Text(item["case"]);
+            var reason = Text(item["reason"]);
+            _ = Text(item["test"]);
+            Require(item["category"]?.Type == JTokenType.Integer
+                && item["category"]!.ToString(Formatting.None) is "1" or "2" or "3" or "4" or "5", "CategoryInvalid");
+            Require(seenDeclarations.Add(path), "DuplicateDeclaration:" + path);
+            Require(names.Contains(caseName), "UnknownCase:" + caseName);
+            Require(path.StartsWith("$.cases[", StringComparison.Ordinal)
+                && path.Any(character => character == ']')
+                && path.Any(character => character == '.'), "DeclarationPositionInvalid");
+            Require(reason.IndexOf(".cs:", StringComparison.Ordinal) >= 0
+                && reason.Any(char.IsDigit), "ReadingEvidenceMissing");
+        }
+
+        Require(cases.Count == names.Count, "CaseCountMismatch");
+        Require(seenDeclarations.Count > 0, "ReadingDeclarationsEmpty");
+    }
+#pragma warning restore CA2249
 
     /// <summary>
     /// 要求每個情境至少一段完整結果，並以情境與完整入口共同檢查唯一性；
