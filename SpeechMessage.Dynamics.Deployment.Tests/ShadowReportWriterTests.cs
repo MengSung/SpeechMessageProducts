@@ -83,7 +83,13 @@ public sealed class ShadowReportWriterTests
     [Theory]
     [InlineData("new", false, true)]
     [InlineData("new", true, false)]
+    [InlineData("reading", false, true)]
+    [InlineData("reading", true, false)]
+    [InlineData("legacy-golden", false, true)]
+    [InlineData("legacy-golden", true, false)]
     [InlineData("legacy-live", false, false)]
+    [InlineData("legacy-live-only", false, false)]
+    [InlineData("deferred-to-P7", false, false)]
     public void Report_BasisControlsRequiredRounds(string basis, bool legacyExecuted, bool passed)
     {
         using var files = new Files();
@@ -92,6 +98,19 @@ public sealed class ShadowReportWriterTests
         var report = ShadowReportWriter.Write("localization", basis, [item], files.Root, new Clock());
         Assert.Equal(passed, report.Passed);
         Assert.Contains($"LegacyExecuted={legacyExecuted.ToString().ToLowerInvariant()}", File.ReadAllText(report.Path), StringComparison.Ordinal);
+    }
+    /// <summary>僅新輪的基準不能同時帶有舊輪可比證據，即使執行旗標為 false 也要拒絕成功。</summary>
+    /// <param name="basis">宣稱沒有執行舊輪的核定基準。</param>
+    [Theory]
+    [InlineData("new")]
+    [InlineData("reading")]
+    [InlineData("legacy-golden")]
+    public void Report_SingleRoundRejectsInventedLegacyComparison(string basis)
+    {
+        using var files = new Files();
+        var result = ShadowReportWriter.Write("attendance", basis,
+            [Case() with { LegacyExecuted = false }], files.Root, new Clock());
+        Assert.False(result.Passed);
     }
 
     /// <summary>拒絕路徑穿越、大小寫變體與非核定基準，且驗證失敗不建立輸出根。</summary>

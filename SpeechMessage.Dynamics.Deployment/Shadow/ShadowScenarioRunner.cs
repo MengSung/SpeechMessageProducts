@@ -5,6 +5,7 @@
  * 主要功能與流程：清單、已解析的情境與 operation-local runtime 進入後，先驗輸入，
  * 保存追蹤設定、逐輪建立獨立 seed owner，舊輪交 SwitchModule 的 D5-18 scope，
  * 新輪讀完整追蹤並套成最終快照；兩輪互比且各自與期望比較，最後還原追蹤設定。
+ * reading、legacy-golden 及 new 僅跑新輪，舊側固定不可比較；延到 P7 不在此執行。
  * 使用邊界與維護：SDK 租約與組織寫鎖由 CLI 擁有；runtime 負責精確查詢、時間窗、
  * 資料安全投影及自建列清冊。本檔只比較 CRUD；其他意圖明確拒絕，不冒充推播驗收。
  * 所有 owner 只屬單一 Run；取消不跳過停用、刪除、殘留核對或 Dispose。收尾失敗
@@ -23,7 +24,7 @@ namespace SpeechMessage.Dynamics.Deployment.Shadow;
 internal sealed record ShadowScenarioDefinition(ShadowTrace Expected, IReadOnlyList<ShadowObservation> Observe,
     IReadOnlySet<string> VolatileFields)
 {
-    /// <summary>new 只執行新輪，其餘基準須由完整基準路徑處理；不得假造舊輪成功。</summary>
+    /// <summary>reading／legacy-golden／new 只執行新輪；legacy-live 及 legacy-live-only 真跑兩輪，不假造舊證據。</summary>
     public string Basis { get; init; } = "legacy-live";
 }
 
@@ -31,7 +32,7 @@ internal sealed record ShadowScenarioDefinition(ShadowTrace Expected, IReadOnlyL
 internal sealed record ShadowCaseResult(int Index, ShadowComparison BetweenRounds,
     ShadowComparison LegacyToExpected, ShadowComparison ShadowToExpected)
 {
-    /// <summary>明列是否真正執行舊輪；new 的舊側比較固定為不可比較。</summary>
+    /// <summary>明列是否真正執行舊輪；只有新輪的替代基準，其舊側固定不可比較。</summary>
     public bool LegacyExecuted { get; init; } = true;
 }
 
@@ -125,7 +126,7 @@ internal sealed class ShadowScenarioRunner
         foreach (var scenario in scenarios)
         {
             if (scenario is null || scenario.Expected is null || !scenario.Expected.Comparable ||
-                scenario.Basis is not ("new" or "legacy-live") ||
+                scenario.Basis is not ("new" or "reading" or "legacy-golden" or "legacy-live" or "legacy-live-only") ||
                 scenario.Expected.Intents is null || scenario.Expected.Intents.Count > 128 ||
                 scenario.Expected.Intents.Any(intent => intent.Operation is not ("Create" or "Update" or "Delete")) ||
                 scenario.Observe is null || scenario.VolatileFields is null ||
@@ -145,7 +146,8 @@ internal sealed class ShadowScenarioRunner
             for (var index = 0; index < scenarios.Count; index++)
             {
                 var scenario = scenarios[index];
-                var legacy = scenario.Basis == "new" ? null : RunRound(scenario, true, cancellationToken);
+                var legacy = scenario.Basis is "legacy-live" or "legacy-live-only"
+                    ? RunRound(scenario, true, cancellationToken) : null;
                 var shadow = RunRound(scenario, false, cancellationToken);
                 var unavailable = new ShadowComparison(false, Array.Empty<ShadowDifference>());
                 results.Add(new ShadowCaseResult(index + 1,

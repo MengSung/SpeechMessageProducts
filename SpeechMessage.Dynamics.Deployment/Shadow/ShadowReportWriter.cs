@@ -33,8 +33,10 @@ internal static class ShadowReportWriter
 {
     /// <summary>
     /// 將 runner 完整成功返回的結果寫入 outputRoot 下的 UTC 日期-module.md。
-    /// new 基準要求未執行舊輪且新側可比零差異；其他基準要求舊輪確實執行且三側
-    /// 可比零差異。不滿足比較仍保存失敗報告，輸入契約錯誤則在建立目錄前拒絕。
+    /// new／reading／legacy-golden 要求未執行舊輪、舊側不可比較且新側零差異；
+    /// legacy-live／legacy-live-only 要求真跑舊輪及三側零差異。deferred-to-P7 不可通過。
+    /// 基準的離線來源由 caller 核定，本 writer 不獨立驗證黃金檔的產生來源。
+    /// 不滿足比較仍保存失敗報告，輸入契約錯誤則在建立目錄前拒絕。
     /// 同日同模組已存在時拋出 I/O 例外，不刪除其他呼叫建立的報告。
     /// </summary>
     /// <param name="module">與 ShadowScenarioFiles 一致的十個固定小寫模組代號。</param>
@@ -58,6 +60,8 @@ internal static class ShadowReportWriter
         var text = new StringBuilder("# Shadow report\r\n\r\n");
         text.Append("module=").Append(module).Append("; basis=").Append(basis).Append("\r\n");
         text.Append("殘留核對與停用／還原由 runner 成功返回契約證明；本 writer 不執行遠端查詢，離線報告不代表實機驗收。\r\n");
+        if (basis is "new" or "reading" or "legacy-golden")
+            text.Append("本基準未執行實機舊輪；兩輪互比及舊輪對期望均不可比較。\r\n");
         var indices = new HashSet<int>();
         var passed = true;
         foreach (var item in results)
@@ -68,9 +72,14 @@ internal static class ShadowReportWriter
             var between = AppendComparison(text, "BetweenRounds", item.BetweenRounds);
             var legacy = AppendComparison(text, "LegacyToExpected", item.LegacyToExpected);
             var shadow = AppendComparison(text, "ShadowToExpected", item.ShadowToExpected);
-            passed &= basis == "new"
-                ? !item.LegacyExecuted && shadow
-                : item.LegacyExecuted && between && legacy && shadow;
+            passed &= basis switch
+            {
+                "new" or "reading" or "legacy-golden" => !item.LegacyExecuted &&
+                    !item.BetweenRounds.Comparable && item.BetweenRounds.Differences.Count == 0 &&
+                    !item.LegacyToExpected.Comparable && item.LegacyToExpected.Differences.Count == 0 && shadow,
+                "legacy-live" or "legacy-live-only" => item.LegacyExecuted && between && legacy && shadow,
+                _ => false
+            };
         }
         text.Append("\r\nPassed=").Append(Boolean(passed)).Append("\r\n");
         var bytes = new UTF8Encoding(false, true).GetBytes(text.ToString());

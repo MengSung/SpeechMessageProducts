@@ -25,18 +25,36 @@ namespace SpeechMessage.Dynamics.Deployment.Tests;
 public sealed class ShadowScenarioRunnerTests
 {
     private static readonly string[] ObservedFields = { "score", "subject" };
-    /// <summary>沒有舊程式的新模組只跑新輪，報告不能把不存在的舊輪標成已比對。</summary>
-    [Fact]
-    public void Shadow_Runner_NewBasisDoesNotInventLegacyEvidence()
+    /// <summary>閱讀／僅黃金／新模組只跑新輪，不得因替代基準而虛構舊輪；收尾仍核對停用及殘留。</summary>
+    /// <param name="basis">05A 核定且沒有實機舊輪證據的基準。</param>
+    [Theory]
+    [InlineData("new")]
+    [InlineData("reading")]
+    [InlineData("legacy-golden")]
+    public void Shadow_Runner_NewBasisDoesNotInventLegacyEvidence(string basis)
     {
         using var f = new Fixture();
         var runtime = new Runtime(f);
-        var item = Assert.Single(runtime.Run(scenario: Scenario() with { Basis = "new" }));
+        var item = Assert.Single(runtime.Run(scenario: Scenario() with { Basis = basis }));
         Assert.False(item.LegacyExecuted);
         Assert.False(item.BetweenRounds.Comparable);
         Assert.False(item.LegacyToExpected.Comparable);
         Assert.True(item.ShadowToExpected.IsEqual);
         Assert.False(Assert.Single(runtime.Rounds).Legacy);
+        runtime.AssertDrained();
+    }
+    /// <summary>沒有離線黃金的 D5-3 仍真正跑舊輪，不能把 live-only 當閱讀對照跳過。</summary>
+    [Fact]
+    public void Shadow_Runner_LiveOnlyStillExecutesLegacyRound()
+    {
+        using var f = new Fixture();
+        var runtime = new Runtime(f);
+        var item = Assert.Single(runtime.Run(scenario: Scenario() with { Basis = "legacy-live-only" }));
+        Assert.True(item.LegacyExecuted);
+        Assert.True(item.BetweenRounds.IsEqual);
+        Assert.True(item.LegacyToExpected.IsEqual);
+        Assert.True(item.ShadowToExpected.IsEqual);
+        Assert.Equal(2, runtime.Rounds.Count);
         runtime.AssertDrained();
     }
     /// <summary>先舊後新使用不同 ID，CRUD 意圖先套初始值，再作三方比較，結束所有狀態排空。</summary>
