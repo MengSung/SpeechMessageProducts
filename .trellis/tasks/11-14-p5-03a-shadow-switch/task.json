@@ -21,6 +21,6 @@
   "children": [],
   "parent": "11-14-integration-p5",
   "relatedFiles": [],
-  "notes": "2026-11-14 21:29 Asia/Taipei (UTC+08:00)： F16：21:27 export-legacy啟用步驟39／流程0，停止實機未自行停用；兩個Shadow GUID已權威核對存Secrets，Deployment599/599。詳wp-reports/P5-03a-preflight.md。",
+  "notes": "2026-11-14 21:46 Asia/Taipei (UTC+08:00)：P5-02已驗收，基準更正419f24a9；P5-03a本地dbb9dd6b，Deployment618/618，19項factory整合測試綠。兩個Shadow ID已權威核對存Secrets。F16的39個步驟全屬兩個ActivityFeeds組件，其他匯出組件啟用0，發布者尚待釐清；不自行改分類或停用。CLI、同步追蹤、關聯observe等續作，未整包guard、未驗收未推送；工具3小時修正尚未開始。",
   "meta": {}
 }
