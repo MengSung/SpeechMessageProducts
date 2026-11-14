@@ -279,7 +279,7 @@ public sealed class ExpectedGoldenTests
     private static void ValidateReadingOnlyExpected(JObject scenarios, JObject expected)
     {
         Require(expected["module"]?.Type == JTokenType.String && !string.IsNullOrWhiteSpace((string?)expected["module"]), "ModuleMissing");
-        Require((string?)expected["basis"] == "legacy-live-only", "ReadingBasisMissing");
+        Require((string?)expected["basis"] == "reading", "ReadingBasisMissing");
         Require(expected.Properties().All(property => property.Name is "module" or "basis" or "cases" or "declaredDifferences"), "UnknownRootField");
         Require(expected["declaredDifferences"] is JArray, "DeclarationsMissing");
 

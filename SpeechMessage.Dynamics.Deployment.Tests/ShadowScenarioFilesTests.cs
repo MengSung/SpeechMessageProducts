@@ -50,7 +50,7 @@ public sealed class ShadowScenarioFilesTests
             root = Directory.GetParent(root)?.FullName ?? throw new InvalidOperationException("Repository root absent.");
         var cases = ShadowScenarioFiles.Load(root, "attendance");
         Assert.Equal(4, cases.Count);
-        Assert.All(cases, item => Assert.Equal("legacy-live-only", item.Basis));
+        Assert.All(cases, item => Assert.Equal("reading", item.Basis));
         Assert.False(cases[^1].LiveShadow);
         Assert.Equal(3, cases[^1].Trigger.GetProperty("depth").GetInt32());
     }

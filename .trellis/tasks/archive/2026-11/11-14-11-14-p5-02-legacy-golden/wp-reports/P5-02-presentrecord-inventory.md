@@ -38,3 +38,7 @@
 ## 後續決策邊界
 
 若使用者核定整包採 D5-3，下一步才可依上述行號建立不含舊執行結果的 `expected.json`，每筆替代差異必須引用舊檔名與行號，並以 `basis=legacy-live-only` 明確標示；在核定前不建立該替代黃金、不推送、不進 P5-03。若不核定，仍需另行核准安全支援範圍，不能為產生檔案而放寬反射／外部 CRM／寫死收件識別的 guard。
+
+## 2026-11-14 21:00 Asia/Taipei (UTC+08:00) 基準與 D5-18 更正
+
+出席現行 basis=reading，先前 legacy-live-only 標籤錯誤，沒有實機第一輪。第75行 DEVELOPER_LINE_ID 只有宣告未使用，不能作拒絕理由；真正原因是 PresentRecordLinePlugInClass.cs:205、:230 空 token 建構式會走 LineUtilityClass.cs:108–116、:126–143 的寫死正式 token 後備。前文相反判定均已撤回，以 research/p5-02-d5-18-disposition.md 本次更正為準。使用者核定不重新驗收 P5-02；P5-PROP-002 登錄出席在 P7-02 補驗，離線工具3小時修正安排於P5-03後／P5-05前。

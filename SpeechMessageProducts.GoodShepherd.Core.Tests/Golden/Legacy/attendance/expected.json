@@ -1,6 +1,6 @@
 {
   "module": "attendance",
-  "basis": "legacy-live-only",
+  "basis": "reading",
   "cases": [
     {
       "name": "attendance-reply-changed",

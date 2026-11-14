@@ -21,6 +21,6 @@
   "children": [],
   "parent": "11-14-integration-p5",
   "relatedFiles": [],
-  "notes": "P5-02於2026-11-14 18:45 Asia/Taipei (UTC+08:00)重新驗收通過。依D5-3／D5-18採legacy-live-only閱讀對照，PresentRecord沒有legacy.json；工具覆蓋率83.47%、矩陣36個專案／29個入口，ExpectedGoldenTests雙目標35/35、完整Release 4926項及固定guard全通過。驗收提交後才推送，未啟動P5-03。",
+  "notes": "P5-02於2026-11-14 18:45 Asia/Taipei (UTC+08:00)重新驗收通過。依D5-3／D5-18採reading閱讀對照，PresentRecord沒有legacy.json；工具覆蓋率83.47%、矩陣36個專案／29個入口，ExpectedGoldenTests雙目標35/35、完整Release 4926項及固定guard全通過。驗收提交後才推送，未啟動P5-03。 2026-11-14 21:00 Asia/Taipei (UTC+08:00) 使用者更正：空token必走正式寫死token才是D5-18阻擋，DEVELOPER_LINE_ID宣告不是；不重新驗收P5-02，P5-PROP-002在P7-02補驗。",
   "meta": {}
 }
