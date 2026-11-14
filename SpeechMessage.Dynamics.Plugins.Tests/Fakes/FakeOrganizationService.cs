@@ -4,8 +4,11 @@
  * 目的與定位：提供 P5-01 Plugin 離線測試使用的記憶體 IOrganizationService，
  * 以實體邏輯名稱及正式 GUID 作為識別；不是 Dataverse 權限、metadata 或交易引擎。
  * 主要功能與流程：保留既有 Handler 與 Calls；明確 callback 優先，其餘操作走本案例
- * 的 CRUD、關聯及 typed Execute。輸入與輸出均遞迴複製 SDK 可變值，更新先建候選再發布。
- * 使用邊界與維護：每個案例擁有獨立服務，最多 4096 列、4096 關聯、256 次結果覆蓋；
+ * 的 CRUD、關聯及 typed Execute。成功的 Create／Update／Delete 另記錄有界 detached
+ * 寫入快照，供隔離測試檢查實際操作；外部只能取得唯讀容器及每次存取皆複製的 Entity。
+ * 輸入與輸出均遞迴複製 SDK 可變值，更新先建候選再發布。
+ * 使用邊界與維護：每個案例擁有獨立服務，最多 4096 列、4096 關聯、4096 筆寫入、
+ * 256 次結果覆蓋；寫入快照只在 Dispose 前保留，Dispose 清除記錄及所有案例狀態。
  * 單一鎖保護操作，設定 callback 與讀 Calls 須在呼叫排空後進行。沒有連線、背景工作、
  * 取消或逾時；using owner 的 Dispose 清除資料及回呼。未 Dispose 的舊案例只由 GC 回收。
  * queryResults 以一開始為一的 RetrieveMultiple 呼叫序號明確覆蓋未知查詢，兩側均複製；
@@ -32,6 +35,7 @@ internal sealed partial class FakeOrganizationService : IOrganizationService, ID
     private readonly Dictionary<(string Name, Guid Id), Entity> rows = new();
     private readonly HashSet<(string Name, Guid Id, string Relationship, string RelatedName, Guid RelatedId)> associations = new();
     private readonly Dictionary<int, EntityCollection> overrides = new();
+    private readonly List<OrganizationWriteRecord> writeRecords = new();
     private bool disposed;
 
     /// <summary>以合成資料初始化表及依查詢序號設定的答案；建構時複製，不保留呼叫端集合。</summary>
@@ -61,6 +65,11 @@ internal sealed partial class FakeOrganizationService : IOrganizationService, ID
     public Action<string, Guid, Relationship, EntityReferenceCollection>? DisassociateHandler { get; set; }
     /// <summary>固定八種服務方法的計數；為相容保留字典，僅可於沒有操作執行時讀寫。</summary>
     public Dictionary<string, int> Calls { get; } = new(StringComparer.Ordinal);
+    /// <summary>取得獨立唯讀寫入快照；其中每筆 Entity 也會在讀取時重新複製。</summary>
+    public IReadOnlyList<OrganizationWriteRecord> WriteRecords
+    {
+        get { lock (gate) return Array.AsReadOnly(writeRecords.ToArray()); }
+    }
     /// <summary>目前記憶體列數；Dispose 後為零，供案例確定性檢查排空。</summary>
     public int EntityCount { get { lock (gate) return rows.Count; } }
     /// <summary>尚保存的顯式查詢答案數；Dispose 後為零，可驗證情境狀態已排空。</summary>
@@ -102,26 +111,53 @@ internal sealed partial class FakeOrganizationService : IOrganizationService, ID
         }
     }
 
-    /// <summary>先深層複製並檢查容量及主鍵，再新增完整記錄；不修改呼叫端 Entity.Id。</summary>
+    /// <summary>先深層複製並檢查容量及主鍵，再新增完整記錄；只在成功提交後加入 detached Create audit。</summary>
     public Guid Create(Entity entity)
     {
-        lock (gate) { Increment(nameof(Create)); return CreateHandler is not null ? CreateHandler(entity) : CreateCore(entity); }
+        lock (gate)
+        {
+            Increment(nameof(Create));
+            EnsureWriteCapacity();
+            if (CreateHandler is null) return CreateCore(entity, true);
+            var candidate = CloneEntity(entity, 0);
+            var id = CreateHandler(entity);
+            candidate.Id = id;
+            AppendWriteRecord("Create", candidate);
+            return id;
+        }
     }
 
-    /// <summary>只合併傳入欄位；null 表示刪除欄位，任何複製失敗都保留原快照。</summary>
+    /// <summary>只合併傳入欄位；null 表示刪除欄位，複製失敗保留原資料且不發布 Update audit。</summary>
     public void Update(Entity entity)
     {
-        lock (gate) { Increment(nameof(Update)); if (UpdateHandler is not null) UpdateHandler(entity); else UpdateCore(entity); }
+        lock (gate)
+        {
+            Increment(nameof(Update));
+            EnsureWriteCapacity();
+            if (UpdateHandler is not null)
+            {
+                var candidate = CloneEntity(entity, 0);
+                UpdateHandler(entity);
+                AppendWriteRecord("Update", candidate);
+            }
+            else UpdateCore(entity, true);
+        }
     }
 
-    /// <summary>刪除正式記錄並移除指向它的關聯；不存在時明確失敗，不模擬 cascade metadata。</summary>
+    /// <summary>刪除正式記錄並移除關聯；成功後只記 entity name／ID，缺列時不發布 Delete audit。</summary>
     public void Delete(string entityName, Guid id)
     {
         lock (gate)
         {
             Increment(nameof(Delete));
-            if (DeleteHandler is not null) { DeleteHandler(entityName, id); return; }
-            DeleteCore(entityName, id);
+            EnsureWriteCapacity();
+            if (DeleteHandler is not null)
+            {
+                DeleteHandler(entityName, id);
+                AppendDeleteRecord(entityName, id);
+                return;
+            }
+            DeleteCore(entityName, id, true);
         }
     }
 
@@ -137,11 +173,12 @@ internal sealed partial class FakeOrganizationService : IOrganizationService, ID
             {
                 case CreateRequest create:
                     Parameters(request, "Target");
-                    var created = new CreateResponse(); created.Results["id"] = CreateCore(create.Target); return created;
+                    EnsureWriteCapacity();
+                    var created = new CreateResponse(); created.Results["id"] = CreateCore(create.Target, true); return created;
                 case UpdateRequest update:
-                    Parameters(request, "Target"); UpdateCore(update.Target); return new UpdateResponse();
+                    Parameters(request, "Target"); EnsureWriteCapacity(); UpdateCore(update.Target, true); return new UpdateResponse();
                 case DeleteRequest delete:
-                    Parameters(request, "Target"); Reference(delete.Target); DeleteCore(delete.Target.LogicalName, delete.Target.Id); return new DeleteResponse();
+                    Parameters(request, "Target"); Reference(delete.Target); EnsureWriteCapacity(); DeleteCore(delete.Target.LogicalName, delete.Target.Id, true); return new DeleteResponse();
                 case RetrieveRequest retrieve:
                     Parameters(request, "Target", "ColumnSet"); Reference(retrieve.Target);
                     var single = new RetrieveResponse(); single.Results["Entity"] = Project(Find(retrieve.Target.LogicalName, retrieve.Target.Id), retrieve.ColumnSet); return single;
@@ -159,7 +196,8 @@ internal sealed partial class FakeOrganizationService : IOrganizationService, ID
                     if (upsert.Target.KeyAttributes.Count != 0) throw Unsupported("Upsert.AlternateKeys");
                     var exists = rows.ContainsKey(Key(upsert.Target.LogicalName, upsert.Target.Id));
                     var id = upsert.Target.Id;
-                    if (exists) UpdateCore(upsert.Target); else id = CreateCore(upsert.Target);
+                    EnsureWriteCapacity();
+                    if (exists) UpdateCore(upsert.Target, true); else id = CreateCore(upsert.Target, true);
                     var response = new UpsertResponse(); response.Results["RecordCreated"] = !exists;
                     response.Results["Target"] = new EntityReference(upsert.Target.LogicalName, id); return response;
                 default: throw Unsupported("Execute." + request.RequestName + "." + request.GetType().Name);
@@ -200,7 +238,7 @@ internal sealed partial class FakeOrganizationService : IOrganizationService, ID
     {
         lock (gate)
         {
-            disposed = true; rows.Clear(); associations.Clear(); overrides.Clear(); Calls.Clear();
+            disposed = true; rows.Clear(); associations.Clear(); overrides.Clear(); writeRecords.Clear(); Calls.Clear();
             RetrieveHandler = null; RetrieveMultipleHandler = null; CreateHandler = null; UpdateHandler = null;
             DeleteHandler = null; ExecuteHandler = null; AssociateHandler = null; DisassociateHandler = null;
         }
@@ -214,7 +252,7 @@ internal sealed partial class FakeOrganizationService : IOrganizationService, ID
     }
 
     /// <summary>複製候選後以正式主鍵新增；容量及重複檢查均先於發布。</summary>
-    private Guid CreateCore(Entity entity)
+    private Guid CreateCore(Entity entity, bool record = false)
     {
         var candidate = CloneEntity(entity, 0);
         if (candidate.KeyAttributes.Count != 0 || candidate.RelatedEntities.Count != 0) throw Unsupported("Create.AlternateKeysOrRelatedEntities");
@@ -224,12 +262,14 @@ internal sealed partial class FakeOrganizationService : IOrganizationService, ID
         if (rows.ContainsKey(Key(candidate.LogicalName, candidate.Id))) throw new InvalidOperationException("Duplicate identity: " + candidate.LogicalName);
         if (rows.Count >= Capacity) throw Unsupported("Entity capacity");
         candidate[PrimaryIdAttribute(candidate.LogicalName)] = candidate.Id;
+        if (record) EnsureWriteCapacity();
         rows.Add(Key(candidate.LogicalName, candidate.Id), candidate);
+        if (record) AppendWriteRecord("Create", candidate);
         return candidate.Id;
     }
 
     /// <summary>驗證補丁並建完整候選，失敗不發布；禁止以屬性更改正式識別。</summary>
-    private void UpdateCore(Entity entity)
+    private void UpdateCore(Entity entity, bool record = false)
     {
         if (entity.KeyAttributes.Count != 0 || entity.RelatedEntities.Count != 0) throw Unsupported("Update.AlternateKeysOrRelatedEntities");
         ValidateIdentity(entity);
@@ -239,7 +279,9 @@ internal sealed partial class FakeOrganizationService : IOrganizationService, ID
         foreach (var attribute in patch.Attributes)
             if (attribute.Value is null) candidate.Attributes.Remove(attribute.Key); else candidate[attribute.Key] = attribute.Value;
         candidate[PrimaryIdAttribute(candidate.LogicalName)] = candidate.Id;
+        if (record) EnsureWriteCapacity();
         rows[Key(candidate.LogicalName, candidate.Id)] = candidate;
+        if (record) AppendWriteRecord("Update", patch);
     }
 
     /// <summary>
@@ -265,13 +307,29 @@ internal sealed partial class FakeOrganizationService : IOrganizationService, ID
     }
 
     /// <summary>刪除列與兩端關聯，不保存孤兒參考；呼叫前先確認記錄存在。</summary>
-    private void DeleteCore(string entityName, Guid id)
+    private void DeleteCore(string entityName, Guid id, bool record = false)
     {
         Find(entityName, id);
+        if (record) EnsureWriteCapacity();
         var name = Name(entityName);
         rows.Remove(Key(name, id));
         associations.RemoveWhere(edge => (edge.Name == name && edge.Id == id) || (edge.RelatedName == name && edge.RelatedId == id));
+        if (record) AppendDeleteRecord(name, id);
     }
+
+    /// <summary>拒絕超量記錄，且必須在服務資料變更或 handler 執行前呼叫。</summary>
+    private void EnsureWriteCapacity()
+    {
+        if (writeRecords.Count >= Capacity) throw Unsupported("Write record capacity");
+    }
+
+    /// <summary>加入成功操作的 detached payload；呼叫端已在執行操作前保留容量。</summary>
+    private void AppendWriteRecord(string operation, Entity entity) =>
+        writeRecords.Add(new OrganizationWriteRecord(operation, CloneEntity(entity, 0), entity.LogicalName, entity.Id));
+
+    /// <summary>刪除記錄不保留已刪除 Entity，只保留其穩定實體名稱與 GUID。</summary>
+    private void AppendDeleteRecord(string entityName, Guid id) =>
+        writeRecords.Add(new OrganizationWriteRecord("Delete", null, Name(entityName), id));
 
     /// <summary>只支援明確非空 GUID 的 lookup；替代鍵與 row version 需要真實 SDK 情境覆蓋。</summary>
     private static void Reference(EntityReference reference)
@@ -337,7 +395,7 @@ internal sealed partial class FakeOrganizationService : IOrganizationService, ID
     }
 
     /// <summary>複製屬性、格式化顯示值及替代鍵；RelatedEntities 不屬此 subset，不能靜默遺失。</summary>
-    private static Entity CloneEntity(Entity entity, int depth)
+    internal static Entity CloneEntity(Entity entity, int depth)
     {
         if (entity is null) throw new ArgumentNullException(nameof(entity));
         if (depth > 16 || entity.Attributes.Count > 1024) throw Unsupported("Entity graph capacity");
@@ -363,4 +421,34 @@ internal sealed partial class FakeOrganizationService : IOrganizationService, ID
         }
         return result;
     }
+}
+
+/// <summary>
+/// 單一案例內成功寫入的不可變描述。Entity getter 每次回傳獨立深層複本，
+/// 因此讀取者無法改寫此記錄；Delete 僅提供實體名稱與正式 GUID。
+/// </summary>
+internal sealed class OrganizationWriteRecord
+{
+    private readonly Entity? entity;
+
+    /// <summary>建立已脫離 Fake 資料表與呼叫端的寫入快照。</summary>
+    internal OrganizationWriteRecord(string operation, Entity? entity, string entityName, Guid id)
+    {
+        Operation = operation;
+        this.entity = entity is null ? null : FakeOrganizationService.CloneEntity(entity, 0);
+        EntityName = entityName;
+        Id = id;
+    }
+
+    /// <summary>固定操作種類：Create、Update 或 Delete。</summary>
+    internal string Operation { get; }
+
+    /// <summary>Create／Update 時傳回新複製的 Entity；Delete 時為 null。</summary>
+    internal Entity? Entity => entity is null ? null : FakeOrganizationService.CloneEntity(entity, 0);
+
+    /// <summary>被寫入或刪除記錄的邏輯名稱。</summary>
+    internal string EntityName { get; }
+
+    /// <summary>被寫入或刪除記錄的正式 GUID。</summary>
+    internal Guid Id { get; }
 }

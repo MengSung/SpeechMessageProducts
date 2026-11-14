@@ -1,0 +1,577 @@
+{
+  "schemaVersion": 1,
+  "mode": "compile-only",
+  "generatedMeaning": "CompilationSucceededOnly",
+  "sourceRootId": "ApprovedDynamics365Line",
+  "runUtc": "2026-11-14T07:32:41.4232595+00:00",
+  "inventoryValid": true,
+  "diagnostics": [],
+  "expectedCounts": {
+    "projects": 36,
+    "entrypoints": 29,
+    "plugins": 11,
+    "activities": 18
+  },
+  "manifestCounts": {
+    "projects": 36,
+    "entrypoints": 29,
+    "plugins": 11,
+    "activities": 18
+  },
+  "projects": [
+    {
+      "project": "AllotPlugIn",
+      "disposition": "EntryProject"
+    },
+    {
+      "project": "AllotTlsWorkflow",
+      "disposition": "EntryProject"
+    },
+    {
+      "project": "AllotWorkflow",
+      "disposition": "EntryProject"
+    },
+    {
+      "project": "AppointmentPlugIn",
+      "disposition": "EntryProject"
+    },
+    {
+      "project": "AppointmentSigning",
+      "disposition": "EntryProject"
+    },
+    {
+      "project": "AppointmentSigningLibrary",
+      "disposition": "NonEntryLibrary"
+    },
+    {
+      "project": "AppointmentWorkflow",
+      "disposition": "EntryProject"
+    },
+    {
+      "project": "CalculateQrCodeScanNumberWorkflow",
+      "disposition": "EntryProject"
+    },
+    {
+      "project": "DiscipleLessonsPluIn",
+      "disposition": "EntryProject"
+    },
+    {
+      "project": "EquipmentWorkflow",
+      "disposition": "EntryProject"
+    },
+    {
+      "project": "ExampleWorkflow",
+      "disposition": "EntryProject"
+    },
+    {
+      "project": "FeePushLineWorkflow",
+      "disposition": "EntryProject"
+    },
+    {
+      "project": "HappyBirthdayWorkflow",
+      "disposition": "EntryProject"
+    },
+    {
+      "project": "Line.Messaging",
+      "disposition": "NonEntryLibrary"
+    },
+    {
+      "project": "LineMessagePlugIn",
+      "disposition": "EntryProject"
+    },
+    {
+      "project": "LineNotifyLibrary",
+      "disposition": "NonEntryLibrary"
+    },
+    {
+      "project": "LineUtility",
+      "disposition": "NonEntryLibrary"
+    },
+    {
+      "project": "NewPersonCareWorkflow",
+      "disposition": "EntryProject"
+    },
+    {
+      "project": "NewPersonCareWorkflow-ForDebug",
+      "disposition": "EntryProject"
+    },
+    {
+      "project": "PersonalQrCodeWorkflow",
+      "disposition": "EntryProject"
+    },
+    {
+      "project": "PresentRecordLinePlugIn",
+      "disposition": "EntryProject"
+    },
+    {
+      "project": "QrCodeWorkflow",
+      "disposition": "EntryProject"
+    },
+    {
+      "project": "RecursiveWorkflow",
+      "disposition": "EntryProject"
+    },
+    {
+      "project": "StorLessonSigningLibrary",
+      "disposition": "NonEntryLibrary"
+    },
+    {
+      "project": "StorLessonSigningWorkflow",
+      "disposition": "EntryProject"
+    },
+    {
+      "project": "StorLessonSignningPlugIn",
+      "disposition": "EntryProject"
+    },
+    {
+      "project": "SundayQrCodeWorkflow",
+      "disposition": "EntryProject"
+    },
+    {
+      "project": "TemplatePlugIn",
+      "disposition": "EntryProject"
+    },
+    {
+      "project": "ToolUtility",
+      "disposition": "NonEntryLibrary"
+    },
+    {
+      "project": "Trace",
+      "disposition": "NonEntryLibrary"
+    },
+    {
+      "project": "TwoWingsPlugIn",
+      "disposition": "EntryProject"
+    },
+    {
+      "project": "WeeklyReportLinePlugIn",
+      "disposition": "EntryProject"
+    },
+    {
+      "project": "WeeklyReportPlugIn",
+      "disposition": "EntryProject"
+    },
+    {
+      "project": "WeeklyReportWorkflow",
+      "disposition": "EntryProject"
+    },
+    {
+      "project": "WorkflowTemplate",
+      "disposition": "EntryProject"
+    },
+    {
+      "project": "YangMeillcStorLessonsPlugIn",
+      "disposition": "EntryProject"
+    }
+  ],
+  "excludedShell": {
+    "project": "Dynamics365Line",
+    "reason": "ExcludedShellNoSource"
+  },
+  "entrypoints": [
+    {
+      "project": "AllotPlugIn",
+      "projectFile": "AllotPlugIn/AllotPlugIn.csproj",
+      "entrypointExpected": "AllotPlugIn.AllotPlugIn",
+      "kind": "IPlugin",
+      "entryTypeActual": null,
+      "status": "CompileFailed",
+      "diagnostics": [
+        "ExternalExecutionApiRefused:QPayToolkit.cs",
+        "ExecutionEscapeRefused:QPayToolkit.cs",
+        "ExternalExecutionApiRefused:ToolUtilityClass.cs",
+        "ExternalExecutionApiRefused:BSUStackTrace.cs"
+      ]
+    },
+    {
+      "project": "AllotTlsWorkflow",
+      "projectFile": "AllotTlsWorkflow/AllotTlsWorkflow.csproj",
+      "entrypointExpected": "AllotTlsWorkflow.AllotTlsWorkflowClass",
+      "kind": "CodeActivity",
+      "entryTypeActual": null,
+      "status": "CompileFailed",
+      "diagnostics": [
+        "HttpTransportApiRefused:AllotApiClient.cs",
+        "CustomHttpHandlerRefused:AllotApiClient.cs",
+        "ExecutionEscapeRefused:AllotDebugTrace.cs",
+        "ExternalExecutionApiRefused:QPayToolkit.cs",
+        "ExecutionEscapeRefused:QPayToolkit.cs",
+        "ExternalExecutionApiRefused:ToolUtilityClass.cs",
+        "ExternalExecutionApiRefused:BSUStackTrace.cs"
+      ]
+    },
+    {
+      "project": "AllotWorkflow",
+      "projectFile": "AllotWorkflow/AllotWorkflow.csproj",
+      "entrypointExpected": "AllotWorkflow.AllotWorkflowClass",
+      "kind": "CodeActivity",
+      "entryTypeActual": null,
+      "status": "CompileFailed",
+      "diagnostics": [
+        "ExternalExecutionApiRefused:QPayToolkit.cs",
+        "ExecutionEscapeRefused:QPayToolkit.cs",
+        "ExternalExecutionApiRefused:ToolUtilityClass.cs",
+        "ExternalExecutionApiRefused:BSUStackTrace.cs"
+      ]
+    },
+    {
+      "project": "AppointmentPlugIn",
+      "projectFile": "AppointmentPlugIn/AppointmentPlugIn.csproj",
+      "entrypointExpected": "AppointmentPlugIn.AppointmentPlugIn",
+      "kind": "IPlugin",
+      "entryTypeActual": null,
+      "status": "CompileFailed",
+      "diagnostics": [
+        "ExternalExecutionApiRefused:QPayToolkit.cs",
+        "ExecutionEscapeRefused:QPayToolkit.cs",
+        "ExternalExecutionApiRefused:ToolUtilityClass.cs",
+        "ExternalExecutionApiRefused:BSUStackTrace.cs"
+      ]
+    },
+    {
+      "project": "AppointmentSigning",
+      "projectFile": "AppointmentSigning/AppointmentSigning.csproj",
+      "entrypointExpected": "AppointmentSigning.AppointmentSigningWorkflow",
+      "kind": "CodeActivity",
+      "entryTypeActual": null,
+      "status": "CompileFailed",
+      "diagnostics": [
+        "ExternalExecutionApiRefused:QPayToolkit.cs",
+        "ExecutionEscapeRefused:QPayToolkit.cs",
+        "ExternalExecutionApiRefused:ToolUtilityClass.cs",
+        "ExternalExecutionApiRefused:BSUStackTrace.cs"
+      ]
+    },
+    {
+      "project": "AppointmentWorkflow",
+      "projectFile": "AppointmentWorkflow/AppointmentWorkflow.csproj",
+      "entrypointExpected": "AppointmentWorkflow.AppointmentWorkflowPlugin",
+      "kind": "CodeActivity",
+      "entryTypeActual": null,
+      "status": "CompileFailed",
+      "diagnostics": [
+        "ExternalExecutionApiRefused:QPayToolkit.cs",
+        "ExecutionEscapeRefused:QPayToolkit.cs",
+        "ExternalExecutionApiRefused:ToolUtilityClass.cs",
+        "ExternalExecutionApiRefused:BSUStackTrace.cs"
+      ]
+    },
+    {
+      "project": "CalculateQrCodeScanNumberWorkflow",
+      "projectFile": "CalculateQrCodeScanNumberWorkflow/CalculateQrCodeScanNumberWorkflow.csproj",
+      "entrypointExpected": "CalculateQrCodeScanNumberWorkflow.CalculateQrCodeScanNumberWorkflow",
+      "kind": "CodeActivity",
+      "entryTypeActual": null,
+      "status": "CompileFailed",
+      "diagnostics": [
+        "ExternalExecutionApiRefused:QPayToolkit.cs",
+        "ExecutionEscapeRefused:QPayToolkit.cs",
+        "ExternalExecutionApiRefused:ToolUtilityClass.cs",
+        "ExternalExecutionApiRefused:BSUStackTrace.cs"
+      ]
+    },
+    {
+      "project": "DiscipleLessonsPluIn",
+      "projectFile": "DiscipleLessonsPluIn/DiscipleLessonsPluIn.csproj",
+      "entrypointExpected": "DiscipleLessonsPluIn.DiscipleLessonsPluIn",
+      "kind": "IPlugin",
+      "entryTypeActual": null,
+      "status": "CompileFailed",
+      "diagnostics": [
+        "ExternalExecutionApiRefused:QPayToolkit.cs",
+        "ExecutionEscapeRefused:QPayToolkit.cs",
+        "ExternalExecutionApiRefused:ToolUtilityClass.cs",
+        "ExternalExecutionApiRefused:BSUStackTrace.cs"
+      ]
+    },
+    {
+      "project": "EquipmentWorkflow",
+      "projectFile": "EquipmentWorkflow/EquipmentWorkflow.csproj",
+      "entrypointExpected": "EquipmentWorkflow.EquipmentWorkflowClass",
+      "kind": "CodeActivity",
+      "entryTypeActual": null,
+      "status": "CompileFailed",
+      "diagnostics": [
+        "ExternalExecutionApiRefused:QPayToolkit.cs",
+        "ExecutionEscapeRefused:QPayToolkit.cs",
+        "ExternalExecutionApiRefused:ToolUtilityClass.cs",
+        "ExternalExecutionApiRefused:BSUStackTrace.cs"
+      ]
+    },
+    {
+      "project": "ExampleWorkflow",
+      "projectFile": "ExampleWorkflow/ExampleWorkflow.csproj",
+      "entrypointExpected": "ExampleWorkflow.ExampleWorkflowClass",
+      "kind": "CodeActivity",
+      "entryTypeActual": null,
+      "status": "CompileFailed",
+      "diagnostics": [
+        "ExternalExecutionApiRefused:QPayToolkit.cs",
+        "ExecutionEscapeRefused:QPayToolkit.cs",
+        "ExternalExecutionApiRefused:ToolUtilityClass.cs",
+        "ExternalExecutionApiRefused:BSUStackTrace.cs"
+      ]
+    },
+    {
+      "project": "FeePushLineWorkflow",
+      "projectFile": "FeePushLineWorkflow/FeePushLineWorkflow.csproj",
+      "entrypointExpected": "FeePushLineWorkflow.FeePushLineWorkflowClass",
+      "kind": "CodeActivity",
+      "entryTypeActual": null,
+      "status": "CompileFailed",
+      "diagnostics": [
+        "ExternalExecutionApiRefused:QPayToolkit.cs",
+        "ExecutionEscapeRefused:QPayToolkit.cs",
+        "ExternalExecutionApiRefused:ToolUtilityClass.cs",
+        "ExternalExecutionApiRefused:BSUStackTrace.cs"
+      ]
+    },
+    {
+      "project": "HappyBirthdayWorkflow",
+      "projectFile": "HappyBirthdayWorkflow/HappyBirthdayWorkflow.csproj",
+      "entrypointExpected": "HappyBirthdayWorkflowNamespace.HappyBirthdayWorkflowPlugIn",
+      "kind": "CodeActivity",
+      "entryTypeActual": null,
+      "status": "CompileFailed",
+      "diagnostics": [
+        "ExternalExecutionApiRefused:ToolUtilityClass.cs"
+      ]
+    },
+    {
+      "project": "LineMessagePlugIn",
+      "projectFile": "LineMessagePlugIn/LineMessagePlugIn.csproj",
+      "entrypointExpected": "LineMessagePlugIn.LineMessagePlugIn",
+      "kind": "IPlugin",
+      "entryTypeActual": null,
+      "status": "CompileFailed",
+      "diagnostics": [
+        "ExternalExecutionApiRefused:QPayToolkit.cs",
+        "ExecutionEscapeRefused:QPayToolkit.cs",
+        "ExternalExecutionApiRefused:ToolUtilityClass.cs",
+        "ExternalExecutionApiRefused:BSUStackTrace.cs"
+      ]
+    },
+    {
+      "project": "NewPersonCareWorkflow",
+      "projectFile": "NewPersonCareWorkflow/NewPersonCareWorkflow.csproj",
+      "entrypointExpected": "NewPersonCareWorkflow.NewPersonCareWorkflowClass",
+      "kind": "CodeActivity",
+      "entryTypeActual": null,
+      "status": "CompileFailed",
+      "diagnostics": [
+        "ExternalExecutionApiRefused:QPayToolkit.cs",
+        "ExecutionEscapeRefused:QPayToolkit.cs",
+        "ExternalExecutionApiRefused:ToolUtilityClass.cs",
+        "ExternalExecutionApiRefused:BSUStackTrace.cs"
+      ]
+    },
+    {
+      "project": "NewPersonCareWorkflow-ForDebug",
+      "projectFile": "NewPersonCareWorkflow-ForDebug/NewPersonCareWorkflow-ForDebug.csproj",
+      "entrypointExpected": "NewPersonCareWorkflow.NewPersonCareWorkflowClass",
+      "kind": "CodeActivity",
+      "entryTypeActual": null,
+      "status": "CompileFailed",
+      "diagnostics": [
+        "ExternalExecutionApiRefused:BSUStackTrace.cs",
+        "ExternalExecutionApiRefused:ToolUtilityClass.cs"
+      ]
+    },
+    {
+      "project": "PersonalQrCodeWorkflow",
+      "projectFile": "PersonalQrCodeWorkflow/PersonalQrCodeWorkflow.csproj",
+      "entrypointExpected": "PersonalQrCodeWorkflow.PersonalQrCodeWorkflowClass",
+      "kind": "CodeActivity",
+      "entryTypeActual": null,
+      "status": "CompileFailed",
+      "diagnostics": [
+        "ExternalExecutionApiRefused:QPayToolkit.cs",
+        "ExecutionEscapeRefused:QPayToolkit.cs",
+        "ExternalExecutionApiRefused:ToolUtilityClass.cs",
+        "ExternalExecutionApiRefused:BSUStackTrace.cs"
+      ]
+    },
+    {
+      "project": "PresentRecordLinePlugIn",
+      "projectFile": "PresentRecordLinePlugIn/PresentRecordLinePlugIn.csproj",
+      "entrypointExpected": "PresentRecordLinePlugIn.PresentRecordLinePlugIn",
+      "kind": "IPlugin",
+      "entryTypeActual": null,
+      "status": "CompileFailed",
+      "diagnostics": [
+        "ExternalExecutionApiRefused:QPayToolkit.cs",
+        "ExecutionEscapeRefused:QPayToolkit.cs",
+        "ExternalExecutionApiRefused:ToolUtilityClass.cs",
+        "ExternalExecutionApiRefused:BSUStackTrace.cs"
+      ]
+    },
+    {
+      "project": "QrCodeWorkflow",
+      "projectFile": "QrCodeWorkflow/QrCodeWorkflow.csproj",
+      "entrypointExpected": "QrCodeWorkflow.QrCodeWorkflow",
+      "kind": "CodeActivity",
+      "entryTypeActual": null,
+      "status": "CompileFailed",
+      "diagnostics": [
+        "ExternalExecutionApiRefused:QrCodeUtility.cs",
+        "UnsafeExecutionApiRefused:QrCodeUtility.cs",
+        "ExternalExecutionApiRefused:QPayToolkit.cs",
+        "ExecutionEscapeRefused:QPayToolkit.cs",
+        "ExternalExecutionApiRefused:ToolUtilityClass.cs",
+        "ExternalExecutionApiRefused:BSUStackTrace.cs"
+      ]
+    },
+    {
+      "project": "RecursiveWorkflow",
+      "projectFile": "RecursiveWorkflow/RecursiveWorkflow.csproj",
+      "entrypointExpected": "RecursiveWorkflowNameSpace.RecursiveWorkflowPlugIn",
+      "kind": "CodeActivity",
+      "entryTypeActual": null,
+      "status": "CompileFailed",
+      "diagnostics": [
+        "NoReadableCSharpSource"
+      ]
+    },
+    {
+      "project": "StorLessonSigningWorkflow",
+      "projectFile": "StorLessonSigningWorkflow/StorLessonSigningWorkflow.csproj",
+      "entrypointExpected": "StorLessonSigningWorkflow.StorLessonWorkflowPlugin",
+      "kind": "CodeActivity",
+      "entryTypeActual": null,
+      "status": "CompileFailed",
+      "diagnostics": [
+        "ExternalExecutionApiRefused:QPayToolkit.cs",
+        "ExecutionEscapeRefused:QPayToolkit.cs",
+        "ExternalExecutionApiRefused:ToolUtilityClass.cs",
+        "ExternalExecutionApiRefused:BSUStackTrace.cs"
+      ]
+    },
+    {
+      "project": "StorLessonSignningPlugIn",
+      "projectFile": "StorLessonSignningPlugIn/StorLessonSignningPlugIn.csproj",
+      "entrypointExpected": "StorLessonSignningPlugIn.StorLessonSignningPlugIn",
+      "kind": "IPlugin",
+      "entryTypeActual": null,
+      "status": "CompileFailed",
+      "diagnostics": [
+        "ExternalExecutionApiRefused:QPayToolkit.cs",
+        "ExecutionEscapeRefused:QPayToolkit.cs",
+        "ExternalExecutionApiRefused:ToolUtilityClass.cs",
+        "ExternalExecutionApiRefused:BSUStackTrace.cs"
+      ]
+    },
+    {
+      "project": "SundayQrCodeWorkflow",
+      "projectFile": "SundayQrCodeWorkflow/SundayQrCodeWorkflow.csproj",
+      "entrypointExpected": "SundayQrCodeWorkflow.QrCodeWorkflow",
+      "kind": "CodeActivity",
+      "entryTypeActual": null,
+      "status": "CompileFailed",
+      "diagnostics": [
+        "ExternalExecutionApiRefused:SundayQrCodeUtility.cs",
+        "UnsafeExecutionApiRefused:SundayQrCodeUtility.cs",
+        "ExternalExecutionApiRefused:QPayToolkit.cs",
+        "ExecutionEscapeRefused:QPayToolkit.cs",
+        "ExternalExecutionApiRefused:ToolUtilityClass.cs",
+        "ExternalExecutionApiRefused:BSUStackTrace.cs"
+      ]
+    },
+    {
+      "project": "TemplatePlugIn",
+      "projectFile": "TemplatePlugIn/TemplatePlugIn.csproj",
+      "entrypointExpected": "TemplatePlugIn.TemplatePlugIn",
+      "kind": "IPlugin",
+      "entryTypeActual": null,
+      "status": "CompileFailed",
+      "diagnostics": [
+        "ExternalExecutionApiRefused:QPayToolkit.cs",
+        "ExecutionEscapeRefused:QPayToolkit.cs",
+        "ExternalExecutionApiRefused:ToolUtilityClass.cs",
+        "ExternalExecutionApiRefused:BSUStackTrace.cs"
+      ]
+    },
+    {
+      "project": "TwoWingsPlugIn",
+      "projectFile": "TwoWingsPlugIn/TwoWingsPlugIn.csproj",
+      "entrypointExpected": "TwoWingsPlugIn.TwoWingsPlugIn",
+      "kind": "IPlugin",
+      "entryTypeActual": null,
+      "status": "CompileFailed",
+      "diagnostics": [
+        "ExternalExecutionApiRefused:QPayToolkit.cs",
+        "ExecutionEscapeRefused:QPayToolkit.cs",
+        "ExternalExecutionApiRefused:ToolUtilityClass.cs",
+        "ExternalExecutionApiRefused:BSUStackTrace.cs"
+      ]
+    },
+    {
+      "project": "WeeklyReportLinePlugIn",
+      "projectFile": "WeeklyReportLinePlugIn/WeeklyReportLinePlugIn.csproj",
+      "entrypointExpected": "WeeklyReportLinePlugIn.WeeklyReportLinePlugIn",
+      "kind": "IPlugin",
+      "entryTypeActual": null,
+      "status": "CompileFailed",
+      "diagnostics": [
+        "ExternalExecutionApiRefused:QPayToolkit.cs",
+        "ExecutionEscapeRefused:QPayToolkit.cs",
+        "ExternalExecutionApiRefused:ToolUtilityClass.cs",
+        "ExternalExecutionApiRefused:BSUStackTrace.cs"
+      ]
+    },
+    {
+      "project": "WeeklyReportPlugIn",
+      "projectFile": "WeeklyReportPlugIn/WeeklyReportPlugIn.csproj",
+      "entrypointExpected": "WeeklyReportPlugIn.WeeklyReportPlugIn",
+      "kind": "IPlugin",
+      "entryTypeActual": null,
+      "status": "CompileFailed",
+      "diagnostics": [
+        "ExternalExecutionApiRefused:QPayToolkit.cs",
+        "ExecutionEscapeRefused:QPayToolkit.cs",
+        "ExternalExecutionApiRefused:ToolUtilityClass.cs",
+        "ExternalExecutionApiRefused:BSUStackTrace.cs"
+      ]
+    },
+    {
+      "project": "WeeklyReportWorkflow",
+      "projectFile": "WeeklyReportWorkflow/WeeklyReportWorkflow.csproj",
+      "entrypointExpected": "WeeklyReportWorkflowNameSpace.WeeklyReportWorkflow",
+      "kind": "CodeActivity",
+      "entryTypeActual": null,
+      "status": "CompileFailed",
+      "diagnostics": [
+        "ExternalExecutionApiRefused:ToolUtilityClass.cs"
+      ]
+    },
+    {
+      "project": "WorkflowTemplate",
+      "projectFile": "WorkflowTemplate/WorkflowTemplate.csproj",
+      "entrypointExpected": "WorkflowTemplate.WorkflowTemplatePlugin",
+      "kind": "CodeActivity",
+      "entryTypeActual": null,
+      "status": "CompileFailed",
+      "diagnostics": [
+        "NoReadableCSharpSource"
+      ]
+    },
+    {
+      "project": "YangMeillcStorLessonsPlugIn",
+      "projectFile": "YangMeillcStorLessonsPlugIn/YangMeillcStorLessonsPlugIn.csproj",
+      "entrypointExpected": "YangMeillcStorLessonsPlugIn.YangMeillcStorLessonsPlugIn",
+      "kind": "IPlugin",
+      "entryTypeActual": null,
+      "status": "CompileFailed",
+      "diagnostics": [
+        "ExternalExecutionApiRefused:QPayToolkit.cs",
+        "ExecutionEscapeRefused:QPayToolkit.cs",
+        "ExternalExecutionApiRefused:ToolUtilityClass.cs",
+        "ExternalExecutionApiRefused:BSUStackTrace.cs"
+      ]
+    }
+  ],
+  "statusCounts": {
+    "Generated": 0,
+    "CompileFailed": 29,
+    "BlockedByNetworkApi": 0
+  }
+}

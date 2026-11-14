@@ -13,6 +13,8 @@
  * 使用邊界與維護：每個案例獨佔 fake，不使用真實連線、憑證或背景工作；案例結束
  * 由 using owner 清除表、關聯、回呼與計數。併行案例只共享同一案例明確建立的服務，
  * 不把合成資料放入可變 static；本檔不驗證真實 CRM 的權限、metadata 或傳輸。
+ * 寫入測試另外保護成功 CRUD 的有界紀錄、payload 深層隔離、故障時不記錄、
+ * 容量耗盡時不改資料，以及 Dispose 對審計快照來源的清理行為。
  */
 using System;
 using System.Linq;
@@ -27,6 +29,88 @@ namespace SpeechMessage.Dynamics.Plugins.Tests.Fakes;
 /// <summary>以合成 SDK 輸入與決定性斷言保護離線資料及查詢契約，各案例各自擁有替身。</summary>
 public sealed class FakeOrganizationServiceTests
 {
+    /// <summary>
+    /// 成功 Create／Update／Delete 依序留下操作種類及 detached payload；初始化資料不算寫入，
+    /// 修改來源或快照均不能變更記錄。合成服務由 using owner 清理，無真實組織服務依賴。
+    /// </summary>
+    [Fact]
+    public void Fake_WriteRecords_CaptureSuccessfulOperationsAsDetachedSnapshots()
+    {
+        using var service = new FakeOrganizationService(new[] { new Entity("contact", Guid.NewGuid()) { ["name"] = "seed" } });
+        var bytes = new byte[] { 1, 2 };
+        var source = new Entity("contact") { ["name"] = "created", ["bytes"] = bytes };
+        var id = service.Create(source);
+        service.Update(new Entity("contact", id) { ["name"] = "updated" });
+        service.Delete("contact", id);
+
+        bytes[0] = 9;
+        source["name"] = "caller mutation";
+        var records = service.WriteRecords;
+        Assert.Collection(records,
+            item => Assert.Equal("Create", item.Operation),
+            item => Assert.Equal("Update", item.Operation),
+            item => Assert.Equal("Delete", item.Operation));
+        Assert.Equal(id, records[0].Id);
+        Assert.Equal("contact", records[0].EntityName);
+        Assert.Equal("created", records[0].Entity!["name"]);
+        Assert.Equal(1, ((byte[])records[0].Entity!["bytes"])[0]);
+        Assert.Equal("updated", records[1].Entity!["name"]);
+        Assert.Null(records[2].Entity);
+        Assert.Equal(id, records[2].Id);
+
+        var mutatedSnapshot = records[0].Entity!;
+        mutatedSnapshot["name"] = "snapshot mutation";
+        ((byte[])mutatedSnapshot["bytes"])[0] = 8;
+        Assert.Equal("created", records[0].Entity!["name"]);
+        Assert.Equal(1, ((byte[])records[0].Entity!["bytes"])[0]);
+        Assert.Throws<NotSupportedException>(() => ((System.Collections.Generic.IList<OrganizationWriteRecord>)records).Clear());
+    }
+
+    /// <summary>
+    /// Handler 例外及無法複製的值不得產生成功紀錄；達到紀錄上限後 Create 必須在改表前拒絕。
+    /// 透過合成 fault 與上限填滿注入錯誤，並驗證表列及 audit 數量維持確定值。
+    /// </summary>
+    [Fact]
+    public void Fake_WriteRecords_FaultsAndCapacityFailWithoutPartialWrite()
+    {
+        using (var failing = new FakeOrganizationService
+        {
+            CreateHandler = _ => throw new InvalidOperationException("synthetic")
+        })
+        {
+            Assert.Throws<InvalidOperationException>(() => failing.Create(new Entity("contact")));
+            Assert.Empty(failing.WriteRecords);
+            failing.CreateHandler = null;
+            Assert.Throws<NotSupportedException>(() => failing.Create(new Entity("contact") { ["unsupported"] = new object() }));
+            Assert.Empty(failing.WriteRecords);
+            Assert.Equal(0, failing.EntityCount);
+        }
+
+        using var bounded = new FakeOrganizationService();
+        for (var index = 0; index < 4096; index++)
+            bounded.Create(new Entity("contact") { ["sequence"] = index });
+        Assert.Equal(4096, bounded.WriteRecords.Count);
+        Assert.Throws<NotSupportedException>(() => bounded.Create(new Entity("contact") { ["sequence"] = 4096 }));
+        Assert.Equal(4096, bounded.EntityCount);
+        Assert.Equal(4096, bounded.WriteRecords.Count);
+    }
+
+    /// <summary>
+    /// Dispose 清除服務持有的寫入紀錄；預先取出的唯讀快照仍由讀者持有，
+    /// 但其中 Entity 仍是 detached 值，不會參照已清除的 fake 資料表。
+    /// </summary>
+    [Fact]
+    public void Fake_WriteRecords_DisposeClearsOwnedRecordsAndKeepsPriorSnapshotsDetached()
+    {
+        var service = new FakeOrganizationService();
+        service.Create(new Entity("contact") { ["name"] = "synthetic" });
+        var priorSnapshot = service.WriteRecords;
+        service.Dispose();
+
+        Assert.Single(priorSnapshot);
+        Assert.Empty(service.WriteRecords);
+    }
+
     /// <summary>
     /// 活動只以 activityid 篩選，兩筆同名不同識別不能混淆；兩種查詢均須只取命中的正式主鍵。
     /// 使用合成表與不含主鍵屬性的輸入，刻意依賴替身補齊；using 在案例結束排空。

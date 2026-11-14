@@ -3,7 +3,7 @@
 
 目的與定位：把舊 Plugin／Workflow 的 HTTP、RestSharp 與檔案建構改寫成 harness 記錄或 scratch 入口，並拒絕不能證明安全的傳輸、程序、反射及實體檔案操作。
 
-主要功能與流程：使用改寫前的 Roslyn semantic model 識別 alias 與完整型別名稱，逐樹轉換 HttpClient、RestClient、FileStream、File／Directory 與文字 reader／writer 的路徑建構。改寫後重新建立 semantic model 驗證，不依註解或字串裡的 API 名稱判定；IOrganizationService 是假服務契約，不視為連外。錯誤只回固定代碼與檔名，不回原始碼、URL、token 或例外本文。
+主要功能與流程：使用改寫前的 Roslyn semantic model 識別 alias 與完整型別名稱，逐樹轉換 HttpClient、RestClient、FileStream、File／Directory 與文字 reader／writer 的路徑建構。URL 常值本身不構成拒絕條件；只有無法替換的 WebRequest/WebClient、Socket/TcpClient 等明確傳輸型別會分類為網路阻擋。純資料型別不因位於 System.Net namespace 而整批拒絕。改寫後重新建立 semantic model 驗證，不依註解或字串裡的 API 名稱判定；IOrganizationService 是假服務契約，不視為連外。其他檔案、反射或執行逃逸限制仍拒絕，但由編譯失敗分類承載。錯誤只回固定代碼與檔名，不回原始碼、URL、token 或例外本文。
 
 使用邊界與維護：本檔不建立傳輸、不開啟檔案、不執行改寫產物，僅保存單次編譯的語法樹與有界診斷。ScratchFiles 的路徑映射／容量及釋放由 runtime owner 負責，HttpClient 的固定 handler 由記錄替身擁有；來源不得覆寫 handler、透過原始網路型別或反射逃逸。源碼驗證不能替代 runner 的隔離 AppDomain、不可用 proxy 與 finally 卸載。新增 API 必須有精確攔截與負向測試，不得因依賴出現未知 API 就放寬邊界。
 */
@@ -45,6 +45,15 @@ internal sealed class TransportRewriter : CSharpSyntaxRewriter
     private static readonly string[] PureIoTypes = { "Stream", "MemoryStream", "TextReader", "TextWriter", "StringReader", "StringWriter", "BinaryReader", "BinaryWriter",
         "IOException", "InvalidDataException", "FileNotFoundException", "EndOfStreamException", "FileMode", "FileAccess", "FileShare", "SeekOrigin", "Path", "StreamReader", "StreamWriter", "FileStream" };
     private static readonly string[] HttpDataTypes = { "HttpClient", "HttpMessageInvoker", "HttpRequestMessage", "HttpResponseMessage", "HttpContent", "StringContent", "ByteArrayContent", "StreamContent", "MultipartContent", "MultipartFormDataContent", "FormUrlEncodedContent", "HttpMethod", "HttpCompletionOption", "HttpRequestException", "HttpResponseHeaders", "HttpRequestHeaders", "HttpContentHeaders", "MediaTypeHeaderValue", "AuthenticationHeaderValue", "HttpHeaders", "NameValueHeaderValue", "ContentDispositionHeaderValue", "HttpResponseMessageExtensions", "HttpClientExtensions", "HttpContentExtensions" };
+    private static readonly string[] UninterceptedNetworkTypes =
+    {
+        "System.Net.WebRequest", "System.Net.HttpWebRequest", "System.Net.WebClient",
+        "System.Net.Sockets.Socket", "System.Net.Sockets.TcpClient", "System.Net.Sockets.TcpListener",
+        "System.Net.Sockets.UdpClient", "System.Net.Sockets.NetworkStream",
+        "System.Net.Dns", "System.Net.HttpListener", "System.Net.Mail.SmtpClient",
+        "System.Net.WebSockets.WebSocket", "System.Net.WebSockets.ClientWebSocket",
+        "System.Net.NetworkInformation.Ping"
+    };
 
     /// <summary>每棵樹共用其原始 semantic model，診斷 owner 是此次 Rewrite 呼叫。</summary>
     private TransportRewriter(SemanticModel model, List<string> diagnostics, bool rewrittenPass)
@@ -106,7 +115,7 @@ internal sealed class TransportRewriter : CSharpSyntaxRewriter
         var type = model.GetTypeInfo(node).Type?.ToDisplayString();
         if (!rewrittenPass && type == "System.Net.Http.HttpClient")
         {
-            if (node.ArgumentList?.Arguments.Count != 0)
+            if (node.ArgumentList != null && node.ArgumentList.Arguments.Count != 0)
             {
                 Block(node, "CustomHttpHandlerRefused");
                 return node;
@@ -172,7 +181,8 @@ internal sealed class TransportRewriter : CSharpSyntaxRewriter
             if (name != null && (type == "System.IO.File" && FileMethods.Contains(name, StringComparer.Ordinal)
                 || type == "System.IO.Directory" && (name == "CreateDirectory" || name == "Exists")))
             {
-                return node.WithExpression(SyntaxFactory.ParseExpression(Runtime + "ScratchFiles." + name))
+                var mappedName = type == "System.IO.Directory" && name == "Exists" ? "DirectoryExists" : name;
+                return node.WithExpression(SyntaxFactory.ParseExpression(Runtime + "ScratchFiles." + mappedName))
                     .WithArgumentList((ArgumentListSyntax)Visit(node.ArgumentList)!);
             }
 
@@ -204,6 +214,15 @@ internal sealed class TransportRewriter : CSharpSyntaxRewriter
             || type == "System.Delegate" && name == "CreateDelegate")
         {
             Block(node, "ExecutionEscapeRefused");
+        }
+
+        if (type == "System.Threading.Tasks.Task" && (name == "Run" || name == "Delay")
+            || type?.StartsWith("System.Threading.Tasks.TaskFactory", StringComparison.Ordinal) == true
+            || type?.StartsWith("System.Threading.Tasks.Task", StringComparison.Ordinal) == true && name == "ContinueWith"
+            || type == "System.Threading.ThreadPool" || type == "System.Threading.Thread" || type == "System.Threading.Timer"
+            || type == "System.Timers.Timer")
+        {
+            Block(node, "BackgroundExecutionRefused");
         }
 
         CheckType(symbol?.ContainingType, node, construction: false);
@@ -292,7 +311,7 @@ internal sealed class TransportRewriter : CSharpSyntaxRewriter
     }
 
     /// <summary>文字檔路徑先導向 scratch stream；append 的判斷保留原運算式與單次求值，不修改常值。</summary>
-    private SyntaxNode RewriteTextStream(ObjectCreationExpressionSyntax node, bool writer)
+    private ObjectCreationExpressionSyntax RewriteTextStream(ObjectCreationExpressionSyntax node, bool writer)
     {
         var args = node.ArgumentList!.Arguments;
         if (args.Any(item => item.NameColon != null))
@@ -332,6 +351,19 @@ internal sealed class TransportRewriter : CSharpSyntaxRewriter
 
         var ns = type.ContainingNamespace?.ToDisplayString() ?? string.Empty;
         var full = type.ToDisplayString();
+        // 原始來源只能使用 SDK 契約；工具公開API包含發布與讀取功能，不是舊來源可借用的安全能力。
+        // 第二遍才容許由本rewriter插入的記錄替身與scratch呼叫，不能讓來源自行取得它們。
+        if (!rewrittenPass && type.ContainingAssembly?.Name == typeof(TransportRewriter).Assembly.GetName().Name)
+        {
+            Block(node, "HarnessApiRefused");
+        }
+
+        if (construction && (full == "System.Threading.Thread" || full == "System.Threading.Timer"
+            || full == "System.Timers.Timer" || full.StartsWith("System.Threading.Tasks.Task", StringComparison.Ordinal)))
+        {
+            Block(node, "BackgroundExecutionRefused");
+        }
+
         if (ns == "System.IO" && !PureIoTypes.Contains(type.Name, StringComparer.Ordinal))
         {
             Block(node, "FileApiRefused");
@@ -342,8 +374,7 @@ internal sealed class TransportRewriter : CSharpSyntaxRewriter
             Block(node, "UninterceptedConstructorRefused");
         }
 
-        if (ns.StartsWith("System.Net", StringComparison.Ordinal) && !(ns == "System.Net.Http" || ns.StartsWith("System.Net.Http.", StringComparison.Ordinal))
-            && full != "System.Net.HttpStatusCode" && full != "System.Net.HttpVersion" && full != "System.Net.WebUtility")
+        if (UninterceptedNetworkTypes.Contains(full, StringComparer.Ordinal))
         {
             Block(node, "NetworkApiRefused");
         }

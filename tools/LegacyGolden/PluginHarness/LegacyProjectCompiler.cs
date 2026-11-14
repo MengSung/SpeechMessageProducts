@@ -3,7 +3,7 @@
 
 目的與定位：實作 P5-02 逐入口舊專案的 Roslyn 記憶體編譯介面，將來源閉包交給 TransportRewriter 驗證與改寫，供隔離 AppDomain runner 執行已成功產生的位元組。
 
-主要功能與流程：先完成有界來源讀取，解析 net48 reference assemblies、harness、CRM／Workflow／JSON 及核定舊套件參考，建立語意模型後改寫；改寫後再次驗證，成功 emit 才交付 Generated。任何失敗僅回固定狀態與前二十筆錯誤代碼、檔名，不輸出診斷原文、機密或絕對路徑；來源含硬寫 token 不構成拒編條件。
+主要功能與流程：先完成有界來源讀取，解析 net48 reference assemblies、harness、CRM／Workflow／JSON 及核定舊套件參考，建立語意模型後改寫；只有真正不可攔截的網路 API 診斷分類為 BlockedByNetworkApi，其他安全邊界拒絕分類為 CompileFailed，成功 emit 才交付 Generated。任何失敗僅回固定狀態與前二十筆錯誤代碼、檔名，不輸出診斷原文、機密或絕對路徑；來源含硬寫 token 不構成拒編條件。
 
 使用邊界與維護：本檔不 Assembly.Load、不執行舊型別、不建立背景 task 或外部連線。來源、Roslyn 物件、參考位元組均屬單次編譯，metadata 由記憶體建立避免映射來源檔的長期 handle；emit stream 由 using 釋放。CompilationResult 擁有輸出 byte[]，Dispose 清零並移除參考；呼叫端須在隔離執行後卸載 domain 再釋放結果。安全拒絕優先於語法錯誤，避免把未攔截 API 誤報可執行。維護時驗證真舊來源與合成失敗／阻擋案例。
 */
@@ -78,7 +78,7 @@ public static class LegacyProjectCompiler
         }
         catch (Exception exception) when (IsInputFailure(exception))
         {
-            return new CompilationResult("CompileFailed", new[] { "SourceRootInvalid" });
+            return new CompilationResult("CompileFailed", Enumerable.Repeat("SourceRootInvalid", 1));
         }
     }
 
@@ -90,7 +90,7 @@ public static class LegacyProjectCompiler
     {
         if (sources == null)
         {
-            return new CompilationResult("CompileFailed", new[] { "SourceRequired" });
+            return new CompilationResult("CompileFailed", Enumerable.Repeat("SourceRequired", 1));
         }
 
         var files = new List<SourceFile>();
@@ -99,14 +99,14 @@ public static class LegacyProjectCompiler
         {
             if (source == null || source.Length > 1024 * 1024 || files.Count >= 512)
             {
-                return new CompilationResult("CompileFailed", new[] { "SourceCapacityExceeded" });
+                return new CompilationResult("CompileFailed", Enumerable.Repeat("SourceCapacityExceeded", 1));
             }
 
             var size = Encoding.UTF8.GetByteCount(source);
             total += size;
             if (size > 1024 * 1024 || total > 16L * 1024 * 1024)
             {
-                return new CompilationResult("CompileFailed", new[] { "SourceCapacityExceeded" });
+                return new CompilationResult("CompileFailed", Enumerable.Repeat("SourceCapacityExceeded", 1));
             }
 
             files.Add(new SourceFile("Synthetic/Source" + files.Count.ToString(CultureInfo.InvariantCulture) + ".cs", source, size, string.Empty));
@@ -120,7 +120,7 @@ public static class LegacyProjectCompiler
     {
         if (input.ReadIssues.Count != 0 || input.Sources.Count == 0)
         {
-            return new CompilationResult("CompileFailed", input.ReadIssues.Count == 0 ? new[] { "NoReadableCSharpSource" } : input.ReadIssues);
+            return new CompilationResult("CompileFailed", input.ReadIssues.Count == 0 ? Enumerable.Repeat("NoReadableCSharpSource", 1) : input.ReadIssues);
         }
 
         try
@@ -133,7 +133,10 @@ public static class LegacyProjectCompiler
             var rewritten = TransportRewriter.Rewrite(compilation);
             if (rewritten.Diagnostics.Count != 0)
             {
-                return new CompilationResult("BlockedByNetworkApi", rewritten.Diagnostics);
+                var status = rewritten.Diagnostics.Any(item => item.StartsWith("NetworkApiRefused:", StringComparison.Ordinal))
+                    ? "BlockedByNetworkApi"
+                    : "CompileFailed";
+                return new CompilationResult(status, rewritten.Diagnostics);
             }
 
             compilation = rewritten.Compilation;
@@ -150,7 +153,7 @@ public static class LegacyProjectCompiler
         }
         catch (Exception exception) when (IsInputFailure(exception) || exception is BadImageFormatException || exception is InvalidOperationException)
         {
-            return new CompilationResult("CompileFailed", new[] { "CompilationInfrastructureFailure" });
+            return new CompilationResult("CompileFailed", Enumerable.Repeat("CompilationInfrastructureFailure", 1));
         }
     }
 
