@@ -17,3 +17,7 @@
 - 同一最終程序回歸將產品暫換回 direct HMAC 得有效紅燈exit1/CSP例外，finally恢復原bytes；最小無覆寫私有子類修正後Plugins Release172/172、CAS Debug5/5、加密雙目標各33/33、實際合併member6/6、正式簽章metadata全true。原始輸出均ignored。
 - 合成component 140400次digest比對、10個受限域卸載，handle增量0，retained最高1178792bytes；額外配置1424bytes/call、約0.30–0.42微秒，FIPS=True未測。
 - 尚待最終獨立複核、固定提交完整guard與實機；未部署，不標前置驗收。
+
+## 2026-11-14 12:40 Asia/Taipei (UTC+08:00) 守門及前置盤點
+精確76b81e82完整guard：Release建置/5524 tests、Debug tracer7、編碼94檔、重複碼0通過；I18n因新增單一Smoke歧義診斷繁中常值停止。改成固定英文診斷（不改流程、不提高baseline），Smoke33/33及本機I18n再過；新提交須重跑完整guard，原失敗log保留。
+唯讀D34聯絡人查詢反覆回SDK faultCode=-2147220989（contact-query），條件NotNull arity確認0仍失敗；連線可建立並確定性Dispose。沒有輸出原始fault/LINE ID/秘密，沒有組織寫入或步驟啟用。停止重試此實機前置，待查明環境後才進換版；當前未宣稱D34有效。

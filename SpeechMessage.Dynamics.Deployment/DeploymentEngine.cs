@@ -882,7 +882,7 @@ internal sealed class DeploymentEngine
 
                 if (result is not null)
                 {
-                    throw new InvalidDataException("Smoke 診斷追蹤不唯一，無法判定本次版本。");
+                    throw new InvalidDataException("Smoke diagnostics are ambiguous; the current plugin version cannot be determined.");
                 }
 
                 result = trace;
