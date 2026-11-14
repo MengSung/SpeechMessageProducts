@@ -130,6 +130,14 @@ public sealed class SystemTextTable : ISystemTextCatalog
         throw new KeyNotFoundException("Unknown system text key: " + key.Value);
     }
 
+    /// <summary>只格式化系統資源的具名參數，供沒有教會文字範圍的註冊設定及外殼錯誤使用。</summary>
+    /// <param name="culture">明確文字及格式文化；缺文字沿用繁中後備，不建立教會覆寫。</param>
+    /// <param name="key">固定系統資源鍵。</param>
+    /// <param name="args">本次操作的純值參數；不保存陣列或值。</param>
+    /// <returns>經共用具名格式器驗證後的單次文字。</returns>
+    public string GetFormattedText(string culture, TextKey key, params TextArg[] args) =>
+        NamedTextFormatter.Format(GetText(culture, key), System.Globalization.CultureInfo.GetCultureInfo(culture), args);
+
     /// <summary>回傳無法由呼叫者修改的語系表，所有值都是不可變字串，不暴露生成陣列。</summary>
     /// <param name="culture">已知語系或任意未知值；未知時共用既有 zh-TW 表，不新增快取。</param>
     /// <returns>本實例生命週期內不變的完整字典。</returns>

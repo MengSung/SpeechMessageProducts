@@ -5,7 +5,7 @@
 目的與定位：保存SharedText的正式文字資源，提供固定key、翻譯與具名參數給I18nCheck驗證及產生器；本檔是文字的單一來源，不在生成C#內手改文案。
 
 主要功能與流程：
-目前宣告26個資源列；鍵身分、參數集合、發布語系與長度受資源守門限制，重複鍵不能用覆寫隱藏。
+外殼通用錯誤、診斷與部署資源列；鍵身分、參數集合、發布語系與長度受資源守門限制，重複鍵不能用覆寫隱藏。
 
 使用邊界與維護：修改前先核對引用此檔的專案、頁面、腳本或CI步驟，保留既有參數、輸出及失敗結束碼。
 涉及寫入、外部命令或暫存資源時，依本檔實際實作的owner及清理路徑處理；說明不能取代執行前的範圍驗證。
@@ -38,4 +38,7 @@
   <data name="Deployment.Schema.Plan.Pending" xml:space="preserve"><value>尚未 Active</value></data>
   <data name="Deployment.Schema.Plan.NoPending" xml:space="preserve"><value>沒有既存待建置索引；新增後仍須重讀確認 Active。</value></data>
   <!-- P1 僅保留六個既有英文命令對應詞；完整 103 詞與產品路由黃金遷移屬 P3-01／P3-07。 -->
+  <data name="Common.Plugin.InvalidConfiguration" xml:space="preserve"><value>外掛步驟設定格式錯誤。</value></data>
+  <data name="Common.Plugin.MissingService" xml:space="preserve"><value>外掛必要服務無法取得。</value></data>
+  <data name="Common.Plugin.EventId" xml:space="preserve"><value>事件 ID={eventId}</value></data>
 </root>

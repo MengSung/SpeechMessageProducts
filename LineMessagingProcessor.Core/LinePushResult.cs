@@ -8,6 +8,7 @@
  * 本檔宣告 LinePushResult。
  * - 只允許傳輸實作建立一致結果；有 HTTP 狀態與無回應故障為互斥路徑。
  * - 只有平台接受或同鍵已接受才成功，會友／教會前置不符以固定Rejected代碼拒絕且不觸網。
+ * - ShadowRecorded 僅表示本地影子記錄完成，以 Rejected 加固定 Reason 表達未發送；不屬於平台成功。
  * - 平台 x-line-request-id；不讀取或保存可能含敏感資訊的錯誤回應本文。
  * - 僅無回應的傳輸失敗保留原始例外；有 HTTP 狀態的結果必須為 null。
  * 主要操作入口包含 ToString。
@@ -73,6 +74,15 @@ public sealed class LinePushResult
             throw new ArgumentException("Unknown member rejection code.", nameof(reason));
         return new LinePushResult(LinePushOutcome.Rejected, null, null, null, reason);
     }
+
+    /// <summary>
+    /// 表示影子記錄已完成且未呼叫網路；以 Rejected 與固定 ShadowRecorded 原因回報，
+    /// 保留 Success 僅代表平台接受的原始語意。不捏造 HTTP 200、request id 或傳輸例外，
+    /// 亦不保存 sink、訊息、收件人或任何操作資源。
+    /// </summary>
+    /// <returns>本次操作擁有的未發送純值結果；Success 為 false。</returns>
+    public static LinePushResult ShadowRecorded() =>
+        new(LinePushOutcome.Rejected, null, null, null, "ShadowRecorded");
 
     /// <summary>僅無回應的傳輸失敗保留原始例外；有 HTTP 狀態的結果必須為 null。</summary>
     [JsonIgnore]

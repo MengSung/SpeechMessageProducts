@@ -1,0 +1,18 @@
+建立映射：
+subst W: "D:\音訊科技產品\系統平台\SpeechMessageProducts\.worktrees\1.0.0.10.IntegrateWebhook_SDK.worktree\.worktrees\1.0.0.11.Integration.P5.Worktree"
+
+
+=======================================================================
+
+
+確認映射：
+
+subst
+Test-Path W:\
+Get-ChildItem W:\
+
+=======================================================================
+
+解除映射：
+
+subst W: /d

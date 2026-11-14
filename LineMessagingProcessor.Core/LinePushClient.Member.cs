@@ -5,7 +5,10 @@
  * 傳輸管線碰觸 LINE；頻道池內多教會共用憑證不會共用可變 sender 或訊息。
  * 主要功能與流程：單次輸入最多五則 Line.Messaging 訊息，建立有界 JSON 快照，
  * 覆寫每則 sender 為伺服器教會名稱，Retry Key 原樣沿用來源正式記錄 ID；私有 Flex
- * 投影以顯式 converter 寫入，不依賴沙箱非公開反射權限。
+ * 投影以顯式 converter 寫入，不依賴沙箱非公開反射權限。P5 的純摘要入口也呼叫
+ * 同一凍結器及 256 Ki 字元容量守門，回傳小寫 SHA-256 而不讀憑證或建立網路工作。
+ * ValidateRecipient 共用正式會友、來源教會及 LINE ID 檢查，使 Shadow 不需憑證也能
+ * 執行與傳輸入口相同的收件者檢查；此純值檢查不取代 Host 的授權責任。
  * 使用邊界與維護：不保存 caller 集合、訊息、credential 或教會資料；client 只借用
  * 無狀態 HttpClient。HTTP request／response、逾時及連結取消來源全部由單次傳輸
  * using 擁有，完成後釋放；正常 caller 取消與內部逾時沿用既有契約，不建立重試背景。
@@ -16,6 +19,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Net.Http;
+using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -43,6 +47,50 @@ public sealed partial class LinePushClient
         var body = new JObject { ["to"] = recipient.LineUserId, ["messages"] = frozen }.ToString(Formatting.None);
         return (await SendCoreAsync(HttpMethod.Post, "message/push", channel.Credential, body, retryKey, null, ct)
             .ConfigureAwait(false)).Result;
+    }
+
+    /// <summary>
+    /// 以與 Live 相同的有界 SDK 訊息凍結、明確 converter 與伺服器 sender 計算摘要。
+    /// 此方法只處理當次操作的純值，不授權、不解密、不建立 client、HTTP 或背景工作；
+    /// 例外直接交回呼叫端，任何 writer 與雜湊器皆在返回前 Dispose。沒有全域 JSON 設定。
+    /// </summary>
+    /// <param name="messages">一至五則正式 SDK 訊息，不保存或修改 caller 模型。</param>
+    /// <param name="senderName">由來源教會字典產生的一至二十字伺服器 sender。</param>
+    /// <returns>包含覆寫後 sender 的有界 JSON 快照之小寫 SHA-256。</returns>
+    public static string ComputeMemberContentSha256(IReadOnlyList<ISendMessage> messages, string senderName)
+    {
+        var bytes = Encoding.UTF8.GetBytes(FreezeMessages(messages, senderName).ToString(Formatting.None));
+#if NET10_0_OR_GREATER
+        var digest = SHA256.HashData(bytes);
+#else
+        using var sha = SHA256.Create();
+        var digest = sha.ComputeHash(bytes);
+#endif
+        var hex = new StringBuilder(digest.Length * 2);
+        for (var index = 0; index < digest.Length; index++) hex.Append(digest[index].ToString("x2", CultureInfo.InvariantCulture));
+        return hex.ToString();
+    }
+
+    /// <summary>
+    /// 驗證單次通知的會友身分、來源教會與 LINE ID；錯配及未綁定回固定分類，
+    /// 格式錯誤明確拋出不含輸入值的例外。這是純值前置檢查，不讀憑證、不連網，
+    /// 不保存會友資料，也不能代替呼叫端的伺服器授權。
+    /// </summary>
+    /// <param name="recipient">已授權來源讀出的不可變會友投影。</param>
+    /// <param name="sourceChurchId">呼叫端已驗證的來源教會識別。</param>
+    /// <returns>拒絕分類，或 null 表示收件者前置檢查通過。</returns>
+    public static LinePushResult? ValidateRecipient(MemberRecipient recipient, Guid sourceChurchId)
+    {
+#if NETFRAMEWORK
+        if (recipient is null) throw new ArgumentNullException(nameof(recipient));
+#else
+        ArgumentNullException.ThrowIfNull(recipient);
+#endif
+        if (sourceChurchId == Guid.Empty || recipient.ContactId == Guid.Empty || recipient.ChurchId != sourceChurchId)
+            return LinePushResult.Reject("ChurchMismatch");
+        if (string.IsNullOrWhiteSpace(recipient.LineUserId)) return LinePushResult.Reject("NotBound");
+        LinePushRequest.RequireUserId(recipient.LineUserId);
+        return null;
     }
 
     /// <summary>解析指定 alias 並直接換綁宮格，不產生圖片；缺少 alias 是永久拒絕。</summary>
@@ -86,13 +134,10 @@ public sealed partial class LinePushClient
         ArgumentNullException.ThrowIfNull(recipient);
         ArgumentNullException.ThrowIfNull(channel);
 #endif
-        if (sourceChurchId == Guid.Empty || recipient.ContactId == Guid.Empty || recipient.ChurchId != sourceChurchId ||
-            channel.ChurchId != sourceChurchId || channel.ChannelId == Guid.Empty ||
+        if (channel.ChurchId != sourceChurchId || channel.ChannelId == Guid.Empty ||
             channel.AssignedChannelId != channel.ChannelId)
             return LinePushResult.Reject("ChurchMismatch");
-        if (string.IsNullOrWhiteSpace(recipient.LineUserId)) return LinePushResult.Reject("NotBound");
-        LinePushRequest.RequireUserId(recipient.LineUserId);
-        return null;
+        return ValidateRecipient(recipient, sourceChurchId);
     }
 
     /// <summary>序列化有界快照並覆寫sender，不修改caller模型；只接受正式SDK型別而非自訂序列化物件。</summary>

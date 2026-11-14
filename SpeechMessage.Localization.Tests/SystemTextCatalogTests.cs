@@ -5,7 +5,7 @@
  * 並以獨立合成陣列注入身份／欄位錯誤。它不測教會快取或D365；那些契約由各自測試負責。
  * 主要情境：精確繁中與偽語系原文、英文空殼後備、未知key與TextKey格式／相等、來源mutation、
  * 語系清單唯讀，以及Framework宿主必須實際載入net462產品、net10宿主載入net10的反射斷言。
- * 完整性基準：獨立列出目前核定的20個系統文字鍵，包含P3-08入站letter主旨鍵；三語系都必須保留完整20鍵，
+ * 完整性基準：獨立列出目前核定的23個系統文字鍵，包含P3-08入站letter主旨鍵與P5-01外殼通用錯誤鍵；三語系都必須保留完整23鍵，
  * 不能只靠讀被測表自身的Count來生成期望，亦不能因新資源合法增加而放寬原鍵保留與不可變斷言。
  * 並行與擁有權：百個真執行緒各讀萬次；單案擁有CountdownEvent／ManualResetEventSlim與故障槽，
  * finally放行並join全部執行緒後才Dispose閘門，active必須歸零；net10另驗預熱後十萬hit零配置。
@@ -34,6 +34,7 @@ public sealed class SystemTextCatalogTests
     {
         "Brand.ShortName", "Common.Diagnostics.Culture", "Common.Diagnostics.InvalidConfiguration", "Common.Diagnostics.Ping",
         "Common.Diagnostics.PushTest", "Common.Diagnostics.Retryable",
+        "Common.Plugin.EventId", "Common.Plugin.InvalidConfiguration", "Common.Plugin.MissingService",
         "Deployment.Schema.Plan.Fingerprint", "Deployment.Schema.Plan.Keys", "Deployment.Schema.Plan.NoChanges",
         "Deployment.Schema.Plan.NoPending", "Deployment.Schema.Plan.Operations", "Deployment.Schema.Plan.Organization",
         "Deployment.Schema.Plan.OrganizationId", "Deployment.Schema.Plan.Pending", "Deployment.Schema.Plan.PlanHash",
@@ -127,7 +128,7 @@ public sealed class SystemTextCatalogTests
     [InlineData("A.Key Value")]
     public void TextKey_InvalidFormat_Throws(string value) => Assert.Throws<ArgumentException>(() => new TextKey(value));
 
-    /// <summary>三個語系表保留目前核定的20個系統文字鍵；固定獨立鍵清單防漏鍵，新增資源不得削弱唯讀或完整後備保護。</summary>
+    /// <summary>三個語系表保留目前核定的23個系統文字鍵；固定獨立鍵清單防漏鍵，新增資源不得削弱唯讀或完整後備保護。</summary>
     [Fact(DisplayName = "呼叫者不能修改任何已發布語系表")]
     public void Table_IsImmutable_CallerCannotMutate()
     {
@@ -138,7 +139,7 @@ public sealed class SystemTextCatalogTests
             Assert.False(table is Dictionary<string, string>);
             if (table is IDictionary<string, string> mutable)
                 Assert.Throws<NotSupportedException>(() => mutable["Common.Diagnostics.Ping"] = "caller-change");
-            Assert.Equal(20, table.Count);
+            Assert.Equal(23, table.Count);
             Assert.Equal(ExpectedSystemKeys, table.Keys.OrderBy(key => key, StringComparer.Ordinal));
         }
         Assert.Equal("連線測試成功", catalog.GetText("zh-TW", new TextKey("Common.Diagnostics.Ping")));
@@ -287,7 +288,7 @@ public sealed class SystemTextCatalogTests
         Assert.Throws<KeyNotFoundException>(() => new SystemTextTable().GetText("zh-TW", default));
     }
 
-    /// <summary>未知語系與大小寫變化只重用完整20鍵快照，不能每次新增表或建立暫存翻譯；固定次數後容量及所有原鍵不變。</summary>
+    /// <summary>未知語系與大小寫變化只重用完整23鍵快照，不能每次新增表或建立暫存翻譯；固定次數後容量及所有原鍵不變。</summary>
     [Fact(DisplayName = "未知語系重用既有後備快照")]
     public void Table_UnknownCultures_ReuseFixedFallback()
     {
@@ -295,7 +296,16 @@ public sealed class SystemTextCatalogTests
         var original = catalog.GetTable("zh-TW");
         for (var index = 0; index < 1000; index++) Assert.Same(original, catalog.GetTable("unrecognized-" + index));
         Assert.Same(original, catalog.GetTable("ZH-tw"));
-        Assert.Equal(20, original.Count);
+        Assert.Equal(23, original.Count);
         Assert.Equal(ExpectedSystemKeys, original.Keys.OrderBy(key => key, StringComparer.Ordinal));
+    }
+    /// <summary>無教會範圍的外殼使用共用具名格式器；插入值不再解析，缺參數必須拒絕。</summary>
+    [Fact]
+    public void SystemText_FormattedPluginError_UsesNamedFormatter()
+    {
+        var table = new SystemTextTable();
+        var key = new TextKey("Common.Plugin.EventId");
+        Assert.Equal("事件 ID={literal}", table.GetFormattedText("zh-TW", key, new TextArg("eventId", "{literal}")));
+        Assert.Throws<FormatException>(() => table.GetFormattedText("zh-TW", key));
     }
 }

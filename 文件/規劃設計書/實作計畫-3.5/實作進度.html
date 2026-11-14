@@ -240,11 +240,11 @@ footer{margin-top:36px;color:var(--muted);font-size:12.5px;text-align:center}
  */
 const DATA = {
   "planVersion": "3.5",
-  "snapshot": "2026-11-14 08:26 Asia/Taipei (UTC+08:00)",
-  "lastUpdated": "2026-11-14T08:26:00+08:00",
+  "snapshot": "2026-11-14 10:50 Asia/Taipei (UTC+08:00)",
+  "lastUpdated": "2026-11-14T10:50:36+08:00",
   "branch": "1.0.0.11.Integration.P5.Worktree",
-  "head": "2777476b",
-  "headline": "2026-11-14 08:26 Asia/Taipei (UTC+08:00)：階段 5 P5-00 文件與前置檢查完成，P4 審查修補尚未開始。",
+  "head": "76c5bddd",
+  "headline": "2026-11-14 10:50 Asia/Taipei (UTC+08:00)：P4 審查 H-1 已修並推送核對；P5-01 外殼基礎與測試替身實作中，尚未驗收。",
   "notices": [
     {
       "id": "plan-3.5-summary",
@@ -461,8 +461,7 @@ const DATA = {
         "2026-11-12 09:32 Asia/Taipei (UTC+08:00)：使用者提供 VM 收尾 SUCCESS；stdout 已關閉、stdout 檔與 A.8 本批列均為0。既有 queue 測試核實30秒逾時後資源回基線；appointment church scope與annotation同事件重送比對列為後續 Warning。P3-09 標 done、階段3完成；僅自審、非雙模型結果，Critical／High 0；本次紀錄變更不重跑已通過的§8.1，完成後不開始階段4。",
         "2026-11-12 11:17 Asia/Taipei (UTC+08:00)：使用者手機實測回報通過：在「好牧人教會系統（非線上展示系統）」傳送「ID」、「??」、「我的報名」均收到回覆；CRM 有撥入 LINE 訊息記錄。依使用者驗收以手機結果為決定性證據。",
         "2026-11-12 11:26 Asia/Taipei (UTC+08:00)：更正昨晚模擬驗收：11-12 發現 VM 內部無法解析 goodshepherdback，hosts 修正前所有事件在建立 CRM 連線時失敗；HTTP 200 僅代表收件驗簽。使用者以 VM hosts 加入 192.168.50.20 goodshepherdback.speechmessage.com.tw 修正，備份 hosts.P3-09-20261112-101803.bak；改以手機實測為準。新增不阻擋後續事項：AtomicPresentAndWeeklyCreationRequired 出席回覆差異（待決定是否補回覆）及 RegistrationExcluded 排除「報名」。"
-      ],
-      "lastUpdated": "2026-11-12T11:26:00+08:00"
+      ]
     },
     {
       "id": "phase-4-summary",
@@ -512,14 +511,15 @@ const DATA = {
       "phaseId": "階段 5",
       "level": "info",
       "title": "P5 進度摘要",
-      "lastUpdated": "2026-11-14T09:02:00+08:00",
-      "body": "2026-11-14 09:02 Asia/Taipei (UTC+08:00)：P5-00 文件與前置檢查完成；P5 分支起點為 9395d2ca，目前 HEAD 為 7ab136f3。05A 修訂 1 的先舊後新兩輪、D5-18 關卡、舊新步驟互斥及新步驟不得 Live 已納入執行文件；P4 審查 H-1 已修並推送核對遠端 SHA，尚未部署任何 P5 模組。D365 服務重啟權限與 ShadowTestChurchId／ShadowTestContactId 尚待補齊。",
+      "lastUpdated": "2026-11-14T10:50:36+08:00",
+      "body": "2026-11-14 10:50 Asia/Taipei (UTC+08:00)：P5-00 與 P4 H-1 已完成；目前 HEAD 76c5bddd，P5-01 實作中。正在修正輸入深層複製、8,000 字元影子記錄與雙目標 GUID 固定向量；尚未完成整合測試、打包及守門，不列驗收。更新回復前置仍有 D365 重啟權限、verify 與影子測試 GUID／D34 待核對，尚未部署任何 P5 模組。",
       "steps": [
         "2026-11-14 08:26 Asia/Taipei (UTC+08:00)：已確認目標殘留目錄不是 Git worktree，移除後正式 P4／P5 worktree 清單不受影響。",
         "2026-11-14 08:26 Asia/Taipei (UTC+08:00)：export-metadata 唯讀結構快照建立成功；verify 因本機部署執行檔／連線前置失敗，未宣稱 goodshepherdback verify=0。",
         "2026-11-14 08:26 Asia/Taipei (UTC+08:00)：更新回復前置尚未完成；依 D5-1 不部署任何模組，P5-00 完成後接續 P4 審查修補。",
         "2026-11-14 09:02 Asia/Taipei (UTC+08:00)：P4 審查 H-1 完成並推送；提交 7ab136f3 補齊任務檔尾 CRLF，固定 guard 對該提交 §8.1 八項全通過，遠端 SHA 核對一致。明細 mismatch／default Money 對永豐與 MyPay 均在 HTTP 前拒絕，兩個計數型 handler 呼叫 0；Payments Release 100/100 通過。接下來才進入更新回復前置與 P5-01。",
-        "2026-11-14 08:26 Asia/Taipei (UTC+08:00)：依 05A 修訂 1，實機影子比對採先舊後新兩輪；舊步驟先經 D5-18 且只在第一輪啟用，舊新不得同時啟用，第一輪結束（含失敗、取消）回到停用，新步驟只用 Shadow 不以 Live 啟用。"
+        "2026-11-14 08:26 Asia/Taipei (UTC+08:00)：依 05A 修訂 1，實機影子比對採先舊後新兩輪；舊步驟先經 D5-18 且只在第一輪啟用，舊新不得同時啟用，第一輪結束（含失敗、取消）回到停用，新步驟只用 Shadow 不以 Live 啟用。",
+        "2026-11-14 10:50 Asia/Taipei (UTC+08:00)：P5-01 已建立子任務並實作；契約紅燈指出深度邊界、模式解析與字典錯誤訊息缺陷，正在補強輸入隔離、Shadow overlay 及通知分類。外部分析 Claude 有結果，Gemini 503 無結果，不宣稱雙模型完成。"
       ]
     }
   ],
@@ -640,10 +640,10 @@ const DATA = {
       "id": "階段 5",
       "name": "Plugin／Workflow 重建（36 個 DLL → 2 個）",
       "planned": "8～12 個工作天",
-      "actual": "2026-11-14 00:20 Asia/Taipei (UTC+08:00)：P5-00 開工，完成殘留工作樹任務封存、P4 審查任務封存與前置可達性檢查；P5-01 尚未開始。",
+      "actual": "2026-11-14 10:50 Asia/Taipei (UTC+08:00)：P5-01 實作中；P5-00、P4 H-1 已完成，尚未部署模組。",
       "current": true,
       "done": 0,
-      "active": 0
+      "active": 1
     },
     {
       "id": "階段 6",
@@ -1353,13 +1353,13 @@ const DATA = {
       "id": "P5-01",
       "phaseId": "階段 5",
       "name": "外殼基礎與測試替身",
-      "status": "todo",
+      "status": "active",
       "deps": "P2-04、P2-11",
       "live": "無",
       "timebox": "1 天",
       "doneAt": "",
       "commit": "",
-      "note": "PluginShellBase、影子模式記錄器"
+      "note": "PluginShellBase、影子模式記錄器與測試替身實作中；契約修正尚待整合驗證。"
     },
     {
       "id": "P5-02",
@@ -1725,7 +1725,41 @@ const DATA = {
       "note": "首個正式 Plugin 佈署 goodshepherdback 之前"
     }
   ],
-  "active": [],
+  "active": [
+    {
+      "id": "P5-01",
+      "startedAt": "2026-11-14 10:50 Asia/Taipei (UTC+08:00)（進度補記，原開工時間未記錄）",
+      "timebox": "1 天",
+      "next": "完成輸入隔離與影子記錄整合，跑指定測試、打包與固定 guard。",
+      "dod": [
+        [
+          "實作與具名測試",
+          "no",
+          "仍在修正及補強，尚未完成整合測試。"
+        ],
+        [
+          "文件與位元組規範",
+          "no",
+          "完成實作後執行文件、編碼與 CRLF 檢查。"
+        ],
+        [
+          "完整守門",
+          "no",
+          "尚未提交本包，固定 guard 未執行。"
+        ],
+        [
+          "一頁回報及審查",
+          "no",
+          "尚未驗收，不以先前綠燈替代本次證據。"
+        ],
+        [
+          "驗收推送與遠端 SHA",
+          "no",
+          "目前遠端僅有已驗證的 H-1；P5-01 尚未提交。"
+        ]
+      ]
+    }
+  ],
   "gates": [
     {
       "item": "方案建置（Release）",

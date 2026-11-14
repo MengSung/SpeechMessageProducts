@@ -7,6 +7,8 @@
  * 主要功能與流程：文字與固定診斷Flex共用同一準備流程，Flex只讀本組件內嵌Diagnostics.json；
  * resolved culture回呼只回傳已選語系，不傳會友或秘密。先讀正式Contact，未綁定或教會不符即拒絕；再讀來源教會指派，
  * 決定語言、以字典組文字及sender、解密Token，沿用來源正式記錄ID作Retry Key。
+ * P5 通用委派入口在兩模式共用先驗拒絕；Shadow 僅記錄內容 SHA-256 與訊息數，
+ * 不解密或推播；ShadowRecorded 僅表示當次記錄完成，Success 仍為 false，並非網路送達。
  *
  * 使用邊界與維護：只借用無request狀態的resolver、catalog與push client；SDK及key
  * 僅在同步準備期間借用，不被async狀態機或服務欄位保存。HTTP輸入純值最多存活至
@@ -64,6 +66,94 @@ public sealed class MemberNotificationService
         ArgumentNullException.ThrowIfNull(resolvedCulture);
 #endif
         return NotifyCore(source, sourceContext, contactId, sourceRecordId, tokenKey, null, resolvedCulture, ct);
+    }
+
+    /// <summary>
+    /// 組合一次可供 Live 或 Shadow 使用的通知。兩種模式先執行完全相同的收件者、教會
+    /// 與綁定檢查；Live 才解密 token 並交給推播 client，Shadow 只把訊息數與內容雜湊
+    /// 交給當次操作擁有的 sink，因而不會把秘密或可變狀態跨請求保存。
+    /// </summary>
+    /// <param name="source">已由 Host 授權且只回傳當次純值的收件來源。</param>
+    /// <param name="sourceContext">已驗證的來源教會與產品文字範圍。</param>
+    /// <param name="contactId">正式 Contact ID。</param>
+    /// <param name="retryKey">正式業務事件的穩定重試鍵。</param>
+    /// <param name="templateKey">固定範本代號，只供 Shadow 記錄。</param>
+    /// <param name="compose">收到解析後文字範圍即建立訊息清單的同步委派。</param>
+    /// <param name="tokenKey">Live 使用的單次解密金鑰；Shadow 不需要也不應提供。</param>
+    /// <param name="ct">由呼叫端擁有的取消訊號。</param>
+    /// <returns>Live 的傳輸 Task；Shadow 回傳 Rejected／ShadowRecorded 表示本地記錄完成而未送網路；教會不符與未綁定皆傳回固定拒絕分類。</returns>
+    public Task<LinePushResult> NotifyComposedAsync(ILineRecipientSource source, TextContext sourceContext, Guid contactId,
+        Guid retryKey, string templateKey, Func<TextContext, IReadOnlyList<ISendMessage>> compose,
+        byte[] tokenKey, CancellationToken ct)
+    {
+        return NotifyComposedCore(source, sourceContext, contactId, retryKey, templateKey, compose, tokenKey, null, ct);
+    }
+
+    /// <summary>Shadow 版本；共用所有前置檢查，但永遠不解密、不建立推播 client。</summary>
+    /// <param name="source">已授權的單次收件來源。</param>
+    /// <param name="sourceContext">來源教會文字範圍。</param>
+    /// <param name="contactId">正式 Contact ID。</param>
+    /// <param name="retryKey">正式業務事件的穩定重試鍵。</param>
+    /// <param name="templateKey">固定範本代號。</param>
+    /// <param name="compose">收到解析後文字範圍即建立訊息清單的同步委派。</param>
+    /// <param name="shadowSink">由本次操作擁有的 Shadow 記錄器。</param>
+    /// <param name="ct">由呼叫端擁有的取消訊號。</param>
+    /// <returns>Rejected／ShadowRecorded 本地記錄結果，或 ChurchMismatch／NotBound 拒絕；不代表 LINE 已收訊。</returns>
+    public Task<LinePushResult> NotifyComposedAsync(ILineRecipientSource source, TextContext sourceContext, Guid contactId,
+        Guid retryKey, string templateKey, Func<TextContext, IReadOnlyList<ISendMessage>> compose,
+        IShadowPushSink shadowSink, CancellationToken ct)
+    {
+        return NotifyComposedCore(source, sourceContext, contactId, retryKey, templateKey, compose, null, shadowSink, ct);
+    }
+
+    /// <summary>執行兩模式共用驗證及最後一步，所有輸入只活到本次呼叫結束。</summary>
+    private Task<LinePushResult> NotifyComposedCore(ILineRecipientSource source, TextContext sourceContext, Guid contactId,
+        Guid retryKey, string templateKey, Func<TextContext, IReadOnlyList<ISendMessage>> compose,
+        byte[]? tokenKey, IShadowPushSink? shadowSink, CancellationToken ct)
+    {
+#if NETFRAMEWORK
+        if (source is null) throw new ArgumentNullException(nameof(source));
+        if (sourceContext is null) throw new ArgumentNullException(nameof(sourceContext));
+        if (compose is null) throw new ArgumentNullException(nameof(compose));
+#else
+        ArgumentNullException.ThrowIfNull(source);
+        ArgumentNullException.ThrowIfNull(sourceContext);
+        ArgumentNullException.ThrowIfNull(compose);
+#endif
+        if (string.IsNullOrWhiteSpace(templateKey)) throw new ArgumentException("A template key is required.", nameof(templateKey));
+        if ((tokenKey is null) == (shadowSink is null)) throw new ArgumentException("Exactly one notification mode is required.");
+        ct.ThrowIfCancellationRequested();
+        if (contactId == Guid.Empty) throw new ArgumentException("A contact identity is required.", nameof(contactId));
+        if (retryKey == Guid.Empty) throw new ArgumentException("An event identity is required.", nameof(retryKey));
+        if (tokenKey is not null && tokenKey.Length == 0) throw new ArgumentException("A token key is required.", nameof(tokenKey));
+
+        var member = source.ReadMember(contactId, ct);
+        ct.ThrowIfCancellationRequested();
+        if (member is null || member.ContactId != contactId) throw new InvalidOperationException("The source returned an unexpected contact.");
+        var rejection = LinePushClient.ValidateRecipient(member, sourceContext.ChurchId);
+        if (rejection is not null) return Task.FromResult(rejection);
+        var record = source.ReadChannel(sourceContext.ChurchId, ct);
+        ct.ThrowIfCancellationRequested();
+        if (record is null || record.ChurchId != sourceContext.ChurchId || record.ChannelId == Guid.Empty || record.AssignedChannelId != record.ChannelId)
+            return Task.FromResult(LinePushResult.Reject("ChurchMismatch"));
+        var resolved = cultures.Resolve(new MemberLanguagePreference(member.Language), record.Locales);
+        var context = sourceContext.WithCultures(resolved.TextCulture, resolved.FormatCulture);
+        ct.ThrowIfCancellationRequested();
+        var messages = compose(context) ?? throw new InvalidOperationException("The message composer returned null.");
+        ct.ThrowIfCancellationRequested();
+        if (messages.Count == 0) throw new InvalidOperationException("The message composer returned no messages.");
+        var sender = senders.Create(context, record.ChurchName);
+        if (shadowSink is not null)
+        {
+            var digest = LinePushClient.ComputeMemberContentSha256(messages, sender);
+            ct.ThrowIfCancellationRequested();
+            shadowSink.Record(contactId, templateKey, retryKey, messages.Count, digest);
+            return Task.FromResult(LinePushResult.ShadowRecorded());
+        }
+
+        var credential = new LineChannelCredential(ChannelTokenProtector.Unprotect(record.EncryptedToken, tokenKey!));
+        var channel = new ChurchChannel(record.ChurchId, record.AssignedChannelId, record.ChannelId, credential, sender);
+        return push.PushToMemberAsync(member, channel, sourceContext.ChurchId, messages, retryKey, ct);
     }
 
     /// <summary>兩入口共用最小SDK、教會檢查、語系、sender與解密；只有訊息投影不同，未綁定不組訊息。</summary>
