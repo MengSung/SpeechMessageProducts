@@ -6,7 +6,7 @@
   "risk": "high",
   "domain": "backend",
   "currentPhase": "implementation",
-  "nextAction": "02cbb811：Deployment 572/572；接shadow CLI、同步追蹤與關聯observe，權威確認Shadow IDs後才實機；整包驗收與固定guard前不推送",
+  "nextAction": "F16停止實機：export-legacy啟用舊步驟39／流程0；等處置核定，不自行停用。離線599/599，Shadow IDs已權威核對存入Secrets；尚欠CLI、同步追蹤、關聯observe、整包guard，未驗收不推送",
   "createdAt": "2026-11-14T19:28:56+08:00",
   "branch": "1.0.0.11.Integration.P5.Worktree"
 }
