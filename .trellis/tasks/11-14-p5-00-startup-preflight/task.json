@@ -15,12 +15,12 @@
   "branch": null,
   "base_branch": "1.0.0.11.Integration.P5.Worktree",
   "worktree_path": null,
-  "commit": null,
+  "commit": "249f4b9a",
   "pr_url": null,
   "subtasks": [],
   "children": [],
   "parent": "11-14-integration-p5",
   "relatedFiles": [],
-  "notes": "P5-00 文件、前置缺項、進度頁與編碼守門完成；待本包提交後進入 P4 審查修補。",
+  "notes": "P5-00 驗證與固定 guard 完成；提交 f673666e、修正提交 249f4b9a；下一包為 P4 審查修補。",
   "meta": {}
 }
