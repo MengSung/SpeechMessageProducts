@@ -21,6 +21,6 @@
   "children": [],
   "parent": "11-14-integration-p5",
   "relatedFiles": [],
-  "notes": "P5-02未驗收。工具Release293項全過、覆蓋率83.47%；修正後矩陣0 Generated／29 CompileFailed／0 BlockedByNetworkApi。f99bc2af確認PresentRecordLinePlugIn.cs:75寫死LINE收件識別，依D5-18不得跑第一輪，待使用者決定D5-3；固定guard未完成，不推送。",
+  "notes": "P5-02未驗收。PresentRecord D5-3前置盤點已於59cd3bef完成；入口為Update/Create new_present_record，需PresentRecordLineImage，Update差異才推播。:75寫死LINE收件識別，完整閉包仍安全拒絕。工具覆蓋率83.47%、矩陣0/29/0；待使用者決定D5-3，固定guard未完成，不推送。",
   "meta": {}
 }

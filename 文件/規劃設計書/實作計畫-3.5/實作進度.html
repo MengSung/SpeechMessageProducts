@@ -240,11 +240,11 @@ footer{margin-top:36px;color:var(--muted);font-size:12.5px;text-align:center}
  */
 const DATA = {
   "planVersion": "3.5",
-  "snapshot": "2026-11-14 17:57 Asia/Taipei (UTC+08:00)",
-  "lastUpdated": "2026-11-14T17:57:19+08:00",
+  "snapshot": "2026-11-14 17:59 Asia/Taipei (UTC+08:00)",
+  "lastUpdated": "2026-11-14T17:59:14+08:00",
   "branch": "1.0.0.11.Integration.P5.Worktree",
-  "head": "f99bc2af",
-  "headline": "2026-11-14 17:57 Asia/Taipei (UTC+08:00)：P5-02a仍缺PresentRecord實跑黃金；D5-18盤點確認 PresentRecordLinePlugIn.cs:75 有寫死LINE收件識別，依硬界線不跑第一輪，待使用者決定D5-3。b段工具覆蓋率83.47%、矩陣0成功／29拒絕／0網路阻擋；固定guard未完成、未推送。",
+  "head": "59cd3bef",
+  "headline": "2026-11-14 17:59 Asia/Taipei (UTC+08:00)：P5-02a完成PresentRecord D5-3前置盤點；確認Update/Create new_present_record、必要PresentRecordLineImage、Update回覆變更才推播，且 :75 有寫死LINE收件識別，依D5-18不跑第一輪。待使用者決定legacy-live-only；b段已達覆蓋率門檻，固定guard未完成、未推送。",
   "notices": [
     {
       "id": "plan-3.5-summary",
@@ -511,8 +511,8 @@ const DATA = {
       "phaseId": "階段 5",
       "level": "info",
       "title": "P5 進度摘要",
-      "lastUpdated": "2026-11-14T17:57:19+08:00",
-      "body": "2026-11-14 17:57 Asia/Taipei (UTC+08:00)：P5-02a仍缺PresentRecord實跑黃金；D5-18盤點確認 PresentRecordLinePlugIn.cs:75 有寫死LINE收件識別，依硬界線不跑第一輪，待使用者決定D5-3。b段工具覆蓋率83.47%、矩陣0成功／29拒絕／0網路阻擋；固定guard未完成、未推送。",
+      "lastUpdated": "2026-11-14T17:59:14+08:00",
+      "body": "2026-11-14 17:59 Asia/Taipei (UTC+08:00)：P5-02a完成PresentRecord D5-3前置盤點；確認Update/Create new_present_record、必要PresentRecordLineImage、Update回覆變更才推播，且 :75 有寫死LINE收件識別，依D5-18不跑第一輪。待使用者決定legacy-live-only；b段已達覆蓋率門檻，固定guard未完成、未推送。",
       "steps": [
         "2026-11-14 08:26 Asia/Taipei (UTC+08:00)：已確認目標殘留目錄不是 Git worktree，移除後正式 P4／P5 worktree 清單不受影響。",
         "2026-11-14 08:26 Asia/Taipei (UTC+08:00)：export-metadata 唯讀結構快照建立成功；verify 因本機部署執行檔／連線前置失敗，未宣稱 goodshepherdback verify=0。",
@@ -532,7 +532,8 @@ const DATA = {
         "2026-11-14 16:04 Asia/Taipei (UTC+08:00)：ce8dcea4連接queryResults，十五項新增測試先紅後綠；依序答案、同名不同ID、案例隔離及拒絕契約通過。正式矩陣重跑全部29入口CompileFailed，沒有執行舊入口。覆蓋率63.16%及原始證據SHA見子任務wp-reports/P5-02.md；只讀查得遠端842b049f，本輪沒有推送。",
         "2026-11-14 16:24 Asia/Taipei (UTC+08:00)：90ddb24a補執行域假服務契約；ddba3f0a修正Rest離線相容型別遭組件安全檢查誤擋，先紅五項後綠，直接工具API仍拒絕；60822743補容量故障及清理。Release293項全過、工具覆蓋率83.47%，Debug195項全過、80.55%。只編譯確認PresentRecord仍被QPay／ToolUtility／Trace拒絕，無實跑黃金。固定guard未完成，未驗收、未推送。",
         "2026-11-14 16:27 Asia/Taipei (UTC+08:00)：ddc205d4快照重跑完整只編譯矩陣，0 Generated／29 CompileFailed／0 BlockedByNetworkApi，九個入口診斷改變；逐列新表及原始SHA見research/legacy-compile-matrix.md，沒有舊入口實跑或自行改用實機。PresentRecord的D5-3仍待決定。",
-        "2026-11-14 17:57 Asia/Taipei (UTC+08:00)：f99bc2af完成D5-18盤點，確認PresentRecordLinePlugIn.cs:75寫死LINE收件識別；不得跑第一輪，替代基準待使用者決定。沒有保存識別值，未產生黃金、未操作組織。"
+        "2026-11-14 17:57 Asia/Taipei (UTC+08:00)：f99bc2af完成D5-18盤點，確認PresentRecordLinePlugIn.cs:75寫死LINE收件識別；不得跑第一輪，替代基準待使用者決定。沒有保存識別值，未產生黃金、未操作組織。",
+        "2026-11-14 17:59 Asia/Taipei (UTC+08:00)：59cd3bef完成PresentRecord D5-3前置盤點，記錄觸發、欄位、映像、例外與寫死收件識別風險；未建立替代黃金，待使用者決定。"
       ]
     }
   ],

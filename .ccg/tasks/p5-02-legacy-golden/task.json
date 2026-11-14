@@ -6,7 +6,7 @@
   "risk": "high",
   "domain": "tools",
   "currentPhase": "implementation",
-  "nextAction": "f99bc2af完成D5-18盤點：PresentRecordLinePlugIn.cs:75有寫死LINE收件識別，依硬界線不跑第一輪；待使用者決定整包D5-3。固定guard未完成，不推送、不進P5-03",
+  "nextAction": "59cd3bef完成PresentRecord D5-3前置盤點；待使用者決定整包legacy-live-only，核定前不建立替代expected、不驗收、不推送、不進P5-03",
   "createdAt": "2026-11-14T13:44:31+08:00",
   "branch": "1.0.0.11.Integration.P5.Worktree"
 }
