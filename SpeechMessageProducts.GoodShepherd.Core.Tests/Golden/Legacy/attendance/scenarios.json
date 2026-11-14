@@ -1,0 +1,88 @@
+[
+  {
+    "id": "attendance-boundary",
+    "legacy": {
+      "outcome": "published",
+      "date": "2024-02-29",
+      "churchLocalDate": true,
+      "rows": []
+    },
+    "expected": {
+      "outcome": "published",
+      "date": "2024-02-29",
+      "churchLocalDate": true,
+      "rows": []
+    },
+    "declaredDifferences": [
+      "Uses church-local date boundary."
+    ]
+  },
+  {
+    "id": "attendance-error",
+    "legacy": {
+      "outcome": "ignored",
+      "date": "2025-01-15",
+      "churchLocalDate": true,
+      "rows": [
+        {
+          "presentRecordId": "",
+          "displayName": "Synthetic Member",
+          "present": false
+        }
+      ]
+    },
+    "expected": {
+      "outcome": "rejected",
+      "date": "2025-01-15",
+      "churchLocalDate": true,
+      "rows": [
+        {
+          "presentRecordId": "",
+          "displayName": "Synthetic Member",
+          "present": false
+        }
+      ]
+    },
+    "declaredDifferences": [
+      "Missing stable ID fails closed."
+    ]
+  },
+  {
+    "id": "attendance-normal",
+    "legacy": {
+      "outcome": "published",
+      "date": "2025-01-15",
+      "churchLocalDate": true,
+      "rows": [
+        {
+          "presentRecordId": "present-001",
+          "displayName": "Synthetic Member",
+          "present": true
+        },
+        {
+          "presentRecordId": "present-002",
+          "displayName": "Synthetic Member",
+          "present": false
+        }
+      ]
+    },
+    "expected": {
+      "outcome": "published",
+      "date": "2025-01-15",
+      "churchLocalDate": true,
+      "rows": [
+        {
+          "presentRecordId": "present-001",
+          "displayName": "Synthetic Member",
+          "present": true
+        },
+        {
+          "presentRecordId": "present-002",
+          "displayName": "Synthetic Member",
+          "present": false
+        }
+      ]
+    },
+    "declaredDifferences": []
+  }
+]

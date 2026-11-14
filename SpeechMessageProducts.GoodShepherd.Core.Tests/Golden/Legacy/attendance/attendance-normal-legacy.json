@@ -1,0 +1,17 @@
+{
+  "outcome": "published",
+  "date": "2025-01-15",
+  "churchLocalDate": true,
+  "rows": [
+    {
+      "presentRecordId": "present-001",
+      "displayName": "Synthetic Member",
+      "present": true
+    },
+    {
+      "presentRecordId": "present-002",
+      "displayName": "Synthetic Member",
+      "present": false
+    }
+  ]
+}

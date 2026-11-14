@@ -17,3 +17,6 @@ Gemini實際診斷403/503，Claude probe顯示5小時額度限制、12:40pm Asia
 已再次透過自癒入口要求最終外部複審，結果另追加；在結果取得前不宣稱雙模型完成。完整固定guard及實機待主流程。
 
 最新外部複審20261114-123024-p5-update-rollback-final-reviewer亦無可用輸出：ok=false、dualModelComplete=false、degradedFallback=false、quotaBlocked=false，completedBackends空；未取得外部審查，依00§6.6保留本地自審與獨立複核。
+
+## 2026-11-14 12:54 Asia/Taipei (UTC+08:00) 完整守門及實機補記
+8ad4dccc八項固定guard全0，Release5524/5524；實機3→4→3、同step ID、不重啟、收尾verify0與trace1、task/job/trace0。主會話對照plan允許操作與完整安全摘要，未擴大部署範圍；外部審查仍未取得，前述限制不變。

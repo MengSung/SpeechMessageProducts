@@ -33,3 +33,6 @@ UTF-8 無 BOM、CRLF 與 final CRLF。新增 `.csproj` 同步加入 `.sln`，新
 Find-DuplicateCode、verify=0、所有資源清理與跨教會隔離證據；依 AGENTS.md 以
 `Start-CcgDualModelRun.ps1 -Role reviewer` 執行外部審查，Critical／High 必修。
 完成一頁階段回報、推送並核對遠端 SHA，然後停止。
+
+## 2026-11-14 12:54 Asia/Taipei (UTC+08:00) 模組部署標準（前置實測）
+goodshepherdback診斷版本1.0.0.3→1.0.0.4→1.0.0.3、step ID不變、三次smoke/verify=0；只改FileVersion本輪足夠，沒有重啟。後續每模組固定AssemblyVersion/名稱/簽章，遞增FileVersion後plan→審核→apply→verify=0，仍以實際沙箱追蹤確認；舊版只等一次兩分鐘再試，仍舊才依授權重啟。不得以資料庫DLL hash取代執行證據。模組驗收新步驟只用Shadow，最後舊新皆停用、trace還原且殘留0。

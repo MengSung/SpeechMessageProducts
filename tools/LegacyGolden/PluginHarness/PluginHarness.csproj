@@ -1,0 +1,27 @@
+<!--
+檔案整體說明
+
+目的與定位：定義 P5-02 舊程式黃金資料盤點工具的 net48 命令列專案；工具只讀操作者明確指定的工作樹外 Dynamics365Line 第一層舊專案，不是 D365、LINE 或任何網路執行主機。
+
+主要功能與流程：由本專案的 bounded reader 讀取有限大小的舊 C# 來源，先拒絕可辨識的連外 API 與秘密樣式，再以 Roslyn 在記憶體中編譯並將每個舊專案分類為 Generated、CompileFailed 或 BlockedByNetworkApi；完整候選完成後才以原子方式寫出 JSON，並附三筆合成 attendance 黃金資料。
+
+使用邊界與維護：不複製舊來源、不載入或執行舊組件、不建立 HTTP client、不保存 Session、credential 或跨呼叫快取。來源與輸出均有大小及路徑邊界；所有暫存檔由單次寫入呼叫擁有，flush／替換失敗會清理暫存檔且不發布部分結果。套件版本由方案中央管理；修改後須執行專案建置、方案清單、文件與位元組檢查。
+-->
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net48</TargetFramework>
+    <RootNamespace>LegacyGolden.PluginHarness</RootNamespace>
+    <AssemblyName>LegacyGolden.PluginHarness</AssemblyName>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <LangVersion>latest</LangVersion>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <SpeechMessageStrictCode>true</SpeechMessageStrictCode>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" />
+    <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" PrivateAssets="all" />
+    <PackageReference Include="Newtonsoft.Json" />
+  </ItemGroup>
+</Project>

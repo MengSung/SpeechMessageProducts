@@ -1,0 +1,12 @@
+{
+  "outcome": "rejected",
+  "date": "2025-01-15",
+  "churchLocalDate": true,
+  "rows": [
+    {
+      "presentRecordId": "",
+      "displayName": "Synthetic Member",
+      "present": false
+    }
+  ]
+}

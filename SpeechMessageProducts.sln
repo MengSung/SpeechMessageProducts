@@ -87,6 +87,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SpeechMessageProducts.LineW
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LegacyGolden", "tools\LegacyGolden\LegacyGolden.csproj", "{CD569242-708B-4524-9EA3-892A6CC8C6A0}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PluginHarness", "tools\LegacyGolden\PluginHarness\PluginHarness.csproj", "{68439B39-C470-4968-AD91-E145B7E480AE}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug_LearnCrm|Any CPU = Debug_LearnCrm|Any CPU
@@ -1306,6 +1308,36 @@ Global
 		{CD569242-708B-4524-9EA3-892A6CC8C6A0}.Test_Exchange_Service|x64.Build.0 = Debug|Any CPU
 		{CD569242-708B-4524-9EA3-892A6CC8C6A0}.Test_Exchange_Service|x86.ActiveCfg = Debug|Any CPU
 		{CD569242-708B-4524-9EA3-892A6CC8C6A0}.Test_Exchange_Service|x86.Build.0 = Debug|Any CPU
+		{68439B39-C470-4968-AD91-E145B7E480AE}.Debug_LearnCrm|Any CPU.ActiveCfg = Debug|Any CPU
+		{68439B39-C470-4968-AD91-E145B7E480AE}.Debug_LearnCrm|Any CPU.Build.0 = Debug|Any CPU
+		{68439B39-C470-4968-AD91-E145B7E480AE}.Debug_LearnCrm|x64.ActiveCfg = Debug|Any CPU
+		{68439B39-C470-4968-AD91-E145B7E480AE}.Debug_LearnCrm|x64.Build.0 = Debug|Any CPU
+		{68439B39-C470-4968-AD91-E145B7E480AE}.Debug_LearnCrm|x86.ActiveCfg = Debug|Any CPU
+		{68439B39-C470-4968-AD91-E145B7E480AE}.Debug_LearnCrm|x86.Build.0 = Debug|Any CPU
+		{68439B39-C470-4968-AD91-E145B7E480AE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{68439B39-C470-4968-AD91-E145B7E480AE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{68439B39-C470-4968-AD91-E145B7E480AE}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{68439B39-C470-4968-AD91-E145B7E480AE}.Debug|x64.Build.0 = Debug|Any CPU
+		{68439B39-C470-4968-AD91-E145B7E480AE}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{68439B39-C470-4968-AD91-E145B7E480AE}.Debug|x86.Build.0 = Debug|Any CPU
+		{68439B39-C470-4968-AD91-E145B7E480AE}.DebugOracleConnector|Any CPU.ActiveCfg = Debug|Any CPU
+		{68439B39-C470-4968-AD91-E145B7E480AE}.DebugOracleConnector|Any CPU.Build.0 = Debug|Any CPU
+		{68439B39-C470-4968-AD91-E145B7E480AE}.DebugOracleConnector|x64.ActiveCfg = Debug|Any CPU
+		{68439B39-C470-4968-AD91-E145B7E480AE}.DebugOracleConnector|x64.Build.0 = Debug|Any CPU
+		{68439B39-C470-4968-AD91-E145B7E480AE}.DebugOracleConnector|x86.ActiveCfg = Debug|Any CPU
+		{68439B39-C470-4968-AD91-E145B7E480AE}.DebugOracleConnector|x86.Build.0 = Debug|Any CPU
+		{68439B39-C470-4968-AD91-E145B7E480AE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{68439B39-C470-4968-AD91-E145B7E480AE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{68439B39-C470-4968-AD91-E145B7E480AE}.Release|x64.ActiveCfg = Release|Any CPU
+		{68439B39-C470-4968-AD91-E145B7E480AE}.Release|x64.Build.0 = Release|Any CPU
+		{68439B39-C470-4968-AD91-E145B7E480AE}.Release|x86.ActiveCfg = Release|Any CPU
+		{68439B39-C470-4968-AD91-E145B7E480AE}.Release|x86.Build.0 = Release|Any CPU
+		{68439B39-C470-4968-AD91-E145B7E480AE}.Test_Exchange_Service|Any CPU.ActiveCfg = Debug|Any CPU
+		{68439B39-C470-4968-AD91-E145B7E480AE}.Test_Exchange_Service|Any CPU.Build.0 = Debug|Any CPU
+		{68439B39-C470-4968-AD91-E145B7E480AE}.Test_Exchange_Service|x64.ActiveCfg = Debug|Any CPU
+		{68439B39-C470-4968-AD91-E145B7E480AE}.Test_Exchange_Service|x64.Build.0 = Debug|Any CPU
+		{68439B39-C470-4968-AD91-E145B7E480AE}.Test_Exchange_Service|x86.ActiveCfg = Debug|Any CPU
+		{68439B39-C470-4968-AD91-E145B7E480AE}.Test_Exchange_Service|x86.Build.0 = Debug|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -1315,6 +1347,7 @@ Global
 		{0BF3D032-03DC-4BB6-9C83-C474A787B4C2} = {DEE5DD87-39C1-BF34-B639-A387DCCF972B}
 		{178944F1-0B6B-4B0E-A27B-E41D7A9B4BE9} = {07C2787E-EAC7-C090-1BA3-A61EC2A24D84}
 		{CD569242-708B-4524-9EA3-892A6CC8C6A0} = {07C2787E-EAC7-C090-1BA3-A61EC2A24D84}
+		{68439B39-C470-4968-AD91-E145B7E480AE} = {07C2787E-EAC7-C090-1BA3-A61EC2A24D84}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {63751831-F5C0-4A65-93CB-5592C35D1EC8}

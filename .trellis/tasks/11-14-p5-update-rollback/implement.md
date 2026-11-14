@@ -21,3 +21,10 @@
 ## 2026-11-14 12:40 Asia/Taipei (UTC+08:00) 守門及前置盤點
 精確76b81e82完整guard：Release建置/5524 tests、Debug tracer7、編碼94檔、重複碼0通過；I18n因新增單一Smoke歧義診斷繁中常值停止。改成固定英文診斷（不改流程、不提高baseline），Smoke33/33及本機I18n再過；新提交須重跑完整guard，原失敗log保留。
 唯讀D34聯絡人查詢反覆回SDK faultCode=-2147220989（contact-query），條件NotNull arity確認0仍失敗；連線可建立並確定性Dispose。沒有輸出原始fault/LINE ID/秘密，沒有組織寫入或步驟啟用。停止重試此實機前置，待查明環境後才進換版；當前未宣稱D34有效。
+
+## 2026-11-14 12:48 Asia/Taipei (UTC+08:00) 前置查詢修正及完整守門
+先前 contact-query fault 是單次查詢工具設定 Count 後漏設 PageInfo.PageNumber=1；修正後成功，D34 現況為測試綁定1、其他0、完整讀取true，並非已證實的環境故障。唯讀核對19個自訂步驟全部停用、診斷原step ID不變、trace原值1；流程啟用定義0，6筆系統activation快照的XAML均無舊自訂組件參照。沒有組織寫入或步驟啟用。
+固定8ad4dccc完整8項守門exit0（12:42:13結束）；Release5524 tests、Debug tracer7、編碼／重複碼／I18n／文件／進度通過。接續goodshepherdback診斷3→4→3，不部署業務模組。
+
+## 2026-11-14 12:54 Asia/Taipei (UTC+08:00) 實機完成
+三次真沙箱版本3→4→3、同step ID、verify及smoke均0；全程不用重啟。finally停用、trace1、清單原bytes還原；捕捉3個task，task/job/本輪診斷trace殘留0。第一次腳本cli別名衝突已收尾後修正，不把它當正式實驗。詳細wp-reports/P5-update-rollback.md。

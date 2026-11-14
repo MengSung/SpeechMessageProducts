@@ -13,6 +13,9 @@
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Remove="PluginHarness/**/*.cs" />
+    <EmbeddedResource Remove="PluginHarness/**/*" />
+    <None Remove="PluginHarness/**/*" />
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp" />
     <InternalsVisibleTo Include="SpeechMessageProducts.LineWebhook.Tests" />
     <!-- cs 在多重副檔名可能被 SDK 認作捷克語；本範本固定內嵌主組件，不產生 satellite。 -->

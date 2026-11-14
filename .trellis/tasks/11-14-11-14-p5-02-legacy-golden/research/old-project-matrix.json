@@ -1,0 +1,224 @@
+[
+  {
+    "name": "AllotPlugIn",
+    "project": "AllotPlugIn.csproj",
+    "sourceFiles": 4,
+    "networkIndicator": false
+  },
+  {
+    "name": "AllotTlsWorkflow",
+    "project": "AllotTlsWorkflow.csproj",
+    "sourceFiles": 8,
+    "networkIndicator": true
+  },
+  {
+    "name": "AllotWorkflow",
+    "project": "AllotWorkflow.csproj",
+    "sourceFiles": 5,
+    "networkIndicator": true
+  },
+  {
+    "name": "AppointmentPlugIn",
+    "project": "AppointmentPlugIn.csproj",
+    "sourceFiles": 1,
+    "networkIndicator": false
+  },
+  {
+    "name": "AppointmentSigning",
+    "project": "AppointmentSigning.csproj",
+    "sourceFiles": 2,
+    "networkIndicator": false
+  },
+  {
+    "name": "AppointmentSigningLibrary",
+    "project": "AppointmentSigningLibrary.csproj",
+    "sourceFiles": 3,
+    "networkIndicator": false
+  },
+  {
+    "name": "AppointmentWorkflow",
+    "project": "AppointmentWorkflow.csproj",
+    "sourceFiles": 1,
+    "networkIndicator": false
+  },
+  {
+    "name": "CalculateQrCodeScanNumberWorkflow",
+    "project": "CalculateQrCodeScanNumberWorkflow.csproj",
+    "sourceFiles": 3,
+    "networkIndicator": false
+  },
+  {
+    "name": "DiscipleLessonsPluIn",
+    "project": "DiscipleLessonsPluIn.csproj",
+    "sourceFiles": 3,
+    "networkIndicator": false
+  },
+  {
+    "name": "Dynamics365Line",
+    "project": "Dynamics365Line.csproj",
+    "sourceFiles": 0,
+    "networkIndicator": false
+  },
+  {
+    "name": "EquipmentWorkflow",
+    "project": "EquipmentWorkflow.csproj",
+    "sourceFiles": 3,
+    "networkIndicator": false
+  },
+  {
+    "name": "ExampleWorkflow",
+    "project": "ExampleWorkflow.csproj",
+    "sourceFiles": 3,
+    "networkIndicator": false
+  },
+  {
+    "name": "FeePushLineWorkflow",
+    "project": "FeePushLineWorkflow.csproj",
+    "sourceFiles": 3,
+    "networkIndicator": false
+  },
+  {
+    "name": "HappyBirthdayWorkflow",
+    "project": "HappyBirthdayWorkflow.csproj",
+    "sourceFiles": 5,
+    "networkIndicator": false
+  },
+  {
+    "name": "Line.Messaging",
+    "project": "Line.Messaging.csproj",
+    "sourceFiles": 135,
+    "networkIndicator": true
+  },
+  {
+    "name": "LineMessagePlugIn",
+    "project": "LineMessagePlugIn.csproj",
+    "sourceFiles": 27,
+    "networkIndicator": false
+  },
+  {
+    "name": "LineNotifyLibrary",
+    "project": "Line.NotifyBot.csproj",
+    "sourceFiles": 13,
+    "networkIndicator": true
+  },
+  {
+    "name": "LineUtility",
+    "project": "LineUtility.csproj",
+    "sourceFiles": 4,
+    "networkIndicator": true
+  },
+  {
+    "name": "NewPersonCareWorkflow",
+    "project": "NewPersonCareWorkflow.csproj",
+    "sourceFiles": 5,
+    "networkIndicator": false
+  },
+  {
+    "name": "NewPersonCareWorkflow-ForDebug",
+    "project": "NewPersonCareWorkflow-ForDebug.csproj",
+    "sourceFiles": 8,
+    "networkIndicator": false
+  },
+  {
+    "name": "PersonalQrCodeWorkflow",
+    "project": "PersonalQrCodeWorkflow.csproj",
+    "sourceFiles": 3,
+    "networkIndicator": false
+  },
+  {
+    "name": "PresentRecordLinePlugIn",
+    "project": "PresentRecordLinePlugIn.csproj",
+    "sourceFiles": 3,
+    "networkIndicator": false
+  },
+  {
+    "name": "QrCodeWorkflow",
+    "project": "QrCodeWorkflow.csproj",
+    "sourceFiles": 4,
+    "networkIndicator": true
+  },
+  {
+    "name": "RecursiveWorkflow",
+    "project": "RecursiveWorkflow.csproj",
+    "sourceFiles": 4,
+    "networkIndicator": false
+  },
+  {
+    "name": "StorLessonSigningLibrary",
+    "project": "StorLessonSigningLibrary.csproj",
+    "sourceFiles": 5,
+    "networkIndicator": false
+  },
+  {
+    "name": "StorLessonSigningWorkflow",
+    "project": "StorLessonSigningWorkflow.csproj",
+    "sourceFiles": 2,
+    "networkIndicator": false
+  },
+  {
+    "name": "StorLessonSignningPlugIn",
+    "project": "StorLessonSignningPlugIn.csproj",
+    "sourceFiles": 2,
+    "networkIndicator": false
+  },
+  {
+    "name": "SundayQrCodeWorkflow",
+    "project": "SundayQrCodeWorkflow.csproj",
+    "sourceFiles": 3,
+    "networkIndicator": false
+  },
+  {
+    "name": "TemplatePlugIn",
+    "project": "TemplatePlugIn.csproj",
+    "sourceFiles": 3,
+    "networkIndicator": false
+  },
+  {
+    "name": "ToolUtility",
+    "project": "ToolUtility.csproj",
+    "sourceFiles": 6,
+    "networkIndicator": true
+  },
+  {
+    "name": "Trace",
+    "project": "Trace.csproj",
+    "sourceFiles": 3,
+    "networkIndicator": false
+  },
+  {
+    "name": "TwoWingsPlugIn",
+    "project": "TwoWingsPlugIn.csproj",
+    "sourceFiles": 3,
+    "networkIndicator": false
+  },
+  {
+    "name": "WeeklyReportLinePlugIn",
+    "project": "WeeklyReportLinePlugIn.csproj",
+    "sourceFiles": 3,
+    "networkIndicator": false
+  },
+  {
+    "name": "WeeklyReportPlugIn",
+    "project": "WeeklyReportPlugIn.csproj",
+    "sourceFiles": 3,
+    "networkIndicator": false
+  },
+  {
+    "name": "WeeklyReportWorkflow",
+    "project": "WeeklyReportWorkflow.csproj",
+    "sourceFiles": 5,
+    "networkIndicator": false
+  },
+  {
+    "name": "WorkflowTemplate",
+    "project": "WorkflowTemplate.csproj",
+    "sourceFiles": 1,
+    "networkIndicator": false
+  },
+  {
+    "name": "YangMeillcStorLessonsPlugIn",
+    "project": "YangMeillcStorLessonsPlugIn.csproj",
+    "sourceFiles": 3,
+    "networkIndicator": false
+  }
+]
