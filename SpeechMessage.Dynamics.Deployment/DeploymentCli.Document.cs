@@ -64,7 +64,7 @@ internal static partial class DeploymentCli
             {
                 var plan = ReadDocumentFile<DocumentDeploymentPlan>(command.InputPath!, organizationRoot);
                 if (plan.Organization != command.Organization)
-                    throw new InvalidDataException("計畫組織與命令不一致。");
+                    throw new InvalidDataException("Plan organization does not match the command.");
                 // 備份索引先落盤；即使核心 Apply 拋出例外，也能從固定 backup.json 找回整份前況。
                 var backup = engine.Export(document, images, command.Organization);
                 WriteDocumentFile(operationRoot, "backup.json", JsonSerializer.Serialize(backup, DocumentJson));
@@ -86,16 +86,16 @@ internal static partial class DeploymentCli
                 var backup = ReadDocumentFile<DocumentDeploymentBackup>(command.InputPath!, organizationRoot);
                 if (backup.Organization != command.Organization || backup.Assemblies is null ||
                     backup.Assemblies.Count is < 1 or > 2)
-                    throw new InvalidDataException("備份索引組織或組件無效。");
+                    throw new InvalidDataException("Backup index organization or assembly is invalid.");
                 foreach (var item in backup.Assemblies)
                     if (item is null || !IsDocumentPath(organizationRoot, item.Path))
-                        throw new InvalidDataException("備份路徑超出組織邊界。");
+                        throw new InvalidDataException("Backup path is outside the organization boundary.");
                 engine.Rollback(backup, document, images);
                 output.WriteLine("Rollback completed.");
                 return 0;
             }
             default:
-                throw new InvalidDataException("完整文件命令無效。");
+                throw new InvalidDataException("Deployment document command is invalid.");
         }
     }
 
@@ -105,16 +105,16 @@ internal static partial class DeploymentCli
     /// </summary>
     private static T ReadDocumentFile<T>(string path, string organizationRoot) where T : class
     {
-        if (!IsDocumentPath(organizationRoot, path)) throw new InvalidDataException("文件路徑無效。");
+        if (!IsDocumentPath(organizationRoot, path)) throw new InvalidDataException("Document path is invalid.");
         using var stream = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read);
-        if (stream.Length is <= 0 or > 4 * 1024 * 1024) throw new InvalidDataException("文件超出大小上限。");
+        if (stream.Length is <= 0 or > 4 * 1024 * 1024) throw new InvalidDataException("Document exceeds the size limit.");
         try
         {
             using var document = JsonDocument.Parse(stream, new JsonDocumentOptions { MaxDepth = 32 });
             Schema.SchemaFiles.RejectDuplicateProperties(document.RootElement);
-            return document.RootElement.Deserialize<T>(DocumentJson) ?? throw new InvalidDataException("文件格式無效。");
+            return document.RootElement.Deserialize<T>(DocumentJson) ?? throw new InvalidDataException("Document format is invalid.");
         }
-        catch (JsonException) { throw new InvalidDataException("文件格式無效。"); }
+        catch (JsonException) { throw new InvalidDataException("Document format is invalid."); }
     }
 
     /// <summary>
@@ -133,11 +133,11 @@ internal static partial class DeploymentCli
     private static void WriteDocumentFile(string directory, string name, string content)
     {
         if (name is not ("plan.json" or "plan.md" or "backup.json"))
-            throw new InvalidDataException("文件名稱無效。");
+            throw new InvalidDataException("Document name is invalid.");
         var text = content.Replace("\r\n", "\n", StringComparison.Ordinal).TrimEnd('\n')
             .Replace("\n", "\r\n", StringComparison.Ordinal) + "\r\n";
         var bytes = Encoding.UTF8.GetBytes(text);
-        if (bytes.Length > 4 * 1024 * 1024) throw new InvalidDataException("輸出文件超出大小上限。");
+        if (bytes.Length > 4 * 1024 * 1024) throw new InvalidDataException("Output document exceeds the size limit.");
         var path = Path.Combine(directory, name);
         var temporary = path + "." + Guid.NewGuid().ToString("N") + ".tmp";
         try

@@ -262,7 +262,7 @@ internal sealed partial class DeploymentEngine
         ValidateOrganization(organization);
         ArgumentException.ThrowIfNullOrWhiteSpace(path);
         if (assemblyName is not ("SpeechMessage.Dynamics.Plugins" or "SpeechMessage.Dynamics.Workflows"))
-            throw new InvalidDataException("受管理組件名稱無效。");
+            throw new InvalidDataException("Managed assembly name is invalid.");
         var export = CaptureExport(organization, assemblyName);
         WriteJsonAtomically(path, export);
         return Path.GetFullPath(path);
@@ -287,13 +287,13 @@ internal sealed partial class DeploymentEngine
             (export.Assembly is not null && export.Assembly.Name != manifest.AssemblyName) || export.Images is null ||
             export.Images.Any(image => image.Id == Guid.Empty || !export.Steps.Any(step => step.Id == image.StepId)) ||
             export.Images.Select(image => image.Id).Distinct().Count() != export.Images.Count)
-            throw new InvalidDataException("Export 與目標組件或映像父身份不符。");
+            throw new InvalidDataException("Export does not match the target assembly or image parent.");
         // 所有原步驟必須存在且仍屬原型別；缺失時在組件更新前拒絕，避免部分回復。
         foreach (var previous in export.Steps)
         {
-            var current = FindStepById(previous.Id) ?? throw new InvalidDataException("原步驟已不存在。");
+            var current = FindStepById(previous.Id) ?? throw new InvalidDataException("Original step no longer exists.");
             if (!export.Types.Any(type => type.Id == ReadReferenceId(current, "eventhandler")))
-                throw new InvalidDataException("原步驟型別身份已改變。");
+                throw new InvalidDataException("Original step type identity has changed.");
         }
 
         var currentAssembly = FindAssembly(manifest.AssemblyName);
@@ -317,7 +317,7 @@ internal sealed partial class DeploymentEngine
             service.Update(ToAssemblyEntity(export.Assembly, currentAssembly.Id));
         }
 
-        var restoredAssembly = FindAssembly(manifest.AssemblyName) ?? throw new InvalidDataException("回復組件不存在。");
+        var restoredAssembly = FindAssembly(manifest.AssemblyName) ?? throw new InvalidDataException("Rollback assembly does not exist.");
         if (export.SchemaVersion == 2) RestoreRegistrationMetadata(export, restoredAssembly.Id);
 
         foreach (var previousStep in export.Steps)
@@ -1271,7 +1271,7 @@ internal sealed partial class DeploymentEngine
                 .SequenceEqual(image.PluginTypes.OrderBy(name => name, StringComparer.Ordinal), StringComparer.Ordinal) ||
             !manifest.Activities.Select(activity => activity.Type).OrderBy(name => name, StringComparer.Ordinal)
                 .SequenceEqual(image.ActivityTypes.OrderBy(name => name, StringComparer.Ordinal), StringComparer.Ordinal))
-            throw new InvalidDataException("註冊清單與組件型別身份不符。");
+            throw new InvalidDataException("Manifest and assembly type identities do not match.");
     }
 
     /// <summary>
@@ -1439,7 +1439,7 @@ internal sealed partial class DeploymentEngine
         "PreValidation" => 10,
         "PreOperation" => 20,
         "PostOperation" => 40,
-        _ => throw new InvalidDataException("Plugin 註冊階段無效。")
+        _ => throw new InvalidDataException("Plugin registration stage is invalid.")
     };
 
     /// <summary>只轉換同步及非同步核定模式；禁止默認為其他執行模式。</summary>
@@ -1447,7 +1447,7 @@ internal sealed partial class DeploymentEngine
     {
         "Synchronous" => 0,
         "Asynchronous" => 1,
-        _ => throw new InvalidDataException("Plugin 執行模式無效。")
+        _ => throw new InvalidDataException("Plugin execution mode is invalid.")
     };
 
     /// <summary>只有該組織明確 true 才啟用；缺少設定一律停用以避免意外推播。</summary>

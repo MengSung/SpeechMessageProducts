@@ -111,7 +111,7 @@ internal static class AssemblyCatalog
         }).Select(handle => GetFullTypeName(reader, handle)).OrderBy(name => name, StringComparer.Ordinal).ToArray();
         var declaredActivities = manifest.Activities.Select(activity => activity.Type).OrderBy(name => name, StringComparer.Ordinal).ToArray();
         if (!declaredActivities.SequenceEqual(activities, StringComparer.Ordinal))
-            throw new InvalidDataException("註冊清單與 DLL 的活動型別集合不一致。");
+            throw new InvalidDataException("Manifest and DLL activity types do not match.");
 
         var publicKeyToken = ReadPublicKeyToken(reader, assembly);
         var sha256 = Convert.ToHexString(SHA256.HashData(content));
@@ -220,7 +220,7 @@ internal static class AssemblyCatalog
         if (GetTypeName(reader, baseType) == "System.Activities.CodeActivity") return true;
         if (baseType.Kind != HandleKind.TypeDefinition) return false;
         var handle = (TypeDefinitionHandle)baseType;
-        if (visited.Count >= 256 || !visited.Add(handle)) throw new InvalidDataException("活動型別基底鏈無效。");
+        if (visited.Count >= 256 || !visited.Add(handle)) throw new InvalidDataException("Activity type inheritance chain is invalid.");
         return InheritsActivity(reader, reader.GetTypeDefinition(handle).BaseType, visited);
     }
 

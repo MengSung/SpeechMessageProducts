@@ -391,7 +391,7 @@ internal sealed class DocumentDeploymentEngine
     }
 
     /// <summary>固定錯誤不包含來源 JSON、檔案內容、SDK 回應或秘密。</summary>
-    private static InvalidDataException InvalidDocument() => new("完整部署文件、來源、計畫或備份驗證失敗。");
+    private static InvalidDataException InvalidDocument() => new("Deployment document, source, plan or backup validation failed.");
 
     /// <summary>本操作獨占的已驗來源，只在同步方法堆疊內保留，不跨命令共用。</summary>
     private sealed record Source(RegistrationDocument Document, AssemblyImage[] Images, string Hash);

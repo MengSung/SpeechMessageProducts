@@ -38,12 +38,12 @@ internal sealed partial class DeploymentEngine
                 EntityFilters = EntityFilters.Attributes, RetrieveAsIfPublished = true }) as RetrieveEntityResponse;
             var metadata = response?.EntityMetadata;
             if (metadata is null || metadata.LogicalName != group.Key || metadata.Attributes is null || metadata.Attributes.Length > 4096)
-                throw new InvalidDataException("實體欄位 metadata 不完整。");
+                throw new InvalidDataException("Entity attribute metadata is incomplete.");
             var names = new HashSet<string>(StringComparer.Ordinal);
             foreach (var attribute in metadata.Attributes)
                 if (attribute is null || string.IsNullOrWhiteSpace(attribute.LogicalName) || !names.Add(attribute.LogicalName))
-                    throw new InvalidDataException("實體欄位 metadata 身分不唯一。");
-            if (!required.IsSubsetOf(names)) throw new InvalidDataException("篩選或映像欄位不存在於實體 metadata。");
+                    throw new InvalidDataException("Entity attribute metadata identities are not unique.");
+            if (!required.IsSubsetOf(names)) throw new InvalidDataException("Filter or image attributes are missing from entity metadata.");
         }
     }
 
@@ -54,7 +54,7 @@ internal sealed partial class DeploymentEngine
         foreach (var previous in export.Types)
         {
             var current = types.SingleOrDefault(type => type.Id == previous.Id)
-                ?? throw new InvalidDataException("活動回復需要原型別 ID。");
+                ?? throw new InvalidDataException("Activity rollback requires the original type ID.");
             if (current.GetAttributeValue<string>("friendlyname") != previous.FriendlyName ||
                 current.GetAttributeValue<string>("workflowactivitygroupname") != previous.ActivityGroup)
                 service.Update(new Entity(TypeLogicalName, current.Id) { ["friendlyname"] = previous.FriendlyName,
@@ -87,7 +87,7 @@ internal sealed partial class DeploymentEngine
     private void WriteActivity(string typeName, RegistrationManifest manifest)
     {
         var activity = manifest.Activities.Single(item => item.Type == typeName);
-        var assembly = FindAssembly(manifest.AssemblyName) ?? throw new InvalidDataException("活動所屬組件不存在。");
+        var assembly = FindAssembly(manifest.AssemblyName) ?? throw new InvalidDataException("Activity assembly does not exist.");
         var existing = ReadPluginTypes(assembly.Id).SingleOrDefault(type => type.GetAttributeValue<string>("typename") == typeName);
         var row = new Entity(TypeLogicalName, existing?.Id ?? Guid.Empty)
         {
@@ -111,12 +111,12 @@ internal sealed partial class DeploymentEngine
         {
             ColumnSet = new ColumnSet("name", "entityalias", "imagetype", "attributes", "messagepropertyname", "sdkmessageprocessingstepid"),
             Criteria = Equal("sdkmessageprocessingstepid", stepId)
-        }).Entities, "Plugin 映像");
+        }).Entities, "Plugin image");
         var names = new HashSet<string>(StringComparer.Ordinal);
         foreach (var row in rows)
             if (ReadReferenceId(row, "sdkmessageprocessingstepid") != stepId ||
                 string.IsNullOrWhiteSpace(row.GetAttributeValue<string>("name")) || !names.Add(row.GetAttributeValue<string>("name")))
-                throw new InvalidDataException("映像父步驟或名稱不唯一。");
+                throw new InvalidDataException("Image parent step or name is not unique.");
         return rows;
     }
 
@@ -138,12 +138,12 @@ internal sealed partial class DeploymentEngine
     /// <summary>依穩定步驟身份取得唯一資料庫列；不存在或衝突均在映像寫入前拒絕。</summary>
     private Entity RegisteredStep(RegistrationManifest manifest, StepRegistration registration)
     {
-        var assembly = FindAssembly(manifest.AssemblyName) ?? throw new InvalidDataException("組件不存在。");
+        var assembly = FindAssembly(manifest.AssemblyName) ?? throw new InvalidDataException("Assembly does not exist.");
         var type = ReadPluginTypes(assembly.Id).Single(row => row.GetAttributeValue<string>("typename") == registration.Type);
-        var message = FindMessage(registration.Message) ?? throw new InvalidDataException("訊息不存在。");
-        var filter = FindMessageFilter(message.Id, registration.Entity) ?? throw new InvalidDataException("篩選器不存在。");
+        var message = FindMessage(registration.Message) ?? throw new InvalidDataException("Message does not exist.");
+        var filter = FindMessageFilter(message.Id, registration.Entity) ?? throw new InvalidDataException("Message filter does not exist.");
         return FindStep(type.Id, message.Id, filter.Id, ReadStage(registration.Stage), ReadMode(registration.Mode), registration.Rank)
-            ?? throw new InvalidDataException("步驟不存在。");
+            ?? throw new InvalidDataException("Step does not exist.");
     }
 
     /// <summary>只同步已核准步驟下的具名映像，更新保留 ID；不刪除其他步驟或組件的資料。</summary>
@@ -176,7 +176,7 @@ internal sealed partial class DeploymentEngine
 
     /// <summary>把映像 metadata 轉成安全純值快照；不持有 SDK 參照或實體欄位值。</summary>
     private static PluginImageExport ToImageExport(Entity row) => new(row.Id,
-        ReadReferenceId(row, "sdkmessageprocessingstepid") ?? throw new InvalidDataException("映像缺少父步驟。"),
+        ReadReferenceId(row, "sdkmessageprocessingstepid") ?? throw new InvalidDataException("Image parent step is missing."),
         row.GetAttributeValue<string>("name") ?? "", row.GetAttributeValue<string>("entityalias") ?? "", ReadOption(row, "imagetype"),
         row.GetAttributeValue<string>("attributes") ?? "", row.GetAttributeValue<string>("messagepropertyname") ?? "");
 }

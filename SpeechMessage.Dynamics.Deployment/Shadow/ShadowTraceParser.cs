@@ -166,5 +166,5 @@ internal static class ShadowTraceParser
         !string.IsNullOrWhiteSpace(property.GetString()) ? property.GetString()! : throw InvalidTrace();
 
     /// <summary>固定錯誤不攜帶輸入、秘密或內層 JSON 例外。</summary>
-    private static InvalidDataException InvalidTrace() => new("影子記錄格式、長度或完整性不符。");
+    private static InvalidDataException InvalidTrace() => new("Shadow trace format, length or completeness is invalid.");
 }

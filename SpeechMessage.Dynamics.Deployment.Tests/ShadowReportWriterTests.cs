@@ -75,8 +75,8 @@ public sealed class ShadowReportWriterTests
         Assert.Contains("BetweenRounds: Comparable=true; Differences=0", text, StringComparison.Ordinal);
         Assert.Contains("LegacyToExpected: Comparable=true; Differences=0", text, StringComparison.Ordinal);
         Assert.Contains("ShadowToExpected: Comparable=true; Differences=0", text, StringComparison.Ordinal);
-        Assert.Contains("runner 成功返回", text, StringComparison.Ordinal);
-        Assert.Contains("不代表實機驗收", text, StringComparison.Ordinal);
+        Assert.Contains("successful runner contract", text, StringComparison.Ordinal);
+        Assert.Contains("not live acceptance", text, StringComparison.Ordinal);
     }
 
     /// <summary>只要任一要求的比較不可比或有差異，報告仍可保存但 Passed 必為 false。</summary>

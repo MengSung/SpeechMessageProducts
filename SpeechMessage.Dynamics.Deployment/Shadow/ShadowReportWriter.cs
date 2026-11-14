@@ -78,10 +78,10 @@ internal static class ShadowReportWriter
         var text = new StringBuilder("# Shadow report\r\n\r\n");
         text.Append("module=").Append(module).Append("; basis=").Append(basis).Append("\r\n");
         if (legacyOnly)
-            text.Append("scope=legacy-round-only\r\n本報告只驗舊輪欄位；未執行新輪，不代表完整影子比較或 LINE 推播內容／送達通過。\r\n");
-        text.Append("殘留核對與停用／還原由 runner 成功返回契約證明；本 writer 不執行遠端查詢，離線報告不代表實機驗收。\r\n");
+            text.Append("scope=legacy-round-only\r\nOnly legacy-round fields were checked. No new round executed; full shadow comparison and LINE content/delivery are not verified.\r\n");
+        text.Append("Cleanup and registration restoration follow the successful runner contract. This writer performs no remote queries; an offline report is not live acceptance.\r\n");
         if (basis is "new" or "reading" or "legacy-golden")
-            text.Append("本基準未執行實機舊輪；兩輪互比及舊輪對期望均不可比較。\r\n");
+            text.Append("This basis did not execute a live legacy round. Between-round and legacy-to-expected comparisons are unavailable.\r\n");
         var indices = new HashSet<int>();
         var passed = true;
         foreach (var item in results)
@@ -172,7 +172,7 @@ internal static class ShadowReportWriter
         }
         if (item.ExternalChanges.Count > 16) throw Invalid();
         text.Append(item.ExternalChanges.Count == 0 ? "ExternalInventory=none-declared\r\n" :
-            "ExternalInventory=reviewed-scope\r\n受審範圍於測試期間的既有列版本變動；並行寫入可能影響筆數，未盤點實體及新建列不在此摘要。\r\n");
+            "ExternalInventory=reviewed-scope\r\nExisting-row versions changed within the reviewed scope during the test window. Concurrent writers may affect counts; undeclared entities and new rows are outside this summary.\r\n");
         var entities = new HashSet<string>(StringComparer.Ordinal);
         foreach (var change in item.ExternalChanges)
         {
