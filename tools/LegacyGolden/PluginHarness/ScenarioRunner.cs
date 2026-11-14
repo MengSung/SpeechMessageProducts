@@ -15,6 +15,9 @@ Dispose 假服務並清除 scratch。
 與確定卸載邊界，不是對敵意 native code 的作業系統沙箱；編譯器須先拒絕 unsafe、P/Invoke、
 dynamic、反射與所有未攔截外部 API。驗證以合成 Plugin／Activity 的寫入、訊息、輸出、
 逾時、隔離與失敗清理測試為準。
+queryResults 依一開始為一的 RetrieveMultiple 次序指定 seed alias 陣列；最多 256 次覆蓋、
+總共 4096 答案列，保留明列順序及不同 ID 的同名記錄，重複 ID 與未知 alias 在入口執行前拒絕。
+答案與呼叫序號只屬目前案例，假服務再次複製後由 using owner 清除；未覆蓋查詢仍走嚴格查詢引擎。
 */
 using System;
 using System.Activities;
@@ -83,7 +86,8 @@ public static class ScenarioRunner
         JObject document;
         try
         {
-            document = JObject.Parse(scenariosJson);
+            document = JObject.Parse(scenariosJson,
+                new JsonLoadSettings { DuplicatePropertyNameHandling = DuplicatePropertyNameHandling.Error });
         }
         catch (JsonException)
         {
@@ -291,7 +295,7 @@ public sealed class ScenarioDomainWorker : MarshalByRefObject
         var scenario = JObject.Parse(scenarioJson);
         var trigger = scenario["trigger"] as JObject ?? throw new InvalidDataException("Scenario trigger missing.");
         var aliases = new AliasMap(scenario);
-        using var service = new FakeOrganizationService(aliases.ReadSeed());
+        using var service = new FakeOrganizationService(aliases.ReadSeed(), aliases.ReadQueryResults(scenario));
         using var capture = new ExecutionCapture(scratch, aliases.RecipientAlias);
         WebRequest.DefaultWebProxy = new WebProxy(new Uri("http://127.0.0.1:9"));
 
@@ -673,6 +677,46 @@ public sealed class ScenarioDomainWorker : MarshalByRefObject
 
         /// <summary>回傳 seed 複本，FakeOrganizationService 由本次案例擁有並再做深層複製。</summary>
         internal Entity[] ReadSeed() => seeds.Select(item => FakeOrganizationService.CloneEntity(item.Entity, 0)).ToArray();
+
+        /// <summary>
+        /// 將明列的查詢次序與 seed alias 投影成案例私有答案；序號只接受 1 至 256 的標準十進位字串，
+        /// 每一筆答案保留順序及不同 ID 的同名記錄，重複 alias／未知 ID 拒絕，不能以去重掩蓋錯誤。
+        /// 總答案列最多 4096；返回值由目前假服務複製及 Dispose，不建立全域查詢 fallback 或跨案例快取。
+        /// </summary>
+        internal Dictionary<int, EntityCollection> ReadQueryResults(JObject scenario)
+        {
+            var results = new Dictionary<int, EntityCollection>();
+            var property = scenario.Property("queryResults", StringComparison.Ordinal);
+            if (property == null) return results;
+            if (property.Value is not JObject answers || answers.Count > 256)
+                throw new InvalidDataException("Scenario query results invalid.");
+
+            var byAlias = seeds.ToDictionary(item => item.Alias, item => item.Entity, StringComparer.Ordinal);
+            var totalRows = 0;
+            foreach (var answer in answers.Properties())
+            {
+                if (!int.TryParse(answer.Name, NumberStyles.None, CultureInfo.InvariantCulture, out var ordinal)
+                    || ordinal < 1 || ordinal > 256
+                    || answer.Name != ordinal.ToString(CultureInfo.InvariantCulture)
+                    || answer.Value is not JArray aliases || aliases.Count > MaximumSeedCount - totalRows)
+                    throw new InvalidDataException("Scenario query result capacity or shape invalid.");
+
+                totalRows += aliases.Count;
+                var seen = new HashSet<string>(StringComparer.Ordinal);
+                var rows = new EntityCollection();
+                foreach (var token in aliases)
+                {
+                    if (token.Type != JTokenType.String || token.Value<string>() is not string alias
+                        || !seen.Add(alias) || !byAlias.TryGetValue(alias, out var entity))
+                        throw new InvalidDataException("Scenario query result identity invalid.");
+                    rows.Entities.Add(FakeOrganizationService.CloneEntity(entity, 0));
+                }
+
+                results.Add(ordinal, rows);
+            }
+
+            return results;
+        }
 
         /// <summary>解析情境 alias；不得因顯示名稱相同或缺漏而生成新識別。</summary>
         internal Guid IdFor(string alias) => idsByAlias.TryGetValue(alias, out var id)
