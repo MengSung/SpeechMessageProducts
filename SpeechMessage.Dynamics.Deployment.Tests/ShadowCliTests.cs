@@ -140,6 +140,41 @@ public sealed class ShadowCliTests
         Assert.DoesNotContain(f.Core.Service.Rows, row => row.LogicalName == "task");
     }
 
+    /// <summary>不完整或身分錯配的子列回應不得讓 owner 刪父後丟失查詢範圍；解除故障可重試清乾淨。</summary>
+    /// <param name="fault">模擬 SDK 分頁、錯父 lookup、重複 ID 或子列刪除失敗。</param>
+    [Theory]
+    [InlineData("page")]
+    [InlineData("wrong-parent")]
+    [InlineData("duplicate-id")]
+    [InlineData("delete-child")]
+    public void ShadowSdk_RelatedCleanupFaultPreservesParentForRetry(string fault)
+    {
+        using var f = new CliFixture();
+        f.Service.RealChildren = 1;
+        var step = f.Core.Service.Rows.Single(row => row.LogicalName == "sdkmessageprocessingstep").Id;
+        var definition = new ShadowScenarioDefinition(ShadowTraceParser.Parse("SMV-SHADOW|1|{\"end\":true,\"count\":0}"),
+            [new("region", "child-1", ["score"]) { Related = new("parentid", "task-1") }], new HashSet<string>());
+        var source = new ShadowSdkScenario([new("task-1", new Entity("task") { ["subject"] = "synthetic" })],
+            new("Create", "task-1", new Entity("task")), [step], [step], [new StepRegistration().Type], [], false)
+        {
+            PrimaryIdAttributes = new Dictionary<string, string> { ["task"] = "activityid", ["region"] = "regionid" }
+        };
+        var runtime = new ShadowSdkRuntime(f.Service, f.Service.Organization, f.Service.Church, f.Service.Contact,
+            new Dictionary<ShadowScenarioDefinition, ShadowSdkScenario> { [definition] = source }, () => { }, TimeProvider.System);
+        using var round = runtime.CreateRound(definition, true);
+        round.Seed(CancellationToken.None);
+        round.Trigger(CancellationToken.None);
+        f.Service.RelatedReadFault = fault;
+        Assert.Throws<AggregateException>(round.DeleteOwnedRecords);
+        Assert.Single(f.Core.Service.Rows.Where(row => row.LogicalName == "task"));
+        Assert.Single(f.Core.Service.Rows.Where(row => row.LogicalName == "region"));
+        Assert.Throws<InvalidDataException>(round.VerifyNoRemainingRecords);
+        f.Service.RelatedReadFault = "";
+        round.DeleteOwnedRecords();
+        round.VerifyNoRemainingRecords();
+        Assert.DoesNotContain(f.Core.Service.Rows, row => row.LogicalName is "task" or "region");
+    }
+
     /// <summary>new 基準只執行新輪；兩次同日執行保留各自證據，且每次確定還原與清理。</summary>
     [Fact]
     public void ShadowCli_NewRoundRunsThroughSdkAndPreservesSameDayEvidence()
@@ -433,6 +468,7 @@ public sealed class ShadowCliTests
         internal bool DuplicateRelatedIntent;
         internal bool DeleteRelatedIntent;
         internal int RealChildren;
+        internal string RelatedReadFault = "";
         internal Guid RequestId;
         internal int AsyncQueries;
         private Guid target;
@@ -498,12 +534,28 @@ public sealed class ShadowCliTests
         /// <summary>所有設定及停用寫入皆走真正引擎與通用替身。</summary>
         public void Update(Entity entity) => core.Service.Update(entity);
         /// <summary>清理只接受正式 runtime 提供的精確身份。</summary>
-        public void Delete(string entityName, Guid id) => core.Service.Delete(entityName, id);
+        public void Delete(string entityName, Guid id)
+        {
+            if (entityName == "region" && RelatedReadFault == "delete-child") throw new InvalidOperationException("Injected cleanup fault");
+            core.Service.Delete(entityName, id);
+        }
 
         /// <summary>精確驗非同步 step、target、correlation 及型別；不以任何查詢都回成功。</summary>
         public EntityCollection RetrieveMultiple(QueryBase query)
         {
             var expression = Assert.IsType<QueryExpression>(query);
+            if (expression.EntityName == "region" && expression.Criteria.Conditions.Single().AttributeName == "parentid")
+            {
+                Assert.Equal(65, expression.TopCount);
+                Assert.False(expression.ColumnSet.AllColumns);
+                var related = core.Service.RetrieveMultiple(query);
+                if (RelatedReadFault == "page") related.MoreRecords = true;
+                if (RelatedReadFault == "wrong-parent" && related.Entities.Count != 0)
+                    related.Entities[0]["parentid"] = new EntityReference("task", Guid.NewGuid());
+                if (RelatedReadFault == "duplicate-id" && related.Entities.Count != 0)
+                    related.Entities.Add(related.Entities[0]);
+                return related;
+            }
             if (expression.EntityName is not ("asyncoperation" or "plugintracelog")) return core.Service.RetrieveMultiple(query);
             Assert.Equal(2, expression.TopCount);
             Assert.Contains(expression.Criteria.Conditions, condition => condition.AttributeName == "createdon" && condition.Operator == ConditionOperator.OnOrAfter);

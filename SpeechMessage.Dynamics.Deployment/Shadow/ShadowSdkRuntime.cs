@@ -474,7 +474,7 @@ internal sealed class ShadowSdkRuntime : IShadowScenarioRuntime
 
         /// <summary>
         /// 即使 trigger 回應失敗也重新查回本輪父列的子列，先刪子再逆序刪 seed。
-        /// 查詢不完整時不刪父列，保留後續重試的範圍；每筆已知子列仍獨立嘗試。
+        /// 查詢不完整或任一子列刪除失敗時不刪父列，保留重試範圍；已知子列仍逐筆嘗試。
         /// </summary>
         public void DeleteOwnedRecords()
         {
@@ -490,14 +490,20 @@ internal sealed class ShadowSdkRuntime : IShadowScenarioRuntime
             var deleteOrder = createOrder.Where(key => !seeds.Contains(key)).Reverse()
                 .Concat(incompleteDiscovery ? Array.Empty<(string Entity, Guid Id)>() :
                     createOrder.Where(seeds.Contains).Reverse()).ToArray();
+            var childDeleteFailed = false;
             foreach (var key in deleteOrder)
             {
+                if (childDeleteFailed && seeds.Contains(key)) continue;
                 try
                 {
                     if (FindOwned(key.Entity, key.Id, new ColumnSet(false)) is not null)
                         runtime.service.Delete(key.Entity, key.Id);
                 }
-                catch (Exception failure) { failures.Add(failure); }
+                catch (Exception failure)
+                {
+                    if (!seeds.Contains(key)) childDeleteFailed = true;
+                    failures.Add(failure);
+                }
             }
             if (failures.Count != 0) throw new AggregateException("Shadow record cleanup failed.", failures);
         }
