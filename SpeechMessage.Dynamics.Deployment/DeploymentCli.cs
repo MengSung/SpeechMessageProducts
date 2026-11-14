@@ -8,7 +8,8 @@
  * 明確--schema或export-metadata轉交SchemaDeploymentCli，該路徑不需Plugin DLL。
  * export-legacy 以有界唯讀查詢匯出安全 metadata 並回報啟用筆數，不需要清單或 DLL；
  * 舊plan/apply/verify/export/rollback/smoke則載入固定registration manifest及必要Plugin PE，
- * 委派DeploymentEngine，保留原P0公開語法、trace/push設定佔位與安全驗證。
+ * 單組件委派DeploymentEngine；多組件由 partial 的文件路由完整交給DocumentDeploymentEngine，
+ * 使用組織共用備份根及已 flush 的固定名稱索引，保留原P0公開語法與設定佔位安全驗證。
  * verify有metadata差異回1，只有秘密佔位尚未比對時回3，不因零操作假稱秘密或推播已驗證。
  * smoke 將本次操作的 output.WriteLine 借給核心，只發布已驗證的唯一 PluginFileVersion 行；
  * 版本缺失或格式歧義回失敗，不輸出原始 trace，也不在靜態欄位保留版本或 writer。
@@ -39,7 +40,7 @@ namespace SpeechMessage.Dynamics.Deployment;
 /// 以固定命令表執行一次佈署操作。此 parser 不回顯參數值、不接受密碼或任意輸出路徑；
 /// 每個有效命令最多取得一個 OrganizationLease，並在同步或非同步結束時立即釋放。
 /// </summary>
-internal static class DeploymentCli
+internal static partial class DeploymentCli
 {
     private const string AllowedOrganization = "goodshepherdback";
     private const string OrganizationOption = "--org";
@@ -180,8 +181,13 @@ internal static class DeploymentCli
                 output.WriteLine("Module switch completed.");
                 return 0;
             }
-            var manifest = RegistrationManifestLoader.Load(repositoryRoot);
-            var assemblyPath = Path.Combine(repositoryRoot, "artifacts", "plugins", "SpeechMessage.Dynamics.Plugins.dll");
+            var registration = RegistrationManifestLoader.LoadDocument(repositoryRoot);
+            if (registration.Assemblies.Count > 1 && command.Name != "smoke")
+                return RunDocument(command, registration, repositoryRoot, organizationArtifactRoot,
+                    operationRoot, lease.Service, output, secretReader);
+            // smoke 的核心只處理固定診斷情境，不消費清單中的組件，也不讀 DLL。
+            var manifest = registration.Assemblies[0];
+            var assemblyPath = Path.Combine(repositoryRoot, "artifacts", "plugins", manifest.AssemblyName + ".dll");
             var engine = new DeploymentEngine(lease.Service, operationRoot, TimeProvider.System,
                 name => ResolveRequiredSecret(command.Organization, name, secretReader));
 
@@ -203,7 +209,9 @@ internal static class DeploymentCli
                 case "apply":
                 {
                     var inputPath = command.InputPath!;
-                    var plan = ReadPlan(inputPath);
+                    var plan = ReadPlan(inputPath, organizationArtifactRoot);
+                    if (plan.Organization != command.Organization)
+                        throw new InvalidDataException("計畫組織與命令不一致。");
                     var image = AssemblyCatalog.Read(assemblyPath, manifest);
                     var export = engine.Apply(plan, manifest, image);
                     output.WriteLine("Plan applied. Current state export: " + Path.GetFileName(export));
@@ -338,15 +346,19 @@ internal static class DeploymentCli
     /// <param name="plan">本次命令的不可變計畫，不含秘密實值。</param>
     /// <param name="output">由呼叫端持有並釋放的固定摘要 writer。</param>
     /// <returns>公開設定一致且沒有秘密佔位時為 0；metadata 有差異為 1；秘密未比對而不能完整驗證為 3。</returns>
-    internal static int WriteVerificationResult(DeploymentPlan plan, TextWriter output)
+    internal static int WriteVerificationResult(DeploymentPlan plan, TextWriter output) =>
+        WriteVerificationStatus(plan.Operations.Count != 0 ? 1 : plan.SecretPlaceholders.Count != 0 ? 3 : 0, output);
+
+    /// <summary>單組件與完整文件共用固定安全文字，不因組件數改變零／一／三的公開驗證語意。</summary>
+    private static int WriteVerificationStatus(int status, TextWriter output)
     {
-        if (plan.Operations.Count != 0)
+        if (status == 1)
         {
             output.WriteLine("Deployment state differs from the registration manifest.");
             return 1;
         }
 
-        if (plan.SecretPlaceholders.Count != 0)
+        if (status == 3)
         {
             // 不為了取得綠燈讀取 secrets，也不能把部分驗證冒充完整一致；此為預期未完成，不送例外告警。
             output.WriteLine("Non-secret metadata matches. Secret values were not compared; verification is incomplete (exit 3).");
@@ -437,7 +449,7 @@ internal static class DeploymentCli
     private static bool HasExactlyTwoOptions(System.Collections.Generic.HashSet<string> seen, string first, string second) =>
         seen.Count == 2 && seen.Contains(first) && seen.Contains(second);
 
-    /// <summary>確認輸入 plan/export 完整位於指定組織的 artifacts 子樹，不接受路徑穿越。</summary>
+    /// <summary>確認輸入 plan/export 完整位於指定組織的 artifacts 子樹；拒絕路徑穿越與現存祖先 link／junction。</summary>
     /// <param name="root">本組織輸出根。</param>
     /// <param name="path">命令列輸入的檔案位置。</param>
     /// <param name="fullPath">正規化後的絕對位置。</param>
@@ -446,11 +458,16 @@ internal static class DeploymentCli
     {
         fullPath = Path.GetFullPath(path);
         var relative = Path.GetRelativePath(root, fullPath);
-        return !Path.IsPathRooted(relative) &&
+        var contained = !Path.IsPathRooted(relative) &&
             !string.Equals(relative, ".", StringComparison.Ordinal) &&
             !relative.Equals("..", StringComparison.Ordinal) &&
             !relative.StartsWith(".." + Path.DirectorySeparatorChar, StringComparison.Ordinal) &&
             !relative.StartsWith(".." + Path.AltDirectorySeparatorChar, StringComparison.Ordinal);
+        if (!contained) return false;
+        for (var current = fullPath; current is not null; current = Path.GetDirectoryName(current))
+            if ((File.Exists(current) || Directory.Exists(current)) &&
+                (File.GetAttributes(current) & FileAttributes.ReparsePoint) != 0) return false;
+        return true;
     }
 
     /// <summary>建立唯一 UTC 操作目錄；同時執行的命令取得不同目錄且不互相覆寫。</summary>
@@ -465,38 +482,20 @@ internal static class DeploymentCli
         return path;
     }
 
-    /// <summary>讀取 schema 1 plan，將解析細節統一轉為固定錯誤而不回顯檔案內容。</summary>
+    /// <summary>以共用嚴格 JSON 入口讀取單組件計畫；未知／重複欄位及超出預算一律拒絕，不回顯內容。</summary>
     /// <param name="path">已經過 artifacts 根目錄驗證的 JSON 路徑。</param>
+    /// <param name="organizationRoot">命令核定的組織根，開檔前再次核對路徑邊界。</param>
     /// <returns>待由引擎重新驗證雜湊與即時組織指紋的 plan。</returns>
-    private static DeploymentPlan ReadPlan(string path)
-    {
-        try
-        {
-            var file = new FileInfo(path);
-            if (!file.Exists || file.Length <= 0 || file.Length > 4 * 1024 * 1024)
-            {
-                throw new InvalidDataException("Plan 不存在、為空或超過允許大小。");
-            }
+    private static DeploymentPlan ReadPlan(string path, string organizationRoot) =>
+        ReadDocumentFile<DeploymentPlan>(path, organizationRoot);
 
-            using var stream = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read);
-            return JsonSerializer.Deserialize<DeploymentPlan>(stream, JsonOptions)
-                ?? throw new InvalidDataException("Plan 格式無效。");
-        }
-        catch (JsonException)
-        {
-            throw new InvalidDataException("Plan 格式無效。");
-        }
-    }
-
-    /// <summary>以 UTF-8 無 BOM 寫入 plan JSON 與固定 Markdown 摘要。</summary>
+    /// <summary>以 UTF-8 無 BOM／CRLF 與固定檔名發布 JSON 及 Markdown；每檔 flush 關閉後才可讀，不覆寫證據。</summary>
     /// <param name="directory">本次 plan 專用輸出目錄。</param>
     /// <param name="plan">只含摘要、hash 與秘密佔位名稱的 plan。</param>
     private static void WritePlan(string directory, DeploymentPlan plan)
     {
-        File.WriteAllText(Path.Combine(directory, "plan.json"),
-            JsonSerializer.Serialize(plan, JsonOptions), new System.Text.UTF8Encoding(false));
-        File.WriteAllText(Path.Combine(directory, "plan.md"),
-            DeploymentEngine.Markdown(plan), new System.Text.UTF8Encoding(false));
+        WriteDocumentFile(directory, "plan.json", JsonSerializer.Serialize(plan, JsonOptions));
+        WriteDocumentFile(directory, "plan.md", DeploymentEngine.Markdown(plan));
     }
 
     /// <summary>只在 apply 寫入設定時解析 placeholder；錯誤不包含要求的 secret 名稱或值。</summary>
