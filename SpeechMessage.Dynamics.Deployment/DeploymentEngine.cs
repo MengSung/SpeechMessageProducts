@@ -40,12 +40,13 @@ namespace SpeechMessage.Dynamics.Deployment;
 /// 單一 Dataverse 服務租約上的佈署操作核心。物件不跨命令共用；它不保存 user／tenant 狀態、
 /// 已解析的秘密或外部 client。計畫與匯出只包含非敏感資料，所有檔案 writer 都由呼叫期間擁有。
 /// </summary>
-internal sealed class DeploymentEngine
+internal sealed partial class DeploymentEngine
 {
     private const string AllowedOrganization = "goodshepherdback";
     private const string AssemblyLogicalName = "pluginassembly";
     private const string TypeLogicalName = "plugintype";
     private const string StepLogicalName = "sdkmessageprocessingstep";
+    private const string ImageLogicalName = "sdkmessageprocessingstepimage";
     /// <summary>
     /// 步驟安全設定查閱的官方邏輯名稱；不可縮寫成 secureconfigid，否則已註冊步驟的查詢會被拒絕。
     /// 所有讀寫、存在性比對、指紋與匯出共用此欄位；只持有本次查閱 ID，不讀取安全設定內容。
@@ -98,6 +99,7 @@ internal sealed class DeploymentEngine
         ArgumentNullException.ThrowIfNull(image);
         ValidateOrganization(organization);
         ValidateManifest(manifest, image);
+        ValidateRegistrationAttributes(manifest);
 
         var inspection = Inspect(manifest, image);
         var placeholders = manifest.Steps
@@ -192,6 +194,7 @@ internal sealed class DeploymentEngine
         ArgumentNullException.ThrowIfNull(image);
         ValidateOrganization(plan.Organization);
         ValidateManifest(manifest, image);
+        ValidateRegistrationAttributes(manifest);
         ValidatePlanHash(plan);
 
         if (!string.Equals(plan.ManifestHash, HashText(CanonicalManifest(manifest)), StringComparison.Ordinal) ||
@@ -207,7 +210,7 @@ internal sealed class DeploymentEngine
         }
 
         var exportPath = Path.Combine(directory, "export.json");
-        WriteExport(plan.Organization, exportPath);
+        WriteExport(plan.Organization, exportPath, manifest.AssemblyName);
 
         foreach (var operation in plan.Operations)
         {
@@ -221,6 +224,13 @@ internal sealed class DeploymentEngine
                     break;
                 case "CreateType":
                     CreatePluginType(operation.Key, manifest, image);
+                    break;
+                case "CreateActivity":
+                case "UpdateActivity":
+                    WriteActivity(operation.Key, manifest);
+                    break;
+                case "ReconcileImages":
+                    ReconcileImages(operation.Key, manifest);
                     break;
                 case "CreateStep":
                     CreateStep(operation.Key, manifest);
@@ -245,12 +255,15 @@ internal sealed class DeploymentEngine
     /// </summary>
     /// <param name="organization">唯一核准的測試組織名稱。</param>
     /// <param name="path">輸出 JSON 檔案路徑。</param>
+    /// <param name="assemblyName">核定組件簡名，預設維持既有 Plugin 匯出範圍。</param>
     /// <returns>完成原子寫入後的絕對路徑。</returns>
-    public string WriteExport(string organization, string path)
+    public string WriteExport(string organization, string path, string assemblyName = "SpeechMessage.Dynamics.Plugins")
     {
         ValidateOrganization(organization);
         ArgumentException.ThrowIfNullOrWhiteSpace(path);
-        var export = CaptureExport(organization);
+        if (assemblyName is not ("SpeechMessage.Dynamics.Plugins" or "SpeechMessage.Dynamics.Workflows"))
+            throw new InvalidDataException("受管理組件名稱無效。");
+        var export = CaptureExport(organization, assemblyName);
         WriteJsonAtomically(path, export);
         return Path.GetFullPath(path);
     }
@@ -270,13 +283,25 @@ internal sealed class DeploymentEngine
         ValidateOrganization(organization);
         var export = ReadExport(path);
         ValidateExport(export, organization);
+        if (export.ManagedAssemblyName != manifest.AssemblyName ||
+            (export.Assembly is not null && export.Assembly.Name != manifest.AssemblyName) || export.Images is null ||
+            export.Images.Any(image => image.Id == Guid.Empty || !export.Steps.Any(step => step.Id == image.StepId)) ||
+            export.Images.Select(image => image.Id).Distinct().Count() != export.Images.Count)
+            throw new InvalidDataException("Export 與目標組件或映像父身份不符。");
+        // 所有原步驟必須存在且仍屬原型別；缺失時在組件更新前拒絕，避免部分回復。
+        foreach (var previous in export.Steps)
+        {
+            var current = FindStepById(previous.Id) ?? throw new InvalidDataException("原步驟已不存在。");
+            if (!export.Types.Any(type => type.Id == ReadReferenceId(current, "eventhandler")))
+                throw new InvalidDataException("原步驟型別身份已改變。");
+        }
 
         var currentAssembly = FindAssembly(manifest.AssemblyName);
         if (export.Assembly is null)
         {
             if (currentAssembly is not null)
             {
-                DeleteManagedRows(currentAssembly.Id);
+                DeleteManagedRows(currentAssembly.Id, manifest.AssemblyName);
             }
 
             return;
@@ -291,6 +316,9 @@ internal sealed class DeploymentEngine
         {
             service.Update(ToAssemblyEntity(export.Assembly, currentAssembly.Id));
         }
+
+        var restoredAssembly = FindAssembly(manifest.AssemblyName) ?? throw new InvalidDataException("回復組件不存在。");
+        if (export.SchemaVersion == 2) RestoreRegistrationMetadata(export, restoredAssembly.Id);
 
         foreach (var previousStep in export.Steps)
         {
@@ -455,6 +483,7 @@ internal sealed class DeploymentEngine
             {
                 if (plannedTypes.Add(step.Type)) operations.Add(new DeploymentOperation("CreateType", step.Type));
                 operations.Add(new DeploymentOperation("CreateStep", StepKey(step)));
+                if (step.Images.Count != 0) operations.Add(new DeploymentOperation("ReconcileImages", StepKey(step)));
                 continue;
             }
 
@@ -464,10 +493,16 @@ internal sealed class DeploymentEngine
             if (existingStep is null)
             {
                 operations.Add(new DeploymentOperation("CreateStep", StepKey(step)));
+                if (step.Images.Count != 0) operations.Add(new DeploymentOperation("ReconcileImages", StepKey(step)));
                 continue;
             }
 
-            if (!NonSecretConfigurationMatches(existingStep, step))
+            if (!ImagesMatch(ReadImages(existingStep.Id), step))
+                operations.Add(new DeploymentOperation("ReconcileImages", StepKey(step)));
+
+            if (!string.Equals(existingStep.GetAttributeValue<string>("filteringattributes") ?? "", string.Join(",", step.FilteringAttributes), StringComparison.Ordinal))
+                operations.Add(new DeploymentOperation("UpdateStepConfiguration", StepKey(step)));
+            else if (!NonSecretConfigurationMatches(existingStep, step))
             {
                 operations.Add(new DeploymentOperation("UpdateStepConfiguration", StepKey(step)));
             }
@@ -477,6 +512,15 @@ internal sealed class DeploymentEngine
             {
                 operations.Add(new DeploymentOperation("UpdateStepState", StepKey(step)));
             }
+        }
+
+        foreach (var activity in manifest.Activities)
+        {
+            var existing = pluginTypes.SingleOrDefault(type => type.GetAttributeValue<string>("typename") == activity.Type);
+            if (existing is null) operations.Add(new DeploymentOperation("CreateActivity", activity.Type));
+            else if (existing.GetAttributeValue<string>("friendlyname") != activity.DisplayName ||
+                existing.GetAttributeValue<string>("workflowactivitygroupname") != manifest.ActivityGroup)
+                operations.Add(new DeploymentOperation("UpdateActivity", activity.Type));
         }
 
         return new Inspection(CalculateFingerprint(manifest.AssemblyName), operations);
@@ -669,6 +713,7 @@ internal sealed class DeploymentEngine
             service.Update(new Entity(StepLogicalName, step.Id)
             {
                 ["configuration"] = configuration.ToJsonString(),
+                ["filteringattributes"] = string.Join(",", registration.FilteringAttributes),
                 [StepSecureConfigurationLookup] = newSecureId.HasValue
                     ? new EntityReference("sdkmessageprocessingstepsecureconfig", newSecureId.Value) : null
             });
@@ -711,14 +756,14 @@ internal sealed class DeploymentEngine
     }
 
     /// <summary>以受管理組件為查詢邊界建立獨立匯出候選；組件內容供還原，設定只保留雜湊與存在性，絕不匯出原始 token 或 userId。</summary>
-    private DeploymentExport CaptureExport(string organization)
+    private DeploymentExport CaptureExport(string organization, string assemblyName)
     {
-        var assembly = FindAssembly("SpeechMessage.Dynamics.Plugins");
+        var assembly = FindAssembly(assemblyName);
         if (assembly is null)
         {
-            return SealExport(new DeploymentExport(1, organization, clock.GetUtcNow().ToUniversalTime(),
-                CalculateFingerprint("SpeechMessage.Dynamics.Plugins"), null,
-                Array.Empty<PluginTypeExport>(), Array.Empty<PluginStepExport>(), string.Empty));
+            return SealExport(new DeploymentExport(2, organization, clock.GetUtcNow().ToUniversalTime(),
+                CalculateFingerprint(assemblyName), null,
+                Array.Empty<PluginTypeExport>(), Array.Empty<PluginStepExport>(), string.Empty) { ManagedAssemblyName = assemblyName });
         }
 
         var typeRows = ReadPluginTypes(assembly.Id);
@@ -739,13 +784,15 @@ internal sealed class DeploymentEngine
             .Select(type => new PluginTypeExport(
                 type.Id,
                 type.GetAttributeValue<string>("name") ?? string.Empty,
-                type.GetAttributeValue<string>("typename") ?? string.Empty))
+                type.GetAttributeValue<string>("typename") ?? string.Empty)
+                { FriendlyName = type.GetAttributeValue<string>("friendlyname") ?? "", ActivityGroup = type.GetAttributeValue<string>("workflowactivitygroupname") ?? "" })
             .OrderBy(type => type.TypeName, StringComparer.Ordinal)
             .ToArray();
 
-        return SealExport(new DeploymentExport(1, organization, clock.GetUtcNow().ToUniversalTime(),
-            CalculateFingerprint("SpeechMessage.Dynamics.Plugins"), assemblyExport,
-            Array.AsReadOnly(types), Array.AsReadOnly(steps), string.Empty));
+        return SealExport(new DeploymentExport(2, organization, clock.GetUtcNow().ToUniversalTime(),
+            CalculateFingerprint(assemblyName), assemblyExport,
+            Array.AsReadOnly(types), Array.AsReadOnly(steps), string.Empty)
+            { ManagedAssemblyName = assemblyName, Images = Array.AsReadOnly(steps.SelectMany(step => ReadImages(step.Id)).Select(ToImageExport).OrderBy(image => image.Id).ToArray()) });
     }
 
     /// <summary>把單一步驟轉成脫離 SDK Entity 的純值摘要；secure 只記有無，unsecure 只記雜湊。</summary>
@@ -795,9 +842,18 @@ internal sealed class DeploymentEngine
     /// <summary>在任何還原寫入前確認格式、唯一組織與內容雜湊，拒絕跨組織或遭修改的備份。</summary>
     private static void ValidateExport(DeploymentExport export, string organization)
     {
-        if (export.SchemaVersion != 1 ||
+        var canonical = export.SchemaVersion == 1
+            ? JsonSerializer.Serialize(new
+            {
+                export.SchemaVersion, export.Organization, export.ExportedUtc, export.Fingerprint, export.Assembly,
+                Types = export.Types.Select(type => new { type.Id, type.Name, type.TypeName }).ToArray(),
+                export.Steps, Sha256 = string.Empty
+            })
+            : JsonSerializer.Serialize(export with { Sha256 = string.Empty });
+        if (export.SchemaVersion is not (1 or 2) ||
+            (export.SchemaVersion == 1 && (export.ManagedAssemblyName != "SpeechMessage.Dynamics.Plugins" || export.Images.Count != 0)) ||
             !string.Equals(export.Organization, organization, StringComparison.Ordinal) ||
-            !string.Equals(export.Sha256, HashText(JsonSerializer.Serialize(export with { Sha256 = string.Empty })), StringComparison.Ordinal))
+            !string.Equals(export.Sha256, HashText(canonical), StringComparison.Ordinal))
         {
             throw new InvalidDataException("Export 雜湊、版本或組織身份不符。");
         }
@@ -819,13 +875,14 @@ internal sealed class DeploymentEngine
     }
 
     /// <summary>只清理由本工具擁有的組件關聯資料；依步驟、secure、型別、組件順序刪除，避免孤兒設定。</summary>
-    private void DeleteManagedRows(Guid assemblyId)
+    private void DeleteManagedRows(Guid assemblyId, string assemblyName)
     {
         var types = ReadPluginTypes(assemblyId);
         foreach (var type in types)
         {
             foreach (var step in ReadSteps(new HashSet<Guid> { type.Id }))
             {
+                foreach (var image in ReadImages(step.Id)) service.Delete(ImageLogicalName, image.Id);
                 service.Delete(StepLogicalName, step.Id);
             }
         }
@@ -835,7 +892,7 @@ internal sealed class DeploymentEngine
             service.Delete(TypeLogicalName, type.Id);
         }
 
-        var assembly = FindAssembly("SpeechMessage.Dynamics.Plugins");
+        var assembly = FindAssembly(assemblyName);
         if (assembly is not null && assembly.Id == assemblyId)
         {
             service.Delete(AssemblyLogicalName, assemblyId);
@@ -961,7 +1018,7 @@ internal sealed class DeploymentEngine
     {
         return RequireUniqueRowsById(service.RetrieveMultiple(new QueryExpression(TypeLogicalName)
         {
-            ColumnSet = new ColumnSet("name", "typename", "pluginassemblyid"),
+            ColumnSet = new ColumnSet("name", "typename", "pluginassemblyid", "friendlyname", "workflowactivitygroupname"),
             Criteria = Equal("pluginassemblyid", assemblyId)
         }).Entities, "Plugin 型別");
     }
@@ -1123,7 +1180,9 @@ internal sealed class DeploymentEngine
                     Kind = "type",
                     type.Id,
                     TypeName = type.GetAttributeValue<string>("typename"),
-                    Name = type.GetAttributeValue<string>("name")
+                    Name = type.GetAttributeValue<string>("name"),
+                    FriendlyName = type.GetAttributeValue<string>("friendlyname"),
+                    ActivityGroup = type.GetAttributeValue<string>("workflowactivitygroupname")
                 });
             }
 
@@ -1145,6 +1204,7 @@ internal sealed class DeploymentEngine
                     State = ReadOption(step, "statecode"),
                     Status = ReadOption(step, "statuscode")
                 });
+                foreach (var image in ReadImages(step.Id).OrderBy(row => row.Id)) rows.Add(ToImageExport(image));
             }
         }
 
@@ -1202,35 +1262,16 @@ internal sealed class DeploymentEngine
         }
     }
 
-    /// <summary>驗證 P0 唯一支援的範圍及穩定身份唯一性；不支援欄位不可靜默忽略。</summary>
+    /// <summary>驗證第二版完整清單與 PE 型別集合；直接呼叫核心亦不能繞過 loader 或漏列公開入口。</summary>
     private static void ValidateManifest(RegistrationManifest manifest, AssemblyImage image)
     {
-        if (manifest.SchemaVersion != 2 ||
-            !string.Equals(manifest.AssemblyName, image.Name, StringComparison.Ordinal) ||
-            manifest.Steps.Count == 0)
-        {
-            throw new InvalidDataException("註冊清單格式或組件身份不符。");
-        }
-
-        var keys = new HashSet<string>(StringComparer.Ordinal);
         RegistrationManifestLoader.Validate(manifest);
-        foreach (var step in manifest.Steps)
-        {
-            if (step.Rank <= 0 ||
-                step.Message != "Create" ||
-                step.Entity != "task" ||
-                step.Stage != "PostOperation" ||
-                step.Mode != "Asynchronous" ||
-                step.FilteringAttributes.Count != 0 ||
-                step.Images.Count != 0 ||
-                !image.PluginTypes.Contains(step.Type, StringComparer.Ordinal) ||
-                !keys.Add(StepKey(step)))
-            {
-                throw new InvalidDataException("註冊清單包含 P0 範圍外或重複的步驟。");
-            }
-
-            ValidateConfigurationTemplate(step);
-        }
+        if (manifest.AssemblyName != image.Name ||
+            !manifest.Steps.Select(step => step.Type).Distinct(StringComparer.Ordinal).OrderBy(name => name, StringComparer.Ordinal)
+                .SequenceEqual(image.PluginTypes.OrderBy(name => name, StringComparer.Ordinal), StringComparer.Ordinal) ||
+            !manifest.Activities.Select(activity => activity.Type).OrderBy(name => name, StringComparer.Ordinal)
+                .SequenceEqual(image.ActivityTypes.OrderBy(name => name, StringComparer.Ordinal), StringComparer.Ordinal))
+            throw new InvalidDataException("註冊清單與組件型別身份不符。");
     }
 
     /// <summary>
@@ -1392,18 +1433,21 @@ internal sealed class DeploymentEngine
     private static string StepDisplayName(StepRegistration step) =>
         "SpeechMessage " + step.Entity + " " + step.Message + " " + step.Type[(step.Type.LastIndexOf('.') + 1)..];
 
-    /// <summary>只轉換 P0 已核定的 PostOperation；未知值必須明確拒絕。</summary>
+    /// <summary>只轉換公開管線的三種核定階段；未知值必須明確拒絕。</summary>
     private static int ReadStage(string stage) => stage switch
     {
+        "PreValidation" => 10,
+        "PreOperation" => 20,
         "PostOperation" => 40,
-        _ => throw new InvalidDataException("Plugin 註冊階段不在 P0 白名單中。")
+        _ => throw new InvalidDataException("Plugin 註冊階段無效。")
     };
 
-    /// <summary>只轉換 P0 已核定的非同步模式；禁止默認為其他執行模式。</summary>
+    /// <summary>只轉換同步及非同步核定模式；禁止默認為其他執行模式。</summary>
     private static int ReadMode(string mode) => mode switch
     {
+        "Synchronous" => 0,
         "Asynchronous" => 1,
-        _ => throw new InvalidDataException("Plugin 執行模式不在 P0 白名單中。")
+        _ => throw new InvalidDataException("Plugin 執行模式無效。")
     };
 
     /// <summary>只有該組織明確 true 才啟用；缺少設定一律停用以避免意外推播。</summary>
@@ -1535,7 +1579,13 @@ internal sealed record DeploymentExport(
     PluginAssemblyExport? Assembly,
     IReadOnlyList<PluginTypeExport> Types,
     IReadOnlyList<PluginStepExport> Steps,
-    string Sha256);
+    string Sha256)
+{
+    /// <summary>匯出所屬組件，即使原本不存在仍保存核定範圍，防止跨組件回復。</summary>
+    public string ManagedAssemblyName { get; init; } = "SpeechMessage.Dynamics.Plugins";
+    /// <summary>只含具名映像註冊 metadata，不含實體實際欄位值。</summary>
+    public IReadOnlyList<PluginImageExport> Images { get; init; } = Array.Empty<PluginImageExport>();
+}
 
 /// <summary>可還原組件身份及 DLL 內容的安全快照；組件位元組不含執行期 credential。</summary>
 internal sealed record PluginAssemblyExport(
@@ -1548,7 +1598,19 @@ internal sealed record PluginAssemblyExport(
     int SourceType);
 
 /// <summary>Plugin 型別的穩定資料庫身份快照。</summary>
-internal sealed record PluginTypeExport(Guid Id, string Name, string TypeName);
+internal sealed record PluginTypeExport(Guid Id, string Name, string TypeName)
+{
+    /// <summary>活動顯示名稱，屬純註冊 metadata。</summary>
+    public string FriendlyName { get; init; } = "";
+    /// <summary>活動群組；非活動可為空，不含 workflow 定義或執行資料。</summary>
+    public string ActivityGroup { get; init; } = "";
+}
+
+/// <summary>映像的安全註冊快照，只有 metadata，不持有 SDK 或業務記錄。</summary>
+/// <param name="Id">正式映像 ID。</param><param name="StepId">父步驟 ID。</param><param name="Name">穩定名稱。</param>
+/// <param name="Alias">Plugin 映像別名。</param><param name="Type">前後映像選項。</param>
+/// <param name="Attributes">明列欄位名稱。</param><param name="MessageProperty">SDK 訊息屬性名稱。</param>
+internal sealed record PluginImageExport(Guid Id, Guid StepId, string Name, string Alias, int Type, string Attributes, string MessageProperty);
 
 /// <summary>
 /// Plugin 步驟的非敏感快照。輸出記錄只存設定是否存在，不存 configuration 或 secureconfig 原文，

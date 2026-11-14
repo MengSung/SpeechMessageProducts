@@ -38,6 +38,8 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Xrm.Sdk;
 using Microsoft.Xrm.Sdk.Query;
+using Microsoft.Xrm.Sdk.Messages;
+using Microsoft.Xrm.Sdk.Metadata;
 using ToolUtilityNameSpace.Diagnostics;
 using Xunit;
 
@@ -1473,6 +1475,13 @@ internal sealed class MemoryOrganization : IOrganizationService, IDisposable
     /// <param name="attributes">查詢或寫入要求的欄位名稱，不讀取對應內容。</param>
     private static void ValidateStepAttributes(string entityName, IEnumerable<string> attributes)
     {
+        if (entityName == "sdkmessageprocessingstepimage" && attributes.Any(attribute =>
+            attribute is not ("sdkmessageprocessingstepimageid" or "sdkmessageprocessingstepid" or "name" or
+                "entityalias" or "imagetype" or "attributes" or "messagepropertyname")))
+            throw new InvalidOperationException("Unknown synthetic image metadata attribute.");
+        if (entityName == "plugintype" && attributes.Any(attribute => attribute is not
+            ("plugintypeid" or "name" or "typename" or "pluginassemblyid" or "friendlyname" or "workflowactivitygroupname")))
+            throw new InvalidOperationException("Unknown synthetic type metadata attribute.");
         if (entityName == "sdkmessageprocessingstep" &&
             attributes.Any(attribute => !StepAttributes.Contains(attribute, StringComparer.Ordinal)))
         {
@@ -1499,6 +1508,17 @@ internal sealed class MemoryOrganization : IOrganizationService, IDisposable
     /// <param name="request">SDK 訊息。</param><returns>合成回應。</returns>
     public OrganizationResponse Execute(OrganizationRequest request)
     {
+        if (request is RetrieveEntityRequest metadata)
+        {
+            Assert.Equal("task", metadata.LogicalName);
+            Assert.Equal(EntityFilters.Attributes, metadata.EntityFilters);
+            var entity = new EntityMetadata { LogicalName = "task" };
+            // SDK metadata 僅公開 getter；案例以非公開 setter 組固定合成回應，絕不反射待部署 DLL。
+            typeof(EntityMetadata).GetProperty(nameof(EntityMetadata.Attributes))!.SetValue(entity,
+                new AttributeMetadata[] { new StringAttributeMetadata { LogicalName = "subject" },
+                    new StringAttributeMetadata { LogicalName = "description" } });
+            return new RetrieveEntityResponse { Results = { ["EntityMetadata"] = entity } };
+        }
         if (request.RequestName == "SetState") {
             var reference = (EntityReference)request["EntityMoniker"];
             Update(new Entity(reference.LogicalName, reference.Id) { ["statecode"] = request["State"], ["statuscode"] = request["Status"] });
