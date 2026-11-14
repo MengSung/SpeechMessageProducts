@@ -116,6 +116,44 @@ public sealed class ScenarioTransportSafetyTests
         Assert.Equal("scratch-roundtrip", (string?)Assert.Single((JArray)row["writes"]!)["fields"]!["name"]);
     }
 
+    /// <summary>舊 reader／writer 的路徑建構與 append 旗標必須改寫到同案 scratch，Dispose 後完整文字可讀回。</summary>
+    [Fact]
+    public void Harness_TextStreamConstructors_KeepAppendAndReadSemanticsInsideScratch()
+    {
+        var row = Run("""
+            using(var writer=new StreamWriter("text",false,System.Text.Encoding.UTF8)){writer.Write("first");}
+            using(var writer=new StreamWriter("text",true,System.Text.Encoding.UTF8)){writer.Write("-second");}
+            using(var reader=new StreamReader("text",System.Text.Encoding.UTF8)){
+            s.Update(new Entity("contact",target.Id){["name"]=reader.ReadToEnd()});}
+            using(var stream=File.OpenRead("text")){if(stream.Length==0)throw new InvalidOperationException();}
+            using(var stream=File.OpenWrite("text")){stream.WriteByte(65);}
+            using(var stream=File.Open("text",FileMode.Open,FileAccess.Read)){if(stream.ReadByte()!=65)throw new InvalidOperationException();}
+            """);
+        Assert.Equal("first-second", (string?)Assert.Single((JArray)row["writes"]!)["fields"]!["name"]);
+    }
+
+    /// <summary>路徑與 handle 容量故障仍由 owner 清理；同案重跑結果相同，不能因遺漏 Dispose 而留下鎖定。</summary>
+    [Theory]
+    [InlineData("for(var i=0;i<129;i++)File.Exists(\"path-\"+i);")]
+    [InlineData("for(var i=0;i<257;i++)new FileStream(\"one-path\",FileMode.OpenOrCreate,FileAccess.ReadWrite,FileShare.ReadWrite);")]
+    public void Harness_ScratchResourceLimits_RefuseAndDrainOnEveryRun(string body)
+    {
+        var first = Run(body, "InvalidDataException");
+        Assert.Empty((JArray)first["writes"]!);
+        Assert.Equal(first.ToString(), Run(body, "InvalidDataException").ToString());
+    }
+
+    /// <summary>傳輸容量在記錄前檢查；第 513 次及超長本文失敗，既有紀錄數有界且不產生新寫入。</summary>
+    [Theory]
+    [InlineData("for(var i=0;i<513;i++)client.Get(new RestRequest(Method.GET));", 512)]
+    [InlineData("var request=new RestRequest(Method.POST);request.AddParameter(\"application/json\",new string('x',131073),ParameterType.RequestBody);client.Execute(request);", 0)]
+    public void Harness_TransportLimits_RefuseBeforePublishingOversizedCall(string calls, int count)
+    {
+        var row = Run("var client=new RestClient(\"https://example.invalid\");" + calls, "InvalidDataException");
+        Assert.Equal(count, ((JArray)row["lineCalls"]!).Count);
+        Assert.Empty((JArray)row["writes"]!);
+    }
+
     /// <summary>所有來源均經正式安全分析，基礎設施失敗先拒絕測試；結果僅保留 detached JSON。</summary>
     private static JToken Run(string body, string? exception = null)
     {
