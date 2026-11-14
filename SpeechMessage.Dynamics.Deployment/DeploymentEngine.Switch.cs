@@ -35,6 +35,38 @@ internal sealed record LegacyRoundContext(Guid TestChurchId, Guid TestContactId,
 /// <summary>單一命令引擎的切換分部，所有狀態與 SDK 資源仍由呼叫端命令唯一擁有。</summary>
 internal sealed partial class DeploymentEngine
 {
+    /// <summary>
+    /// 影子命令在每輪前後即時核對整個模組：清單必須停用、設定與映像完全一致，
+    /// 正式步驟亦停用，舊註冊全域啟用數為零。回傳唯一正式 ID 及不可變清單描述，
+    /// 不改寫遠端或把 cached export 當作當下狀態；SDK 仍由外層單一租約擁有。
+    /// </summary>
+    internal IReadOnlyList<(StepRegistration Step, Guid Id)> ReadDisabledShadowSteps(
+        RegistrationDocument document, string organization, string module,
+        Func<LegacyRegistrationSnapshot> readLegacy)
+    {
+        ValidateOrganization(organization);
+        foreach (var assembly in document.Assemblies) RegistrationManifestLoader.Validate(assembly);
+        var legacy = readLegacy();
+        if (legacy.EnabledStepCount != 0 || legacy.EnabledWorkflowCount != 0) throw InvalidSwitch();
+        _ = ResolveLegacySwitchRows(document, module, legacy);
+        var result = new List<(StepRegistration, Guid)>();
+        var ids = new HashSet<Guid>();
+        foreach (var assembly in document.Assemblies)
+        foreach (var step in assembly.Steps.Where(step => step.Module == module))
+        {
+            using var config = JsonDocument.Parse(step.UnsecureConfig);
+            if (config.RootElement.GetProperty("mode").GetString() != "Shadow" ||
+                step.SecureConfig.Length != 0 || IsEnabled(step, organization)) throw InvalidSwitch();
+            var row = RegisteredStep(assembly, step);
+            if (ReadOption(row, "statecode") != 1 || !ids.Add(row.Id) ||
+                !NonSecretConfigurationMatches(row, step) || !ImagesMatch(ReadImages(row.Id), step))
+                throw InvalidSwitch();
+            result.Add((step, row.Id));
+        }
+        if (result.Count == 0) throw InvalidSwitch();
+        return result.AsReadOnly();
+    }
+
     /// <summary>受控模組切換；legacy 只在同程序回呼期間啟用，呼叫結束必須停用。</summary>
     /// <param name="document">完整且已驗證的多組件清單。</param><param name="organization">唯一測試組織。</param>
     /// <param name="module">核定模組代號。</param><param name="target">enabled、legacy 或 off。</param>

@@ -7,6 +7,8 @@
  * 主要功能與流程：先解析命令／選項、拒絕非goodshepherdback與外部plan/export路徑；
  * 明確--schema或export-metadata轉交SchemaDeploymentCli，該路徑不需Plugin DLL。
  * export-legacy 以有界唯讀查詢匯出安全 metadata 並回報啟用筆數，不需要清單或 DLL；
+ * shadow 使用同一寫鎖及租約，固定情境來源先驗證，再交影子 partial 核對實機身分、
+ * 已部署映像與步驟，完成執行、清理及安全報告；未核定的舊輪盤點仍拒絕。
  * 舊plan/apply/verify/export/rollback/smoke則載入固定registration manifest及必要Plugin PE，
  * 單組件委派DeploymentEngine；多組件由 partial 的文件路由完整交給DocumentDeploymentEngine，
  * 使用組織共用備份根及已 flush 的固定名稱索引，保留原P0公開語法與設定佔位安全驗證。
@@ -26,6 +28,7 @@
  * 驗新模式不讀Plugin DLL、拒絕非法輸入、lease/drain、敏感輸出、取消、真共用診斷及並行寫鎖。
  */
 using System;
+using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.ServiceModel;
@@ -148,6 +151,16 @@ internal static partial class DeploymentCli
         var organizationArtifactRoot = Path.GetFullPath(Path.Combine(effectiveArtifactRoot, AllowedOrganization));
         try
         {
+            IReadOnlyList<Shadow.ShadowFileCase>? shadowCases = null;
+            if (command.Name == "shadow")
+            {
+                if (!IsShadowScenarioRoot(repositoryRoot, command.Module!, command.ScenarioRoot!))
+                {
+                    output.WriteLine("Scenario root must be the fixed module golden directory.");
+                    return 2;
+                }
+                shadowCases = Shadow.ShadowScenarioFiles.Load(repositoryRoot, command.Module!);
+            }
             if (command.InputPath is not null)
             {
                 if (!IsContainedPath(organizationArtifactRoot, command.InputPath, out var fullInputPath))
@@ -159,7 +172,7 @@ internal static partial class DeploymentCli
                 command = command with { InputPath = fullInputPath };
             }
 
-            using var writeLock = command.Name is "apply" or "rollback" or "smoke" or "switch"
+            using var writeLock = command.Name is "apply" or "rollback" or "smoke" or "switch" or "shadow"
                 ? OrganizationWriteLock.Acquire(
                     organizationArtifactRoot,
                     writeLockTimeout ?? TimeSpan.FromMinutes(5),
@@ -170,6 +183,9 @@ internal static partial class DeploymentCli
             if (command.Name == "export-legacy")
                 return ExportLegacy(lease.Service, organizationArtifactRoot, output, cancellationToken);
             var operationRoot = CreateOperationDirectory(organizationArtifactRoot);
+            if (command.Name == "shadow")
+                return RunShadow(command, shadowCases!, repositoryRoot, operationRoot,
+                    lease.Service, output, secretReader, cancellationToken);
             if (command.Name == "switch")
             {
                 var document = RegistrationManifestLoader.LoadDocument(repositoryRoot);
@@ -378,7 +394,7 @@ internal static partial class DeploymentCli
     {
         command = default;
         var name = args[0];
-        if (name is not ("plan" or "apply" or "verify" or "export" or "export-legacy" or "rollback" or "smoke" or "switch"))
+        if (name is not ("plan" or "apply" or "verify" or "export" or "export-legacy" or "rollback" or "smoke" or "switch" or "shadow"))
         {
             return false;
         }
@@ -388,11 +404,12 @@ internal static partial class DeploymentCli
         string? scenario = null;
         string? module = null;
         string? target = null;
+        string? scenarioRoot = null;
         var seen = new System.Collections.Generic.HashSet<string>(StringComparer.Ordinal);
         for (var index = 1; index < args.Length; index++)
         {
             var option = args[index];
-            if (option is not ("--org" or "--plan" or "--from" or "--scenario" or "--module" or "--to") ||
+            if (option is not ("--org" or "--plan" or "--from" or "--scenario" or "--module" or "--to" or "--scenario-root") ||
                 !seen.Add(option) ||
                 index + 1 >= args.Length ||
                 string.IsNullOrWhiteSpace(args[index + 1]) ||
@@ -418,10 +435,13 @@ internal static partial class DeploymentCli
                     break;
                 case "--module": module = value; break;
                 case "--to": target = value; break;
+                case "--scenario-root": scenarioRoot = value; break;
             }
         }
 
-        if (name != "switch" && (module is not null || target is not null)) return false;
+        if (name is not ("switch" or "shadow") && module is not null ||
+            name != "switch" && target is not null ||
+            name != "shadow" && scenarioRoot is not null) return false;
         var valid = name switch
         {
             "plan" or "verify" or "export" or "export-legacy" => organization is not null && inputPath is null && scenario is null,
@@ -429,6 +449,8 @@ internal static partial class DeploymentCli
             "rollback" => organization is not null && HasExactlyTwoOptions(seen, OrganizationOption, FromOption) && inputPath is not null && scenario is null,
             "switch" => organization is not null && module is not null && target is "enabled" or "legacy" or "off" &&
                 seen.Count == 3 && seen.Contains(OrganizationOption) && seen.Contains("--module") && seen.Contains("--to"),
+            "shadow" => organization is not null && module is not null && scenarioRoot is not null &&
+                seen.Count == 3 && seen.Contains(OrganizationOption) && seen.Contains("--module") && seen.Contains("--scenario-root"),
             "smoke" => organization is not null && HasExactlyTwoOptions(seen, OrganizationOption, ScenarioOption) && scenario is not null && inputPath is null,
             _ => false
         };
@@ -437,7 +459,7 @@ internal static partial class DeploymentCli
             return false;
         }
 
-        command = new ParsedCommand(name, organization!, inputPath, scenario) { Module = module, Target = target };
+        command = new ParsedCommand(name, organization!, inputPath, scenario) { Module = module, Target = target, ScenarioRoot = scenarioRoot };
         return true;
     }
 
@@ -556,6 +578,7 @@ internal static partial class DeploymentCli
     {
         output.WriteLine("Commands: plan --org <name> | apply --org <name> --plan <file> | verify --org <name>");
         output.WriteLine("          switch --org goodshepherdback --module <module> --to enabled|off");
+        output.WriteLine("          shadow --org goodshepherdback --module <module> --scenario-root <fixed-module-golden-directory>");
         output.WriteLine("          export-legacy --org goodshepherdback (read-only; stops if legacy registrations are enabled)");
         output.WriteLine("          export --org <name> | rollback --org <name> --from <file>");
         output.WriteLine("          smoke --org <name> --scenario <p0-ping-trace|p0-ping-push>");
@@ -572,5 +595,7 @@ internal static partial class DeploymentCli
         public string? Module { get; init; }
         /// <summary>切換目標；舊輪由程序內 runner 帶完整安全範圍才可執行。</summary>
         public string? Target { get; init; }
+        /// <summary>固定模組黃金目錄的候選路徑，不授權外部檔案來源。</summary>
+        public string? ScenarioRoot { get; init; }
     }
 }
