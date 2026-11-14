@@ -5,6 +5,8 @@
  * 不建立網路連線、不讀 User Secrets，也不把離線斷言當成測試組織驗收。
  * 主要功能與流程：以正式 lookup 串接組件、型別、步驟、映像及流程，注入跨頁重複 ID、
  * 惡意 XML、敏感設定與來源變動，確認只有完整且脫離 SDK 的安全 metadata 快照會發布。
+ * 另驗證兩個沒有 Microsoft 前綴的 ActivityFeeds：須同時有核定名稱、公開簽章識別及
+ * managed 狀態才排除；同名偽裝、缺欄位及其他廠商仍保留並計入啟用停止條件。
  * 使用邊界與維護：替身只保留本案例記憶體列，所有寫入 API 均拒絕；不擁有 client、timer、
  * stream 或背景工作。測試輸入與輸出只活到案例結束，沒有跨案例共用狀態及正式組織資料。
  */
@@ -36,6 +38,55 @@ public sealed class LegacyRegistrationExporterTests
         var snapshot = LegacyRegistrationExporter.Export(service);
         Assert.Equal(2, snapshot.Assemblies.Count);
         Assert.All(snapshot.Assemblies, row => Assert.Equal("Vendor.Legacy", row.Name));
+    }
+
+    /// <summary>已查證的 Microsoft ActivityFeeds 不因缺少名稱前綴而被誤當啟用舊業務步驟；關聯列也不納入。</summary>
+    /// <param name="name">只允許兩個已核對的完整組件簡名。</param>
+    [Theory]
+    [InlineData("ActivityFeeds.Plugins")]
+    [InlineData("ActivityFeeds.Filtering.Plugins")]
+    public void ExportLegacy_SignedManagedActivityFeedsAreMicrosoftComponents(string name)
+    {
+        var service = Scenario();
+        var assembly = service.Rows.Single(row => row.LogicalName == "pluginassembly");
+        assembly["name"] = name;
+        assembly["publickeytoken"] = "31bf3856ad364e35";
+        assembly["ismanaged"] = true;
+        var snapshot = LegacyRegistrationExporter.Export(service);
+        Assert.Empty(snapshot.Assemblies);
+        Assert.Empty(snapshot.Types);
+        Assert.Empty(snapshot.Steps);
+        Assert.Empty(snapshot.Images);
+        Assert.Empty(snapshot.Workflows);
+        Assert.Equal(0, snapshot.EnabledStepCount);
+    }
+
+    /// <summary>名稱、簽章識別與 managed 任一不符不得排除；仍啟用的合成步驟必須留下並觸發停止。</summary>
+    /// <param name="fault">只破壞一個來源判斷條件，避免以單獨同名或 Microsoft 簽章擴大排除。</param>
+    [Theory]
+    [InlineData("wrong-token")]
+    [InlineData("missing-token")]
+    [InlineData("unmanaged")]
+    [InlineData("missing-managed")]
+    [InlineData("similar-name")]
+    [InlineData("other-vendor")]
+    public void ExportLegacy_UnverifiedActivityFeedsRemainLegacy(string fault)
+    {
+        var service = Scenario();
+        var assembly = service.Rows.Single(row => row.LogicalName == "pluginassembly");
+        assembly["name"] = "ActivityFeeds.Plugins";
+        assembly["publickeytoken"] = "31bf3856ad364e35";
+        assembly["ismanaged"] = true;
+        if (fault == "wrong-token") assembly["publickeytoken"] = "0123456789abcdef";
+        if (fault == "missing-token") assembly.Attributes.Remove("publickeytoken");
+        if (fault == "unmanaged") assembly["ismanaged"] = false;
+        if (fault == "missing-managed") assembly.Attributes.Remove("ismanaged");
+        if (fault == "similar-name") assembly["name"] = "ActivityFeeds.Plugins.Other";
+        if (fault == "other-vendor") assembly["name"] = "Vendor.SignedWithSameToken";
+        var snapshot = LegacyRegistrationExporter.Export(service);
+        Assert.Single(snapshot.Assemblies);
+        Assert.Single(snapshot.Steps);
+        Assert.Equal(1, snapshot.EnabledStepCount);
     }
 
     /// <summary>使用真實 lookup ID 而非顯示名稱建立關聯；驗證啟用計數、映像與活動流程均屬正確父列。</summary>
@@ -298,6 +349,13 @@ public sealed class LegacyRegistrationExporterTests
             Assert.DoesNotContain("secureconfig", request.ColumnSet.Columns);
             Assert.DoesNotContain("messageblock", request.ColumnSet.Columns);
             Assert.NotEqual("sdkmessageprocessingstepsecureconfig", request.EntityName);
+            if (request.EntityName == "pluginassembly")
+            {
+                // 替身雖額外回傳完整列，產品仍須明確要求來源判斷所需的公開 metadata。
+                Assert.Contains("publickeytoken", request.ColumnSet.Columns);
+                Assert.Contains("ismanaged", request.ColumnSet.Columns);
+                Assert.DoesNotContain("content", request.ColumnSet.Columns);
+            }
             var rows = Rows.Where(row => row.LogicalName == request.EntityName)
                 .Where(row => request.Criteria.Conditions.All(condition =>
                 {

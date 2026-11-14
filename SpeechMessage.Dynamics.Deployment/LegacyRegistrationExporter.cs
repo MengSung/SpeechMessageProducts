@@ -5,6 +5,9 @@
  * 只發布組件、型別、步驟、映像及使用自訂活動的流程 metadata，不碰設定內容及業務記錄。
  * 主要功能與流程：以有界分頁讀取白名單欄位，按正式 lookup 串接候選，檢查重複 ID，
  * 在本次呼叫內解析有界 XAML 後只留下活動型別 ID，全部成功才回傳排序固定的唯讀快照。
+ * 平台排除除固定前綴外，只有兩個已核對的 ActivityFeeds 完整名稱，在 publickeytoken
+ * 為 Microsoft 簽章識別且 ismanaged 明確為 true 時才排除；欄位缺漏或同名偽裝仍保留。
+ * 公開簽章 metadata 只用於來源分類，不匯出 DLL、不讀設定，不改變任何步驟啟用狀態。
  * 使用邊界與維護：服務由命令 lease 唯一擁有及釋放；本檔不建立連線、不保存 SDK Entity、
  * 不記錄原文、不建立背景工作或快取。取消只在同步 SDK 呼叫前後檢查，無法中斷已開始的
  * 同步傳輸，逾時由呼叫端 client 設定；XML reader 與字串 reader 由本次呼叫確定釋放。
@@ -38,8 +41,8 @@ internal static class LegacyRegistrationExporter
             throw new ArgumentOutOfRangeException(nameof(pageSize), "Invalid export limits.");
         cancellationToken.ThrowIfCancellationRequested();
         var reader = new MetadataReader(service, pageSize, maximumRows, maximumPages, cancellationToken);
-        var assemblies = reader.Read("pluginassembly", ["name", "version", "isolationmode"])
-            .Where(row => !Excluded(Text(row, "name", required: true)))
+        var assemblies = reader.Read("pluginassembly", ["name", "version", "isolationmode", "publickeytoken", "ismanaged"])
+            .Where(row => !Excluded(row))
             .Select(row => new LegacyAssemblyMetadata(row.Id, Text(row, "name", required: true), Text(row, "version"), Number(row, "isolationmode", required: false)))
             .OrderBy(row => row.Id).ToArray();
         var assemblyMap = assemblies.ToDictionary(row => row.Id);
@@ -108,11 +111,24 @@ internal static class LegacyRegistrationExporter
             Array.AsReadOnly(images), Array.AsReadOnly(workflows.OrderBy(row => row.Id).ToArray()));
     }
 
-    /// <summary>只排除固定產品前綴及平台前綴，避免把第三方同名列當作重複資料刪除。</summary>
-    /// <param name="name">組件簡名。</param><returns>是否屬於本專案或 Microsoft。</returns>
-    private static bool Excluded(string name) =>
-        name.Equals("SpeechMessage", StringComparison.OrdinalIgnoreCase) || name.StartsWith("SpeechMessage.", StringComparison.OrdinalIgnoreCase) ||
-        name.Equals("Microsoft", StringComparison.OrdinalIgnoreCase) || name.StartsWith("Microsoft.", StringComparison.OrdinalIgnoreCase);
+    /// <summary>
+    /// 固定產品／平台前綴沿用既有邊界；無前綴的 ActivityFeeds 須同時符合完整名稱、
+    /// Microsoft 公開簽章識別及明確 managed 狀態。2026-11-14 已唯讀核對兩者來自
+    /// microsoftdynamics 發布的 ActivityFeedsCore；不以相似名稱、單獨簽章或缺值擴大排除。
+    /// 這只是盤點分類，不授權更動平台元件；不符者仍完整匯出並計入 F16 停止條件。
+    /// </summary>
+    /// <param name="row">唯讀取得的組件 metadata；不含 content 或設定。</param><returns>是否屬於固定排除範圍。</returns>
+    private static bool Excluded(Entity row)
+    {
+        var name = Text(row, "name", required: true);
+        if (name.Equals("SpeechMessage", StringComparison.OrdinalIgnoreCase) || name.StartsWith("SpeechMessage.", StringComparison.OrdinalIgnoreCase) ||
+            name.Equals("Microsoft", StringComparison.OrdinalIgnoreCase) || name.StartsWith("Microsoft.", StringComparison.OrdinalIgnoreCase))
+            return true;
+        return name is "ActivityFeeds.Plugins" or "ActivityFeeds.Filtering.Plugins" &&
+            row.Attributes.TryGetValue("publickeytoken", out var token) && token is string text &&
+            text.Equals("31bf3856ad364e35", StringComparison.OrdinalIgnoreCase) &&
+            row.Attributes.TryGetValue("ismanaged", out var managed) && managed is true;
+    }
 
     /// <summary>投影 metadata 字串，拒絕控制字元與超長內容；不讀任何設定、訊息或追蹤欄位。</summary>
     /// <param name="row">本次查詢列。</param><param name="column">固定白名單欄位。</param><param name="required">是否必填。</param><returns>不參照 SDK 的字串值。</returns>
