@@ -27,6 +27,6 @@
   ],
   "parent": null,
   "relatedFiles": [],
-  "notes": "P5-00、P4 H-1、P5-01已完成。P5-01 fee2e909固定guard全過並推送核對SHA，下一步更新回復前置的離線部分。",
+  "notes": "P5-00、P4 H-1、P5-01與更新回復前置已驗收；P5-02a缺PresentRecord實跑黃金待使用者決定D5-3，b段queryResults連接局部綠燈；覆蓋率63.16%、固定guard未完成，不推送、不進P5-03。",
   "meta": {}
 }

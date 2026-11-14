@@ -6,3 +6,7 @@
 4. 局部綠燈小段立即以 P5-02 開頭提交；僅 git add 明列檔案；不改寫已推送歷史。完整包未驗收或固定 guard 未通過時不推送。
 5. PresentRecord 正式 generate 仍 CompileFailed 且沒有產物；不為反射擴充 harness，已提前停下交使用者決定是否整包採 D5-3，詳 research/p5-02a-checkpoint.md；原定17:25最晚判定點尚未到期，不宣稱耗盡。
 6. 取得使用者決定後續行對應方案；成功黃金、差異契約、覆蓋率 >=80% 及固定八項守門仍是未完成條件；驗收後才推送並用 git ls-remote 核對，再接 P5-03a。實機前仍須依 D5-18 及 User Secrets 確認真實測試 ID，不使用名稱猜測。
+
+## 2026-11-14 16:04 Asia/Taipei (UTC+08:00) 續跑
+
+b段 queryResults 連接提交 ce8dcea4，十五個新增案例先紅後綠，相關一百七十二項通過；新工具 net48 行覆蓋率63.16%，不得排除連結Fakes以抬高結果。正式矩陣重跑0 Generated／29 CompileFailed／0 BlockedByNetworkApi，原始檔與SHA見wp-reports/P5-02.md。a段尚缺黃金、固定guard未完成，不將b局部成功當整包驗收。

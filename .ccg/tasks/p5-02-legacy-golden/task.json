@@ -6,7 +6,7 @@
   "risk": "high",
   "domain": "tools",
   "currentPhase": "implementation",
-  "nextAction": "PresentRecord正式generate仍CompileFailed；依使用者第5點待決定整包D5-3，保留a未驗收，b後續；不擴充反射、不推送",
+  "nextAction": "b段queryResults已局部通過；工具覆蓋率63.16%待補強；PresentRecord仍待使用者決定整包D5-3，不推送、不進P5-03",
   "createdAt": "2026-11-14T13:44:31+08:00",
   "branch": "1.0.0.11.Integration.P5.Worktree"
 }
