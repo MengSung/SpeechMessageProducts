@@ -25,7 +25,7 @@
 
 ## 唯一驗收清單（05A P5-03a 與 §4A）
 
-以下同名測試已存在，截至 2026-11-14 22:47 Asia/Taipei (UTC+08:00) 已驗證的 Deployment Release 全套 674／674 包含這些案例；這不等於整包驗收。
+以下同名測試已存在，最近已驗證的 Deployment Release 全套 684／684 包含這些案例；這不等於整包驗收。
 
 - [x] `Shadow_SameFields_NoDifference`
 - [x] `Shadow_DifferentValue_Reported`
@@ -54,10 +54,10 @@
 
 ## 完成定義（00 §7.1，不得加碼）
 
-- [x] 1. 本包上述同名測試全部通過；Deployment 為 net10.0 單目標，Release 674／674。
+- [x] 1. 本包上述同名測試全部通過；Deployment 為 net10.0 單目標，Release 684／684。
 - [ ] 2. 00 §8.1 全部命令在固定 guard `C:\smv\guard` 通過；本包尚未完成，不能沿用 P5-02 的守門。
 - [x] 3. 本包沒有新增專案，覆蓋率條件不適用。
-- [ ] 4. diagnostics enabled → smoke → off → verify=0、步驟 ID 不變、殘留 0 與一頁操作紀錄；F16 已確認為 Microsoft ActivityFeeds 分類誤判，修正後只重跑唯讀匯出，仍未執行本項。
+- [ ] 4. diagnostics enabled → smoke → off → verify=0、步驟 ID 不變、殘留 0 與一頁操作紀錄；F16 已確認為 Microsoft ActivityFeeds 分類誤判，修正後只重跑唯讀匯出，已執行本項，但 smoke 未取得 trace，不能勾選完成。
 - [ ] 5. 子任務 `wp-reports\` 的一頁驗收回報與進度頁；目前只有進行中前置紀錄，不能標驗收。
 
 ## 尚缺產物與時間盒
@@ -65,3 +65,7 @@
 - `shadow` 的 new／reading／legacy-golden CRUD 新輪 CLI、同步 RequestId、關聯 observe 與 Create 別名已接通；26 項新測試含舊輪 SDK 關聯讀回、歧義拒絕、同輪 Create／Delete 的完整意圖及送達後失敗／取消的子列清理。受控 `switch --to legacy` 及 live 基準受審 token 盤點接線、推播／外部修改摘要、映像接線與同步實機追蹤識別仍待完成；全部仍是離線證據。
 - P5-03a 上限為 1 天；P5-03 已依 D5-11／D5-12 拆 a、b。原 2026-11-14 23:30 Asia/Taipei (UTC+08:00) 驗收估計不再承諾，離線契約完成後重新估計，不虛填完成時間。
 - 39 個啟用步驟已以公開簽章、managed 狀態及 ActivityFeedsCore／microsoftdynamics 的正式方案關聯確認為 Microsoft ActivityFeeds；`0323f4cd` 修正窄分類後，唯讀 CLI 回 0、舊步驟與流程啟用各 0，沒有變更遠端狀態，無需使用者處置。
+
+## 2026-11-15 02:20 Asia/Taipei (UTC+08:00) 續跑更正
+
+2026-11-15 02:20 Asia/Taipei (UTC+08:00)：P5-03a續作；更正前次判讀：async statecode=3／statuscode=30為成功，不能寫成Plugin執行失敗。唯讀確認原追蹤為Exceptions(1)；本輪暫改All(2)並讀回，再執行enabled→smoke→off→verify。smoke三分鐘未取得trace回1，off及verify回0，原追蹤1已還原，同一步驟停用、測試task為0；時間窗有1筆該步驟成功作業、trace為0，尚未證明job殘留為0。未證實服務故障，撤回要求使用者重啟的判斷，不再盲目重試。離線最近已驗證684/684；2f946479已接通受審token舊輪shadow CLI，獨立legacy switch、推播比較／外部修改摘要與其餘接線待完成。P5-03未驗收、未推送，完整固定guard未跑；驗收時間待剩餘接線及追蹤原因釐清後重估。
