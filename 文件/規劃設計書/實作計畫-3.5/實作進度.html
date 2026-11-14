@@ -240,11 +240,11 @@ footer{margin-top:36px;color:var(--muted);font-size:12.5px;text-align:center}
  */
 const DATA = {
   "planVersion": "3.5",
-  "snapshot": "2026-11-14 11:25 Asia/Taipei (UTC+08:00)",
-  "lastUpdated": "2026-11-14T11:25:29+08:00",
+  "snapshot": "2026-11-14 15:50 Asia/Taipei (UTC+08:00)",
+  "lastUpdated": "2026-11-14T15:50:33+08:00",
   "branch": "1.0.0.11.Integration.P5.Worktree",
-  "head": "cdfaf41e",
-  "headline": "2026-11-14 11:38 Asia/Taipei (UTC+08:00)：P5-01 已驗收並推送；更新回復前置離線實作中，尚未部署模組。",
+  "head": "37e54bf8",
+  "headline": "2026-11-14 15:50 Asia/Taipei (UTC+08:00)：更新回復前置 12:54 已完成；P5-02a 實跑被編譯安全守門拒絕，尚未驗收，待使用者決定 D5-3；b 段後續。",
   "notices": [
     {
       "id": "plan-3.5-summary",
@@ -511,8 +511,8 @@ const DATA = {
       "phaseId": "階段 5",
       "level": "info",
       "title": "P5 進度摘要",
-      "lastUpdated": "2026-11-14T12:54:00+08:00",
-      "body": "2026-11-14 12:54 Asia/Taipei (UTC+08:00)：P5-01已驗收；更新回復前置完整guard八項通過，Release5524/5524；實機沙箱版本3→4→3、同step ID、不需重啟。收尾verify=0、trace1、本輪task/job/trace0。P5-02尚未驗收；原型尚缺實際執行舊入口與傳輸攔截，補齊後才進P5-03。",
+      "lastUpdated": "2026-11-14T15:50:33+08:00",
+      "body": "2026-11-14 15:50 Asia/Taipei (UTC+08:00)：更新回復前置 12:54 已完成。P5-02a 局部測試 157/157、文件守門通過；15:46 PresentRecord 正式 generate 回 CompileFailed、未產生 legacy.json。原定最晚 17:25 判定，現已提前確認既有管線無法通過；依使用者第5點停下擴充，待決定是否整包走 D5-3，不能承諾驗收時間。a 為三項安全措施加出席至少三情境黃金；b 為 36 專案／29 入口矩陣與查詢補強，排除零來源方案殼；覆蓋率及固定 guard 未完成，未推送。",
       "steps": [
         "2026-11-14 08:26 Asia/Taipei (UTC+08:00)：已確認目標殘留目錄不是 Git worktree，移除後正式 P4／P5 worktree 清單不受影響。",
         "2026-11-14 08:26 Asia/Taipei (UTC+08:00)：export-metadata 唯讀結構快照建立成功；verify 因本機部署執行檔／連線前置失敗，未宣稱 goodshepherdback verify=0。",
@@ -526,7 +526,9 @@ const DATA = {
         "2026-11-14 11:58 Asia/Taipei (UTC+08:00)：獨立複核W1共用correlation誤判已先紅2案再修復，Deployment236/236；合併驗證器改分辨抽象外殼與唯一具體入口，6/6通過。W2已補Live真解密與MAC拒絕，但卸載CSP例外仍列阻擋，不以VSTest exit0冒稱資源清理通過。",
         "2026-11-14 12:27 Asia/Taipei (UTC+08:00)：CSP根因已獨立定位；最小Framework相容修正經真程序紅綠驗證，Plugins Release172/172、CAS Debug5/5、加密雙宿主各33/33、合併member6/6與metadata通過。仍待完整guard及實機三次版本，不標前置驗收。",
         "2026-11-14 12:54 Asia/Taipei (UTC+08:00)：固定8ad4dccc完整八項守門通過；D34有效。12:50–12:53沙箱1.0.0.3→1.0.0.4→1.0.0.3首次smoke皆0、step ID不變，不需重啟；收尾清單false、trace1、19自訂步驟全停用，3個本次task與關聯job/trace殘留0。回報wp-reports/P5-update-rollback.md；外部三輪無結果，未取得外部審查，本地獨立Critical0/High0。",
-        "2026-11-14 13:44 Asia/Taipei (UTC+08:00)：撤回P5-02完成與P5-03啟動標記；既有原型未執行舊入口，不能把合成值當作舊行為證據；正在補齊05A全部驗收。"
+        "2026-11-14 13:44 Asia/Taipei (UTC+08:00)：撤回P5-02完成與P5-03啟動標記；既有原型未執行舊入口，不能把合成值當作舊行為證據；正在補齊05A全部驗收。",
+        "2026-11-14 15:44 Asia/Taipei (UTC+08:00)：依使用者更正撤回六個逐情境合成小檔，固定三檔契約不以手寫 legacy 補數；保留使用者的兩處設計 v3.4。dde961fb 曾於驗收前推送，保留歷史；後續僅該包驗收及固定 guard 通過才推送，再以 git ls-remote 核對。工作包內自行分析，外部審查僅於階段結束執行。",
+        "2026-11-14 15:50 Asia/Taipei (UTC+08:00)：157項局部測試及1519檔文件檢查通過；綠燈小段提交 37e54bf8。PresentRecord 尚缺實跑黃金，編譯固定診斷與未完成條件見 research/p5-02a-checkpoint.md；沒有將局部綠燈當整包驗收。"
       ]
     }
   ],
@@ -1378,7 +1380,7 @@ const DATA = {
       "timebox": "1 天",
       "doneAt": "",
       "commit": "",
-      "note": "2026-11-14 13:44 Asia/Taipei (UTC+08:00)：更正先前完成標記：cdfaf41e僅編譯盤點原型；合成值不是舊程式黃金。實際執行、攔截、覆蓋率與編譯矩陣仍待補齊。"
+      "note": "2026-11-14 15:50 Asia/Taipei (UTC+08:00)：更新回復前置 12:54 已完成。P5-02a 局部測試 157/157、文件守門通過；15:46 PresentRecord 正式 generate 回 CompileFailed、未產生 legacy.json。原定最晚 17:25 判定，現已提前確認既有管線無法通過；依使用者第5點停下擴充，待決定是否整包走 D5-3，不能承諾驗收時間。a 為三項安全措施加出席至少三情境黃金；b 為 36 專案／29 入口矩陣與查詢補強，排除零來源方案殼；覆蓋率及固定 guard 未完成，未推送。"
     },
     {
       "id": "P5-03",
@@ -1732,7 +1734,38 @@ const DATA = {
       "note": "2026-11-14 12:54 Asia/Taipei (UTC+08:00)：8ad4dccc完整守門通過，實機3→4→3、step ID不變、免重啟；三次smoke/verify0、收尾停用及殘留0，詳wp-reports/P5-update-rollback.md。"
     }
   ],
-  "active": [{"id":"P5-02","dod":[["執行舊程式並記錄行為","no","原型尚未實作"],["傳輸與檔案安全攔截","no","待補齊"],["出席實際黃金與期望差異契約","no","合成原型不能驗收"],["全部入口編譯與覆蓋率80%","no","待驗證"],["固定守門及審查回報","no","完成實作後執行"]]}],
+  "active": [
+    {
+      "id": "P5-02",
+      "dod": [
+        [
+          "執行舊程式並記錄行為",
+          "no",
+          "15:46正式generate拒絕；待使用者決定D5-3"
+        ],
+        [
+          "傳輸與檔案安全攔截",
+          "no",
+          "局部測試157/157；正式閉包尚未通過，不代表完整驗收"
+        ],
+        [
+          "出席實際黃金與期望差異契約",
+          "no",
+          "尚缺工具產生 legacy.json 及 expected.json"
+        ],
+        [
+          "a 段覆蓋率80%；b 段矩陣查詢補強",
+          "no",
+          "依 D5-12 分段；36 專案排除零來源殼"
+        ],
+        [
+          "固定守門及驗收回報",
+          "no",
+          "a 驗收後守門通過才推送；階段末外審"
+        ]
+      ]
+    }
+  ],
   "gates": [
     {
       "item": "方案建置（Release）",
