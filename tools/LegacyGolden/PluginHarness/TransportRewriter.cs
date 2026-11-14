@@ -3,7 +3,7 @@
 
 目的與定位：把舊 Plugin／Workflow 的 HTTP、RestSharp 與檔案建構改寫成 harness 記錄或 scratch 入口，並拒絕不能證明安全的傳輸、程序、反射及實體檔案操作。
 
-主要功能與流程：使用改寫前的 Roslyn semantic model 識別 alias 與完整型別名稱，逐樹轉換 HttpClient、RestClient、FileStream、File／Directory 與文字 reader／writer 的路徑建構。URL 常值本身不構成拒絕條件；只有無法替換的 WebRequest/WebClient、Socket/TcpClient 等明確傳輸型別會分類為網路阻擋。純資料型別不因位於 System.Net namespace 而整批拒絕。改寫後重新建立 semantic model 驗證，不依註解或字串裡的 API 名稱判定；IOrganizationService 是假服務契約，不視為連外。其他檔案、反射或執行逃逸限制仍拒絕，但由編譯失敗分類承載。錯誤只回固定代碼與檔名，不回原始碼、URL、token 或例外本文。
+主要功能與流程：使用改寫前的 Roslyn semantic model 識別 alias 與完整型別名稱，逐樹轉換 HttpClient、RestClient、FileStream、File／Directory 與文字 reader／writer 的路徑建構。URL 常值本身不構成拒絕條件；只有無法替換的 WebRequest/WebClient、Socket/TcpClient 等明確傳輸型別會分類為網路阻擋。純資料型別不因位於 System.Net namespace 而整批拒絕。工具組件內只明列容許既有六個純離線 Rest 相容型別，其他工具 API 仍不可由來源直接使用。改寫後重新建立 semantic model 驗證，不依註解或字串裡的 API 名稱判定；IOrganizationService 是假服務契約，不視為連外。其他檔案、反射或執行逃逸限制仍拒絕，但由編譯失敗分類承載。錯誤只回固定代碼與檔名，不回原始碼、URL、token 或例外本文。
 
 使用邊界與維護：本檔不建立傳輸、不開啟檔案、不執行改寫產物，僅保存單次編譯的語法樹與有界診斷。ScratchFiles 的路徑映射／容量及釋放由 runtime owner 負責，HttpClient 的固定 handler 由記錄替身擁有；來源不得覆寫 handler、透過原始網路型別或反射逃逸。源碼驗證不能替代 runner 的隔離 AppDomain、不可用 proxy 與 finally 卸載。新增 API 必須有精確攔截與負向測試，不得因依賴出現未知 API 就放寬邊界。
 */
@@ -42,6 +42,7 @@ internal sealed class TransportRewriter : CSharpSyntaxRewriter
     private readonly List<string> diagnostics;
     private readonly bool rewrittenPass;
     private static readonly string[] FileMethods = { "ReadAllBytes", "ReadAllText", "ReadAllLines", "WriteAllBytes", "WriteAllText", "WriteAllLines", "AppendAllText", "AppendAllLines", "Exists", "Delete" };
+    private static readonly string[] OfflineRestTypes = { "RestSharp.RestClient", "RestSharp.RestRequest", "RestSharp.IRestResponse", "RestSharp.RestResponse", "RestSharp.Method", "RestSharp.ParameterType" };
     private static readonly string[] PureIoTypes = { "Stream", "MemoryStream", "TextReader", "TextWriter", "StringReader", "StringWriter", "BinaryReader", "BinaryWriter",
         "IOException", "InvalidDataException", "FileNotFoundException", "EndOfStreamException", "FileMode", "FileAccess", "FileShare", "SeekOrigin", "Path", "StreamReader", "StreamWriter", "FileStream" };
     private static readonly string[] HttpDataTypes = { "HttpClient", "HttpMessageInvoker", "HttpRequestMessage", "HttpResponseMessage", "HttpContent", "StringContent", "ByteArrayContent", "StreamContent", "MultipartContent", "MultipartFormDataContent", "FormUrlEncodedContent", "HttpMethod", "HttpCompletionOption", "HttpRequestException", "HttpResponseHeaders", "HttpRequestHeaders", "HttpContentHeaders", "MediaTypeHeaderValue", "AuthenticationHeaderValue", "HttpHeaders", "NameValueHeaderValue", "ContentDispositionHeaderValue", "HttpResponseMessageExtensions", "HttpClientExtensions", "HttpContentExtensions" };
@@ -351,9 +352,11 @@ internal sealed class TransportRewriter : CSharpSyntaxRewriter
 
         var ns = type.ContainingNamespace?.ToDisplayString() ?? string.Empty;
         var full = type.ToDisplayString();
-        // 原始來源只能使用 SDK 契約；工具公開API包含發布與讀取功能，不是舊來源可借用的安全能力。
+        // Rest 相容面和工具共用組件，但六個明列型別只記錄、不開網路；不能按組件整批誤擋。
+        // 其餘工具公開 API 包含發布與讀取功能，不是舊來源可借用的安全能力；不可放行整個 namespace。
         // 第二遍才容許由本rewriter插入的記錄替身與scratch呼叫，不能讓來源自行取得它們。
-        if (!rewrittenPass && type.ContainingAssembly?.Name == typeof(TransportRewriter).Assembly.GetName().Name)
+        if (!rewrittenPass && type.ContainingAssembly?.Name == typeof(TransportRewriter).Assembly.GetName().Name
+            && !OfflineRestTypes.Contains(full, StringComparer.Ordinal))
         {
             Block(node, "HarnessApiRefused");
         }
