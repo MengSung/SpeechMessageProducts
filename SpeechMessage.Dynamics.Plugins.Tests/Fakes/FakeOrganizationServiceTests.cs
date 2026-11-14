@@ -7,6 +7,8 @@
  * 主要功能與流程：各案例以合成 Entity 建立獨立表，注入不支援的運算子、重複識別、
  * 多對一連結與可變 SDK 值，斷言 CRUD、篩選、排序、連結及回傳值的深層分離。
  * 故障之後再次讀取原資料，以確認失敗沒有部分更新或吞掉既有記錄。
+ * 活動案例另以 appointment／task 的 activityid 驗證兩種查詢的篩選、投影及連結，
+ * 注入衝突主鍵並確認舊快照不變；未知實體必須具名拒絕，不能猜測特殊主鍵。
  *
  * 使用邊界與維護：每個案例獨佔 fake，不使用真實連線、憑證或背景工作；案例結束
  * 由 using owner 清除表、關聯、回呼與計數。併行案例只共享同一案例明確建立的服務，
@@ -25,6 +27,153 @@ namespace SpeechMessage.Dynamics.Plugins.Tests.Fakes;
 /// <summary>以合成 SDK 輸入與決定性斷言保護離線資料及查詢契約，各案例各自擁有替身。</summary>
 public sealed class FakeOrganizationServiceTests
 {
+    /// <summary>
+    /// 活動只以 activityid 篩選，兩筆同名不同識別不能混淆；兩種查詢均須只取命中的正式主鍵。
+    /// 使用合成表與不含主鍵屬性的輸入，刻意依賴替身補齊；using 在案例結束排空。
+    /// </summary>
+    [Theory]
+    [InlineData("appointment", false)]
+    [InlineData("appointment", true)]
+    [InlineData("task", false)]
+    [InlineData("task", true)]
+    public void Fake_Activity_PrimaryFilter(string entityName, bool fetch)
+    {
+        using var service = new FakeOrganizationService();
+        var id = service.Create(new Entity(entityName) { ["subject"] = "same" });
+        service.Create(new Entity(entityName) { ["subject"] = "same" });
+        var expression = new QueryExpression(entityName) { ColumnSet = new ColumnSet("activityid") };
+        expression.Criteria.AddCondition("activityid", ConditionOperator.Equal, id);
+        QueryBase query = fetch ? new FetchExpression("<fetch><entity name='" + entityName +
+            "'><attribute name='activityid'/><filter><condition attribute='activityid' operator='eq' value='" +
+            id.ToString("D") + "'/></filter></entity></fetch>") : expression;
+        var row = Assert.Single(service.RetrieveMultiple(query).Entities);
+        Assert.Equal(id, row.Id);
+        Assert.Equal(id, row["activityid"]);
+        Assert.False(row.Contains(entityName + "id"));
+    }
+
+    /// <summary>
+    /// 未要求主鍵的投影仍須帶 activityid，不能製造 appointmentid／taskid；修改回傳主鍵不影響表。
+    /// 合成活動經 Update 再用 Retrieve 及兩種查詢讀回，確保所有寫讀路徑共用身分規則。
+    /// </summary>
+    [Theory]
+    [InlineData("appointment", false)]
+    [InlineData("appointment", true)]
+    [InlineData("task", false)]
+    [InlineData("task", true)]
+    public void Fake_Activity_PrimaryProjection(string entityName, bool fetch)
+    {
+        using var service = new FakeOrganizationService();
+        var id = service.Create(new Entity(entityName));
+        service.Update(new Entity(entityName, id) { ["subject"] = "after" });
+        QueryBase query = fetch ? new FetchExpression("<fetch><entity name='" + entityName +
+            "'><attribute name='subject'/></entity></fetch>") :
+            new QueryExpression(entityName) { ColumnSet = new ColumnSet("subject") };
+        var row = Assert.Single(service.RetrieveMultiple(query).Entities);
+        Assert.Equal(id, row["activityid"]);
+        Assert.Equal("after", row["subject"]);
+        Assert.False(row.Contains(entityName + "id"));
+        row["activityid"] = Guid.NewGuid();
+        var retrieved = service.Retrieve(entityName, id, new ColumnSet(false));
+        Assert.Equal(id, retrieved["activityid"]);
+        Assert.Single(retrieved.Attributes);
+    }
+
+    /// <summary>
+    /// 活動作為連結兩端時皆使用 activityid；加入不匹配的同名活動，避免忽略 join 的假陽性。
+    /// 兩種查詢須保留根身分及別名主鍵，別名 metadata 指向實際活動欄位；using 清除全部合成列。
+    /// </summary>
+    [Theory]
+    [InlineData("appointment", "task", false)]
+    [InlineData("appointment", "task", true)]
+    [InlineData("task", "appointment", false)]
+    [InlineData("task", "appointment", true)]
+    public void Fake_Activity_PrimaryLink(string rootName, string linkedName, bool fetch)
+    {
+        using var service = new FakeOrganizationService();
+        var id = Guid.NewGuid();
+        service.Create(new Entity(rootName, id) { ["subject"] = "same" });
+        service.Create(new Entity(rootName) { ["subject"] = "same" });
+        service.Create(new Entity(linkedName, id));
+        service.Create(new Entity(linkedName));
+        var expression = new QueryExpression(rootName) { ColumnSet = new ColumnSet("subject") };
+        var link = expression.AddLink(linkedName, "activityid", "activityid");
+        link.EntityAlias = "a";
+        link.Columns = new ColumnSet("activityid");
+        link.LinkCriteria.AddCondition("activityid", ConditionOperator.Equal, id);
+        QueryBase query = fetch ? new FetchExpression("<fetch><entity name='" + rootName +
+            "'><attribute name='subject'/><link-entity name='" + linkedName +
+            "' from='activityid' to='activityid' alias='a'><attribute name='activityid'/>" +
+            "<filter><condition attribute='activityid' operator='eq' value='" + id.ToString("D") +
+            "'/></filter></link-entity></entity></fetch>") : expression;
+        var row = Assert.Single(service.RetrieveMultiple(query).Entities);
+        Assert.Equal(id, row.Id);
+        Assert.Equal(id, row["activityid"]);
+        var alias = Assert.IsType<AliasedValue>(row["a.activityid"]);
+        Assert.Equal(linkedName, alias.EntityLogicalName);
+        Assert.Equal("activityid", alias.AttributeLogicalName);
+        Assert.Equal(id, alias.Value);
+        Assert.False(row.Contains("a." + linkedName + "id"));
+    }
+
+    /// <summary>
+    /// 與 Entity.Id 不同、空值或非 GUID 的 activityid 必須在 Create／Update 發布前拒絕。
+    /// 故障後兩種查詢仍讀到原主鍵及原 subject，列數不變；案例 owner 確定性排空。
+    /// </summary>
+    [Theory]
+    [InlineData("appointment", false)]
+    [InlineData("appointment", true)]
+    [InlineData("task", false)]
+    [InlineData("task", true)]
+    public void Fake_Activity_ConflictingIdentity(string entityName, bool fetch)
+    {
+        using var service = new FakeOrganizationService();
+        var id = service.Create(new Entity(entityName) { ["subject"] = "before" });
+        foreach (var invalid in new object?[] { Guid.NewGuid(), Guid.Empty, null, "invalid" })
+        {
+            Assert.Throws<InvalidOperationException>(() => service.Create(
+                new Entity(entityName, Guid.NewGuid()) { ["activityid"] = invalid }));
+            Assert.Throws<InvalidOperationException>(() => service.Update(
+                new Entity(entityName, id) { ["subject"] = "after", ["activityid"] = invalid }));
+        }
+        QueryBase query = fetch ? new FetchExpression("<fetch><entity name='" + entityName +
+            "'><attribute name='subject'/></entity></fetch>") :
+            new QueryExpression(entityName) { ColumnSet = new ColumnSet("subject") };
+        var row = Assert.Single(service.RetrieveMultiple(query).Entities);
+        Assert.Equal(id, row["activityid"]);
+        Assert.Equal("before", row["subject"]);
+        Assert.Equal(1, service.EntityCount);
+    }
+
+    /// <summary>
+    /// 未宣告 metadata 的活動及特殊主鍵實體不能套用名稱加 id；空表根與連結亦須具名拒絕。
+    /// 故障注入使用 email／activitypointer／不明名稱；不建立外部服務，using 排空本案例。
+    /// </summary>
+    [Theory]
+    [InlineData("email", false)]
+    [InlineData("email", true)]
+    [InlineData("activitypointer", false)]
+    [InlineData("activitypointer", true)]
+    [InlineData("unsupported_special", false)]
+    [InlineData("unsupported_special", true)]
+    public void Fake_Activity_UnknownPrimaryMappingFailsClosed(string entityName, bool fetch)
+    {
+        using var service = new FakeOrganizationService();
+        Assert.Contains("PrimaryIdAttribute." + entityName, Assert.Throws<NotSupportedException>(
+            () => service.Create(new Entity(entityName))).Message, StringComparison.Ordinal);
+        QueryBase root = fetch ? new FetchExpression("<fetch><entity name='" + entityName +
+            "'><attribute name='activityid'/></entity></fetch>") : new QueryExpression(entityName);
+        Assert.Contains("PrimaryIdAttribute." + entityName, Assert.Throws<NotSupportedException>(
+            () => service.RetrieveMultiple(root)).Message, StringComparison.Ordinal);
+        var expression = new QueryExpression("contact");
+        expression.AddLink(entityName, "regardingobjectid", "activityid");
+        QueryBase linked = fetch ? new FetchExpression("<fetch><entity name='contact'><link-entity name='" +
+            entityName + "' from='activityid' to='regardingobjectid'/></entity></fetch>") : expression;
+        Assert.Contains("PrimaryIdAttribute." + entityName, Assert.Throws<NotSupportedException>(
+            () => service.RetrieveMultiple(linked)).Message, StringComparison.Ordinal);
+        Assert.Equal(0, service.EntityCount);
+    }
+
     /// <summary>即使資料表為空，未知運算子也必須具名拒絕，避免未支援語法被當成查無資料。</summary>
     [Fact]
     public void Fake_UnsupportedQuery_ThrowsNamedFeature()

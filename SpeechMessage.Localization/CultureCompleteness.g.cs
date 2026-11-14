@@ -16,7 +16,7 @@ namespace SpeechMessage.Localization
     public static class CultureCompleteness
     {
         /// <summary>所有唯一中性資源鍵的數目，不以顯示文字合併記錄。</summary>
-        public const int TotalKeyCount = 238;
+        public const int TotalKeyCount = 239;
 
         /// <summary>回傳原始非空白翻譯數；未知、空值及偽語系皆為零，沒有 fallback。</summary>
         /// <param name="culture">啟動政策中的文化代碼，以 OrdinalIgnoreCase 比對。</param>
@@ -24,7 +24,7 @@ namespace SpeechMessage.Localization
         public static int GetTranslatedKeyCount(string? culture)
         {
             if (string.Equals(culture, "en", System.StringComparison.OrdinalIgnoreCase)) return 6;
-            if (string.Equals(culture, "zh-TW", System.StringComparison.OrdinalIgnoreCase)) return 238;
+            if (string.Equals(culture, "zh-TW", System.StringComparison.OrdinalIgnoreCase)) return 239;
             return 0;
         }
 

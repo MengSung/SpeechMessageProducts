@@ -6,6 +6,8 @@
  * 主要功能與流程：同次新建列的 Update／Retrieve 使用深複製 overlay，Delete 留墓碑；
  * RetrieveMultiple 永遠只讀真服務，不合併 overlay。Execute 只轉送明列的唯讀訊息，
  * 已知 CRUD／關聯寫入走相同記錄路徑，未知、批次及缺參數訊息均拒絕且不回顯輸入。
+ * 讀取結果允許經逐段驗證的 alias.field；寫入仍只接受實際 schema 欄位。
+ * RelatedEntities 尚未支援，任何複製路徑都明確拒絕，不能靜默遺失相關寫入。
  * 使用邊界與維護：每次 Execute 獨占實例，不支援同實例平行使用；overlay 最多 64 列，
  * 每列最多 128 欄位、2048 值節點與 65536 字元／位元組，超量直接失敗，不靜默逐出。
  * 安全摘要最多 128 筆及 16000 字元，超量只累計總數並標記 Overflow。原始資料只供
@@ -17,6 +19,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Globalization;
+using System.IO;
 using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
@@ -84,7 +87,7 @@ internal sealed class RecordingOrganizationService : IOrganizationService, IDisp
     public Guid Create(Entity entity)
     {
         EnsureActive();
-        var candidate = CloneEntity(entity);
+        var candidate = CloneEntity(entity, allowAliases: false);
         var sequence = checked(createSequence + 1);
         var id = entity.Id == Guid.Empty
             ? SpeechMessageProducts.GoodShepherd.Core.Rules.DeterministicGuid.Create("shadow-create", sequence, candidate.LogicalName) : entity.Id;
@@ -103,7 +106,7 @@ internal sealed class RecordingOrganizationService : IOrganizationService, IDisp
     public void Update(Entity entity)
     {
         EnsureActive();
-        var patch = CloneEntity(entity);
+        var patch = CloneEntity(entity, allowAliases: false);
         var key = Key(patch.LogicalName, patch.Id);
         Entity? candidate = null;
         if (localRows.TryGetValue(key, out var previous))
@@ -182,15 +185,19 @@ internal sealed class RecordingOrganizationService : IOrganizationService, IDisp
     public void Dispose() { Clear(); disposed = true; }
 
     /// <summary>提供 PluginInput 共用的有界深複製，未知可變值、循環與超量圖形固定拒絕。</summary>
-    internal static Entity CloneEntity(Entity source)
+    internal static Entity CloneEntity(Entity source, bool allowAliases = true)
     {
         if (source is null) throw new ArgumentNullException(nameof(source));
-        return (Entity)CloneValue(source, new CloneBudget(), 0)!;
+        return (Entity)CloneValue(source, new CloneBudget(allowAliases), 0)!;
     }
 
     /// <summary>每次 Clone 獨立的容量預算，阻止無界遞迴及單列保留。</summary>
     private sealed class CloneBudget
     {
+        /// <summary>只有讀取快照可以保存 alias.field；寫入不能用查詢別名冒充 schema。</summary>
+        internal readonly bool AllowAliases;
+        /// <summary>以本次操作角色建立不共享的容量與欄位政策。</summary>
+        internal CloneBudget(bool allowAliases) => AllowAliases = allowAliases;
         /// <summary>整個單列圖形剩餘值節點，包含集合及 reference。</summary>
         internal int Nodes = 2048;
         /// <summary>原文及二進位總容量，單列最多 65536 單位。</summary>
@@ -218,10 +225,21 @@ internal sealed class RecordingOrganizationService : IOrganizationService, IDisp
         if (value is Entity entity)
         {
             ValidateName(entity.LogicalName);
-            if (entity.Attributes.Count > 128 || entity.KeyAttributes.Count > 128) throw new NotSupportedException("Shadow field capacity exceeded.");
+            if (entity.RelatedEntities.Count != 0) throw new NotSupportedException("Shadow.Unsupported.RelatedEntities");
+            if (entity.Attributes.Count > 128 || entity.KeyAttributes.Count > 128 || entity.FormattedValues.Count > 128)
+                throw new NotSupportedException("Shadow field capacity exceeded.");
             var copy = new Entity(entity.LogicalName, entity.Id) { RowVersion = (string?)CloneValue(entity.RowVersion, budget, depth + 1) };
-            foreach (var pair in entity.Attributes) { ValidateName(pair.Key); copy[pair.Key] = CloneValue(pair.Value, budget, depth + 1); }
+            foreach (var pair in entity.Attributes)
+            {
+                ValidateAttributeName(pair.Key, budget.AllowAliases && pair.Value is AliasedValue);
+                copy[pair.Key] = CloneValue(pair.Value, budget, depth + 1);
+            }
             foreach (var pair in entity.KeyAttributes) { ValidateName(pair.Key); copy.KeyAttributes[pair.Key] = CloneValue(pair.Value, budget, depth + 1); }
+            foreach (var pair in entity.FormattedValues)
+            {
+                ValidateAttributeName(pair.Key, budget.AllowAliases);
+                copy.FormattedValues.Add(pair.Key, (string)CloneValue(pair.Value, budget, depth + 1)!);
+            }
             return copy;
         }
         if (value is EntityReference reference)
@@ -281,6 +299,18 @@ internal sealed class RecordingOrganizationService : IOrganizationService, IDisp
         if (string.IsNullOrWhiteSpace(name) || name.Length > 128 || name.Any(character => !(char.IsLetterOrDigit(character) && character < 128) && character != '_'))
             throw new ArgumentException("Invalid schema name.");
     }
+    /// <summary>讀取別名恰為兩段合法 schema；其他路徑沿用嚴格實際欄位驗證。</summary>
+    private static void ValidateAttributeName(string name, bool allowAlias)
+    {
+        var separator = name.IndexOf('.');
+        if (!allowAlias || separator < 0)
+        {
+            ValidateName(name);
+            return;
+        }
+        ValidateName(name.Substring(0, separator));
+        ValidateName(name.Substring(separator + 1));
+    }
     /// <summary>以字串邊界建立 key，避免 net462 引入 ValueTuple 相依。</summary>
     private static string Key(string name, Guid id)
     {
@@ -328,6 +358,19 @@ internal sealed class RecordingOrganizationService : IOrganizationService, IDisp
         if (entity.KeyAttributes.Count > 0) result["keys"] = ProjectFields(entity.KeyAttributes);
         return result.ToString(Formatting.None);
     }
+
+    /// <summary>安全摘要往返保留 decimal 精度與日期字串，避免依主機時區重寫業務值。</summary>
+    internal static JObject ReadProjection(string json)
+    {
+        using var text = new StringReader(json);
+        using var reader = new JsonTextReader(text)
+        {
+            DateParseHandling = DateParseHandling.None,
+            FloatParseHandling = FloatParseHandling.Decimal,
+            MaxDepth = 32
+        };
+        return JObject.Load(reader);
+    }
     /// <summary>固定版本一操作外框，writer 再加入輸出序號；不假造巢狀未存檔 Entity 的 ID。</summary>
     private static JObject BaseProjection(string operation, string name, Guid id) => new()
     {
@@ -367,7 +410,7 @@ internal sealed class RecordingOrganizationService : IOrganizationService, IDisp
                 if (IsExcluded(alias.AttributeLogicalName)) return null;
                 var projected = ProjectValue(alias.Value);
                 return IsPersonal(alias.AttributeLogicalName) && projected is not null ? Hash(alias.Value as string ?? projected.ToString(Formatting.None)) : projected;
-            case Entity entity: return JObject.Parse(Project("Entity", entity));
+            case Entity entity: return ReadProjection(Project("Entity", entity));
             case EntityCollection collection: return new JArray(collection.Entities.Select(ProjectValue));
             case EntityReferenceCollection references: return new JArray(references.Select(ProjectValue));
             case OptionSetValueCollection options: return new JArray(options.Select(ProjectValue));
@@ -381,7 +424,14 @@ internal sealed class RecordingOrganizationService : IOrganizationService, IDisp
         Contains(field, "cookie") || Contains(field, "lineid") || Contains(field, "line_id") || Contains(field, "content") ||
         Contains(field, "body") || Contains(field, "message") || Contains(field, "description") || Contains(field, "subject") || Contains(field, "text");
     /// <summary>個資欄位即使短字串也只記雜湊，保守涵蓋常見自訂名稱。</summary>
-    private static bool IsPersonal(string field) => Contains(field, "name") || Contains(field, "phone") || Contains(field, "tel") ||
+    private static bool IsPersonal(string field) =>
+        string.Equals(field, "new_personal_id", StringComparison.OrdinalIgnoreCase) ||
+        string.Equals(field, "new_cell_hpone", StringComparison.OrdinalIgnoreCase) ||
+        string.Equals(field, "company", StringComparison.OrdinalIgnoreCase) ||
+        string.Equals(field, "new_last_six_digit", StringComparison.OrdinalIgnoreCase) ||
+        string.Equals(field, "new_fb_account", StringComparison.OrdinalIgnoreCase) ||
+        string.Equals(field, "new_ig_account", StringComparison.OrdinalIgnoreCase) ||
+        Contains(field, "name") || Contains(field, "phone") || Contains(field, "tel") ||
         Contains(field, "mobile") || Contains(field, "email") || Contains(field, "address") || Contains(field, "birth");
     /// <summary>不依賴 regex 或全域文化的欄位片段比對。</summary>
     private static bool Contains(string value, string fragment) => value.IndexOf(fragment, StringComparison.OrdinalIgnoreCase) >= 0;

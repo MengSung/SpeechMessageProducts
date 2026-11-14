@@ -10,6 +10,8 @@
  * 取消或逾時；using owner 的 Dispose 清除資料及回呼。未 Dispose 的舊案例只由 GC 回收。
  * queryResults 以一開始為一的 RetrieveMultiple 呼叫序號明確覆蓋未知查詢，兩側均複製；
  * 這是情境指定的離線答案，不宣稱該語法受支援。缺列、重複識別、容量及未知型別均拒絕。
+ * 主鍵對照僅明列 account、contact、合成 region 與實際使用的 appointment／task；
+ * 後兩者共用 activityid。其餘實體須先擴充對照，不能以名稱猜測 metadata 或特殊主鍵。
  * 驗證：FakeOrganizationServiceTests 保護分離、原子失敗、查詢、關聯、隔離與排空。
  */
 using System;
@@ -220,7 +222,7 @@ internal sealed partial class FakeOrganizationService : IOrganizationService, ID
         ValidateIdentity(candidate);
         if (rows.ContainsKey(Key(candidate.LogicalName, candidate.Id))) throw new InvalidOperationException("Duplicate identity: " + candidate.LogicalName);
         if (rows.Count >= Capacity) throw Unsupported("Entity capacity");
-        candidate[candidate.LogicalName + "id"] = candidate.Id;
+        candidate[PrimaryIdAttribute(candidate.LogicalName)] = candidate.Id;
         rows.Add(Key(candidate.LogicalName, candidate.Id), candidate);
         return candidate.Id;
     }
@@ -235,14 +237,27 @@ internal sealed partial class FakeOrganizationService : IOrganizationService, ID
         var candidate = CloneEntity(original, 0);
         foreach (var attribute in patch.Attributes)
             if (attribute.Value is null) candidate.Attributes.Remove(attribute.Key); else candidate[attribute.Key] = attribute.Value;
-        candidate[candidate.LogicalName + "id"] = candidate.Id;
+        candidate[PrimaryIdAttribute(candidate.LogicalName)] = candidate.Id;
         rows[Key(candidate.LogicalName, candidate.Id)] = candidate;
     }
 
-    /// <summary>主鍵慣例只供本離線 subset；特殊主鍵名稱必須另行擴充，不能猜 metadata。</summary>
+    /// <summary>
+    /// 本離線子集的唯一主鍵對照：兩種既有活動使用 activityid，region 是案例明確定義的合成表。
+    /// 不查詢外部 metadata，也不保留可變對照；未知實體具名拒絕，擴充前須提供實際欄位契約與測試。
+    /// </summary>
+    private static string PrimaryIdAttribute(string entityName) => Name(entityName) switch
+    {
+        "appointment" or "task" => "activityid",
+        "account" => "accountid",
+        "contact" => "contactid",
+        "region" => "regionid",
+        _ => throw Unsupported("PrimaryIdAttribute." + Name(entityName))
+    };
+
+    /// <summary>依共用對照驗證正式主鍵；矛盾、空值或非 GUID 均在候選發布前拒絕。</summary>
     private static void ValidateIdentity(Entity entity)
     {
-        var primary = Name(entity.LogicalName) + "id";
+        var primary = PrimaryIdAttribute(entity.LogicalName);
         if (entity.Contains(primary) && (!(entity[primary] is Guid id) || id == Guid.Empty || (entity.Id != Guid.Empty && id != entity.Id)))
             throw new InvalidOperationException("Conflicting primary identity: " + primary);
     }

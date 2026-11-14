@@ -6,7 +6,8 @@
  * 主要功能與流程：先驗證整棵查詢，再連結、套用條件、排序與 TopCount，最後投影並
  * 深層複製。支援 And／Or、常見值比較及 inner／left outer 巢狀連結；未知功能具名拒絕。
  * 使用邊界與維護：不模擬權限、metadata、collation、aggregate、distinct、分頁、相對日期、
- * intersect、連結排序或主鍵特殊命名。字串以 ordinal ignore case 比較；空值只有 Null／
+ * intersect 或連結排序。主鍵只使用服務明列的有限對照，未知實體於讀表前具名拒絕，
+ * 不推測特殊命名。字串以 ordinal ignore case 比較；空值只有 Null／
  * NotNull 命中，其他運算不命中。排序 null 在前，再以正式 GUID 穩定排序。
  * 資源與驗證：呼叫者持有服務鎖，候選僅存活於該次呼叫；最多 4096 候選、16 層查詢及
  * 128KiB XML，禁用 DTD／外部解析。重複主列識別拒絕發布，不按顯示值刪除或合併；
@@ -80,9 +81,10 @@ internal sealed partial class FakeOrganizationService
     private static Entity Project(Entity source, ColumnSet columns)
     {
         ValidateColumns(columns);
+        var primary = PrimaryIdAttribute(source.LogicalName);
         var result = new Entity(source.LogicalName, source.Id) { RowVersion = source.RowVersion };
         foreach (var attribute in source.Attributes)
-            if (columns.AllColumns || columns.Columns.Contains(attribute.Key) || attribute.Key == Name(source.LogicalName) + "id")
+            if (columns.AllColumns || columns.Columns.Contains(attribute.Key) || attribute.Key == primary)
             {
                 result[attribute.Key] = CloneValue(attribute.Value, 0);
                 if (source.FormattedValues.TryGetValue(attribute.Key, out var formatted)) result.FormattedValues.Add(attribute.Key, formatted);
@@ -90,9 +92,10 @@ internal sealed partial class FakeOrganizationService
         return result;
     }
 
-    /// <summary>拒絕會改變查詢語意的進階旗標；NoLock 不影響離線已序列化的讀取。</summary>
+    /// <summary>讀表前確認明列的主鍵對照並拒絕進階旗標；空表也不能掩蓋未知實體。</summary>
     private static void ValidateQuery(QueryExpression query, Dictionary<LinkEntity, string> aliases, HashSet<string> names)
     {
+        PrimaryIdAttribute(query.EntityName);
         if (query.Distinct) throw Unsupported("QueryExpression.Distinct");
         if (query.SubQueryExpression is not null) throw Unsupported("QueryExpression.SubQueryExpression");
         if (!string.IsNullOrEmpty(query.QueryHints) || !string.IsNullOrEmpty(query.ForceSeek) || !string.IsNullOrEmpty(query.DataSource)) throw Unsupported("QueryExpression.HintsOrDataSource");
@@ -112,7 +115,7 @@ internal sealed partial class FakeOrganizationService
         }
     }
 
-    /// <summary>先收集所有 alias，防止空表漏掉未知連結；深度限制同時切斷循環查詢圖。</summary>
+    /// <summary>先驗證連結的主鍵對照並收集 alias，防止空表漏掉未知實體；深度限制切斷循環圖。</summary>
     private static void RegisterLinks(IEnumerable<LinkEntity> links, string parent, Dictionary<LinkEntity, string> aliases, HashSet<string> names, int depth)
     {
         if (depth > 16) throw Unsupported("LinkEntity.Depth");
@@ -122,6 +125,7 @@ internal sealed partial class FakeOrganizationService
             if (link.JoinOperator != JoinOperator.Inner && link.JoinOperator != JoinOperator.LeftOuter) throw Unsupported("LinkEntity.JoinOperator." + link.JoinOperator);
             if (!string.Equals(link.LinkFromEntityName, parent, StringComparison.OrdinalIgnoreCase)) throw Unsupported("LinkEntity.LinkFromEntityName");
             Name(link.LinkFromAttributeName); Name(link.LinkToAttributeName); Name(link.LinkToEntityName);
+            PrimaryIdAttribute(link.LinkToEntityName);
             if (link.Orders.Count != 0 || !string.IsNullOrEmpty(link.ForceSeek) || link.ExtensionData is not null) throw Unsupported("LinkEntity.OrdersOrHints");
             var alias = string.IsNullOrEmpty(link.EntityAlias) ? Name(link.LinkToEntityName) + (aliases.Count + 1).ToString(CultureInfo.InvariantCulture) : link.EntityAlias;
             if (!names.Add(alias)) throw Unsupported("LinkEntity.DuplicateAlias." + alias);
@@ -256,9 +260,9 @@ internal sealed partial class FakeOrganizationService
         };
     }
 
-    /// <summary>讀取屬性或慣例主鍵；缺欄位即 null，不以空字串冒充。</summary>
+    /// <summary>主鍵依共用有限對照從正式 Id 取得，含連結兩端及篩選；其他缺欄位為 null。</summary>
     private static object? Value(Entity? entity, string attribute) => entity is null ? null :
-        string.Equals(attribute, entity.LogicalName + "id", StringComparison.OrdinalIgnoreCase) ? entity.Id : entity.Attributes.TryGetValue(attribute, out var value) ? value : null;
+        string.Equals(attribute, PrimaryIdAttribute(entity.LogicalName), StringComparison.OrdinalIgnoreCase) ? entity.Id : entity.Attributes.TryGetValue(attribute, out var value) ? value : null;
     /// <summary>比較僅接受純量或 SDK 純量包裝，巢狀實體查詢必須明確擴充。</summary>
     private static object? Scalar(object? value) => value switch
     {

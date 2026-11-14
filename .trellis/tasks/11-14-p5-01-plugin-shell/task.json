@@ -21,6 +21,6 @@
   "children": [],
   "parent": "11-14-integration-p5",
   "relatedFiles": [],
-  "notes": "",
+  "notes": "Plugins Release 166/166、Core111/111雙目標、Architecture58/58；打包及assembly checker通過。待最終獨立複核及固定 guard，尚未驗收。",
   "meta": {}
 }

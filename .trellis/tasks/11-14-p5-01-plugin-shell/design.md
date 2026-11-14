@@ -14,3 +14,9 @@ Plugin context → `PluginShellBase`（驗證深度與設定）→ `PluginInput`
 ## 相容與失敗處理
 
 保留既有公開契約與 `DiagnosticsPingPlugin` 行為。業務例外轉成帶事件 ID 的標準 Plugin 例外；未知例外保留原實例與堆疊重新拋出。兩個教會目標的 mismatch 必須在 Shadow／Live 相同拒絕，不洩漏原始秘密或設定內容。
+
+## 驗證後明列的容量與比較邊界
+
+輸入及 overlay 以有界深層複製隔離；單列最多128屬性、2048值節點及65536文字／位元組單位，overlay最多64列；超量明確失敗，不靜默截斷。後續模組依盤點只註冊需要的映像及查詢欄位，超量情境不得冒稱可比對。Fake主鍵目前明列 account／contact／appointment／task 及合成 region，未知表具名拒絕；後續盤點以實際metadata擴充。
+
+影子投影依05A保留未加鹽SHA-256；這提供確定性比較，不是加密或匿名化，不能宣稱低熵個資無法推測。不引入秘密HMAC鍵或改變核定影子格式。RelatedEntities、未知Execute、批次及Upsert於本包明確拒絕；讀取alias.field逐段驗證，寫入不接受查詢別名。decimal與日期字串往返保持精度及offset。

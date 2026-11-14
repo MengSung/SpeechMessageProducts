@@ -25,6 +25,6 @@
   ],
   "parent": null,
   "relatedFiles": [],
-  "notes": "P5-00 已完成（f673666e、249f4b9a）；下一包為 P4 審查修補。",
+  "notes": "P5-00 與 P4 H-1 已完成並推送核對；P5-01 審查修正完成本機測試與打包，待固定 guard 驗收。",
   "meta": {}
 }

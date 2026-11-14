@@ -66,4 +66,12 @@ public sealed class StepConfigurationTests
         Assert.Equal(PluginExecutionMode.Shadow, new StepConfiguration(json.PadRight(4096), string.Empty).Mode);
         Assert.Throws<InvalidPluginExecutionException>(() => new StepConfiguration(json.PadRight(4097), string.Empty));
     }
+
+    /// <summary>選項日期字串保持原文與 offset；不能隱式解析成日期後誤判為非法型別。</summary>
+    [Fact]
+    public void StepConfig_DateOption_PreservesLiteral()
+    {
+        var config = new StepConfiguration("{\"mode\":\"Shadow\",\"options\":{\"when\":\"2030-01-02T03:04:05+05:45\"}}", string.Empty);
+        Assert.Equal("2030-01-02T03:04:05+05:45", config.Options["when"]);
+    }
 }

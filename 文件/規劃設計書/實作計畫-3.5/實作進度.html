@@ -240,11 +240,11 @@ footer{margin-top:36px;color:var(--muted);font-size:12.5px;text-align:center}
  */
 const DATA = {
   "planVersion": "3.5",
-  "snapshot": "2026-11-14 10:50 Asia/Taipei (UTC+08:00)",
-  "lastUpdated": "2026-11-14T10:50:36+08:00",
+  "snapshot": "2026-11-14 11:17 Asia/Taipei (UTC+08:00)",
+  "lastUpdated": "2026-11-14T11:17:09+08:00",
   "branch": "1.0.0.11.Integration.P5.Worktree",
-  "head": "76c5bddd",
-  "headline": "2026-11-14 10:50 Asia/Taipei (UTC+08:00)：P4 審查 H-1 已修並推送核對；P5-01 外殼基礎與測試替身實作中，尚未驗收。",
+  "head": "d8c0b64d",
+  "headline": "2026-11-14 11:17 Asia/Taipei (UTC+08:00)：P5-01 本機測試及打包檢查通過，審查修正待固定 guard 驗收，尚未推送本包。",
   "notices": [
     {
       "id": "plan-3.5-summary",
@@ -511,15 +511,16 @@ const DATA = {
       "phaseId": "階段 5",
       "level": "info",
       "title": "P5 進度摘要",
-      "lastUpdated": "2026-11-14T10:50:36+08:00",
-      "body": "2026-11-14 10:50 Asia/Taipei (UTC+08:00)：P5-00 與 P4 H-1 已完成；目前 HEAD 76c5bddd，P5-01 實作中。正在修正輸入深層複製、8,000 字元影子記錄與雙目標 GUID 固定向量；尚未完成整合測試、打包及守門，不列驗收。更新回復前置仍有 D365 重啟權限、verify 與影子測試 GUID／D34 待核對，尚未部署任何 P5 模組。",
+      "lastUpdated": "2026-11-14T11:17:09+08:00",
+      "body": "2026-11-14 11:17 Asia/Taipei (UTC+08:00)：P5-01 已完成本機 Plugins 166/166、Core 雙目標各111/111、Architecture58/58與打包組件檢查；審查發現的隱私、alias、活動主鍵、數值精度及收件者格式差異已修。尚待最終複核與固定 guard，不列驗收，未部署任何模組。更新回復前置仍待 D365 管理權限、verify、影子測試 GUID／D34 核對。",
       "steps": [
         "2026-11-14 08:26 Asia/Taipei (UTC+08:00)：已確認目標殘留目錄不是 Git worktree，移除後正式 P4／P5 worktree 清單不受影響。",
         "2026-11-14 08:26 Asia/Taipei (UTC+08:00)：export-metadata 唯讀結構快照建立成功；verify 因本機部署執行檔／連線前置失敗，未宣稱 goodshepherdback verify=0。",
         "2026-11-14 08:26 Asia/Taipei (UTC+08:00)：更新回復前置尚未完成；依 D5-1 不部署任何模組，P5-00 完成後接續 P4 審查修補。",
         "2026-11-14 09:02 Asia/Taipei (UTC+08:00)：P4 審查 H-1 完成並推送；提交 7ab136f3 補齊任務檔尾 CRLF，固定 guard 對該提交 §8.1 八項全通過，遠端 SHA 核對一致。明細 mismatch／default Money 對永豐與 MyPay 均在 HTTP 前拒絕，兩個計數型 handler 呼叫 0；Payments Release 100/100 通過。接下來才進入更新回復前置與 P5-01。",
         "2026-11-14 08:26 Asia/Taipei (UTC+08:00)：依 05A 修訂 1，實機影子比對採先舊後新兩輪；舊步驟先經 D5-18 且只在第一輪啟用，舊新不得同時啟用，第一輪結束（含失敗、取消）回到停用，新步驟只用 Shadow 不以 Live 啟用。",
-        "2026-11-14 10:50 Asia/Taipei (UTC+08:00)：P5-01 已建立子任務並實作；契約紅燈指出深度邊界、模式解析與字典錯誤訊息缺陷，正在補強輸入隔離、Shadow overlay 及通知分類。外部分析 Claude 有結果，Gemini 503 無結果，不宣稱雙模型完成。"
+        "2026-11-14 10:50 Asia/Taipei (UTC+08:00)：P5-01 已建立子任務並實作；契約紅燈指出深度邊界、模式解析與字典錯誤訊息缺陷，正在補強輸入隔離、Shadow overlay 及通知分類。外部分析 Claude 有結果，Gemini 503 無結果，不宣稱雙模型完成。",
+        "2026-11-14 11:17 Asia/Taipei (UTC+08:00)：保留使用者新增本機提交 d8c0b64d，後續審查修正另行提交；最終雙模型 runner 未完成，第一輪 Claude 有可用審查，Gemini503無結果，第二輪Claude額度限制，不冒稱雙模型成功。獨立複核發現的High2與Warning2已補紅綠回歸測試。"
       ]
     }
   ],
@@ -1730,17 +1731,17 @@ const DATA = {
       "id": "P5-01",
       "startedAt": "2026-11-14 10:50 Asia/Taipei (UTC+08:00)（進度補記，原開工時間未記錄）",
       "timebox": "1 天",
-      "next": "完成輸入隔離與影子記錄整合，跑指定測試、打包與固定 guard。",
+      "next": "完成最終複核，提交審查修正並在固定 guard 跑完整八項；通過後才驗收及推送。",
       "dod": [
         [
           "實作與具名測試",
-          "no",
-          "仍在修正及補強，尚未完成整合測試。"
+          "ok",
+          "Plugins166/166；Core雙目標各111/111；架構58/58及組件打包檢查通過。"
         ],
         [
           "文件與位元組規範",
-          "no",
-          "完成實作後執行文件、編碼與 CRLF 檢查。"
+          "ok",
+          "文件1493檔零失敗；Changed編碼64檔零失敗；進度頁28/28通過。"
         ],
         [
           "完整守門",

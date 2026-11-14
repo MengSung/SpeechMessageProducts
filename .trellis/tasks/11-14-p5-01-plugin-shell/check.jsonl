@@ -1,1 +1,5 @@
-{"_example": "Fill with {\"file\": \"<path>\", \"reason\": \"<why>\"}. Put spec/research files only — no code paths. Run `python .trellis/scripts/get_context.py --mode packages` to list available specs. Delete this line once real entries are added."}
+{"file": ".trellis/spec/backend/plugin-packaging-contract.md", "reason": "net462沙箱、打包與借用資源邊界"}
+{"file": ".trellis/spec/backend/file-documentation-contract.md", "reason": "逐檔繁中導讀與伴隨說明"}
+{"file": ".trellis/spec/backend/text-encoding-contract.md", "reason": "無BOM、CRLF及末尾CRLF"}
+{"file": ".trellis/spec/backend/localization-contract.md", "reason": "固定資源鍵及具名格式化"}
+{"file": ".trellis/spec/backend/core-query-adapter-contract.md", "reason": "SDK查詢與借用service邊界"}

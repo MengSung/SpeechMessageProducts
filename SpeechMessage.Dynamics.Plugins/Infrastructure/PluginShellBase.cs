@@ -17,6 +17,7 @@
  * timer、Task 或背景工作；規則若有非同步工作必須由 PluginServices.Wait 排空。
  */
 using System;
+using System.Collections.Generic;
 using System.Globalization;
 using Microsoft.Xrm.Sdk;
 using SpeechMessage.Localization;
@@ -89,7 +90,7 @@ public abstract class PluginShellBase : IPlugin
             var eventId = context.CorrelationId.ToString("D", CultureInfo.InvariantCulture);
             TraceFailure(tracing, exception);
             throw new InvalidPluginExecutionException(
-                texts.GetFormattedText("zh-TW", exception.TextKey, exception.Arguments) + " " +
+                FormatBusinessError(exception) + " " +
                 texts.GetFormattedText("zh-TW", new TextKey("Common.Plugin.EventId"), new TextArg("eventId", eventId)));
         }
         catch (Exception exception)
@@ -126,6 +127,23 @@ public abstract class PluginShellBase : IPlugin
     /// <summary>缺少平台服務時只回傳固定資源，不回顯 provider 或組態內容。</summary>
     private InvalidPluginExecutionException MissingService() =>
         new(texts.GetText("zh-TW", new TextKey("Common.Plugin.MissingService")));
+
+    /// <summary>資源鍵或參數不完整時退回固定拒絕文字，不回顯輸入且仍由呼叫端附上事件 ID。</summary>
+    private string FormatBusinessError(BusinessRuleException exception)
+    {
+        try
+        {
+            return texts.GetFormattedText("zh-TW", exception.TextKey, exception.Arguments);
+        }
+        catch (KeyNotFoundException)
+        {
+            return texts.GetText("zh-TW", new TextKey("Common.Plugin.RuleRejected"));
+        }
+        catch (FormatException)
+        {
+            return texts.GetText("zh-TW", new TextKey("Common.Plugin.RuleRejected"));
+        }
+    }
 
     /// <summary>只追蹤型別；平台追蹤失效不能替換規則原始例外，也不回顯訊息或堆疊。</summary>
     private static void TraceFailure(ITracingService tracing, Exception exception)

@@ -15,6 +15,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.IO;
 using System.Linq;
 using Microsoft.Xrm.Sdk;
 using SpeechMessage.Localization;
@@ -42,10 +43,13 @@ internal sealed class StepConfiguration
             throw InvalidConfigurationException();
         try
         {
-            var json = JObject.Parse(unsecureConfig, new JsonLoadSettings
+            using var text = new StringReader(unsecureConfig);
+            using var reader = new JsonTextReader(text) { DateParseHandling = DateParseHandling.None, MaxDepth = 8 };
+            var json = JObject.Load(reader, new JsonLoadSettings
             {
                 DuplicatePropertyNameHandling = DuplicatePropertyNameHandling.Error
             });
+            if (reader.Read()) throw InvalidConfigurationException();
             var properties = json.Properties().ToArray();
             if (properties.Any(property => !string.Equals(property.Name, "mode", StringComparison.Ordinal) &&
                                            !string.Equals(property.Name, "options", StringComparison.Ordinal)))

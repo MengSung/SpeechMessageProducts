@@ -135,6 +135,25 @@ public sealed class PluginShellBaseTests
         Assert.Null(error.InnerException);
     }
 
+    /// <summary>業務資源鍵不存在或缺具名參數時，固定後備文字仍保留事件 ID 且不洩漏鍵值。</summary>
+    [Theory]
+    [InlineData("Common.UnknownSynthetic")]
+    [InlineData("Common.Plugin.EventId")]
+    public void Shell_BusinessFormattingFailure_PreservesEventId(string key)
+    {
+        var context = new FakePluginExecutionContext();
+        var provider = Provider(context, new FakeOrganizationService(), new FakeTracingService());
+
+        var error = Assert.Throws<InvalidPluginExecutionException>(() =>
+            new TestShell(@"{""mode"":""Shadow""}", new DepthPolicy(2),
+                (_, _) => throw new BusinessRuleException(new TextKey(key))).Execute(provider));
+
+        Assert.Contains("無法完成此操作。", error.Message, StringComparison.Ordinal);
+        Assert.Contains(context.Object.CorrelationId.ToString("D"), error.Message, StringComparison.Ordinal);
+        Assert.DoesNotContain(key, error.Message, StringComparison.Ordinal);
+        Assert.Null(error.InnerException);
+    }
+
     /// <summary>未知例外必須重新拋出同一實例，不可被外殼吞掉或包裝。</summary>
     [Fact]
     public void Shell_UnexpectedError_RethrownNotSwallowed()

@@ -40,5 +40,6 @@
   <!-- P1 僅保留六個既有英文命令對應詞；完整 103 詞與產品路由黃金遷移屬 P3-01／P3-07。 -->
   <data name="Common.Plugin.InvalidConfiguration" xml:space="preserve"><value>外掛步驟設定格式錯誤。</value></data>
   <data name="Common.Plugin.MissingService" xml:space="preserve"><value>外掛必要服務無法取得。</value></data>
+  <data name="Common.Plugin.RuleRejected" xml:space="preserve"><value>無法完成此操作。</value></data>
   <data name="Common.Plugin.EventId" xml:space="preserve"><value>事件 ID={eventId}</value></data>
 </root>

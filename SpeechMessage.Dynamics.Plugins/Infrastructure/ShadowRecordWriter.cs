@@ -47,7 +47,7 @@ internal sealed class ShadowRecordWriter
         var overflow = recording.Overflow || pushes.Overflow;
         foreach (var record in recording.Writes)
         {
-            var projection = JObject.Parse(record.ProjectionJson);
+            var projection = RecordingOrganizationService.ReadProjection(record.ProjectionJson);
             projection.AddFirst(new JProperty("seq", lines.Count + 1));
             if (!TryAppend(projection, lines, ref remaining)) { overflow = true; break; }
         }

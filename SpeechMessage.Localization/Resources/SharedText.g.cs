@@ -34,6 +34,7 @@ namespace SpeechMessage.Localization.Resources
             new string?[] { "Common.Plugin.EventId", "事件 ID={eventId}", null, "［事件 ID={eventId}ǂǂǂ］" },
             new string?[] { "Common.Plugin.InvalidConfiguration", "外掛步驟設定格式錯誤。", null, "［外掛步驟設定格式錯誤。ǂǂǂǂǂ］" },
             new string?[] { "Common.Plugin.MissingService", "外掛必要服務無法取得。", null, "［外掛必要服務無法取得。ǂǂǂǂǂ］" },
+            new string?[] { "Common.Plugin.RuleRejected", "無法完成此操作。", null, "［無法完成此操作。ǂǂǂǂ］" },
             new string?[] { "Deployment.Schema.Plan.Fingerprint", "Metadata fingerprint", null, "［Metadata fingerprintǂǂǂǂǂǂǂǂ］" },
             new string?[] { "Deployment.Schema.Plan.Keys", "索引驗證", null, "［索引驗證ǂǂ］" },
             new string?[] { "Deployment.Schema.Plan.NoChanges", "無差異", null, "［無差異ǂǂ］" },
