@@ -1,7 +1,7 @@
 /*
  * 檔案整體說明
  *
- * 目的與定位：以唯讀 PE 中繼資料檢查 Plugin 組件，不載入、反射執行或建立待部署程式碼。 每次只讀一個有大小上限的 DLL，並於方法結束釋放 PE reader 與檔案控制代碼。
+ * 目的與定位：以唯讀 PE 中繼資料檢查 Plugin／CodeActivity 組件，不載入、反射執行或建立待部署程式碼。 每次只讀一個有大小上限的 DLL，並於方法結束釋放 PE reader 與檔案控制代碼。
  *
  * 主要功能與流程：
  * 本檔宣告 AssemblyCatalog。
@@ -97,11 +97,21 @@ internal static class AssemblyCatalog
             .OrderBy(typeName => typeName, StringComparer.Ordinal)
             .ToArray();
         var actualTypes = pluginTypes.OrderBy(typeName => typeName, StringComparer.Ordinal).ToArray();
-        if (declaredTypes.Length != manifest.Steps.Count ||
-            !declaredTypes.SequenceEqual(actualTypes, StringComparer.Ordinal))
+        if (!declaredTypes.SequenceEqual(actualTypes, StringComparer.Ordinal))
         {
             throw new InvalidDataException("註冊清單與 DLL 的 Plugin 型別集合不一致。");
         }
+
+        var activities = reader.TypeDefinitions.Where(handle =>
+        {
+            var definition = reader.GetTypeDefinition(handle);
+            return IsPublicType(reader, handle) &&
+                (definition.Attributes & (TypeAttributes.Interface | TypeAttributes.Abstract)) == 0 &&
+                InheritsActivity(reader, definition.BaseType, new HashSet<TypeDefinitionHandle>());
+        }).Select(handle => GetFullTypeName(reader, handle)).OrderBy(name => name, StringComparer.Ordinal).ToArray();
+        var declaredActivities = manifest.Activities.Select(activity => activity.Type).OrderBy(name => name, StringComparer.Ordinal).ToArray();
+        if (!declaredActivities.SequenceEqual(activities, StringComparer.Ordinal))
+            throw new InvalidDataException("註冊清單與 DLL 的活動型別集合不一致。");
 
         var publicKeyToken = ReadPublicKeyToken(reader, assembly);
         var sha256 = Convert.ToHexString(SHA256.HashData(content));
@@ -112,7 +122,7 @@ internal static class AssemblyCatalog
             publicKeyToken,
             Convert.ToBase64String(content),
             sha256,
-            Array.AsReadOnly(actualTypes));
+            Array.AsReadOnly(actualTypes)) { ActivityTypes = Array.AsReadOnly(activities) };
     }
 
     /// <summary>
@@ -195,6 +205,23 @@ internal static class AssemblyCatalog
         }
 
         return ImplementsPluginInterface(reader, definition.BaseType, visited);
+    }
+
+    /// <summary>
+    /// 沿本組件的非泛型基底鏈辨識 CodeActivity；對外部參照只讀型別名稱，絕不載入依賴。
+    /// visited 限制每個定義只走一次，毀損 PE 的循環不會遞迴保留資源或無限執行。
+    /// </summary>
+    /// <param name="reader">本次有界 PE 的 metadata reader。</param>
+    /// <param name="baseType">目前基底型別。</param><param name="visited">本次鏈的循環防護集合。</param>
+    /// <returns>可證明繼承 System.Activities.CodeActivity 時為 true。</returns>
+    private static bool InheritsActivity(MetadataReader reader, EntityHandle baseType, HashSet<TypeDefinitionHandle> visited)
+    {
+        if (baseType.IsNil) return false;
+        if (GetTypeName(reader, baseType) == "System.Activities.CodeActivity") return true;
+        if (baseType.Kind != HandleKind.TypeDefinition) return false;
+        var handle = (TypeDefinitionHandle)baseType;
+        if (visited.Count >= 256 || !visited.Add(handle)) throw new InvalidDataException("活動型別基底鏈無效。");
+        return InheritsActivity(reader, reader.GetTypeDefinition(handle).BaseType, visited);
     }
 
     /// <summary>取得 TypeDefinition 或 TypeReference 的完整名稱；不解析外部組件或載入型別。</summary>

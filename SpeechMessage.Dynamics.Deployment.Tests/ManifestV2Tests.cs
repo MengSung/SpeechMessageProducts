@@ -17,6 +17,8 @@ using System.IO;
 using System.Linq;
 using System.Text.Json.Nodes;
 using Xunit;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
 
 namespace SpeechMessage.Dynamics.Deployment.Tests;
 
@@ -60,6 +62,75 @@ public sealed class ManifestV2Tests
         Assert.Single(plan.Operations.Where(operation => operation.Kind == "CreateType"));
         Assert.Equal(2, plan.Operations.Count(operation => operation.Kind == "CreateStep"));
         Assert.Empty(fixture.Service.Writes);
+    }
+
+    /// <summary>同一 Plugin 的多個穩定步驟需通過真 PE 檢查，不可要求步驟數等於型別數。</summary>
+    [Fact]
+    public void Manifest_MultipleStepsPerType_PeCatalogAccepts()
+    {
+        using var fixture = new Fixture();
+        var manifest = fixture.Manifest with { Steps = new[] { fixture.Manifest.Steps[0], fixture.Manifest.Steps[0] with { Rank = 2 } } };
+        var image = AssemblyCatalog.Read(fixture.Emit(), manifest);
+        Assert.Equal(fixture.Manifest.Steps[0].Type, Assert.Single(image.PluginTypes));
+    }
+
+    /// <summary>PE 含未列入清單的公開 Plugin 必須拒絕，禁止把未註冊入口藏在已核定組件。</summary>
+    [Fact]
+    public void Manifest_PublicPluginWithoutStep_Rejected()
+    {
+        using var fixture = new Fixture();
+        Assert.Throws<InvalidDataException>(() => AssemblyCatalog.Read(fixture.Emit(extra: true), fixture.Manifest));
+    }
+
+    /// <summary>CodeActivity 的本組件繼承鏈須以 PE 判讀；活動不需 Plugin step，也不執行靜態初始化。</summary>
+    [Fact]
+    public void Manifest_PublicInheritedActivity_PeCatalogAcceptsAndReleasesFile()
+    {
+        using var fixture = new Fixture();
+        var manifest = ActivityManifest();
+        var path = EmitActivity(fixture);
+        var image = AssemblyCatalog.Read(path, manifest);
+        Assert.Empty(image.PluginTypes);
+        Assert.Equal("Sample.SendActivity", Assert.Single(image.ActivityTypes));
+        using var exclusive = new FileStream(path, FileMode.Open, FileAccess.ReadWrite, FileShare.None);
+        Assert.True(exclusive.Length > 0);
+    }
+
+    /// <summary>公開活動沒有清單登錄、或清單引用 PE 沒有的活動皆須拒絕，而非發布部分候選。</summary>
+    /// <param name="missing">是否移除唯一活動宣告，否則將宣告改成不存在的型別。</param>
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public void Manifest_ActivityCatalogMismatch_Rejected(bool missing)
+    {
+        using var fixture = new Fixture();
+        var manifest = ActivityManifest();
+        manifest = manifest with { Activities = missing ? Array.Empty<ActivityRegistration>() :
+            new[] { manifest.Activities[0] with { Type = "Sample.Absent" } } };
+        Assert.Throws<InvalidDataException>(() => AssemblyCatalog.Read(EmitActivity(fixture), manifest));
+    }
+
+    /// <summary>建立活動專用的純結構清單；不含組織或任何秘密來源。</summary>
+    private static RegistrationManifest ActivityManifest() => new()
+    {
+        AssemblyName = "SpeechMessage.Dynamics.Workflows", ActivityGroup = "SpeechMessage",
+        Activities = new[] { new ActivityRegistration { Module = "attendance", Type = "Sample.SendActivity", DisplayName = "合成活動" } }
+    };
+
+    /// <summary>產生測試專用 PE；基底類別及活動在本組件，產生器不載入或執行候選組件。</summary>
+    /// <param name="fixture">擁有生成檔與清理責任的案例 owner。</param><returns>案例根下的 PE 路徑。</returns>
+    private static string EmitActivity(Fixture fixture)
+    {
+        const string source = "namespace System.Activities { public abstract class CodeActivity {} } " +
+            "namespace Sample { public abstract class BaseActivity : System.Activities.CodeActivity {} " +
+            "public sealed class SendActivity : BaseActivity { static SendActivity() { throw new System.Exception(); } } }";
+        var compilation = CSharpCompilation.Create("SpeechMessage.Dynamics.Workflows", new[] { CSharpSyntaxTree.ParseText(source) },
+            new[] { MetadataReference.CreateFromFile(Path.Combine(AppContext.BaseDirectory, "Framework", "mscorlib.dll")) },
+            new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
+        var path = Path.Combine(fixture.Root, "activity.dll");
+        var result = compilation.Emit(path);
+        Assert.True(result.Success, string.Join(";", result.Diagnostics));
+        return path;
     }
 
     /// <summary>舊格式必須拒絕，不能自動以預設值升級而漏掉註冊內容。</summary>

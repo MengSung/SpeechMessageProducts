@@ -180,7 +180,11 @@ internal sealed record LegacyActivityReference
 /// 從有界 PE 讀出的單次組件描述。保留 DLL bytes 只供本次 apply，從不載入或執行待驗證組件的程式碼，
 /// 也不將此物件放入 static、快取或跨命令狀態。
 /// </summary>
-internal sealed record AssemblyImage(string Name, string Version, string PublicKeyToken, string Content, string Sha256, IReadOnlyList<string> PluginTypes);
+internal sealed record AssemblyImage(string Name, string Version, string PublicKeyToken, string Content, string Sha256, IReadOnlyList<string> PluginTypes)
+{
+    /// <summary>公開且非 abstract 的 CodeActivity 型別；由 PE 靜態檢查取得，不能以執行 DLL 反射補齊。</summary>
+    public IReadOnlyList<string> ActivityTypes { get; init; } = Array.Empty<string>();
+}
 
 /// <summary>計畫操作只存固定動詞與非敏感結構鍵，不保存設定值或憑證。</summary>
 internal sealed record DeploymentOperation(string Kind, string Key);
