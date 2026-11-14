@@ -14,3 +14,7 @@ b段 queryResults 連接提交 ce8dcea4，十五個新增案例先紅後綠，�
 ## 2026-11-14 16:24 Asia/Taipei (UTC+08:00) 驗證續跑
 
 60822743：實際執行域假服務與Rest／scratch安全契約補強；Rest相容型別的HarnessApiRefused先紅五項後修復，仍拒絕直接工具API。Release全測試293項、工具覆蓋率83.47%；Debug相關195項、80.55%，兩者各自通過既有Test-Coverage。PresentRecord只編譯仍被反射／設定／實體CRM入口拒絕，未擴充支援；實跑黃金及固定guard未完成，待使用者D5-3決定。
+
+## 2026-11-14 16:27 Asia/Taipei (UTC+08:00) 矩陣續跑
+
+修正後正式只編譯矩陣完成，集合有效、0 Generated／29 CompileFailed／0 BlockedByNetworkApi；九個入口診斷改變，完整逐列表及原始SHA見research/legacy-compile-matrix.md。未擴充harness；PresentRecord替代仍待使用者決定，無黃金、無驗收、無推送。

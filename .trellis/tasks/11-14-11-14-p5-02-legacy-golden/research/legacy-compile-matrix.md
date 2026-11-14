@@ -111,3 +111,43 @@ JSON 是無註解的機器證據：schemaVersion／mode／generatedMeaning 說�
 - 四個交付檔案的嚴格 UTF-8／無 BOM／CRLF／final CRLF 位元組檢查及矩陣集合、三態、秘密樣式檢查：通過。
 - `python tools/RepoQuality/check_file_documentation.py`：未通過；1522 檔中四個非本子任務所有檔案仍有 CrlfRequired：LegacyRestTransport.cs、OutputSecretScan.cs、ScenarioRunner.cs、TransportInterception.cs。未改動這些檔案，交由其 owner 修正；本次兩個 C# 檔沒有守門錯誤。
 - `git diff --check`（限定本次四檔）：通過。此子任務不執行整個測試專案，不作 commit／push；外部審查與最終 compiler 修復後重跑由主代理統籌。
+
+## 2026-11-14 16:27 Asia/Taipei (UTC+08:00) 修正後只編譯快照
+
+程式快照 ddc205d4（產品程式提交60822743）。以先前已檢視的獨立 net48 MatrixCurrentProbe.exe 呼叫同一 CompileMatrix.Create，使用工具 EXE 的 binding redirects；未使用 PowerShell 反射、未執行舊入口。原始 JSON 保存在 artifacts/p5-02-matrix-after-rest-fix.json，SHA-256 BA721139FB2F82A120895DA38F30FEB38F107DB72AF1515AFC386F861C69077E；runUtc=2026-11-14T08:26:25.5137161+00:00。先前原始 JSON 及本文歷史表保留，不覆寫原始證據。
+
+集合有效、三十六個專案、二十九個入口（十一個 Plugin、十八個活動），排除零來源方案殼；Generated 零個、CompileFailed 二十九個、BlockedByNetworkApi 零個。Rest 相容型別誤擋修復後，九個入口的診斷清單改變，狀態不變；PresentRecord 不再有 LineUtility 的 HarnessApiRefused，但仍受 QPay／ToolUtility／Trace 拒絕。沒有擴充反射或設定支援。
+
+以下是完整新表；CompileFailed 是離線拒絕，不表示已過 D5-18、可跑實機或已取得 legacy-live-only 基準。PresentRecord 的整包替代仍待使用者決定。其餘入口後續逐模組依 D5-3 與 D5-18 盤點，不繼續擴充 harness。
+
+| 專案 | 種類 | 狀態 | 固定診斷 |
+| --- | --- | --- | --- |
+| AllotPlugIn | IPlugin | CompileFailed | ExternalExecutionApiRefused:QPayToolkit.cs, ExecutionEscapeRefused:QPayToolkit.cs, ExternalExecutionApiRefused:ToolUtilityClass.cs, ExternalExecutionApiRefused:BSUStackTrace.cs |
+| AllotTlsWorkflow | CodeActivity | CompileFailed | BackgroundExecutionRefused:AllotApiClient.cs, HttpTransportApiRefused:AllotApiClient.cs, CustomHttpHandlerRefused:AllotApiClient.cs, ExecutionEscapeRefused:AllotDebugTrace.cs, ExternalExecutionApiRefused:QPayToolkit.cs, ExecutionEscapeRefused:QPayToolkit.cs, ExternalExecutionApiRefused:ToolUtilityClass.cs, ExternalExecutionApiRefused:BSUStackTrace.cs |
+| AllotWorkflow | CodeActivity | CompileFailed | ExternalExecutionApiRefused:QPayToolkit.cs, ExecutionEscapeRefused:QPayToolkit.cs, ExternalExecutionApiRefused:ToolUtilityClass.cs, ExternalExecutionApiRefused:BSUStackTrace.cs |
+| AppointmentPlugIn | IPlugin | CompileFailed | ExternalExecutionApiRefused:QPayToolkit.cs, ExecutionEscapeRefused:QPayToolkit.cs, ExternalExecutionApiRefused:ToolUtilityClass.cs, ExternalExecutionApiRefused:BSUStackTrace.cs |
+| AppointmentSigning | CodeActivity | CompileFailed | ExternalExecutionApiRefused:QPayToolkit.cs, ExecutionEscapeRefused:QPayToolkit.cs, ExternalExecutionApiRefused:ToolUtilityClass.cs, ExternalExecutionApiRefused:BSUStackTrace.cs |
+| AppointmentWorkflow | CodeActivity | CompileFailed | ExternalExecutionApiRefused:QPayToolkit.cs, ExecutionEscapeRefused:QPayToolkit.cs, ExternalExecutionApiRefused:ToolUtilityClass.cs, ExternalExecutionApiRefused:BSUStackTrace.cs |
+| CalculateQrCodeScanNumberWorkflow | CodeActivity | CompileFailed | ExternalExecutionApiRefused:QPayToolkit.cs, ExecutionEscapeRefused:QPayToolkit.cs, ExternalExecutionApiRefused:ToolUtilityClass.cs, ExternalExecutionApiRefused:BSUStackTrace.cs |
+| DiscipleLessonsPluIn | IPlugin | CompileFailed | ExternalExecutionApiRefused:QPayToolkit.cs, ExecutionEscapeRefused:QPayToolkit.cs, ExternalExecutionApiRefused:ToolUtilityClass.cs, ExternalExecutionApiRefused:BSUStackTrace.cs |
+| EquipmentWorkflow | CodeActivity | CompileFailed | ExternalExecutionApiRefused:QPayToolkit.cs, ExecutionEscapeRefused:QPayToolkit.cs, ExternalExecutionApiRefused:ToolUtilityClass.cs, ExternalExecutionApiRefused:BSUStackTrace.cs |
+| ExampleWorkflow | CodeActivity | CompileFailed | ExternalExecutionApiRefused:QPayToolkit.cs, ExecutionEscapeRefused:QPayToolkit.cs, ExternalExecutionApiRefused:ToolUtilityClass.cs, ExternalExecutionApiRefused:BSUStackTrace.cs |
+| FeePushLineWorkflow | CodeActivity | CompileFailed | ExternalExecutionApiRefused:QPayToolkit.cs, ExecutionEscapeRefused:QPayToolkit.cs, ExternalExecutionApiRefused:ToolUtilityClass.cs, ExternalExecutionApiRefused:BSUStackTrace.cs |
+| HappyBirthdayWorkflow | CodeActivity | CompileFailed | ExternalExecutionApiRefused:ToolUtilityClass.cs |
+| LineMessagePlugIn | IPlugin | CompileFailed | BackgroundExecutionRefused:EnrollQuery.cs, ExternalExecutionApiRefused:QPayToolkit.cs, ExecutionEscapeRefused:QPayToolkit.cs, ExternalExecutionApiRefused:ToolUtilityClass.cs, ExternalExecutionApiRefused:BSUStackTrace.cs |
+| NewPersonCareWorkflow | CodeActivity | CompileFailed | ExternalExecutionApiRefused:QPayToolkit.cs, ExecutionEscapeRefused:QPayToolkit.cs, ExternalExecutionApiRefused:ToolUtilityClass.cs, ExternalExecutionApiRefused:BSUStackTrace.cs |
+| NewPersonCareWorkflow-ForDebug | CodeActivity | CompileFailed | ExternalExecutionApiRefused:BSUStackTrace.cs, ExternalExecutionApiRefused:ToolUtilityClass.cs |
+| PersonalQrCodeWorkflow | CodeActivity | CompileFailed | ExternalExecutionApiRefused:QPayToolkit.cs, ExecutionEscapeRefused:QPayToolkit.cs, ExternalExecutionApiRefused:ToolUtilityClass.cs, ExternalExecutionApiRefused:BSUStackTrace.cs |
+| PresentRecordLinePlugIn | IPlugin | CompileFailed | ExternalExecutionApiRefused:QPayToolkit.cs, ExecutionEscapeRefused:QPayToolkit.cs, ExternalExecutionApiRefused:ToolUtilityClass.cs, ExternalExecutionApiRefused:BSUStackTrace.cs |
+| QrCodeWorkflow | CodeActivity | CompileFailed | BackgroundExecutionRefused:QrCodeUtility.cs, ExternalExecutionApiRefused:QrCodeUtility.cs, UnsafeExecutionApiRefused:QrCodeUtility.cs, ExternalExecutionApiRefused:QPayToolkit.cs, ExecutionEscapeRefused:QPayToolkit.cs, ExternalExecutionApiRefused:ToolUtilityClass.cs, ExternalExecutionApiRefused:BSUStackTrace.cs |
+| RecursiveWorkflow | CodeActivity | CompileFailed | NoReadableCSharpSource |
+| StorLessonSigningWorkflow | CodeActivity | CompileFailed | ExternalExecutionApiRefused:QPayToolkit.cs, ExecutionEscapeRefused:QPayToolkit.cs, ExternalExecutionApiRefused:ToolUtilityClass.cs, ExternalExecutionApiRefused:BSUStackTrace.cs |
+| StorLessonSignningPlugIn | IPlugin | CompileFailed | ExternalExecutionApiRefused:QPayToolkit.cs, ExecutionEscapeRefused:QPayToolkit.cs, ExternalExecutionApiRefused:ToolUtilityClass.cs, ExternalExecutionApiRefused:BSUStackTrace.cs |
+| SundayQrCodeWorkflow | CodeActivity | CompileFailed | BackgroundExecutionRefused:SundayQrCodeUtility.cs, ExternalExecutionApiRefused:SundayQrCodeUtility.cs, UnsafeExecutionApiRefused:SundayQrCodeUtility.cs, ExternalExecutionApiRefused:QPayToolkit.cs, ExecutionEscapeRefused:QPayToolkit.cs, ExternalExecutionApiRefused:ToolUtilityClass.cs, ExternalExecutionApiRefused:BSUStackTrace.cs |
+| TemplatePlugIn | IPlugin | CompileFailed | ExternalExecutionApiRefused:QPayToolkit.cs, ExecutionEscapeRefused:QPayToolkit.cs, ExternalExecutionApiRefused:ToolUtilityClass.cs, ExternalExecutionApiRefused:BSUStackTrace.cs |
+| TwoWingsPlugIn | IPlugin | CompileFailed | ExternalExecutionApiRefused:QPayToolkit.cs, ExecutionEscapeRefused:QPayToolkit.cs, ExternalExecutionApiRefused:ToolUtilityClass.cs, ExternalExecutionApiRefused:BSUStackTrace.cs |
+| WeeklyReportLinePlugIn | IPlugin | CompileFailed | ExternalExecutionApiRefused:QPayToolkit.cs, ExecutionEscapeRefused:QPayToolkit.cs, ExternalExecutionApiRefused:ToolUtilityClass.cs, ExternalExecutionApiRefused:BSUStackTrace.cs |
+| WeeklyReportPlugIn | IPlugin | CompileFailed | ExternalExecutionApiRefused:QPayToolkit.cs, ExecutionEscapeRefused:QPayToolkit.cs, ExternalExecutionApiRefused:ToolUtilityClass.cs, ExternalExecutionApiRefused:BSUStackTrace.cs |
+| WeeklyReportWorkflow | CodeActivity | CompileFailed | ExternalExecutionApiRefused:ToolUtilityClass.cs |
+| WorkflowTemplate | CodeActivity | CompileFailed | NoReadableCSharpSource |
+| YangMeillcStorLessonsPlugIn | IPlugin | CompileFailed | ExternalExecutionApiRefused:QPayToolkit.cs, ExecutionEscapeRefused:QPayToolkit.cs, ExternalExecutionApiRefused:ToolUtilityClass.cs, ExternalExecutionApiRefused:BSUStackTrace.cs |
