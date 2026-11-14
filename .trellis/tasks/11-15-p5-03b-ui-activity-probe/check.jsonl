@@ -1,0 +1,3 @@
+{"file": ".trellis/spec/backend/deployment-contract.md", "reason": "沿用Deployment組織白名單、命令租約、寫鎖及安全輸出契約。"}
+{"file": ".trellis/spec/backend/file-documentation-contract.md", "reason": "所有新增封裝／probe程式與合成測試須有繁中檔首及資源擁有權說明。"}
+{"file": ".trellis/spec/backend/text-encoding-contract.md", "reason": "提交前逐檔UTF-8無BOM、CRLF及末尾CRLF檢查。"}
