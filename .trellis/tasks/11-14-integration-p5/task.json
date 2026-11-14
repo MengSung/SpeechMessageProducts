@@ -25,6 +25,6 @@
   ],
   "parent": null,
   "relatedFiles": [],
-  "notes": "P5-00 與 P4 H-1 已完成並推送核對；P5-01 審查修正完成本機測試與打包，待固定 guard 驗收。",
+  "notes": "P5-00、P4 H-1、P5-01已完成。P5-01 fee2e909固定guard全過並推送核對SHA，下一步更新回復前置的離線部分。",
   "meta": {}
 }

@@ -976,3 +976,36 @@ P3-07 完成 GoodShepherd IKeywordCatalog、雙目標資源路由、handler 注�
 ### Next Steps
 
 - None - task complete
+
+
+## Session 27: P5-01 外殼與影子記錄驗收
+
+**Date**: 2026-11-14
+**Task**: P5-01 外殼與影子記錄驗收
+**Branch**: `1.0.0.11.Integration.P5.Worktree`
+
+### Summary
+
+固定guard八項全過，Release5485/5485、Debug tracer7/7；Plugins166/166、Core雙目標111/111、架構58/58、打包通過。已推送並核對SHA；外部雙模型未完成，採Claude既有意見與本地獨立複核，Critical0/High0/Warning1已登錄。接續更新回復前置，不啟動階段6。
+
+### Main Changes
+
+(Add details)
+
+### Git Commits
+
+| Hash | Message |
+|------|---------|
+| `fee2e909` | (see git log) |
+
+### Testing
+
+- [OK] (Add test results)
+
+### Status
+
+[OK] **Completed**
+
+### Next Steps
+
+- None - task complete

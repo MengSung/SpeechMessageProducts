@@ -8,8 +8,8 @@
 
 <!-- @@@auto:current-status -->
 - **Active File**: `journal-1.md`
-- **Total Sessions**: 26
-- **Last Active**: 2026-11-10
+- **Total Sessions**: 27
+- **Last Active**: 2026-11-14
 <!-- @@@/auto:current-status -->
 
 ---
@@ -19,7 +19,7 @@
 <!-- @@@auto:active-documents -->
 | File | Lines | Status |
 |------|-------|--------|
-| `journal-1.md` | ~978 | Active |
+| `journal-1.md` | ~1011 | Active |
 <!-- @@@/auto:active-documents -->
 
 ---
@@ -29,6 +29,7 @@
 <!-- @@@auto:session-history -->
 | # | Date | Title | Commits | Branch |
 |---|------|-------|---------|--------|
+| 27 | 2026-11-14 | P5-01 外殼與影子記錄驗收 | `fee2e909` | `1.0.0.11.Integration.P5.Worktree` |
 | 26 | 2026-11-10 | P3-07 關鍵字路由驗收 | `b67dbf0a6dc81e948bee6ba583ab54451347a7f2` | `p3/P3-07` |
 | 25 | 2026-11-09 | P3-00 切換3.5並停止於階段3開工前 | `7acc1132`, `f65f6d73` | `1.0.0.11.Integration.P2.Worktree` |
 | 24 | 2026-11-09 | P2 完整結案 | `140bbe01`, `5379513d`, `ca973a90` | `1.0.0.11.Integration.P2.Worktree` |
