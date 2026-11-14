@@ -11,6 +11,7 @@ using System.IO.Compression;
 using System.Linq;
 using System.Text;
 using System.Xml.Linq;
+using Microsoft.Xrm.Sdk;
 using Xunit;
 
 namespace SpeechMessage.Dynamics.Deployment.Tests;
@@ -18,6 +19,9 @@ namespace SpeechMessage.Dynamics.Deployment.Tests;
 /// <summary>保護解決方案 ZIP 的來源完整性、共用元件界線及有界記憶體契約；所有輸入皆為離線合成資料。</summary>
 public sealed class UiSolutionArchiveTests
 {
+    private static readonly string[] NonWhitelistedImportArguments =
+        { "ui-import", "--org", "production", "--from", "outside.zip" };
+
     /// <summary>共用 account／contact 表單及其根參照必須移除；相同集合中的檢視及本產品實體表單必須完整保留。</summary>
     [Fact]
     public void UiExport_SharedEntityForm_NotPackaged()
@@ -91,6 +95,19 @@ public sealed class UiSolutionArchiveTests
         foreach (var item in expected) Assert.Equal(item.Value, actual[item.Key]);
     }
 
+    /// <summary>UI 匯入沿用唯一組織白名單；非 goodshepherdback 必須在建立租約前拒絕且不觸發 connector。</summary>
+    [Fact]
+    public void UiImport_NonWhitelistedOrganization_Rejected()
+    {
+        using var output = new StringWriter();
+        var reports = new List<Exception>();
+        var result = DeploymentCli.Run(
+            NonWhitelistedImportArguments,
+            new RejectingConnector(), output, reports.Add);
+        Assert.Equal(2, result);
+        Assert.Empty(reports);
+    }
+
     /// <summary>建立標準三個根檔及自有資源；可注入單一惡意 entry 或 XML，所有串流離開方法前確定關閉。</summary>
     internal static byte[] Archive(string? extra = null, byte[]? content = null, string? solution = null)
     {
@@ -111,6 +128,14 @@ public sealed class UiSolutionArchiveTests
     {
         using var output = zip.CreateEntry(name).Open();
         output.Write(bytes);
+    }
+
+    /// <summary>白名單拒絕案例的 connector；若 parser 越過拒絕邊界，立即以固定例外暴露錯誤。</summary>
+    private sealed class RejectingConnector : IOrganizationConnector
+    {
+        /// <summary>非白名單命令不應取得 organization lease。</summary>
+        public OrganizationLease Connect(string organization) =>
+            throw new InvalidOperationException("Connector must not be called.");
     }
 
     /// <summary>標準未受管理解決方案的合成根參照；三個固定 formid 分別對應下方三個實體。</summary>

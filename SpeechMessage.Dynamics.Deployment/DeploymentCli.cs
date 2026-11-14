@@ -178,6 +178,18 @@ internal static partial class DeploymentCli
                 : null;
             cancellationToken.ThrowIfCancellationRequested();
             using var lease = connector.Connect(command.Organization);
+            if (command.Name == "ui-export")
+            {
+                UiSolutionDeployment.Export(lease.Service, repositoryRoot, cancellationToken);
+                output.WriteLine("UI solution export completed.");
+                return 0;
+            }
+            if (command.Name == "ui-import")
+            {
+                UiSolutionDeployment.Import(lease.Service, command.InputPath!, cancellationToken);
+                output.WriteLine("UI solution import and publish completed.");
+                return 0;
+            }
             if (command.Name == "export-legacy")
                 return ExportLegacy(lease.Service, organizationArtifactRoot, output, cancellationToken);
             var operationRoot = CreateOperationDirectory(organizationArtifactRoot);
@@ -392,7 +404,7 @@ internal static partial class DeploymentCli
     {
         command = default;
         var name = args[0];
-        if (name is not ("plan" or "apply" or "verify" or "export" or "export-legacy" or "rollback" or "smoke" or "switch" or "shadow"))
+        if (name is not ("plan" or "apply" or "verify" or "export" or "export-legacy" or "rollback" or "smoke" or "switch" or "shadow" or "ui-export" or "ui-import"))
         {
             return false;
         }
@@ -442,7 +454,8 @@ internal static partial class DeploymentCli
             name != "shadow" && scenarioRoot is not null) return false;
         var valid = name switch
         {
-            "plan" or "verify" or "export" or "export-legacy" => organization is not null && inputPath is null && scenario is null,
+            "plan" or "verify" or "export" or "export-legacy" or "ui-export" => organization is not null && inputPath is null && scenario is null,
+            "ui-import" => organization is not null && HasExactlyTwoOptions(seen, OrganizationOption, FromOption) && inputPath is not null && scenario is null,
             "apply" => organization is not null && HasExactlyTwoOptions(seen, OrganizationOption, PlanOption) && inputPath is not null && scenario is null,
             "rollback" => organization is not null && HasExactlyTwoOptions(seen, OrganizationOption, FromOption) && inputPath is not null && scenario is null,
             "switch" => organization is not null && module is not null && target is "enabled" or "legacy" or "off" &&
@@ -577,6 +590,7 @@ internal static partial class DeploymentCli
         output.WriteLine("Commands: plan --org <name> | apply --org <name> --plan <file> | verify --org <name>");
         output.WriteLine("          switch --org goodshepherdback --module <module> --to enabled|off");
         output.WriteLine("          shadow --org goodshepherdback --module <module> --scenario-root <fixed-module-golden-directory>");
+        output.WriteLine("          ui-export --org goodshepherdback | ui-import --org goodshepherdback --from <archive>");
         output.WriteLine("          export-legacy --org goodshepherdback (read-only; stops if legacy registrations are enabled)");
         output.WriteLine("          switch --to legacy uses the fixed module golden scenarios for one scoped legacy round, then disables registrations.");
         output.WriteLine("          export --org <name> | rollback --org <name> --from <file>");
