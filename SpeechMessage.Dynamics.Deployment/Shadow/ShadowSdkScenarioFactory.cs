@@ -34,7 +34,11 @@ namespace SpeechMessage.Dynamics.Deployment.Shadow;
 internal sealed record ShadowSdkBinding(string Entrypoint, string ChurchAlias, string ContactAlias,
     IReadOnlyList<Guid> LegacyStepIds, IReadOnlyList<Guid> ShadowStepIds,
     IReadOnlyList<string> ShadowTypes, IReadOnlyList<ShadowSdkTokenField> TokenFields,
-    bool HasUnconditionalHardcodedToken);
+    bool HasUnconditionalHardcodedToken)
+{
+    /// <summary>當下正式註冊為同步的 step 與實際型別，由 CLI metadata 核對提供，不讀情境旗標。</summary>
+    public IReadOnlyDictionary<Guid, string> SynchronousStepTypes { get; init; } = new Dictionary<Guid, string>();
+}
 
 /// <summary>整案準備成功才發布的配對；Definition 與 Source 必須在同一命令使用，不得跨組織快取。</summary>
 internal sealed record ShadowSdkPreparedScenario(ShadowScenarioDefinition Definition, ShadowSdkScenario Source);
@@ -143,7 +147,9 @@ internal static class ShadowSdkScenarioFactory
                 .Distinct(StringComparer.Ordinal).ToDictionary(entity => entity, metadata.PrimaryId, StringComparer.Ordinal)),
             SharedReferences = new ReadOnlyDictionary<string, EntityReference>(shared),
             ReferenceAliases = new ReadOnlyDictionary<string, IReadOnlyDictionary<string, string>>(links),
-            TriggerReferenceAliases = patchLinks
+            TriggerReferenceAliases = patchLinks,
+            SynchronousStepTypes = new ReadOnlyDictionary<Guid, string>(
+                new Dictionary<Guid, string>(binding.SynchronousStepTypes))
         };
         return new ShadowSdkPreparedScenario(definition, source);
     }
@@ -207,7 +213,11 @@ internal static class ShadowSdkScenarioFactory
     private static void ValidateBinding(ShadowSdkBinding binding, string basis)
     {
         if (binding.LegacyStepIds is null || binding.ShadowStepIds is null || binding.ShadowTypes is null ||
-            binding.TokenFields is null || binding.TokenFields.Count > 32 ||
+            binding.TokenFields is null || binding.TokenFields.Count > 32 || binding.SynchronousStepTypes is null ||
+            binding.SynchronousStepTypes.Count > 256 ||
+            binding.SynchronousStepTypes.Any(pair => pair.Key == Guid.Empty ||
+                !binding.LegacyStepIds.Concat(binding.ShadowStepIds).Contains(pair.Key) ||
+                string.IsNullOrWhiteSpace(pair.Value) || pair.Value.Length > 512) ||
             !ValidSteps(binding.ShadowStepIds) ||
             ((basis is "legacy-live" or "legacy-live-only") &&
                 (!ValidSteps(binding.LegacyStepIds) || binding.HasUnconditionalHardcodedToken)) ||

@@ -6,8 +6,9 @@
  * 主要功能與流程：連線前檢查固定模組目錄；連線後核對完整部署 PE／註冊狀態、
  * User Secrets 中的測試 GUID 與權威 LINE 綁定，再準備整批情境，唯讀匯出後執行。
  * 每輪由 runner 停用、核對、清理自己的記錄並還原追蹤；成功返回後才寫安全報告。
- * 信任與適用邊界：目前接通 new／reading／legacy-golden 的非同步 CRUD 新輪。
- * 尚未接通舊入口受審 token 欄位盤點、同步／關聯觀察及活動者一律在業務寫入前拒絕，
+ * 信任與適用邊界：目前接通 new／reading／legacy-golden 的 CRUD 新輪；
+ * 同步 trigger 依正式 mode 帶獨立 RequestId，不以情境 JSON 指定同步追蹤。
+ * 尚未接通舊入口受審 token 欄位盤點、關聯觀察及活動者一律在業務寫入前拒絕，
  * 不從 JSON 猜 token 安全性，也不冒稱已完成兩輪。這些仍屬 P5-03a 未完成項。
  * 使用邊界與維護：主入口唯一擁有 lease、組織鎖及告警；本檔只借用 SDK、writer、
  * 秘密讀取委派及取消 token，不另建連線、快取、背景工作或 timer。候選只活於命令，
@@ -68,7 +69,6 @@ internal static partial class DeploymentCli
         void VerifyDisabled() => engine.ReadDisabledShadowSteps(document, command.Organization, command.Module!,
             () => LegacyRegistrationExporter.Export(service));
         var steps = engine.ReadDisabledShadowSteps(document, command.Organization, command.Module!, ReadLegacy);
-        if (steps.Any(item => item.Step.Mode != "Asynchronous")) throw InvalidShadowCommand();
         var identity = ShadowTestIdentity.Verify(service,
             ResolveRequiredSecret(command.Organization, "TestLineUserId", secretReader),
             ResolveRequiredSecret(command.Organization, "ShadowTestChurchId", secretReader),
@@ -93,7 +93,11 @@ internal static partial class DeploymentCli
             if (contacts.Length != 1) throw InvalidShadowCommand();
             var binding = new ShadowSdkBinding(file.Entrypoint, churchAlias,
                 contacts[0].GetProperty("alias").GetString()!, [],
-                [step.Id], [step.Step.Type], [], false);
+                [step.Id], [step.Step.Type], [], false)
+            {
+                SynchronousStepTypes = step.Step.Mode == "Synchronous"
+                    ? new Dictionary<Guid, string> { [step.Id] = step.Step.Type } : new Dictionary<Guid, string>()
+            };
             prepared.Add(ShadowSdkScenarioFactory.Prepare(file, metadata, identity, binding));
         }
         var reportRoot = Path.Combine(repositoryRoot, "artifacts", "shadow", Path.GetFileName(operationRoot));

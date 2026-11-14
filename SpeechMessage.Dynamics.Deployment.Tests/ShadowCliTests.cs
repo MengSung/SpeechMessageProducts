@@ -84,10 +84,13 @@ public sealed class ShadowCliTests
     }
 
     /// <summary>SDK 送達後 caller 取消仍須停用及刪除，清理查詢不得沿用已取消的 token。</summary>
-    [Fact]
-    public void ShadowCli_CancellationAfterTriggerRestoresWithoutNotification()
+    /// <param name="synchronous">以同步 request 或非同步 CRUD 入口送達。</param>
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void ShadowCli_CancellationAfterTriggerRestoresWithoutNotification(bool synchronous)
     {
-        using var f = new CliFixture();
+        using var f = new CliFixture(synchronous);
         using var cancellation = new CancellationTokenSource();
         f.Service.AfterTrigger = cancellation.Cancel;
         Assert.Equal(130, f.Run(cancellationToken: cancellation.Token));
@@ -177,6 +180,31 @@ public sealed class ShadowCliTests
         Assert.IsType<TimeoutException>(Assert.Single(f.Reports));
     }
 
+    /// <summary>同步步驟沒有 asyncoperation；必須用本次請求 ID、正式 step、型別及時間窗找唯一追蹤。</summary>
+    [Fact]
+    public void ShadowCli_SynchronousRoundUsesExactRequestTraceWithoutAsyncOperation()
+    {
+        using var f = new CliFixture(synchronous: true);
+        Assert.Equal(0, f.Run());
+        Assert.NotEqual(Guid.Empty, f.Service.RequestId);
+        Assert.Equal(0, f.Service.AsyncQueries);
+        Assert.Equal(1, f.Service.Triggers);
+        f.AssertRestored();
+    }
+
+    /// <summary>同步追蹤歧義不能取第一筆；請求已建立的記錄仍須由 owner 排空。</summary>
+    [Fact]
+    public void ShadowCli_DuplicateSynchronousTraceFailsClosedAndRestores()
+    {
+        using var f = new CliFixture(synchronous: true);
+        f.Service.DuplicateTrace = true;
+        Assert.Equal(1, f.Run());
+        Assert.Equal(1, f.Service.Triggers);
+        Assert.Equal(0, f.Service.AsyncQueries);
+        Assert.IsType<InvalidDataException>(Assert.Single(f.Reports));
+        f.AssertRestored();
+    }
+
     /// <summary>單案例擁有合成方案、cwd、服務及 writer；報告回呼同時驗 lease 先釋放。</summary>
     private sealed class CliFixture : IOrganizationConnector, IDisposable
     {
@@ -193,10 +221,11 @@ public sealed class ShadowCliTests
         internal string[] Arguments => ["shadow", "--org", Fixture.Organization, "--module", "localization", "--scenario-root", ScenarioRoot];
 
         /// <summary>使用實際 loader、PE reader 及引擎建立可核對的離線部署，不注入預設成功的驗證。</summary>
-        internal CliFixture()
+        internal CliFixture(bool synchronous = false)
         {
-            Service = new TestService(Core);
-            var step = Core.Manifest.Steps[0] with { Module = "localization", UnsecureConfig = "{\"mode\":\"Shadow\"}" };
+            Service = new TestService(Core) { Synchronous = synchronous };
+            var step = Core.Manifest.Steps[0] with { Module = "localization", UnsecureConfig = "{\"mode\":\"Shadow\"}",
+                Mode = synchronous ? "Synchronous" : "Asynchronous" };
             var manifest = Core.Manifest with { Steps = [step] };
             var registration = Path.Combine(Core.Root, "d365", "registration");
             var plugins = Path.Combine(Core.Root, "artifacts", "plugins");
@@ -274,6 +303,10 @@ public sealed class ShadowCliTests
         internal bool FailTrigger;
         internal Action? AfterTrigger;
         internal int Triggers;
+        internal bool Synchronous;
+        internal bool DuplicateTrace;
+        internal Guid RequestId;
+        internal int AsyncQueries;
         private Guid target;
 
         /// <summary>權威種子由測試安排提供；正式 runtime 不得建立或刪除這些共享列。</summary>
@@ -288,6 +321,13 @@ public sealed class ShadowCliTests
         /// <summary>提供正式 SDK response 型別；未知訊息交既有替身明確白名單。</summary>
         public OrganizationResponse Execute(OrganizationRequest request)
         {
+            if (request is CreateRequest create)
+            {
+                Assert.True(Synchronous);
+                RequestId = create.RequestId ?? Guid.Empty;
+                Assert.NotEqual(Guid.Empty, RequestId);
+                return new CreateResponse { Results = { ["id"] = Create(create.Target) } };
+            }
             if (request is RetrieveCurrentOrganizationRequest)
                 return new RetrieveCurrentOrganizationResponse { Results = { ["Detail"] = new OrganizationDetail { OrganizationId = Organization, UniqueName = Fixture.Organization } } };
             if (request is not RetrieveEntityRequest metadata) return core.Service.Execute(request);
@@ -332,17 +372,28 @@ public sealed class ShadowCliTests
             Assert.Contains(expression.Criteria.Conditions, condition => condition.AttributeName == "createdon" && condition.Operator == ConditionOperator.OnOrAfter);
             if (expression.EntityName == "asyncoperation")
             {
+                AsyncQueries++;
+                Assert.False(Synchronous);
                 Assert.Contains(expression.Criteria.Conditions, condition => condition.AttributeName == "regardingobjectid" && Equals(condition.Values[0], target));
                 var step = core.Service.Rows.Single(row => row.LogicalName == "sdkmessageprocessingstep");
                 Assert.Contains(expression.Criteria.Conditions, condition => condition.AttributeName == "owningextensionid" && Equals(condition.Values[0], step.Id));
                 return new EntityCollection([new Entity("asyncoperation", Guid.NewGuid()) { ["correlationid"] = correlation, ["statecode"] = new OptionSetValue(3), ["statuscode"] = new OptionSetValue(30) }]);
             }
-            Assert.Contains(expression.Criteria.Conditions, condition => condition.AttributeName == "correlationid" && Equals(condition.Values[0], correlation));
+            if (Synchronous)
+            {
+                Assert.Contains(expression.Criteria.Conditions, condition => condition.AttributeName == "requestid" && Equals(condition.Values[0], RequestId));
+                Assert.Contains(expression.Criteria.Conditions, condition => condition.AttributeName == "pluginstepid" &&
+                    Equals(condition.Values[0], core.Service.Rows.Single(row => row.LogicalName == "sdkmessageprocessingstep").Id));
+                Assert.Contains(expression.Criteria.Conditions, condition => condition.AttributeName == "mode" && Equals(condition.Values[0], 0));
+            }
+            else Assert.Contains(expression.Criteria.Conditions, condition => condition.AttributeName == "correlationid" && Equals(condition.Values[0], correlation));
             Assert.Contains(expression.Criteria.Conditions, condition => condition.AttributeName == "typename" && Equals(condition.Values[0], new StepRegistration().Type));
             var trace = DifferentIntent
                 ? "SMV-SHADOW|1|{\"seq\":1,\"operation\":\"Update\",\"entity\":\"task\",\"id\":\"" + target.ToString("D") + "\",\"fields\":{\"score\":9}}\r\nSMV-SHADOW|1|{\"end\":true,\"count\":1}"
                 : "SMV-SHADOW|1|{\"end\":true,\"count\":0}";
-            return new EntityCollection([new Entity("plugintracelog", Guid.NewGuid()) { ["messageblock"] = trace }]);
+            var result = new EntityCollection([new Entity("plugintracelog", Guid.NewGuid()) { ["messageblock"] = trace }]);
+            if (DuplicateTrace) result.Entities.Add(new Entity("plugintracelog", Guid.NewGuid()) { ["messageblock"] = trace });
+            return result;
         }
 
         /// <summary>此模組沒有關聯寫入，意外呼叫必須失敗。</summary>

@@ -6,6 +6,8 @@
  * 主要功能與流程：從已核定別名表建立獨立記錄，使用共用 recorder 的安全投影；
  * trigger 後以精確 owning step、regarding ID、correlation 與開始時間查系統作業，
  * 新輪只接受唯一完整追蹤。最後逐筆刪除並唯讀核對自建記錄，清除 owner 參考。
+ * 同步步驟由當次註冊 metadata 明列，trigger 改送具有獨立 RequestId 的 SDK request；
+ * 以 requestid、pluginstepid、型別、模式及時間窗查追蹤，不等待不存在的系統作業。
  * 使用邊界與維護：呼叫端須先驗證實體／欄位 metadata、測試教會與會友權威關聯、
  * 盤點 token 來源及模組切換設定。本層不從顯示名稱推斷授權，也不解析任意查詢。
  * 顯式 alias 先配置全部 owned ID，再以 lookup 連結 owned／shared；shared 的授權與
@@ -23,6 +25,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Threading;
 using Microsoft.Xrm.Sdk;
+using Microsoft.Xrm.Sdk.Messages;
 using Microsoft.Xrm.Sdk.Query;
 using SpeechMessage.Dynamics.Plugins.Infrastructure;
 
@@ -63,6 +66,10 @@ internal sealed record ShadowSdkScenario(IReadOnlyList<ShadowSdkSeed> Seeds, Sha
     /// <summary>trigger patch 欄位到 owned／shared 別名的顯式 lookup，和 seed 參照分開且不改原始 patch。</summary>
     public IReadOnlyDictionary<string, string> TriggerReferenceAliases { get; init; } =
         new Dictionary<string, string>(StringComparer.Ordinal);
+
+    /// <summary>正式註冊為同步的 step ID 到型別；只能包含本案核定舊／新 ID，缺項表示非同步。</summary>
+    public IReadOnlyDictionary<Guid, string> SynchronousStepTypes { get; init; } =
+        new Dictionary<Guid, string>();
 }
 
 /// <summary>測試組織的命令區域 runtime；所有資源均由同步 Run 與 round owner 限定。</summary>
@@ -137,6 +144,8 @@ internal sealed class ShadowSdkRuntime : IShadowScenarioRuntime
         private readonly ShadowSdkTokenField[] tokenFields;
         private readonly bool hardcoded;
         private readonly Dictionary<string, string> primaryIds;
+        private readonly Dictionary<Guid, string> synchronousSteps = new();
+        private readonly Guid triggerRequestId = Guid.NewGuid();
         private bool seedStarted;
         private bool seeded;
         private bool cleanupStarted;
@@ -205,6 +214,13 @@ internal sealed class ShadowSdkRuntime : IShadowScenarioRuntime
                 stepIds.Distinct().Count() != stepIds.Length || types.Length is < 1 or > 128 ||
                 types.Any(type => string.IsNullOrWhiteSpace(type) || type.Length > 512) ||
                 types.Distinct(StringComparer.Ordinal).Count() != types.Length) throw InvalidRuntime();
+            if (source.SynchronousStepTypes is null || source.SynchronousStepTypes.Count > 256) throw InvalidRuntime();
+            foreach (var pair in source.SynchronousStepTypes)
+            {
+                if (pair.Key == Guid.Empty || !source.LegacyStepIds.Concat(source.ShadowStepIds).Contains(pair.Key) ||
+                    string.IsNullOrWhiteSpace(pair.Value) || pair.Value.Length > 512) throw InvalidRuntime();
+                if (stepIds.Contains(pair.Key)) synchronousSteps.Add(pair.Key, pair.Value);
+            }
             tokenFields = source.TokenFields.ToArray();
             foreach (var token in tokenFields)
                 if (token is null || !records.Any(item => item.Alias == token.Alias) || string.IsNullOrWhiteSpace(token.Attribute) ||
@@ -331,13 +347,21 @@ internal sealed class ShadowSdkRuntime : IShadowScenarioRuntime
             var target = records.Single(item => item.Alias == trigger.TargetAlias).Record;
             var patch = RecordingOrganizationService.CloneEntity(trigger.Fields, allowAliases: false);
             patch.Id = target.Id;
-            if (trigger.Message == "Update") runtime.service.Update(patch);
-            else if (trigger.Message == "Delete") runtime.service.Delete(target.LogicalName, target.Id);
+            if (trigger.Message == "Update")
+            {
+                if (synchronousSteps.Count == 0) runtime.service.Update(patch);
+                else ExecuteTrigger(new UpdateRequest { Target = patch });
+            }
+            else if (trigger.Message == "Delete")
+            {
+                if (synchronousSteps.Count == 0) runtime.service.Delete(target.LogicalName, target.Id);
+                else ExecuteTrigger(new DeleteRequest { Target = target.ToEntityReference() });
+            }
             else
             {
                 var candidate = RecordingOrganizationService.CloneEntity(target, allowAliases: false);
                 foreach (var field in patch.Attributes) candidate[field.Key] = field.Value;
-                CreateOwned(candidate);
+                CreateOwned(candidate, synchronousSteps.Count != 0);
             }
             cancellationToken.ThrowIfCancellationRequested();
             triggered = true;
@@ -362,7 +386,7 @@ internal sealed class ShadowSdkRuntime : IShadowScenarioRuntime
         }
 
         /// <summary>
-        /// 只取已完成且精確 owning step／目標／時間窗作業的 correlation，逐型別取唯一追蹤。
+        /// 非同步取精確 owning step／目標／時間窗作業的 correlation；同步使用本次 RequestId。
         /// 原始 messageblock 僅在方法內處理，抽出 SMV-SHADOW 行後限制八千字元並由 parser 驗完整。
         /// 同型別多次執行或多個 step 的 trace 尚不合併，歧義明確拒絕，避免序號覆寫。
         /// </summary>
@@ -373,11 +397,16 @@ internal sealed class ShadowSdkRuntime : IShadowScenarioRuntime
             string? result = null;
             Poll(maximumWait, () =>
             {
-                var operations = CompletedOperations();
-                if (operations is null) return false;
+                if (!triggered) throw InvalidRuntime();
                 var candidates = new List<string>();
-                foreach (var operation in operations)
+                var traces = new List<Entity>();
+                if (synchronousSteps.TryGetValue(stepIds[0], out var synchronousType))
+                    traces.AddRange(ReadSynchronousTrace(stepIds[0], synchronousType, includeMessage: true));
+                else
                 {
+                    var operations = CompletedOperations();
+                    if (operations is null) return false;
+                    var operation = operations.Single();
                     var correlation = operation.GetAttributeValue<Guid>("correlationid");
                     if (correlation == Guid.Empty) throw InvalidRuntime();
                     foreach (var type in types)
@@ -386,22 +415,24 @@ internal sealed class ShadowSdkRuntime : IShadowScenarioRuntime
                         query.Criteria.AddCondition("correlationid", ConditionOperator.Equal, correlation);
                         query.Criteria.AddCondition("typename", ConditionOperator.Equal, type);
                         query.Criteria.AddCondition("createdon", ConditionOperator.OnOrAfter, triggerStarted);
-                        var rows = ReadBounded(query, 1);
-                        if (rows.Length == 0) continue;
-                        var text = rows[0].GetAttributeValue<string>("messageblock");
-                        if (text is null || text.Length > 32_768) throw InvalidRuntime();
-                        var safe = new StringBuilder();
-                        using var reader = new StringReader(text);
-                        while (reader.ReadLine() is { } line)
-                            if (line.StartsWith("SMV-SHADOW|1|", StringComparison.Ordinal))
-                            {
-                                if (line.Length + safe.Length + 2 > 8_000) throw InvalidRuntime();
-                                safe.Append(line).Append("\r\n");
-                            }
-                        if (safe.Length == 0) continue;
-                        _ = ShadowTraceParser.Parse(safe.ToString());
-                        candidates.Add(safe.ToString());
+                        traces.AddRange(ReadBounded(query, 1));
                     }
+                }
+                foreach (var row in traces)
+                {
+                    var text = row.GetAttributeValue<string>("messageblock");
+                    if (text is null || text.Length > 32_768) throw InvalidRuntime();
+                    var safe = new StringBuilder();
+                    using var reader = new StringReader(text);
+                    while (reader.ReadLine() is { } line)
+                        if (line.StartsWith("SMV-SHADOW|1|", StringComparison.Ordinal))
+                        {
+                            if (line.Length + safe.Length + 2 > 8_000) throw InvalidRuntime();
+                            safe.Append(line).Append("\r\n");
+                        }
+                    if (safe.Length == 0) continue;
+                    _ = ShadowTraceParser.Parse(safe.ToString());
+                    candidates.Add(safe.ToString());
                 }
                 if (candidates.Count > 1) throw InvalidRuntime();
                 if (candidates.Count == 0) return false;
@@ -454,17 +485,47 @@ internal sealed class ShadowSdkRuntime : IShadowScenarioRuntime
             Array.Clear(stepIds);
             Array.Clear(types);
             primaryIds.Clear();
+            synchronousSteps.Clear();
         }
 
         /// <summary>預先登錄已知 ID，確保「伺服器建立但回應失敗」仍能以該 ID 查回清理。</summary>
-        private void CreateOwned(Entity record)
+        private void CreateOwned(Entity record, bool triggerRequest = false)
         {
             if (!attempted.Add((record.LogicalName, record.Id))) throw InvalidRuntime();
             createOrder.Add((record.LogicalName, record.Id));
             // SDK 可保留或改寫傳入物件；只能取得 detached 副本，清冊身分與原始值保持 owner 獨占。
             var id = record.Id;
-            if (runtime.service.Create(RecordingOrganizationService.CloneEntity(record, allowAliases: false)) != id)
+            var copy = RecordingOrganizationService.CloneEntity(record, allowAliases: false);
+            var created = triggerRequest
+                ? (ExecuteTrigger(new CreateRequest { Target = copy }) as CreateResponse)?.id
+                : runtime.service.Create(copy);
+            if (created != id)
                 throw InvalidRuntime();
+        }
+
+        /// <summary>明確 request ID 只屬一輪一次 trigger；不重送失敗或回應不明的請求。</summary>
+        private OrganizationResponse ExecuteTrigger(OrganizationRequest request)
+        {
+            request.RequestId = triggerRequestId;
+            return runtime.service.Execute(request);
+        }
+
+        /// <summary>
+        /// 同步執行沒有 asyncoperation；只接受本次請求與正式 step 的唯一追蹤。
+        /// 舊輪只讀存在性而不取原文；新輪才讀安全投影來源，不以型別名稱單獨配對。
+        /// </summary>
+        private Entity[] ReadSynchronousTrace(Guid step, string type, bool includeMessage)
+        {
+            var query = new QueryExpression("plugintracelog")
+            {
+                ColumnSet = includeMessage ? new ColumnSet("messageblock") : new ColumnSet(false), TopCount = 2
+            };
+            query.Criteria.AddCondition("requestid", ConditionOperator.Equal, triggerRequestId);
+            query.Criteria.AddCondition("pluginstepid", ConditionOperator.Equal, step);
+            query.Criteria.AddCondition("typename", ConditionOperator.Equal, type);
+            query.Criteria.AddCondition("mode", ConditionOperator.Equal, 0);
+            query.Criteria.AddCondition("createdon", ConditionOperator.OnOrAfter, triggerStarted);
+            return ReadBounded(query, 1);
         }
 
         /// <summary>主鍵名稱必須由已驗 metadata 提供，任意表、活動與自訂實體都不能按名稱猜。</summary>
@@ -486,6 +547,11 @@ internal sealed class ShadowSdkRuntime : IShadowScenarioRuntime
             var operations = new List<Entity>();
             foreach (var step in stepIds)
             {
+                if (synchronousSteps.TryGetValue(step, out var type))
+                {
+                    if (ReadSynchronousTrace(step, type, includeMessage: false).Length == 0) return null;
+                    continue;
+                }
                 var query = new QueryExpression("asyncoperation")
                 {
                     ColumnSet = new ColumnSet("correlationid", "statecode", "statuscode", "errorcode"), TopCount = 2
