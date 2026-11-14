@@ -240,11 +240,11 @@ footer{margin-top:36px;color:var(--muted);font-size:12.5px;text-align:center}
  */
 const DATA = {
   "planVersion": "3.5",
-  "snapshot": "2026-11-14 21:00 Asia/Taipei (UTC+08:00)",
-  "lastUpdated": "2026-11-14T21:00:46+08:00",
+  "snapshot": "2026-11-14 21:14 Asia/Taipei (UTC+08:00)",
+  "lastUpdated": "2026-11-14T21:14:38+08:00",
   "branch": "1.0.0.11.Integration.P5.Worktree",
-  "head": "280490ad",
-  "headline": "2026-11-14 20:13 Asia/Taipei (UTC+08:00)：更新回復前置12:54與P5-02驗收已完成；P5-03a離線實作中，manifest v2、映像／活動註冊、唯讀舊註冊匯出、多組件部署核心、D5-18互斥切換與最終值比較已通過Deployment 354項測試。多組件CLI與兩輪shadow執行器仍待完成；未實機、整包未驗收、未推送。",
+  "head": "02cbb811",
+  "headline": "2026-11-14 21:14 Asia/Taipei (UTC+08:00)：更新回復前置12:54與P5-02重新驗收已完成；出席更正為reading，P7-02補驗已登錄。P5-03a多組件CLI、兩輪核心、SDK runtime／身分核對／報告與型別轉換離線完成，Deployment 572/572通過；shadow CLI接線、同步追蹤與關聯observe仍待完成。尚未實機、整包未驗收；本輪未推送。P5-03暫估今日23:30驗收，依CLI及實機結果調整。",
   "notices": [
     {
       "id": "plan-3.5-summary",
@@ -511,8 +511,8 @@ const DATA = {
       "phaseId": "階段 5",
       "level": "info",
       "title": "P5 進度摘要",
-      "lastUpdated": "2026-11-14T21:00:46+08:00",
-      "body": "2026-11-14 20:13 Asia/Taipei (UTC+08:00)：更新回復前置12:54與P5-02驗收已完成；P5-03a離線實作中，manifest v2、映像／活動註冊、唯讀舊註冊匯出、多組件部署核心、D5-18互斥切換與最終值比較已通過Deployment 354項測試。多組件CLI與兩輪shadow執行器仍待完成；未實機、整包未驗收、未推送。",
+      "lastUpdated": "2026-11-14T21:14:38+08:00",
+      "body": "2026-11-14 21:14 Asia/Taipei (UTC+08:00)：更新回復前置12:54與P5-02重新驗收已完成；出席更正為reading，P7-02補驗已登錄。P5-03a多組件CLI、兩輪核心、SDK runtime／身分核對／報告與型別轉換離線完成，Deployment 572/572通過；shadow CLI接線、同步追蹤與關聯observe仍待完成。尚未實機、整包未驗收；本輪未推送。P5-03暫估今日23:30驗收，依CLI及實機結果調整。",
       "steps": [
         "2026-11-14 08:26 Asia/Taipei (UTC+08:00)：已確認目標殘留目錄不是 Git worktree，移除後正式 P4／P5 worktree 清單不受影響。",
         "2026-11-14 08:26 Asia/Taipei (UTC+08:00)：export-metadata 唯讀結構快照建立成功；verify 因本機部署執行檔／連線前置失敗，未宣稱 goodshepherdback verify=0。",
@@ -538,7 +538,8 @@ const DATA = {
         "2026-11-14 18:45 Asia/Taipei (UTC+08:00)：a89d696c修正PluginHarness架構例外後，固定guard checkout重新執行；完整Release測試20個組件／4926項全過，I18n、打包、duplicate、Changed encoding、文件及進度頁守門全過。P5-02完成重新驗收，尚未推送；P5-03a開始規劃；實機待Shadow ID確認。",
         "2026-11-14 19:28 Asia/Taipei (UTC+08:00)：30d81f32已提交有界影子追蹤解析／精確比較；manifest v2與唯讀匯出核心的局部Release測試282項、文件1529檔通過。未連組織；兩個Shadow ID尚待確認，未完成整包固定guard，不推送。",
         "2026-11-14 20:13 Asia/Taipei (UTC+08:00)：280490ad完成多組件部署核心本地提交；Deployment Release 354項、文件1538檔及Changed編碼全過。含映像回復、活動群組、D5-18舊輪收尾與最終值比較；多組件CLI及shadow runner續作，未連組織、未推送。",
-        "2026-11-14 21:00 Asia/Taipei (UTC+08:00)：更正P5-02出席基準為reading；未跑第一輪，沒有legacy.json。第75行收件常數未使用；真正D5-18阻擋為205／230行空token建構式轉入寫死正式token後備。P5-PROP-002安排P7-02補驗；工具3小時修正排P5-03後、P5-05前，尚未開始。"
+        "2026-11-14 21:00 Asia/Taipei (UTC+08:00)：更正P5-02出席基準為reading；未跑第一輪，沒有legacy.json。第75行收件常數未使用；真正D5-18阻擋為205／230行空token建構式轉入寫死正式token後備。P5-PROP-002安排P7-02補驗；工具3小時修正排P5-03後、P5-05前，尚未開始。",
+        "2026-11-14 21:14 Asia/Taipei (UTC+08:00)：419f24a9完成P5-02基準及D5-18更正；a6eed0d2加入精確metadata值轉換，02cbb811區分reading／僅黃金與真實兩輪，無舊輪時比較固定不可比。Deployment 572/572、文件1554檔零失敗；P5-03未驗收。三小時工具修正排在P5-03驗收後、P5-05前，尚未開始。"
       ]
     }
   ],
@@ -659,7 +660,7 @@ const DATA = {
       "id": "階段 5",
       "name": "Plugin／Workflow 重建（36 個 DLL → 2 個）",
       "planned": "8～12 個工作天",
-      "actual": "2026-11-14 18:15 Asia/Taipei (UTC+08:00)：P5-01已驗收；更新回復前置12:54完成並通過完整guard八項。P5-02重做中：a段已建立D5-3 PresentRecord閱讀對照expected.json（basis=reading），b段完成36個專案／29個入口矩陣；固定guard、整包驗收與推送尚未完成。",
+      "actual": "2026-11-14 21:14 Asia/Taipei (UTC+08:00)：更新回復前置12:54與P5-02重新驗收已完成；出席更正為reading，P7-02補驗已登錄。P5-03a多組件CLI、兩輪核心、SDK runtime／身分核對／報告與型別轉換離線完成，Deployment 572/572通過；shadow CLI接線、同步追蹤與關聯observe仍待完成。尚未實機、整包未驗收；本輪未推送。P5-03暫估今日23:30驗收，依CLI及實機結果調整。",
       "current": true,
       "done": 1,
       "active": 0
@@ -1402,7 +1403,7 @@ const DATA = {
       "timebox": "1 天",
       "doneAt": "",
       "commit": "",
-      "note": "2026-11-14 20:13 Asia/Taipei (UTC+08:00)：P5-03a離線實作中；映像／活動註冊、多組件部署核心與D5-18切換已通過354項測試。CLI整合、兩輪runner、固定guard及diagnostics實機仍待完成；整包未驗收。"
+      "note": "2026-11-14 21:14 Asia/Taipei (UTC+08:00)：更新回復前置12:54與P5-02重新驗收已完成；出席更正為reading，P7-02補驗已登錄。P5-03a多組件CLI、兩輪核心、SDK runtime／身分核對／報告與型別轉換離線完成，Deployment 572/572通過；shadow CLI接線、同步追蹤與關聯observe仍待完成。尚未實機、整包未驗收；本輪未推送。P5-03暫估今日23:30驗收，依CLI及實機結果調整。"
     },
     {
       "id": "P5-04",
@@ -1751,27 +1752,27 @@ const DATA = {
         [
           "註冊清單 v2、映像與活動註冊",
           "no",
-          "v2格式與同型別多步驟規劃通過；映像／活動註冊及多組件命令待完成"
+          "v2、映像／活動註冊及多組件CLI已離線測試；整包守門與實機待完成"
         ],
         [
           "export-legacy 與 switch 互斥切換",
           "no",
-          "唯讀export-legacy核心已測試；CLI與switch互斥切換待完成"
+          "export-legacy及enabled/off CLI已測；legacy仍限受控核心，CLI接線待完成"
         ],
         [
           "先舊後新 shadow 兩輪與 observe",
           "no",
-          "依05A修訂1定義，尚未執行實機"
+          "兩輪核心與SDK runtime已離線測試；shadow CLI、同步追蹤及關聯observe待完成"
         ],
         [
           "失敗／取消還原與資料清理",
           "no",
-          "待補finally、overflow與殘留0測試"
+          "失敗／取消、overflow及清理已有離線測試；實機殘留與還原待核對"
         ],
         [
           "固定守門及P5-03a回報",
           "no",
-          "User Secrets尚缺ShadowTestChurchId／ShadowTestContactId；確認前不進實機"
+          "兩個Shadow GUID尚待權威唯讀確認並放入User Secrets；固定guard及實機未完成"
         ]
       ]
     }

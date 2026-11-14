@@ -6,7 +6,7 @@
   "risk": "high",
   "domain": "backend",
   "currentPhase": "implementation",
-  "nextAction": "280490ad多組件核心已本地提交；接CLI及兩輪runner，離線354項通過；整包驗收與固定guard前不推送",
+  "nextAction": "02cbb811：Deployment 572/572；接shadow CLI、同步追蹤與關聯observe，權威確認Shadow IDs後才實機；整包驗收與固定guard前不推送",
   "createdAt": "2026-11-14T19:28:56+08:00",
   "branch": "1.0.0.11.Integration.P5.Worktree"
 }
