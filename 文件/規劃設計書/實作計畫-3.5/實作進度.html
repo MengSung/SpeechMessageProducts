@@ -240,11 +240,11 @@ footer{margin-top:36px;color:var(--muted);font-size:12.5px;text-align:center}
  */
 const DATA = {
   "planVersion": "3.5",
-  "snapshot": "2026-11-14 22:47 Asia/Taipei (UTC+08:00)",
-  "lastUpdated": "2026-11-14T22:47:46+08:00",
+  "snapshot": "2026-11-14 23:00 Asia/Taipei (UTC+08:00)",
+  "lastUpdated": "2026-11-14T23:00:15+08:00",
   "branch": "1.0.0.11.Integration.P5.Worktree",
-  "head": "721dd5c5",
-  "headline": "2026-11-14 22:47 Asia/Taipei (UTC+08:00)：P5-03a續作，6ac56760接通關聯observe與Create別名，721dd5c5補強子列清理失敗的父列保留與重試；related只接受指向本輪owned seed的正式lookup，讀回後更新ID映射，歧義不任取第一筆，送達後失敗／取消也重新查回並先刪子列。新增26項離線測試，Deployment Release674/674、文件1560檔零失敗。受審token盤點的舊輪CLI、推播／外部修改摘要及映像接線仍待完成；同步追蹤仍待實機查證，整包固定guard與diagnostics實機未執行，P5-03未驗收、未推送。目前沒有等待使用者的事項，離線契約完成後再估驗收時間。",
+  "head": "2f946479",
+  "headline": "2026-11-14 23:00 Asia/Taipei (UTC+08:00)：P5-03a續作，2f946479接通固定受審 token inventory 與先舊後新 shadow 舊輪；缺漏、未釐清或寫死 token 的盤點在業務寫入前拒絕，舊輪仍受 D5-18、互斥啟用及 finally 停用保護。Deployment Release684/684、文件1562檔零失敗、Changed encoding 207/207 零問題；switch 的未受範圍 legacy CLI 仍拒絕，實機同步追蹤、推播／外部修改摘要、映像及固定 guard/diagnostics 尚待完成，P5-03未驗收、未推送。目前沒有等待使用者的事項。",
   "notices": [
     {
       "id": "plan-3.5-summary",
@@ -1402,7 +1402,7 @@ const DATA = {
       "timebox": "1 天",
       "doneAt": "2026-11-14 18:45 Asia/Taipei (UTC+08:00)",
       "commit": "6a2f0b07",
-      "note": "2026-11-14 18:45 Asia/Taipei (UTC+08:00)：P5-02已驗收；a段依D5-3／D5-18以reading閱讀對照完成，四情境expected.json逐筆附舊檔名與行號，因205／230行空token建構式必走寫死正式token後備而未執行，沒有legacy.json。b段工具覆蓋率83.47%、矩陣36個專案／29個入口（0 Generated／29 CompileFailed／0 BlockedByNetworkApi）；ExpectedGoldenTests雙目標35/35、完整Release4926項、固定guard全通過，驗收提交6a2f0b07已推送並以git ls-remote核對。"
+      "note": "2026-11-14 18:45 Asia/Taipei (UTC+08:00)：P5-02已驗收；a段依D5-3／D5-18以reading閱讀對照完成，四情境expected.json逐筆附舊檔名與行號，因205／230行空token建構式必走寫死正式token後備而未執行，沒有legacy.json。b段工具覆蓋率83.47%、矩陣36個專案／29個入口（0 Generated／29 CompileFailed／0 BlockedByNetworkApi）；ExpectedGoldenTests雙目標35/35、完整Release4926項、固定guard全通過，驗收提交6a2f0b07已推送並以git ls-remote核對。2026-11-14 21:00更正已以4f76c018提交，補充第75行DEVELOPER_LINE_ID未使用及P7-02補驗提案；不重新驗收。"
     },
     {
       "id": "P5-03",
@@ -1414,7 +1414,7 @@ const DATA = {
       "timebox": "1 天",
       "doneAt": "",
       "commit": "",
-      "note": "2026-11-14 22:47 Asia/Taipei (UTC+08:00)：P5-03a續作，6ac56760接通關聯observe與Create別名，721dd5c5補強子列清理失敗的父列保留與重試；related只接受指向本輪owned seed的正式lookup，讀回後更新ID映射，歧義不任取第一筆，送達後失敗／取消也重新查回並先刪子列。新增26項離線測試，Deployment Release674/674、文件1560檔零失敗。受審token盤點的舊輪CLI、推播／外部修改摘要及映像接線仍待完成；同步追蹤仍待實機查證，整包固定guard與diagnostics實機未執行，P5-03未驗收、未推送。目前沒有等待使用者的事項，離線契約完成後再估驗收時間。"
+      "note": "2026-11-14 23:00 Asia/Taipei (UTC+08:00)：P5-03a續作，2f946479接通固定受審 token inventory 與先舊後新 shadow 舊輪；缺漏、未釐清或寫死 token 的盤點在業務寫入前拒絕，舊輪仍受 D5-18、互斥啟用及 finally 停用保護。Deployment Release684/684、文件1562檔零失敗、Changed encoding 207/207 零問題；switch 的未受範圍 legacy CLI 仍拒絕，實機同步追蹤、推播／外部修改摘要、映像及固定 guard/diagnostics 尚待完成，P5-03未驗收、未推送。目前沒有等待使用者的事項。"
     },
     {
       "id": "P5-04",
