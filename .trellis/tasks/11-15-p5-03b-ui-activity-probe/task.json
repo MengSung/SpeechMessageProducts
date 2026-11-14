@@ -3,7 +3,7 @@
   "name": "p5-03b-ui-activity-probe",
   "title": "P5-03b 畫面元件與活動測試流程",
   "description": "",
-  "status": "planning",
+  "status": "in_progress",
   "dev_type": null,
   "scope": null,
   "package": null,
@@ -21,6 +21,6 @@
   "children": [],
   "parent": "11-14-integration-p5",
   "relatedFiles": [],
-  "notes": "2026-11-15 03:47 Asia/Taipei (UTC+08:00)：依既有階段授權備妥離線prd／design／implement與六項同名測試清單；尚未實作，不宣稱測試或驗收。P5-03a實機同一步驟多次無trace，不再盲試；未新增實機操作。",
+  "notes": "2026-11-15 04:06 Asia/Taipei (UTC+08:00)：UI封裝器、D26共用表單隔離、ui-export／ui-import白名單命令與活動探針已完成；UiSolutionArchive／ActivityProbe離線測試15／15與2／2通過，Deployment全套765／765。尚未跑本次提交後固定guard、尚未寫一頁回報與進度頁；P5-03a仍未驗收，故不宣稱P5-03完成或推送。",
   "meta": {}
 }
