@@ -19,7 +19,8 @@
   "pr_url": null,
   "subtasks": [],
   "children": [
-    "11-14-p5-00-startup-preflight"
+    "11-14-p5-00-startup-preflight",
+    "11-14-p4-h1-payment-currency-consistency"
   ],
   "parent": null,
   "relatedFiles": [],

@@ -7,8 +7,9 @@
  * 主要功能與流程：
  * Money_TwdRoundTrip_NoDecimalLoss 將 Money 經永豐 mapper 轉為最小單位，再由永豐回應金額解析路徑轉回 Money，
  * 斷言金額為 123456 分且結果仍精確等於 1234.56 TWD。
- * CreateOrder_UnsupportedCurrency_Rejected 使用實際 Gateway 與 Sinopac provider，在呼叫 provider 前拒絕 USD，
- * 並由計數型假 HTTP handler 證明沒有送出網路請求。
+ * CreateOrder_UnsupportedCurrency_Rejected、CreateOrder_LineItemCurrencyMismatch_RejectedBeforeHttp 與
+ * CreateOrder_DefaultMoneyLineItem_RejectedBeforeHttp 使用實際 Gateway 與 provider，在呼叫 provider 前拒絕不支援或不一致的幣別，
+ * 並由計數型假 HTTP handler 證明沒有送出網路請求；後兩案各覆蓋永豐與 MyPay。
  *
  * 使用邊界與維護：
  * 本檔不啟動產品 Host、不連線永豐或 CRM。profile 與 handler 只由單一測試建立；HTTP 測試以 using 擁有 HttpClient，
@@ -22,6 +23,7 @@ using SpeechMessage.Payments.Abstractions;
 using SpeechMessage.Payments.Configuration;
 using SpeechMessage.Payments.Gateway;
 using SpeechMessage.Payments.Models;
+using SpeechMessage.Payments.Providers.MyPay;
 using SpeechMessage.Payments.Providers.Sinopac;
 using Xunit;
 
@@ -85,6 +87,70 @@ public sealed class PaymentMoneyTests
     }
 
     /// <summary>
+    /// 保護建單前逐筆檢查明細幣別，避免把非總額幣別的數值送進 provider。
+    /// 同一個合成請求分別通過永豐與 MyPay；兩個計數型 handler 都必須維持零次呼叫。
+    /// </summary>
+    [Fact]
+    public async Task CreateOrder_LineItemCurrencyMismatch_RejectedBeforeHttp()
+    {
+        var request = new PaymentCreateRequest
+        {
+            ProductOrderId = "synthetic-order",
+            Total = new Money(10m, "TWD"),
+            Items = new[]
+            {
+                new PaymentLineItem
+                {
+                    Name = "Synthetic item",
+                    Quantity = 1,
+                    Price = new Money(10m, "USD")
+                }
+            }
+        };
+
+        await AssertRejectedBeforeHttp(
+            CreateSinopacProfile(),
+            client => new SinopacPaymentProvider(client),
+            request);
+        await AssertRejectedBeforeHttp(
+            CreateMyPayProfile(),
+            client => new MyPayPaymentProvider(client),
+            request);
+    }
+
+    /// <summary>
+    /// 保護明細使用沒有合法幣別的 default Money 時 fail closed。
+    /// 永豐與 MyPay 都必須在 provider 建立 HTTP request 前回傳輸入錯誤。
+    /// </summary>
+    [Fact]
+    public async Task CreateOrder_DefaultMoneyLineItem_RejectedBeforeHttp()
+    {
+        var request = new PaymentCreateRequest
+        {
+            ProductOrderId = "synthetic-order",
+            Total = new Money(10m, "TWD"),
+            Items = new[]
+            {
+                new PaymentLineItem
+                {
+                    Name = "Synthetic item",
+                    Quantity = 1,
+                    Price = default
+                }
+            }
+        };
+
+        await AssertRejectedBeforeHttp(
+            CreateSinopacProfile(),
+            client => new SinopacPaymentProvider(client),
+            request);
+        await AssertRejectedBeforeHttp(
+            CreateMyPayProfile(),
+            client => new MyPayPaymentProvider(client),
+            request);
+    }
+
+    /// <summary>
     /// 建立完整但完全合成的 sandbox profile，確保若 Gateway 幣別檢查被移除，
     /// 永豐 provider 會走到計數型假 HTTP handler，而不會在憑證驗證處提前停止。
     /// profile 由呼叫測試獨占，回傳後沒有跨測試保存或重用。
@@ -110,6 +176,50 @@ public sealed class PaymentMoneyTests
                 ["ApiBaseUrl"] = "https://sandbox.example.test/"
             }
         };
+    }
+
+    /// <summary>
+    /// 建立完全合成的 MyPay profile；只供拒絕前 HTTP 測試使用，不讀取部署設定或秘密。
+    /// </summary>
+    private static PaymentMerchantProfile CreateMyPayProfile()
+    {
+        return new PaymentMerchantProfile
+        {
+            Name = "SyntheticMyPay",
+            Provider = PaymentProviderKind.MyPay,
+            Environment = PaymentEnvironment.Sandbox,
+            Credentials = new Dictionary<string, string>
+            {
+                ["StoreId"] = "synthetic-store",
+                ["Key"] = "synthetic-key"
+            },
+            Endpoints = new Dictionary<string, string>
+            {
+                ["ApiBaseUrl"] = "https://sandbox.example.test/api/init"
+            }
+        };
+    }
+
+    /// <summary>
+    /// 使用單一案例擁有的 HttpClient 驗證 Gateway 在輸入關卡拒絕請求。
+    /// provider 與 handler 均限於本次呼叫生命週期，回傳前由 using 確定性釋放。
+    /// </summary>
+    private static async Task AssertRejectedBeforeHttp(
+        PaymentMerchantProfile profile,
+        Func<HttpClient, IPaymentProvider> providerFactory,
+        PaymentCreateRequest request)
+    {
+        var handler = new CountingHttpMessageHandler();
+        using var httpClient = new HttpClient(handler);
+        var gateway = new PaymentGateway(
+            new StaticPaymentProfileResolver(profile),
+            new[] { providerFactory(httpClient) });
+
+        var result = await gateway.CreatePaymentAsync(request with { ProfileName = profile.Name });
+
+        Assert.Equal(0, handler.CallCount);
+        Assert.Equal(PaymentStatus.Failed, result.Status);
+        Assert.Equal(PaymentErrorKind.RequestInvalid, result.Error.Kind);
     }
 
     /// <summary>

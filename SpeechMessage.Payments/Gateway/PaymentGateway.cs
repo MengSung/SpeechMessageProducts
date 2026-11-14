@@ -11,7 +11,8 @@
  *
  * 使用邊界與維護：
  * Gateway 只持有 resolver 與 provider routing 表，不保存 request、profile、憑證或使用者狀態；provider 實例生命週期由 DI Host 擁有。
- * 建立付款先解析 profile，再驗證有效 Money.Currency 與 SupportedCurrencies；無效或不支援即回 RequestInvalid，不能呼叫 provider 或傳送 HTTP。
+ * 建立付款先解析 profile，再驗證總額與每筆明細的有效 Money.Currency 及 SupportedCurrencies；無效或不支援即回 RequestInvalid，
+ * 不能呼叫 provider 或傳送 HTTP。沒有明細時仍由既有 provider mapper 維持其相容 fallback 行為。
  * 查詢及 callback 將取消權杖交給 provider；修改 routing／Money 契約時須核對 Gateway 與 provider 測試。
  * 可沿 SpeechMessage.Payments.Tests/Gateway/PaymentGatewayTests.cs、
  * SpeechMessage.Payments/DependencyInjection/ServiceCollectionExtensions.cs 追查目前工作樹中的合作／使用位置。
@@ -51,7 +52,8 @@ internal sealed class PaymentGateway : IPaymentGateway, IPaymentAllotGateway
     }
 
     /// <summary>
-    /// 建立付款前驗證 profile、有效幣別及 provider 支援清單；不支援的請求在傳輸前回傳 Failed／RequestInvalid。
+    /// 建立付款前驗證 profile、總額及每筆明細的有效幣別與 provider 支援清單；
+    /// 不合法或不支援的請求在傳輸前回傳 Failed／RequestInvalid。沒有明細時不改變既有 provider fallback 行為。
     /// </summary>
     /// <param name="request">含 Money 總額與產品訂單資訊的中立請求。</param>
     /// <param name="cancellationToken">呼叫端取消權杖，於通過輸入檢查後傳給 provider。</param>
@@ -88,6 +90,35 @@ internal sealed class PaymentGateway : IPaymentGateway, IPaymentAllotGateway
             return Task.FromResult(CreateInvalidCurrencyResult(
                 request.ProductOrderId,
                 $"Currency '{currency}' is not supported by provider '{selected.Profile!.Provider}'."));
+        }
+
+        foreach (var item in request.Items)
+        {
+            if (item is null)
+            {
+                return Task.FromResult(CreateInvalidCurrencyResult(
+                    request.ProductOrderId,
+                    "Payment line items must have a valid currency matching the payment total."));
+            }
+
+            string itemCurrency;
+            try
+            {
+                itemCurrency = item.Price.Currency;
+            }
+            catch (InvalidOperationException)
+            {
+                return Task.FromResult(CreateInvalidCurrencyResult(
+                    request.ProductOrderId,
+                    "Payment line items must have a valid currency matching the payment total."));
+            }
+
+            if (!string.Equals(itemCurrency, currency, StringComparison.Ordinal))
+            {
+                return Task.FromResult(CreateInvalidCurrencyResult(
+                    request.ProductOrderId,
+                    "Payment line items must have a valid currency matching the payment total."));
+            }
         }
 
         return provider.CreatePaymentAsync(selected.Profile!, request, cancellationToken);
