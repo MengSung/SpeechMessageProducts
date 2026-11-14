@@ -5,7 +5,7 @@
 
 主要功能與流程：bounded reader 讀取有限舊 C# 來源閉包，Roslyn 語意改寫 HttpClient／RestClient 與檔案操作，拒絕無法攔截的 API。逐案例 AppDomain 執行真正入口，以連結共用的 FakeOrganizationService 記錄寫入、以傳輸替身記錄請求，候選通過秘密掃描後才原子發布。只編譯矩陣維持三種分類，不把編譯成功當成舊行為執行證據。
 
-使用邊界與維護：不複製舊來源、不保存 Session、credential 或跨呼叫快取。動態組件只在案例域載入，記錄client沒有真網路handler；runner擁有域與scratch，finally卸載並關閉遺漏Dispose的有界stream，失敗不發布部分結果。套件由方案中央管理；修改後須執行建置、隔離／容量／傳輸測試、方案清單、文件與位元組檢查。
+使用邊界與維護：不複製舊來源、不保存 Session、credential 或跨呼叫快取。動態組件只在案例域載入，記錄client沒有真網路handler；runner擁有域與scratch，finally卸載並關閉遺漏Dispose的有界stream，失敗不發布部分結果。套件由方案中央管理；明確參考中央核定的 System.Text.Json，避免 Roslyn 的傳遞相依停留於有安全稽核失敗的舊版本，不停用 NuGet Audit。修改後須執行建置、隔離／容量／傳輸測試、方案清單、文件與位元組檢查。
 -->
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
@@ -23,6 +23,7 @@
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp" />
     <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" PrivateAssets="all" />
     <PackageReference Include="Newtonsoft.Json" />
+    <PackageReference Include="System.Text.Json" />
     <PackageReference Include="Microsoft.CrmSdk.CoreAssemblies" />
     <PackageReference Include="Microsoft.CrmSdk.Workflow" />
     <PackageReference Include="Moq" />
