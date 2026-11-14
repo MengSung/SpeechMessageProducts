@@ -154,7 +154,11 @@ internal sealed partial class DeploymentEngine
         var query = new QueryExpression("contact") { ColumnSet = new ColumnSet(false), TopCount = 2 };
         query.Criteria.AddCondition("new_lineid", ConditionOperator.NotNull);
         query.Criteria.AddCondition("new_lineid", ConditionOperator.NotEqual, "");
-        var members = RequireUniqueRowsById(service.RetrieveMultiple(query).Entities, "D34 聯絡人");
+        var page = service.RetrieveMultiple(query);
+        // TopCount 不是完整性證明；伺服器仍回報續頁時不能把第一頁唯一列當作 D34 通關。
+        if (page is null || page.MoreRecords || page.Entities.Any(row => row.LogicalName != "contact"))
+            throw InvalidSwitch();
+        var members = RequireUniqueRowsById(page.Entities, "D34 聯絡人");
         if (members.Length != 1 || members[0].Id != context.TestContactId) throw InvalidSwitch();
         var contact = service.Retrieve("contact", context.TestContactId, new ColumnSet("parentcustomerid"));
         var parent = contact.GetAttributeValue<EntityReference>("parentcustomerid");
