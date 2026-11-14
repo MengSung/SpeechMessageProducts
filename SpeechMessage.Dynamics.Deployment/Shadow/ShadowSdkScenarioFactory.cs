@@ -47,6 +47,10 @@ internal sealed record ShadowSdkBinding(string Entrypoint, string ChurchAlias, s
     /// <summary>每個實際執行步驟已核對的映像註冊；僅由 CLI 提供，不接受情境自行授權或注入映像。</summary>
     public IReadOnlyDictionary<Guid, IReadOnlyList<RegistrationImage>> StepImages { get; init; } =
         new Dictionary<Guid, IReadOnlyList<RegistrationImage>>();
+    /// <summary>已由受審盤點及正式metadata核對的外部既有列範圍；不能由情境自行宣告。</summary>
+    public IReadOnlyList<ShadowExternalScope> ExternalScopes { get; init; } = Array.Empty<ShadowExternalScope>();
+    /// <summary>表示來源盤點明確包含externalWrites；不能以未接線的空集合宣稱沒有外部修改。</summary>
+    public bool ExternalInventoryReviewed { get; init; }
 }
 
 /// <summary>整案準備成功才發布的配對；Definition 與 Source 必須在同一命令使用，不得跨組織快取。</summary>
@@ -184,7 +188,9 @@ internal static class ShadowSdkScenarioFactory
             TriggerReferenceAliases = patchLinks,
             SynchronousStepTypes = new ReadOnlyDictionary<Guid, string>(
                 new Dictionary<Guid, string>(binding.SynchronousStepTypes)),
-            TokenNotRequired = binding.TokenNotRequired
+            TokenNotRequired = binding.TokenNotRequired,
+            ExternalScopes = Array.AsReadOnly(binding.ExternalScopes.ToArray()),
+            ExternalInventoryReviewed = binding.ExternalInventoryReviewed
         };
         return new ShadowSdkPreparedScenario(definition, source);
     }

@@ -14,7 +14,8 @@
  * 使用邊界與維護：呼叫端須先驗證實體／欄位 metadata、測試教會與會友權威關聯、
  * 盤點 token 來源及模組切換設定。本層不從顯示名稱推斷授權，也不解析任意查詢。
  * 顯式 alias 先配置全部 owned ID，再以 lookup 連結 owned／shared；shared 的授權與
- * metadata 由 caller 負責，本層不查 shared 原列、不寫入或清理 shared。每個 round
+ * metadata 由 caller 負責，本層不寫入或清理 shared。受審外部範圍只查ID／版本，
+ * 在seed前及舊輪完成後比較；observer與快照由同一round Dispose清除。每個 round
  * 只支援單一同步呼叫者；SDK 輸入輸出均深複製，禁止部分 Seed 失敗後觸發。
  * 原始業務資料只存活一輪；追蹤最多六十秒、最多二秒一次且回應有界，取消不略過
  * 清理。所有 SDK 例外由外層共用告警處理，本檔不輸出 token、原始 trace 或個資。
@@ -79,6 +80,10 @@ internal sealed record ShadowSdkScenario(IReadOnlyList<ShadowSdkSeed> Seeds, Sha
         new Dictionary<Guid, string>();
     /// <summary>只有固定受審盤點明確表示無 token 依賴時才能為 true；與非空 tokenFields 互斥。</summary>
     public bool TokenNotRequired { get; init; }
+    /// <summary>來源盤點及正式metadata核對的外部既有列範圍；由單輪observer限定生命週期。</summary>
+    public IReadOnlyList<ShadowExternalScope> ExternalScopes { get; init; } = Array.Empty<ShadowExternalScope>();
+    /// <summary>只有固定盤點明列externalWrites時才為true；缺盤點不可當作零變動證據。</summary>
+    public bool ExternalInventoryReviewed { get; init; }
 }
 
 /// <summary>測試組織的命令區域 runtime；所有資源均由同步 Run 與 round owner 限定。</summary>
@@ -163,6 +168,8 @@ internal sealed class ShadowSdkRuntime : IShadowScenarioRuntime
         private bool triggered;
         private bool disposed;
         private DateTime triggerStarted;
+        private readonly ShadowExternalObserver? externalObserver;
+        private IReadOnlyList<ShadowExternalChange>? externalChanges;
 
         /// <summary>
         /// 先驗完整候選、唯一別名及範本 ID，再深層複製所有 SDK 值；任何錯誤在首筆寫入前拒絕。
@@ -271,6 +278,8 @@ internal sealed class ShadowSdkRuntime : IShadowScenarioRuntime
                 ApplyReferences(record, pair.Value, references);
             }
             ApplyReferences(trigger.Fields, source.TriggerReferenceAliases, references);
+            if (legacy && source.ExternalInventoryReviewed)
+                externalObserver = new ShadowExternalObserver(runtime.service, runtime.testChurchId, source.ExternalScopes);
         }
 
         /// <summary>
@@ -307,6 +316,7 @@ internal sealed class ShadowSdkRuntime : IShadowScenarioRuntime
             EnsureActive();
             if (seedStarted || cleanupStarted) throw InvalidRuntime();
             seedStarted = true;
+            externalObserver?.Capture(cancellationToken);
             foreach (var item in records)
             {
                 cancellationToken.ThrowIfCancellationRequested();
@@ -419,7 +429,14 @@ internal sealed class ShadowSdkRuntime : IShadowScenarioRuntime
                 cancellationToken.ThrowIfCancellationRequested();
                 if (row is not null) rows.Add(ShadowSdkProjection.Project(row));
             }
+            externalChanges = externalObserver?.Compare(cancellationToken);
             return new ShadowSnapshot(true, rows.AsReadOnly());
+        }
+
+        /// <summary>僅舊輪完成觀察後提供外部既有列數量；未接線或未完成固定為null，不能假造零筆。</summary>
+        public IReadOnlyList<ShadowExternalChange>? ExternalChanges
+        {
+            get { EnsureActive(); return externalChanges; }
         }
 
         /// <summary>
@@ -546,6 +563,8 @@ internal sealed class ShadowSdkRuntime : IShadowScenarioRuntime
             Array.Clear(types);
             primaryIds.Clear();
             synchronousSteps.Clear();
+            externalObserver?.Dispose();
+            externalChanges = null;
         }
 
         /// <summary>預先登錄已知 ID，確保「伺服器建立但回應失敗」仍能以該 ID 查回清理。</summary>

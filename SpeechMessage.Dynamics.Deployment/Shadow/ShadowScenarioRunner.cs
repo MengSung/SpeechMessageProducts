@@ -40,6 +40,8 @@ internal sealed record ShadowCaseResult(int Index, ShadowComparison BetweenRound
     public bool LegacyExecuted { get; init; } = true;
     /// <summary>新輪完整意圖對期望逐筆比較，與最終快照比較分開；未提供固定不可比較。</summary>
     public ShadowComparison ShadowIntentsToExpected { get; init; } = new(false, Array.Empty<ShadowDifference>());
+    /// <summary>舊輪受審外部範圍內既有列變動數；null是沒有證據，空清單是明確未宣告外部寫入。</summary>
+    public IReadOnlyList<ShadowExternalChange>? ExternalChanges { get; init; }
 }
 
 /// <summary>
@@ -77,6 +79,8 @@ internal interface IShadowScenarioRound : IDisposable
     void Trigger(CancellationToken cancellationToken);
     /// <summary>等待所選舊步驟完成並讀安全 observe；最多等待六十秒，失敗不可當空結果。</summary>
     ShadowSnapshot ObserveLegacy(TimeSpan maximumWait, CancellationToken cancellationToken);
+    /// <summary>舊輪觀察後的安全數量；沒有完整盤點或觀察固定為null，不能以空清單補缺證據。</summary>
+    IReadOnlyList<ShadowExternalChange>? ExternalChanges { get; }
     /// <summary>僅取精確型別、目標／關聯及時間窗的安全追蹤；最多六十秒，禁止讀無界歷史。</summary>
     string ReadShadowTrace(TimeSpan maximumWait, CancellationToken cancellationToken);
     /// <summary>停用後刪除所有本輪自建列；每列失敗仍須嘗試其他列，不刪共用測試教會／會友。</summary>
@@ -172,7 +176,7 @@ internal sealed class ShadowScenarioRunner
                     if (legacy is null) throw InvalidScenario();
                     results.Add(new ShadowCaseResult(index + 1, unavailable,
                         ShadowComparer.CompareFinalStates(legacy.Actual, legacy.Expected, scenario.Observe,
-                            volatileFields: scenario.VolatileFields), unavailable));
+                            volatileFields: scenario.VolatileFields), unavailable) { ExternalChanges = legacy.ExternalChanges });
                     continue;
                 }
                 var shadow = RunRound(scenario, false, cancellationToken);
@@ -185,6 +189,7 @@ internal sealed class ShadowScenarioRunner
                         volatileFields: scenario.VolatileFields))
                 {
                     LegacyExecuted = legacy is not null,
+                    ExternalChanges = legacy?.ExternalChanges,
                     ShadowIntentsToExpected = ShadowComparer.Compare(scenario.Expected,
                         shadow.Trace ?? throw InvalidScenario(), scenario.VolatileFields)
                 });
@@ -242,7 +247,8 @@ internal sealed class ShadowScenarioRunner
                 actual = Normalize(ShadowProjection.ApplyRecordedWrites(round.Initial, trace), aliases);
             }
             cancellationToken.ThrowIfCancellationRequested();
-            result = new RoundResult(actual ?? throw InvalidScenario(), expected, normalizedTrace);
+            result = new RoundResult(actual ?? throw InvalidScenario(), expected, normalizedTrace,
+                legacy && round.ExternalChanges is { } changes ? Array.AsReadOnly(changes.ToArray()) : null);
         }
         catch (Exception failure) { failures.Add(failure); }
         finally
@@ -285,5 +291,6 @@ internal sealed class ShadowScenarioRunner
     private static InvalidDataException InvalidScenario() => new("Shadow scenario safety precondition failed.");
 
     /// <summary>本輪 detached 最終值及期望；只活於當次同步執行。</summary>
-    private sealed record RoundResult(ShadowSnapshot Actual, ShadowSnapshot Expected, ShadowTrace? Trace);
+    private sealed record RoundResult(ShadowSnapshot Actual, ShadowSnapshot Expected, ShadowTrace? Trace,
+        IReadOnlyList<ShadowExternalChange>? ExternalChanges);
 }

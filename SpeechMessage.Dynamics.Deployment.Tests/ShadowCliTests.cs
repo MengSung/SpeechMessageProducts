@@ -10,6 +10,7 @@
  * trace 等級與停用狀態恢復、自建 task 零殘留，以及報告不洩漏秘密或實際 GUID。
  * 使用邊界與維護：非平行集合保護程序 cwd；fixture 先恢復 cwd，再刪除自己的唯一根，
  * writer、租約與檔案均確定釋放。替身只擴充所需的權威 metadata 與精確追蹤查詢，
+ * 外部觀察以合成既有列驗版本摘要及保留，分頁故障在觸發前後注入，不假稱全域稽核。
  * 不改既有通用假服務，也不把合成綠燈稱為實機驗收。
  */
 using System;
@@ -34,6 +35,89 @@ namespace SpeechMessage.Dynamics.Deployment.Tests;
 [Collection("Deployment working directory")]
 public sealed class ShadowCliTests
 {
+    /// <summary>外部範圍缺漏、重複或正式lookup不符，必須在任何設定／seed寫入前拒絕。</summary>
+    /// <param name="fault">每案僅破壞一個受審盤點或metadata條件。</param>
+    [Theory]
+    [InlineData("missing")]
+    [InlineData("duplicate")]
+    [InlineData("lookup")]
+    public void ShadowCli_InvalidExternalInventoryRefusesBeforeWrites(string fault)
+    {
+        using var f = new CliFixture();
+        f.AddLegacyCase(withoutToken: true);
+        var path = Path.Combine(f.Core.Root, "d365", "registration", "legacy-token-inventory.json");
+        var inventory = JsonNode.Parse(File.ReadAllText(path))!;
+        var entry = inventory["entries"]![0]!.AsObject();
+        if (fault == "missing") entry.Remove("externalWrites");
+        else
+        {
+            entry["externalWrites"] = JsonNode.Parse("""[{"entity":"region","churchAttribute":"parentid"}]""");
+            if (fault == "duplicate") entry["externalWrites"]!.AsArray().Add(entry["externalWrites"]![0]!.DeepClone());
+        }
+        File.WriteAllText(path, inventory.ToJsonString());
+        var before = f.Core.Service.Writes.Count;
+        Assert.Equal(1, f.Run());
+        Assert.Equal(before, f.Core.Service.Writes.Count);
+        Assert.Equal(0, f.Service.Triggers);
+        Assert.Equal(f.Connects, f.Releases);
+    }
+
+    /// <summary>外部快照不完整時不發布成功；觸發前後的故障都停用還原並清掉owned列，既有列保留。</summary>
+    /// <param name="read">在基線或觸發後讀取注入分頁，不能用部分結果宣稱零變動。</param>
+    [Theory]
+    [InlineData(1)]
+    [InlineData(2)]
+    public void ShadowCli_IncompleteExternalReadRestoresAndPreservesExistingRows(int read)
+    {
+        using var f = new CliFixture();
+        f.AddLegacyCase(withoutToken: true);
+        var path = Path.Combine(f.Core.Root, "d365", "registration", "legacy-token-inventory.json");
+        var inventory = JsonNode.Parse(File.ReadAllText(path))!;
+        inventory["entries"]![0]!["externalWrites"] = JsonNode.Parse("""[{"entity":"region","churchAttribute":"new_church"}]""");
+        File.WriteAllText(path, inventory.ToJsonString());
+        var id = Guid.NewGuid();
+        f.Core.Service.Seed(new Entity("region", id) { ["regionid"] = id,
+            ["new_church"] = new EntityReference("account", f.Service.Church), ["versionnumber"] = 1L });
+        f.Service.ExternalFaultRead = read;
+        Assert.Equal(1, f.Run());
+        Assert.Equal(read - 1, f.Service.Triggers);
+        f.AssertRestored();
+        Assert.Equal(1L, f.Core.Service.Rows.Single(row => row.Id == id).GetAttributeValue<long>("versionnumber"));
+        Assert.IsType<InvalidDataException>(Assert.Single(f.Reports));
+        var root = Path.Combine(f.Core.Root, "artifacts", "shadow");
+        Assert.True(!Directory.Exists(root) || Directory.GetFiles(root, "*.md", SearchOption.AllDirectories).Length == 0);
+    }
+
+    /// <summary>
+    /// 真CLI須依受審盤點讀取測試教會既有列的前後版本；新輪不重跑舊寫入，
+    /// 清理後仍保留既有列及其新版本，報告僅含實體和筆數，不洩露ID或名稱。
+    /// </summary>
+    [Fact]
+    public void ShadowCli_ExternalExistingChangesReachReportAndAreNotRestoredOrDeleted()
+    {
+        using var f = new CliFixture();
+        f.AddLegacyCase(withoutToken: true);
+        var path = Path.Combine(f.Core.Root, "d365", "registration", "legacy-token-inventory.json");
+        var inventory = JsonNode.Parse(File.ReadAllText(path))!;
+        inventory["entries"]![0]!["externalWrites"] = JsonNode.Parse("""[{"entity":"region","churchAttribute":"new_church"}]""");
+        File.WriteAllText(path, inventory.ToJsonString());
+        var id = Guid.NewGuid();
+        var external = new Entity("region", id) { ["regionid"] = id, ["new_church"] = new EntityReference("account", f.Service.Church),
+            ["versionnumber"] = 1L, ["name"] = "private-external-name" };
+        f.Core.Service.Seed(external);
+        f.Service.AfterTrigger = () =>
+        {
+            if (f.Service.RoundKinds.Last()) f.Core.Service.Rows.Single(row => row.Id == id)["versionnumber"] = 2L;
+        };
+        Assert.Equal(0, f.Run());
+        f.AssertRestored();
+        Assert.Equal(2L, f.Core.Service.Rows.Single(row => row.Id == id).GetAttributeValue<long>("versionnumber"));
+        var report = File.ReadAllText(Assert.Single(Directory.GetFiles(Path.Combine(f.Core.Root, "artifacts", "shadow"), "*.md", SearchOption.AllDirectories)));
+        Assert.Contains("ExternalExisting: Entity=region; Changed=1", report, StringComparison.Ordinal);
+        Assert.DoesNotContain(id.ToString("D"), report, StringComparison.Ordinal);
+        Assert.DoesNotContain("private-external-name", report, StringComparison.Ordinal);
+    }
+
     /// <summary>
     /// 真命令從已部署清單及舊註冊讀取映像綁定，不靠測試直接注入 factory。
     /// 合成平台自行持有 context；斷言兩輪觸發、受控種子清理、設定還原與沒有例外告警。
@@ -656,6 +740,7 @@ public sealed class ShadowCliTests
                     schemaVersion = 1,
                     entries = new[] { new { module = "localization", assembly = "Vendor.Legacy", type = "Vendor.Legacy.Plugin",
                         tokenPolicy = withoutToken ? "none" : "record-fields", evidence = "wp-reports/synthetic-inventory.md",
+                        externalWrites = Array.Empty<object>(),
                         tokenFields = withoutToken ? Array.Empty<object>() :
                             new object[] { new { alias = "token-config", entity = "region", attribute = "new_channelaccesstoken" } } } }
                 }));
@@ -737,6 +822,8 @@ public sealed class ShadowCliTests
         internal readonly List<Guid> TriggerTargets = [];
         internal Guid RequestId;
         internal int AsyncQueries;
+        internal int ExternalFaultRead;
+        private int externalReads;
         private Guid target;
 
         /// <summary>權威種子由測試安排提供；正式 runtime 不得建立或刪除這些共享列。</summary>
@@ -770,12 +857,14 @@ public sealed class ShadowCliTests
             var parent = new LookupAttributeMetadata { LogicalName = "parentid", Targets = ["task"] };
             var score = new IntegerAttributeMetadata { LogicalName = "score", MinValue = 0, MaxValue = 100 };
             var token = new StringAttributeMetadata { LogicalName = "new_channelaccesstoken", MaxLength = 2048 };
+            var church = new LookupAttributeMetadata { LogicalName = "new_church", Targets = ["account"] };
             foreach (var field in new AttributeMetadata[] { parent, score, token })
             {
                 field.GetType().GetProperty("IsValidForCreate")!.SetValue(field, true);
                 field.GetType().GetProperty("IsValidForUpdate")!.SetValue(field, true);
             }
-            entity.GetType().GetProperty("Attributes")!.SetValue(entity, new AttributeMetadata[] { new UniqueIdentifierAttributeMetadata { LogicalName = primary }, subject, parent, score, token });
+            entity.GetType().GetProperty("Attributes")!.SetValue(entity, new AttributeMetadata[] { new UniqueIdentifierAttributeMetadata { LogicalName = primary }, subject, parent, score, token, church,
+                new BigIntAttributeMetadata { LogicalName = "versionnumber" } });
             return new RetrieveEntityResponse { Results = { ["EntityMetadata"] = entity } };
         }
 
@@ -822,6 +911,17 @@ public sealed class ShadowCliTests
         public EntityCollection RetrieveMultiple(QueryBase query)
         {
             var expression = Assert.IsType<QueryExpression>(query);
+            if (expression.EntityName == "region" && expression.Criteria.Conditions.Single().AttributeName == "new_church")
+            {
+                Assert.Equal(65, expression.TopCount);
+                Assert.Equal(3, expression.ColumnSet.Columns.Count);
+                Assert.Contains("new_church", expression.ColumnSet.Columns);
+                Assert.Contains("regionid", expression.ColumnSet.Columns);
+                Assert.Contains("versionnumber", expression.ColumnSet.Columns);
+                var snapshot = core.Service.RetrieveMultiple(query);
+                if (++externalReads == ExternalFaultRead) snapshot.MoreRecords = true;
+                return snapshot;
+            }
             if (expression.EntityName == "plugintype" && expression.ColumnSet.Columns.Contains("isworkflowactivity"))
             {
                 var columns = expression.ColumnSet;

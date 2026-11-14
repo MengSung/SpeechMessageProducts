@@ -10,6 +10,7 @@
  * 使用邊界與維護：SDK 及 caller token 皆借入，不取得連線或 timer 所有權。
  * 不寫入、不讀業務記錄或 User Secrets；候選只存活單次命令，無 static cache、
  * Session 或跨組織共享。同步 SDK 回應後再驗 caller 取消，不宣稱可中斷已送出呼叫。
+ * 外部觀察另核對指向account的教會lookup及BigInt版本欄，查詢範圍由權威測試ID限定。
  * 組織、測試身分、lookup 範圍及舊入口盤點由 caller 負責，metadata 不是授權。
  * 失敗使用固定訊息，真正 SDK 例外保留交外層共用告警，不回顯欄值或 schema 本文；
  * 維護時跑合成 metadata、隔離及容量測試與 UTF-8／CRLF 位元組檢查。
@@ -67,6 +68,16 @@ internal sealed class ShadowSdkMetadata
 
     /// <summary>讀取已核對的正式主鍵，不從實體名稱推導，不發布可變 metadata 參考。</summary>
     internal string PrimaryId(string entity) => GetEntity(entity).PrimaryIdAttribute;
+
+    /// <summary>外部摘要只接受指向account的正式lookup及BigInt版本欄；不讀業務記錄或將欄名當作授權。</summary>
+    internal ShadowExternalScope ExternalScope(string entity, string churchAttribute)
+    {
+        ValidateRelatedLookup(entity, churchAttribute, "account");
+        var metadata = GetEntity(entity);
+        if (metadata.Attributes.SingleOrDefault(field => field.LogicalName == "versionnumber")
+            is not BigIntAttributeMetadata { AttributeType: AttributeTypeCode.BigInt }) throw Invalid();
+        return new ShadowExternalScope(entity, churchAttribute, metadata.PrimaryIdAttribute);
+    }
 
     /// <summary>關聯查詢必須是真正 lookup 且正式 Targets 包含父實體；不能把任意 GUID 或字串欄當關聯。</summary>
     internal void ValidateRelatedLookup(string entity, string attribute, string parentEntity)

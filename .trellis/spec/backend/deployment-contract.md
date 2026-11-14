@@ -204,3 +204,19 @@ CLI 的 StepImages 來源是已核對的新步驟清單及本次正式舊映像�
 Delete 後像、不符 seed／覆蓋後 trigger 的值或型別一律拒絕。只支援能由可寫欄位
 重現的值，不從系統預設或前置 Plugin 猜值；名稱前綴及真正 GUID 仍由 runtime
 統一處理。這是執行前的可重現性檢查，不能冒稱讀到了實機 Plugin context。
+
+## P5-03a 受審外部既有列摘要（2026-11-15，離線證據）
+
+固定入口盤點必填 externalWrites，逐項列明實體與指向 account 的教會 lookup。
+CLI 以正式 metadata 核對 lookup、主鍵及 BigInt versionnumber，整批準備通過後
+才可寫入。空陣列表示來源審查未宣告外部範圍，缺欄位則拒絕，不能補成空集合。
+
+單輪 observer 在 seed 前及舊輪完成後查權威測試教會範圍，只取主鍵、教會及版本。
+最多十六表、每表六十四列；分頁、超量、錯教會、重複主鍵或缺版本拒絕完整結果。
+摘要只比較基線已有列的版本變化或離開範圍，不還原、不刪除既有列；owned 及 related
+清理仍由原清冊處理。快照於 round Dispose 清除，沒有背景工作或跨命令快取。
+
+報告只含實體與筆數，區分 not-executed、unavailable、none-declared、reviewed-scope。
+舊輪缺摘要證據不能 Passed；未執行舊輪不可附造出的摘要。版本變動可能受並行寫入
+影響，不能宣稱全域稽核或唯一因果。真 CLI 測試驗證變動傳遞、既有列保留、盤點／
+metadata 前置零寫入與前後快照分頁失敗時的還原清理；全部是合成離線證據。

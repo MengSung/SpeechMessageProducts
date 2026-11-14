@@ -14,6 +14,8 @@
  * 新輪必須另通過完整意圖比較，不以最終值相同忽略額外欄位或中間寫入。
  * legacy switch 專用入口明列僅舊輪範圍，只驗舊輪欄位；不得帶可比的新輪證據或
  * 將欄位相符宣稱完整影子／推播驗收。兩種範圍共用相同有界檔案 owner。
+ * 外部既有列只輸出受審實體及測試期間版本變動數，未宣告與未取得證據明確區分；
+ * 這不是全域寫入稽核，並行寫入亦可能造成版本變動，不輸出ID或原始版本。
  */
 using System;
 using System.Collections.Generic;
@@ -91,6 +93,7 @@ internal static class ShadowReportWriter
             var legacy = AppendComparison(text, "LegacyToExpected", item.LegacyToExpected);
             var shadow = AppendComparison(text, "ShadowToExpected", item.ShadowToExpected);
             var intents = AppendComparison(text, "ShadowIntentsToExpected", item.ShadowIntentsToExpected);
+            passed &= AppendExternal(text, item);
             if (legacyOnly)
             {
                 passed &= item.LegacyExecuted && legacy && Unavailable(item.BetweenRounds) &&
@@ -153,6 +156,35 @@ internal static class ShadowReportWriter
     /// <summary>未執行的比較必須明確不可比且沒有差異，不能帶入另一範圍的證據。</summary>
     private static bool Unavailable(ShadowComparison comparison) =>
         !comparison.Comparable && comparison.Differences.Count == 0;
+
+    /// <summary>只發布實體及有界筆數；缺證據不能通過舊輪報告，明確無外部範圍不冒稱量測全組織零變動。</summary>
+    private static bool AppendExternal(StringBuilder text, ShadowCaseResult item)
+    {
+        if (!item.LegacyExecuted)
+        {
+            text.Append("ExternalInventory=not-executed\r\n");
+            return item.ExternalChanges is null;
+        }
+        if (item.ExternalChanges is null)
+        {
+            text.Append("ExternalInventory=unavailable\r\n");
+            return false;
+        }
+        if (item.ExternalChanges.Count > 16) throw Invalid();
+        text.Append(item.ExternalChanges.Count == 0 ? "ExternalInventory=none-declared\r\n" :
+            "ExternalInventory=reviewed-scope\r\n受審範圍於測試期間的既有列版本變動；並行寫入可能影響筆數，未盤點實體及新建列不在此摘要。\r\n");
+        var entities = new HashSet<string>(StringComparer.Ordinal);
+        foreach (var change in item.ExternalChanges)
+        {
+            if (change is null || change.Entity is not { Length: > 0 and <= 128 } ||
+                change.ChangedExistingCount is < 0 or > 64 || !entities.Add(change.Entity)) throw Invalid();
+            foreach (var character in change.Entity)
+                if (character is not (>= 'a' and <= 'z' or >= '0' and <= '9' or '_')) throw Invalid();
+            text.Append("ExternalExisting: Entity=").Append(change.Entity).Append("; Changed=")
+                .Append(change.ChangedExistingCount.ToString(CultureInfo.InvariantCulture)).Append("\r\n");
+        }
+        return true;
+    }
 
     /// <summary>固定 ASCII 布林字串，不依賴當前文化或輸入本文。</summary>
     private static string Boolean(bool value) => value ? "true" : "false";

@@ -9,6 +9,7 @@
  * 信任與適用邊界：CRUD live 基準由固定受審 token 盤點接通先舊後新兩輪；
  * new／reading／legacy-golden 仍只跑新輪，不假造舊證據。legacy switch 共用完整前置，
  * 只跑核定實機舊輪；報告明標範圍，不能把舊輪欄位通過寫成兩輪推播驗收。
+ * 外部既有列範圍來自固定盤點與正式metadata，觀察只保存教會內ID／版本，報告只含筆數。
  * 同步 trigger 依正式 mode 帶獨立 RequestId，不以情境 JSON 指定同步追蹤。
  * 關聯觀察以明列 lookup 及本輪 owned 父列配對；缺盤點、未釐清／寫死 token
  * 及未接通活動在業務寫入前拒絕，不從情境 JSON 猜 token 安全性。
@@ -84,8 +85,13 @@ internal static partial class DeploymentCli
             ResolveRequiredSecret(command.Organization, "ShadowTestChurchId", secretReader),
             ResolveRequiredSecret(command.Organization, "ShadowTestContactId", secretReader), cancellationToken);
         var entityNames = selected.SelectMany(item => item.Seed.EnumerateArray().Concat(item.Observe.EnumerateArray()))
-            .Select(row => row.GetProperty("entity").GetString()!).Distinct(StringComparer.Ordinal).ToArray();
+            .Select(row => row.GetProperty("entity").GetString()!).Concat(inventory.SelectMany(rule => rule.ExternalWrites).Select(scope => scope.Entity))
+            .Distinct(StringComparer.Ordinal).ToArray();
         var metadata = new ShadowSdkMetadata(service, entityNames, cancellationToken);
+        var externalScopes = inventory.SelectMany(rule => rule.ExternalWrites).Distinct()
+            .Select(scope => metadata.ExternalScope(scope.Entity, scope.ChurchAttribute)).ToArray();
+        if (externalScopes.Length > 16 || externalScopes.Select(scope => scope.Entity).Distinct(StringComparer.Ordinal).Count() != externalScopes.Length)
+            throw InvalidShadowCommand();
         var prepared = new List<ShadowSdkPreparedScenario>();
         foreach (var file in selected)
         {
@@ -141,6 +147,8 @@ internal static partial class DeploymentCli
             {
                 SynchronousStepTypes = synchronous,
                 StepImages = stepImages,
+                ExternalScopes = externalScopes,
+                ExternalInventoryReviewed = liveLegacy,
                 TokenNotRequired = liveLegacy && inventory.All(rule => rule.NoTokenDependency)
             };
             prepared.Add(ShadowSdkScenarioFactory.Prepare(file, metadata, identity, binding));

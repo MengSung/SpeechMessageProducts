@@ -21,6 +21,38 @@ namespace SpeechMessage.Dynamics.Deployment.Tests;
 /// <summary>離線驗證安全摘要；原始差異字串含合成秘密，用來抓出意外序列化。</summary>
 public sealed class ShadowReportWriterTests
 {
+    /// <summary>缺外部證據不得通過舊輪；明確未宣告則保留該語意，不冒稱全組織零變動。</summary>
+    /// <param name="missing">null代表缺證據，空集合代表受審來源未宣告外部範圍。</param>
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public void Report_ExternalEvidenceDistinguishesMissingFromNoneDeclared(bool missing)
+    {
+        using var files = new Files();
+        var report = ShadowReportWriter.Write("attendance", "legacy-live",
+            [Case() with { ExternalChanges = missing ? null : Array.Empty<ShadowExternalChange>() }], files.Root, new Clock());
+        Assert.Equal(!missing, report.Passed);
+        Assert.Contains(missing ? "ExternalInventory=unavailable" : "ExternalInventory=none-declared",
+            File.ReadAllText(report.Path), StringComparison.Ordinal);
+    }
+
+    /// <summary>拒絕外部摘要的重複身份、非法實體與超界筆數；驗證失敗不建立任何部分報告。</summary>
+    [Fact]
+    public void Report_InvalidExternalSummaryRejectsBeforePublication()
+    {
+        using var files = new Files();
+        IReadOnlyList<ShadowExternalChange>[] invalid =
+        [
+            [new("region", -1)], [new("region", 65)], [new("region\ninjected", 0)],
+            [new("region", 0), new("region", 1)], [null!],
+            Enumerable.Range(0, 17).Select(index => new ShadowExternalChange("region" + index, 0)).ToArray()
+        ];
+        foreach (var changes in invalid)
+            Assert.Throws<InvalidDataException>(() => ShadowReportWriter.Write("attendance", "legacy-live",
+                [Case() with { ExternalChanges = changes }], files.Root, new Clock()));
+        Assert.False(Directory.Exists(files.Root));
+    }
+
     /// <summary>零差異報告使用固定 UTC 日期，不加 BOM；完成後可獨占讀取且保留 CRLF。</summary>
     [Fact]
     public void Report_CompleteComparison_PublishesDurableSafeSummary()
@@ -248,7 +280,7 @@ public sealed class ShadowReportWriterTests
     /// <summary>合成單一情境結果，三側預設全可比且相同。</summary>
     private static ShadowCaseResult Case() => new(1, Equal(), Equal(), Equal())
     {
-        ShadowIntentsToExpected = Equal()
+        ShadowIntentsToExpected = Equal(), ExternalChanges = Array.Empty<ShadowExternalChange>()
     };
 
     /// <summary>固定 UTC 日期供檔名驗證；不啟動計時器、不借用系統可變時鐘。</summary>

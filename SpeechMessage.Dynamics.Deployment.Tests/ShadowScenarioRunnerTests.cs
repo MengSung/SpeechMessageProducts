@@ -375,6 +375,8 @@ public sealed class ShadowScenarioRunnerTests
             if (runtime.Fault == Point("observe")) throw runtime.Failure;
             return Snapshot(Id.ToString("D"), runtime.LegacyValue);
         }
+        /// <summary>合成來源明確沒有外部寫入；此空清單只供測試，不能替正式盤點宣告安全。</summary>
+        public IReadOnlyList<ShadowExternalChange>? ExternalChanges => Legacy ? Array.Empty<ShadowExternalChange>() : null;
         /// <summary>產生有界新輪 CRUD trace；overflow 必須維持不可比較狀態。</summary>
         public string ReadShadowTrace(TimeSpan maximumWait, CancellationToken cancellationToken)
         {

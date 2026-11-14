@@ -5,6 +5,7 @@
  * d365/registration/legacy-token-inventory.json，不接受 CLI 路徑、情境安全旗標
  * 或任意 token 值。盤點與 manifest 都是操作者維護的版本控管輸入，不能把格式
  * 通過當作已閱讀舊程式；每個入口必須引用真實盤點證據，由模組工作包自我審查。
+ * externalWrites須明列教會lookup範圍；空陣列表示來源審查未宣告外部寫入，缺項拒絕。
  * 主要功能與流程：以共用有界 JSON reader 驗容量、秘密樣式、重複與未知欄位，
  * 再逐一核對模組全部舊組件／型別恰好被盤點；record-fields 明列 seed 別名、
  * 實體與欄位，none 必須明確表示沒有 token 相依，未釐清或必走寫死 token 即拒絕。
@@ -25,9 +26,12 @@ namespace SpeechMessage.Dynamics.Deployment.Shadow;
 /// <summary>受審入口的固定 seed 欄位；不保存 token 值，也不能將共享列列為注入目標。</summary>
 internal sealed record LegacyInventoryTokenField(string Alias, string Entity, string Attribute);
 
+/// <summary>來源審查宣告的外部既有列實體及其教會lookup；正式metadata與身分仍由CLI核對。</summary>
+internal sealed record LegacyInventoryExternalWrite(string Entity, string ChurchAttribute);
+
 /// <summary>一個舊入口的完整盤點結果；NoTokenDependency 為明確受審判定，不是缺欄位的預設值。</summary>
 internal sealed record LegacyTokenRule(string Assembly, string Type, bool NoTokenDependency,
-    IReadOnlyList<LegacyInventoryTokenField> TokenFields);
+    IReadOnlyList<LegacyInventoryTokenField> TokenFields, IReadOnlyList<LegacyInventoryExternalWrite> ExternalWrites);
 
 /// <summary>固定路徑、完整模組匹配的盤點 reader；只提供候選，不取代正式身分及 D34 驗證。</summary>
 internal static class LegacyTokenInventory
@@ -59,7 +63,7 @@ internal static class LegacyTokenInventory
         var result = new List<LegacyTokenRule>();
         foreach (var entry in entries.EnumerateArray())
         {
-            Shape(entry, "module,assembly,type,tokenPolicy,evidence,tokenFields");
+            Shape(entry, "module,assembly,type,tokenPolicy,evidence,tokenFields,externalWrites");
             var entryModule = Text(entry, "module");
             var assembly = Text(entry, "assembly");
             var type = Text(entry, "type");
@@ -69,6 +73,18 @@ internal static class LegacyTokenInventory
             var policy = Text(entry, "tokenPolicy");
             if (policy is not ("record-fields" or "none" or "unconditional-hardcoded" or "unresolved")) throw Invalid();
             var fields = entry.GetProperty("tokenFields");
+            var external = entry.GetProperty("externalWrites");
+            if (external.ValueKind != JsonValueKind.Array || external.GetArrayLength() > 16) throw Invalid();
+            var externalWrites = new List<LegacyInventoryExternalWrite>();
+            var externalEntities = new HashSet<string>(StringComparer.Ordinal);
+            foreach (var scope in external.EnumerateArray())
+            {
+                Shape(scope, "entity,churchAttribute");
+                var entity = Text(scope, "entity");
+                var attribute = Text(scope, "churchAttribute");
+                if (!Identifier(entity) || !Identifier(attribute) || !externalEntities.Add(entity)) throw Invalid();
+                externalWrites.Add(new LegacyInventoryExternalWrite(entity, attribute));
+            }
             if (fields.ValueKind != JsonValueKind.Array || fields.GetArrayLength() > 32) throw Invalid();
             var tokens = new List<LegacyInventoryTokenField>();
             foreach (var field in fields.EnumerateArray())
@@ -87,7 +103,7 @@ internal static class LegacyTokenInventory
             ValidateEvidence(root, Text(entry, "evidence"));
             if (policy is "unconditional-hardcoded" or "unresolved" ||
                 (policy == "none" ? tokens.Count != 0 : tokens.Count == 0)) throw Invalid();
-            result.Add(new LegacyTokenRule(assembly, type, policy == "none", tokens.AsReadOnly()));
+            result.Add(new LegacyTokenRule(assembly, type, policy == "none", tokens.AsReadOnly(), externalWrites.AsReadOnly()));
         }
         var required = references.Select(reference => (reference.Assembly, reference.Type)).ToHashSet();
         if (required.Count == 0 || !required.SetEquals(result.Select(rule => (rule.Assembly, rule.Type)))) throw Invalid();
