@@ -244,7 +244,7 @@ const DATA = {
   "lastUpdated": "2026-11-14T18:45:00+08:00",
   "branch": "1.0.0.11.Integration.P5.Worktree",
   "head": "36119ac2",
-  "headline": "2026-11-14 18:45 Asia/Taipei (UTC+08:00)：更新回復前置12:54已完成；P5-02已依D5-3／D5-18完成重新驗收，a段採legacy-live-only閱讀對照，b段完成36個專案／29個入口矩陣；完整Release測試4926項與固定guard全通過，驗收提交36119ac2已建立，待推送。",
+  "headline": "2026-11-14 18:45 Asia/Taipei (UTC+08:00)：更新回復前置12:54已完成；P5-02已依D5-3／D5-18完成重新驗收，a段採legacy-live-only閱讀對照，b段完成36個專案／29個入口矩陣；完整Release測試4926項與固定guard全通過，驗收提交6a2f0b07已推送並以git ls-remote核對。",
   "notices": [
     {
       "id": "plan-3.5-summary",
@@ -535,7 +535,7 @@ const DATA = {
         "2026-11-14 17:57 Asia/Taipei (UTC+08:00)：f99bc2af完成D5-18盤點，確認PresentRecordLinePlugIn.cs:75寫死LINE收件識別；不得跑第一輪，替代基準待使用者決定。沒有保存識別值，未產生黃金、未操作組織。",
         "2026-11-14 17:59 Asia/Taipei (UTC+08:00)：59cd3bef完成PresentRecord D5-3前置盤點，記錄觸發、欄位、映像、例外與寫死收件識別風險；未建立替代黃金，待使用者決定。",
         "2026-11-14 18:15 Asia/Taipei (UTC+08:00)：88c4c6c9建立PresentRecord D5-3閱讀對照expected.json；四個情境均有完整預期投影，declaredDifferences逐筆引用舊檔名與行號，ExpectedGoldenTests雙目標35/35通過。因D5-18不實跑舊入口，沒有legacy.json；固定guard、整包驗收與推送仍待完成。",
-        "2026-11-14 18:45 Asia/Taipei (UTC+08:00)：a89d696c修正PluginHarness架構例外後，固定guard checkout重新執行；完整Release測試20個組件／4926項全過，I18n、打包、duplicate、Changed encoding、文件及進度頁守門全過。P5-02完成重新驗收，尚未推送；P5-03仍未開始。"
+        "2026-11-14 18:45 Asia/Taipei (UTC+08:00)：a89d696c修正PluginHarness架構例外後，固定guard checkout重新執行；完整Release測試20個組件／4926項全過，I18n、打包、duplicate、Changed encoding、文件及進度頁守門全過。P5-02完成重新驗收，尚未推送；P5-03a開始規劃；實機待Shadow ID確認。"
       ]
     }
   ],
@@ -1381,25 +1381,25 @@ const DATA = {
       "id": "P5-02",
       "phaseId": "階段 5",
       "name": "舊程式黃金資料產生器",
-      "status": "active",
+      "status": "done",
       "deps": "—",
       "live": "無",
       "timebox": "1 天",
-      "doneAt": "",
-      "commit": "",
-      "note": "2026-11-14 18:45 Asia/Taipei (UTC+08:00)：P5-02已驗收；a段依D5-3／D5-18以legacy-live-only閱讀對照完成，四情境expected.json逐筆附舊檔名與行號，因寫死LINE收件識別沒有legacy.json。b段工具覆蓋率83.47%、矩陣36個專案／29個入口（0 Generated／29 CompileFailed／0 BlockedByNetworkApi）；ExpectedGoldenTests雙目標35/35、完整Release4926項、固定guard全通過，驗收提交36119ac2已建立，待推送。"
+      "doneAt": "2026-11-14 18:45 Asia/Taipei (UTC+08:00)",
+      "commit": "6a2f0b07",
+      "note": "2026-11-14 18:45 Asia/Taipei (UTC+08:00)：P5-02已驗收；a段依D5-3／D5-18以legacy-live-only閱讀對照完成，四情境expected.json逐筆附舊檔名與行號，因寫死LINE收件識別沒有legacy.json。b段工具覆蓋率83.47%、矩陣36個專案／29個入口（0 Generated／29 CompileFailed／0 BlockedByNetworkApi）；ExpectedGoldenTests雙目標35/35、完整Release4926項、固定guard全通過，驗收提交6a2f0b07已推送並以git ls-remote核對。"
     },
     {
       "id": "P5-03",
       "phaseId": "階段 5",
       "name": "影子模式比對 shadow＋佈署擴充",
-      "status": "todo",
+      "status": "active",
       "deps": "P5-01",
       "live": "唯讀比對",
       "timebox": "1 天",
       "doneAt": "",
       "commit": "",
-      "note": "2026-11-14 13:44 Asia/Taipei (UTC+08:00)：更正：P5-02尚未驗收，P5-03未開始。"
+      "note": "2026-11-14 18:56 Asia/Taipei (UTC+08:00)：P5-02已推送並核對；P5-03a開始規劃manifest v2、export-legacy、switch與先舊後新shadow契約。實機前發現User Secrets尚未有ShadowTestChurchId／ShadowTestContactId，未猜測、不進實機，先做離線實作。"
     },
     {
       "id": "P5-04",
