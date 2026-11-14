@@ -12,6 +12,7 @@ using System.Linq;
 using System.Text;
 using System.Xml.Linq;
 using Microsoft.Xrm.Sdk;
+using Microsoft.Xrm.Sdk.Query;
 using Xunit;
 
 namespace SpeechMessage.Dynamics.Deployment.Tests;
@@ -21,6 +22,8 @@ public sealed class UiSolutionArchiveTests
 {
     private static readonly string[] NonWhitelistedImportArguments =
         { "ui-import", "--org", "production", "--from", "outside.zip" };
+    private static readonly string[] ExpectedSdkRequests =
+        { "ExportSolution", "ImportSolution", "PublishAllXml" };
 
     /// <summary>共用 account／contact 表單及其根參照必須移除；相同集合中的檢視及本產品實體表單必須完整保留。</summary>
     [Fact]
@@ -108,6 +111,32 @@ public sealed class UiSolutionArchiveTests
         Assert.Empty(reports);
     }
 
+    /// <summary>假服務驗證匯出寫檔與匯入重壓／發布的 request 順序；不連線、不讀 secrets。</summary>
+    [Fact]
+    public void UiExportAndImport_UseOfflineSdkContract()
+    {
+        var root = Path.Combine(Path.GetTempPath(), "smv-ui-" + Guid.NewGuid().ToString("N"));
+        Directory.CreateDirectory(root);
+        try
+        {
+            var service = new UiService(Archive());
+            UiSolutionDeployment.Export(service, root, default);
+            var exported = Path.Combine(root, "d365", "solutions", "SpeechMessageUi", "solution.xml");
+            Assert.True(File.Exists(exported));
+
+            var input = Path.Combine(root, "input.zip");
+            File.WriteAllBytes(input, Archive());
+            UiSolutionDeployment.Import(service, input, default);
+            Assert.Equal(ExpectedSdkRequests, service.Requests);
+            Assert.NotNull(service.ImportedArchive);
+            Assert.Equal("SpeechMessageUi", service.ImportedArchive!.Value.SolutionName);
+        }
+        finally
+        {
+            if (Directory.Exists(root)) Directory.Delete(root, recursive: true);
+        }
+    }
+
     /// <summary>建立標準三個根檔及自有資源；可注入單一惡意 entry 或 XML，所有串流離開方法前確定關閉。</summary>
     internal static byte[] Archive(string? extra = null, byte[]? content = null, string? solution = null)
     {
@@ -136,6 +165,45 @@ public sealed class UiSolutionArchiveTests
         /// <summary>非白名單命令不應取得 organization lease。</summary>
         public OrganizationLease Connect(string organization) =>
             throw new InvalidOperationException("Connector must not be called.");
+    }
+
+    /// <summary>只支援本包的三個 SDK 訊息，意外資料存取立即失敗；所有 archive bytes 只留本案例。</summary>
+    private sealed class UiService(byte[] exportArchive) : IOrganizationService
+    {
+        internal List<string> Requests { get; } = new();
+        internal (string SolutionName, byte[] Archive)? ImportedArchive { get; private set; }
+
+        /// <summary>回傳合成 export 並記錄 import／publish 的固定順序。</summary>
+        public OrganizationResponse Execute(OrganizationRequest request)
+        {
+            Requests.Add(request.RequestName);
+            if (request.RequestName == "ExportSolution")
+                return new OrganizationResponse { Results = { ["ExportSolutionFile"] = exportArchive } };
+            if (request.RequestName == "ImportSolution")
+            {
+                var bytes = Assert.IsType<byte[]>(request["CustomizationFile"]);
+                ImportedArchive = ("SpeechMessageUi", bytes);
+                return new OrganizationResponse();
+            }
+            if (request.RequestName == "PublishAllXml")
+                return new OrganizationResponse();
+            throw new NotSupportedException();
+        }
+
+        /// <summary>本測試不使用單列寫入。</summary>
+        public Guid Create(Entity entity) => throw new NotSupportedException();
+        /// <summary>本測試不使用更新。</summary>
+        public void Update(Entity entity) => throw new NotSupportedException();
+        /// <summary>本測試不使用刪除。</summary>
+        public void Delete(string entityName, Guid id) => throw new NotSupportedException();
+        /// <summary>本測試不使用單列讀取。</summary>
+        public Entity Retrieve(string entityName, Guid id, ColumnSet columnSet) => throw new NotSupportedException();
+        /// <summary>本測試不使用查詢。</summary>
+        public EntityCollection RetrieveMultiple(QueryBase query) => throw new NotSupportedException();
+        /// <summary>本測試不使用關聯。</summary>
+        public void Associate(string entityName, Guid entityId, Relationship relationship, EntityReferenceCollection relatedEntities) => throw new NotSupportedException();
+        /// <summary>本測試不使用解除關聯。</summary>
+        public void Disassociate(string entityName, Guid entityId, Relationship relationship, EntityReferenceCollection relatedEntities) => throw new NotSupportedException();
     }
 
     /// <summary>標準未受管理解決方案的合成根參照；三個固定 formid 分別對應下方三個實體。</summary>
