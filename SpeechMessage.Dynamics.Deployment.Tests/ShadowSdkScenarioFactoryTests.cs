@@ -6,7 +6,7 @@
  * 防止僅驗證 reader 或個別型別轉換卻漏掉共享記錄、lookup 與完整期望的整合邊界。
  * 主要功能與流程：以兩個共享別名及一個自建活動組合情境，核對 metadata 主鍵、
  * seed／trigger 的動態 lookup 與 expected 的安全投影，再注入共享列修改、未知別名、
- * 未支援推播及缺失 metadata；決定性斷言是零業務 SDK 呼叫及不發布不完整結果。
+ * 欠缺摘要的推播及缺失 metadata；明列安全摘要時驗完整推播與別名，其他故障須零業務 SDK 呼叫且不發布不完整結果。
  * 使用邊界與維護：每案擁有 JSON 文件並在建立 detached DTO 後 Dispose；合成服務
  * 只接受 metadata 查詢，其他入口一律拒絕。沒有連線、計時器、背景工作或檔案；
  * 可變集合不跨案例共享，這些離線結果不能取代 D34、D5-18 或實機驗收。
@@ -72,6 +72,56 @@ public sealed class ShadowSdkScenarioFactoryTests
             Assert.Single(prepared.Source.Seeds);
         }
         else Assert.Throws<InvalidDataException>(() => ShadowSdkScenarioFactory.Prepare(file, metadata, Identity(), Binding()));
+    }
+
+    /// <summary>明列影子摘要的單人推播須轉成完整意圖；暫時 GUID 不得出現在期望或轉移到服務呼叫。</summary>
+    [Fact]
+    public void ScenarioFactory_PushProjectionUsesExplicitAliases()
+    {
+        var file = File() with { ExpectedLineCalls = Json("""[{"method":"POST","endpoint":"/v2/bot/message/push","recipients":["contact-1"],"messageCount":1,"shadow":{"templateKey":"Attendance.Reply","retryKey":"task-1","contentSha256":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"}}]""") };
+        var service = new MetadataService();
+        var metadata = new ShadowSdkMetadata(service, ["account", "contact", "task"], CancellationToken.None);
+        var identity = Identity();
+        var prepared = ShadowSdkScenarioFactory.Prepare(file, metadata, identity, Binding());
+        Assert.Equal(2, prepared.Definition.Expected.Intents.Count);
+        var push = prepared.Definition.Expected.Intents[1];
+        Assert.Equal("Push", push.Operation);
+        Assert.Equal("contact-1", push.Id);
+        Assert.Equal("task-1", push.Projection.GetProperty("retryKey").GetString());
+        Assert.Equal("Attendance.Reply", push.Projection.GetProperty("templateKey").GetString());
+        Assert.DoesNotContain(identity.ContactId.ToString("D"), push.Projection.GetRawText(), StringComparison.Ordinal);
+        Assert.Equal(3, service.Reads);
+    }
+
+    /// <summary>推播資料不足、非測試聯絡人、群送及不受控 Retry Key 均在任何業務 I/O 前拒絕。</summary>
+    /// <param name="fault">每案只改一個推播契約；metadata 替身禁止任何業務呼叫。</param>
+    [Theory]
+    [InlineData("missing-projection")]
+    [InlineData("unknown-field")]
+    [InlineData("bad-hash")]
+    [InlineData("bad-template")]
+    [InlineData("unknown-recipient")]
+    [InlineData("multiple-recipients")]
+    [InlineData("group-endpoint")]
+    [InlineData("unknown-retry")]
+    [InlineData("shared-retry")]
+    [InlineData("zero-messages")]
+    public void ScenarioFactory_PushRefusesUnprovenOrUnsafeProjection(string fault)
+    {
+        var calls = JsonNode.Parse("""[{"method":"POST","endpoint":"/v2/bot/message/push","recipients":["contact-1"],"messageCount":1,"shadow":{"templateKey":"Attendance.Reply","retryKey":"task-1","contentSha256":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"}}]""")!;
+        if (fault == "missing-projection") calls[0]!.AsObject().Remove("shadow");
+        if (fault == "unknown-field") calls[0]!["shadow"]!["unknown"] = true;
+        if (fault == "bad-hash") calls[0]!["shadow"]!["contentSha256"] = "invalid";
+        if (fault == "bad-template") calls[0]!["shadow"]!["templateKey"] = "unsafe name";
+        if (fault == "unknown-recipient") calls[0]!["recipients"]![0] = "unknown-contact";
+        if (fault == "multiple-recipients") calls[0]!["recipients"]!.AsArray().Add("contact-2");
+        if (fault == "group-endpoint") calls[0]!["endpoint"] = "/v2/bot/message/multicast";
+        if (fault == "unknown-retry") calls[0]!["shadow"]!["retryKey"] = "unknown-event";
+        if (fault == "shared-retry") calls[0]!["shadow"]!["retryKey"] = "contact-1";
+        if (fault == "zero-messages") calls[0]!["messageCount"] = 0;
+        var file = File() with { ExpectedLineCalls = Json(calls.ToJsonString()) };
+        var metadata = new ShadowSdkMetadata(new MetadataService(), ["account", "contact", "task"], CancellationToken.None);
+        Assert.Throws<InvalidDataException>(() => ShadowSdkScenarioFactory.Prepare(file, metadata, Identity(), Binding()));
     }
 
     /// <summary>先驗正式 factory 存在；缺少接線時此案必須紅燈，不能把 runtime 單測算作 CLI 完成。</summary>

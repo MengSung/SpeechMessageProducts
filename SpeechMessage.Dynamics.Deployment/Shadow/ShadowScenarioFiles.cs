@@ -12,6 +12,8 @@
  * factory 再以 metadata 核對，reader 不接受任意查詢或顯示名稱比對。
  * 點分字串先驗是否真有 JWT JSON header；完整 CLR 型別名不得因三個長片段誤判，
  * 其餘 LINE ID、長憑證及 Bearer 樣式仍逐層拒絕，不對 type 欄位開跳過掃描例外。
+ * lineCalls 可明列 shadow 範本、事件別名及內容雜湊；reader 驗結構，factory 再驗單一
+ * 測試聯絡人與 owned 事件。缺 shadow 的舊黃金仍可讀取，但不會被實機 CLI 當成可比推播。
  * 固定錯誤不回顯檔案本文；秘密樣式掃描是輔助守門，不能代替人工合成資料審查。
  */
 using System;
@@ -368,17 +370,32 @@ internal static class ShadowScenarioFiles
         }
     }
 
-    /// <summary>LINE 期望只保留合成 recipient 及端點投影，不執行 HTTP、不解析憑證。</summary>
-    private static void LineCalls(JsonElement value)
+    /// <summary>
+    /// 驗證 LINE 期望及選填影子摘要；舊黃金沒有摘要時仍可供離線讀取。
+    /// 摘要須完整明列範本、事件別名與小寫 SHA-256；不自行推導範本或雜湊內容。
+    /// 僅驗結構不授權身分，factory 仍須驗證共享測試聯絡人、owned Retry Key 與單人端點。
+    /// </summary>
+    internal static void LineCalls(JsonElement value)
     {
         Array(value, 128);
         foreach (var call in value.EnumerateArray())
         {
-            Shape(call, "method,endpoint,recipients,messageCount", "messages");
+            Shape(call, "method,endpoint,recipients,messageCount", "messages,shadow");
             if (Text(call, "method") != "POST" || Text(call, "endpoint") is not
                 ("/v2/bot/message/push" or "/v2/bot/message/multicast" or "/v2/bot/message/broadcast") ||
                 !Integer(call.GetProperty("messageCount"), out var count) || count is < 0 or > 5) throw Invalid();
             _ = Names(call.GetProperty("recipients"), MaximumRows, schema: false);
+            if (call.TryGetProperty("shadow", out var shadow))
+            {
+                Shape(shadow, "templateKey,retryKey,contentSha256");
+                var template = Text(shadow, "templateKey");
+                var hash = Text(shadow, "contentSha256");
+                if (template.Length > 120 || template.Any(character =>
+                    !(char.IsAsciiLetterOrDigit(character) || character is '.' or '_' or ':' or '-')) ||
+                    !Alias(Text(shadow, "retryKey")) || hash.Length != 64 ||
+                    hash.Any(character => character is not (>= '0' and <= '9' or >= 'a' and <= 'f')))
+                    throw Invalid();
+            }
             if (call.TryGetProperty("messages", out var messages))
             {
                 Array(messages, 5);

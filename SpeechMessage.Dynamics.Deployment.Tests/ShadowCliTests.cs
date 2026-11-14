@@ -34,6 +34,29 @@ namespace SpeechMessage.Dynamics.Deployment.Tests;
 [Collection("Deployment working directory")]
 public sealed class ShadowCliTests
 {
+    /// <summary>真 CLI 將期望推播接到完整比較；內容不同仍保存失敗報告，所有出口還原設定、停用及排空 seed。</summary>
+    /// <param name="differentContent">僅改合成實際摘要，不改欄位快照，必須使比較失敗。</param>
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void ShadowCli_PushProjectionComparedThroughCommand(bool differentContent)
+    {
+        using var f = new CliFixture();
+        var path = Path.Combine(f.ScenarioRoot, "expected.json");
+        var expected = JsonNode.Parse(File.ReadAllText(path))!;
+        expected["cases"]![0]!["lineCalls"]!.AsArray().Add(JsonNode.Parse("""{"method":"POST","endpoint":"/v2/bot/message/push","recipients":["contact-1"],"messageCount":1,"shadow":{"templateKey":"Attendance.Reply","retryKey":"task-1","contentSha256":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"}}"""));
+        File.WriteAllText(path, expected.ToJsonString());
+        f.Service.PushIntent = true;
+        f.Service.DifferentPushContent = differentContent;
+        Assert.Equal(differentContent ? 1 : 0, f.Run());
+        Assert.Equal(1, f.Service.Triggers);
+        f.AssertRestored();
+        Assert.Empty(f.Reports);
+        var report = File.ReadAllText(Assert.Single(Directory.GetFiles(Path.Combine(f.Core.Root, "artifacts", "shadow"), "*.md", SearchOption.AllDirectories)));
+        Assert.Contains(differentContent ? "Passed=false" : "Passed=true", report, StringComparison.Ordinal);
+        Assert.DoesNotContain(f.Service.Contact.ToString("D"), report, StringComparison.Ordinal);
+    }
+
     /// <summary>完整真 CLI 先舊後新：盤點欄位只在舊輪由 Secrets 注入，兩輪 seed ID 不同、步驟互斥且最後停用。</summary>
     /// <param name="withoutToken">受審入口無 token 依賴時不解析 TestChannelToken，也不能把缺盤點當無依賴。</param>
     [Theory]
@@ -567,6 +590,8 @@ public sealed class ShadowCliTests
         internal Guid Contact { get; } = Guid.NewGuid();
         internal Exception Failure { get; } = new InvalidOperationException(Fixture.SecretValue);
         internal bool DifferentIntent;
+        internal bool PushIntent;
+        internal bool DifferentPushContent;
         internal bool FailTrigger;
         internal Action? AfterTrigger;
         internal int Triggers;
@@ -731,6 +756,12 @@ public sealed class ShadowCliTests
                 lines.Add("SMV-SHADOW|1|{\"end\":true,\"count\":" + lines.Count + "}");
                 trace = string.Join("\r\n", lines);
             }
+            if (PushIntent)
+                trace = "SMV-SHADOW|1|" + JsonSerializer.Serialize(new
+                {
+                    seq = 1, operation = "Push", contactId = Contact.ToString("D"), templateKey = "Attendance.Reply",
+                    retryKey = target.ToString("D"), messageCount = 1, contentSha256 = new string(DifferentPushContent ? 'b' : 'a', 64)
+                }) + "\r\nSMV-SHADOW|1|{\"end\":true,\"count\":1}";
             var result = new EntityCollection([new Entity("plugintracelog", Guid.NewGuid()) { ["messageblock"] = trace }]);
             if (DuplicateTrace) result.Entities.Add(new Entity("plugintracelog", Guid.NewGuid()) { ["messageblock"] = trace });
             return result;

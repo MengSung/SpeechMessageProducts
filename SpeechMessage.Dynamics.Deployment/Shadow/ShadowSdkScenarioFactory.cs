@@ -11,8 +11,9 @@
  * 它們不進自建清冊，也不可作 trigger 或 expected 寫入目標。owned lookup 以別名
  * 留待每輪配置新 GUID，不讓規劃用暫時 ID 被送到 SDK。欄位、精度與名稱前綴長度
  * 均由 metadata 驗證；related 僅可指向自建 seed，Create 期望須帶相同 lookup，
- * 同一 selector 不可宣告兩個別名。CLI 負責實機映像核對；活動、推播、例外或
- * 輸出仍明確拒絕，不能略過後聲稱驗收。
+ * 同一 selector 不可宣告兩個別名。推播要求期望明列 shadow 摘要、單一權威測試
+ * 聯絡人及 owned Retry Key；完整寫入後附推播意圖，符合正式 writer 的輸出順序。
+ * 本檔不傳送 LINE、不把新輪摘要當舊輪實際推播；活動、例外或輸出仍明確拒絕。
  * 擁有權與失敗：所有可變字典及 SDK Entity 都屬本次同步準備；JSON 文件與 recorder
  * 由方法 using 確定釋放，輸出不持有文件、服務或 delegate。沒有 static cache、
  * 背景工作、取消註冊或跨使用者狀態；完整候選成功才發布，錯誤不包含原始資料。
@@ -50,7 +51,7 @@ internal sealed record ShadowSdkPreparedScenario(ShadowScenarioDefinition Defini
 internal static class ShadowSdkScenarioFactory
 {
     /// <summary>
-    /// 將 reader 的一個實機 CRUD 案轉為 runner／runtime 配對。所有 lookup 都必須來自
+    /// 將 reader 的一個實機 CRUD／Push 案轉為 runner／runtime 配對。所有 lookup 都必須來自
     /// 明列 seed 或核定共享別名；暫時 ID 只供純轉換及安全投影，絕不是業務身分。
     /// 不支援的結果種類在準備階段拒絕，不以空清單冒充成功。
     /// </summary>
@@ -63,7 +64,7 @@ internal static class ShadowSdkScenarioFactory
         ArgumentNullException.ThrowIfNull(binding);
         if (!file.LiveShadow || file.IsActivity || file.Entrypoint != binding.Entrypoint ||
             file.Basis is not ("new" or "reading" or "legacy-golden" or "legacy-live" or "legacy-live-only") ||
-            file.ExpectedLineCalls.ValueKind != JsonValueKind.Array || file.ExpectedLineCalls.GetArrayLength() != 0 ||
+            file.ExpectedLineCalls.ValueKind != JsonValueKind.Array ||
             file.Exception.ValueKind != JsonValueKind.Null || file.Outputs.ValueKind != JsonValueKind.Object ||
             file.Outputs.EnumerateObject().Any() || identity.OrganizationId == Guid.Empty ||
             (file.Trigger.TryGetProperty("images", out var images) && images.EnumerateObject().Any()) ||
@@ -73,6 +74,7 @@ internal static class ShadowSdkScenarioFactory
             file.Church.GetProperty("alias").GetString() != binding.ChurchAlias)
             throw Invalid();
         ValidateBinding(binding, file.Basis);
+        ShadowScenarioFiles.LineCalls(file.ExpectedLineCalls);
         var shared = new Dictionary<string, EntityReference>(StringComparer.Ordinal)
         {
             [binding.ChurchAlias] = new("account", identity.ChurchId),
@@ -161,7 +163,7 @@ internal static class ShadowSdkScenarioFactory
         }
         if (aliases.Count > 64 || observations.Count is < 1 or > 64 ||
             observations.Select(item => item.Id).Distinct(StringComparer.Ordinal).Count() != observations.Count) throw Invalid();
-        var expected = PrepareExpected(file.ExpectedWrites, metadata, aliases, shared, idAliases, observations, Resolve);
+        var expected = PrepareExpected(file.ExpectedWrites, file.ExpectedLineCalls, metadata, aliases, shared, idAliases, observations, Resolve);
         var definition = new ShadowScenarioDefinition(expected, observations.AsReadOnly(),
             new HashSet<string>(file.Volatile, StringComparer.Ordinal)) { Basis = file.Basis };
         var source = new ShadowSdkScenario(seeds.AsReadOnly(), new ShadowSdkTrigger(message, targetAlias, patch),
@@ -185,8 +187,9 @@ internal static class ShadowSdkScenarioFactory
     /// <summary>
     /// 完整預期寫入依同一 metadata 及 recorder 投影；Create 只接受明列 related 的新別名，
     /// 必須帶相同父 lookup，並依序驗證尚未建立／重複建立及刪除後更新，不猜新列身分。
+    /// 隨後按正式 writer 順序附加完整推播摘要；只有權威共享 contact 可收取、Retry Key 必須為本案 owned 別名。
     /// </summary>
-    private static ShadowTrace PrepareExpected(JsonElement writes, ShadowSdkMetadata metadata,
+    private static ShadowTrace PrepareExpected(JsonElement writes, JsonElement lineCalls, ShadowSdkMetadata metadata,
         Dictionary<string, EntityReference> aliases, Dictionary<string, EntityReference> shared,
         Dictionary<string, string> idAliases, IReadOnlyList<ShadowObservation> observations,
         Func<string, string, EntityReference> resolve)
@@ -220,6 +223,25 @@ internal static class ShadowSdkScenarioFactory
             if (operation != "Delete") projection.Add("fields", ShadowSdkProjection.Project(candidate).Fields);
             intents.Add(new ShadowIntent(intents.Count + 1, operation, entity, target.Id.ToString("D"),
                 JsonSerializer.SerializeToElement(projection)));
+        }
+        // 正式 ShadowRecordWriter 先寫 CRUD，再寫推播；此處同序，完整比較不可只比最後欄值。
+        foreach (var call in lineCalls.EnumerateArray())
+        {
+            if (intents.Count >= 128 || Text(call, "endpoint") != "/v2/bot/message/push" ||
+                call.GetProperty("recipients").GetArrayLength() != 1 ||
+                call.GetProperty("messageCount").GetInt32() == 0 ||
+                !call.TryGetProperty("shadow", out var summary)) throw Invalid();
+            var contactAlias = call.GetProperty("recipients")[0].GetString()!;
+            var retryAlias = Text(summary, "retryKey");
+            if (!shared.TryGetValue(contactAlias, out var contact) || contact.LogicalName != "contact" ||
+                shared.ContainsKey(retryAlias) || !aliases.TryGetValue(retryAlias, out var retry)) throw Invalid();
+            var projection = JsonSerializer.SerializeToElement(new
+            {
+                seq = intents.Count + 1, operation = "Push", contactId = contact.Id.ToString("D"),
+                templateKey = Text(summary, "templateKey"), retryKey = retry.Id.ToString("D"),
+                messageCount = call.GetProperty("messageCount").GetInt32(), contentSha256 = Text(summary, "contentSha256")
+            });
+            // Push 的身分在 contactId；Entity 依正式 parser 契約為空，不冒用 CRUD 實體欄位。
         }
         return ShadowProjection.NormalizeTrace(new ShadowTrace(intents.AsReadOnly(), false, true, intents.Count), idAliases);
     }

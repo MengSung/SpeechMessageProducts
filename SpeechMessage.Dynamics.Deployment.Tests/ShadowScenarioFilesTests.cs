@@ -43,6 +43,19 @@ public sealed class ShadowScenarioFilesTests
         else Assert.Throws<InvalidDataException>(() => ShadowScenarioFiles.Load(f.Root, "attendance"));
     }
 
+    /// <summary>期望推播可明列安全 shadow 摘要；只保存 detached JSON，不讀訊息憑證或連線。</summary>
+    [Fact]
+    public void Shadow_Files_PushProjectionPreserved()
+    {
+        using var f = new Files();
+        var call = JsonNode.Parse("""{"method":"POST","endpoint":"/v2/bot/message/push","recipients":["contact-1"],"messageCount":1,"shadow":{"templateKey":"Attendance.Reply","retryKey":"church-a","contentSha256":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"}}""")!;
+        f.Expected["cases"]![0]!["lineCalls"]!.AsArray().Add(call);
+        f.Save();
+        var item = Assert.Single(ShadowScenarioFiles.Load(f.Root, "attendance"));
+        f.Dispose();
+        Assert.Equal("Attendance.Reply", Assert.Single(item.ExpectedLineCalls.EnumerateArray()).GetProperty("shadow").GetProperty("templateKey").GetString());
+    }
+
     /// <summary>正式完整型別名不是 JWT；既有廣泛字串模式不得把合法命令永遠擋在讀檔。</summary>
     [Fact]
     public void Shadow_Files_QualifiedPluginNameIsNotCredential()

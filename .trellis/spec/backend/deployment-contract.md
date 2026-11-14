@@ -158,3 +158,18 @@ runner 的 readLegacy 委派同時用於 finally 停用，不能捕捉已取消�
 observe 可選填 `related: {attribute, alias}`，alias 必須是本輪 owned seed，不可指向共用教會／會友。factory 驗正式 lookup Targets、唯一 selector、Create 期望相同父參照及有序建立／刪除，CLI 同時載入 observe 的 metadata。舊輪以精確父 ID 查回並核對每列 lookup；新輪以 Create 意圖而非最後快照配對，避免 Create 後 Delete 丟失別名。runner 在觀察／追蹤完成後才重新讀取動態 alias 映射。
 
 trigger 送達後失敗或 caller 取消也要在停用後發現子列，先刪子再刪 seed；只對本輪父 ID 的有界完整回應登錄所有子 ID。查詢分頁、錯父 lookup、重複 ID 或子列刪除失敗必須失敗並保留父列作重試範圍，不能假稱零殘留。每個 selector 最多讀 64 列，超量不取部分；同 selector 多列可清理但不可任取第一筆配對。影子意圖 GUID 只供比較，永不加入遠端刪除清冊。這些測試不代表已執行實機舊輪。
+
+## P5-03a 推播期望的 CLI 接線（2026-11-15，離線證據）
+
+expected.json 的 lineCalls 可選填 shadow 物件，但一旦提供就必須完整列明
+`templateKey`、`retryKey`、`contentSha256`，不得從訊息正文猜測。範本使用最多
+120 字元的 ASCII 英數及 `._:-`；內容摘要為 64 字元小寫 SHA-256；Retry Key
+是本情境明列的 owned 記錄別名。reader 共用結構驗證；factory 再驗唯一收件者
+是權威共享 contact、端點為單人 push、訊息數大於零及 Retry Key 不屬共享列。
+舊離線黃金沒有 shadow 仍可讀，但實機比較不可將其當成完整推播期望。
+
+factory 按正式 writer 的 CRUD 後 Push 順序產生完整意圖；Push 的 Entity 中繼
+資料沿用 parser 的空字串契約，身分放 contactId，不可填 contact 破壞重新解析
+一致性。收件者與 Retry Key 的 GUID 僅依明確別名正規化。真 CLI 合成測試驗證
+吻合與內容摘要不同兩種出口、停用還原、seed 排空及報告不包含真實身分；這些
+離線測試不代表舊輪訊息內容已可觀測，也不能取代實機追蹤及推播送達證據。
