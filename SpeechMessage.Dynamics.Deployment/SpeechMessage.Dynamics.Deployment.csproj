@@ -6,7 +6,11 @@
 主要功能與流程：
 宣告的產品／測試target為net10.0；條件評估後的實際輸出以MSBuild為準。
 專案參考包含ToolUtility.csproj與LineMessagingProcessor.Core.csproj；前者提供既有診斷／連線，
-後者提供P2-03雙目標加密的net10實作。不能新增反向相依或將主機狀態引入純核心。
+後者提供P2-03雙目標加密的net10實作；GoodShepherd.Core提供同源recorder所需的穩定GUID。
+以Compile Link直接編入Plugin的純SDK RecordingOrganizationService唯一來源，讓observe
+與寫入意圖共用隱私、型別與容量規則；沒有Plugin組件或外殼的專案參考。
+部署helper獨占單次recorder並拒絕所有inner服務呼叫，完成或失敗皆Dispose排空。
+驗證需包含focused投影測試、MSBuild Compile來源唯一性與架構／重複來源守門。
 
 使用邊界與維護：修改前先核對引用此檔的專案、頁面、腳本或CI步驟，保留既有參數、輸出及失敗結束碼。
 涉及寫入、外部命令或暫存資源時，依本檔實際實作的owner及清理路徑處理；說明不能取代執行前的範圍驗證。
@@ -24,6 +28,11 @@
     <PackageReference Include="Microsoft.Extensions.Configuration.UserSecrets" />
     <ProjectReference Include="../ToolUtility/ToolUtility.csproj" />
     <ProjectReference Include="../LineMessagingProcessor.Core/LineMessagingProcessor.Core.csproj" />
+    <ProjectReference Include="../SpeechMessageProducts.GoodShepherd.Core/SpeechMessageProducts.GoodShepherd.Core.csproj" />
     <InternalsVisibleTo Include="SpeechMessage.Dynamics.Deployment.Tests" />
+  </ItemGroup>
+  <ItemGroup>
+    <!-- 單一實體來源同時供Plugin與Deployment編譯，不複製隱私規則或引用沙箱外殼。 -->
+    <Compile Include="../SpeechMessage.Dynamics.Plugins/Infrastructure/RecordingOrganizationService.cs" Link="Shadow/RecordingOrganizationService.cs" />
   </ItemGroup>
 </Project>

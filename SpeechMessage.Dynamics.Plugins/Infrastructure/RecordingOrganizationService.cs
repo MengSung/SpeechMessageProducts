@@ -3,6 +3,8 @@
  *
  * 目的與定位：單次 Plugin Execute 的 Shadow 組織服務，借用授權後的真服務讀取，
  * 將寫入轉成安全不可變投影，不執行實際寫入。Create 按建立序號回傳固定 GUID。
+ * Deployment 以 Compile Link 共用本檔；框架差異僅使用等價的參數檢查與雜湊 API，
+ * 不維護另一份隱私規則。兩宿主都必須保留相同 JSON、例外類型及資源排空契約。
  * 主要功能與流程：同次新建列的 Update／Retrieve 使用深複製 overlay，Delete 留墓碑；
  * RetrieveMultiple 永遠只讀真服務，不合併 overlay。Execute 只轉送明列的唯讀訊息，
  * 已知 CRUD／關聯寫入走相同記錄路徑，未知、批次及缺參數訊息均拒絕且不回顯輸入。
@@ -58,7 +60,11 @@ internal sealed class RecordingOrganizationService : IOrganizationService, IDisp
     public Entity Retrieve(string entityName, Guid id, ColumnSet columnSet)
     {
         EnsureActive();
+        #if NET8_0_OR_GREATER
+        ArgumentNullException.ThrowIfNull(columnSet);
+#else
         if (columnSet is null) throw new ArgumentNullException(nameof(columnSet));
+#endif
         if (!localRows.TryGetValue(Key(entityName, id), out var row)) return CloneEntity(inner.Retrieve(entityName, id, columnSet));
         if (row is null) throw new InvalidOperationException("Shadow row was deleted.");
         var result = CloneEntity(row);
@@ -71,7 +77,11 @@ internal sealed class RecordingOrganizationService : IOrganizationService, IDisp
     public EntityCollection RetrieveMultiple(QueryBase query)
     {
         EnsureActive();
+        #if NET8_0_OR_GREATER
+        ArgumentNullException.ThrowIfNull(query);
+#else
         if (query is null) throw new ArgumentNullException(nameof(query));
+#endif
         var source = inner.RetrieveMultiple(query);
         var result = new EntityCollection
         {
@@ -142,7 +152,11 @@ internal sealed class RecordingOrganizationService : IOrganizationService, IDisp
     public OrganizationResponse Execute(OrganizationRequest request)
     {
         EnsureActive();
+        #if NET8_0_OR_GREATER
+        ArgumentNullException.ThrowIfNull(request);
+#else
         if (request is null) throw new ArgumentNullException(nameof(request));
+#endif
         switch (request.RequestName)
         {
             case "WhoAmI": case "RetrieveCurrentOrganization": case "RetrievePrincipalAccess":
@@ -187,7 +201,11 @@ internal sealed class RecordingOrganizationService : IOrganizationService, IDisp
     /// <summary>提供 PluginInput 共用的有界深複製，未知可變值、循環與超量圖形固定拒絕。</summary>
     internal static Entity CloneEntity(Entity source, bool allowAliases = true)
     {
+        #if NET8_0_OR_GREATER
+        ArgumentNullException.ThrowIfNull(source);
+#else
         if (source is null) throw new ArgumentNullException(nameof(source));
+#endif
         return (Entity)CloneValue(source, new CloneBudget(allowAliases), 0)!;
     }
 
@@ -302,7 +320,11 @@ internal sealed class RecordingOrganizationService : IOrganizationService, IDisp
     /// <summary>讀取別名恰為兩段合法 schema；其他路徑沿用嚴格實際欄位驗證。</summary>
     private static void ValidateAttributeName(string name, bool allowAlias)
     {
+#if NET8_0_OR_GREATER
+        var separator = name.IndexOf('.', StringComparison.Ordinal);
+#else
         var separator = name.IndexOf('.');
+#endif
         if (!allowAlias || separator < 0)
         {
             ValidateName(name);
@@ -326,8 +348,16 @@ internal sealed class RecordingOrganizationService : IOrganizationService, IDisp
     private void RecordRelationship(string operation, string name, Guid id, Relationship relationship, EntityReferenceCollection related)
     {
         EnsureActive();
+        #if NET8_0_OR_GREATER
+        ArgumentNullException.ThrowIfNull(relationship);
+#else
         if (relationship is null) throw new ArgumentNullException(nameof(relationship));
+#endif
+        #if NET8_0_OR_GREATER
+        ArgumentNullException.ThrowIfNull(related);
+#else
         if (related is null) throw new ArgumentNullException(nameof(related));
+#endif
         ValidateName(relationship.SchemaName);
         _ = Key(name, id);
         var holder = CloneEntity(new Entity(name, id) { ["related"] = related });
@@ -348,7 +378,11 @@ internal sealed class RecordingOrganizationService : IOrganizationService, IDisp
     /// <summary>拒絕已排空的 owner 被重新用於另一個執行。</summary>
     private void EnsureActive()
     {
+#if NET8_0_OR_GREATER
+        ObjectDisposedException.ThrowIf(disposed, this);
+#else
         if (disposed) throw new ObjectDisposedException(nameof(RecordingOrganizationService));
+#endif
     }
     /// <summary>建立完整欄位投影，不對 SDK Entity 或 record 直接 ToString／序列化。</summary>
     private static string Project(string operation, Entity entity)
@@ -434,7 +468,12 @@ internal sealed class RecordingOrganizationService : IOrganizationService, IDisp
         Contains(field, "name") || Contains(field, "phone") || Contains(field, "tel") ||
         Contains(field, "mobile") || Contains(field, "email") || Contains(field, "address") || Contains(field, "birth");
     /// <summary>不依賴 regex 或全域文化的欄位片段比對。</summary>
-    private static bool Contains(string value, string fragment) => value.IndexOf(fragment, StringComparison.OrdinalIgnoreCase) >= 0;
+    private static bool Contains(string value, string fragment) =>
+#if NET8_0_OR_GREATER
+        value.Contains(fragment, StringComparison.OrdinalIgnoreCase);
+#else
+        value.IndexOf(fragment, StringComparison.OrdinalIgnoreCase) >= 0;
+#endif
     /// <summary>偵測內嵌 LINE user／group／room ID，欄位命名錯誤時也不可輸出原值。</summary>
     internal static bool ContainsLineId(string text)
     {
@@ -471,9 +510,18 @@ internal sealed class RecordingOrganizationService : IOrganizationService, IDisp
     /// <summary>二進位值只輸出長度及雜湊，SHA-256 owner 在呼叫結束確定釋放。</summary>
     private static JObject Hash(byte[] bytes)
     {
+#if NET8_0_OR_GREATER
+        return new JObject { ["length"] = bytes.Length, ["sha256"] = Hex(SHA256.HashData(bytes)) };
+#else
         using var sha = SHA256.Create();
         return new JObject { ["length"] = bytes.Length, ["sha256"] = Hex(sha.ComputeHash(bytes)) };
+#endif
     }
     /// <summary>固定小寫十六進位輸出，不依賴新版框架 API 或全域文化。</summary>
-    private static string Hex(byte[] bytes) => BitConverter.ToString(bytes).Replace("-", string.Empty).ToLowerInvariant();
+    private static string Hex(byte[] bytes) =>
+#if NET9_0_OR_GREATER
+        Convert.ToHexStringLower(bytes);
+#else
+        BitConverter.ToString(bytes).Replace("-", string.Empty).ToLowerInvariant();
+#endif
 }
