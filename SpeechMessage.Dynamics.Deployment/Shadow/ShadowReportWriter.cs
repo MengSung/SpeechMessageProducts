@@ -12,6 +12,8 @@
  * 由呼叫端管理。比較位置可能含欄位或身分，故一律只輸出數量；殘留核對依 runner
  * 成功返回契約，本檔不能獨立證明實機殘留為零或環境驗收已通過。
  * 新輪必須另通過完整意圖比較，不以最終值相同忽略額外欄位或中間寫入。
+ * legacy switch 專用入口明列僅舊輪範圍，只驗舊輪欄位；不得帶可比的新輪證據或
+ * 將欄位相符宣稱完整影子／推播驗收。兩種範圍共用相同有界檔案 owner。
  */
 using System;
 using System.Collections.Generic;
@@ -47,7 +49,20 @@ internal static class ShadowReportWriter
     /// <param name="timeProvider">借用時鐘，僅取一次 UTC 日期，不建立 timer 或持有時鐘。</param>
     /// <returns>僅在寫入、flush 及關閉全部成功後返回報告路徑與比較成功狀態。</returns>
     public static ShadowReportResult Write(string module, string basis,
-        IReadOnlyList<ShadowCaseResult> results, string outputRoot, TimeProvider timeProvider)
+        IReadOnlyList<ShadowCaseResult> results, string outputRoot, TimeProvider timeProvider) =>
+        WriteCore(module, basis, results, outputRoot, timeProvider, false);
+
+    /// <summary>
+    /// 只發布 legacy switch 受控第一輪的欄位比較，明標 scope，不冒充新輪或推播內容驗證。
+    /// 只接受真實舊輪基準，所有新輪比較都必須不可比且沒有差異，以防混用證據。
+    /// </summary>
+    internal static ShadowReportResult WriteLegacyRound(string module, string basis,
+        IReadOnlyList<ShadowCaseResult> results, string outputRoot, TimeProvider timeProvider) =>
+        WriteCore(module, basis, results, outputRoot, timeProvider, true);
+
+    /// <summary>在完整輸入驗證後才取得新檔 owner；只把核定範圍的結果格式化為安全數量。</summary>
+    private static ShadowReportResult WriteCore(string module, string basis,
+        IReadOnlyList<ShadowCaseResult> results, string outputRoot, TimeProvider timeProvider, bool legacyOnly)
     {
         ArgumentNullException.ThrowIfNull(results);
         ArgumentNullException.ThrowIfNull(timeProvider);
@@ -55,11 +70,13 @@ internal static class ShadowReportWriter
         if (module is not ("diagnostics" or "localization" or "weeklyreports" or "attendance" or
             "lessons" or "appointments" or "qrcodes" or "care" or "fees" or "messaging") ||
             basis is not ("legacy-live" or "legacy-golden" or "legacy-live-only" or "reading" or "deferred-to-P7" or "new") ||
-            results.Count is < 1 or > 6)
+            results.Count is < 1 or > 6 || (legacyOnly && basis is not ("legacy-live" or "legacy-live-only")))
             throw Invalid();
 
         var text = new StringBuilder("# Shadow report\r\n\r\n");
         text.Append("module=").Append(module).Append("; basis=").Append(basis).Append("\r\n");
+        if (legacyOnly)
+            text.Append("scope=legacy-round-only\r\n本報告只驗舊輪欄位；未執行新輪，不代表完整影子比較或 LINE 推播內容／送達通過。\r\n");
         text.Append("殘留核對與停用／還原由 runner 成功返回契約證明；本 writer 不執行遠端查詢，離線報告不代表實機驗收。\r\n");
         if (basis is "new" or "reading" or "legacy-golden")
             text.Append("本基準未執行實機舊輪；兩輪互比及舊輪對期望均不可比較。\r\n");
@@ -74,6 +91,12 @@ internal static class ShadowReportWriter
             var legacy = AppendComparison(text, "LegacyToExpected", item.LegacyToExpected);
             var shadow = AppendComparison(text, "ShadowToExpected", item.ShadowToExpected);
             var intents = AppendComparison(text, "ShadowIntentsToExpected", item.ShadowIntentsToExpected);
+            if (legacyOnly)
+            {
+                passed &= item.LegacyExecuted && legacy && Unavailable(item.BetweenRounds) &&
+                    Unavailable(item.ShadowToExpected) && Unavailable(item.ShadowIntentsToExpected);
+                continue;
+            }
             passed &= intents;
             passed &= basis switch
             {
@@ -126,6 +149,10 @@ internal static class ShadowReportWriter
             .Append("; Differences=").Append(count.ToString(CultureInfo.InvariantCulture)).Append("\r\n");
         return comparison.Comparable && count == 0;
     }
+
+    /// <summary>未執行的比較必須明確不可比且沒有差異，不能帶入另一範圍的證據。</summary>
+    private static bool Unavailable(ShadowComparison comparison) =>
+        !comparison.Comparable && comparison.Differences.Count == 0;
 
     /// <summary>固定 ASCII 布林字串，不依賴當前文化或輸入本文。</summary>
     private static string Boolean(bool value) => value ? "true" : "false";

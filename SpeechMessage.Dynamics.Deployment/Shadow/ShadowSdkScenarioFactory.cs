@@ -242,6 +242,7 @@ internal static class ShadowSdkScenarioFactory
                 messageCount = call.GetProperty("messageCount").GetInt32(), contentSha256 = Text(summary, "contentSha256")
             });
             // Push 的身分在 contactId；Entity 依正式 parser 契約為空，不冒用 CRUD 實體欄位。
+            intents.Add(new ShadowIntent(intents.Count + 1, "Push", "", contact.Id.ToString("D"), projection));
         }
         return ShadowProjection.NormalizeTrace(new ShadowTrace(intents.AsReadOnly(), false, true, intents.Count), idAliases);
     }

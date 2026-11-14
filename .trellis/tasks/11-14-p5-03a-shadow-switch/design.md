@@ -16,3 +16,15 @@
 - 若實機舊入口沒有可追蹤的欄位，依 05A 改以型別＋主要實體 ID＋時間窗；仍不能猜測步驟 ID。
 - 若 User Secrets 缺少 `ShadowTestChurchId` 或 `ShadowTestContactId`，先從既有 evidence 或唯讀權威查詢確認後設定；查不到才向使用者詢問，不能按名稱猜。
 - 若某模組 D5-18 失敗，停止該模組，不以離線結果替代實機兩輪，並保留安全拒絕證據。
+
+## 受控 legacy 公開命令接線（2026-11-15）
+
+`switch --to legacy` 保留 05A 的三個既有選項，不新增秘密或 seed ID 參數。
+由固定模組 Golden 目錄選取 liveShadow 案，僅允許 legacy-live／legacy-live-only
+基準，沿用 shadow 的整批準備、即時註冊、權威 Shadow 身分與固定 token 盤點。
+runner 共用同一 RunCore／RunRound，在 legacyOnly 分支只執行第一輪；每個出口
+仍停用、清理、核對及還原 trace。報告明列 scope=legacy-round-only，只判定
+舊輪對期望的欄位比較，不假造新輪、推播送達或整包驗收。
+
+CLI 測試先紅後綠，驗 token／無 token 舊輪、不同期望、失敗及取消收尾、
+D34 和不安全盤點前置拒絕、非實機基準零寫入、既有兩輪命令回歸。

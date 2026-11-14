@@ -7,7 +7,8 @@
  * User Secrets 中的測試 GUID 與權威 LINE 綁定，再準備整批情境，唯讀匯出後執行。
  * 每輪由 runner 停用、核對、清理自己的記錄並還原追蹤；成功返回後才寫安全報告。
  * 信任與適用邊界：CRUD live 基準由固定受審 token 盤點接通先舊後新兩輪；
- * new／reading／legacy-golden 仍只跑新輪，不假造舊證據。
+ * new／reading／legacy-golden 仍只跑新輪，不假造舊證據。legacy switch 共用完整前置，
+ * 只跑核定實機舊輪；報告明標範圍，不能把舊輪欄位通過寫成兩輪推播驗收。
  * 同步 trigger 依正式 mode 帶獨立 RequestId，不以情境 JSON 指定同步追蹤。
  * 關聯觀察以明列 lookup 及本輪 owned 父列配對；缺盤點、未釐清／寫死 token
  * 及未接通活動在業務寫入前拒絕，不從情境 JSON 猜 token 安全性。
@@ -42,18 +43,20 @@ internal static partial class DeploymentCli
     }
 
     /// <summary>
-    /// 在既有租約內完整執行新輪；先完成整批準備才可寫 trace 或 seed。
+    /// 在既有租約內完成核定輪次；先完成整批準備才可寫 trace 或 seed。
+    /// legacyOnly 專供公開 legacy switch，不接受閱讀基準，不執行新輪或宣稱完整比較。
     /// 尚無受審舊入口 inventory 的 live 基準不可降級為只跑新輪。
     /// 報告只在 runner 成功收尾後發布，非零差異回一而非丟棄失敗證據。
     /// </summary>
     private static int RunShadow(ParsedCommand command, IReadOnlyList<ShadowFileCase> cases,
         string repositoryRoot, string operationRoot, IOrganizationService service, TextWriter output,
-        Func<string, string>? secretReader, CancellationToken cancellationToken)
+        Func<string, string>? secretReader, CancellationToken cancellationToken, bool legacyOnly = false)
     {
         var selected = cases.Where(item => item.LiveShadow).ToArray();
         if (selected.Length == 0 || selected.Any(item => item.IsActivity ||
             item.Basis is not ("new" or "reading" or "legacy-golden" or "legacy-live" or "legacy-live-only")) ||
-            selected.Select(item => item.Basis).Distinct(StringComparer.Ordinal).Count() != 1)
+            selected.Select(item => item.Basis).Distinct(StringComparer.Ordinal).Count() != 1 ||
+            (legacyOnly && selected.Any(item => item.Basis is not ("legacy-live" or "legacy-live-only"))))
             throw InvalidShadowCommand();
         var document = RegistrationManifestLoader.LoadDocument(repositoryRoot);
         var images = document.Assemblies.Select(manifest => AssemblyCatalog.Read(
@@ -130,10 +133,17 @@ internal static partial class DeploymentCli
         var runtime = new ShadowSdkRuntime(service, identity.OrganizationId, identity.ChurchId, identity.ContactId,
             prepared.ToDictionary(item => item.Definition, item => item.Source), VerifyDisabled, TimeProvider.System);
         var runner = new ShadowScenarioRunner(engine, document, command.Organization, command.Module!, ReadLegacy, runtime);
-        var results = runner.Run(prepared.Select(item => item.Definition).ToArray(), cancellationToken);
-        var report = ShadowReportWriter.Write(command.Module!, selected[0].Basis, results, reportRoot, TimeProvider.System);
-        output.WriteLine(report.Passed ? "Shadow scenario comparison passed; owned records cleaned and registrations disabled." :
-            "Shadow scenario comparison failed; owned records cleaned and registrations disabled.");
+        var definitions = prepared.Select(item => item.Definition).ToArray();
+        var results = legacyOnly ? runner.RunLegacyOnly(definitions, cancellationToken) : runner.Run(definitions, cancellationToken);
+        var report = legacyOnly
+            ? ShadowReportWriter.WriteLegacyRound(command.Module!, selected[0].Basis, results, reportRoot, TimeProvider.System)
+            : ShadowReportWriter.Write(command.Module!, selected[0].Basis, results, reportRoot, TimeProvider.System);
+        if (legacyOnly)
+            output.WriteLine(report.Passed ? "Legacy round field comparison passed; owned records cleaned and registrations disabled. No new round executed." :
+                "Legacy round field comparison failed; owned records cleaned and registrations disabled. No new round executed.");
+        else
+            output.WriteLine(report.Passed ? "Shadow scenario comparison passed; owned records cleaned and registrations disabled." :
+                "Shadow scenario comparison failed; owned records cleaned and registrations disabled.");
         return report.Passed ? 0 : 1;
     }
 

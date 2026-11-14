@@ -173,3 +173,22 @@ factory 按正式 writer 的 CRUD 後 Push 順序產生完整意圖；Push 的 E
 一致性。收件者與 Retry Key 的 GUID 僅依明確別名正規化。真 CLI 合成測試驗證
 吻合與內容摘要不同兩種出口、停用還原、seed 排空及報告不包含真實身分；這些
 離線測試不代表舊輪訊息內容已可觀測，也不能取代實機追蹤及推播送達證據。
+
+## P5-03a 公開 legacy switch 受控第一輪（2026-11-15，離線證據）
+
+`switch --org goodshepherdback --module <代號> --to legacy` 保留既有語法，
+從該模組固定 Golden 目錄讀取 liveShadow 情境，不接受外部路徑、記錄 ID
+或秘密參數。只接受 legacy-live／legacy-live-only；reading 等基準不能用來
+宣稱執行舊輪。命令共用 shadow 的完整部署、權威身分、D34 與固定受審 token
+盤點前置，全部情境準備成功後才寫 trace 或 seed。
+
+runner 的 RunLegacyOnly 與原兩輪共用 RunCore／RunRound，第一輪仍在
+SwitchModule 的 D5-18 回呼內注入測試 token、啟用、觸發、讀回。成功、失敗
+或取消都停用新舊、清除 token、清理自建列、核對並還原原 trace，SDK lease
+由 CLI 最後歸還。CLI 不留下供另一程序使用的啟用狀態。無 token 依賴只能
+來自明確盤點，不能因空欄位或缺少 TestChannelToken 自行推定。
+
+報告明標 scope=legacy-round-only，Passed 僅判定舊輪觀察欄位對期望相符；
+新輪、完整意圖與兩輪互比均須不可比且沒有差異。報告明文不代表完整影子
+或 LINE 內容／送達驗收，不能用此結果取代 shadow 命令的兩輪證據。
+缺固定情境時讀檔失敗回一、零連線；非法組織或語法仍回二、零連線。

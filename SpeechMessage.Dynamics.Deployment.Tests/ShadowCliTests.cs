@@ -57,6 +57,99 @@ public sealed class ShadowCliTests
         Assert.DoesNotContain(f.Service.Contact.ToString("D"), report, StringComparison.Ordinal);
     }
 
+    /// <summary>公開 legacy switch 只執行受控第一輪；D5-18 token 注入、結果讀回與清理沿用真 SDK runtime。</summary>
+    /// <param name="withoutToken">受審盤點為無 token 依賴時，第一輪不得解析測試 token。</param>
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void SwitchCli_LegacyRunsOnlyScopedFirstRound(bool withoutToken)
+    {
+        using var f = new CliFixture();
+        f.AddLegacyCase(withoutToken);
+        Assert.Equal(0, f.Run(["switch", "--org", Fixture.Organization, "--module", "localization", "--to", "legacy"]));
+        Assert.True(Assert.Single(f.Service.RoundKinds));
+        Assert.Equal(1, f.Service.Triggers);
+        Assert.Equal(withoutToken ? 0 : 1, f.TokenSecretReads);
+        f.AssertRestored();
+        Assert.DoesNotContain(f.Core.Service.Rows, row => row.LogicalName == "region");
+        Assert.Empty(f.Reports);
+        var report = File.ReadAllText(Assert.Single(Directory.GetFiles(Path.Combine(f.Core.Root, "artifacts", "shadow"), "*.md", SearchOption.AllDirectories)));
+        Assert.Contains("scope=legacy-round-only", report, StringComparison.Ordinal);
+        Assert.Contains("LegacyToExpected: Comparable=true; Differences=0", report, StringComparison.Ordinal);
+        Assert.Contains("ShadowToExpected: Comparable=false", report, StringComparison.Ordinal);
+        Assert.Contains("Passed=true", report, StringComparison.Ordinal);
+        Assert.DoesNotContain(Fixture.SecretValue, report, StringComparison.Ordinal);
+        Assert.DoesNotContain(f.Service.Contact.ToString("D"), report, StringComparison.Ordinal);
+    }
+
+    /// <summary>第一輪觸發已送達後的故障或 caller 取消仍排空所有自建記錄，停用及還原不得沿用取消 token。</summary>
+    /// <param name="cancel">取消不告警；真正故障必須在 lease 歸還後交出原例外。</param>
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void SwitchCli_LegacyFailureOrCancellationRestores(bool cancel)
+    {
+        using var f = new CliFixture();
+        using var cancellation = new CancellationTokenSource();
+        f.AddLegacyCase();
+        f.Service.FailTrigger = !cancel;
+        if (cancel) f.Service.AfterTrigger = cancellation.Cancel;
+        Assert.Equal(cancel ? 130 : 1, f.Run(["switch", "--org", Fixture.Organization, "--module", "localization", "--to", "legacy"], cancellation.Token));
+        Assert.True(Assert.Single(f.Service.RoundKinds));
+        f.AssertRestored();
+        Assert.DoesNotContain(f.Core.Service.Rows, row => row.LogicalName == "region");
+        if (cancel) Assert.Empty(f.Reports);
+        else Assert.Same(f.Service.Failure, Assert.Single(f.Reports));
+    }
+
+    /// <summary>第一輪不符合期望也要留下僅舊輪失敗報告；不可為取得綠燈偷偷執行新輪。</summary>
+    [Fact]
+    public void SwitchCli_LegacyDifferenceReportsFailureWithoutNewRound()
+    {
+        using var f = new CliFixture();
+        f.AddLegacyCase();
+        var path = Path.Combine(f.ScenarioRoot, "expected.json");
+        var expected = JsonNode.Parse(File.ReadAllText(path))!;
+        expected["cases"]![0]!["writes"]!.AsArray().Add(JsonNode.Parse("""{"operation":"Update","entity":"task","alias":"task-1","fields":{"score":9}}"""));
+        File.WriteAllText(path, expected.ToJsonString());
+        path = Path.Combine(f.ScenarioRoot, "scenarios.json");
+        var scenarios = JsonNode.Parse(File.ReadAllText(path))!;
+        scenarios["cases"]![0]!["observe"]![0]!["fields"]!.AsArray().Add("score");
+        File.WriteAllText(path, scenarios.ToJsonString());
+        Assert.Equal(1, f.Run(["switch", "--org", Fixture.Organization, "--module", "localization", "--to", "legacy"]));
+        Assert.True(Assert.Single(f.Service.RoundKinds));
+        f.AssertRestored();
+        Assert.Empty(f.Reports);
+        var report = File.ReadAllText(Assert.Single(Directory.GetFiles(Path.Combine(f.Core.Root, "artifacts", "shadow"), "*.md", SearchOption.AllDirectories)));
+        Assert.Contains("scope=legacy-round-only", report, StringComparison.Ordinal);
+        Assert.Contains("Passed=false", report, StringComparison.Ordinal);
+    }
+
+    /// <summary>公開第一輪在 D34、盤點、權威身分或基準不合時拒絕；不得以 reading 取代真舊輪或先寫 trace。</summary>
+    /// <param name="fault">一次注入一種啟用前關卡失敗；所有案例皆須零新寫入及零 token 解析。</param>
+    [Theory]
+    [InlineData("d34")]
+    [InlineData("hardcoded")]
+    [InlineData("reading")]
+    [InlineData("identity")]
+    public void SwitchCli_LegacyPreconditionsRefuseBeforeWrites(string fault)
+    {
+        using var f = new CliFixture();
+        f.AddLegacyCase();
+        if (fault == "identity") f.WrongIdentity = true;
+        if (fault == "d34") f.Core.Service.Seed(new Entity("contact", Guid.NewGuid()) { ["new_lineid"] = "other-synthetic-recipient" });
+        var path = Path.Combine(f.Core.Root, "d365", "registration", "legacy-token-inventory.json");
+        if (fault == "hardcoded") File.WriteAllText(path, File.ReadAllText(path).Replace("record-fields", "unconditional-hardcoded", StringComparison.Ordinal));
+        path = Path.Combine(f.ScenarioRoot, "expected.json");
+        if (fault == "reading") File.WriteAllText(path, File.ReadAllText(path).Replace("legacy-live-only", "reading", StringComparison.Ordinal));
+        var before = f.Core.Service.Writes.Count;
+        Assert.Equal(1, f.Run(["switch", "--org", Fixture.Organization, "--module", "localization", "--to", "legacy"]));
+        Assert.Equal(before, f.Core.Service.Writes.Count);
+        Assert.Empty(f.Service.RoundKinds);
+        Assert.Equal(0, f.TokenSecretReads);
+        Assert.Equal(f.Connects, f.Releases);
+    }
+
     /// <summary>完整真 CLI 先舊後新：盤點欄位只在舊輪由 Secrets 注入，兩輪 seed ID 不同、步驟互斥且最後停用。</summary>
     /// <param name="withoutToken">受審入口無 token 依賴時不解析 TestChannelToken，也不能把缺盤點當無依賴。</param>
     [Theory]

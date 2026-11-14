@@ -4,7 +4,7 @@
  * 目的與定位：驗證 switch 命令從參數解析到真切換核心的離線接線，防止核心測試
  * 通過但公開 CLI 沒有路由。使用 Fixture 的合成 SDK，不讀 User Secrets 或連網。
  * 主要功能與流程：依現行唯一 diagnostics 清單開關步驟，確認正式 ID、狀態、
- * 固定輸出、組織鎖與 lease 歸還。非法組織、模式或未提供舊輪範圍在連線前拒絕。
+ * 固定輸出、組織鎖與 lease 歸還。非法組織、模式或缺固定舊輪情境在連線前拒絕。
  * 使用邊界與維護：本檔不建立真實 Plugin DLL、不啟用實機步驟；讀 repo 清單
  * 只為確認正式診斷契約。每個 fixture 根與 writer、lease 都由案例確定釋放。
  */
@@ -40,7 +40,7 @@ public sealed class ModuleSwitchCliTests
         Assert.DoesNotContain(Fixture.SecretValue, output.ToString(), StringComparison.Ordinal);
     }
 
-    /// <summary>未知組織、目標及未帶程序內舊輪範圍均在 SDK 連線前拒絕，不能遺留啟用步驟。</summary>
+    /// <summary>未知組織、目標及缺少固定舊輪情境均在 SDK 連線前拒絕；語法拒絕回二，讀檔前置失敗回一。</summary>
     /// <param name="organization">組織故障輸入。</param><param name="target">目標故障輸入。</param>
     [Theory]
     [InlineData("production", "enabled")]
@@ -51,8 +51,10 @@ public sealed class ModuleSwitchCliTests
         using var f = new Fixture();
         var connector = new SwitchConnector(f.Service);
         using var output = new StringWriter();
-        Assert.Equal(2, DeploymentCli.Run(["switch", "--org", organization, "--module", "diagnostics", "--to", target],
-            connector, output, _ => Assert.Fail("Unexpected failure"), f.Root));
+        var failures = 0;
+        Assert.Equal(target == "legacy" ? 1 : 2, DeploymentCli.Run(["switch", "--org", organization, "--module", "diagnostics", "--to", target],
+            connector, output, _ => failures++, f.Root));
+        Assert.Equal(target == "legacy" ? 1 : 0, failures);
         Assert.Equal(0, connector.Connects);
         Assert.Empty(f.Service.Writes);
     }

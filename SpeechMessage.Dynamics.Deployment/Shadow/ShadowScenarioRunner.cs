@@ -10,6 +10,8 @@
  * 使用邊界與維護：SDK 租約與組織寫鎖由 CLI 擁有；runtime 負責精確查詢、時間窗、
  * 資料安全投影及自建列清冊。CRUD 套成欄位快照；Push 透過完整新輪意圖比較，
  * 不假造舊輪的實際推播內容，也不把安全摘要相符當成實際 LINE 送達。其他意圖明確拒絕。
+ * 公開 legacy switch 的 RunLegacyOnly 共用同一清理流程，只建立舊輪及其欄位比較，
+ * 新輪與意圖側明標不可比較；只接受真實舊輪基準，不降級 reading。
  * 所有 owner 只屬單一 Run；取消不跳過停用、刪除、殘留核對或 Dispose。收尾失敗
  * 保留原始例外並聚合，報告只含比較結果與情境序號，不輸出情境本文或秘密。
  */
@@ -115,7 +117,18 @@ internal sealed class ShadowScenarioRunner
     /// Push 僅在新輪完整意圖對期望比較；舊輪推播內容由離線黃金負責，關聯等其他操作仍拒絕。
     /// </summary>
     public IReadOnlyList<ShadowCaseResult> Run(IReadOnlyList<ShadowScenarioDefinition> scenarios,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken = default) => RunCore(scenarios, false, cancellationToken);
+
+    /// <summary>
+    /// 公開 legacy switch 的受控第一輪入口；只讀回舊輪欄位，不取得或偽造新輪追蹤。
+    /// 全部實機基準先驗證，失敗及取消沿用 RunCore 的停用、排空及原追蹤還原。
+    /// </summary>
+    internal IReadOnlyList<ShadowCaseResult> RunLegacyOnly(IReadOnlyList<ShadowScenarioDefinition> scenarios,
+        CancellationToken cancellationToken = default) => RunCore(scenarios, true, cancellationToken);
+
+    /// <summary>同一命令的輪次編排核心；legacyOnly 是呼叫路徑，不能由情境內容自行擴張權限。</summary>
+    private System.Collections.ObjectModel.ReadOnlyCollection<ShadowCaseResult> RunCore(IReadOnlyList<ShadowScenarioDefinition> scenarios,
+        bool legacyOnly, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(scenarios);
         if (organization != "goodshepherdback" || scenarios.Count is < 1 or > 6 ||
@@ -131,6 +144,7 @@ internal sealed class ShadowScenarioRunner
         {
             if (scenario is null || scenario.Expected is null || !scenario.Expected.Comparable ||
                 scenario.Basis is not ("new" or "reading" or "legacy-golden" or "legacy-live" or "legacy-live-only") ||
+                (legacyOnly && scenario.Basis is not ("legacy-live" or "legacy-live-only")) ||
                 scenario.Expected.Intents is null || scenario.Expected.Intents.Count > 128 ||
                 scenario.Expected.Intents.Any(intent => intent.Operation is not ("Create" or "Update" or "Delete" or "Push")) ||
                 scenario.Observe is null || scenario.VolatileFields is null ||
@@ -152,8 +166,16 @@ internal sealed class ShadowScenarioRunner
                 var scenario = scenarios[index];
                 var legacy = scenario.Basis is "legacy-live" or "legacy-live-only"
                     ? RunRound(scenario, true, cancellationToken) : null;
-                var shadow = RunRound(scenario, false, cancellationToken);
                 var unavailable = new ShadowComparison(false, Array.Empty<ShadowDifference>());
+                if (legacyOnly)
+                {
+                    if (legacy is null) throw InvalidScenario();
+                    results.Add(new ShadowCaseResult(index + 1, unavailable,
+                        ShadowComparer.CompareFinalStates(legacy.Actual, legacy.Expected, scenario.Observe,
+                            volatileFields: scenario.VolatileFields), unavailable));
+                    continue;
+                }
+                var shadow = RunRound(scenario, false, cancellationToken);
                 results.Add(new ShadowCaseResult(index + 1,
                     legacy is null ? unavailable : ShadowComparer.CompareFinalStates(legacy.Actual, shadow.Actual, scenario.Observe,
                         volatileFields: scenario.VolatileFields),
