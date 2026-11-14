@@ -6,6 +6,7 @@
  *
  * 主要功能與流程：先解析命令／選項、拒絕非goodshepherdback與外部plan/export路徑；
  * 明確--schema或export-metadata轉交SchemaDeploymentCli，該路徑不需Plugin DLL。
+ * export-legacy 以有界唯讀查詢匯出安全 metadata 並回報啟用筆數，不需要清單或 DLL；
  * 舊plan/apply/verify/export/rollback/smoke則載入固定registration manifest及必要Plugin PE，
  * 委派DeploymentEngine，保留原P0公開語法、trace/push設定佔位與安全驗證。
  * verify有metadata差異回1，只有秘密佔位尚未比對時回3，不因零操作假稱秘密或推播已驗證。
@@ -159,6 +160,8 @@ internal static class DeploymentCli
                 : null;
             cancellationToken.ThrowIfCancellationRequested();
             using var lease = connector.Connect(command.Organization);
+            if (command.Name == "export-legacy")
+                return ExportLegacy(lease.Service, organizationArtifactRoot, output, cancellationToken);
             var operationRoot = CreateOperationDirectory(organizationArtifactRoot);
             var manifest = RegistrationManifestLoader.Load(repositoryRoot);
             var assemblyPath = Path.Combine(repositoryRoot, "artifacts", "plugins", "SpeechMessage.Dynamics.Plugins.dll");
@@ -241,6 +244,46 @@ internal static class DeploymentCli
     }
 
     /// <summary>
+    /// 完整讀取安全 metadata 後才建立固定位置的唯一匯出檔；不讀 manifest、DLL 或秘密。
+    /// 檔案以 CreateNew 防止覆寫，串流由本方法釋放；只有寫檔完整成功才輸出筆數。
+    /// 仍有啟用中的舊步驟或流程即回傳非零，絕不從唯讀入口自行停用。
+    /// </summary>
+    /// <param name="service">本命令 lease 借出的 SDK，生命週期由外層 using 管理。</param>
+    /// <param name="organizationRoot">已核定組織的 artifacts 目錄。</param>
+    /// <param name="output">呼叫端擁有的摘要 writer，不輸出名稱、XAML 或設定。</param>
+    /// <param name="cancellationToken">呼叫端取消，在 SDK 查詢及發布前檢查。</param>
+    /// <returns>零表示無啟用舊註冊；一表示必須停止回報。</returns>
+    private static int ExportLegacy(IOrganizationService service, string organizationRoot, TextWriter output,
+        CancellationToken cancellationToken)
+    {
+        var snapshot = LegacyRegistrationExporter.Export(service, cancellationToken: cancellationToken);
+        cancellationToken.ThrowIfCancellationRequested();
+        Directory.CreateDirectory(organizationRoot);
+        var filename = "legacy-" + DateTimeOffset.UtcNow.ToString("yyyyMMdd-HHmmss-fffffff", CultureInfo.InvariantCulture) +
+            "-" + Guid.NewGuid().ToString("N", CultureInfo.InvariantCulture) + ".json";
+        var path = Path.Combine(organizationRoot, filename);
+        var created = false;
+        try
+        {
+            using var stream = new FileStream(path, FileMode.CreateNew, FileAccess.Write, FileShare.None);
+            created = true;
+            JsonSerializer.Serialize(stream, snapshot, JsonOptions);
+            stream.Flush(flushToDisk: true);
+        }
+        catch
+        {
+            // 不發布部分盤點；本方法只刪除本次命名且已建立的單檔，並保留原始寫入失敗。
+            if (created) { try { File.Delete(path); } catch { } }
+            throw;
+        }
+        output.WriteLine("Enabled legacy steps: " + snapshot.EnabledStepCount.ToString(CultureInfo.InvariantCulture));
+        output.WriteLine("Enabled legacy workflows: " + snapshot.EnabledWorkflowCount.ToString(CultureInfo.InvariantCulture));
+        var enabled = snapshot.EnabledStepCount != 0 || snapshot.EnabledWorkflowCount != 0;
+        output.WriteLine(enabled ? "Enabled legacy registrations found. Stop and report before continuing." : "Legacy metadata export created.");
+        return enabled ? 1 : 0;
+    }
+
+    /// <summary>
     /// 原例外交給共用回報入口後，僅補充 SDK fault 的數字碼；不讀取任何訊息、Reason、
     /// TraceText、ErrorDetails 或 Data。最多迭代四個節點，循環鏈也會停止，不跨命令保留 fault。
     /// 此補充輸出失敗不覆蓋原例外、不遞迴回報，也不改變命令的失敗結果或既有資源釋放順序。
@@ -306,7 +349,7 @@ internal static class DeploymentCli
     {
         command = default;
         var name = args[0];
-        if (name is not ("plan" or "apply" or "verify" or "export" or "rollback" or "smoke"))
+        if (name is not ("plan" or "apply" or "verify" or "export" or "export-legacy" or "rollback" or "smoke"))
         {
             return false;
         }
@@ -347,7 +390,7 @@ internal static class DeploymentCli
 
         var valid = name switch
         {
-            "plan" or "verify" or "export" => organization is not null && inputPath is null && scenario is null,
+            "plan" or "verify" or "export" or "export-legacy" => organization is not null && inputPath is null && scenario is null,
             "apply" => organization is not null && HasExactlyTwoOptions(seen, OrganizationOption, PlanOption) && inputPath is not null && scenario is null,
             "rollback" => organization is not null && HasExactlyTwoOptions(seen, OrganizationOption, FromOption) && inputPath is not null && scenario is null,
             "smoke" => organization is not null && HasExactlyTwoOptions(seen, OrganizationOption, ScenarioOption) && scenario is not null && inputPath is null,
@@ -489,6 +532,7 @@ internal static class DeploymentCli
     private static void WriteUsage(TextWriter output)
     {
         output.WriteLine("Commands: plan --org <name> | apply --org <name> --plan <file> | verify --org <name>");
+        output.WriteLine("          export-legacy --org goodshepherdback (read-only; stops if legacy registrations are enabled)");
         output.WriteLine("          export --org <name> | rollback --org <name> --from <file>");
         output.WriteLine("          smoke --org <name> --scenario <p0-ping-trace|p0-ping-push>");
         output.WriteLine("          export-metadata --org <name> | plan/verify --org <name> --schema <file>");

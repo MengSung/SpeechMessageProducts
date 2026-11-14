@@ -162,6 +162,81 @@ public sealed class LegacyRegistrationExporterTests
         Assert.Throws<InvalidDataException>(() => LegacyRegistrationExporter.Export(service));
     }
 
+    /// <summary>CLI 唯讀盤點不需要 DLL 或清單；有啟用列時保留安全快照並非零停止，租約必釋放。</summary>
+    /// <param name="enabled">是否注入已啟用的合成舊步驟及流程。</param>
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void ExportLegacy_Cli_WritesSnapshotAndStopsForEnabledRegistrations(bool enabled)
+    {
+        using var fixture = new Fixture();
+        var service = enabled ? Scenario() : new ExportOrganization();
+        var connector = new ExportConnector(service);
+        using var output = new StringWriter();
+        var failures = new List<Exception>();
+        var secretsRead = 0;
+        var code = DeploymentCli.Run(["export-legacy", "--org", Fixture.Organization], connector,
+            output, failures.Add, fixture.Root, _ => { secretsRead++; throw new InvalidOperationException(); });
+
+        Assert.Equal(enabled ? 1 : 0, code);
+        Assert.Empty(failures);
+        Assert.Equal(1, connector.ConnectCount);
+        Assert.Equal(1, connector.DisposeCount);
+        Assert.Equal(0, secretsRead);
+        Assert.Contains("Enabled legacy steps: " + (enabled ? "1" : "0"), output.ToString(), StringComparison.Ordinal);
+        Assert.Contains("Enabled legacy workflows: " + (enabled ? "1" : "0"), output.ToString(), StringComparison.Ordinal);
+        var file = Assert.Single(Directory.GetFiles(Path.Combine(fixture.Root, Fixture.Organization), "legacy-*.json"));
+        var json = File.ReadAllText(file);
+        Assert.DoesNotContain("SYNTHETIC-SECRET", json, StringComparison.Ordinal);
+        Assert.DoesNotContain("xaml", json, StringComparison.OrdinalIgnoreCase);
+    }
+
+    /// <summary>非白名單、未知選項及取消必須在任何 SDK 查詢或建立輸出前停止。</summary>
+    /// <param name="organization">注入的組織名稱。</param>
+    /// <param name="extraOption">是否注入不屬於唯讀匯出的選項。</param>
+    [Theory]
+    [InlineData("production", false)]
+    [InlineData("goodshepherdback", true)]
+    public void ExportLegacy_Cli_InvalidArguments_DoNotConnect(string organization, bool extraOption)
+    {
+        string[] arguments = extraOption ? ["export-legacy", "--org", organization, "--from", "unsafe"] : ["export-legacy", "--org", organization];
+        using var fixture = new Fixture();
+        var connector = new ExportConnector(new ExportOrganization());
+        using var output = new StringWriter();
+        Assert.Equal(2, DeploymentCli.Run(arguments, connector, output, _ => Assert.Fail("Unexpected fault"), fixture.Root));
+        Assert.Equal(0, connector.ConnectCount);
+        Assert.Empty(Directory.GetFileSystemEntries(fixture.Root));
+    }
+
+    /// <summary>caller 事前取消不連線、不建檔、不通知；測試擁有的暫存根隨案例釋放。</summary>
+    [Fact]
+    public void ExportLegacy_Cli_Cancellation_DoesNotConnect()
+    {
+        using var fixture = new Fixture();
+        var connector = new ExportConnector(new ExportOrganization());
+        using var output = new StringWriter();
+        Assert.Equal(130, DeploymentCli.Run(["export-legacy", "--org", Fixture.Organization], connector,
+            output, _ => Assert.Fail("Unexpected fault"), fixture.Root, cancellationToken: new CancellationToken(true)));
+        Assert.Equal(0, connector.ConnectCount);
+        Assert.Empty(Directory.GetFileSystemEntries(fixture.Root));
+    }
+
+    /// <summary>案例專用連線 owner；不擁有外部 client，只計數唯一租約的歸還以防跨命令保留。</summary>
+    private sealed class ExportConnector(IOrganizationService service) : IOrganizationConnector
+    {
+        /// <summary>只屬本案例的連線數。</summary>
+        public int ConnectCount { get; private set; }
+        /// <summary>只屬本案例的確定釋放數。</summary>
+        public int DisposeCount { get; private set; }
+        /// <summary>借用合成服務；每次命令產生獨立 lease，回呼只更新本案例計數。</summary>
+        /// <param name="organization">已核定的測試組織，不據此自行連網。</param><returns>由 CLI using 釋放的租約。</returns>
+        public OrganizationLease Connect(string organization)
+        {
+            ConnectCount++;
+            return new OrganizationLease(service, () => DisposeCount++);
+        }
+    }
+
     /// <summary>建立可人工核對的七層 metadata；所有名稱及 ID 都是本案例的非機密合成值。</summary>
     /// <returns>沒有 OS 資源、只由本案例持有的 SDK 替身。</returns>
     private static ExportOrganization Scenario()
