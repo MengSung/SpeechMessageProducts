@@ -240,11 +240,11 @@ footer{margin-top:36px;color:var(--muted);font-size:12.5px;text-align:center}
  */
 const DATA = {
   "planVersion": "3.5",
-  "snapshot": "2026-11-14 17:59 Asia/Taipei (UTC+08:00)",
-  "lastUpdated": "2026-11-14T17:59:14+08:00",
+  "snapshot": "2026-11-14 18:15 Asia/Taipei (UTC+08:00)",
+  "lastUpdated": "2026-11-14T18:15:00+08:00",
   "branch": "1.0.0.11.Integration.P5.Worktree",
-  "head": "59cd3bef",
-  "headline": "2026-11-14 17:59 Asia/Taipei (UTC+08:00)：P5-02a完成PresentRecord D5-3前置盤點；確認Update/Create new_present_record、必要PresentRecordLineImage、Update回覆變更才推播，且 :75 有寫死LINE收件識別，依D5-18不跑第一輪。待使用者決定legacy-live-only；b段已達覆蓋率門檻，固定guard未完成、未推送。",
+  "head": "88c4c6c9",
+  "headline": "2026-11-14 18:15 Asia/Taipei (UTC+08:00)：更新回復前置於12:54完成；P5-02重做中，a段已依D5-3建立PresentRecord閱讀對照expected.json（basis=legacy-live-only），每筆附舊檔名與行號，D5-18例外不跑舊步驟第一輪。b段矩陣為36個專案／29個入口、0 Generated／29 CompileFailed／0 BlockedByNetworkApi；固定guard尚未完成，未驗收、未推送。",
   "notices": [
     {
       "id": "plan-3.5-summary",
@@ -511,8 +511,8 @@ const DATA = {
       "phaseId": "階段 5",
       "level": "info",
       "title": "P5 進度摘要",
-      "lastUpdated": "2026-11-14T17:59:14+08:00",
-      "body": "2026-11-14 17:59 Asia/Taipei (UTC+08:00)：P5-02a完成PresentRecord D5-3前置盤點；確認Update/Create new_present_record、必要PresentRecordLineImage、Update回覆變更才推播，且 :75 有寫死LINE收件識別，依D5-18不跑第一輪。待使用者決定legacy-live-only；b段已達覆蓋率門檻，固定guard未完成、未推送。",
+      "lastUpdated": "2026-11-14T18:15:00+08:00",
+      "body": "2026-11-14 18:15 Asia/Taipei (UTC+08:00)：更新回復前置12:54已完成；P5-02重做中，a段依D5-3建立PresentRecord閱讀對照expected.json，basis=legacy-live-only，舊程式未實跑且D5-18例外不跑第一輪；b段矩陣36個專案／29個入口、0 Generated／29 CompileFailed／0 BlockedByNetworkApi。固定guard尚未完成、未驗收、未推送。",
       "steps": [
         "2026-11-14 08:26 Asia/Taipei (UTC+08:00)：已確認目標殘留目錄不是 Git worktree，移除後正式 P4／P5 worktree 清單不受影響。",
         "2026-11-14 08:26 Asia/Taipei (UTC+08:00)：export-metadata 唯讀結構快照建立成功；verify 因本機部署執行檔／連線前置失敗，未宣稱 goodshepherdback verify=0。",
@@ -533,7 +533,8 @@ const DATA = {
         "2026-11-14 16:24 Asia/Taipei (UTC+08:00)：90ddb24a補執行域假服務契約；ddba3f0a修正Rest離線相容型別遭組件安全檢查誤擋，先紅五項後綠，直接工具API仍拒絕；60822743補容量故障及清理。Release293項全過、工具覆蓋率83.47%，Debug195項全過、80.55%。只編譯確認PresentRecord仍被QPay／ToolUtility／Trace拒絕，無實跑黃金。固定guard未完成，未驗收、未推送。",
         "2026-11-14 16:27 Asia/Taipei (UTC+08:00)：ddc205d4快照重跑完整只編譯矩陣，0 Generated／29 CompileFailed／0 BlockedByNetworkApi，九個入口診斷改變；逐列新表及原始SHA見research/legacy-compile-matrix.md，沒有舊入口實跑或自行改用實機。PresentRecord的D5-3仍待決定。",
         "2026-11-14 17:57 Asia/Taipei (UTC+08:00)：f99bc2af完成D5-18盤點，確認PresentRecordLinePlugIn.cs:75寫死LINE收件識別；不得跑第一輪，替代基準待使用者決定。沒有保存識別值，未產生黃金、未操作組織。",
-        "2026-11-14 17:59 Asia/Taipei (UTC+08:00)：59cd3bef完成PresentRecord D5-3前置盤點，記錄觸發、欄位、映像、例外與寫死收件識別風險；未建立替代黃金，待使用者決定。"
+        "2026-11-14 17:59 Asia/Taipei (UTC+08:00)：59cd3bef完成PresentRecord D5-3前置盤點，記錄觸發、欄位、映像、例外與寫死收件識別風險；未建立替代黃金，待使用者決定。",
+        "2026-11-14 18:15 Asia/Taipei (UTC+08:00)：88c4c6c9建立PresentRecord D5-3閱讀對照expected.json；四個情境均有完整預期投影，declaredDifferences逐筆引用舊檔名與行號，ExpectedGoldenTests雙目標35/35通過。因D5-18不實跑舊入口，沒有legacy.json；固定guard、整包驗收與推送仍待完成。"
       ]
     }
   ],
@@ -654,7 +655,7 @@ const DATA = {
       "id": "階段 5",
       "name": "Plugin／Workflow 重建（36 個 DLL → 2 個）",
       "planned": "8～12 個工作天",
-      "actual": "2026-11-14 12:54 Asia/Taipei (UTC+08:00)：P5-01已驗收；更新回復前置完整guard八項通過，Release5524/5524；實機沙箱版本3→4→3、同step ID、不需重啟。收尾verify=0、trace1、本輪task/job/trace0。尚未部署業務模組，接續P5-02。",
+      "actual": "2026-11-14 18:15 Asia/Taipei (UTC+08:00)：P5-01已驗收；更新回復前置12:54完成並通過完整guard八項。P5-02重做中：a段已建立D5-3 PresentRecord閱讀對照expected.json（basis=legacy-live-only），b段完成36個專案／29個入口矩陣；固定guard、整包驗收與推送尚未完成。",
       "current": true,
       "done": 1,
       "active": 0
@@ -1385,7 +1386,7 @@ const DATA = {
       "timebox": "1 天",
       "doneAt": "",
       "commit": "",
-      "note": "2026-11-14 17:57 Asia/Taipei (UTC+08:00)：P5-02a仍缺PresentRecord實跑黃金；D5-18盤點確認 PresentRecordLinePlugIn.cs:75 有寫死LINE收件識別，依硬界線不跑第一輪，待使用者決定D5-3。b段工具覆蓋率83.47%、矩陣0成功／29拒絕／0網路阻擋；固定guard未完成、未推送。"
+      "note": "2026-11-14 18:15 Asia/Taipei (UTC+08:00)：P5-02重做中；a段依D5-3建立PresentRecord閱讀對照expected.json（basis=legacy-live-only），每筆declaredDifferences附舊檔名與行號；因D5-18寫死LINE收件識別，舊程式未實跑且沒有legacy.json。b段工具覆蓋率83.47%、矩陣0成功／29拒絕／0網路阻擋；ExpectedGoldenTests雙目標35/35通過，固定guard未完成、未驗收、未推送。"
     },
     {
       "id": "P5-03",
