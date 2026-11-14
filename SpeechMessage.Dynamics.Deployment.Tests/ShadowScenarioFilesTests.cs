@@ -20,6 +20,29 @@ namespace SpeechMessage.Dynamics.Deployment.Tests;
 /// <summary>針對檔案邊界及語意拒絕的離線測試；不以 runtime 補足 reader 的驗證。</summary>
 public sealed class ShadowScenarioFilesTests
 {
+    /// <summary>關聯觀察只接受明列 lookup 與 seed 父列；未知鍵、循環及別名碰撞須在讀檔階段拒絕。</summary>
+    /// <param name="fault">空字串為合法 selector，其餘為單一結構故障。</param>
+    [Theory]
+    [InlineData("")]
+    [InlineData("unknown-parent")]
+    [InlineData("alias-collision")]
+    [InlineData("unknown-key")]
+    [InlineData("bad-attribute")]
+    public void Shadow_Files_RelatedObservationUsesExplicitSeedParent(string fault)
+    {
+        using var f = new Files();
+        var row = JsonNode.Parse("""{"alias":"child-1","entity":"task","fields":["subject"],"related":{"attribute":"regardingobjectid","alias":"church-a"}}""")!;
+        if (fault == "unknown-parent") row["related"]!["alias"] = "child-1";
+        if (fault == "alias-collision") row["alias"] = "church-a";
+        if (fault == "unknown-key") row["related"]!["query"] = "unsafe";
+        if (fault == "bad-attribute") row["related"]!["attribute"] = "alias.field";
+        f.Scenarios["cases"]![0]!["observe"]!.AsArray().Add(row);
+        f.Save();
+        if (fault.Length == 0)
+            Assert.Equal(2, Assert.Single(ShadowScenarioFiles.Load(f.Root, "attendance")).Observe.GetArrayLength());
+        else Assert.Throws<InvalidDataException>(() => ShadowScenarioFiles.Load(f.Root, "attendance"));
+    }
+
     /// <summary>正式完整型別名不是 JWT；既有廣泛字串模式不得把合法命令永遠擋在讀檔。</summary>
     [Fact]
     public void Shadow_Files_QualifiedPluginNameIsNotCredential()

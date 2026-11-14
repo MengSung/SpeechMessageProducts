@@ -204,13 +204,16 @@ internal sealed class ShadowScenarioRunner
                     round.LegacyContext, () =>
                     {
                         round.Trigger(cancellationToken);
-                        actual = Normalize(round.ObserveLegacy(TimeSpan.FromSeconds(60), cancellationToken), aliases);
+                        var observed = round.ObserveLegacy(TimeSpan.FromSeconds(60), cancellationToken);
+                        actual = Normalize(observed, ShadowProjection.CopyAliases(round.Aliases));
                     }, cancellationToken);
             else
             {
                 Switch("enabled", cancellationToken);
                 round.Trigger(cancellationToken);
                 var trace = ShadowTraceParser.Parse(round.ReadShadowTrace(TimeSpan.FromSeconds(60), cancellationToken));
+                // 新增列的資料庫／意圖 ID 在讀回後才可與明列 related 別名配對。
+                aliases = ShadowProjection.CopyAliases(round.Aliases);
                 normalizedTrace = ShadowProjection.NormalizeTrace(trace, aliases);
                 // 先於清理讀取完整 trace；正規化發生在套用之後，保留真實 ID 的順序一致性。
                 actual = Normalize(ShadowProjection.Apply(round.Initial, trace), aliases);

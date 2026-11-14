@@ -17,6 +17,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text.Json;
+using System.Text.Json.Nodes;
 using System.Threading;
 using Microsoft.Crm.Sdk.Messages;
 using Microsoft.Xrm.Sdk;
@@ -33,6 +34,112 @@ namespace SpeechMessage.Dynamics.Deployment.Tests;
 [Collection("Deployment working directory")]
 public sealed class ShadowCliTests
 {
+    /// <summary>真正 CLI 必須將新列 Create 意圖以明確父 lookup 配對，不能要求預先知道新 GUID。</summary>
+    [Fact]
+    public void ShadowCli_RelatedCreateMatchesAliasAndCleansUnexpectedRealChildren()
+    {
+        using var f = new CliFixture();
+        f.AddRelatedCase();
+        f.Service.RelatedIntent = true;
+        f.Service.RealChildren = 1;
+        Assert.Equal(0, f.Run());
+        f.AssertRestored();
+        Assert.Empty(f.Reports);
+        Assert.DoesNotContain(f.Core.Service.Rows, row => row.LogicalName == "region");
+    }
+
+    /// <summary>新列同輪 Create 後 Delete 仍須比較完整意圖；最終不存在不能使動態別名失效。</summary>
+    [Fact]
+    public void ShadowCli_RelatedCreateThenDeleteKeepsIntentIdentity()
+    {
+        using var f = new CliFixture();
+        f.AddRelatedCase();
+        f.Service.RelatedIntent = true;
+        f.Service.DeleteRelatedIntent = true;
+        var path = Path.Combine(f.ScenarioRoot, "expected.json");
+        var expected = JsonNode.Parse(File.ReadAllText(path))!;
+        expected["cases"]![0]!["writes"]!.AsArray().Add(JsonNode.Parse("""
+            {"operation":"Delete","entity":"region","alias":"child-1","fields":{}}
+            """));
+        File.WriteAllText(path, expected.ToJsonString());
+        Assert.Equal(0, f.Run());
+        f.AssertRestored();
+        Assert.Empty(f.Reports);
+    }
+
+    /// <summary>同 selector 的兩個新列不可任取第一筆；即使影子比較拒絕，真實子列仍須先於父列刪除。</summary>
+    [Fact]
+    public void ShadowCli_AmbiguousRelatedIntentsFailAfterCleaningAllOwnedChildren()
+    {
+        using var f = new CliFixture();
+        f.AddRelatedCase();
+        f.Service.RelatedIntent = true;
+        f.Service.DuplicateRelatedIntent = true;
+        f.Service.RealChildren = 2;
+        Assert.Equal(1, f.Run());
+        Assert.Equal(1, f.Service.Triggers);
+        f.AssertRestored();
+        Assert.IsType<InvalidDataException>(Assert.Single(f.Reports));
+        Assert.DoesNotContain(f.Core.Service.Rows, row => row.LogicalName == "region");
+    }
+
+    /// <summary>trigger 送達後失敗或取消也要重新發現關聯子列，不能只清最初 seed 清冊。</summary>
+    /// <param name="cancel">取消使用 caller token；例外保留原物件交共用告警。</param>
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void ShadowCli_RelatedChildrenCleanedAfterUncertainTrigger(bool cancel)
+    {
+        using var f = new CliFixture();
+        using var cancellation = new CancellationTokenSource();
+        f.AddRelatedCase();
+        f.Service.RealChildren = 2;
+        f.Service.FailTrigger = !cancel;
+        if (cancel) f.Service.AfterTrigger = cancellation.Cancel;
+        Assert.Equal(cancel ? 130 : 1, f.Run(cancellationToken: cancellation.Token));
+        f.AssertRestored();
+        Assert.DoesNotContain(f.Core.Service.Rows, row => row.LogicalName == "region");
+        if (cancel) Assert.Empty(f.Reports);
+        else Assert.Same(f.Service.Failure, Assert.Single(f.Reports));
+    }
+
+    /// <summary>舊輪用真 SDK runtime 讀回新列；同名但不同父 ID 的既有列必須保留，歧義只阻止發布不阻止清理。</summary>
+    /// <param name="children">同一 lookup 的實際新列筆數，兩筆代表不可唯一配對。</param>
+    [Theory]
+    [InlineData(1)]
+    [InlineData(2)]
+    public void ShadowSdk_LegacyRelatedRowsReadAndCleanByOwnedParentOnly(int children)
+    {
+        using var f = new CliFixture();
+        f.Service.RealChildren = children;
+        var unrelated = new Entity("region", Guid.NewGuid()) { ["score"] = 7, ["parentid"] = new EntityReference("task", Guid.NewGuid()) };
+        f.Core.Service.Create(unrelated);
+        var step = f.Core.Service.Rows.Single(row => row.LogicalName == "sdkmessageprocessingstep").Id;
+        var definition = new ShadowScenarioDefinition(ShadowTraceParser.Parse("SMV-SHADOW|1|{\"end\":true,\"count\":0}"),
+            [new("region", "child-1", ["score", "parentid"]) { Related = new("parentid", "task-1") }], new HashSet<string>());
+        var source = new ShadowSdkScenario([new("task-1", new Entity("task") { ["subject"] = "synthetic" })],
+            new("Create", "task-1", new Entity("task")), [step], [step], [new StepRegistration().Type], [], false)
+        {
+            PrimaryIdAttributes = new Dictionary<string, string> { ["task"] = "activityid", ["region"] = "regionid" }
+        };
+        var runtime = new ShadowSdkRuntime(f.Service, f.Service.Organization, f.Service.Church, f.Service.Contact,
+            new Dictionary<ShadowScenarioDefinition, ShadowSdkScenario> { [definition] = source }, () => { }, TimeProvider.System);
+        using var round = runtime.CreateRound(definition, true);
+        round.Seed(CancellationToken.None);
+        round.Trigger(CancellationToken.None);
+        if (children == 1)
+        {
+            var row = Assert.Single(round.ObserveLegacy(TimeSpan.FromSeconds(1), CancellationToken.None).Rows);
+            Assert.Equal("child-1", round.Aliases[row.Id]);
+            Assert.Equal(7, row.Fields.GetProperty("score").GetInt32());
+        }
+        else Assert.Throws<InvalidDataException>(() => round.ObserveLegacy(TimeSpan.FromSeconds(1), CancellationToken.None));
+        round.DeleteOwnedRecords();
+        round.VerifyNoRemainingRecords();
+        Assert.Equal(unrelated.Id, Assert.Single(f.Core.Service.Rows.Where(row => row.LogicalName == "region")).Id);
+        Assert.DoesNotContain(f.Core.Service.Rows, row => row.LogicalName == "task");
+    }
+
     /// <summary>new 基準只執行新輪；兩次同日執行保留各自證據，且每次確定還原與清理。</summary>
     [Fact]
     public void ShadowCli_NewRoundRunsThroughSdkAndPreservesSameDayEvidence()
@@ -248,6 +355,23 @@ public sealed class ShadowCliTests
             Directory.SetCurrentDirectory(Core.Root);
         }
 
+        /// <summary>合成關聯表不出現在 seed，驗證 CLI 確實從 observe 載入 metadata；子列只依本輪 task lookup 配對。</summary>
+        internal void AddRelatedCase()
+        {
+            var scenarioPath = Path.Combine(ScenarioRoot, "scenarios.json");
+            var scenarios = JsonNode.Parse(File.ReadAllText(scenarioPath))!;
+            scenarios["cases"]![0]!["observe"]!.AsArray().Add(JsonNode.Parse("""
+                {"alias":"child-1","entity":"region","fields":["score","parentid"],"related":{"attribute":"parentid","alias":"task-1"}}
+                """));
+            File.WriteAllText(scenarioPath, scenarios.ToJsonString());
+            var expectedPath = Path.Combine(ScenarioRoot, "expected.json");
+            var expected = JsonNode.Parse(File.ReadAllText(expectedPath))!;
+            expected["cases"]![0]!["writes"]!.AsArray().Add(JsonNode.Parse("""
+                {"operation":"Create","entity":"region","alias":"child-1","fields":{"score":7,"parentid":{"ref":"task-1","entity":"task"}}}
+                """));
+            File.WriteAllText(expectedPath, expected.ToJsonString());
+        }
+
         /// <summary>呼叫正式入口；秘密僅為本案例的常值，沒有磁碟設定或環境依賴。</summary>
         internal int Run(string[]? args = null, CancellationToken cancellationToken = default) =>
             DeploymentCli.Run(args ?? Arguments, this, Output, failure =>
@@ -305,6 +429,10 @@ public sealed class ShadowCliTests
         internal int Triggers;
         internal bool Synchronous;
         internal bool DuplicateTrace;
+        internal bool RelatedIntent;
+        internal bool DuplicateRelatedIntent;
+        internal bool DeleteRelatedIntent;
+        internal int RealChildren;
         internal Guid RequestId;
         internal int AsyncQueries;
         private Guid target;
@@ -331,13 +459,20 @@ public sealed class ShadowCliTests
             if (request is RetrieveCurrentOrganizationRequest)
                 return new RetrieveCurrentOrganizationResponse { Results = { ["Detail"] = new OrganizationDetail { OrganizationId = Organization, UniqueName = Fixture.Organization } } };
             if (request is not RetrieveEntityRequest metadata) return core.Service.Execute(request);
-            var primary = metadata.LogicalName switch { "task" => "activityid", "account" => "accountid", "contact" => "contactid", _ => throw new InvalidOperationException() };
+            var primary = metadata.LogicalName switch { "task" => "activityid", "account" => "accountid", "contact" => "contactid", "region" => "regionid", _ => throw new InvalidOperationException() };
             var entity = new EntityMetadata { LogicalName = metadata.LogicalName };
             var subject = new StringAttributeMetadata { LogicalName = "subject", MaxLength = 100 };
             subject.GetType().GetProperty("IsValidForCreate")!.SetValue(subject, true);
             subject.GetType().GetProperty("IsValidForUpdate")!.SetValue(subject, true);
             entity.GetType().GetProperty("PrimaryIdAttribute")!.SetValue(entity, primary);
-            entity.GetType().GetProperty("Attributes")!.SetValue(entity, new AttributeMetadata[] { new UniqueIdentifierAttributeMetadata { LogicalName = primary }, subject });
+            var parent = new LookupAttributeMetadata { LogicalName = "parentid", Targets = ["task"] };
+            var score = new IntegerAttributeMetadata { LogicalName = "score", MinValue = 0, MaxValue = 100 };
+            foreach (var field in new AttributeMetadata[] { parent, score })
+            {
+                field.GetType().GetProperty("IsValidForCreate")!.SetValue(field, true);
+                field.GetType().GetProperty("IsValidForUpdate")!.SetValue(field, true);
+            }
+            entity.GetType().GetProperty("Attributes")!.SetValue(entity, new AttributeMetadata[] { new UniqueIdentifierAttributeMetadata { LogicalName = primary }, subject, parent, score });
             return new RetrieveEntityResponse { Results = { ["EntityMetadata"] = entity } };
         }
 
@@ -350,6 +485,8 @@ public sealed class ShadowCliTests
                 target = id;
                 core.Service.Rows.Single(row => row.LogicalName == "task" && row.Id == id)["activityid"] = id;
                 Triggers++;
+                for (var index = 0; index < RealChildren; index++)
+                    core.Service.Create(new Entity("region", Guid.NewGuid()) { ["score"] = 7, ["parentid"] = new EntityReference("task", id) });
                 if (FailTrigger) throw Failure;
                 AfterTrigger?.Invoke();
             }
@@ -391,6 +528,26 @@ public sealed class ShadowCliTests
             var trace = DifferentIntent
                 ? "SMV-SHADOW|1|{\"seq\":1,\"operation\":\"Update\",\"entity\":\"task\",\"id\":\"" + target.ToString("D") + "\",\"fields\":{\"score\":9}}\r\nSMV-SHADOW|1|{\"end\":true,\"count\":1}"
                 : "SMV-SHADOW|1|{\"end\":true,\"count\":0}";
+            if (RelatedIntent)
+            {
+                var lines = new List<string>();
+                var relatedIds = new List<string>();
+                for (var index = 0; index < (DuplicateRelatedIntent ? 2 : 1); index++)
+                {
+                    var id = Guid.NewGuid().ToString("D");
+                    relatedIds.Add(id);
+                    lines.Add("SMV-SHADOW|1|" + JsonSerializer.Serialize(new
+                    {
+                        seq = index + 1, operation = "Create", entity = "region", id,
+                        fields = new { score = 7, parentid = new { entity = "task", id = target.ToString("D") } }
+                    }));
+                }
+                if (DeleteRelatedIntent)
+                    foreach (var id in relatedIds)
+                        lines.Add("SMV-SHADOW|1|" + JsonSerializer.Serialize(new { seq = lines.Count + 1, operation = "Delete", entity = "region", id }));
+                lines.Add("SMV-SHADOW|1|{\"end\":true,\"count\":" + lines.Count + "}");
+                trace = string.Join("\r\n", lines);
+            }
             var result = new EntityCollection([new Entity("plugintracelog", Guid.NewGuid()) { ["messageblock"] = trace }]);
             if (DuplicateTrace) result.Entities.Add(new Entity("plugintracelog", Guid.NewGuid()) { ["messageblock"] = trace });
             return result;

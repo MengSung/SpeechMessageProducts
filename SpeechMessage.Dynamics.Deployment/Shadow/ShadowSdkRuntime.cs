@@ -6,6 +6,9 @@
  * 主要功能與流程：從已核定別名表建立獨立記錄，使用共用 recorder 的安全投影；
  * trigger 後以精確 owning step、regarding ID、correlation 與開始時間查系統作業，
  * 新輪只接受唯一完整追蹤。最後逐筆刪除並唯讀核對自建記錄，清除 owner 參考。
+ * 關聯列僅以明列 lookup 及本輪 owned 父 ID 查詢；配對須唯一，清理則登錄全部
+ * 有界子列並先刪子後刪父。trigger 回應不明也重新發現子列；查詢不完整時保留父列
+ * 並回報清理失敗，避免移除唯一可追查範圍後假稱殘留為零。
  * 同步步驟由當次註冊 metadata 明列，trigger 改送具有獨立 RequestId 的 SDK request；
  * 以 requestid、pluginstepid、型別、模式及時間窗查追蹤，不等待不存在的系統作業。
  * 使用邊界與維護：呼叫端須先驗證實體／欄位 metadata、測試教會與會友權威關聯、
@@ -206,8 +209,21 @@ internal sealed class ShadowSdkRuntime : IShadowScenarioRuntime
             if (target is null || target.LogicalName != trigger.Fields.LogicalName ||
                 trigger.Fields.Id != Guid.Empty || trigger.Fields.KeyAttributes.Count != 0) throw InvalidRuntime();
             foreach (var observation in observations)
-                if (!records.Any(record => record.Alias == observation.Id && record.Record.LogicalName == observation.Entity))
+            {
+                if (observation.Related is { } related)
+                {
+                    if (!ShadowProjection.ValidIdentity(observation.Id) || names.Contains(observation.Id) ||
+                        !ValidAttribute(observation.Entity) || !ValidAttribute(related.Attribute) ||
+                        !records.Any(record => record.Alias == related.ParentAlias)) throw InvalidRuntime();
+                }
+                else if (!records.Any(record => record.Alias == observation.Id && record.Record.LogicalName == observation.Entity))
                     throw InvalidRuntime();
+            }
+            if (records.Count + observations.Count(item => item.Related is not null) > 64 ||
+                observations.Select(item => item.Id).Distinct(StringComparer.Ordinal).Count() != observations.Length ||
+                observations.Where(item => item.Related is not null)
+                    .Select(item => (item.Entity, item.Related!.Attribute, item.Related.ParentAlias)).Distinct().Count() !=
+                    observations.Count(item => item.Related is not null)) throw InvalidRuntime();
             stepIds = (legacy ? source.LegacyStepIds : source.ShadowStepIds).ToArray();
             types = source.ShadowTypes.ToArray();
             if (stepIds.Length is < 1 or > 128 || stepIds.Any(id => id == Guid.Empty) ||
@@ -228,16 +244,17 @@ internal sealed class ShadowSdkRuntime : IShadowScenarioRuntime
                     (trigger.Message == "Create" && token.Alias == trigger.TargetAlias)) throw InvalidRuntime();
             hardcoded = source.HasUnconditionalHardcodedToken;
             primaryIds = new Dictionary<string, string>(StringComparer.Ordinal);
-            foreach (var record in records)
+            foreach (var entity in records.Select(item => item.Record.LogicalName)
+                .Concat(observations.Select(item => item.Entity)).Distinct(StringComparer.Ordinal))
             {
                 if (source.PrimaryIdAttributes is null ||
-                    !source.PrimaryIdAttributes.TryGetValue(record.Record.LogicalName, out var primary) ||
+                    !source.PrimaryIdAttributes.TryGetValue(entity, out var primary) ||
                     string.IsNullOrWhiteSpace(primary) || primary.Length > 128 ||
                     primary.Any(character => !char.IsAsciiLetterOrDigit(character) && character != '_') ||
-                    record.Record.Attributes.ContainsKey(primary) ||
-                    (record.Alias == trigger.TargetAlias && trigger.Fields.Attributes.ContainsKey(primary)))
+                    records.Any(item => item.Record.LogicalName == entity && item.Record.Attributes.ContainsKey(primary)) ||
+                    (trigger.Fields.LogicalName == entity && trigger.Fields.Attributes.ContainsKey(primary)))
                     throw InvalidRuntime();
-                primaryIds[record.Record.LogicalName] = primary;
+                primaryIds[entity] = primary;
             }
             foreach (var pair in source.ReferenceAliases)
             {
@@ -377,8 +394,19 @@ internal sealed class ShadowSdkRuntime : IShadowScenarioRuntime
             foreach (var observation in observations)
             {
                 cancellationToken.ThrowIfCancellationRequested();
-                var record = records.Single(item => item.Alias == observation.Id).Record;
-                var row = FindOwned(record.LogicalName, record.Id, new ColumnSet(observation.Fields.ToArray()));
+                Entity? row;
+                if (observation.Related is not null)
+                {
+                    var relatedRows = ReadRelated(observation);
+                    if (relatedRows.Length > 1) throw InvalidRuntime();
+                    row = relatedRows.SingleOrDefault();
+                    if (row is not null) BindRelatedAlias(row.Id.ToString("D"), observation.Id);
+                }
+                else
+                {
+                    var record = records.Single(item => item.Alias == observation.Id).Record;
+                    row = FindOwned(record.LogicalName, record.Id, new ColumnSet(observation.Fields.ToArray()));
+                }
                 cancellationToken.ThrowIfCancellationRequested();
                 if (row is not null) rows.Add(ShadowSdkProjection.Project(row));
             }
@@ -439,16 +467,30 @@ internal sealed class ShadowSdkRuntime : IShadowScenarioRuntime
                 result = candidates[0];
                 return true;
             }, cancellationToken);
-            return result ?? throw InvalidRuntime();
+            var textResult = result ?? throw InvalidRuntime();
+            BindRelatedTrace(ShadowTraceParser.Parse(textResult));
+            return textResult;
         }
 
-        /// <summary>逆建立順序刪除，每列都獨立嘗試；已不存在允許重試，但任一查詢失敗保留。</summary>
+        /// <summary>
+        /// 即使 trigger 回應失敗也重新查回本輪父列的子列，先刪子再逆序刪 seed。
+        /// 查詢不完整時不刪父列，保留後續重試的範圍；每筆已知子列仍獨立嘗試。
+        /// </summary>
         public void DeleteOwnedRecords()
         {
             EnsureActive();
             cleanupStarted = true;
             var failures = new List<Exception>();
-            foreach (var key in createOrder.AsEnumerable().Reverse())
+            if (triggerAttempted)
+                foreach (var observation in observations.Where(item => item.Related is not null))
+                    try { _ = ReadRelated(observation); }
+                    catch (Exception failure) { failures.Add(failure); }
+            var incompleteDiscovery = failures.Count != 0;
+            var seeds = records.Select(item => (Entity: item.Record.LogicalName, item.Record.Id)).ToHashSet();
+            var deleteOrder = createOrder.Where(key => !seeds.Contains(key)).Reverse()
+                .Concat(incompleteDiscovery ? Array.Empty<(string Entity, Guid Id)>() :
+                    createOrder.Where(seeds.Contains).Reverse()).ToArray();
+            foreach (var key in deleteOrder)
             {
                 try
                 {
@@ -464,6 +506,9 @@ internal sealed class ShadowSdkRuntime : IShadowScenarioRuntime
         public void VerifyNoRemainingRecords()
         {
             EnsureActive();
+            if (triggerAttempted)
+                foreach (var observation in observations.Where(item => item.Related is not null))
+                    if (ReadRelated(observation).Length != 0) throw InvalidRuntime();
             foreach (var item in attempted)
                 if (FindOwned(item.Entity, item.Id, new ColumnSet(false)) is not null) throw InvalidRuntime();
         }
@@ -508,6 +553,73 @@ internal sealed class ShadowSdkRuntime : IShadowScenarioRuntime
         {
             request.RequestId = triggerRequestId;
             return runtime.service.Execute(request);
+        }
+
+        /// <summary>
+        /// 只查本輪父 ID 的單一明確 lookup；先驗完整回應及父參照，再登錄全部子 ID。
+        /// 最多六十四列，分頁或超量不採部分結果；不可碰共享列或 seed 本身。只讀安全
+        /// observe 欄位加 lookup，不讀名稱推定身分；回傳列由 owner 深複製後短期持有。
+        /// </summary>
+        private Entity[] ReadRelated(ShadowObservation observation)
+        {
+            var selector = observation.Related ?? throw InvalidRuntime();
+            var parent = records.Single(item => item.Alias == selector.ParentAlias).Record;
+            if (!attempted.Contains((parent.LogicalName, parent.Id))) return Array.Empty<Entity>();
+            var query = new QueryExpression(observation.Entity)
+            {
+                ColumnSet = new ColumnSet(observation.Fields.Append(selector.Attribute).Distinct(StringComparer.Ordinal).ToArray()),
+                TopCount = 65
+            };
+            query.Criteria.AddCondition(selector.Attribute, ConditionOperator.Equal, parent.Id);
+            var rows = ReadBounded(query, 64);
+            foreach (var row in rows)
+            {
+                if (row.GetAttributeValue<EntityReference>(selector.Attribute) is not { } reference ||
+                    reference.Id != parent.Id || reference.LogicalName != parent.LogicalName ||
+                    records.Any(item => item.Record.Id == row.Id) ||
+                    aliases.TryGetValue(row.Id.ToString("D"), out var alias) &&
+                        !observations.Any(item => item.Related is not null && item.Id == alias)) throw InvalidRuntime();
+            }
+            foreach (var row in rows)
+                if (attempted.Add((row.LogicalName, row.Id))) createOrder.Add((row.LogicalName, row.Id));
+            return rows;
+        }
+
+        /// <summary>
+        /// 新輪沒有真的新增子列，以完整 trace 的 Create 意圖及明確父 lookup 配對，
+        /// 保留同輪新建後刪除列的別名；套用整批仍須有效，不能只讀 Create 略過錯誤。
+        /// 同一 selector 多列、ID 已被其他別名使用或新列冒用 seed 都拒絕；不取第一筆。
+        /// 此映射只供比較，永不把影子 GUID 加入遠端刪除清冊。
+        /// </summary>
+        private void BindRelatedTrace(ShadowTrace trace)
+        {
+            if (!observations.Any(item => item.Related is not null)) return;
+            var snapshot = ShadowProjection.Apply(Initial, trace);
+            if (!snapshot.Comparable) throw InvalidRuntime();
+            foreach (var observation in observations.Where(item => item.Related is not null))
+            {
+                var selector = observation.Related!;
+                var parent = records.Single(item => item.Alias == selector.ParentAlias).Record;
+                var matches = trace.Intents.Where(intent => intent.Operation == "Create" && intent.Entity == observation.Entity &&
+                    intent.Projection.GetProperty("fields").TryGetProperty(selector.Attribute, out var lookup) &&
+                    lookup.ValueKind == System.Text.Json.JsonValueKind.Object &&
+                    lookup.TryGetProperty("entity", out var entity) && entity.GetString() == parent.LogicalName &&
+                    lookup.TryGetProperty("id", out var id) && id.GetString() == parent.Id.ToString("D")).ToArray();
+                if (matches.Length > 1) throw InvalidRuntime();
+                if (matches.Length == 1) BindRelatedAlias(matches[0].Id, observation.Id);
+            }
+        }
+
+        /// <summary>同一實際 ID 與別名都必須唯一；重複查回同一配對可重試，不覆蓋或合併其他列。</summary>
+        private void BindRelatedAlias(string id, string alias)
+        {
+            if (aliases.TryGetValue(id, out var prior))
+            {
+                if (prior != alias) throw InvalidRuntime();
+                return;
+            }
+            if (aliases.ContainsValue(alias)) throw InvalidRuntime();
+            aliases.Add(id, alias);
         }
 
         /// <summary>

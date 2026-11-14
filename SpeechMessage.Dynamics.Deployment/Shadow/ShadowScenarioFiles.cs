@@ -8,7 +8,8 @@
  * 每次 Load 獨占檔案及 JsonDocument，using 在成功或失敗都釋放；只發布 Clone 後
  * 的唯讀 JSON 與集合，保留數字原文精度，無跨請求快取或背景工作。DTO 的生命期由
  * 命令呼叫端擁有，不含連線及憑證。活動僅保存並標記，是否可執行由 runtime 明確拒絕。
- * observe 目前只接受 alias/entity/fields，關聯查詢須另行核定 schema 後才能擴充。
+ * observe 可明列 related.attribute／alias，僅指向 seed；owned 授權及 lookup 型別由
+ * factory 再以 metadata 核對，reader 不接受任意查詢或顯示名稱比對。
  * 點分字串先驗是否真有 JWT JSON header；完整 CLR 型別名不得因三個長片段誤判，
  * 其餘 LINE ID、長憑證及 Bearer 樣式仍逐層拒絕，不對 type 欄位開跳過掃描例外。
  * 固定錯誤不回顯檔案本文；秘密樣式掃描是輔助守門，不能代替人工合成資料審查。
@@ -264,16 +265,24 @@ internal static class ShadowScenarioFiles
         return activity;
     }
 
-    /// <summary>目前僅接受 seed 別名與同實體的明確觀察欄位，不推測未定義的關聯查詢。</summary>
+    /// <summary>接受 seed 本身或由明確 lookup 找到的新列；關聯只可指向 seed，不能循環或重用 seed 別名。</summary>
     private static void Observe(JsonElement value, Dictionary<string, string> aliases)
     {
         Array(value, MaximumRows, minimum: 1);
         var seen = new HashSet<string>(StringComparer.Ordinal);
         foreach (var row in value.EnumerateArray())
         {
-            Shape(row, "alias,entity,fields");
+            Shape(row, "alias,entity,fields", "related");
             var alias = Text(row, "alias");
-            Match(aliases, alias, Text(row, "entity"));
+            var entity = Text(row, "entity");
+            if (!Alias(alias) || !Schema(entity)) throw Invalid();
+            if (row.TryGetProperty("related", out var related))
+            {
+                Shape(related, "attribute,alias");
+                if (aliases.ContainsKey(alias) || !Schema(Text(related, "attribute")) ||
+                    !aliases.ContainsKey(Text(related, "alias"))) throw Invalid();
+            }
+            else Match(aliases, alias, entity);
             if (!seen.Add(alias)) throw Invalid();
             _ = Names(row.GetProperty("fields"), MaximumFields, schema: true, minimum: 1);
         }

@@ -10,8 +10,9 @@
  * 使用邊界與維護：共享教會／會友在 seed 只能宣告空欄位，不能忽略其修改要求；
  * 它們不進自建清冊，也不可作 trigger 或 expected 寫入目標。owned lookup 以別名
  * 留待每輪配置新 GUID，不讓規劃用暫時 ID 被送到 SDK。欄位、精度與名稱前綴長度
- * 均由 metadata 驗證；尚未核對實機映像與關聯新增列的路徑，以及活動、推播、例外或
- * 輸出明確拒絕，不能略過後聲稱驗收；完整 CLI 與這些結果種類的接線仍須另外完成。
+ * 均由 metadata 驗證；related 僅可指向自建 seed，Create 期望須帶相同 lookup，
+ * 同一 selector 不可宣告兩個別名。CLI 負責實機映像核對；活動、推播、例外或
+ * 輸出仍明確拒絕，不能略過後聲稱驗收。
  * 擁有權與失敗：所有可變字典及 SDK Entity 都屬本次同步準備；JSON 文件與 recorder
  * 由方法 using 確定釋放，輸出不持有文件、服務或 delegate。沒有 static cache、
  * 背景工作、取消註冊或跨使用者狀態；完整候選成功才發布，錯誤不包含原始資料。
@@ -125,17 +126,35 @@ internal static class ShadowSdkScenarioFactory
                 (message == "Create" && token.Alias == targetAlias)) throw Invalid();
 
         var observations = new List<ShadowObservation>();
+        var selectors = new HashSet<(string Entity, string Attribute, string Parent)>();
         foreach (var row in file.Observe.EnumerateArray())
         {
             var alias = Text(row, "alias");
             var entity = Text(row, "entity");
-            if (shared.ContainsKey(alias) || !aliases.TryGetValue(alias, out var reference) ||
-                reference.LogicalName != entity) throw Invalid();
+            ShadowRelatedObservation? selector = null;
+            if (row.TryGetProperty("related", out var related))
+            {
+                var parentAlias = Text(related, "alias");
+                var attribute = Text(related, "attribute");
+                if (!ShadowProjection.ValidIdentity(alias) || aliases.ContainsKey(alias) ||
+                    shared.ContainsKey(parentAlias) || !declared.Contains(parentAlias) ||
+                    !aliases.TryGetValue(parentAlias, out var parent) ||
+                    !selectors.Add((entity, attribute, parentAlias))) throw Invalid();
+                metadata.ValidateRelatedLookup(entity, attribute, parent.LogicalName);
+                selector = new ShadowRelatedObservation(attribute, parentAlias);
+                var reference = new EntityReference(entity, Guid.NewGuid());
+                aliases.Add(alias, reference);
+                idAliases.Add(reference.Id.ToString("D"), alias);
+            }
+            else if (shared.ContainsKey(alias) || !declared.Contains(alias) ||
+                !aliases.TryGetValue(alias, out var reference) || reference.LogicalName != entity) throw Invalid();
             var fields = metadata.ValidateObservation(entity,
                 row.GetProperty("fields").EnumerateArray().Select(field => field.GetString()!).ToArray());
-            observations.Add(new ShadowObservation(entity, alias, fields));
+            observations.Add(new ShadowObservation(entity, alias, fields) { Related = selector });
         }
-        var expected = PrepareExpected(file.ExpectedWrites, metadata, aliases, shared, idAliases, Resolve);
+        if (aliases.Count > 64 || observations.Count is < 1 or > 64 ||
+            observations.Select(item => item.Id).Distinct(StringComparer.Ordinal).Count() != observations.Count) throw Invalid();
+        var expected = PrepareExpected(file.ExpectedWrites, metadata, aliases, shared, idAliases, observations, Resolve);
         var definition = new ShadowScenarioDefinition(expected, observations.AsReadOnly(),
             new HashSet<string>(file.Volatile, StringComparer.Ordinal)) { Basis = file.Basis };
         var source = new ShadowSdkScenario(seeds.AsReadOnly(), new ShadowSdkTrigger(message, targetAlias, patch),
@@ -144,6 +163,7 @@ internal static class ShadowSdkScenarioFactory
             binding.HasUnconditionalHardcodedToken)
         {
             PrimaryIdAttributes = new ReadOnlyDictionary<string, string>(seeds.Select(seed => seed.Record.LogicalName)
+                .Concat(observations.Select(item => item.Entity))
                 .Distinct(StringComparer.Ordinal).ToDictionary(entity => entity, metadata.PrimaryId, StringComparer.Ordinal)),
             SharedReferences = new ReadOnlyDictionary<string, EntityReference>(shared),
             ReferenceAliases = new ReadOnlyDictionary<string, IReadOnlyDictionary<string, string>>(links),
@@ -155,30 +175,41 @@ internal static class ShadowSdkScenarioFactory
     }
 
     /// <summary>
-    /// 完整預期寫入依同一 metadata 及 recorder 投影；目前只接受已宣告 owned 列的 Update／Delete。
-    /// 未有關聯觀察繫結的 Create 不能猜新列身分，推播也不能混入 CRUD 最終值比較。
+    /// 完整預期寫入依同一 metadata 及 recorder 投影；Create 只接受明列 related 的新別名，
+    /// 必須帶相同父 lookup，並依序驗證尚未建立／重複建立及刪除後更新，不猜新列身分。
     /// </summary>
     private static ShadowTrace PrepareExpected(JsonElement writes, ShadowSdkMetadata metadata,
         Dictionary<string, EntityReference> aliases, Dictionary<string, EntityReference> shared,
-        Dictionary<string, string> idAliases, Func<string, string, EntityReference> resolve)
+        Dictionary<string, string> idAliases, IReadOnlyList<ShadowObservation> observations,
+        Func<string, string, EntityReference> resolve)
     {
         if (writes.ValueKind != JsonValueKind.Array || writes.GetArrayLength() > 128) throw Invalid();
         var intents = new List<ShadowIntent>();
+        var related = observations.Where(item => item.Related is not null).ToDictionary(item => item.Id, StringComparer.Ordinal);
+        var present = aliases.Keys.Where(alias => !related.ContainsKey(alias)).ToHashSet(StringComparer.Ordinal);
         foreach (var write in writes.EnumerateArray())
         {
             var operation = Text(write, "operation");
             var entity = Text(write, "entity");
             var alias = Text(write, "alias");
-            if (operation is not ("Update" or "Delete") || shared.ContainsKey(alias) ||
+            if (operation is not ("Create" or "Update" or "Delete") || shared.ContainsKey(alias) ||
                 !aliases.TryGetValue(alias, out var target) || target.LogicalName != entity) throw Invalid();
-            var candidate = metadata.ConvertFields(entity, write.GetProperty("fields"), false, resolve);
+            var candidate = metadata.ConvertFields(entity, write.GetProperty("fields"), operation == "Create", resolve);
+            if (operation == "Create")
+            {
+                if (!related.TryGetValue(alias, out var observation) || !present.Add(alias) ||
+                    candidate.GetAttributeValue<EntityReference>(observation.Related!.Attribute) is not { } parent ||
+                    parent.Id != aliases[observation.Related.ParentAlias].Id) throw Invalid();
+            }
+            else if (!present.Contains(alias)) throw Invalid();
+            if (operation == "Delete") present.Remove(alias);
             if (operation == "Delete" && candidate.Attributes.Count != 0) throw Invalid();
             candidate.Id = target.Id;
             var projection = new Dictionary<string, object>(StringComparer.Ordinal)
             {
                 ["seq"] = intents.Count + 1, ["operation"] = operation, ["entity"] = entity, ["id"] = target.Id.ToString("D")
             };
-            if (operation == "Update") projection.Add("fields", ShadowSdkProjection.Project(candidate).Fields);
+            if (operation != "Delete") projection.Add("fields", ShadowSdkProjection.Project(candidate).Fields);
             intents.Add(new ShadowIntent(intents.Count + 1, operation, entity, target.Id.ToString("D"),
                 JsonSerializer.SerializeToElement(projection)));
         }

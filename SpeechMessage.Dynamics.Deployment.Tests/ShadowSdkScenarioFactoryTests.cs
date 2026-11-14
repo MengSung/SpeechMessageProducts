@@ -16,6 +16,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text.Json;
+using System.Text.Json.Nodes;
 using System.Threading;
 using Microsoft.Xrm.Sdk;
 using Microsoft.Xrm.Sdk.Messages;
@@ -29,6 +30,50 @@ namespace SpeechMessage.Dynamics.Deployment.Tests;
 /// <summary>檔案讀取與執行 owner 之間必須有真正接線，不能以兩端各自綠燈替代。</summary>
 public sealed class ShadowSdkScenarioFactoryTests
 {
+    /// <summary>關聯 Create 必須連到 owned seed；共享父列、非 lookup、錯目標與身分順序衝突均在任何業務 I/O 前拒絕。</summary>
+    /// <param name="fault">空值為合法新列，其餘每次注入一種不變條件違反。</param>
+    [Theory]
+    [InlineData("")]
+    [InlineData("shared-parent")]
+    [InlineData("unknown-parent")]
+    [InlineData("non-lookup")]
+    [InlineData("alias-collision")]
+    [InlineData("duplicate-selector")]
+    [InlineData("wrong-parent")]
+    [InlineData("missing-parent-field")]
+    [InlineData("update-before-create")]
+    [InlineData("duplicate-create")]
+    public void ScenarioFactory_RelatedCreateRequiresUniqueOwnedLookup(string fault)
+    {
+        var file = File();
+        var observations = JsonNode.Parse("""[{"alias":"child-1","entity":"task","fields":["score"],"related":{"attribute":"regardingobjectid","alias":"task-1"}}]""")!;
+        var writes = JsonNode.Parse("""[{"operation":"Create","entity":"task","alias":"child-1","fields":{"score":7,"regardingobjectid":{"ref":"task-1","entity":"task"}}}]""")!;
+        if (fault == "shared-parent") observations[0]!["related"]!["alias"] = "contact-1";
+        if (fault == "unknown-parent") observations[0]!["related"]!["alias"] = "absent";
+        if (fault == "non-lookup") observations[0]!["related"]!["attribute"] = "score";
+        if (fault == "alias-collision") observations[0]!["alias"] = "task-1";
+        if (fault == "duplicate-selector")
+        {
+            var duplicate = observations[0]!.DeepClone();
+            duplicate["alias"] = "child-2";
+            observations.AsArray().Add(duplicate);
+        }
+        if (fault == "wrong-parent") writes[0]!["fields"]!["regardingobjectid"] = JsonNode.Parse("""{"ref":"contact-1","entity":"contact"}""");
+        if (fault == "missing-parent-field") writes[0]!["fields"]!.AsObject().Remove("regardingobjectid");
+        if (fault == "update-before-create") writes[0]!["operation"] = "Update";
+        if (fault == "duplicate-create") writes.AsArray().Add(writes[0]!.DeepClone());
+        file = file with { Observe = Json(observations.ToJsonString()), ExpectedWrites = Json(writes.ToJsonString()) };
+        var metadata = new ShadowSdkMetadata(new MetadataService(), ["account", "contact", "task"], CancellationToken.None);
+        if (fault.Length == 0)
+        {
+            var prepared = ShadowSdkScenarioFactory.Prepare(file, metadata, Identity(), Binding());
+            Assert.Equal("child-1", Assert.Single(prepared.Definition.Expected.Intents).Id);
+            Assert.Equal("task-1", Assert.Single(prepared.Definition.Observe).Related!.ParentAlias);
+            Assert.Single(prepared.Source.Seeds);
+        }
+        else Assert.Throws<InvalidDataException>(() => ShadowSdkScenarioFactory.Prepare(file, metadata, Identity(), Binding()));
+    }
+
     /// <summary>先驗正式 factory 存在；缺少接線時此案必須紅燈，不能把 runtime 單測算作 CLI 完成。</summary>
     [Fact]
     public void ScenarioFactory_ExistsBeforeCliWiring() =>

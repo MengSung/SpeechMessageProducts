@@ -8,7 +8,8 @@
  * 每輪由 runner 停用、核對、清理自己的記錄並還原追蹤；成功返回後才寫安全報告。
  * 信任與適用邊界：目前接通 new／reading／legacy-golden 的 CRUD 新輪；
  * 同步 trigger 依正式 mode 帶獨立 RequestId，不以情境 JSON 指定同步追蹤。
- * 尚未接通舊入口受審 token 欄位盤點、關聯觀察及活動者一律在業務寫入前拒絕，
+ * 關聯觀察以明列 lookup 及本輪 owned 父列配對；尚未接通舊入口受審 token 盤點
+ * 及活動者一律在業務寫入前拒絕，
  * 不從 JSON 猜 token 安全性，也不冒稱已完成兩輪。這些仍屬 P5-03a 未完成項。
  * 使用邊界與維護：主入口唯一擁有 lease、組織鎖及告警；本檔只借用 SDK、writer、
  * 秘密讀取委派及取消 token，不另建連線、快取、背景工作或 timer。候選只活於命令，
@@ -73,7 +74,7 @@ internal static partial class DeploymentCli
             ResolveRequiredSecret(command.Organization, "TestLineUserId", secretReader),
             ResolveRequiredSecret(command.Organization, "ShadowTestChurchId", secretReader),
             ResolveRequiredSecret(command.Organization, "ShadowTestContactId", secretReader), cancellationToken);
-        var entityNames = selected.SelectMany(item => item.Seed.EnumerateArray())
+        var entityNames = selected.SelectMany(item => item.Seed.EnumerateArray().Concat(item.Observe.EnumerateArray()))
             .Select(row => row.GetProperty("entity").GetString()!).Distinct(StringComparer.Ordinal).ToArray();
         var metadata = new ShadowSdkMetadata(service, entityNames, cancellationToken);
         var prepared = new List<ShadowSdkPreparedScenario>();

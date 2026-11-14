@@ -68,6 +68,15 @@ internal sealed class ShadowSdkMetadata
     /// <summary>讀取已核對的正式主鍵，不從實體名稱推導，不發布可變 metadata 參考。</summary>
     internal string PrimaryId(string entity) => GetEntity(entity).PrimaryIdAttribute;
 
+    /// <summary>關聯查詢必須是真正 lookup 且正式 Targets 包含父實體；不能把任意 GUID 或字串欄當關聯。</summary>
+    internal void ValidateRelatedLookup(string entity, string attribute, string parentEntity)
+    {
+        var metadata = GetEntity(entity);
+        if (!SchemaName(attribute) || metadata.Attributes.SingleOrDefault(field => field.LogicalName == attribute)
+            is not LookupAttributeMetadata { Targets: not null } lookup ||
+            !lookup.Targets.Contains(parentEntity, StringComparer.Ordinal)) throw Invalid();
+    }
+
     /// <summary>
     /// 驗證所有指定觀察欄位存在且唯一，不要求它們可寫；回傳新的欄位陣列。
     /// 只檢查 schema，欄位讀取及權限仍由受控 observe 路徑負責。

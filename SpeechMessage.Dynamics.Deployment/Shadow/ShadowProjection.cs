@@ -36,7 +36,14 @@ internal sealed record ShadowSnapshot(bool Comparable, IReadOnlyList<ShadowRow> 
 /// Id 可以是實際 ID 或明確映射的代號；Fields 只列此列需要比較的直屬欄位。
 /// 本 DTO 不自行查詢、不以顯示名稱推測身分，也不擁有任何外部資源。
 /// </summary>
-internal sealed record ShadowObservation(string Entity, string Id, IReadOnlyList<string> Fields);
+internal sealed record ShadowObservation(string Entity, string Id, IReadOnlyList<string> Fields)
+{
+    /// <summary>選填的明確 lookup selector；只能指向本輪 owned seed，不能指向共享會友或教會。</summary>
+    public ShadowRelatedObservation? Related { get; init; }
+}
+
+/// <summary>一個新列別名的關聯選取條件；每個 selector 最多配對一列，顯示文字不是身分。</summary>
+internal sealed record ShadowRelatedObservation(string Attribute, string ParentAlias);
 
 /// <summary>
 /// 純記憶體 CRUD 投影器；只有整批成功才發布最終快照，不保存跨操作狀態。
