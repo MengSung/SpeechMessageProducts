@@ -243,7 +243,7 @@ const DATA = {
   "snapshot": "2026-11-14 11:25 Asia/Taipei (UTC+08:00)",
   "lastUpdated": "2026-11-14T11:25:29+08:00",
   "branch": "1.0.0.11.Integration.P5.Worktree",
-  "head": "fee2e909",
+  "head": "cdfaf41e",
   "headline": "2026-11-14 11:38 Asia/Taipei (UTC+08:00)：P5-01 已驗收並推送；更新回復前置離線實作中，尚未部署模組。",
   "notices": [
     {
@@ -512,7 +512,7 @@ const DATA = {
       "level": "info",
       "title": "P5 進度摘要",
       "lastUpdated": "2026-11-14T12:54:00+08:00",
-      "body": "2026-11-14 12:54 Asia/Taipei (UTC+08:00)：P5-01已驗收；更新回復前置完整guard八項通過，Release5524/5524；實機沙箱版本3→4→3、同step ID、不需重啟。收尾verify=0、trace1、本輪task/job/trace0。尚未部署業務模組，接續P5-02。",
+      "body": "2026-11-14 12:54 Asia/Taipei (UTC+08:00)：P5-01已驗收；更新回復前置完整guard八項通過，Release5524/5524；實機沙箱版本3→4→3、同step ID、不需重啟。收尾verify=0、trace1、本輪task/job/trace0。P5-02已完成，接續P5-03a。",
       "steps": [
         "2026-11-14 08:26 Asia/Taipei (UTC+08:00)：已確認目標殘留目錄不是 Git worktree，移除後正式 P4／P5 worktree 清單不受影響。",
         "2026-11-14 08:26 Asia/Taipei (UTC+08:00)：export-metadata 唯讀結構快照建立成功；verify 因本機部署執行檔／連線前置失敗，未宣稱 goodshepherdback verify=0。",
@@ -1371,25 +1371,25 @@ const DATA = {
       "id": "P5-02",
       "phaseId": "階段 5",
       "name": "舊程式黃金資料產生器",
-      "status": "todo",
+      "status": "done",
       "deps": "—",
       "live": "無",
       "timebox": "1 天",
-      "doneAt": "",
-      "commit": "",
-      "note": "net48 harness，不進方案、不部署"
+      "doneAt": "2026-11-14 13:18 Asia/Taipei (UTC+08:00)",
+      "commit": "cdfaf41e",
+      "note": "net48 PluginHarness已加入方案；37個舊專案分類0 Generated／6 CompileFailed／31 BlockedByNetworkApi；三筆attendance黃金與穩定輸出測試通過，未執行舊來源。"
     },
     {
       "id": "P5-03",
       "phaseId": "階段 5",
       "name": "影子模式比對 shadow＋佈署擴充",
-      "status": "todo",
+      "status": "active",
       "deps": "P5-01",
       "live": "唯讀比對",
       "timebox": "1 天",
       "doneAt": "",
       "commit": "",
-      "note": "映像、活動群組、switch、ui-export／import"
+      "note": "2026-11-14 13:18 Asia/Taipei (UTC+08:00)：P5-02已驗收；開始清單v2、映像、活動群組、switch、ui-export／import。"
     },
     {
       "id": "P5-04",
@@ -1731,7 +1731,7 @@ const DATA = {
       "note": "2026-11-14 12:54 Asia/Taipei (UTC+08:00)：8ad4dccc完整守門通過，實機3→4→3、step ID不變、免重啟；三次smoke/verify0、收尾停用及殘留0，詳wp-reports/P5-update-rollback.md。"
     }
   ],
-  "active": [],
+  "active": ["P5-03"],
   "gates": [
     {
       "item": "方案建置（Release）",
