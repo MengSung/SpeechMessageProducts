@@ -8,7 +8,8 @@
  * reading、legacy-golden 及 new 僅跑新輪，舊側固定不可比較；延到 P7 不在此執行。
  * 新輪另以完整意圖順序逐筆對期望，不能用最終值相同掩蓋額外寫入或 observe 外變動。
  * 使用邊界與維護：SDK 租約與組織寫鎖由 CLI 擁有；runtime 負責精確查詢、時間窗、
- * 資料安全投影及自建列清冊。本檔只比較 CRUD；其他意圖明確拒絕，不冒充推播驗收。
+ * 資料安全投影及自建列清冊。CRUD 套成欄位快照；Push 透過完整新輪意圖比較，
+ * 不假造舊輪的實際推播內容，也不把安全摘要相符當成實際 LINE 送達。其他意圖明確拒絕。
  * 所有 owner 只屬單一 Run；取消不跳過停用、刪除、殘留核對或 Dispose。收尾失敗
  * 保留原始例外並聚合，報告只含比較結果與情境序號，不輸出情境本文或秘密。
  */
@@ -109,9 +110,9 @@ internal sealed class ShadowScenarioRunner
     }
 
     /// <summary>
-    /// 執行一至六個完整 CRUD 情境；全部輸入在追蹤寫入前檢查。原設定必須為平台
+    /// 執行一至六個 CRUD／Push 情境；全部輸入在追蹤寫入前檢查。原設定必須為平台
     /// 已定義的零至二；即使啟用追蹤的回應失敗，也嘗試還原。任何失敗不發布部分結果。
-    /// 非 CRUD 情境需由完整意圖比較路徑處理，本入口明確拒絕而不略過。
+    /// Push 僅在新輪完整意圖對期望比較；舊輪推播內容由離線黃金負責，關聯等其他操作仍拒絕。
     /// </summary>
     public IReadOnlyList<ShadowCaseResult> Run(IReadOnlyList<ShadowScenarioDefinition> scenarios,
         CancellationToken cancellationToken = default)
@@ -131,7 +132,7 @@ internal sealed class ShadowScenarioRunner
             if (scenario is null || scenario.Expected is null || !scenario.Expected.Comparable ||
                 scenario.Basis is not ("new" or "reading" or "legacy-golden" or "legacy-live" or "legacy-live-only") ||
                 scenario.Expected.Intents is null || scenario.Expected.Intents.Count > 128 ||
-                scenario.Expected.Intents.Any(intent => intent.Operation is not ("Create" or "Update" or "Delete")) ||
+                scenario.Expected.Intents.Any(intent => intent.Operation is not ("Create" or "Update" or "Delete" or "Push")) ||
                 scenario.Observe is null || scenario.VolatileFields is null ||
                 !ShadowComparer.CompareFinalStates(new ShadowSnapshot(true, Array.Empty<ShadowRow>()),
                     new ShadowSnapshot(true, Array.Empty<ShadowRow>()), scenario.Observe).Comparable)
@@ -196,7 +197,7 @@ internal sealed class ShadowScenarioRunner
             cancellationToken.ThrowIfCancellationRequested();
             var aliases = ShadowProjection.CopyAliases(round.Aliases);
             var initial = Normalize(round.Initial, aliases);
-            var expected = ShadowProjection.Apply(initial, scenario.Expected);
+            var expected = ShadowProjection.ApplyRecordedWrites(initial, scenario.Expected);
             ShadowSnapshot? actual = null;
             ShadowTrace? normalizedTrace = null;
             if (legacy)
@@ -216,7 +217,7 @@ internal sealed class ShadowScenarioRunner
                 aliases = ShadowProjection.CopyAliases(round.Aliases);
                 normalizedTrace = ShadowProjection.NormalizeTrace(trace, aliases);
                 // 先於清理讀取完整 trace；正規化發生在套用之後，保留真實 ID 的順序一致性。
-                actual = Normalize(ShadowProjection.Apply(round.Initial, trace), aliases);
+                actual = Normalize(ShadowProjection.ApplyRecordedWrites(round.Initial, trace), aliases);
             }
             cancellationToken.ThrowIfCancellationRequested();
             result = new RoundResult(actual ?? throw InvalidScenario(), expected, normalizedTrace);

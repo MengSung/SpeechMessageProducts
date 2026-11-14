@@ -8,6 +8,8 @@
  * 使用邊界與維護：所有資料只屬本次呼叫，不持有服務、連線、Session 或背景工作。
  * 呼叫端負責授權、observe 查詢與安全欄位投影，本檔不宣稱已查詢實機或驗證租戶。
  * JSON 必須 detached；不支援或不完整的操作不得發布半成品或宣稱零差異。
+ * ApplyRecordedWrites 僅為欄位快照取出 CRUD；Push 保留在原 trace 供 runner 全意圖比較，
+ * 此方法本身不能證明推播相符，亦不執行傳送。收件者及 Retry Key 只依明確別名正規化。
  */
 using System;
 using System.Collections.Generic;
@@ -113,6 +115,38 @@ internal static class ShadowProjection
     }
 
     /// <summary>
+    /// 先驗證完整 CRUD／Push 追蹤，再將 CRUD 套成欄位快照；推播沒有資料庫欄位效果。
+    /// 呼叫端必須另對原始完整 trace 執行 ShadowComparer.Compare，不能以本結果宣稱推播相符。
+    /// 僅在此暫時 CRUD 候選重新編號，不改原追蹤或其推播順序；候選只屬本次同步呼叫。
+    /// overflow、欠缺結尾及不支援操作均回不可比較，絕不發布部分欄位結果。
+    /// </summary>
+    /// <param name="initial">呼叫端擁有的本輪初始安全快照，不修改其 JSON。</param>
+    /// <param name="trace">包含全部寫入及推播的原追蹤，仍由 runner 保留作完整比較。</param>
+    /// <returns>僅表示資料庫最終欄位的獨立快照；不代表推播送達或整體驗收。</returns>
+    internal static ShadowSnapshot ApplyRecordedWrites(ShadowSnapshot initial, ShadowTrace trace)
+    {
+        ArgumentNullException.ThrowIfNull(initial);
+        ArgumentNullException.ThrowIfNull(trace);
+        if (!initial.Comparable || !trace.Comparable) return Unavailable();
+        try
+        {
+            var validated = ValidateTrace(trace);
+            var writes = new List<ShadowIntent>();
+            foreach (var intent in validated.Intents)
+            {
+                if (intent.Operation == "Push") continue;
+                if (intent.Operation is not ("Create" or "Update" or "Delete")) return Unavailable();
+                var fields = intent.Projection.EnumerateObject().ToDictionary(
+                    property => property.Name, property => property.Value, StringComparer.Ordinal);
+                fields["seq"] = JsonSerializer.SerializeToElement(writes.Count + 1);
+                writes.Add(intent with { Sequence = writes.Count + 1, Projection = JsonSerializer.SerializeToElement(fields) });
+            }
+            return Apply(initial, new ShadowTrace(writes.AsReadOnly(), false, true, writes.Count));
+        }
+        catch (InvalidDataException) { return Unavailable(); }
+    }
+
+    /// <summary>
     /// 驗證完整快照並建立操作區域字典；身分碰撞即拒絕，不依顯示內容合併。
     /// JSON 複製保留數字原文、日期 offset 與 null，所有 mutable 容器只屬本次呼叫。
     /// </summary>
@@ -182,6 +216,9 @@ internal static class ShadowProjection
                     property.Name == "fields" ? 0 : 1, ref nodes));
             var id = Alias(intent.Id, map);
             fields[intent.Operation == "Push" ? "contactId" : "id"] = JsonSerializer.SerializeToElement(id);
+            if (intent.Operation == "Push")
+                fields["retryKey"] = JsonSerializer.SerializeToElement(Alias(
+                    intent.Projection.GetProperty("retryKey").GetString()!, map));
             result.Add(intent with { Id = id, Projection = JsonSerializer.SerializeToElement(fields) });
         }
         return validated with { Intents = result.AsReadOnly() };

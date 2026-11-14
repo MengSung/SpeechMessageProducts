@@ -75,6 +75,35 @@ public sealed class ShadowScenarioRunnerTests
         Assert.NotEqual(runtime.Rounds[0].Id, runtime.Rounds[1].Id);
     }
 
+    /// <summary>
+    /// 推播不改資料庫快照，但完整新輪意圖仍須核對收件者、Retry Key 及內容摘要。
+    /// 注入內容差異或漏送意圖時，即使三方欄位全相同，報告也不得通過；每案由 Fixture 排空。
+    /// </summary>
+    /// <param name="fault">空字串為吻合，其他值分別注入內容差異或缺少推播。</param>
+    [Theory]
+    [InlineData("")]
+    [InlineData("push-content")]
+    [InlineData("push-missing")]
+    public void Shadow_Runner_PushComparedSeparatelyFromDatabaseState(string fault)
+    {
+        using var f = new Fixture();
+        var runtime = new Runtime(f) { IncludePush = true, IntentFault = fault };
+        var expected = ShadowTraceParser.Parse(
+            "SMV-SHADOW|1|{\"seq\":1,\"operation\":\"Update\",\"entity\":\"task\",\"id\":\"task-1\",\"fields\":{\"score\":2}}\r\n" +
+            "SMV-SHADOW|1|{\"seq\":2,\"operation\":\"Push\",\"contactId\":\"contact-1\",\"templateKey\":\"Attendance\",\"retryKey\":\"task-1\",\"messageCount\":1,\"contentSha256\":\"" +
+            new string('a', 64) + "\"}\r\nSMV-SHADOW|1|{\"end\":true,\"count\":2}");
+        var results = runtime.Run(scenario: Scenario() with { Expected = expected });
+        var item = Assert.Single(results);
+        Assert.True(item.BetweenRounds.IsEqual);
+        Assert.True(item.LegacyToExpected.IsEqual);
+        Assert.True(item.ShadowToExpected.IsEqual);
+        Assert.Equal(fault.Length == 0, item.ShadowIntentsToExpected.IsEqual);
+        var report = ShadowReportWriter.Write("diagnostics", "legacy-live", results,
+            Path.Combine(f.Root, "push-report"), TimeProvider.System);
+        Assert.Equal(fault.Length == 0, report.Passed);
+        runtime.AssertDrained();
+    }
+
     /// <summary>在兩輪各階段注入例外；已建立資料仍刪除、原追蹤恢復，且新舊步驟停用。</summary>
     /// <param name="fault">故障注入點。</param>
     [Theory]
@@ -233,6 +262,7 @@ public sealed class ShadowScenarioRunnerTests
         internal string IntentFault = "";
         internal bool FailCleanup;
         internal bool Overflow;
+        internal bool IncludePush;
         internal int LegacyValue = 2;
         internal bool? CancelDuringLegacy;
         internal CancellationTokenSource? Cancellation;
@@ -325,7 +355,7 @@ public sealed class ShadowScenarioRunnerTests
         /// <summary>trigger 已套用而規則未執行的初始快照。</summary>
         public ShadowSnapshot Initial => Snapshot(Id.ToString("D"), 1);
         /// <summary>只對這輪實際 task ID 作明確映射。</summary>
-        public IReadOnlyDictionary<string, string> Aliases => new Dictionary<string, string> { [Id.ToString("D")] = "task-1" };
+        public IReadOnlyDictionary<string, string> Aliases => new Dictionary<string, string> { [Id.ToString("D")] = "task-1", [runtime.Contact.ToString("D")] = "contact-1" };
         /// <summary>token 寫入點僅限這輪剛建 task，無共用教會／會友資料。</summary>
         public LegacyRoundContext LegacyContext => new(runtime.Church, runtime.Contact,
             new HashSet<(string, Guid)> { ("task", Id) }, new[] { new LegacyTokenTarget("task", Id, "new_testtoken") }, false);
@@ -359,6 +389,13 @@ public sealed class ShadowScenarioRunnerTests
                     Id.ToString("D") + "\",\"fields\":{\"score\":9}}\r\n" +
                     "SMV-SHADOW|1|{\"seq\":2,\"operation\":\"Update\",\"entity\":\"task\",\"id\":\"" +
                     Id.ToString("D") + "\",\"fields\":{\"score\":2}}\r\nSMV-SHADOW|1|{\"end\":true,\"count\":2}";
+            if (runtime.IncludePush && runtime.IntentFault != "push-missing")
+                return "SMV-SHADOW|1|{\"seq\":1,\"operation\":\"Update\",\"entity\":\"task\",\"id\":\"" +
+                    Id.ToString("D") + "\",\"fields\":{\"score\":2}}\r\n" +
+                    "SMV-SHADOW|1|{\"seq\":2,\"operation\":\"Push\",\"contactId\":\"" + runtime.Contact.ToString("D") +
+                    "\",\"templateKey\":\"Attendance\",\"retryKey\":\"" + Id.ToString("D") +
+                    "\",\"messageCount\":1,\"contentSha256\":\"" + new string(runtime.IntentFault == "push-content" ? 'b' : 'a', 64) +
+                    "\"}\r\nSMV-SHADOW|1|{\"end\":true,\"count\":2}";
             return "SMV-SHADOW|1|{\"seq\":1,\"operation\":\"Update\",\"entity\":\"task\",\"id\":\"" +
                 Id.ToString("D") + "\",\"fields\":{\"score\":2}}\r\nSMV-SHADOW|1|{\"end\":true,\"count\":1}";
         }
