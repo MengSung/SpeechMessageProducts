@@ -25,7 +25,7 @@
 
 ## 唯一驗收清單（05A P5-03a 與 §4A）
 
-以下同名測試已存在，最近已驗證的 Deployment Release 全套 724／724 包含這些案例；這不等於整包驗收。
+以下同名測試已存在，最近已驗證的 Deployment Release 全套 748／748 包含這些案例；這不等於整包驗收。
 
 - [x] `Shadow_SameFields_NoDifference`
 - [x] `Shadow_DifferentValue_Reported`
@@ -54,8 +54,8 @@
 
 ## 完成定義（00 §7.1，不得加碼）
 
-- [x] 1. 本包上述同名測試全部通過；Deployment 為 net10.0 單目標，Release 724／724。
-- [ ] 2. 00 §8.1 全部命令在固定 guard `C:\smv\guard` 通過；本包尚未完成，不能沿用 P5-02 的守門。
+- [x] 1. 本包上述同名測試全部通過；Deployment 為 net10.0 單目標，Release 748／748。
+- [x] 2. 33485508 已於固定 guard `C:\smv\guard` 通過完整 00 §8.1；實機條件仍未通過，不等於本包驗收。
 - [x] 3. 本包沒有新增專案，覆蓋率條件不適用。
 - [ ] 4. diagnostics enabled → smoke → off → verify=0、步驟 ID 不變、殘留 0 與一頁操作紀錄；F16 已確認為 Microsoft ActivityFeeds 分類誤判，修正後只重跑唯讀匯出，已執行本項，但 smoke 未取得 trace，不能勾選完成。
 - [ ] 5. 子任務 `wp-reports\` 的一頁驗收回報與進度頁；目前只有進行中前置紀錄，不能標驗收。
@@ -84,3 +84,9 @@
 2026-11-15 02:58 Asia/Taipei (UTC+08:00)：P5-03a續作；a20a1e8c接通公開legacy切換的受控第一輪及確定清理（710項通過），75568edd接通情境映像與正式步驟的別名、欄位及前後值核對，14項新增測試含真CLI舊新兩輪；完整Deployment Release724/724。映像由平台產生，不注入合成context。本輪沒有實機寫入或推送；diagnostics成功作業無trace的原因仍待查，外部修改摘要、同步實機識別、固定guard及P5-03b尚未完成。P5-03未驗收，驗收時刻待證據補齊後重估，無需使用者操作；P5-02工具三小時修正尚未開始。
 
 2026-11-15 02:58 Asia/Taipei (UTC+08:00)：更正02:39的701項證據適用範圍：b8953380曾在測試後的註解編輯漏掉Push意圖加入；a20a1e8c已補回，且在全部程式修改後完整710項通過。本次724項亦為最終程式修改後的完整執行，不以先前測試代替提交版本驗證。
+
+## 2026-11-15 03:50 Asia/Taipei (UTC+08:00) 固定守門與實機停止點
+
+2026-11-15 03:50 Asia/Taipei (UTC+08:00)：P5-03a離線Deployment 748／748；33485508修復queue停止時timer清理競爭，一千輪回歸及AspNetCore 79／79通過，固定C:\smv\guard完整八項全通過。diagnostics實機同一步驟多次未取得trace，成功作業不等於追蹤驗收，依05A §7第3點停重試並請選處置；仍未驗收、未推送。P5-03b離線規劃已提交b5edf560，尚未實作；P5-02工具三小時修正尚未開始。
+
+外部既有列摘要由d2cadf45接通，null／未宣告／未執行明確區分，分頁故障不發布部分報告；fd5ead95維持I18n棘輪。同步RequestId已離線接線，但實機識別仍未證明。guard原始證據為C:\smv\guard-33485508-full.log，SHA-256 CCB3847BEB14AD6F4160AFFBD3D8C9B4809485C62D3608940D1D372547295185。未啟用Live，未重跑smoke；既有成功job一筆，不能寫成job殘留零。

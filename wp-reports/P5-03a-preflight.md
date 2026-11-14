@@ -1,6 +1,6 @@
 # P5-03a 前置核對與 F16 停止紀錄
 
-更新時間：2026-11-15 02:58 Asia/Taipei (UTC+08:00)；原前置記錄時間為 21:28。
+更新時間：2026-11-15 03:50 Asia/Taipei (UTC+08:00)；原前置記錄時間為 21:28。
 本頁是進行中的前置證據，不是 P5-03a 或 P5-03 整包驗收回報。
 
 ## 已完成的本地提交
@@ -13,8 +13,8 @@
 - `dbb9dd6b P5-03a`：新增 CRUD 情境 factory，接線 metadata、核定共享別名、owned lookup 與安全 expected 投影；19 項新測試含真正 runtime 清理，未支援種類明確拒絕。
 - `0323f4cd P5-03a`：修正 ActivityFeeds 的 Microsoft 來源分類；兩個已查證完整組件名同時具公開簽章識別及 managed=true 才排除，同名偽裝／缺值仍保留。
 
-最近已驗證離線結果：Deployment Release **724／724**；檔案說明 **1562 檔、0 失敗**；本次各提交的 Changed 位元組檢查 **0 問題**。
-這些不是完整固定 guard 或實機影子驗收結果。
+最近已驗證離線結果：Deployment Release **748／748**；檔案說明 **1564 檔、0 失敗**；本次各提交的 Changed 位元組檢查 **0 問題**。
+固定 guard 的最新結果見本頁末尾；離線綠燈不是實機影子驗收。
 
 ## Shadow 測試身分
 
@@ -85,8 +85,8 @@ F16 為分類誤判已釐清，撤回使用者處置需求；不需要使用者�
 
 ## 後續未完成
 
-- 外部修改摘要與整合驗證；受控 legacy switch、受審 token 盤點、推播、映像及同步 RequestId 已離線接通，仍須實機查證。
-- 完整固定 guard 與 diagnostics 實機驗收（已執行但 smoke 未通過，不能標驗收）。
+- 受控 legacy switch、受審 token 盤點、推播、映像、外部既有列摘要與同步 RequestId 已離線接通，仍須實機查證。
+- 完整固定 guard 已通過；diagnostics 實機 smoke 未通過，不能標驗收。
 - P5-03b 及 P5-03 整包驗收。
 - 原訂 2026-11-14 23:30 Asia/Taipei (UTC+08:00) 驗收估計不再承諾；CLI 與離線契約仍未完成，完成後再估實機與整包驗收時間。
 - P5-02 工具修正的三小時時限仍未開始；維持 P5-03 驗收後、P5-05 前執行。
@@ -137,3 +137,14 @@ F16 為分類誤判已釐清，撤回使用者處置需求；不需要使用者�
 ## 2026-11-15 03:04 Asia/Taipei (UTC+08:00) 唯讀診斷補記
 
 既有UTC起點2026-11-14T18:14:00Z的有界查詢：trace為0、Plugin作業為1；該作業的owningextensionid符合diagnostics步驟，state=3/status=30/depth=1。相同步驟存在且state=1（停用）、mode=1、stage=40。這是作業metadata，不冒稱已讀到Plugin context.Depth，亦不代表job殘留為0。原始安全計數記錄在`C:\smv\p5-03a-readonly-depth.log`，本次沒有實機寫入或重跑smoke。測試主機服務唯讀查詢失敗，原因未確認，不能據此判定服務故障或要求重啟。
+
+## 2026-11-15 03:50 Asia/Taipei (UTC+08:00) 當前摘要與待選處置
+
+2026-11-15 03:50 Asia/Taipei (UTC+08:00)：P5-03a離線Deployment 748／748；33485508修復queue停止時timer清理競爭，一千輪回歸及AspNetCore 79／79通過，固定C:\smv\guard完整八項全通過。diagnostics實機同一步驟多次未取得trace，成功作業不等於追蹤驗收，依05A §7第3點停重試並請選處置；仍未驗收、未推送。P5-03b離線規劃已提交b5edf560，尚未實作；P5-02工具三小時修正尚未開始。
+
+- 程式提交33485508：timer由停止流程唯一擁有，先排空worker與timer回呼才返回；先紅後綠證據在C:\smv\p5-03a-queue-drain-{red,green}.log。
+- 固定guard：C:\smv\guard，SHA 33485508022ce13c06e04a9684d18dee30e3aa52，八項命令exit皆0；Release建置0錯誤、115警告；全方案測試0失敗；Deployment748／748、AspNetCore79／79、文件1564檔零失敗、進度頁28／28。full.log SHA-256 CCB3847BEB14AD6F4160AFFBD3D8C9B4809485C62D3608940D1D372547295185。
+- 先前fd5ead95守門的queue timer競爭確實失敗，未以重跑冒充修復；誤在主工作樹啟動的33485508完整驗證已停止，原始partial log另存local-33485508-incomplete-wrong-cwd.log，不納入guard通過證據。
+- diagnostics最後唯讀核對：全組織trace查詢0，精確步驟／既有時間窗的作業1且state3/status30；步驟停用。原始安全計數C:\smv\p5-03a-trace-audit.log；未證明job殘留0，也未證實服務故障。
+- 依05A §7第3點待選：①建議由Codex限30分鐘唯讀診斷測試主機追蹤管線，同時續做P5-03b離線；②使用者協助取得測試主機相關事件記錄，Codex先做P5-03b；③提案將diagnostics實機驗收延至P7，核定前P5-03a仍不驗收。沒有要求例行重啟。
+- 本輪未推送；2026-11-15 03:50 Asia/Taipei (UTC+08:00)唯讀ls-remote核對遠端a653de0887d96c51de280ad06192dfa0dd42c68a。P5-02三小時工具修正維持在P5-03驗收後、P5-05前。
