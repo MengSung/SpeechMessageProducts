@@ -1,0 +1,12 @@
+{
+  "id": "p5-02-legacy-golden",
+  "title": "P5-02 真實舊入口離線黃金與安全攔截",
+  "status": "in_progress",
+  "complexity": "L",
+  "risk": "high",
+  "domain": "tools",
+  "currentPhase": "analysis",
+  "nextAction": "雙模型分析與依05A修正原型",
+  "createdAt": "2026-11-14T13:44:31+08:00",
+  "branch": "1.0.0.11.Integration.P5.Worktree"
+}

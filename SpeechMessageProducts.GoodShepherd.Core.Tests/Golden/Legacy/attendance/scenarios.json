@@ -1,88 +1,477 @@
-[
-  {
-    "id": "attendance-boundary",
-    "legacy": {
-      "outcome": "published",
-      "date": "2024-02-29",
-      "churchLocalDate": true,
-      "rows": []
-    },
-    "expected": {
-      "outcome": "published",
-      "date": "2024-02-29",
-      "churchLocalDate": true,
-      "rows": []
-    },
-    "declaredDifferences": [
-      "Uses church-local date boundary."
-    ]
-  },
-  {
-    "id": "attendance-error",
-    "legacy": {
-      "outcome": "ignored",
-      "date": "2025-01-15",
-      "churchLocalDate": true,
-      "rows": [
+{
+  "module": "attendance",
+  "cases": [
+    {
+      "name": "attendance-reply-changed",
+      "church": {
+        "alias": "church-a",
+        "organizationName": "synthetic-golden",
+        "timeZone": "Asia/Taipei",
+        "culture": "zh-TW"
+      },
+      "seed": [
         {
-          "presentRecordId": "",
-          "displayName": "Synthetic Member",
-          "present": false
-        }
-      ]
-    },
-    "expected": {
-      "outcome": "rejected",
-      "date": "2025-01-15",
-      "churchLocalDate": true,
-      "rows": [
-        {
-          "presentRecordId": "",
-          "displayName": "Synthetic Member",
-          "present": false
-        }
-      ]
-    },
-    "declaredDifferences": [
-      "Missing stable ID fails closed."
-    ]
-  },
-  {
-    "id": "attendance-normal",
-    "legacy": {
-      "outcome": "published",
-      "date": "2025-01-15",
-      "churchLocalDate": true,
-      "rows": [
-        {
-          "presentRecordId": "present-001",
-          "displayName": "Synthetic Member",
-          "present": true
+          "alias": "church-a",
+          "entity": "account",
+          "fields": {
+            "name": "Synthetic Church",
+            "new_timezone": "Asia/Taipei",
+            "new_defaultlanguage": "zh-TW"
+          }
         },
         {
-          "presentRecordId": "present-002",
-          "displayName": "Synthetic Member",
-          "present": false
-        }
-      ]
-    },
-    "expected": {
-      "outcome": "published",
-      "date": "2025-01-15",
-      "churchLocalDate": true,
-      "rows": [
-        {
-          "presentRecordId": "present-001",
-          "displayName": "Synthetic Member",
-          "present": true
+          "alias": "contact-1",
+          "entity": "contact",
+          "fields": {
+            "fullname": "Synthetic Member",
+            "parentcustomerid": {
+              "ref": "church-a",
+              "entity": "account",
+              "name": "Synthetic Church"
+            },
+            "new_lineid": {
+              "line": "contact-1"
+            }
+          }
         },
         {
-          "presentRecordId": "present-002",
-          "displayName": "Synthetic Member",
-          "present": false
+          "alias": "contact-2",
+          "entity": "contact",
+          "fields": {
+            "fullname": "Synthetic Member",
+            "parentcustomerid": {
+              "ref": "church-a",
+              "entity": "account",
+              "name": "Synthetic Church"
+            },
+            "new_lineid": {
+              "line": "contact-2"
+            }
+          }
+        },
+        {
+          "alias": "present-1",
+          "entity": "new_present_record",
+          "fields": {
+            "new_contact_new_present_record": {
+              "ref": "contact-1",
+              "entity": "contact",
+              "name": "Synthetic Member"
+            },
+            "new_explanation": "合成代禱事項：測試平安",
+            "new_paster_reply": "合成牧者回應：持續關懷",
+            "directioncode": true
+          }
+        },
+        {
+          "alias": "present-2",
+          "entity": "new_present_record",
+          "fields": {
+            "new_contact_new_present_record": {
+              "ref": "contact-2",
+              "entity": "contact",
+              "name": "Synthetic Member"
+            },
+            "new_explanation": "合成代禱事項：測試平安",
+            "new_paster_reply": "合成牧者回應：持續關懷",
+            "directioncode": true
+          }
+        }
+      ],
+      "trigger": {
+        "project": "PresentRecordLinePlugIn",
+        "type": "PresentRecordLinePlugIn.PresentRecordLinePlugIn",
+        "message": "Update",
+        "entity": "new_present_record",
+        "target": "present-1",
+        "fields": {
+          "new_paster_reply": "合成牧者回應：持續關懷"
+        },
+        "depth": 1,
+        "images": {
+          "pre": {
+            "PresentRecordLineImage": {
+              "new_paster_reply": "合成牧者回應：先前回應"
+            }
+          }
+        }
+      },
+      "now": "2026-11-14T04:00:00Z",
+      "volatile": [],
+      "liveShadow": false,
+      "observe": [
+        {
+          "alias": "present-1",
+          "entity": "new_present_record",
+          "fields": [
+            "new_paster_reply",
+            "new_explanation",
+            "new_contact_new_present_record"
+          ]
+        },
+        {
+          "alias": "present-2",
+          "entity": "new_present_record",
+          "fields": [
+            "new_paster_reply",
+            "new_contact_new_present_record"
+          ]
         }
       ]
     },
-    "declaredDifferences": []
-  }
-]
+    {
+      "name": "attendance-reply-unchanged",
+      "church": {
+        "alias": "church-a",
+        "organizationName": "synthetic-golden",
+        "timeZone": "Asia/Taipei",
+        "culture": "zh-TW"
+      },
+      "seed": [
+        {
+          "alias": "church-a",
+          "entity": "account",
+          "fields": {
+            "name": "Synthetic Church",
+            "new_timezone": "Asia/Taipei",
+            "new_defaultlanguage": "zh-TW"
+          }
+        },
+        {
+          "alias": "contact-1",
+          "entity": "contact",
+          "fields": {
+            "fullname": "Synthetic Member",
+            "parentcustomerid": {
+              "ref": "church-a",
+              "entity": "account",
+              "name": "Synthetic Church"
+            },
+            "new_lineid": {
+              "line": "contact-1"
+            }
+          }
+        },
+        {
+          "alias": "contact-2",
+          "entity": "contact",
+          "fields": {
+            "fullname": "Synthetic Member",
+            "parentcustomerid": {
+              "ref": "church-a",
+              "entity": "account",
+              "name": "Synthetic Church"
+            },
+            "new_lineid": {
+              "line": "contact-2"
+            }
+          }
+        },
+        {
+          "alias": "present-1",
+          "entity": "new_present_record",
+          "fields": {
+            "new_contact_new_present_record": {
+              "ref": "contact-1",
+              "entity": "contact",
+              "name": "Synthetic Member"
+            },
+            "new_explanation": "合成代禱事項：測試平安",
+            "new_paster_reply": "合成牧者回應：持續關懷",
+            "directioncode": true
+          }
+        },
+        {
+          "alias": "present-2",
+          "entity": "new_present_record",
+          "fields": {
+            "new_contact_new_present_record": {
+              "ref": "contact-2",
+              "entity": "contact",
+              "name": "Synthetic Member"
+            },
+            "new_explanation": "合成代禱事項：測試平安",
+            "new_paster_reply": "合成牧者回應：持續關懷",
+            "directioncode": true
+          }
+        }
+      ],
+      "trigger": {
+        "project": "PresentRecordLinePlugIn",
+        "type": "PresentRecordLinePlugIn.PresentRecordLinePlugIn",
+        "message": "Update",
+        "entity": "new_present_record",
+        "target": "present-1",
+        "fields": {
+          "new_paster_reply": "合成牧者回應：持續關懷"
+        },
+        "depth": 1,
+        "images": {
+          "pre": {
+            "PresentRecordLineImage": {
+              "new_paster_reply": "合成牧者回應：持續關懷"
+            }
+          }
+        }
+      },
+      "now": "2026-11-14T04:00:00Z",
+      "volatile": [],
+      "liveShadow": false,
+      "observe": [
+        {
+          "alias": "present-1",
+          "entity": "new_present_record",
+          "fields": [
+            "new_paster_reply",
+            "new_explanation",
+            "new_contact_new_present_record"
+          ]
+        },
+        {
+          "alias": "present-2",
+          "entity": "new_present_record",
+          "fields": [
+            "new_paster_reply",
+            "new_contact_new_present_record"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "attendance-created-no-push",
+      "church": {
+        "alias": "church-a",
+        "organizationName": "synthetic-golden",
+        "timeZone": "Asia/Taipei",
+        "culture": "zh-TW"
+      },
+      "seed": [
+        {
+          "alias": "church-a",
+          "entity": "account",
+          "fields": {
+            "name": "Synthetic Church",
+            "new_timezone": "Asia/Taipei",
+            "new_defaultlanguage": "zh-TW"
+          }
+        },
+        {
+          "alias": "contact-1",
+          "entity": "contact",
+          "fields": {
+            "fullname": "Synthetic Member",
+            "parentcustomerid": {
+              "ref": "church-a",
+              "entity": "account",
+              "name": "Synthetic Church"
+            },
+            "new_lineid": {
+              "line": "contact-1"
+            }
+          }
+        },
+        {
+          "alias": "contact-2",
+          "entity": "contact",
+          "fields": {
+            "fullname": "Synthetic Member",
+            "parentcustomerid": {
+              "ref": "church-a",
+              "entity": "account",
+              "name": "Synthetic Church"
+            },
+            "new_lineid": {
+              "line": "contact-2"
+            }
+          }
+        },
+        {
+          "alias": "present-1",
+          "entity": "new_present_record",
+          "fields": {
+            "new_contact_new_present_record": {
+              "ref": "contact-1",
+              "entity": "contact",
+              "name": "Synthetic Member"
+            },
+            "new_explanation": "合成代禱事項：測試平安",
+            "new_paster_reply": "合成牧者回應：持續關懷",
+            "directioncode": true
+          }
+        },
+        {
+          "alias": "present-2",
+          "entity": "new_present_record",
+          "fields": {
+            "new_contact_new_present_record": {
+              "ref": "contact-2",
+              "entity": "contact",
+              "name": "Synthetic Member"
+            },
+            "new_explanation": "合成代禱事項：測試平安",
+            "new_paster_reply": "合成牧者回應：持續關懷",
+            "directioncode": true
+          }
+        }
+      ],
+      "trigger": {
+        "project": "PresentRecordLinePlugIn",
+        "type": "PresentRecordLinePlugIn.PresentRecordLinePlugIn",
+        "message": "Create",
+        "entity": "new_present_record",
+        "target": "present-1",
+        "fields": {
+          "new_paster_reply": "合成牧者回應：持續關懷"
+        },
+        "depth": 1,
+        "images": {
+          "pre": {
+            "PresentRecordLineImage": {
+              "new_paster_reply": ""
+            }
+          }
+        }
+      },
+      "now": "2026-11-14T04:00:00Z",
+      "volatile": [],
+      "liveShadow": false,
+      "observe": [
+        {
+          "alias": "present-1",
+          "entity": "new_present_record",
+          "fields": [
+            "new_paster_reply",
+            "new_explanation",
+            "new_contact_new_present_record"
+          ]
+        },
+        {
+          "alias": "present-2",
+          "entity": "new_present_record",
+          "fields": [
+            "new_paster_reply",
+            "new_contact_new_present_record"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "attendance-depth3-update-blocked",
+      "church": {
+        "alias": "church-a",
+        "organizationName": "synthetic-golden",
+        "timeZone": "Asia/Taipei",
+        "culture": "zh-TW"
+      },
+      "seed": [
+        {
+          "alias": "church-a",
+          "entity": "account",
+          "fields": {
+            "name": "Synthetic Church",
+            "new_timezone": "Asia/Taipei",
+            "new_defaultlanguage": "zh-TW"
+          }
+        },
+        {
+          "alias": "contact-1",
+          "entity": "contact",
+          "fields": {
+            "fullname": "Synthetic Member",
+            "parentcustomerid": {
+              "ref": "church-a",
+              "entity": "account",
+              "name": "Synthetic Church"
+            },
+            "new_lineid": {
+              "line": "contact-1"
+            }
+          }
+        },
+        {
+          "alias": "contact-2",
+          "entity": "contact",
+          "fields": {
+            "fullname": "Synthetic Member",
+            "parentcustomerid": {
+              "ref": "church-a",
+              "entity": "account",
+              "name": "Synthetic Church"
+            },
+            "new_lineid": {
+              "line": "contact-2"
+            }
+          }
+        },
+        {
+          "alias": "present-1",
+          "entity": "new_present_record",
+          "fields": {
+            "new_contact_new_present_record": {
+              "ref": "contact-1",
+              "entity": "contact",
+              "name": "Synthetic Member"
+            },
+            "new_explanation": "合成代禱事項：測試平安",
+            "new_paster_reply": "合成牧者回應：持續關懷",
+            "directioncode": true
+          }
+        },
+        {
+          "alias": "present-2",
+          "entity": "new_present_record",
+          "fields": {
+            "new_contact_new_present_record": {
+              "ref": "contact-2",
+              "entity": "contact",
+              "name": "Synthetic Member"
+            },
+            "new_explanation": "合成代禱事項：測試平安",
+            "new_paster_reply": "合成牧者回應：持續關懷",
+            "directioncode": true
+          }
+        }
+      ],
+      "trigger": {
+        "project": "PresentRecordLinePlugIn",
+        "type": "PresentRecordLinePlugIn.PresentRecordLinePlugIn",
+        "message": "Update",
+        "entity": "new_present_record",
+        "target": "present-1",
+        "fields": {
+          "new_paster_reply": "合成牧者回應：持續關懷"
+        },
+        "depth": 3,
+        "images": {
+          "pre": {
+            "PresentRecordLineImage": {
+              "new_paster_reply": "合成牧者回應：先前回應"
+            }
+          }
+        }
+      },
+      "now": "2026-11-14T04:00:00Z",
+      "volatile": [],
+      "liveShadow": false,
+      "observe": [
+        {
+          "alias": "present-1",
+          "entity": "new_present_record",
+          "fields": [
+            "new_paster_reply",
+            "new_explanation",
+            "new_contact_new_present_record"
+          ]
+        },
+        {
+          "alias": "present-2",
+          "entity": "new_present_record",
+          "fields": [
+            "new_paster_reply",
+            "new_contact_new_present_record"
+          ]
+        }
+      ]
+    }
+  ]
+}

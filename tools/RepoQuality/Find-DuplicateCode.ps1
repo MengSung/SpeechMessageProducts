@@ -4,10 +4,14 @@
 目的與定位：掃描目前方案內的跨專案內容副本與命名空間加型別重名，只拒絕基準之外的新重複。
 
 主要功能與流程：
-操作入口包含Get-SafeRepositoryPath、Get-SourceText、Get-SourceTypeNames、Get-ProjectSourceFiles；呼叫參數與輸出形狀以各入口宣告為準。
+從指定方案驗證所有 csproj 路徑後建立本次掃描的專案根集合。父專案列舉遇到已列入
+方案的子專案根即停止，子專案在自己的回合完整掃描，避免同一來源跨專案重複計入；
+不依 PluginHarness 等專案或資料夾名稱豁免來源。內容雜湊與型別身分經基準比對後輸出固定診斷。
 
-使用邊界與維護：修改前先核對引用此檔的專案、頁面、腳本或CI步驟，保留既有參數、輸出及失敗結束碼。
-涉及寫入、外部命令或暫存資源時，依本檔實際實作的owner及清理路徑處理；說明不能取代執行前的範圍驗證。
+使用邊界與維護：單次 CLI 擁有根集合、來源識別與比對結果，僅在該次執行保留中繼資料；
+每次只解碼一個不超過十六 MiB 的來源，不執行產品、不連外，也不保留使用者／租戶資料。
+所有讀取先驗證工作樹邊界並拒絕 reparse point；只在明確更新或基準不存在時寫基準。
+合成測試須同時證明父子來源唯一歸屬與子內真正跨專案重複仍失敗，不得藉擴張排除或改基準消除診斷。
 #>
 <#
 .SYNOPSIS
@@ -121,15 +125,18 @@ function Get-SourceTypeNames {
 }
 
 function Get-ProjectSourceFiles {
-    <# 一層一層走訪指定專案，排除資料夾前就停止往下；不讓外部路徑或 reparse point 進入文字讀取。 #>
-    param([string]$ProjectDirectory)
+    <# 一層一層走訪指定專案；僅在下降前略過方案內其他專案根，當前根仍完整列舉。
+       根集合由已驗證的方案路徑建立且僅屬當次 CLI；未列入方案的巢狀 csproj 不取得排除權限。
+       先排除既有建置／參考目錄與 reparse point，再讀來源，不向工作樹外延伸。 #>
+    param([string]$ProjectDirectory, [Collections.Generic.HashSet[string]]$ProjectRoots)
     $pending = New-Object 'Collections.Generic.Stack[IO.DirectoryInfo]'
     $pending.Push((New-Object IO.DirectoryInfo($ProjectDirectory)))
     while ($pending.Count -gt 0) {
         foreach ($item in $pending.Pop().EnumerateFileSystemInfos()) {
             if (($item.Attributes -band [IO.FileAttributes]::ReparsePoint) -ne 0) { continue }
             if (($item.Attributes -band [IO.FileAttributes]::Directory) -ne 0) {
-                if ($item.Name -match '^(bin|obj|docs|\.worktrees|\.ccg|\.\u5176\u4ED6\u89E3\u6C7A\u65B9\u6848|PluginHarness)$') { continue }
+                if ($item.Name -match '^(bin|obj|docs|\.worktrees|\.ccg|\.\u5176\u4ED6\u89E3\u6C7A\u65B9\u6848)$') { continue }
+                if ($ProjectRoots.Contains($item.FullName)) { continue }
                 $pending.Push([IO.DirectoryInfo]$item)
             }
             elseif ($item.Extension -eq '.cs' -and $item.Name -notmatch '(?i)(\.g\.cs|\.Designer\.cs)$') { $item.FullName }
@@ -151,14 +158,20 @@ try {
     $projects = @([regex]::Matches((Get-SourceText $solution), '(?m)^\s*Project\([^)]*\)\s*=\s*"[^"]+",\s*"(?<path>[^"]+\.csproj)"') | ForEach-Object { $_.Groups['path'].Value })
     if ($projects.Count -eq 0) { throw 'NoProjects: no C# projects are listed in the solution.' }
     [array]::Sort($projects, [StringComparer]::Ordinal)
-    $groups = New-Object 'Collections.Generic.Dictionary[string,object]' ([StringComparer]::Ordinal)
-    $checked = 0
-    foreach ($project in $projects) {
+    # 先驗證完整方案再掃描，讓父專案即使先出現也能辨認子專案邊界；集合查詢不逐檔重掃方案。
+    $projectRoots = New-Object 'Collections.Generic.HashSet[string]' ([StringComparer]::OrdinalIgnoreCase)
+    $projectPaths = @(foreach ($project in $projects) {
         $projectPath = Get-SafeRepositoryPath (Join-Path ([IO.Path]::GetDirectoryName($solution)) $project)
         if (-not [IO.File]::Exists($projectPath)) { throw 'MissingProject: solution project does not exist.' }
+        [void]$projectRoots.Add([IO.Path]::GetDirectoryName($projectPath))
+        $projectPath
+    })
+    $groups = New-Object 'Collections.Generic.Dictionary[string,object]' ([StringComparer]::Ordinal)
+    $checked = 0
+    foreach ($projectPath in $projectPaths) {
         $projectName = $projectPath.Substring($script:rootPrefix.Length).Replace([char]92, [char]47)
         if ($projectName -match '(^|/)(docs|\.ccg|\.worktrees|\.\u5176\u4ED6\u89E3\u6C7A\u65B9\u6848)(/|$)') { continue }
-        [string[]]$files = @(Get-ProjectSourceFiles ([IO.Path]::GetDirectoryName($projectPath)))
+        [string[]]$files = @(Get-ProjectSourceFiles ([IO.Path]::GetDirectoryName($projectPath)) $projectRoots)
         [array]::Sort($files, [StringComparer]::Ordinal)
         foreach ($file in $files) {
             $safePath = Get-SafeRepositoryPath $file

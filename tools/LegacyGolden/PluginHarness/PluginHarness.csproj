@@ -23,5 +23,14 @@
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp" />
     <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" PrivateAssets="all" />
     <PackageReference Include="Newtonsoft.Json" />
+    <PackageReference Include="Microsoft.CrmSdk.CoreAssemblies" />
+    <PackageReference Include="Microsoft.CrmSdk.Workflow" />
+    <PackageReference Include="Moq" />
+    <Reference Include="System.Activities" />
+    <Reference Include="System.Net.Http" />
+    <Reference Include="System.Runtime.Serialization" />
+    <Reference Include="System.ServiceModel" />
+    <Reference Include="System.Xml.Linq" />
+    <Compile Include="../../../SpeechMessage.Dynamics.Plugins.Tests/Fakes/*.cs" Exclude="../../../SpeechMessage.Dynamics.Plugins.Tests/Fakes/*Tests.cs" Link="Fakes/%(Filename)%(Extension)" />
   </ItemGroup>
 </Project>

@@ -30,6 +30,8 @@
     <PackageReference Include="xunit.runner.visualstudio" PrivateAssets="all" />
     <PackageReference Include="coverlet.collector" PrivateAssets="all" />
     <ProjectReference Include="../SpeechMessage.Dynamics.Plugins/SpeechMessage.Dynamics.Plugins.csproj" />
+    <ProjectReference Include="../tools/LegacyGolden/PluginHarness/PluginHarness.csproj" />
+    <PackageReference Include="Newtonsoft.Json" />
     <Reference Include="System.Net.Http" />
   </ItemGroup>
 </Project>

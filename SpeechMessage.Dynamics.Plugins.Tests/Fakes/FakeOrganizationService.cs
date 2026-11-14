@@ -10,8 +10,9 @@
  * 取消或逾時；using owner 的 Dispose 清除資料及回呼。未 Dispose 的舊案例只由 GC 回收。
  * queryResults 以一開始為一的 RetrieveMultiple 呼叫序號明確覆蓋未知查詢，兩側均複製；
  * 這是情境指定的離線答案，不宣稱該語法受支援。缺列、重複識別、容量及未知型別均拒絕。
- * 主鍵對照僅明列 account、contact、合成 region 與實際使用的 appointment／task；
- * 後兩者共用 activityid。其餘實體須先擴充對照，不能以名稱猜測 metadata 或特殊主鍵。
+ * 主鍵對照明列 account、contact、合成 region、appointment／task 及出席記錄；
+ * 活動共用 activityid；出席主鍵由P5唯讀metadata確認為new_present_recordid。
+ * 其餘實體須先擴充對照，不能以名稱猜測 metadata 或特殊主鍵。
  * 驗證：FakeOrganizationServiceTests 保護分離、原子失敗、查詢、關聯、隔離與排空。
  */
 using System;
@@ -250,6 +251,7 @@ internal sealed partial class FakeOrganizationService : IOrganizationService, ID
         "appointment" or "task" => "activityid",
         "account" => "accountid",
         "contact" => "contactid",
+        "new_present_record" => "new_present_recordid",
         "region" => "regionid",
         _ => throw Unsupported("PrimaryIdAttribute." + Name(entityName))
     };

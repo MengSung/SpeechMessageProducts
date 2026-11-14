@@ -512,7 +512,7 @@ const DATA = {
       "level": "info",
       "title": "P5 進度摘要",
       "lastUpdated": "2026-11-14T12:54:00+08:00",
-      "body": "2026-11-14 12:54 Asia/Taipei (UTC+08:00)：P5-01已驗收；更新回復前置完整guard八項通過，Release5524/5524；實機沙箱版本3→4→3、同step ID、不需重啟。收尾verify=0、trace1、本輪task/job/trace0。P5-02已完成，接續P5-03a。",
+      "body": "2026-11-14 12:54 Asia/Taipei (UTC+08:00)：P5-01已驗收；更新回復前置完整guard八項通過，Release5524/5524；實機沙箱版本3→4→3、同step ID、不需重啟。收尾verify=0、trace1、本輪task/job/trace0。P5-02尚未驗收；原型尚缺實際執行舊入口與傳輸攔截，補齊後才進P5-03。",
       "steps": [
         "2026-11-14 08:26 Asia/Taipei (UTC+08:00)：已確認目標殘留目錄不是 Git worktree，移除後正式 P4／P5 worktree 清單不受影響。",
         "2026-11-14 08:26 Asia/Taipei (UTC+08:00)：export-metadata 唯讀結構快照建立成功；verify 因本機部署執行檔／連線前置失敗，未宣稱 goodshepherdback verify=0。",
@@ -525,7 +525,8 @@ const DATA = {
         "2026-11-14 11:38 Asia/Taipei (UTC+08:00)：更新回復前置建立子任務；外部分析 Gemini403/503、Claude額度限制，未取得外部分析，不冒稱雙模型或成功降級。以本地分析與獨立複核續做離線部分。",
         "2026-11-14 11:58 Asia/Taipei (UTC+08:00)：獨立複核W1共用correlation誤判已先紅2案再修復，Deployment236/236；合併驗證器改分辨抽象外殼與唯一具體入口，6/6通過。W2已補Live真解密與MAC拒絕，但卸載CSP例外仍列阻擋，不以VSTest exit0冒稱資源清理通過。",
         "2026-11-14 12:27 Asia/Taipei (UTC+08:00)：CSP根因已獨立定位；最小Framework相容修正經真程序紅綠驗證，Plugins Release172/172、CAS Debug5/5、加密雙宿主各33/33、合併member6/6與metadata通過。仍待完整guard及實機三次版本，不標前置驗收。",
-        "2026-11-14 12:54 Asia/Taipei (UTC+08:00)：固定8ad4dccc完整八項守門通過；D34有效。12:50–12:53沙箱1.0.0.3→1.0.0.4→1.0.0.3首次smoke皆0、step ID不變，不需重啟；收尾清單false、trace1、19自訂步驟全停用，3個本次task與關聯job/trace殘留0。回報wp-reports/P5-update-rollback.md；外部三輪無結果，未取得外部審查，本地獨立Critical0/High0。"
+        "2026-11-14 12:54 Asia/Taipei (UTC+08:00)：固定8ad4dccc完整八項守門通過；D34有效。12:50–12:53沙箱1.0.0.3→1.0.0.4→1.0.0.3首次smoke皆0、step ID不變，不需重啟；收尾清單false、trace1、19自訂步驟全停用，3個本次task與關聯job/trace殘留0。回報wp-reports/P5-update-rollback.md；外部三輪無結果，未取得外部審查，本地獨立Critical0/High0。",
+        "2026-11-14 13:44 Asia/Taipei (UTC+08:00)：撤回P5-02完成與P5-03啟動標記；既有原型未執行舊入口，不能把合成值當作舊行為證據；正在補齊05A全部驗收。"
       ]
     }
   ],
@@ -1371,25 +1372,25 @@ const DATA = {
       "id": "P5-02",
       "phaseId": "階段 5",
       "name": "舊程式黃金資料產生器",
-      "status": "done",
+      "status": "active",
       "deps": "—",
       "live": "無",
       "timebox": "1 天",
-      "doneAt": "2026-11-14 13:18 Asia/Taipei (UTC+08:00)",
-      "commit": "cdfaf41e",
-      "note": "net48 PluginHarness已加入方案；37個舊專案分類0 Generated／6 CompileFailed／31 BlockedByNetworkApi；三筆attendance黃金與穩定輸出測試通過，未執行舊來源。"
+      "doneAt": "",
+      "commit": "",
+      "note": "2026-11-14 13:44 Asia/Taipei (UTC+08:00)：更正先前完成標記：cdfaf41e僅編譯盤點原型；合成值不是舊程式黃金。實際執行、攔截、覆蓋率與編譯矩陣仍待補齊。"
     },
     {
       "id": "P5-03",
       "phaseId": "階段 5",
       "name": "影子模式比對 shadow＋佈署擴充",
-      "status": "active",
+      "status": "todo",
       "deps": "P5-01",
       "live": "唯讀比對",
       "timebox": "1 天",
       "doneAt": "",
       "commit": "",
-      "note": "2026-11-14 13:18 Asia/Taipei (UTC+08:00)：P5-02已驗收；開始清單v2、映像、活動群組、switch、ui-export／import。"
+      "note": "2026-11-14 13:44 Asia/Taipei (UTC+08:00)：更正：P5-02尚未驗收，P5-03未開始。"
     },
     {
       "id": "P5-04",
@@ -1731,7 +1732,7 @@ const DATA = {
       "note": "2026-11-14 12:54 Asia/Taipei (UTC+08:00)：8ad4dccc完整守門通過，實機3→4→3、step ID不變、免重啟；三次smoke/verify0、收尾停用及殘留0，詳wp-reports/P5-update-rollback.md。"
     }
   ],
-  "active": [{"id":"P5-03","dod":[["清單v2契約與測試","no","尚未完成"],["舊註冊唯讀匯出","no","尚未完成"],["switch先舊後新關卡","no","尚未完成"],["shadow兩輪與清理","no","尚未完成"],["固定guard與回報","no","尚未完成"]]}],
+  "active": [{"id":"P5-02","dod":[["執行舊程式並記錄行為","no","原型尚未實作"],["傳輸與檔案安全攔截","no","待補齊"],["出席實際黃金與期望差異契約","no","合成原型不能驗收"],["全部入口編譯與覆蓋率80%","no","待驗證"],["固定守門及審查回報","no","完成實作後執行"]]}],
   "gates": [
     {
       "item": "方案建置（Release）",

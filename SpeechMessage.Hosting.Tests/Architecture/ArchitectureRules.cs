@@ -6,6 +6,7 @@
  * 主要功能與流程：
  * 本檔宣告 ArchitectureProject、ArchitectureViolation、ArchitectureRules。
  * - 黃金資料與部署工具各以精確名稱分類；產品不得參考工具，工具不得直接參考沙箱，未知名稱仍拒絕。
+ * - 所有非測試節點都檢查目標框架，僅精確 PluginHarness 的 net48 具有額外相容例外。
  * - 驗證完整評估圖；呼叫端擁有輸入，結果只含固定的架構診斷。
  * - 檢查 NuGet 已選出的 Framework 相依，而不是只相信 csproj 宣告能提供 net462。
  * - 部署端 Plugin 與 Workflow 都受同一個 v4.6.2 沙箱契約約束。
@@ -103,8 +104,10 @@ internal static class ArchitectureRules
             }
 
             // 直接保護產品輸出，不依賴是否已有 Plugin／其他 core 消費這個專案。
-            // net48 僅限上面已排除的測試宿主；不能藉孤立節點漏過沙箱 Framework 上限。
-            if (!IsTool(project.Name) && project.Target != "net462" && project.Target != "net10.0")
+            // net48 額外例外只授予精確的舊程式離線宿主；工具層級本身不授予目標豁免，
+            // 不能藉孤立工具節點放行其他 Framework，也不影響沙箱自己的 net462 上限。
+            if (project.Target != "net462" && project.Target != "net10.0" &&
+                !(project.Name == "PluginHarness" && project.Target == "net48"))
             {
                 Add("ProductTarget", project.Target);
             }
@@ -465,7 +468,7 @@ internal static class ArchitectureRules
         return found;
     }
 
-    /// <summary>只有已核定的兩個工具可取得工具層級；產品不得反向依賴，也不授予傳輸或沙箱權限。</summary>
+    /// <summary>只有明列的三個工具可取得工具層級；產品不得反向依賴，也不授予目標、傳輸或沙箱豁免。</summary>
     private static bool IsTool(string name) => name is "SpeechMessage.Dynamics.Deployment" or "LegacyGolden" or "PluginHarness";
 
     /// <summary>部署端 Plugin 與 Workflow 都受同一個 v4.6.2 沙箱契約約束。</summary>

@@ -40,12 +40,7 @@ internal static class Program
                 return 2;
             }
 
-            var candidate = HarnessEngine.Build(sourceRoot);
-            var json = HarnessJson.Serialize(candidate);
-            AtomicJsonWriter.Publish(outputPath, json);
-            Console.WriteLine("PluginHarness published: {0} Generated, {1} CompileFailed, {2} BlockedByNetworkApi.",
-                candidate.Count("Generated"), candidate.Count("CompileFailed"), candidate.Count("BlockedByNetworkApi"));
-            return 0;
+            throw new NotSupportedException("Legacy execution is not implemented.");
         }
         catch (Exception exception)
         {

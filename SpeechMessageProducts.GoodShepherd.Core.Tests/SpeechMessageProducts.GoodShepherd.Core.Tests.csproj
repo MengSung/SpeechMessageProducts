@@ -34,6 +34,7 @@ GoodShepherd.Core 的單一專案參考。P2-02 先以 smoke 測試確認兩個�
   <ItemGroup>
     <PackageReference Include="Microsoft.NET.Test.Sdk" />
     <PackageReference Include="xunit" />
+    <PackageReference Include="Newtonsoft.Json" />
     <PackageReference Include="xunit.runner.visualstudio">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
@@ -46,6 +47,7 @@ GoodShepherd.Core 的單一專案參考。P2-02 先以 smoke 測試確認兩個�
     <EmbeddedResource Include="Golden\qr-content-legacy.tsv" />
     <EmbeddedResource Include="..\SpeechMessageProducts.LineWebhook.Tests\Golden\Keywords\routing.json" Link="Golden\webhook-routing.json" />
     <EmbeddedResource Include="Golden\flex-diagnostics.json" />
+    <EmbeddedResource Include="Golden\Legacy\**\*.json" />
   </ItemGroup>
 
   <ItemGroup Condition="'$(TargetFramework)' == 'net48'">

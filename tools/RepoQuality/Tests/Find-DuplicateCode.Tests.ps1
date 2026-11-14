@@ -4,10 +4,13 @@
 目的與定位：以合成方案驗證跨專案副本、型別重名、基準棘輪及掃描邊界。
 
 主要功能與流程：
-操作入口包含Set-Source、Set-Solution、Invoke-DuplicateScan；呼叫參數與輸出形狀以各入口宣告為準。
+操作入口包含Set-Source、Set-Solution、Set-NestedProject、Invoke-DuplicateScan。
+合成父／子專案斷言來源恰好計入一次、未列入方案的巢狀來源仍由父專案掃描，
+並注入子專案與另一專案的真正副本，核對 NewDuplicate 與精確子專案位置。
 
-使用邊界與維護：修改前先核對引用此檔的專案、頁面、腳本或CI步驟，保留既有參數、輸出及失敗結束碼。
-涉及寫入、外部命令或暫存資源時，依本檔實際實作的owner及清理路徑處理；說明不能取代執行前的範圍驗證。
+使用邊界與維護：僅用自建離線方案與假來源，不連外、不載入產品；每案擁有獨立 GUID 目錄，
+子程序完成後檢查結束碼與診斷，AfterEach 驗證清理路徑位於 fixture 根內再遞迴刪除。
+基準只在當案暫存目錄建立，永不改寫正式 baseline；兩種 PowerShell 引擎須各自實跑。
 #>
 <#
 .SYNOPSIS
@@ -35,6 +38,15 @@ Describe 'Solution duplicate code contracts' {
         $lines = @($Projects | ForEach-Object { 'Project("{FAKE}") = "' + $_ + '", "' + $_ + '/' + $_ + '.csproj", "{' + $_ + '}"' })
         [IO.File]::WriteAllText((Join-Path $script:caseRepo 'SpeechMessageProducts.sln'), ($lines -join "`r`n") + "`r`n", $script:utf8)
         foreach ($project in $Projects) { Set-Source ($project + '/' + $project + '.csproj') '<Project Sdk="Microsoft.NET.Sdk" />' }
+    }
+    function Set-NestedProject {
+        <# 子專案位於 A 內，以一般名稱或 PluginHarness 名稱測試相同所有權契約；不執行假 csproj。 #>
+        param([string]$Name)
+        Set-Source ("A/$Name/$Name.csproj") '<Project Sdk="Microsoft.NET.Sdk" />'
+        Set-Source ("A/$Name/Child.cs") 'namespace N { internal class Child { internal int Value = 3; } }'
+        $solution = Join-Path $script:caseRepo 'SpeechMessageProducts.sln'
+        $entry = 'Project("{FAKE}") = "' + $Name + '", "A/' + $Name + '/' + $Name + '.csproj", "{CHILD}"'
+        [IO.File]::WriteAllText($solution, [IO.File]::ReadAllText($solution) + $entry + "`r`n", $script:utf8)
     }
     function Invoke-DuplicateScan {
         <# 使用一次性子程序；等候完成後才查結果，不保留程序或串流。 #>
@@ -161,6 +173,41 @@ Describe 'Solution duplicate code contracts' {
         $result = Invoke-DuplicateScan
         $result.ExitCode | Should Be 0
         $result.Output | Should Match 'files=2 '
+    }
+    # 子專案根僅從父專案列舉切出；一般 Child 與歷史特殊名稱必須有相同掃描行為。
+    It 'NestedProject_SourcesHaveOneOwner' -TestCases @(@{ Name = 'Child' }, @{ Name = 'PluginHarness' }) {
+        param($Name)
+        Set-NestedProject $Name
+        $result = Invoke-DuplicateScan
+        $result.ExitCode | Should Be 0
+        $result.Output | Should Match 'projects=3 files=3 groups=0 new=0'
+        $baseline = Get-Content -LiteralPath $script:baseline -Raw -Encoding UTF8 | ConvertFrom-Json
+        @($baseline.entries).Count | Should Be 0
+    }
+    # 先建立無重複的當案基準，再把 B 副本放入子專案；不可透過父專案切割而漏報子內來源。
+    It 'NestedProject_RealCrossProjectDuplicatesStillFail' -TestCases @(@{ Name = 'Child' }, @{ Name = 'PluginHarness' }) {
+        param($Name)
+        Set-NestedProject $Name
+        (Invoke-DuplicateScan).ExitCode | Should Be 0
+        Set-Source ("A/$Name/Child.cs") 'namespace N { internal class Beta { internal int Value = 2; } }'
+        $result = Invoke-DuplicateScan
+        $result.ExitCode | Should Be 1
+        $result.Output | Should Match 'NewDuplicate: type N.Beta'
+        $result.Output | Should Match 'NewDuplicate: content '
+        $result.Output | Should Match ([regex]::Escape("A/$Name/$Name.csproj|A/$Name/Child.cs"))
+        $result.Output | Should Not Match ([regex]::Escape("A/A.csproj|A/$Name/Child.cs"))
+        $result.Output | Should Match 'projects=3 files=3 groups=2 new=4'
+    }
+    # 不在方案內的巢狀 csproj 不授予排除權限；PluginHarness 同名目錄也不能隱藏新增副本。
+    It 'NestedProject_UnlistedProjectRemainsOwnedByParent' {
+        (Invoke-DuplicateScan).ExitCode | Should Be 0
+        Set-Source 'A/PluginHarness/Unlisted.csproj' '<Project Sdk="Microsoft.NET.Sdk" />'
+        Set-Source 'A/PluginHarness/Copy.cs' 'namespace N { internal class Beta { internal int Value = 2; } }'
+        $result = Invoke-DuplicateScan
+        $result.ExitCode | Should Be 1
+        $result.Output | Should Match 'NewDuplicate: type N.Beta'
+        $result.Output | Should Match ([regex]::Escape('A/A.csproj|A/PluginHarness/Copy.cs'))
+        $result.Output | Should Match 'projects=2 files=3 groups=2 new=4'
     }
     It 'Scope_ProjectOutsideRepository_IsRejected' {
         [IO.File]::WriteAllText((Join-Path $script:caseRepo 'SpeechMessageProducts.sln'), 'Project("{FAKE}") = "Other", "../other.csproj", "{OTHER}"', $script:utf8)

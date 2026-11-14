@@ -8,6 +8,7 @@
  * 主要功能與流程：
  * 本檔宣告 ArchitectureRuleTests。
  * - P3-01 黃金工具精確分類並保護反向參考與沙箱隔離，未知或相似名稱仍拒絕。
+ * - P5-02 僅 PluginHarness 的 net48 節點取得目標例外；其他工具與相似名稱仍檢查 ProductTarget。
  * - P2-05共用核心向Localization取字合法，反向仍拒絕；雙目標專案不能指向只有 net10 的產品，即使當次建置選到 net10 也不豁免整體雙目標契約。
  * - Extensions、ASP.NET 與 Dataverse 直接套件不得進入共用雙目標；以各套件正反例保護辨識。
  * - ToolUtility.Core 的 Dataverse 例外只限 net10 SDK 型別來源，不能擴大為 net462 或任意 Extensions 豁免。
@@ -141,6 +142,42 @@ public sealed class ArchitectureRuleTests
             item => item.Rule == "DeploymentIsolation");
         Assert.Contains(ArchitectureRules.Validate(Graph(Product("LegacyGolden.Other", "net10.0", "net10.0"))),
             item => item.Rule == "UnknownProject");
+    }
+
+    /// <summary>
+    /// 精確 PluginHarness 只額外允許 net48，既有 net462／net10 目標維持合法。
+    /// 合成節點不執行舊程式；空違規清單證明例外不靠其他規則失敗掩蓋。
+    /// </summary>
+    /// <param name="target">允許的確切目標框架。</param>
+    [Theory]
+    [InlineData("net48")]
+    [InlineData("net462")]
+    [InlineData("net10.0")]
+    public void ProductTarget_ExactPluginHarness_AllowsOnlyApprovedTargets(string target)
+    {
+        Assert.Empty(ArchitectureRules.Validate(Graph(Product("PluginHarness", target, target))));
+    }
+
+    /// <summary>
+    /// 對工具、一般產品及相似名稱注入未核准框架，必須回報具精確專案與目標的 ProductTarget。
+    /// 此案例只建立短生命週期純值，確保 IsTool 不再成為任意框架的整體豁免。
+    /// </summary>
+    /// <param name="name">精確工具、產品或冒充名稱。</param>
+    /// <param name="target">不在該專案核准範圍內的目標。</param>
+    [Theory]
+    [InlineData("LegacyGolden", "net48")]
+    [InlineData("LegacyGolden", "net8.0")]
+    [InlineData("SpeechMessage.Dynamics.Deployment", "net48")]
+    [InlineData("SpeechMessage.Dynamics.Deployment", "net8.0")]
+    [InlineData("PluginHarness", "net8.0")]
+    [InlineData("PluginHarness", "net481")]
+    [InlineData("PluginHarness.Other", "net48")]
+    [InlineData("SpeechMessage.Hosting", "net48")]
+    public void ProductTarget_ToolClassification_DoesNotExemptOtherTargets(string name, string target)
+    {
+        Assert.Contains(ArchitectureRules.Validate(Graph(Product(name, target, target))),
+            item => item.Rule == "ProductTarget" && item.Project == name &&
+                item.Target == target && item.Dependency == target);
     }
 
     /// <summary>
