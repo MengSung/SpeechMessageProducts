@@ -14,5 +14,5 @@
 
 ## 風險與退路
 - 若實機舊入口沒有可追蹤的欄位，依 05A 改以型別＋主要實體 ID＋時間窗；仍不能猜測步驟 ID。
-- 若 User Secrets 缺少 `ShadowTestChurchId` 或 `ShadowTestContactId`，只完成離線契約，不進行實機；向使用者取得確認後再續。
+- 若 User Secrets 缺少 `ShadowTestChurchId` 或 `ShadowTestContactId`，先從既有 evidence 或唯讀權威查詢確認後設定；查不到才向使用者詢問，不能按名稱猜。
 - 若某模組 D5-18 失敗，停止該模組，不以離線結果替代實機兩輪，並保留安全拒絕證據。

@@ -14,6 +14,7 @@ using System.Linq;
 using System.Collections.Generic;
 using System.Threading;
 using Microsoft.Xrm.Sdk;
+using Microsoft.Xrm.Sdk.Query;
 using Xunit;
 
 namespace SpeechMessage.Dynamics.Deployment.Tests;
@@ -21,6 +22,19 @@ namespace SpeechMessage.Dynamics.Deployment.Tests;
 /// <summary>以實際 metadata 讀回斷言切換結果與拒絕時的零寫入。</summary>
 public sealed class ModuleSwitchTests
 {
+    /// <summary>D34 回應即使只含測試會友，仍有續頁就不是完整範圍，必須零寫入拒絕。</summary>
+    [Fact]
+    public void Switch_Legacy_PartialD34PageRefusedBeforeTokenInjection()
+    {
+        using var f = new Fixture();
+        var (document, context, _, _) = SeedLegacyRound(f);
+        var engine = new DeploymentEngine(new PartialD34Service(f.Service), f.Root, f.Clock, _ => Fixture.SecretValue);
+        var writes = f.Service.Writes.Count;
+        Assert.Throws<InvalidDataException>(() => engine.SwitchModule(document, Fixture.Organization,
+            "diagnostics", "legacy", () => LegacySnapshot(f), context, () => Assert.Fail("Must not run")));
+        Assert.Equal(writes, f.Service.Writes.Count);
+    }
+
     /// <summary>診斷先啟用再關閉須回到清單的停用狀態，保留步驟 ID 且零秘密讀取。</summary>
     [Fact]
     public void Switch_EnabledThenOff_ReturnsToManifestState()
@@ -198,4 +212,32 @@ public sealed class ModuleSwitchTests
     /// <summary>無舊註冊的完整合成盤點，只用於診斷新步驟測試。</summary>
     private static LegacyRegistrationSnapshot EmptyLegacy() => new(Array.Empty<LegacyAssemblyMetadata>(), Array.Empty<LegacyTypeMetadata>(),
         Array.Empty<LegacyStepMetadata>(), Array.Empty<LegacyImageMetadata>(), Array.Empty<LegacyWorkflowMetadata>());
+
+    /// <summary>借用案例 SDK，僅讓 contact 查詢呈現未讀完頁面；沒有外部資源或額外清理。</summary>
+    private sealed class PartialD34Service(IOrganizationService inner) : IOrganizationService
+    {
+        /// <summary>保留所有查詢資料，只注入 D34 完整性失敗，避免改變其他部署 metadata。</summary>
+        public EntityCollection RetrieveMultiple(QueryBase query)
+        {
+            var result = inner.RetrieveMultiple(query);
+            if (query is QueryExpression { EntityName: "contact" }) result.MoreRecords = true;
+            return result;
+        }
+        /// <summary>精確讀取仍交由案例 SDK，不偽造權威關聯。</summary>
+        public Entity Retrieve(string entityName, Guid id, ColumnSet columnSet) => inner.Retrieve(entityName, id, columnSet);
+        /// <summary>委派建立，斷言會偵測任何不應出現的寫入。</summary>
+        public Guid Create(Entity entity) => inner.Create(entity);
+        /// <summary>委派更新，斷言會偵測不應注入的 token。</summary>
+        public void Update(Entity entity) => inner.Update(entity);
+        /// <summary>委派精確刪除，不自行清理或掩蓋寫入。</summary>
+        public void Delete(string entityName, Guid id) => inner.Delete(entityName, id);
+        /// <summary>所有正式訊息保持原案例行為。</summary>
+        public OrganizationResponse Execute(OrganizationRequest request) => inner.Execute(request);
+        /// <summary>保持原 SDK 關聯契約，不新增範圍。</summary>
+        public void Associate(string entityName, Guid entityId, Relationship relationship, EntityReferenceCollection relatedEntities) =>
+            inner.Associate(entityName, entityId, relationship, relatedEntities);
+        /// <summary>保持原 SDK 解關聯契約，不新增範圍。</summary>
+        public void Disassociate(string entityName, Guid entityId, Relationship relationship, EntityReferenceCollection relatedEntities) =>
+            inner.Disassociate(entityName, entityId, relationship, relatedEntities);
+    }
 }

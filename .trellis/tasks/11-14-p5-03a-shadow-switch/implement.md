@@ -6,8 +6,8 @@
 4. 實作 `shadow` 的先舊後新兩輪、observe、bounded trace、parser／comparer、overflow／取消／失敗清理；離線合成測試先紅後綠。
 5. 實作活動第一輪的合成註冊／讀取測試；不把 User Secrets 缺失轉成假資料。
 6. 執行 Release solution tests、Deployment tests、architecture／packaging、file documentation、I18n、duplicate、Changed encoding、progress；保存 repo 外 log 與 SHA。
-7. 實機前以 `dotnet user-secrets list` 只核對兩個 Shadow ID 的鍵存在，不輸出值；目前若缺鍵，停下請使用者確認／提供，不能猜。
-8. 全部離線驗收通過後提交、固定 guard、再依使用者授權執行 goodshepherdback 的先舊後新影子兩輪；完成後停在 P5-03a，等待 P5-03b。
+7. 實機前以 `dotnet user-secrets list` 只核對兩個 Shadow ID 的鍵存在，不輸出值；缺鍵時從既有 evidence 或精確測試綁定唯讀查詢核對權威 parentcustomerid，確認後放入 User Secrets，查不到才問使用者，不按名稱猜。
+8. 綠燈小段本地提交；完成離線及固定 guard 後，依授權執行 goodshepherdback 的 diagnostics enabled→smoke→off→verify=0。整包驗收才推送並核對，接續 P5-03b；模組兩輪依各包驗收。
 
 ## 回滾點
 - 每個綠燈小段單獨提交，紅燈不提交。
