@@ -512,7 +512,7 @@ const DATA = {
       "level": "info",
       "title": "P5 進度摘要",
       "lastUpdated": "2026-11-14T18:45:00+08:00",
-      "body": "2026-11-14 18:15 Asia/Taipei (UTC+08:00)：更新回復前置12:54已完成；P5-02重做中，a段依D5-3建立PresentRecord閱讀對照expected.json，basis=legacy-live-only，舊程式未實跑且D5-18例外不跑第一輪；b段矩陣36個專案／29個入口、0 Generated／29 CompileFailed／0 BlockedByNetworkApi。固定guard尚未完成、未驗收、未推送。",
+      "body": "2026-11-14 18:56 Asia/Taipei (UTC+08:00)：更新回復前置12:54完成；P5-02已驗收、推送並核對遠端。P5-03a開始離線實作manifest v2、export-legacy、switch與先舊後新shadow；實機前核對發現兩個Shadow ID尚未在User Secrets，未猜測、不進實機。",
       "steps": [
         "2026-11-14 08:26 Asia/Taipei (UTC+08:00)：已確認目標殘留目錄不是 Git worktree，移除後正式 P4／P5 worktree 清單不受影響。",
         "2026-11-14 08:26 Asia/Taipei (UTC+08:00)：export-metadata 唯讀結構快照建立成功；verify 因本機部署執行檔／連線前置失敗，未宣稱 goodshepherdback verify=0。",
@@ -1743,32 +1743,32 @@ const DATA = {
   ],
   "active": [
     {
-      "id": "P5-02",
+      "id": "P5-03",
       "dod": [
         [
-          "執行舊程式並記錄行為",
+          "註冊清單 v2、映像與活動註冊",
           "no",
-          "15:46正式generate拒絕；待使用者決定D5-3"
+          "已建立P5-03a規劃；尚未實作"
         ],
         [
-          "傳輸與檔案安全攔截",
+          "export-legacy 與 switch 互斥切換",
           "no",
-          "離線安全整合測試與Release293項全過；實際舊閉包仍拒絕，不代表完整驗收"
+          "離線契約待實作；舊新步驟不可同時啟用"
         ],
         [
-          "出席實際黃金與期望差異契約",
+          "先舊後新 shadow 兩輪與 observe",
           "no",
-          "尚缺工具產生 legacy.json 及 expected.json"
+          "依05A修訂1定義，尚未執行實機"
         ],
         [
-          "a 段覆蓋率80%；b 段矩陣查詢補強",
+          "失敗／取消還原與資料清理",
           "no",
-          "工具Release覆蓋率83.47%、Debug80.55%達門檻；b段queryResults通過，矩陣保留歷史結果，非實跑"
+          "待補finally、overflow與殘留0測試"
         ],
         [
-          "固定守門及驗收回報",
+          "固定守門及P5-03a回報",
           "no",
-          "a 驗收後守門通過才推送；階段末外審"
+          "User Secrets尚缺ShadowTestChurchId／ShadowTestContactId；確認前不進實機"
         ]
       ]
     }
