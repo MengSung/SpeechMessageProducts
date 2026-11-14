@@ -8,6 +8,8 @@
  * Dispose關client、清key及快照；回應由Core確定性Dispose，不以GC或程序結束代替。
  * 包裝驗證由專用AppDomain執行同一組案例，反射僅使用既有注入建構式；卸載Domain後
  * 不在測試程序保留合併組件，不能把一般bin的測試冒充實際合併產物。
+ * 合併公開型別皆須實作IPlugin，只有診斷型別可具體註冊；抽象共用外殼不是另一個步驟，
+ * 因此以可實例化型別與精確名稱驗證閉包，不以公開型別總數冒充可註冊入口數。
  */
 using System;
 using System.Collections.Generic;
@@ -223,12 +225,14 @@ public sealed class DiagnosticsMemberTests
                 var assembly = Assembly.LoadFrom(packagedPath);
                 Assert.Equal(new Version(1, 0, 0, 0), assembly.GetName().Version);
                 Assert.NotEmpty(assembly.GetName().GetPublicKeyToken()!);
-                Assert.Single(assembly.GetExportedTypes());
+                var exportedTypes = assembly.GetExportedTypes();
+                Assert.All(exportedTypes, type => Assert.True(typeof(IPlugin).IsAssignableFrom(type)));
+                var pluginType = Assert.Single(exportedTypes.Where(type => !type.IsAbstract));
+                Assert.Equal(typeof(DiagnosticsPingPlugin).FullName, pluginType.FullName);
                 var clientType = assembly.GetType("LineMessagingProcessor.Core.LinePushClient", true)!;
                 var clientConstructor = clientType.GetConstructor(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic,
                     null, new[] { typeof(HttpClient) }, null)!;
                 var client = clientConstructor.Invoke(new object[] { http });
-                var pluginType = assembly.GetType(typeof(DiagnosticsPingPlugin).FullName!, true)!;
                 var constructor = pluginType.GetConstructors(BindingFlags.Instance | BindingFlags.NonPublic)
                     .Single(c => c.GetParameters().Length == 4);
                 try

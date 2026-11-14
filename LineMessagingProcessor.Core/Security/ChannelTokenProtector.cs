@@ -18,6 +18,9 @@
  * 失敗與驗證：只將預期格式、編碼及crypto失敗轉成固定例外，不保存敏感inner；
  * 不吞掉記憶體耗盡等程序故障，也不自行通知。修改須重跑雙目標向量、認證後解密
  * 故障、併行A/B與有界資源測試；固定時間分支需另做程式審查，不能用耗時測試冒充。
+ * Framework 使用沒有覆寫演算法的私有 HMAC 子類，避開已重現於本機 servicing 版本
+ * 的 exact-type NativeHmac 靜態 CSP 卸載故障；仍由 Framework 選取符合政策的 hash，
+ * 不改協定、不提高權限。此相容路徑依賴 runtime，升級時必須重跑受限域程序回歸。
  */
 using System;
 using System.Runtime.CompilerServices;
@@ -232,11 +235,30 @@ public static class ChannelTokenProtector
             input[1] = (byte)'1';
             Buffer.BlockCopy(iv, 0, input, 2, iv.Length);
             Buffer.BlockCopy(ciphertext, 0, input, 2 + iv.Length, ciphertext.Length);
+#if NETFRAMEWORK
+            using var hmac = new FrameworkCompatibleHmacSha256(key);
+#else
             using var hmac = new HMACSHA256(key);
+#endif
             return hmac.ComputeHash(input);
         }
         finally { Clear(input); }
     }
+
+#if NETFRAMEWORK
+    /// <summary>
+    /// 委派 Framework 自有的繼承相容路徑，避免本機 exact-type 快速路徑的共用 CSP
+    /// provider 在受限 AppDomain 卸載時釋放失敗。沒有演算法、政策或 Dispose 覆寫，
+    /// 也沒有額外狀態；每次 ComputeMac 的 using 是唯一 owner，基底釋放 hash 與 key。
+    /// 不固定 managed provider、不繞過 FIPS；平台更新須以程序退出及卸載回歸確認可用。
+    /// </summary>
+    private sealed class FrameworkCompatibleHmacSha256 : HMACSHA256
+    {
+        /// <summary>只將當次借用的認證子 key 交由基底複製，外層仍負責清零原陣列。</summary>
+        /// <param name="key">當次 32-byte 認證子 key，不保存 caller 陣列或跨操作共用 instance。</param>
+        internal FrameworkCompatibleHmacSha256(byte[] key) : base(key) { }
+    }
+#endif
 
     /// <summary>拒絕空白、非canonical padding與錯長度的base64；驗證失敗自行清零尚未移交的陣列。</summary>
     /// <param name="text">已由封包上限限制的部位字串。</param>

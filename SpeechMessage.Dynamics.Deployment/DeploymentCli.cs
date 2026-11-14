@@ -9,6 +9,8 @@
  * 舊plan/apply/verify/export/rollback/smoke則載入固定registration manifest及必要Plugin PE，
  * 委派DeploymentEngine，保留原P0公開語法、trace/push設定佔位與安全驗證。
  * verify有metadata差異回1，只有秘密佔位尚未比對時回3，不因零操作假稱秘密或推播已驗證。
+ * smoke 將本次操作的 output.WriteLine 借給核心，只發布已驗證的唯一 PluginFileVersion 行；
+ * 版本缺失或格式歧義回失敗，不輸出原始 trace，也不在靜態欄位保留版本或 writer。
  *
  * 擁有權與隔離：一次命令最多一個OrganizationLease，寫入命令另持本機同組織OS檔案鎖；
  * using先歸還client再釋放寫鎖。所有命令資料與輸出目錄均為本次操作，沒有跨命令SDK、
@@ -206,7 +208,7 @@ internal static class DeploymentCli
                     return 0;
                 case "smoke":
                 {
-                    var succeeded = engine.SmokeAsync(command.Scenario!, cancellationToken)
+                    var succeeded = engine.SmokeAsync(command.Scenario!, output.WriteLine, cancellationToken)
                         .GetAwaiter().GetResult();
                     output.WriteLine(succeeded ? "Smoke scenario passed." : "Smoke scenario failed.");
                     return succeeded ? 0 : 1;

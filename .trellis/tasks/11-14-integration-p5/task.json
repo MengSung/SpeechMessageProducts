@@ -21,7 +21,8 @@
   "children": [
     "11-14-p5-00-startup-preflight",
     "11-14-p4-h1-payment-currency-consistency",
-    "11-14-p5-01-plugin-shell"
+    "11-14-p5-01-plugin-shell",
+    "11-14-p5-update-rollback"
   ],
   "parent": null,
   "relatedFiles": [],

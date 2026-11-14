@@ -11,6 +11,8 @@
  * - 將清單、組件 PE 與組織中的受管理 metadata 作離線式比對，建立沒有憑證值的 plan。 此方法只讀取組件、類型、訊息、篩選器與步驟，不讀取業務記錄，也不解析秘密。
  * - 建立可由人工審核的 Markdown 摘要。輸出只列固定欄位、operation、hash 與佔位名稱， 不列出 unsecure／secure 設定實值、帳密、LINE token 或 userId。
  * - member 安全設定僅在 apply 寫入時組成單欄 tokenKey JSON，建立與更新共用轉換；trace／push 保持原契約，秘密不進 plan、export 或快取。
+ * - smoke 版本輸出只接受本次 task 關聯的唯一診斷追蹤，驗證完整 PluginFileVersion 行後才透過操作區域回呼發布；
+ *   原始追蹤與回呼不存入欄位，拒絕缺失、重複或非正規版本，task／timer 仍由原 finally／using 清理。
  * 主要操作入口包含 Plan、Markdown、Apply、WriteExport、Rollback、SmokeAsync、Inspect、CreateAssembly；其餘入口見下方成員契約。
  *
  * 使用邊界與維護：
@@ -322,7 +324,22 @@ internal sealed class DeploymentEngine
     /// <param name="ct">呼叫端取消 token。</param>
     /// <returns>追蹤內容符合固定情境時為 true；未到達或不符合時為 false。</returns>
     /// <exception cref="OperationCanceledException">呼叫端主動取消等待。</exception>
-    public async Task<bool> SmokeAsync(string scenario, CancellationToken ct)
+    public Task<bool> SmokeAsync(string scenario, CancellationToken ct) =>
+        SmokeAsync(scenario, null, ct);
+
+    /// <summary>
+    /// 執行相同有界 smoke，並選擇性發布唯一且正規的 PluginFileVersion 行。
+    /// 提供回呼時必須有四段 0～65535 的 ASCII 正規版本及成功標記，否則回 false 且不發布。
+    /// 不提供回呼時保留舊版追蹤尚無版本欄位的 bool 行為，供既有呼叫端相容使用。
+    /// 回呼僅借用至本次操作完成，不存入欄位；原始 trace 不傳出，回呼失敗仍經 finally 刪除 task，
+    /// 真實例外由 CLI 共用入口處理。三分鐘期限、兩秒輪詢及 caller 取消分類與原入口相同。
+    /// </summary>
+    /// <param name="scenario">只允許 P0 trace 或 push 情境。</param>
+    /// <param name="publishVersion">只接收完整安全版本行的操作區域回呼；null 保留舊 bool 驗證。</param>
+    /// <param name="ct">本次操作呼叫端的取消訊號。</param>
+    /// <returns>成功標記及所需版本驗證皆通過為 true；逾時或驗證失敗為 false。</returns>
+    /// <exception cref="OperationCanceledException">呼叫端取消，仍完成 task 清理。</exception>
+    public async Task<bool> SmokeAsync(string scenario, Action<string>? publishVersion, CancellationToken ct)
     {
         if (scenario is not ("p0-ping-trace" or "p0-ping-push"))
         {
@@ -346,7 +363,29 @@ internal sealed class DeploymentEngine
                 var trace = ReadSmokeTrace(taskId);
                 if (trace is not null)
                 {
-                    return IsExpectedSmokeTrace(trace, scenario);
+                    if (!IsExpectedSmokeTrace(trace, scenario))
+                    {
+                        return false;
+                    }
+
+                    if (publishVersion is not null)
+                    {
+                        var versionLine = ReadSmokeVersionLine(trace);
+                        if (versionLine is null)
+                        {
+                            return false;
+                        }
+
+                        ct.ThrowIfCancellationRequested();
+                        if (timeout.IsCancellationRequested)
+                        {
+                            return false;
+                        }
+
+                        publishVersion(versionLine);
+                    }
+
+                    return true;
                 }
 
                 try
@@ -803,8 +842,11 @@ internal sealed class DeploymentEngine
     }
 
     /// <summary>
-    /// 只依 smoke task 找到的 async operation correlation id 查 Plugin trace。
-    /// 尚無對應記錄時回傳 null，讓外層依有限輪詢期限繼續等待。
+    /// 只依 smoke task 找到的非空 async operation correlation id 查固定診斷型別的 Plugin trace。
+    /// 不同作業可共用 correlation；先驗證作業正式 ID，再讓每個 correlation 僅查一次，
+    /// 不刪除或合併作業資料，也不按版本或訊息內容消除真正不同追蹤 ID 的衝突。
+    /// 尚無對應記錄時回傳 null；多筆非空診斷追蹤拒絕任選，以免更新回復版本來源不明確。
+    /// 所有文字只存於本次呼叫堆疊，不進快取、export 或日誌。
     /// </summary>
     /// <param name="taskId">本次建立且最後必定刪除的 task ID。</param>
     /// <returns>已出現的非空追蹤文字；等待中尚未出現時為 null。</returns>
@@ -815,24 +857,86 @@ internal sealed class DeploymentEngine
             ColumnSet = new ColumnSet("correlationid"),
             Criteria = Equal("regardingobjectid", taskId)
         }).Entities, "smoke 非同步作業");
+        string? result = null;
+        var inspectedCorrelations = new HashSet<Guid>();
         foreach (var operation in asyncOperations)
         {
             var correlationId = operation.GetAttributeValue<Guid>("correlationid");
+            if (correlationId == Guid.Empty || !inspectedCorrelations.Add(correlationId))
+            {
+                continue;
+            }
+
             var traces = RequireUniqueRowsById(service.RetrieveMultiple(new QueryExpression(TraceLogicalName)
             {
                 ColumnSet = new ColumnSet("messageblock"),
-                Criteria = Equal("correlationid", correlationId)
+                Criteria = And(Equal("correlationid", correlationId),
+                    Equal("typename", "SpeechMessage.Dynamics.Plugins.Diagnostics.DiagnosticsPingPlugin"))
             }).Entities, "smoke Plugin 追蹤");
-            var trace = traces
-                .Select(row => row.GetAttributeValue<string>("messageblock"))
-                .FirstOrDefault(message => !string.IsNullOrEmpty(message));
-            if (trace is not null)
+            foreach (var trace in traces.Select(row => row.GetAttributeValue<string>("messageblock")))
             {
-                return trace;
+                if (string.IsNullOrEmpty(trace))
+                {
+                    continue;
+                }
+
+                if (result is not null)
+                {
+                    throw new InvalidDataException("Smoke 診斷追蹤不唯一，無法判定本次版本。");
+                }
+
+                result = trace;
             }
         }
 
-        return null;
+        return result;
+    }
+
+    /// <summary>
+    /// 將不可信追蹤縮減成唯一完整版本行；以 ordinal 搜尋欄位名稱並拒絕第二次出現，
+    /// 禁止前綴、重複行或偽造欄位被忽略。只允許 LF／CRLF 行界，不能 trim 控制字元或秘密後綴。
+    /// 值最多 23 字元，Version 解析後須與四段正規輸出逐字相等且每段不超過 UInt16；
+    /// 因此符號、空白、前導零、非 ASCII 數字、額外段數及注入內容均無法發布。
+    /// </summary>
+    /// <param name="trace">只屬本次已關聯診斷執行的追蹤文字，不持有至呼叫之外。</param>
+    /// <returns>新建的安全版本行；缺失或任何歧義皆回 null，不回傳原文。</returns>
+    private static string? ReadSmokeVersionLine(string trace)
+    {
+        const string name = "PluginFileVersion";
+        const string prefix = name + "=";
+        var start = trace.IndexOf(name, StringComparison.Ordinal);
+        if (start < 0 ||
+            (start > 0 && trace[start - 1] != '\n') ||
+            trace.IndexOf(name, start + name.Length, StringComparison.Ordinal) >= 0)
+        {
+            return null;
+        }
+
+        var newline = trace.IndexOf('\n', start);
+        var end = newline < 0 ? trace.Length : newline;
+        if (newline >= 0 && end > start && trace[end - 1] == '\r')
+        {
+            end--;
+        }
+
+        var line = trace.AsSpan(start, end - start);
+        if (!line.StartsWith(prefix, StringComparison.Ordinal))
+        {
+            return null;
+        }
+
+        var value = line[prefix.Length..];
+        if (value.Length is < 7 or > 23 ||
+            !Version.TryParse(value, out var version) ||
+            version.Revision < 0 ||
+            version.Major > ushort.MaxValue || version.Minor > ushort.MaxValue ||
+            version.Build > ushort.MaxValue || version.Revision > ushort.MaxValue)
+        {
+            return null;
+        }
+
+        var canonical = version.ToString(4);
+        return value.SequenceEqual(canonical.AsSpan()) ? prefix + canonical : null;
     }
 
     /// <summary>只以固定成功標記判定本次 smoke；不輸出或保存追蹤原文，推播另須具備成功狀態。</summary>

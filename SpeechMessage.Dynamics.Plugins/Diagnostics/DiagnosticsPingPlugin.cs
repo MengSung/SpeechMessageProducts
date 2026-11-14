@@ -4,6 +4,8 @@
  * 目的與定位：trace/push及P2-11 member完整通知鏈的沙箱診斷外殼；只保存不可變註冊設定，執行內容及傳輸資源不得跨執行保留。 Core 擁有每次 HTTP 訊息及十秒逾時；外掛只追蹤安全欄位並在邊界重新拋出真正失敗。
  *
  * 主要功能與流程：
+ * 追蹤 Plugin 自身 FileVersion 供更新／回復比對；FrameworkFileVersion 另表示 mscorlib，
+ * 兩者均只讀固定組件屬性，不讀設定或憑證，也不保存執行結果。
  * 本檔宣告 DiagnosticsPingPlugin。
  * - 只包含固定資源的唯讀表，不承載教會、使用者、token 或執行內容。
  * - 註冊設定的不可變模式；沙箱可重用外掛，但不得寫入此次 Execute 的狀態。
@@ -127,6 +129,7 @@ public sealed class DiagnosticsPingPlugin : IPlugin
             if (context.Depth > 1) return;
             tracing.Trace("P0-PING OK");
             tracing.Trace("Assembly={0}", typeof(DiagnosticsPingPlugin).Assembly.FullName);
+            tracing.Trace("PluginFileVersion={0}", typeof(DiagnosticsPingPlugin).Assembly.GetCustomAttribute<AssemblyFileVersionAttribute>()?.Version);
             tracing.Trace("FrameworkFileVersion={0}", typeof(object).Assembly.GetCustomAttribute<AssemblyFileVersionAttribute>()?.Version);
             tracing.Trace("EnvironmentVersion={0}", Environment.Version.ToString());
             var key = new TextKey("Common.Diagnostics.Ping");

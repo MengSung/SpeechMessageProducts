@@ -1,0 +1,12 @@
+{
+  "id": "p5-update-rollback",
+  "title": "P5 更新回復前置",
+  "status": "in_progress",
+  "complexity": "L+",
+  "risk": "medium",
+  "domain": "backend",
+  "currentPhase": "implementation",
+  "nextAction": "隔離CAS域卸載CSP清理失敗，修復後完整守門",
+  "createdAt": "2026-11-14T11:34:57.421387+08:00",
+  "branch": "1.0.0.11.Integration.P5.Worktree"
+}

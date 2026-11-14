@@ -1,0 +1,4 @@
+{"file": ".trellis/spec/backend/plugin-shadow-contract.md", "reason": "外殼、Shadow、通知隔離與有界序列化契約"}
+{"file": ".trellis/spec/backend/plugin-packaging-contract.md", "reason": "net462與FileVersion打包及部分信任驗證"}
+{"file": ".trellis/spec/backend/deployment-contract.md", "reason": "smoke關聯查詢、秘密與finally清理"}
+{"file": ".trellis/spec/backend/file-documentation-contract.md", "reason": "繁中檔首與UTF8 CRLF交付契約"}

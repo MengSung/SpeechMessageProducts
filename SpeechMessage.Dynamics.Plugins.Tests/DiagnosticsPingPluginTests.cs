@@ -5,6 +5,8 @@
  * 傳輸及服務參考不跨執行保留。
  *
  * 主要功能與流程：
+ * 以 Plugin 與 mscorlib 的實際屬性分別核對版本追蹤，避免把 Framework 版本當成部署版本；
+ * 注入合成 push 後確認版本輸出不夾帶憑證，且回應內容已明確釋放。
  * 本檔宣告 DiagnosticsPingPluginTests、RejectingContext、IsolationHandler、DrainContent、Fixture、Handler、TrackedContent。
  * - 只在測試中使用的合成憑證，不對應任何 LINE channel。
  * - 保護部署外殼只能以使用者依 D21 核定的 .NET Framework 4.6.2 為目標； 直接讀取測試實際載入的 Plugin 組件屬性，避免只看專案設定或測試專案本身而產生假綠燈。
@@ -25,6 +27,7 @@ using System.Globalization;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
+using System.Reflection;
 using System.Runtime.Versioning;
 using System.Threading;
 using System.Threading.Tasks;
@@ -59,6 +62,29 @@ public sealed class DiagnosticsPingPluginTests
             .Cast<TargetFrameworkAttribute>().Single();
 
         Assert.Equal(".NETFramework,Version=v4.6.2", attribute.FrameworkName);
+    }
+
+    /// <summary>
+    /// 更新／回復判定必須來自實際載入的 Plugin 組件，而非伺服器 mscorlib。
+    /// 合成 push 憑證與收件者不得出現在 trace；真 Core 僅使用本案例 handler，
+    /// Execute 返回後回應已釋放，fixture Dispose 清除 trace 並關閉 HTTP owner。
+    /// </summary>
+    [Fact]
+    public void Trace_PluginFileVersion_ComesFromPluginAssembly()
+    {
+        using var fixture = new Fixture();
+        fixture.Create().Execute(fixture.Provider.Object);
+        var ownVersion = typeof(DiagnosticsPingPlugin).Assembly.GetCustomAttribute<AssemblyFileVersionAttribute>()!.Version;
+        var frameworkVersion = typeof(object).Assembly.GetCustomAttribute<AssemblyFileVersionAttribute>()!.Version;
+        var ownTrace = Assert.Single(fixture.Traces.Where(value => value.StartsWith("PluginFileVersion=", StringComparison.Ordinal)));
+        Assert.Equal("PluginFileVersion=" + ownVersion, ownTrace);
+        Assert.NotEqual(frameworkVersion, ownVersion);
+        Assert.Contains("FrameworkFileVersion=" + frameworkVersion, fixture.Traces);
+        var trace = string.Join("\n", fixture.Traces);
+        Assert.DoesNotContain(Token, trace, StringComparison.Ordinal);
+        Assert.DoesNotContain(UserId, trace, StringComparison.Ordinal);
+        Assert.Equal(1, fixture.Handler.Calls);
+        Assert.True(fixture.Handler.ContentDisposed);
     }
 
     /// <summary>trace 模式不得送 HTTP；斷言標記、組件、執行環境、觸發事件及兩語系實際取字結果。</summary>
