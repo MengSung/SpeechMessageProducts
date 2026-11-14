@@ -3464,6 +3464,26 @@
           "count": 0
         }
       ]
+    },
+    {
+      "project": "tools/LegacyGolden/LegacyGolden.csproj",
+      "count": 1,
+      "files": [
+        {
+          "path": "tools/LegacyGolden/PluginHarness/CompileMatrix.cs",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "project": "tools/LegacyGolden/PluginHarness/PluginHarness.csproj",
+      "count": 1,
+      "files": [
+        {
+          "path": "tools/LegacyGolden/PluginHarness/CompileMatrix.cs",
+          "count": 1
+        }
+      ]
     }
   ]
 }

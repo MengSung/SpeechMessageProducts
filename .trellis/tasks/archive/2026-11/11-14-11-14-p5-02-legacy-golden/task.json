@@ -3,7 +3,7 @@
   "name": "11-14-p5-02-legacy-golden",
   "title": "P5-02 舊程式黃金資料產生器",
   "description": "",
-  "status": "in_progress",
+  "status": "completed",
   "dev_type": null,
   "scope": null,
   "package": null,
@@ -11,7 +11,7 @@
   "creator": "Codex",
   "assignee": "Codex",
   "createdAt": "2026-11-14",
-  "completedAt": null,
+  "completedAt": "2026-11-14",
   "branch": null,
   "base_branch": "1.0.0.11.Integration.P5.Worktree",
   "worktree_path": null,
@@ -21,6 +21,6 @@
   "children": [],
   "parent": "11-14-integration-p5",
   "relatedFiles": [],
-  "notes": "P5-02未驗收。88c4c6c9依D5-3建立PresentRecord expected.json（basis=legacy-live-only），四個情境逐筆附舊檔名與行號；:75寫死LINE收件識別，依D5-18不跑舊步驟第一輪，沒有legacy.json、沒有D365／LINE操作。工具覆蓋率83.47%、矩陣0/29/0；ExpectedGoldenTests雙目標35/35通過，固定guard未完成，不推送。",
+  "notes": "P5-02於2026-11-14 18:45 Asia/Taipei (UTC+08:00)重新驗收通過。依D5-3／D5-18採legacy-live-only閱讀對照，PresentRecord沒有legacy.json；工具覆蓋率83.47%、矩陣36個專案／29個入口，ExpectedGoldenTests雙目標35/35、完整Release 4926項及固定guard全通過。驗收提交後才推送，未啟動P5-03。",
   "meta": {}
 }
