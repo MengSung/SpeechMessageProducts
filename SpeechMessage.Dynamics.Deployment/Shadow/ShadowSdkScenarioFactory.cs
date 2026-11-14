@@ -39,6 +39,8 @@ internal sealed record ShadowSdkBinding(string Entrypoint, string ChurchAlias, s
 {
     /// <summary>當下正式註冊為同步的 step 與實際型別，由 CLI metadata 核對提供，不讀情境旗標。</summary>
     public IReadOnlyDictionary<Guid, string> SynchronousStepTypes { get; init; } = new Dictionary<Guid, string>();
+    /// <summary>受審盤點明確確認所有舊入口都沒有 token 相依，不能由空 tokenFields 自動推定。</summary>
+    public bool TokenNotRequired { get; init; }
 }
 
 /// <summary>整案準備成功才發布的配對；Definition 與 Source 必須在同一命令使用，不得跨組織快取。</summary>
@@ -124,6 +126,11 @@ internal static class ShadowSdkScenarioFactory
         foreach (var token in binding.TokenFields)
             if (!seeds.Any(seed => seed.Alias == token.Alias) ||
                 (message == "Create" && token.Alias == targetAlias)) throw Invalid();
+        var tokens = binding.TokenFields.Select(token =>
+        {
+            var entity = seeds.Single(seed => seed.Alias == token.Alias).Record.LogicalName;
+            return token with { MaximumLength = metadata.TokenMaximumLength(entity, token.Attribute) };
+        }).ToArray();
 
         var observations = new List<ShadowObservation>();
         var selectors = new HashSet<(string Entity, string Attribute, string Parent)>();
@@ -159,7 +166,7 @@ internal static class ShadowSdkScenarioFactory
             new HashSet<string>(file.Volatile, StringComparer.Ordinal)) { Basis = file.Basis };
         var source = new ShadowSdkScenario(seeds.AsReadOnly(), new ShadowSdkTrigger(message, targetAlias, patch),
             Array.AsReadOnly(binding.LegacyStepIds.ToArray()), Array.AsReadOnly(binding.ShadowStepIds.ToArray()),
-            Array.AsReadOnly(binding.ShadowTypes.ToArray()), Array.AsReadOnly(binding.TokenFields.ToArray()),
+            Array.AsReadOnly(binding.ShadowTypes.ToArray()), Array.AsReadOnly(tokens),
             binding.HasUnconditionalHardcodedToken)
         {
             PrimaryIdAttributes = new ReadOnlyDictionary<string, string>(seeds.Select(seed => seed.Record.LogicalName)
@@ -169,7 +176,8 @@ internal static class ShadowSdkScenarioFactory
             ReferenceAliases = new ReadOnlyDictionary<string, IReadOnlyDictionary<string, string>>(links),
             TriggerReferenceAliases = patchLinks,
             SynchronousStepTypes = new ReadOnlyDictionary<Guid, string>(
-                new Dictionary<Guid, string>(binding.SynchronousStepTypes))
+                new Dictionary<Guid, string>(binding.SynchronousStepTypes)),
+            TokenNotRequired = binding.TokenNotRequired
         };
         return new ShadowSdkPreparedScenario(definition, source);
     }

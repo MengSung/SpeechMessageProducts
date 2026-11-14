@@ -49,5 +49,6 @@
   "SpeechMessage.Payments.Tests/Golden/Sinopac/allot-query-response.json": "P4-01 永豐撥款查詢 API 外形的合成樣本，依唯讀舊版 QryAllot／AllotMain／AllotDetail 欄位保留回應結構，供後續整合與人工核對；識別、帳戶、明細、金額及日期均為固定合成值，不含真實商店或財務紀錄。",
   "SpeechMessage.Payments.Tests/Golden/Sinopac/allot-legacy-cases.json": "P4-01 舊撥款查詢與收費單回寫行為的合成案例表，明列付款方式、四個訂單欄位、收費日／今天、撥款回應、查詢區間及四個 new_allot_* 預期值；包含多筆命中最後一筆勝出、負數餘額、未支援方式與空白輸入差異，不代表實際交易，禁止加入真實識別或憑證。",
   "SpeechMessageProducts.GoodShepherd.Core.Tests/Golden/Legacy/attendance/scenarios.json": "P5-02 離線舊 attendance 行為的四筆合成情境，供閱讀對照與後續影子比對共用；不含實機資料、LINE token、LINE ID 或個資，不得由實機輸出自動覆寫。 本檔由本包固定提交，內容只代表合成資料契約，不是舊程式實機執行證據，也不得包含任何可用認證資料。",
-  "SpeechMessageProducts.GoodShepherd.Core.Tests/Golden/Legacy/attendance/expected.json": "P5-02 PresentRecord D5-3 閱讀對照的受限期望投影；basis 明列為 reading，所有預期效果只保留合成 alias 與安全投影，declaredDifferences 逐筆引用舊檔名及行號。因 D5-18 尚未完成舊入口實跑，本檔不是 legacy.json，也不含真實 LINE ID、Token、訊息原文或個資。"
+  "SpeechMessageProducts.GoodShepherd.Core.Tests/Golden/Legacy/attendance/expected.json": "P5-02 PresentRecord D5-3 閱讀對照的受限期望投影；basis 明列為 reading，所有預期效果只保留合成 alias 與安全投影，declaredDifferences 逐筆引用舊檔名及行號。因 D5-18 尚未完成舊入口實跑，本檔不是 legacy.json，也不含真實 LINE ID、Token、訊息原文或個資。",
+  "d365/registration/legacy-token-inventory.json": "P5-03a D5-18 舊入口 token 受審盤點的固定版本控管輸入；逐一列出模組、舊組件／型別、token policy、受控 Markdown 證據及 owned seed 欄位，不保存 token、秘密或可執行原始碼。缺漏、未釐清或必走寫死 token 的入口必須在舊輪寫入前拒絕；格式通過不等於已閱讀舊程式，內容由工作包盤點與審查維護。"
 }

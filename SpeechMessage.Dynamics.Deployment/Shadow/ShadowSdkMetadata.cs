@@ -77,6 +77,22 @@ internal sealed class ShadowSdkMetadata
             !lookup.Targets.Contains(parentEntity, StringComparer.Ordinal)) throw Invalid();
     }
 
+    /// <summary>盤點 token 欄位必須是正式可更新的文字且不是主鍵／LINE ID；回傳容量供注入前拒絕過長秘密。</summary>
+    internal int TokenMaximumLength(string entity, string attribute)
+    {
+        var metadata = GetEntity(entity);
+        var field = metadata.Attributes.SingleOrDefault(field => field.LogicalName == attribute);
+        var maximum = field switch
+        {
+            StringAttributeMetadata text => text.MaxLength,
+            MemoAttributeMetadata memo => memo.MaxLength,
+            _ => null
+        };
+        if (attribute == metadata.PrimaryIdAttribute || attribute == "new_lineid" ||
+            field?.IsValidForUpdate != true || maximum is not (> 0 and <= 1_048_576)) throw Invalid();
+        return Math.Min(maximum.Value, 8192);
+    }
+
     /// <summary>
     /// 驗證所有指定觀察欄位存在且唯一，不要求它們可寫；回傳新的欄位陣列。
     /// 只檢查 schema，欄位讀取及權限仍由受控 observe 路徑負責。

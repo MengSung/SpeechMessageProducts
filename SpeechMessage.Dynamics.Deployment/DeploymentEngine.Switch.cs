@@ -22,7 +22,11 @@ using System.Runtime.ExceptionServices;
 namespace SpeechMessage.Dynamics.Deployment;
 
 /// <summary>盤點核定且由本次 runner 建立的 token 欄位，不保存秘密值或任意輸入路徑。</summary>
-internal sealed record LegacyTokenTarget(string Entity, Guid Id, string Attribute);
+internal sealed record LegacyTokenTarget(string Entity, Guid Id, string Attribute)
+{
+    /// <summary>metadata 核定的文字容量，注入前檢查以免截斷成其他 token 或依賴伺服器報錯。</summary>
+    public int MaximumLength { get; init; } = 8192;
+}
 
 /// <summary>
 /// 程序內的舊輪核定範圍；只能由讀完盤點且擁有 seed 的 runner 建立，不能由 CLI JSON 反序列化。
@@ -30,7 +34,11 @@ internal sealed record LegacyTokenTarget(string Entity, Guid Id, string Attribut
 /// </summary>
 internal sealed record LegacyRoundContext(Guid TestChurchId, Guid TestContactId,
     IReadOnlySet<(string Entity, Guid Id)> CreatedRecords, IReadOnlyList<LegacyTokenTarget> TokenTargets,
-    bool HasUnconditionalHardcodedToken);
+    bool HasUnconditionalHardcodedToken)
+{
+    /// <summary>明確受審且無 token 依賴，與 TokenTargets 非空互斥；不能以漏填欄位暗示安全。</summary>
+    public bool TokenNotRequired { get; init; }
+}
 
 /// <summary>單一命令引擎的切換分部，所有狀態與 SDK 資源仍由呼叫端命令唯一擁有。</summary>
 internal sealed partial class DeploymentEngine
@@ -173,11 +181,13 @@ internal sealed partial class DeploymentEngine
     private void ValidateLegacyRoundContext(LegacyRoundContext context)
     {
         if (context.TestChurchId == Guid.Empty || context.TestContactId == Guid.Empty || context.CreatedRecords is null ||
-            context.CreatedRecords.Count is 0 or > 64 || context.TokenTargets is null || context.TokenTargets.Count is 0 or > 32)
+            context.CreatedRecords.Count is 0 or > 64 || context.TokenTargets is null ||
+            context.TokenTargets.Count > 32 ||
+            (context.TokenNotRequired ? context.TokenTargets.Count != 0 : context.TokenTargets.Count == 0))
             throw InvalidSwitch();
         var targets = new HashSet<(string Entity, Guid Id, string Attribute)>();
         foreach (var target in context.TokenTargets)
-            if (target is null || target.Id == Guid.Empty || target.Id == context.TestChurchId || target.Id == context.TestContactId ||
+            if (target is null || target.MaximumLength is < 1 or > 8192 || target.Id == Guid.Empty || target.Id == context.TestChurchId || target.Id == context.TestContactId ||
                 string.IsNullOrWhiteSpace(target.Entity) || string.IsNullOrWhiteSpace(target.Attribute) || target.Entity.Length > 128 || target.Attribute.Length > 128 ||
                 target.Entity.Any(character => !char.IsAsciiLetterOrDigit(character) && character != '_') ||
                 target.Attribute.Any(character => !char.IsAsciiLetterOrDigit(character) && character != '_') ||
@@ -204,10 +214,14 @@ internal sealed partial class DeploymentEngine
         try
         {
             cancellationToken.ThrowIfCancellationRequested();
-            var token = secret("TestChannelToken");
-            if (string.IsNullOrWhiteSpace(token)) throw InvalidSwitch();
-            foreach (var target in context.TokenTargets)
-                service.Update(new Entity(target.Entity, target.Id) { [target.Attribute] = token });
+            if (!context.TokenNotRequired)
+            {
+                var token = secret("TestChannelToken");
+                if (string.IsNullOrWhiteSpace(token) || context.TokenTargets.Any(target => token.Length > target.MaximumLength))
+                    throw InvalidSwitch();
+                foreach (var target in context.TokenTargets)
+                    service.Update(new Entity(target.Entity, target.Id) { [target.Attribute] = token });
+            }
             foreach (var id in rows.Steps)
             {
                 cancellationToken.ThrowIfCancellationRequested();

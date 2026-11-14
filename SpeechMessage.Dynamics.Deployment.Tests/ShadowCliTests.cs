@@ -34,6 +34,64 @@ namespace SpeechMessage.Dynamics.Deployment.Tests;
 [Collection("Deployment working directory")]
 public sealed class ShadowCliTests
 {
+    /// <summary>完整真 CLI 先舊後新：盤點欄位只在舊輪由 Secrets 注入，兩輪 seed ID 不同、步驟互斥且最後停用。</summary>
+    /// <param name="withoutToken">受審入口無 token 依賴時不解析 TestChannelToken，也不能把缺盤點當無依賴。</param>
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void ShadowCli_ReviewedInventoryRunsLegacyThenShadow(bool withoutToken)
+    {
+        using var f = new CliFixture();
+        f.AddLegacyCase(withoutToken);
+        Assert.Equal(0, f.Run());
+        Assert.Collection(f.Service.RoundKinds, item => Assert.True(item), item => Assert.False(item));
+        Assert.Equal(2, f.Service.TriggerTargets.Distinct().Count());
+        Assert.Equal(withoutToken ? 0 : 1, f.TokenSecretReads);
+        f.AssertRestored();
+        Assert.DoesNotContain(f.Core.Service.Rows, row => row.LogicalName == "region");
+        var path = Assert.Single(Directory.GetFiles(Path.Combine(f.Core.Root, "artifacts", "shadow"), "*.md", SearchOption.AllDirectories));
+        var report = File.ReadAllText(path);
+        Assert.Contains("LegacyExecuted=true", report, StringComparison.Ordinal);
+        Assert.Contains("Passed=true", report, StringComparison.Ordinal);
+        Assert.DoesNotContain(Fixture.SecretValue, report, StringComparison.Ordinal);
+        Assert.All(Directory.GetFiles(f.ArtifactRoot, "*.json", SearchOption.AllDirectories),
+            file => Assert.DoesNotContain(Fixture.SecretValue, File.ReadAllText(file), StringComparison.Ordinal));
+    }
+
+    /// <summary>任一受審入口缺失、未釐清或必走寫死 token，或欄位不屬 owned seed，都必須在 trace／seed 寫入前拒絕。</summary>
+    /// <param name="fault">每案只破壞固定盤點的一個安全條件。</param>
+    [Theory]
+    [InlineData("missing-file")]
+    [InlineData("missing-entry")]
+    [InlineData("hardcoded")]
+    [InlineData("unresolved")]
+    [InlineData("wrong-assembly")]
+    [InlineData("shared-target")]
+    [InlineData("bad-field")]
+    [InlineData("duplicate-entry")]
+    public void ShadowCli_UnsafeLegacyInventoryRefusesBeforeWrites(string fault)
+    {
+        using var f = new CliFixture();
+        f.AddLegacyCase();
+        var path = Path.Combine(f.Core.Root, "d365", "registration", "legacy-token-inventory.json");
+        var data = JsonNode.Parse(File.ReadAllText(path))!;
+        if (fault == "missing-entry") data["entries"] = new JsonArray();
+        if (fault == "hardcoded") data["entries"]![0]!["tokenPolicy"] = "unconditional-hardcoded";
+        if (fault == "unresolved") data["entries"]![0]!["tokenPolicy"] = "unresolved";
+        if (fault == "wrong-assembly") data["entries"]![0]!["assembly"] = "Vendor.Wrong";
+        if (fault == "shared-target") data["entries"]![0]!["tokenFields"]![0]!["alias"] = "church-a";
+        if (fault == "bad-field") data["entries"]![0]!["tokenFields"]![0]!["attribute"] = "score";
+        if (fault == "duplicate-entry") data["entries"]!.AsArray().Add(data["entries"]![0]!.DeepClone());
+        File.WriteAllText(path, data.ToJsonString());
+        if (fault == "missing-file") File.Delete(path);
+        var before = f.Core.Service.Writes.Count;
+        Assert.Equal(1, f.Run());
+        Assert.Equal(before, f.Core.Service.Writes.Count);
+        Assert.Empty(f.Service.RoundKinds);
+        Assert.Equal(0, f.TokenSecretReads);
+        Assert.Equal(f.Connects, f.Releases);
+    }
+
     /// <summary>真正 CLI 必須將新列 Create 意圖以明確父 lookup 配對，不能要求預先知道新 GUID。</summary>
     [Fact]
     public void ShadowCli_RelatedCreateMatchesAliasAndCleansUnexpectedRealChildren()
@@ -358,6 +416,7 @@ public sealed class ShadowCliTests
         internal int Connects;
         internal int Releases;
         internal bool WrongIdentity;
+        internal int TokenSecretReads;
         internal string ArtifactRoot => Path.Combine(Core.Root, "artifacts", "d365");
         internal string ScenarioRoot => Path.Combine(Core.Root, "SpeechMessageProducts.GoodShepherd.Core.Tests", "Golden", "Legacy", "localization");
         internal string[] Arguments => ["shadow", "--org", Fixture.Organization, "--module", "localization", "--scenario-root", ScenarioRoot];
@@ -407,6 +466,51 @@ public sealed class ShadowCliTests
             File.WriteAllText(expectedPath, expected.ToJsonString());
         }
 
+        /// <summary>固定受審盤點與合成舊註冊一起建立；實際 source 僅供測試，不會加入正式 manifest 或對外送訊。</summary>
+        internal void AddLegacyCase(bool withoutToken = false)
+        {
+            var oldAssembly = new Entity("pluginassembly", Guid.NewGuid()) { ["name"] = "Vendor.Legacy", ["version"] = "1.0.0.0", ["isolationmode"] = new OptionSetValue(2) };
+            var oldType = new Entity("plugintype", Guid.NewGuid()) { ["typename"] = "Vendor.Legacy.Plugin", ["pluginassemblyid"] = oldAssembly.ToEntityReference(), ["isworkflowactivity"] = false };
+            var oldStep = new Entity("sdkmessageprocessingstep", Guid.NewGuid())
+            {
+                ["eventhandler"] = oldType.ToEntityReference(), ["name"] = "Synthetic legacy",
+                ["sdkmessageid"] = Core.Service.Rows.Single(row => row.LogicalName == "sdkmessage").ToEntityReference(),
+                ["sdkmessagefilterid"] = Core.Service.Rows.Single(row => row.LogicalName == "sdkmessagefilter").ToEntityReference(),
+                ["statecode"] = new OptionSetValue(1), ["statuscode"] = new OptionSetValue(2),
+                ["stage"] = new OptionSetValue(40), ["mode"] = new OptionSetValue(1), ["rank"] = 1
+            };
+            Core.Service.Seed(oldAssembly); Core.Service.Seed(oldType); Core.Service.Seed(oldStep);
+            var manifestPath = Path.Combine(Core.Root, "d365", "registration", "plugins.registration.json");
+            var registration = JsonNode.Parse(File.ReadAllText(manifestPath))!;
+            registration["assemblies"]![0]!["steps"]![0]!["legacy"]!.AsArray().Add(JsonNode.Parse(JsonSerializer.Serialize(new
+            { assembly = "Vendor.Legacy", type = "Vendor.Legacy.Plugin", stepId = oldStep.Id.ToString("D") })));
+            File.WriteAllText(manifestPath, registration.ToJsonString());
+            var scenarioPath = Path.Combine(ScenarioRoot, "scenarios.json");
+            var scenarios = JsonNode.Parse(File.ReadAllText(scenarioPath))!;
+            scenarios["cases"]![0]!["trigger"]!["type"] = "Vendor.Legacy.Plugin";
+            scenarios["cases"]![0]!["seed"]!.AsArray().Insert(2,
+                JsonNode.Parse("""{"alias":"token-config","entity":"region","fields":{"score":1}}"""));
+            File.WriteAllText(scenarioPath, scenarios.ToJsonString());
+            var expectedPath = Path.Combine(ScenarioRoot, "expected.json");
+            var expected = JsonNode.Parse(File.ReadAllText(expectedPath))!;
+            expected["basis"] = "legacy-live-only";
+            expected["cases"]![0]!["entrypoint"] = "Vendor.Legacy.Plugin";
+            File.WriteAllText(expectedPath, expected.ToJsonString());
+            Directory.CreateDirectory(Path.Combine(Core.Root, "wp-reports"));
+            File.WriteAllText(Path.Combine(Core.Root, "wp-reports", "synthetic-inventory.md"), "Synthetic source review only.");
+            File.WriteAllText(Path.Combine(Core.Root, "d365", "registration", "legacy-token-inventory.json"),
+                JsonSerializer.Serialize(new
+                {
+                    schemaVersion = 1,
+                    entries = new[] { new { module = "localization", assembly = "Vendor.Legacy", type = "Vendor.Legacy.Plugin",
+                        tokenPolicy = withoutToken ? "none" : "record-fields", evidence = "wp-reports/synthetic-inventory.md",
+                        tokenFields = withoutToken ? Array.Empty<object>() :
+                            new object[] { new { alias = "token-config", entity = "region", attribute = "new_channelaccesstoken" } } } }
+                }));
+            Service.LegacyStep = oldStep.Id;
+            Service.TokenRequired = !withoutToken;
+        }
+
         /// <summary>呼叫正式入口；秘密僅為本案例的常值，沒有磁碟設定或環境依賴。</summary>
         internal int Run(string[]? args = null, CancellationToken cancellationToken = default) =>
             DeploymentCli.Run(args ?? Arguments, this, Output, failure =>
@@ -418,8 +522,12 @@ public sealed class ShadowCliTests
                 "ShadowTestChurchId" => (WrongIdentity ? Guid.NewGuid() : Service.Church).ToString("D"),
                 "ShadowTestContactId" => Service.Contact.ToString("D"),
                 "TestLineUserId" => "synthetic-recipient",
+                "TestChannelToken" => ReadTestToken(),
                 _ => throw new InvalidOperationException("Unexpected secret request.")
             }, TimeSpan.Zero, cancellationToken);
+
+        /// <summary>只計數真命令在受控舊輪解析合成秘密，避免新輪或前置拒絕也取得 token。</summary>
+        private string ReadTestToken() { TokenSecretReads++; return Fixture.SecretValue; }
 
         /// <summary>合成 lease 由 CLI using 歸還；服務本身由 fixture 持有，不跨案例共用。</summary>
         public OrganizationLease Connect(string organization)
@@ -469,6 +577,10 @@ public sealed class ShadowCliTests
         internal bool DeleteRelatedIntent;
         internal int RealChildren;
         internal string RelatedReadFault = "";
+        internal Guid LegacyStep;
+        internal bool TokenRequired;
+        internal readonly List<bool> RoundKinds = [];
+        internal readonly List<Guid> TriggerTargets = [];
         internal Guid RequestId;
         internal int AsyncQueries;
         private Guid target;
@@ -503,12 +615,13 @@ public sealed class ShadowCliTests
             entity.GetType().GetProperty("PrimaryIdAttribute")!.SetValue(entity, primary);
             var parent = new LookupAttributeMetadata { LogicalName = "parentid", Targets = ["task"] };
             var score = new IntegerAttributeMetadata { LogicalName = "score", MinValue = 0, MaxValue = 100 };
-            foreach (var field in new AttributeMetadata[] { parent, score })
+            var token = new StringAttributeMetadata { LogicalName = "new_channelaccesstoken", MaxLength = 2048 };
+            foreach (var field in new AttributeMetadata[] { parent, score, token })
             {
                 field.GetType().GetProperty("IsValidForCreate")!.SetValue(field, true);
                 field.GetType().GetProperty("IsValidForUpdate")!.SetValue(field, true);
             }
-            entity.GetType().GetProperty("Attributes")!.SetValue(entity, new AttributeMetadata[] { new UniqueIdentifierAttributeMetadata { LogicalName = primary }, subject, parent, score });
+            entity.GetType().GetProperty("Attributes")!.SetValue(entity, new AttributeMetadata[] { new UniqueIdentifierAttributeMetadata { LogicalName = primary }, subject, parent, score, token });
             return new RetrieveEntityResponse { Results = { ["EntityMetadata"] = entity } };
         }
 
@@ -521,6 +634,17 @@ public sealed class ShadowCliTests
                 target = id;
                 core.Service.Rows.Single(row => row.LogicalName == "task" && row.Id == id)["activityid"] = id;
                 Triggers++;
+                if (LegacyStep != Guid.Empty)
+                {
+                    var legacy = core.Service.Rows.Single(row => row.Id == LegacyStep).GetAttributeValue<OptionSetValue>("statecode").Value == 0;
+                    var enabledNew = core.Service.Rows.Where(row => row.LogicalName == "sdkmessageprocessingstep" && row.Id != LegacyStep)
+                        .Any(row => row.GetAttributeValue<OptionSetValue>("statecode").Value == 0);
+                    Assert.NotEqual(legacy, enabledNew);
+                    if (legacy && TokenRequired)
+                        Assert.Equal(Fixture.SecretValue, core.Service.Rows.Single(row => row.LogicalName == "region").GetAttributeValue<string>("new_channelaccesstoken"));
+                    RoundKinds.Add(legacy);
+                    TriggerTargets.Add(id);
+                }
                 for (var index = 0; index < RealChildren; index++)
                     core.Service.Create(new Entity("region", Guid.NewGuid()) { ["score"] = 7, ["parentid"] = new EntityReference("task", id) });
                 if (FailTrigger) throw Failure;
@@ -544,6 +668,13 @@ public sealed class ShadowCliTests
         public EntityCollection RetrieveMultiple(QueryBase query)
         {
             var expression = Assert.IsType<QueryExpression>(query);
+            if (expression.EntityName == "plugintype" && expression.ColumnSet.Columns.Contains("isworkflowactivity"))
+            {
+                var columns = expression.ColumnSet;
+                expression.ColumnSet = new ColumnSet("typename", "pluginassemblyid");
+                try { return core.Service.RetrieveMultiple(expression); }
+                finally { expression.ColumnSet = columns; }
+            }
             if (expression.EntityName == "region" && expression.Criteria.Conditions.Single().AttributeName == "parentid")
             {
                 Assert.Equal(65, expression.TopCount);
@@ -564,8 +695,8 @@ public sealed class ShadowCliTests
                 AsyncQueries++;
                 Assert.False(Synchronous);
                 Assert.Contains(expression.Criteria.Conditions, condition => condition.AttributeName == "regardingobjectid" && Equals(condition.Values[0], target));
-                var step = core.Service.Rows.Single(row => row.LogicalName == "sdkmessageprocessingstep");
-                Assert.Contains(expression.Criteria.Conditions, condition => condition.AttributeName == "owningextensionid" && Equals(condition.Values[0], step.Id));
+                var stepId = Assert.IsType<Guid>(expression.Criteria.Conditions.Single(condition => condition.AttributeName == "owningextensionid").Values[0]);
+                Assert.Contains(core.Service.Rows, row => row.LogicalName == "sdkmessageprocessingstep" && row.Id == stepId);
                 return new EntityCollection([new Entity("asyncoperation", Guid.NewGuid()) { ["correlationid"] = correlation, ["statecode"] = new OptionSetValue(3), ["statuscode"] = new OptionSetValue(30) }]);
             }
             if (Synchronous)

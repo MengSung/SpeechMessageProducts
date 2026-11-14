@@ -118,8 +118,8 @@ internal static class ShadowScenarioFiles
         return result.AsReadOnly();
     }
 
-    /// <summary>以唯讀串流先驗長度並限制實讀；文件由 Load 的 using 唯一擁有。</summary>
-    private static JsonDocument Read(string path)
+    /// <summary>固定來源呼叫端共用的有界 JSON 邊界；caller 先核對固定路徑，並以 using 唯一擁有回傳文件。</summary>
+    internal static JsonDocument Read(string path)
     {
         RejectLink(path);
         using var stream = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read);

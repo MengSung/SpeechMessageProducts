@@ -6,11 +6,11 @@
  * 主要功能與流程：連線前檢查固定模組目錄；連線後核對完整部署 PE／註冊狀態、
  * User Secrets 中的測試 GUID 與權威 LINE 綁定，再準備整批情境，唯讀匯出後執行。
  * 每輪由 runner 停用、核對、清理自己的記錄並還原追蹤；成功返回後才寫安全報告。
- * 信任與適用邊界：目前接通 new／reading／legacy-golden 的 CRUD 新輪；
+ * 信任與適用邊界：CRUD live 基準由固定受審 token 盤點接通先舊後新兩輪；
+ * new／reading／legacy-golden 仍只跑新輪，不假造舊證據。
  * 同步 trigger 依正式 mode 帶獨立 RequestId，不以情境 JSON 指定同步追蹤。
- * 關聯觀察以明列 lookup 及本輪 owned 父列配對；尚未接通舊入口受審 token 盤點
- * 及活動者一律在業務寫入前拒絕，
- * 不從 JSON 猜 token 安全性，也不冒稱已完成兩輪。這些仍屬 P5-03a 未完成項。
+ * 關聯觀察以明列 lookup 及本輪 owned 父列配對；缺盤點、未釐清／寫死 token
+ * 及未接通活動在業務寫入前拒絕，不從情境 JSON 猜 token 安全性。
  * 使用邊界與維護：主入口唯一擁有 lease、組織鎖及告警；本檔只借用 SDK、writer、
  * 秘密讀取委派及取消 token，不另建連線、快取、背景工作或 timer。候選只活於命令，
  * 報告各存唯一操作子目錄防同日覆寫；真正例外交主入口在歸還租約後回報。
@@ -52,7 +52,7 @@ internal static partial class DeploymentCli
     {
         var selected = cases.Where(item => item.LiveShadow).ToArray();
         if (selected.Length == 0 || selected.Any(item => item.IsActivity ||
-            item.Basis is not ("new" or "reading" or "legacy-golden")) ||
+            item.Basis is not ("new" or "reading" or "legacy-golden" or "legacy-live" or "legacy-live-only")) ||
             selected.Select(item => item.Basis).Distinct(StringComparer.Ordinal).Count() != 1)
             throw InvalidShadowCommand();
         var document = RegistrationManifestLoader.LoadDocument(repositoryRoot);
@@ -70,6 +70,12 @@ internal static partial class DeploymentCli
         void VerifyDisabled() => engine.ReadDisabledShadowSteps(document, command.Organization, command.Module!,
             () => LegacyRegistrationExporter.Export(service));
         var steps = engine.ReadDisabledShadowSteps(document, command.Organization, command.Module!, ReadLegacy);
+        var liveLegacy = selected[0].Basis is "legacy-live" or "legacy-live-only";
+        var legacySnapshot = liveLegacy ? ReadLegacy() : null;
+        if (liveLegacy && document.Assemblies.Any(assembly =>
+            assembly.Activities.Any(activity => activity.Module == command.Module))) throw InvalidShadowCommand();
+        var inventory = liveLegacy ? LegacyTokenInventory.Load(repositoryRoot, command.Module!,
+            steps.SelectMany(item => item.Step.Legacy).ToArray()) : Array.Empty<LegacyTokenRule>();
         var identity = ShadowTestIdentity.Verify(service,
             ResolveRequiredSecret(command.Organization, "TestLineUserId", secretReader),
             ResolveRequiredSecret(command.Organization, "ShadowTestChurchId", secretReader),
@@ -92,12 +98,27 @@ internal static partial class DeploymentCli
                 row.GetProperty("entity").GetString() == "contact" &&
                 !row.GetProperty("fields").EnumerateObject().Any()).ToArray();
             if (contacts.Length != 1) throw InvalidShadowCommand();
-            var binding = new ShadowSdkBinding(file.Entrypoint, churchAlias,
-                contacts[0].GetProperty("alias").GetString()!, [],
-                [step.Id], [step.Step.Type], [], false)
+            var legacySteps = liveLegacy ? step.Step.Legacy.Select(reference =>
+                legacySnapshot!.Steps.Single(row => row.Id == Guid.Parse(reference.StepId))).ToArray() :
+                Array.Empty<LegacyStepMetadata>();
+            if (liveLegacy && (legacySteps.Length == 0 || legacySteps.Any(row => row.Message != step.Step.Message ||
+                row.PrimaryEntity != step.Step.Entity))) throw InvalidShadowCommand();
+            var tokens = new List<ShadowSdkTokenField>();
+            foreach (var token in inventory.SelectMany(rule => rule.TokenFields).Distinct())
             {
-                SynchronousStepTypes = step.Step.Mode == "Synchronous"
-                    ? new Dictionary<Guid, string> { [step.Id] = step.Step.Type } : new Dictionary<Guid, string>()
+                var seed = file.Seed.EnumerateArray().Where(row => row.GetProperty("alias").GetString() == token.Alias).ToArray();
+                if (seed.Length != 1 || seed[0].GetProperty("entity").GetString() != token.Entity) throw InvalidShadowCommand();
+                tokens.Add(new ShadowSdkTokenField(token.Alias, token.Attribute));
+            }
+            var synchronous = legacySteps.Where(row => row.Mode == 0).ToDictionary(row => row.Id,
+                row => legacySnapshot!.Types.Single(type => type.Id == row.TypeId).TypeName);
+            if (step.Step.Mode == "Synchronous") synchronous.Add(step.Id, step.Step.Type);
+            var binding = new ShadowSdkBinding(file.Entrypoint, churchAlias,
+                contacts[0].GetProperty("alias").GetString()!, legacySteps.Select(row => row.Id).ToArray(),
+                [step.Id], [step.Step.Type], tokens.AsReadOnly(), false)
+            {
+                SynchronousStepTypes = synchronous,
+                TokenNotRequired = liveLegacy && inventory.All(rule => rule.NoTokenDependency)
             };
             prepared.Add(ShadowSdkScenarioFactory.Prepare(file, metadata, identity, binding));
         }

@@ -41,7 +41,11 @@ internal sealed record ShadowSdkSeed(string Alias, Entity Record);
 internal sealed record ShadowSdkTrigger(string Message, string TargetAlias, Entity Fields);
 
 /// <summary>盤點核定的 token 欄位；只指向自建 seed，值由 SwitchModule 同程序注入。</summary>
-internal sealed record ShadowSdkTokenField(string Alias, string Attribute);
+internal sealed record ShadowSdkTokenField(string Alias, string Attribute)
+{
+    /// <summary>正式 metadata 容量與工具八千字元上限之較小值；秘密注入前由 switch 核對。</summary>
+    public int MaximumLength { get; init; } = 8192;
+}
 
 /// <summary>
 /// 一個已解析且完成 metadata 核對的執行情境。Seed 範本的 Guid.Empty 表示本輪新建；
@@ -73,6 +77,8 @@ internal sealed record ShadowSdkScenario(IReadOnlyList<ShadowSdkSeed> Seeds, Sha
     /// <summary>正式註冊為同步的 step ID 到型別；只能包含本案核定舊／新 ID，缺項表示非同步。</summary>
     public IReadOnlyDictionary<Guid, string> SynchronousStepTypes { get; init; } =
         new Dictionary<Guid, string>();
+    /// <summary>只有固定受審盤點明確表示無 token 依賴時才能為 true；與非空 tokenFields 互斥。</summary>
+    public bool TokenNotRequired { get; init; }
 }
 
 /// <summary>測試組織的命令區域 runtime；所有資源均由同步 Run 與 round owner 限定。</summary>
@@ -146,6 +152,7 @@ internal sealed class ShadowSdkRuntime : IShadowScenarioRuntime
         private readonly string[] types;
         private readonly ShadowSdkTokenField[] tokenFields;
         private readonly bool hardcoded;
+        private readonly bool tokenNotRequired;
         private readonly Dictionary<string, string> primaryIds;
         private readonly Dictionary<Guid, string> synchronousSteps = new();
         private readonly Guid triggerRequestId = Guid.NewGuid();
@@ -243,6 +250,7 @@ internal sealed class ShadowSdkRuntime : IShadowScenarioRuntime
                     token.Attribute.Length > 128 || token.Attribute.Any(character => !char.IsAsciiLetterOrDigit(character) && character != '_') ||
                     (trigger.Message == "Create" && token.Alias == trigger.TargetAlias)) throw InvalidRuntime();
             hardcoded = source.HasUnconditionalHardcodedToken;
+            tokenNotRequired = source.TokenNotRequired;
             primaryIds = new Dictionary<string, string>(StringComparer.Ordinal);
             foreach (var entity in records.Select(item => item.Record.LogicalName)
                 .Concat(observations.Select(item => item.Entity)).Distinct(StringComparer.Ordinal))
@@ -345,8 +353,9 @@ internal sealed class ShadowSdkRuntime : IShadowScenarioRuntime
                     new HashSet<(string, Guid)>(attempted), tokenFields.Select(token =>
                     {
                         var record = records.Single(item => item.Alias == token.Alias).Record;
-                        return new LegacyTokenTarget(record.LogicalName, record.Id, token.Attribute);
-                    }).ToArray(), hardcoded);
+                        return new LegacyTokenTarget(record.LogicalName, record.Id, token.Attribute)
+                            { MaximumLength = token.MaximumLength };
+                    }).ToArray(), hardcoded) { TokenNotRequired = tokenNotRequired };
             }
         }
 
