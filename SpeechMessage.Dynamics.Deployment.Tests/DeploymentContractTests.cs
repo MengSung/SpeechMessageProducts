@@ -1554,7 +1554,8 @@ internal sealed class MemoryOrganization : IOrganizationService, IDisposable
             object? actual = row.Contains(c.AttributeName) ? row[c.AttributeName] : c.AttributeName == row.LogicalName + "id" ? row.Id : null;
             if (actual is EntityReference reference) actual = reference.Id;
             if (actual is OptionSetValue option) actual = option.Value;
-            return c.Operator switch { ConditionOperator.Equal => Equals(actual, c.Values[0]), ConditionOperator.In => c.Values.Contains(actual), _ => throw new NotSupportedException() };
+            return c.Operator switch { ConditionOperator.Equal => Equals(actual, c.Values[0]), ConditionOperator.In => c.Values.Contains(actual),
+                ConditionOperator.NotNull => actual is not null, ConditionOperator.NotEqual => actual is not null && !Equals(actual, c.Values[0]), _ => throw new NotSupportedException() };
         }).Concat(filter.Filters.Select(x => Matches(row, x)));
         return filter.FilterOperator == LogicalOperator.And ? values.All(x => x) : values.Any(x => x);
     }

@@ -129,6 +129,12 @@ internal static class DeploymentCli
             return 2;
         }
 
+        if (command.Name == "switch" && command.Target == "legacy")
+        {
+            output.WriteLine("Legacy activation requires a scoped shadow round with approved inventory and owned test records.");
+            return 2;
+        }
+
         if (cancellationToken.IsCancellationRequested)
         {
             output.WriteLine("Command cancelled.");
@@ -152,7 +158,7 @@ internal static class DeploymentCli
                 command = command with { InputPath = fullInputPath };
             }
 
-            using var writeLock = command.Name is "apply" or "rollback" or "smoke"
+            using var writeLock = command.Name is "apply" or "rollback" or "smoke" or "switch"
                 ? OrganizationWriteLock.Acquire(
                     organizationArtifactRoot,
                     writeLockTimeout ?? TimeSpan.FromMinutes(5),
@@ -163,6 +169,17 @@ internal static class DeploymentCli
             if (command.Name == "export-legacy")
                 return ExportLegacy(lease.Service, organizationArtifactRoot, output, cancellationToken);
             var operationRoot = CreateOperationDirectory(organizationArtifactRoot);
+            if (command.Name == "switch")
+            {
+                var document = RegistrationManifestLoader.LoadDocument(repositoryRoot);
+                var switchEngine = new DeploymentEngine(lease.Service, operationRoot, TimeProvider.System,
+                    name => ResolveRequiredSecret(command.Organization, name, secretReader));
+                switchEngine.SwitchModule(document, command.Organization, command.Module!, command.Target!,
+                    () => LegacyRegistrationExporter.Export(lease.Service, cancellationToken: cancellationToken),
+                    cancellationToken: cancellationToken);
+                output.WriteLine("Module switch completed.");
+                return 0;
+            }
             var manifest = RegistrationManifestLoader.Load(repositoryRoot);
             var assemblyPath = Path.Combine(repositoryRoot, "artifacts", "plugins", "SpeechMessage.Dynamics.Plugins.dll");
             var engine = new DeploymentEngine(lease.Service, operationRoot, TimeProvider.System,
@@ -349,7 +366,7 @@ internal static class DeploymentCli
     {
         command = default;
         var name = args[0];
-        if (name is not ("plan" or "apply" or "verify" or "export" or "export-legacy" or "rollback" or "smoke"))
+        if (name is not ("plan" or "apply" or "verify" or "export" or "export-legacy" or "rollback" or "smoke" or "switch"))
         {
             return false;
         }
@@ -357,11 +374,13 @@ internal static class DeploymentCli
         string? organization = null;
         string? inputPath = null;
         string? scenario = null;
+        string? module = null;
+        string? target = null;
         var seen = new System.Collections.Generic.HashSet<string>(StringComparer.Ordinal);
         for (var index = 1; index < args.Length; index++)
         {
             var option = args[index];
-            if (option is not ("--org" or "--plan" or "--from" or "--scenario") ||
+            if (option is not ("--org" or "--plan" or "--from" or "--scenario" or "--module" or "--to") ||
                 !seen.Add(option) ||
                 index + 1 >= args.Length ||
                 string.IsNullOrWhiteSpace(args[index + 1]) ||
@@ -385,14 +404,19 @@ internal static class DeploymentCli
                 case ScenarioOption:
                     scenario = value;
                     break;
+                case "--module": module = value; break;
+                case "--to": target = value; break;
             }
         }
 
+        if (name != "switch" && (module is not null || target is not null)) return false;
         var valid = name switch
         {
             "plan" or "verify" or "export" or "export-legacy" => organization is not null && inputPath is null && scenario is null,
             "apply" => organization is not null && HasExactlyTwoOptions(seen, OrganizationOption, PlanOption) && inputPath is not null && scenario is null,
             "rollback" => organization is not null && HasExactlyTwoOptions(seen, OrganizationOption, FromOption) && inputPath is not null && scenario is null,
+            "switch" => organization is not null && module is not null && target is "enabled" or "legacy" or "off" &&
+                seen.Count == 3 && seen.Contains(OrganizationOption) && seen.Contains("--module") && seen.Contains("--to"),
             "smoke" => organization is not null && HasExactlyTwoOptions(seen, OrganizationOption, ScenarioOption) && scenario is not null && inputPath is null,
             _ => false
         };
@@ -401,7 +425,7 @@ internal static class DeploymentCli
             return false;
         }
 
-        command = new ParsedCommand(name, organization!, inputPath, scenario);
+        command = new ParsedCommand(name, organization!, inputPath, scenario) { Module = module, Target = target };
         return true;
     }
 
@@ -532,6 +556,7 @@ internal static class DeploymentCli
     private static void WriteUsage(TextWriter output)
     {
         output.WriteLine("Commands: plan --org <name> | apply --org <name> --plan <file> | verify --org <name>");
+        output.WriteLine("          switch --org goodshepherdback --module <module> --to enabled|off");
         output.WriteLine("          export-legacy --org goodshepherdback (read-only; stops if legacy registrations are enabled)");
         output.WriteLine("          export --org <name> | rollback --org <name> --from <file>");
         output.WriteLine("          smoke --org <name> --scenario <p0-ping-trace|p0-ping-push>");
@@ -542,5 +567,11 @@ internal static class DeploymentCli
     }
 
     /// <summary>只包含已驗證的命令名稱與參數；不保留其他命令列文字。</summary>
-    private readonly record struct ParsedCommand(string Name, string Organization, string? InputPath, string? Scenario);
+    private readonly record struct ParsedCommand(string Name, string Organization, string? InputPath, string? Scenario)
+    {
+        /// <summary>切換的核定模組，不作資料存取授權。</summary>
+        public string? Module { get; init; }
+        /// <summary>切換目標；舊輪由程序內 runner 帶完整安全範圍才可執行。</summary>
+        public string? Target { get; init; }
+    }
 }
