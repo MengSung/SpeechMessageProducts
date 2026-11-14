@@ -148,3 +148,10 @@ F16 為分類誤判已釐清，撤回使用者處置需求；不需要使用者�
 - diagnostics最後唯讀核對：全組織trace查詢0，精確步驟／既有時間窗的作業1且state3/status30；步驟停用。原始安全計數C:\smv\p5-03a-trace-audit.log；未證明job殘留0，也未證實服務故障。
 - 依05A §7第3點待選：①建議由Codex限30分鐘唯讀診斷測試主機追蹤管線，同時續做P5-03b離線；②使用者協助取得測試主機相關事件記錄，Codex先做P5-03b；③提案將diagnostics實機驗收延至P7，核定前P5-03a仍不驗收。沒有要求例行重啟。
 - 本輪未推送；2026-11-15 03:50 Asia/Taipei (UTC+08:00)唯讀ls-remote核對遠端a653de0887d96c51de280ad06192dfa0dd42c68a。P5-02三小時工具修正維持在P5-03驗收後、P5-05前。
+
+
+## 2026-11-15 04:24 Asia/Taipei (UTC+08:00)：唯讀追蹤管線診斷
+
+未重跑 `enabled`、`smoke`、`off` 或任何實機寫入；使用臨時、未納入 repo 的唯讀查詢程式，查詢 `goodshepherdback` 自 2026-11-14 18:14:00 UTC 起的 `plugintracelog`，只輸出筆數、時間、型別、correlation 是否存在、訊息長度及固定 P0 標記存在與否，不輸出訊息內容或任何秘密。結果為 `traceCount=0`、`more=False`。
+
+這項結果與既有 `p5-03a-trace-audit.log` 的「精確步驟時間窗有 1 筆成功 async 作業、全組織 trace 為 0」一致；因此目前能排除「本工具唯讀查詢只漏掉該 correlation」作為唯一解釋，但仍不能判定是測試主機服務、Dataverse 追蹤管線或 Plugin 執行環境的哪一層造成。依 05A §7 第 3 點維持停止重試，P5-03a diagnostics 實機項目不勾選，P5-03 整包不驗收、不推送。
