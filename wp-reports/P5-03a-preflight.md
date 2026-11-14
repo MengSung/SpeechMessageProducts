@@ -75,6 +75,13 @@ SHA-256 `4AB26B858FA9B89CE64E8A997102529CDBE9D9CD2FB2DCEFAFC4E46519BCF812`。
 兩份證據都只在本機上述 artifacts 目錄；39 個 ActivityFeeds 步驟完全沒有啟停。
 F16 為分類誤判已釐清，撤回使用者處置需求；不需要使用者停用任何平台步驟。
 
+
+## 2026-11-14 23:02～23:16 Asia/Taipei (UTC+08:00)：diagnostics 實機回歸嘗試
+
+- 只讀 `export-legacy --org goodshepherdback` 回報啟用舊步驟 0、啟用舊流程 0，產生本機 ignored 證據 `legacy-20261114-150221-4580240-6d259a66744b4d81ae50394823156765.json`；沒有舊步驟或舊流程被變更。
+- 依固定順序執行 `switch --to enabled` → `smoke --scenario p0-ping-trace`；新版 step 啟用成功，但 smoke 在三分鐘有界等待後回報失敗，沒有把結果寫成通過，也沒有輸出追蹤內容。
+- 立即執行 `switch --to off` → `verify --org goodshepherdback`，兩者成功；`verify` 回報部署狀態符合清單。新版 step 已回到停用；CLI finally 未回報清理例外，但尚未以獨立查詢補證本次 task／trace 殘留為零。diagnostics 實機驗收仍未完成，需查明追蹤未送達原因後再重跑。
+
 ## 後續未完成
 
 - 受控 legacy switch 與 live 基準的受審 token 欄位盤點接線、推播意圖、外部修改摘要、映像接線與整合驗證；同步追蹤 RequestId 已離線接通，仍須實機查證。
