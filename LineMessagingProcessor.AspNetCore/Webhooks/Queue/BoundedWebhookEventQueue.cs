@@ -2,7 +2,7 @@
 檔案整體說明
 目的與定位：單一 Host 擁有的總量有界 Webhook queue，銜接 P3-02 claim 與 P3-06 scoped handler。
 主要功能與流程：依 channel／source 分區 FIFO，兩秒內取得全域槽位才 Commit，成功後發布 bounded Channel；每分區單 consumer，每事件獨立 async scope 及三十秒 CTS。
-使用邊界與維護：permit 同時計入提交中、buffer 與執行中，合計不超 Capacity。未接管的 caller 等待者另限 Capacity，借用至兩秒期限或有界 Commit 完成，FIFO 節點只有訊號。停止先拒收、等 handoff、完成 writer、drain 三十秒、取消並等待合作清理，最後 Dispose。最長正常排隊為 Capacity 個有界 handler 的時間；沒有 user map、HTTP 或憑證。handler 必須合作取消及有界清理，CLR 無法強殺 task，本 owner 不遺棄仍使用 scope 的工作。真 Exception 交共用入口，測試以 barrier、假時鐘及計數驗證。
+使用邊界與維護：permit 同時計入提交中、buffer 與執行中，合計不超 Capacity。未接管的 caller 等待者另限 Capacity，借用至兩秒期限或有界 Commit 完成，FIFO 節點只有訊號。停止先拒收、等 handoff、完成 writer、drain 三十秒、取消並等待合作清理，再排空本次停止專屬的計時器回呼，最後 Dispose。最長正常排隊為 Capacity 個有界 handler 的時間；沒有 user map、HTTP 或憑證。handler 必須合作取消及有界清理，CLR 無法強殺 task，本 owner 不遺棄仍使用 scope 的工作。真 Exception 交共用入口，測試以 barrier、假時鐘及計數驗證。
 */
 using System.Text.Json;
 using System.Threading.Channels;
@@ -213,10 +213,19 @@ public sealed class BoundedWebhookEventQueue : IWebhookEventQueue, IHostedServic
         if (handoffsFinished is not null) await handoffsFinished.Task.ConfigureAwait(false);
         foreach (var partition in partitions) partition.Channel.Writer.TryComplete();
         var completion = Task.WhenAll(workers);
-        try { await completion.WaitAsync(WebhookQueueOptions.DrainTimeout, clock, abortDrain.Token).ConfigureAwait(false); }
-        catch (TimeoutException) { processingStop.Cancel(); }
-        catch (OperationCanceledException) when (abortDrain.IsCancellationRequested) { processingStop.Cancel(); }
-        await completion.ConfigureAwait(false);
+        using var deadline = new CancellationTokenSource();
+        using var waiting = CancellationTokenSource.CreateLinkedTokenSource(deadline.Token, abortDrain.Token);
+        // 帶逾時的 WaitAsync 可能先發布完成，再清除內部 timer；Stop 的資源契約不能依賴該順序。
+        // 本次停止唯一擁有 timer，回呼只取消內部等待，不呼叫 handler；先 await DisposeAsync
+        // 排空回呼，才釋放 linked／deadline CTS，保證 Stop 返回時沒有期限資源殘留。
+        await using (var timer = clock.CreateTimer(static state => ((CancellationTokenSource)state!).Cancel(),
+            deadline, WebhookQueueOptions.DrainTimeout, Timeout.InfiniteTimeSpan))
+        {
+            try { await completion.WaitAsync(waiting.Token).ConfigureAwait(false); }
+            catch (OperationCanceledException) when (deadline.IsCancellationRequested || abortDrain.IsCancellationRequested)
+            { processingStop.Cancel(); }
+            await completion.ConfigureAwait(false);
+        }
         lock (gate) workers = [];
     }
 

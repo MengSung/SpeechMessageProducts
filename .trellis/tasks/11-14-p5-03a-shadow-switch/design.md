@@ -59,3 +59,11 @@ observer 在 seed 前及舊輪完成後，以權威測試教會 ID 精確篩選�
 
 快照只存活一輪，owner Dispose清除ID／版本；報告只輸出實體及筆數，無盤點範圍
 明標none-declared，尚未接線明標unavailable，兩者不能以預設空集合假造零變動。
+
+## 固定守門的 queue 排空競爭修補（2026-11-15）
+
+fd5ead95 的固定守門在 WaitingCallerCancellation_ThrowsWithoutCommit 發現 Stop 返回後仍有一個 timer；不是 Commit 次數錯誤。新增一千輪停止競爭測試，在原產品程式先紅，排除單純慢機器判斷。核對 .NET 10 Task.CancellationPromise 原始實作，完成訊號先於 Cleanup，因此帶逾時 WaitAsync 不能提供本專案要求的 Stop 資源釋放屏障。
+
+StopCoreAsync 改由停止流程明確擁有單一 timer、deadline CTS 與 linked CTS；只用不帶 timer 的 token WaitAsync。handler 完成或取消後仍等全部 consumer，之後 await timer.DisposeAsync 排空回呼，最後釋放 CTS，才發布停止完成。維持三十秒期限、Host 提早取消及在途交接順序，不忽略或延後測試斷言。此為 P5-03a 固定守門發現的釋放阻擋修補，不新增工作包。
+
+2026-11-15 03:43 Asia/Taipei (UTC+08:00)：新增測試由紅轉綠，一千輪每輪立即驗零殘留；AspNetCore Release 全套 79／79 通過。原始證據 C:\smv\p5-03a-queue-drain-red.log、p5-03a-queue-drain-green.log、p5-03a-queue-suite-green.log。完整 guard 仍須以修補提交重跑，不因局部綠燈驗收或推送。

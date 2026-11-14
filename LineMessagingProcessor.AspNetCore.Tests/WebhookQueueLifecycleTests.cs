@@ -1,7 +1,7 @@
 /*
 檔案整體說明
 目的與定位：驗證 queue 的事件期限、原例外通知、scope 清理與背景 ExecutionContext 隔離，防止正常成功測試漏掉資源故障。
-主要功能與流程：以真 diagnostics 安全日誌、scope 清理故障及假時鐘觸發事件取消；以 AsyncLocal 與弱參照檢查背景不捕捉 HTTP 身分、完成 task 不延長 envelope／claim 生命。無 user 的來源用 group／room 合成事件驗證固定分區。
+主要功能與流程：以真 diagnostics 安全日誌、scope 清理故障及假時鐘觸發事件取消；以一千輪停止競爭檢查計時器在 Stop 返回前已清除；以 AsyncLocal 與弱參照檢查背景不捕捉 HTTP 身分、完成 task 不延長 envelope／claim 生命。無 user 的來源用 group／room 合成事件驗證固定分區。
 使用邊界與維護：每案例 fixture 唯一擁有 queue／容器／時鐘／日誌，所有關閉操作皆 await。GC 僅在明確排空後觀察弱參照，不以時間或進程記憶體偶然下降當證據。測試資料沒有部署憑證，最多固定一百筆回收探針，不接外部 SQL／LINE，原始證據留本 task evidence。
 */
 using System.Collections.Concurrent;
@@ -16,6 +16,27 @@ namespace LineMessagingProcessor.AspNetCore.Tests;
 /// <summary>有界 worker 的錯誤分類、取消及保留邊界；重點是實際 scope／timer 清除。</summary>
 public sealed class WebhookQueueLifecycleTests
 {
+    /// <summary>以一千輪 handler 完成與 Stop 期限的競爭，驗證 Stop 返回時 timer／scope／工作皆歸零；每輪 fixture 皆等待確定清理，不能以重試掩蓋失敗。</summary>
+    [Fact]
+    public async Task StopCompletion_DoesNotReturnBeforeTimerCleanupUnderContention()
+    {
+        for (var iteration = 0; iteration < 1000; iteration++)
+        {
+            var entered = WebhookQueueFixture.Signal();
+            var release = WebhookQueueFixture.Signal();
+            await using var fixture = new WebhookQueueFixture(async (_, ct) =>
+            { entered.TrySetResult(); await release.Task.WaitAsync(ct); }, capacity: 1);
+            await fixture.StartAsync();
+            await fixture.EnqueueAsync("drain");
+            await entered.Task.WaitAsync(WebhookQueueFixture.Limit);
+            var stopping = fixture.Queue.StopAsync(default);
+            release.TrySetResult();
+            await stopping.WaitAsync(WebhookQueueFixture.Limit);
+            fixture.AssertBaseline();
+            Assert.Equal(0, fixture.Clock.TimerCount);
+        }
+    }
+
     /// <summary>使用者取消 callback 拋錯不應逸出 timer 或中斷 Stop；真正錯誤須通知，scope／permit 仍歸零。</summary>
     [Theory]
     [InlineData(false)]
