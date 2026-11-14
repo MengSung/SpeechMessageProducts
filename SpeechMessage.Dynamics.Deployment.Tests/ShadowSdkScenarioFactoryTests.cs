@@ -30,6 +30,83 @@ namespace SpeechMessage.Dynamics.Deployment.Tests;
 /// <summary>檔案讀取與執行 owner 之間必須有真正接線，不能以兩端各自綠燈替代。</summary>
 public sealed class ShadowSdkScenarioFactoryTests
 {
+    /// <summary>
+    /// 情境映像只可描述平台由 seed／trigger 產生的值，不可注入合成 context。
+    /// 前後映像分別驗 seed 與覆蓋後欄值，正式註冊必須含相同別名及所有宣告欄。
+    /// 替身僅接受 metadata 查詢，故任何業務 I/O 或多建立 seed 都會失敗。
+    /// </summary>
+    /// <param name="phase">核對更新前或更新後映像。</param>
+    [Theory]
+    [InlineData("pre")]
+    [InlineData("post")]
+    public void ScenarioFactory_ImagesRequireRegisteredPlatformValues(string phase)
+    {
+        var file = File();
+        var trigger = JsonNode.Parse(file.Trigger.GetRawText())!;
+        trigger["images"] = JsonNode.Parse(phase == "pre"
+            ? """{"pre":{"Image":{"score":1,"regardingobjectid":{"ref":"contact-1","entity":"contact"}}}}"""
+            : """{"post":{"Image":{"score":2,"regardingobjectid":{"ref":"church-a","entity":"account"}}}}""");
+        var binding = Binding();
+        binding = binding with { StepImages = new Dictionary<Guid, IReadOnlyList<RegistrationImage>>
+        {
+            [binding.ShadowStepIds[0]] = [new() { Name = "Image", Type = phase == "pre" ? "PreImage" : "PostImage",
+                Attributes = ["score", "regardingobjectid"] }]
+        } };
+        var service = new MetadataService();
+        var metadata = new ShadowSdkMetadata(service, ["account", "contact", "task"], CancellationToken.None);
+        var prepared = ShadowSdkScenarioFactory.Prepare(file with { Trigger = Json(trigger.ToJsonString()) }, metadata, Identity(), binding);
+        Assert.Single(prepared.Source.Seeds);
+        Assert.False(prepared.Source.Trigger.Fields.Contains("images"));
+        Assert.Equal(3, service.Reads);
+    }
+
+    /// <summary>錯誤的映像值、別名、欄位及舊步驟綁定必須在業務 I/O 前拒絕，不能靜默略過宣告。</summary>
+    /// <param name="fault">每案注入一種不可能由受控平台觸發產生的映像。</param>
+    [Theory]
+    [InlineData("wrong-value")]
+    [InlineData("wrong-type")]
+    [InlineData("wrong-alias")]
+    [InlineData("unregistered-field")]
+    [InlineData("unknown-field")]
+    [InlineData("duplicate-alias")]
+    [InlineData("create-pre")]
+    [InlineData("delete-post")]
+    [InlineData("missing-legacy")]
+    [InlineData("wrong-legacy")]
+    public void ScenarioFactory_ImagesRefuseUnprovenDeclarations(string fault)
+    {
+        var file = File();
+        var trigger = JsonNode.Parse(file.Trigger.GetRawText())!;
+        trigger["images"] = JsonNode.Parse("""{"pre":{"Image":{"score":1}}}""");
+        var binding = Binding();
+        var image = new RegistrationImage { Name = "Image", Type = "PreImage", Attributes = ["score"] };
+        if (fault == "wrong-value") trigger["images"]!["pre"]!["Image"]!["score"] = 99;
+        if (fault == "wrong-type") trigger["images"]!["pre"]!["Image"]!["score"] = "1";
+        if (fault == "wrong-alias") image = image with { Name = "Other" };
+        if (fault == "unregistered-field") image = image with { Attributes = ["subject"] };
+        if (fault == "unknown-field") trigger["images"]!["pre"]!["Image"]!["missing"] = 1;
+        if (fault == "create-pre") trigger["message"] = "Create";
+        if (fault == "delete-post")
+        {
+            trigger["message"] = "Delete";
+            trigger["fields"] = new JsonObject();
+            trigger["images"] = JsonNode.Parse("""{"post":{"Image":{"score":1}}}""");
+            image = image with { Type = "PostImage" };
+        }
+        var registered = new Dictionary<Guid, IReadOnlyList<RegistrationImage>>
+        {
+            [binding.ShadowStepIds[0]] = fault == "duplicate-alias" ? [image, image] : [image]
+        };
+        if (fault is "missing-legacy" or "wrong-legacy") file = file with { Basis = "legacy-live-only" };
+        if (fault == "wrong-legacy") registered.Add(binding.LegacyStepIds[0], [image with { Name = "Other" }]);
+        binding = binding with { StepImages = registered };
+        var service = new MetadataService();
+        var metadata = new ShadowSdkMetadata(service, ["account", "contact", "task"], CancellationToken.None);
+        Assert.Throws<InvalidDataException>(() => ShadowSdkScenarioFactory.Prepare(
+            file with { Trigger = Json(trigger.ToJsonString()) }, metadata, Identity(), binding));
+        Assert.Equal(3, service.Reads);
+    }
+
     /// <summary>關聯 Create 必須連到 owned seed；共享父列、非 lookup、錯目標與身分順序衝突均在任何業務 I/O 前拒絕。</summary>
     /// <param name="fault">空值為合法新列，其餘每次注入一種不變條件違反。</param>
     [Theory]

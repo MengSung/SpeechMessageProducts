@@ -116,11 +116,31 @@ internal static partial class DeploymentCli
             var synchronous = legacySteps.Where(row => row.Mode == 0).ToDictionary(row => row.Id,
                 row => legacySnapshot!.Types.Single(type => type.Id == row.TypeId).TypeName);
             if (step.Step.Mode == "Synchronous") synchronous.Add(step.Id, step.Step.Type);
+            // 新步驟映像已由 ReadDisabledShadowSteps 核對；舊映像僅採本次正式匯出，
+            // ImageType=2 代表同別名前後皆有，不能把 Name 當成執行 context 的 EntityAlias。
+            var stepImages = new Dictionary<Guid, IReadOnlyList<RegistrationImage>> { [step.Id] = step.Step.Images };
+            foreach (var legacy in legacySteps)
+            {
+                var registered = new List<RegistrationImage>();
+                foreach (var image in legacySnapshot!.Images.Where(row => row.StepId == legacy.Id))
+                {
+                    if (image.ImageType is < 0 or > 2 || string.IsNullOrWhiteSpace(image.EntityAlias) ||
+                        string.IsNullOrWhiteSpace(image.Attributes)) throw InvalidShadowCommand();
+                    var attributes = image.Attributes.Split(',').Select(value => value.Trim()).ToArray();
+                    if (attributes.Any(string.IsNullOrWhiteSpace) || attributes.Distinct(StringComparer.Ordinal).Count() != attributes.Length)
+                        throw InvalidShadowCommand();
+                    foreach (var type in image.ImageType == 2 ? new[] { "PreImage", "PostImage" } :
+                        new[] { image.ImageType == 0 ? "PreImage" : "PostImage" })
+                        registered.Add(new RegistrationImage { Name = image.EntityAlias, Type = type, Attributes = attributes });
+                }
+                stepImages.Add(legacy.Id, registered.AsReadOnly());
+            }
             var binding = new ShadowSdkBinding(file.Entrypoint, churchAlias,
                 contacts[0].GetProperty("alias").GetString()!, legacySteps.Select(row => row.Id).ToArray(),
                 [step.Id], [step.Step.Type], tokens.AsReadOnly(), false)
             {
                 SynchronousStepTypes = synchronous,
+                StepImages = stepImages,
                 TokenNotRequired = liveLegacy && inventory.All(rule => rule.NoTokenDependency)
             };
             prepared.Add(ShadowSdkScenarioFactory.Prepare(file, metadata, identity, binding));

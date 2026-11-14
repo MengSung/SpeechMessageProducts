@@ -34,6 +34,34 @@ namespace SpeechMessage.Dynamics.Deployment.Tests;
 [Collection("Deployment working directory")]
 public sealed class ShadowCliTests
 {
+    /// <summary>
+    /// 真命令從已部署清單及舊註冊讀取映像綁定，不靠測試直接注入 factory。
+    /// 合成平台自行持有 context；斷言兩輪觸發、受控種子清理、設定還原與沒有例外告警。
+    /// 舊映像故意使用不同 Name 與 EntityAlias，保護正式 context 必須依 alias 配對的契約。
+    /// </summary>
+    /// <param name="legacy">含受審舊輪時，兩輪都必須通過相同映像宣告。</param>
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void ShadowCli_BindsRegisteredImagesThroughCommand(bool legacy)
+    {
+        using var f = new CliFixture(images: true);
+        if (legacy)
+        {
+            f.AddLegacyCase(withoutToken: true);
+            f.Core.Service.Seed(new Entity("sdkmessageprocessingstepimage", Guid.NewGuid())
+            {
+                ["sdkmessageprocessingstepid"] = new EntityReference("sdkmessageprocessingstep", f.Service.LegacyStep),
+                ["name"] = "DifferentDisplayName", ["entityalias"] = "Image", ["imagetype"] = new OptionSetValue(1),
+                ["attributes"] = "subject"
+            });
+        }
+        Assert.Equal(0, f.Run());
+        Assert.Equal(legacy ? 2 : 1, f.Service.Triggers);
+        f.AssertRestored();
+        Assert.Empty(f.Reports);
+    }
+
     /// <summary>真 CLI 將期望推播接到完整比較；內容不同仍保存失敗報告，所有出口還原設定、停用及排空 seed。</summary>
     /// <param name="differentContent">僅改合成實際摘要，不改欄位快照，必須使比較失敗。</param>
     [Theory]
@@ -538,11 +566,12 @@ public sealed class ShadowCliTests
         internal string[] Arguments => ["shadow", "--org", Fixture.Organization, "--module", "localization", "--scenario-root", ScenarioRoot];
 
         /// <summary>使用實際 loader、PE reader 及引擎建立可核對的離線部署，不注入預設成功的驗證。</summary>
-        internal CliFixture(bool synchronous = false)
+        internal CliFixture(bool synchronous = false, bool images = false)
         {
             Service = new TestService(Core) { Synchronous = synchronous };
             var step = Core.Manifest.Steps[0] with { Module = "localization", UnsecureConfig = "{\"mode\":\"Shadow\"}",
-                Mode = synchronous ? "Synchronous" : "Asynchronous" };
+                Mode = synchronous ? "Synchronous" : "Asynchronous",
+                Images = images ? [new RegistrationImage { Name = "Image", Type = "PostImage", Attributes = ["subject"] }] : [] };
             var manifest = Core.Manifest with { Steps = [step] };
             var registration = Path.Combine(Core.Root, "d365", "registration");
             var plugins = Path.Combine(Core.Root, "artifacts", "plugins");
@@ -562,6 +591,13 @@ public sealed class ShadowCliTests
             File.WriteAllText(Path.Combine(ScenarioRoot, "expected.json"), """
                 {"module":"localization","basis":"new","cases":[{"name":"one","entrypoint":"SpeechMessage.Dynamics.Plugins.Diagnostics.DiagnosticsPingPlugin","writes":[],"lineCalls":[],"outputs":{},"exception":null}],"declaredDifferences":[]}
                 """);
+            if (images)
+            {
+                var scenarioPath = Path.Combine(ScenarioRoot, "scenarios.json");
+                var scenarios = JsonNode.Parse(File.ReadAllText(scenarioPath))!;
+                scenarios["cases"]![0]!["trigger"]!["images"] = JsonNode.Parse("""{"post":{"Image":{"subject":"synthetic"}}}""");
+                File.WriteAllText(scenarioPath, scenarios.ToJsonString());
+            }
             Directory.SetCurrentDirectory(Core.Root);
         }
 

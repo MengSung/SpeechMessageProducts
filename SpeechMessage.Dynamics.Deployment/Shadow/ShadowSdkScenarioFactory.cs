@@ -13,6 +13,8 @@
  * 均由 metadata 驗證；related 僅可指向自建 seed，Create 期望須帶相同 lookup，
  * 同一 selector 不可宣告兩個別名。推播要求期望明列 shadow 摘要、單一權威測試
  * 聯絡人及 owned Retry Key；完整寫入後附推播意圖，符合正式 writer 的輸出順序。
+ * 映像僅核對正式註冊及 seed／trigger 可產生的前後欄值，不注入平台 context；
+ * 不能由可寫 seed 重現的唯讀／系統欄值仍拒絕，不假稱量測平台映像。
  * 本檔不傳送 LINE、不把新輪摘要當舊輪實際推播；活動、例外或輸出仍明確拒絕。
  * 擁有權與失敗：所有可變字典及 SDK Entity 都屬本次同步準備；JSON 文件與 recorder
  * 由方法 using 確定釋放，輸出不持有文件、服務或 delegate。沒有 static cache、
@@ -42,6 +44,9 @@ internal sealed record ShadowSdkBinding(string Entrypoint, string ChurchAlias, s
     public IReadOnlyDictionary<Guid, string> SynchronousStepTypes { get; init; } = new Dictionary<Guid, string>();
     /// <summary>受審盤點明確確認所有舊入口都沒有 token 相依，不能由空 tokenFields 自動推定。</summary>
     public bool TokenNotRequired { get; init; }
+    /// <summary>每個實際執行步驟已核對的映像註冊；僅由 CLI 提供，不接受情境自行授權或注入映像。</summary>
+    public IReadOnlyDictionary<Guid, IReadOnlyList<RegistrationImage>> StepImages { get; init; } =
+        new Dictionary<Guid, IReadOnlyList<RegistrationImage>>();
 }
 
 /// <summary>整案準備成功才發布的配對；Definition 與 Source 必須在同一命令使用，不得跨組織快取。</summary>
@@ -67,7 +72,6 @@ internal static class ShadowSdkScenarioFactory
             file.ExpectedLineCalls.ValueKind != JsonValueKind.Array ||
             file.Exception.ValueKind != JsonValueKind.Null || file.Outputs.ValueKind != JsonValueKind.Object ||
             file.Outputs.EnumerateObject().Any() || identity.OrganizationId == Guid.Empty ||
-            (file.Trigger.TryGetProperty("images", out var images) && images.EnumerateObject().Any()) ||
             identity.ChurchId == Guid.Empty || identity.ContactId == Guid.Empty || identity.ChurchId == identity.ContactId ||
             !ShadowProjection.ValidIdentity(binding.ChurchAlias) || !ShadowProjection.ValidIdentity(binding.ContactAlias) ||
             binding.ChurchAlias == binding.ContactAlias ||
@@ -124,6 +128,7 @@ internal static class ShadowSdkScenarioFactory
             throw Invalid();
         var patch = metadata.ConvertFields(targetEntity, file.Trigger.GetProperty("fields"), message == "Create", Resolve);
         if (message == "Delete" && patch.Attributes.Count != 0) throw Invalid();
+        ValidateImages(file, binding, metadata, rows.Single(row => Text(row, "alias") == targetAlias), patch, Resolve);
         var patchLinks = ExtractReferences(patch, idAliases);
         foreach (var token in binding.TokenFields)
             if (!seeds.Any(seed => seed.Alias == token.Alias) ||
@@ -182,6 +187,50 @@ internal static class ShadowSdkScenarioFactory
             TokenNotRequired = binding.TokenNotRequired
         };
         return new ShadowSdkPreparedScenario(definition, source);
+    }
+
+    /// <summary>
+    /// 依已核對註冊驗證宣告映像；平台自行建立 context，本方法不將宣告值送進 SDK。
+    /// 前像來自未加測試名稱前綴的 seed，後像依 trigger 覆蓋；正式執行時名稱前綴一致套用。
+    /// 僅支援可由明列可寫欄位重現的值，缺 seed 值、錯型別或未知別名一律失敗。
+    /// live 舊輪必須對每個實際舊／新步驟核對，不能只驗新步驟而忽略舊註冊差異。
+    /// </summary>
+    private static void ValidateImages(ShadowFileCase file, ShadowSdkBinding binding, ShadowSdkMetadata metadata,
+        JsonElement targetSeed, Entity patch, Func<string, string, EntityReference> resolve)
+    {
+        if (!file.Trigger.TryGetProperty("images", out var images)) return;
+        if (images.ValueKind != JsonValueKind.Object || images.EnumerateObject().Count() > 2) throw Invalid();
+        var requiredSteps = file.Basis is "legacy-live" or "legacy-live-only"
+            ? binding.ShadowStepIds.Concat(binding.LegacyStepIds).ToArray() : binding.ShadowStepIds.ToArray();
+        var entity = patch.LogicalName;
+        var before = metadata.ConvertFields(entity, targetSeed.GetProperty("fields"), true, resolve);
+        foreach (var phase in images.EnumerateObject())
+        {
+            if (phase.Name is not ("pre" or "post") || phase.Value.ValueKind != JsonValueKind.Object ||
+                phase.Value.EnumerateObject().Count() > 32 ||
+                (phase.Name == "pre" && Text(file.Trigger, "message") == "Create") ||
+                (phase.Name == "post" && Text(file.Trigger, "message") == "Delete")) throw Invalid();
+            var type = phase.Name == "pre" ? "PreImage" : "PostImage";
+            var names = new HashSet<string>(StringComparer.Ordinal);
+            foreach (var image in phase.Value.EnumerateObject())
+            {
+                if (!ShadowProjection.ValidIdentity(image.Name) || !names.Add(image.Name)) throw Invalid();
+                var expected = metadata.ConvertFields(entity, image.Value, true, resolve);
+                if (expected.Attributes.Count == 0) throw Invalid();
+                foreach (var stepId in requiredSteps)
+                {
+                    if (!binding.StepImages.TryGetValue(stepId, out var registered)) throw Invalid();
+                    var matches = registered.Where(item => item.Name == image.Name && item.Type == type).ToArray();
+                    if (matches.Length != 1 || expected.Attributes.Keys.Any(field =>
+                        !matches[0].Attributes.Contains(field, StringComparer.Ordinal))) throw Invalid();
+                }
+                foreach (var field in expected.Attributes)
+                {
+                    var source = phase.Name == "post" && patch.Contains(field.Key) ? patch : before;
+                    if (!source.Contains(field.Key) || !Equals(source[field.Key], field.Value)) throw Invalid();
+                }
+            }
+        }
     }
 
     /// <summary>
