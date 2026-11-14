@@ -21,11 +21,19 @@ namespace SpeechMessage.Dynamics.Deployment.Shadow;
 
 /// <summary>已解析的安全 CRUD 情境；期望為完整意圖，觀察範圍使用穩定代號。</summary>
 internal sealed record ShadowScenarioDefinition(ShadowTrace Expected, IReadOnlyList<ShadowObservation> Observe,
-    IReadOnlySet<string> VolatileFields);
+    IReadOnlySet<string> VolatileFields)
+{
+    /// <summary>new 只執行新輪，其餘基準須由完整基準路徑處理；不得假造舊輪成功。</summary>
+    public string Basis { get; init; } = "legacy-live";
+}
 
 /// <summary>單一情境的三方比較；只有完整可比且差異全為零才可標成功。</summary>
 internal sealed record ShadowCaseResult(int Index, ShadowComparison BetweenRounds,
-    ShadowComparison LegacyToExpected, ShadowComparison ShadowToExpected);
+    ShadowComparison LegacyToExpected, ShadowComparison ShadowToExpected)
+{
+    /// <summary>明列是否真正執行舊輪；new 的舊側比較固定為不可比較。</summary>
+    public bool LegacyExecuted { get; init; } = true;
+}
 
 /// <summary>
 /// 操作區域的外部能力；實作由同一命令持有，不能在建構 round 時先建立測試資料。
@@ -117,6 +125,7 @@ internal sealed class ShadowScenarioRunner
         foreach (var scenario in scenarios)
         {
             if (scenario is null || scenario.Expected is null || !scenario.Expected.Comparable ||
+                scenario.Basis is not ("new" or "legacy-live") ||
                 scenario.Expected.Intents is null || scenario.Expected.Intents.Count > 128 ||
                 scenario.Expected.Intents.Any(intent => intent.Operation is not ("Create" or "Update" or "Delete")) ||
                 scenario.Observe is null || scenario.VolatileFields is null ||
@@ -136,15 +145,16 @@ internal sealed class ShadowScenarioRunner
             for (var index = 0; index < scenarios.Count; index++)
             {
                 var scenario = scenarios[index];
-                var legacy = RunRound(scenario, true, cancellationToken);
+                var legacy = scenario.Basis == "new" ? null : RunRound(scenario, true, cancellationToken);
                 var shadow = RunRound(scenario, false, cancellationToken);
+                var unavailable = new ShadowComparison(false, Array.Empty<ShadowDifference>());
                 results.Add(new ShadowCaseResult(index + 1,
-                    ShadowComparer.CompareFinalStates(legacy.Actual, shadow.Actual, scenario.Observe,
+                    legacy is null ? unavailable : ShadowComparer.CompareFinalStates(legacy.Actual, shadow.Actual, scenario.Observe,
                         volatileFields: scenario.VolatileFields),
-                    ShadowComparer.CompareFinalStates(legacy.Actual, legacy.Expected, scenario.Observe,
+                    legacy is null ? unavailable : ShadowComparer.CompareFinalStates(legacy.Actual, legacy.Expected, scenario.Observe,
                         volatileFields: scenario.VolatileFields),
                     ShadowComparer.CompareFinalStates(shadow.Actual, shadow.Expected, scenario.Observe,
-                        volatileFields: scenario.VolatileFields)));
+                        volatileFields: scenario.VolatileFields)) { LegacyExecuted = legacy is not null });
             }
         }
         catch (Exception failure) { failures.Add(failure); }

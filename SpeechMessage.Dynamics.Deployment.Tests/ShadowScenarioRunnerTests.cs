@@ -25,6 +25,20 @@ namespace SpeechMessage.Dynamics.Deployment.Tests;
 public sealed class ShadowScenarioRunnerTests
 {
     private static readonly string[] ObservedFields = { "score", "subject" };
+    /// <summary>沒有舊程式的新模組只跑新輪，報告不能把不存在的舊輪標成已比對。</summary>
+    [Fact]
+    public void Shadow_Runner_NewBasisDoesNotInventLegacyEvidence()
+    {
+        using var f = new Fixture();
+        var runtime = new Runtime(f);
+        var item = Assert.Single(runtime.Run(scenario: Scenario() with { Basis = "new" }));
+        Assert.False(item.LegacyExecuted);
+        Assert.False(item.BetweenRounds.Comparable);
+        Assert.False(item.LegacyToExpected.Comparable);
+        Assert.True(item.ShadowToExpected.IsEqual);
+        Assert.False(Assert.Single(runtime.Rounds).Legacy);
+        runtime.AssertDrained();
+    }
     /// <summary>先舊後新使用不同 ID，CRUD 意圖先套初始值，再作三方比較，結束所有狀態排空。</summary>
     [Fact]
     public void Shadow_Runner_TwoRoundsUseSeparateRecordsAndCompareFinalValues()
