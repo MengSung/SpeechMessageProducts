@@ -240,11 +240,11 @@ footer{margin-top:36px;color:var(--muted);font-size:12.5px;text-align:center}
  */
 const DATA = {
   "planVersion": "3.5",
-  "snapshot": "2026-11-15 02:20 Asia/Taipei (UTC+08:00)",
-  "lastUpdated": "2026-11-15T02:20:45+08:00",
+  "snapshot": "2026-11-15 02:26 Asia/Taipei (UTC+08:00)",
+  "lastUpdated": "2026-11-15T02:26:46+08:00",
   "branch": "1.0.0.11.Integration.P5.Worktree",
-  "head": "4ebd4592",
-  "headline": "2026-11-15 02:20 Asia/Taipei (UTC+08:00)：P5-03a續作；更正前次判讀：async statecode=3／statuscode=30為成功，不能寫成Plugin執行失敗。唯讀確認原追蹤為Exceptions(1)；本輪暫改All(2)並讀回，再執行enabled→smoke→off→verify。smoke三分鐘未取得trace回1，off及verify回0，原追蹤1已還原，同一步驟停用、測試task為0；時間窗有1筆該步驟成功作業、trace為0，尚未證明job殘留為0。未證實服務故障，撤回要求使用者重啟的判斷，不再盲目重試。離線最近已驗證684/684；2f946479已接通受審token舊輪shadow CLI，獨立legacy switch、推播比較／外部修改摘要與其餘接線待完成。P5-03未驗收、未推送，完整固定guard未跑；驗收時間待剩餘接線及追蹤原因釐清後重估。",
+  "head": "45813c77",
+  "headline": "2026-11-15 02:26 Asia/Taipei (UTC+08:00)：P5-03a續作，45813c77補上runner的推播完整意圖比較；新增3案先紅後綠，涵蓋吻合、內容摘要差異及缺少推播，欄位三方相同仍不得掩蓋推播差異。收件者及Retry Key僅依明確ID別名正規化；Deployment Release687/687、文件1562檔零失敗、變更編碼零問題。CLI情境推播接線、獨立受控legacy switch、外部修改摘要等尚待完成。diagnostics本輪在All(2)下仍無trace，smoke回1，off及verify回0，同一步驟停用、原追蹤1還原、測試task為0；async狀態30為成功，未證實服務故障，不要求使用者重啟，job零殘留尚未證明。P5-03未驗收、未推送，完整固定guard未跑；P5-02工具三小時修正尚未開始。",
   "notices": [
     {
       "id": "plan-3.5-summary",
@@ -511,8 +511,8 @@ const DATA = {
       "phaseId": "階段 5",
       "level": "info",
       "title": "P5 進度摘要",
-      "lastUpdated": "2026-11-15T02:20:45+08:00",
-      "body": "2026-11-15 02:20 Asia/Taipei (UTC+08:00)：P5-03a續作；更正前次判讀：async statecode=3／statuscode=30為成功，不能寫成Plugin執行失敗。唯讀確認原追蹤為Exceptions(1)；本輪暫改All(2)並讀回，再執行enabled→smoke→off→verify。smoke三分鐘未取得trace回1，off及verify回0，原追蹤1已還原，同一步驟停用、測試task為0；時間窗有1筆該步驟成功作業、trace為0，尚未證明job殘留為0。未證實服務故障，撤回要求使用者重啟的判斷，不再盲目重試。離線最近已驗證684/684；2f946479已接通受審token舊輪shadow CLI，獨立legacy switch、推播比較／外部修改摘要與其餘接線待完成。P5-03未驗收、未推送，完整固定guard未跑；驗收時間待剩餘接線及追蹤原因釐清後重估。",
+      "lastUpdated": "2026-11-15T02:26:46+08:00",
+      "body": "2026-11-15 02:26 Asia/Taipei (UTC+08:00)：P5-03a續作，45813c77補上runner的推播完整意圖比較；新增3案先紅後綠，涵蓋吻合、內容摘要差異及缺少推播，欄位三方相同仍不得掩蓋推播差異。收件者及Retry Key僅依明確ID別名正規化；Deployment Release687/687、文件1562檔零失敗、變更編碼零問題。CLI情境推播接線、獨立受控legacy switch、外部修改摘要等尚待完成。diagnostics本輪在All(2)下仍無trace，smoke回1，off及verify回0，同一步驟停用、原追蹤1還原、測試task為0；async狀態30為成功，未證實服務故障，不要求使用者重啟，job零殘留尚未證明。P5-03未驗收、未推送，完整固定guard未跑；P5-02工具三小時修正尚未開始。",
       "steps": [
         "2026-11-14 08:26 Asia/Taipei (UTC+08:00)：已確認目標殘留目錄不是 Git worktree，移除後正式 P4／P5 worktree 清單不受影響。",
         "2026-11-14 08:26 Asia/Taipei (UTC+08:00)：export-metadata 唯讀結構快照建立成功；verify 因本機部署執行檔／連線前置失敗，未宣稱 goodshepherdback verify=0。",
@@ -545,7 +545,8 @@ const DATA = {
         "2026-11-14 21:54 Asia/Taipei (UTC+08:00)：P5-03a續作，0323f4cd修正Microsoft ActivityFeeds誤分類；公開簽章、managed狀態及ActivityFeedsCore／microsoftdynamics方案關聯已唯讀核對，39個平台步驟未啟停。新版export-legacy回0、舊步驟及流程啟用各0，F16處置需求解除。Deployment Release626/626、文件1558檔零失敗；CRUD factory已接線，shadow CLI、同步追蹤、關聯observe、新增列／推播及實機映像等仍未完成。整包guard與diagnostics實機未執行，P5-03未驗收、本輪未推送；離線契約完成後再估驗收時間，目前不需使用者操作。",
         "2026-11-14 22:33 Asia/Taipei (UTC+08:00)：P5-03a續作，3b88dd97接通shadow新輪CLI，247bdfe2接通同步RequestId追蹤；new／reading／legacy-golden的CRUD新輪已走真CLI、權威身分／部署映像核對、SDK owner、清理與安全報告，18項CLI測試含取消後停用、租約歸還、歧義追蹤及同日證據不覆寫。Deployment Release648/648、文件1560檔零失敗。受審token盤點的舊輪CLI、關聯observe／新增列、推播及外部修改摘要仍待完成；同步追蹤只有離線證據，整包固定guard與diagnostics實機尚未執行，P5-03未驗收、未推送。目前沒有等待使用者的事項，離線契約完成後再估驗收時間。",
         "2026-11-14 22:47 Asia/Taipei (UTC+08:00)：P5-03a續作，6ac56760接通關聯observe與Create別名，721dd5c5補強子列清理失敗的父列保留與重試；related只接受指向本輪owned seed的正式lookup，讀回後更新ID映射，歧義不任取第一筆，送達後失敗／取消也重新查回並先刪子列。新增26項離線測試，Deployment Release674/674、文件1560檔零失敗。受審token盤點的舊輪CLI、推播／外部修改摘要及映像接線仍待完成；同步追蹤仍待實機查證，整包固定guard與diagnostics實機未執行，P5-03未驗收、未推送。目前沒有等待使用者的事項，離線契約完成後再估驗收時間。",
-        "2026-11-15 02:20 Asia/Taipei (UTC+08:00)：P5-03a續作；更正前次判讀：async statecode=3／statuscode=30為成功，不能寫成Plugin執行失敗。唯讀確認原追蹤為Exceptions(1)；本輪暫改All(2)並讀回，再執行enabled→smoke→off→verify。smoke三分鐘未取得trace回1，off及verify回0，原追蹤1已還原，同一步驟停用、測試task為0；時間窗有1筆該步驟成功作業、trace為0，尚未證明job殘留為0。未證實服務故障，撤回要求使用者重啟的判斷，不再盲目重試。離線最近已驗證684/684；2f946479已接通受審token舊輪shadow CLI，獨立legacy switch、推播比較／外部修改摘要與其餘接線待完成。P5-03未驗收、未推送，完整固定guard未跑；驗收時間待剩餘接線及追蹤原因釐清後重估。"
+        "2026-11-15 02:20 Asia/Taipei (UTC+08:00)：P5-03a續作；更正前次判讀：async statecode=3／statuscode=30為成功，不能寫成Plugin執行失敗。唯讀確認原追蹤為Exceptions(1)；本輪暫改All(2)並讀回，再執行enabled→smoke→off→verify。smoke三分鐘未取得trace回1，off及verify回0，原追蹤1已還原，同一步驟停用、測試task為0；時間窗有1筆該步驟成功作業、trace為0，尚未證明job殘留為0。未證實服務故障，撤回要求使用者重啟的判斷，不再盲目重試。離線最近已驗證684/684；2f946479已接通受審token舊輪shadow CLI，獨立legacy switch、推播比較／外部修改摘要與其餘接線待完成。P5-03未驗收、未推送，完整固定guard未跑；驗收時間待剩餘接線及追蹤原因釐清後重估。",
+        "2026-11-15 02:26 Asia/Taipei (UTC+08:00)：P5-03a續作，45813c77補上runner的推播完整意圖比較；新增3案先紅後綠，涵蓋吻合、內容摘要差異及缺少推播，欄位三方相同仍不得掩蓋推播差異。收件者及Retry Key僅依明確ID別名正規化；Deployment Release687/687、文件1562檔零失敗、變更編碼零問題。CLI情境推播接線、獨立受控legacy switch、外部修改摘要等尚待完成。diagnostics本輪在All(2)下仍無trace，smoke回1，off及verify回0，同一步驟停用、原追蹤1還原、測試task為0；async狀態30為成功，未證實服務故障，不要求使用者重啟，job零殘留尚未證明。P5-03未驗收、未推送，完整固定guard未跑；P5-02工具三小時修正尚未開始。"
       ]
     }
   ],
@@ -672,7 +673,7 @@ const DATA = {
       "id": "階段 5",
       "name": "Plugin／Workflow 重建（36 個 DLL → 2 個）",
       "planned": "8～12 個工作天",
-      "actual": "2026-11-15 02:20 Asia/Taipei (UTC+08:00)：P5-03a續作；更正前次判讀：async statecode=3／statuscode=30為成功，不能寫成Plugin執行失敗。唯讀確認原追蹤為Exceptions(1)；本輪暫改All(2)並讀回，再執行enabled→smoke→off→verify。smoke三分鐘未取得trace回1，off及verify回0，原追蹤1已還原，同一步驟停用、測試task為0；時間窗有1筆該步驟成功作業、trace為0，尚未證明job殘留為0。未證實服務故障，撤回要求使用者重啟的判斷，不再盲目重試。離線最近已驗證684/684；2f946479已接通受審token舊輪shadow CLI，獨立legacy switch、推播比較／外部修改摘要與其餘接線待完成。P5-03未驗收、未推送，完整固定guard未跑；驗收時間待剩餘接線及追蹤原因釐清後重估。",
+      "actual": "2026-11-15 02:26 Asia/Taipei (UTC+08:00)：P5-03a續作，45813c77補上runner的推播完整意圖比較；新增3案先紅後綠，涵蓋吻合、內容摘要差異及缺少推播，欄位三方相同仍不得掩蓋推播差異。收件者及Retry Key僅依明確ID別名正規化；Deployment Release687/687、文件1562檔零失敗、變更編碼零問題。CLI情境推播接線、獨立受控legacy switch、外部修改摘要等尚待完成。diagnostics本輪在All(2)下仍無trace，smoke回1，off及verify回0，同一步驟停用、原追蹤1還原、測試task為0；async狀態30為成功，未證實服務故障，不要求使用者重啟，job零殘留尚未證明。P5-03未驗收、未推送，完整固定guard未跑；P5-02工具三小時修正尚未開始。",
       "current": true,
       "done": 2,
       "active": 1
@@ -1415,7 +1416,7 @@ const DATA = {
       "timebox": "1 天",
       "doneAt": "",
       "commit": "",
-      "note": "2026-11-15 02:20 Asia/Taipei (UTC+08:00)：P5-03a續作；更正前次判讀：async statecode=3／statuscode=30為成功，不能寫成Plugin執行失敗。唯讀確認原追蹤為Exceptions(1)；本輪暫改All(2)並讀回，再執行enabled→smoke→off→verify。smoke三分鐘未取得trace回1，off及verify回0，原追蹤1已還原，同一步驟停用、測試task為0；時間窗有1筆該步驟成功作業、trace為0，尚未證明job殘留為0。未證實服務故障，撤回要求使用者重啟的判斷，不再盲目重試。離線最近已驗證684/684；2f946479已接通受審token舊輪shadow CLI，獨立legacy switch、推播比較／外部修改摘要與其餘接線待完成。P5-03未驗收、未推送，完整固定guard未跑；驗收時間待剩餘接線及追蹤原因釐清後重估。"
+      "note": "2026-11-15 02:26 Asia/Taipei (UTC+08:00)：P5-03a續作，45813c77補上runner的推播完整意圖比較；新增3案先紅後綠，涵蓋吻合、內容摘要差異及缺少推播，欄位三方相同仍不得掩蓋推播差異。收件者及Retry Key僅依明確ID別名正規化；Deployment Release687/687、文件1562檔零失敗、變更編碼零問題。CLI情境推播接線、獨立受控legacy switch、外部修改摘要等尚待完成。diagnostics本輪在All(2)下仍無trace，smoke回1，off及verify回0，同一步驟停用、原追蹤1還原、測試task為0；async狀態30為成功，未證實服務故障，不要求使用者重啟，job零殘留尚未證明。P5-03未驗收、未推送，完整固定guard未跑；P5-02工具三小時修正尚未開始。"
     },
     {
       "id": "P5-04",

@@ -13,7 +13,7 @@
 - `dbb9dd6b P5-03a`：新增 CRUD 情境 factory，接線 metadata、核定共享別名、owned lookup 與安全 expected 投影；19 項新測試含真正 runtime 清理，未支援種類明確拒絕。
 - `0323f4cd P5-03a`：修正 ActivityFeeds 的 Microsoft 來源分類；兩個已查證完整組件名同時具公開簽章識別及 managed=true 才排除，同名偽裝／缺值仍保留。
 
-最近已驗證離線結果：Deployment Release **684／684**；檔案說明 **1562 檔、0 失敗**；本次各提交的 Changed 位元組檢查 **0 問題**。
+最近已驗證離線結果：Deployment Release **687／687**；檔案說明 **1562 檔、0 失敗**；本次各提交的 Changed 位元組檢查 **0 問題**。
 這些不是完整固定 guard 或實機影子驗收結果。
 
 ## Shadow 測試身分
@@ -116,3 +116,7 @@ F16 為分類誤判已釐清，撤回使用者處置需求；不需要使用者�
 2026-11-15 02:20 Asia/Taipei (UTC+08:00)：P5-03a續作；更正前次判讀：async statecode=3／statuscode=30為成功，不能寫成Plugin執行失敗。唯讀確認原追蹤為Exceptions(1)；本輪暫改All(2)並讀回，再執行enabled→smoke→off→verify。smoke三分鐘未取得trace回1，off及verify回0，原追蹤1已還原，同一步驟停用、測試task為0；時間窗有1筆該步驟成功作業、trace為0，尚未證明job殘留為0。未證實服務故障，撤回要求使用者重啟的判斷，不再盲目重試。離線最近已驗證684/684；2f946479已接通受審token舊輪shadow CLI，獨立legacy switch、推播比較／外部修改摘要與其餘接線待完成。P5-03未驗收、未推送，完整固定guard未跑；驗收時間待剩餘接線及追蹤原因釐清後重估。
 
 官方狀態對照：Microsoft Learn AsyncOperation EntityType 的 statuscode 明列 30=Succeeded、31=Failed；plugintracelog 文件說明 Exceptions(1) 僅在例外時產生追蹤，All(2) 包含成功執行。這只更正狀態語意，不能證明本輪沒有追蹤的唯一原因。
+
+## 2026-11-15 02:26 Asia/Taipei (UTC+08:00)：推播比較核心
+
+2026-11-15 02:26 Asia/Taipei (UTC+08:00)：P5-03a續作，45813c77補上runner的推播完整意圖比較；新增3案先紅後綠，涵蓋吻合、內容摘要差異及缺少推播，欄位三方相同仍不得掩蓋推播差異。收件者及Retry Key僅依明確ID別名正規化；Deployment Release687/687、文件1562檔零失敗、變更編碼零問題。CLI情境推播接線、獨立受控legacy switch、外部修改摘要等尚待完成。diagnostics本輪在All(2)下仍無trace，smoke回1，off及verify回0，同一步驟停用、原追蹤1還原、測試task為0；async狀態30為成功，未證實服務故障，不要求使用者重啟，job零殘留尚未證明。P5-03未驗收、未推送，完整固定guard未跑；P5-02工具三小時修正尚未開始。
