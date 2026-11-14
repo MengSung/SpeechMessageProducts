@@ -3,7 +3,7 @@
 
 目的與定位：保護 P5-02 離線來源切片的安全閉包，確保只有指定舊入口之外、可證明未使用的型別與普通方法可移除；不是舊方案或實機黃金驗收。
 主要功能與流程：以記憶體中的合成 IPlugin／CodeActivity 原始碼建立 Roslyn compilation，再對切片重新繫結並交給既有全量 CompileSources guard；未使用 WebRequest helper 應消失，可達初始化、建構、介面／虛擬派送、委派、屬性及屬性標記中的危險呼叫必須留下並被拒絕。
-使用邊界與維護：不讀取舊原始檔、token 或部署設定，不載入或執行合成組件、不建立外部連線。每筆測試獨占 compilation 與來源，metadata 僅讀目前受信任框架／SDK；compiler 結果以 using 清零輸出。故障注入涵蓋反射、dynamic、未解析呼叫與移除型別後的編譯錯誤，決定性斷言為符號存在性、重新編譯錯誤及既有 guard 的固定狀態；沒有跨測試可變快取或背景資源。
+使用邊界與維護：不讀取舊原始檔、token 或部署設定，不載入或執行合成組件、不建立外部連線。每筆測試獨占 compilation 與來源，metadata 僅讀目前受信任框架／SDK；compiler 結果以 using 清零輸出。故障注入涵蓋反射、dynamic 與未解析呼叫，另核對移除未使用型別後 namespace 宣告仍合法，決定性斷言為符號存在性、重新編譯錯誤及既有 guard 的固定狀態；沒有跨測試可變快取或背景資源。
 */
 using System;
 using System.IO;
@@ -25,6 +25,7 @@ public sealed class ReachableSourceSubsetTests
 {
     private const string Header = "using System; using Microsoft.Xrm.Sdk; ";
     private const string Danger = "System.Net.WebRequest.Create(\"https://example.invalid\");";
+    private static readonly string[] SampleRoots = { "Sample" };
 
     /// <summary>
     /// 注入完全未使用型別及已使用工具型別的未使用 CRM／網路方法；兩者均可移除，
@@ -59,12 +60,12 @@ public sealed class ReachableSourceSubsetTests
     /// base／this 初始化器均須傳播；即使當下選到另一建構子也不得裁掉副作用。
     /// </summary>
     [Theory]
-    [InlineData("public static object Value = Hazard.Go();")]
-    [InlineData("private object value = Hazard.Go();")]
-    [InlineData("public object Value { get; } = Hazard.Go();")]
+    [InlineData("public static object Value = Hazard.Get();")]
+    [InlineData("private object value = Hazard.Get();")]
+    [InlineData("public object Value { get; } = Hazard.Get();")]
     [InlineData("static Tools() { Hazard.Go(); }")]
     [InlineData("public Tools() { Hazard.Go(); }")]
-    [InlineData("public Tools(int value) : this() { Hazard.Go(); }")]
+    [InlineData("public Tools() {} public Tools(int value) : this() { Hazard.Go(); }")]
     public void Subset_ReferencedTypeInitializationAndConstructorsRetainHazard(string member)
     {
         var compilation = Slice(Plugin("Tools.Safe();")
@@ -153,7 +154,7 @@ public sealed class ReachableSourceSubsetTests
         var compilation = Create(
             Header + "public partial class Sample : IPlugin { public void Execute(IServiceProvider p) {} }",
             "public partial class Sample { private class Nested { private void Hidden() { Hazard.Go(); } } }" + Hazard());
-        AssertHazardRetained(ReachableSourceSubset.Create(compilation, new[] { "Sample" }));
+        AssertHazardRetained(ReachableSourceSubset.Create(compilation, SampleRoots));
     }
 
     /// <summary>以真正 CodeActivity metadata 驗證根識別，活動 protected Execute 及未呼叫成員都保留。</summary>
@@ -177,7 +178,7 @@ public sealed class ReachableSourceSubsetTests
     public void Subset_UnprovableReachabilityRetainsCompleteInput(string body)
     {
         var compilation = Create(Plugin(body) + Hazard());
-        var result = ReachableSourceSubset.Create(compilation, new[] { "Sample" });
+        var result = ReachableSourceSubset.Create(compilation, SampleRoots);
         Assert.Same(compilation, result);
         Assert.NotNull(result.GetTypeByMetadataName("Hazard"));
         AssertGuardStatus(result, "BlockedByNetworkApi");
@@ -195,16 +196,16 @@ public sealed class ReachableSourceSubsetTests
             root.Length == 0 ? Array.Empty<string>() : new[] { root }));
     }
 
-    /// <summary>切片引入的缺成員錯誤必須留給 compiler fail，不可以原碼或寬鬆 guard 假裝成功。</summary>
+    /// <summary>移除未使用型別後仍保留 namespace 宣告；既有 using 可合法繫結，不應把空 namespace 誤判為缺失。</summary>
     [Fact]
-    public void Subset_RebuiltCompilationExposesMissingNamespaceErrors()
+    public void Subset_UnusedNamespaceShellRetainsValidUsingDirective()
     {
         var source = "using UnusedNamespace; " + Plugin(string.Empty)
             + "namespace UnusedNamespace { public class Removed {} }";
         var compilation = Slice(source);
         Assert.Null(compilation.GetTypeByMetadataName("UnusedNamespace.Removed"));
-        Assert.Contains(compilation.GetDiagnostics(), item => item.Severity == DiagnosticSeverity.Error);
-        AssertGuardStatus(compilation, "CompileFailed");
+        AssertCompiles(compilation);
+        AssertGuardStatus(compilation, "Generated");
     }
 
     /// <summary>兩次切片獨占閉包狀態；前一次根與危險來源不能污染下一次安全來源。</summary>
@@ -228,7 +229,7 @@ public sealed class ReachableSourceSubsetTests
 
     /// <summary>只切指定根；輸出仍是待 guard 與 emit 的 compilation，沒有舊程式執行。</summary>
     private static CSharpCompilation Slice(string source) =>
-        ReachableSourceSubset.Create(Create(source), new[] { "Sample" });
+        ReachableSourceSubset.Create(Create(source), SampleRoots);
 
     /// <summary>
     /// 建立單次合成 compilation，metadata 由受信任目前框架與 CRM SDK 的唯讀影像提供；

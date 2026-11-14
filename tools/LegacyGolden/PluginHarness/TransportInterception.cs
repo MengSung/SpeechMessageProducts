@@ -1,7 +1,7 @@
 /*
 檔案整體說明
 目的與定位：為離線舊入口提供只能記錄的HttpClient及單次執行捕捉範圍，不建立真實HTTP handler或讀取任何部署憑證。
-主要功能與流程：編譯器改寫HttpClient建構至RecordingHttpClient，handler同步完成內容讀取、移除header與query、把收件識別轉為情境alias，保存有界JSON並回固定成功。ScratchFiles將舊絕對或相對路徑雜湊映射到runner獨占暫存根，所有stream仍由舊using或域卸載釋放。
+主要功能與流程：編譯器改寫HttpClient建構至RecordingHttpClient，handler同步完成內容讀取、移除header與query、把收件識別轉為情境alias，保存有界JSON並回固定成功。ScratchFiles將舊絕對或相對路徑雜湊映射到runner獨占暫存根，stream 同時登錄至有界 capture owner，舊 using 可提早關閉，capture finally 反向關閉遺漏的 stream。
 使用邊界與維護：AsyncLocal只在單次獨立AppDomain內流動，finally清除，不在不同情境共用。capture最多512事件、訊息本文128KiB；任何超限或無owner呼叫明確失敗。runner在卸載域後刪除自己的scratch，未知網路與檔案API由compiler先拒絕；本檔不宣稱能執行任意敵意來源。
 */
 using System;
