@@ -5,6 +5,7 @@
  * 序列直接拿去與舊輪觀察快照比較。輸入全部是合成的記憶體資料，沒有實機結果。
  * 主要功能與流程：先確認產品具有依序套用意圖的入口，再驗證建立、更新、刪除、
  * 明確身分映射、型別精度與不完整輸入的拒絕，不使用替身重寫產品演算法。
+ * 逐意圖映射須保留商業欄位的 entity/id 同名文字，不把它們誤判成 lookup。
  * 使用邊界與維護：測試不連線、不讀秘密、不推播；案例獨占輸入與結果，
  * 不保留跨案例狀態。JSON 文件由建立輸入的 helper 當場釋放，輸出必須 detached。
  */
@@ -21,6 +22,30 @@ namespace SpeechMessage.Dynamics.Deployment.Tests;
 /// <summary>以離線輸入保護 CRUD 最終狀態投影，不把成功斷言當成實機驗收。</summary>
 public sealed class ShadowProjectionTests
 {
+    /// <summary>意圖根 ID 與巢狀 lookup 可映射，但 fields 的同名商業欄位及一般字串不可變。</summary>
+    [Fact]
+    public void Shadow_IntentAliases_OnlyExplicitIdentityPositionsChange()
+    {
+        var actual = Trace("""
+            {"operation":"Update","entity":"task","id":"actual","fields":{"owner":{"entity":"contact","id":"actual-contact"},"entity":"contact","id":"actual-contact","label":"actual-contact"}}
+            """);
+        var expected = Trace("""
+            {"operation":"Update","entity":"task","id":"task-1","fields":{"owner":{"entity":"contact","id":"contact-1"},"entity":"contact","id":"actual-contact","label":"actual-contact"}}
+            """);
+        var aliases = new Dictionary<string, string>(StringComparer.Ordinal)
+        {
+            ["actual"] = "task-1", ["actual-contact"] = "contact-1"
+        };
+        var normalized = ShadowProjection.NormalizeTrace(actual, aliases);
+        Assert.True(ShadowComparer.Compare(expected, normalized).IsEqual);
+        Assert.Equal("actual", Assert.Single(actual.Intents).Id);
+        Assert.Equal("actual-contact", normalized.Intents[0].Projection.GetProperty("fields").GetProperty("id").GetString());
+        var overflow = actual with { Overflow = true };
+        Assert.False(ShadowProjection.NormalizeTrace(overflow, aliases).Comparable);
+        Assert.Throws<System.IO.InvalidDataException>(() =>
+            ShadowProjection.NormalizeTrace(actual with { Total = 2 }, aliases));
+    }
+
     /// <summary>
     /// 注入 Create→Update、多次 Update、Delete 及未更動欄位，以手算舊輪與 expected
     /// 快照驗證三組比較。若直接比較意圖或只取最後一筆，數量、欄位或刪除斷言必敗。

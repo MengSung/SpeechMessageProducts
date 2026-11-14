@@ -6,6 +6,7 @@
  * 保存追蹤設定、逐輪建立獨立 seed owner，舊輪交 SwitchModule 的 D5-18 scope，
  * 新輪讀完整追蹤並套成最終快照；兩輪互比且各自與期望比較，最後還原追蹤設定。
  * reading、legacy-golden 及 new 僅跑新輪，舊側固定不可比較；延到 P7 不在此執行。
+ * 新輪另以完整意圖順序逐筆對期望，不能用最終值相同掩蓋額外寫入或 observe 外變動。
  * 使用邊界與維護：SDK 租約與組織寫鎖由 CLI 擁有；runtime 負責精確查詢、時間窗、
  * 資料安全投影及自建列清冊。本檔只比較 CRUD；其他意圖明確拒絕，不冒充推播驗收。
  * 所有 owner 只屬單一 Run；取消不跳過停用、刪除、殘留核對或 Dispose。收尾失敗
@@ -34,6 +35,8 @@ internal sealed record ShadowCaseResult(int Index, ShadowComparison BetweenRound
 {
     /// <summary>明列是否真正執行舊輪；只有新輪的替代基準，其舊側固定不可比較。</summary>
     public bool LegacyExecuted { get; init; } = true;
+    /// <summary>新輪完整意圖對期望逐筆比較，與最終快照比較分開；未提供固定不可比較。</summary>
+    public ShadowComparison ShadowIntentsToExpected { get; init; } = new(false, Array.Empty<ShadowDifference>());
 }
 
 /// <summary>
@@ -156,7 +159,12 @@ internal sealed class ShadowScenarioRunner
                     legacy is null ? unavailable : ShadowComparer.CompareFinalStates(legacy.Actual, legacy.Expected, scenario.Observe,
                         volatileFields: scenario.VolatileFields),
                     ShadowComparer.CompareFinalStates(shadow.Actual, shadow.Expected, scenario.Observe,
-                        volatileFields: scenario.VolatileFields)) { LegacyExecuted = legacy is not null });
+                        volatileFields: scenario.VolatileFields))
+                {
+                    LegacyExecuted = legacy is not null,
+                    ShadowIntentsToExpected = ShadowComparer.Compare(scenario.Expected,
+                        shadow.Trace ?? throw InvalidScenario(), scenario.VolatileFields)
+                });
             }
         }
         catch (Exception failure) { failures.Add(failure); }
@@ -190,6 +198,7 @@ internal sealed class ShadowScenarioRunner
             var initial = Normalize(round.Initial, aliases);
             var expected = ShadowProjection.Apply(initial, scenario.Expected);
             ShadowSnapshot? actual = null;
+            ShadowTrace? normalizedTrace = null;
             if (legacy)
                 engine.SwitchModule(document, organization, module, "legacy", readLegacy,
                     round.LegacyContext, () =>
@@ -202,11 +211,12 @@ internal sealed class ShadowScenarioRunner
                 Switch("enabled", cancellationToken);
                 round.Trigger(cancellationToken);
                 var trace = ShadowTraceParser.Parse(round.ReadShadowTrace(TimeSpan.FromSeconds(60), cancellationToken));
+                normalizedTrace = ShadowProjection.NormalizeTrace(trace, aliases);
                 // 先於清理讀取完整 trace；正規化發生在套用之後，保留真實 ID 的順序一致性。
                 actual = Normalize(ShadowProjection.Apply(round.Initial, trace), aliases);
             }
             cancellationToken.ThrowIfCancellationRequested();
-            result = new RoundResult(actual ?? throw InvalidScenario(), expected);
+            result = new RoundResult(actual ?? throw InvalidScenario(), expected, normalizedTrace);
         }
         catch (Exception failure) { failures.Add(failure); }
         finally
@@ -249,5 +259,5 @@ internal sealed class ShadowScenarioRunner
     private static InvalidDataException InvalidScenario() => new("Shadow scenario safety precondition failed.");
 
     /// <summary>本輪 detached 最終值及期望；只活於當次同步執行。</summary>
-    private sealed record RoundResult(ShadowSnapshot Actual, ShadowSnapshot Expected);
+    private sealed record RoundResult(ShadowSnapshot Actual, ShadowSnapshot Expected, ShadowTrace? Trace);
 }

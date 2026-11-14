@@ -11,6 +11,7 @@
  * 不快取結果、不保留連線與跨使用者狀態；有界摘要只存活於同步呼叫，報告保留期
  * 由呼叫端管理。比較位置可能含欄位或身分，故一律只輸出數量；殘留核對依 runner
  * 成功返回契約，本檔不能獨立證明實機殘留為零或環境驗收已通過。
+ * 新輪必須另通過完整意圖比較，不以最終值相同忽略額外欄位或中間寫入。
  */
 using System;
 using System.Collections.Generic;
@@ -72,6 +73,8 @@ internal static class ShadowReportWriter
             var between = AppendComparison(text, "BetweenRounds", item.BetweenRounds);
             var legacy = AppendComparison(text, "LegacyToExpected", item.LegacyToExpected);
             var shadow = AppendComparison(text, "ShadowToExpected", item.ShadowToExpected);
+            var intents = AppendComparison(text, "ShadowIntentsToExpected", item.ShadowIntentsToExpected);
+            passed &= intents;
             passed &= basis switch
             {
                 "new" or "reading" or "legacy-golden" => !item.LegacyExecuted &&

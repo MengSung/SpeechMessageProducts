@@ -155,6 +155,31 @@ internal static class ShadowProjection
     internal static string Alias(string id, IReadOnlyDictionary<string, string>? aliases) =>
         aliases is not null && aliases.TryGetValue(id, out var alias) ? alias : id;
 
+    /// <summary>
+    /// 將完整意圖的根身分及巢狀 lookup 正規化為明確情境代號，保留順序及所有欄位。
+    /// 一般字串不改寫；不完整 trace 維持不可比，不透過重新建 end 假造完整證據。
+    /// </summary>
+    internal static ShadowTrace NormalizeTrace(ShadowTrace trace, IReadOnlyDictionary<string, string>? aliases)
+    {
+        ArgumentNullException.ThrowIfNull(trace);
+        if (!trace.Comparable) return trace;
+        var validated = ValidateTrace(trace);
+        var map = CopyAliases(aliases);
+        var result = new List<ShadowIntent>(validated.Intents.Count);
+        var nodes = 0;
+        foreach (var intent in validated.Intents)
+        {
+            var fields = new Dictionary<string, JsonElement>(StringComparer.Ordinal);
+            foreach (var property in intent.Projection.EnumerateObject())
+                fields.Add(property.Name, CopyValue(property.Value, map,
+                    property.Name == "fields" ? 0 : 1, ref nodes));
+            var id = Alias(intent.Id, map);
+            fields[intent.Operation == "Push" ? "contactId" : "id"] = JsonSerializer.SerializeToElement(id);
+            result.Add(intent with { Id = id, Projection = JsonSerializer.SerializeToElement(fields) });
+        }
+        return validated with { Intents = result.AsReadOnly() };
+    }
+
     /// <summary>限制結構識別字長度，拒絕缺身分；不解析或改寫 GUID 大小寫。</summary>
     internal static bool ValidIdentity(string? value) => !string.IsNullOrWhiteSpace(value) && value.Length <= 256;
 

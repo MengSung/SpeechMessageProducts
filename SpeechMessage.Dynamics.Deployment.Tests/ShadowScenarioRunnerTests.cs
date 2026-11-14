@@ -137,6 +137,23 @@ public sealed class ShadowScenarioRunnerTests
         runtime.AssertDrained();
     }
 
+    /// <summary>最終欄值相同仍不能隱藏多寫欄位或中間寫入；D5-5 要求新輪逐意圖符合期望。</summary>
+    /// <param name="fault">注入 observe 外欄位或最後被覆蓋的額外意圖。</param>
+    [Theory]
+    [InlineData("extra-field")]
+    [InlineData("extra-intent")]
+    public void Shadow_Runner_FinalEqualityCannotHideUnexpectedWrites(string fault)
+    {
+        using var f = new Fixture();
+        var runtime = new Runtime(f) { IntentFault = fault };
+        var results = runtime.Run();
+        Assert.True(Assert.Single(results).ShadowToExpected.IsEqual);
+        var report = ShadowReportWriter.Write("diagnostics", "legacy-live", results,
+            Path.Combine(f.Root, "intent-report"), TimeProvider.System);
+        Assert.False(report.Passed);
+        runtime.AssertDrained();
+    }
+
     /// <summary>完整但 overflow 的追蹤只可回不可比較；收尾仍完整，不能改當零差異。</summary>
     [Fact]
     public void Shadow_Runner_OverflowIsNotComparable()
@@ -213,6 +230,7 @@ public sealed class ShadowScenarioRunnerTests
         internal readonly List<Round> Rounds = new();
         internal readonly InvalidOperationException Failure = new("Injected safe failure");
         internal string Fault = "";
+        internal string IntentFault = "";
         internal bool FailCleanup;
         internal bool Overflow;
         internal int LegacyValue = 2;
@@ -333,6 +351,14 @@ public sealed class ShadowScenarioRunnerTests
             Assert.Equal(TimeSpan.FromSeconds(60), maximumWait);
             if (runtime.Fault == Point("trace")) throw runtime.Failure;
             if (runtime.Overflow) return "SMV-SHADOW|1|{\"overflow\":true,\"total\":5}\r\nSMV-SHADOW|1|{\"end\":true,\"count\":0}";
+            if (runtime.IntentFault == "extra-field")
+                return "SMV-SHADOW|1|{\"seq\":1,\"operation\":\"Update\",\"entity\":\"task\",\"id\":\"" +
+                    Id.ToString("D") + "\",\"fields\":{\"score\":2,\"unexpected\":9}}\r\nSMV-SHADOW|1|{\"end\":true,\"count\":1}";
+            if (runtime.IntentFault == "extra-intent")
+                return "SMV-SHADOW|1|{\"seq\":1,\"operation\":\"Update\",\"entity\":\"task\",\"id\":\"" +
+                    Id.ToString("D") + "\",\"fields\":{\"score\":9}}\r\n" +
+                    "SMV-SHADOW|1|{\"seq\":2,\"operation\":\"Update\",\"entity\":\"task\",\"id\":\"" +
+                    Id.ToString("D") + "\",\"fields\":{\"score\":2}}\r\nSMV-SHADOW|1|{\"end\":true,\"count\":2}";
             return "SMV-SHADOW|1|{\"seq\":1,\"operation\":\"Update\",\"entity\":\"task\",\"id\":\"" +
                 Id.ToString("D") + "\",\"fields\":{\"score\":2}}\r\nSMV-SHADOW|1|{\"end\":true,\"count\":1}";
         }

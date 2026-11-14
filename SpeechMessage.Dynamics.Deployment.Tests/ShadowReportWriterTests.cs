@@ -94,7 +94,10 @@ public sealed class ShadowReportWriterTests
     {
         using var files = new Files();
         var unavailable = new ShadowComparison(false, Array.Empty<ShadowDifference>());
-        var item = new ShadowCaseResult(1, unavailable, unavailable, Equal()) { LegacyExecuted = legacyExecuted };
+        var item = new ShadowCaseResult(1, unavailable, unavailable, Equal())
+        {
+            LegacyExecuted = legacyExecuted, ShadowIntentsToExpected = Equal()
+        };
         var report = ShadowReportWriter.Write("localization", basis, [item], files.Root, new Clock());
         Assert.Equal(passed, report.Passed);
         Assert.Contains($"LegacyExecuted={legacyExecuted.ToString().ToLowerInvariant()}", File.ReadAllText(report.Path), StringComparison.Ordinal);
@@ -111,6 +114,16 @@ public sealed class ShadowReportWriterTests
         var result = ShadowReportWriter.Write("attendance", basis,
             [Case() with { LegacyExecuted = false }], files.Root, new Clock());
         Assert.False(result.Passed);
+    }
+    /// <summary>即使最終三方皆相同，意圖比較缺失、不可比或非零差異仍不得發布 Passed=true。</summary>
+    [Fact]
+    public void Report_MissingOrUnequalIntentEvidenceCannotPass()
+    {
+        using var files = new Files();
+        var result = ShadowReportWriter.Write("attendance", "legacy-live",
+            [Case() with { ShadowIntentsToExpected = new ShadowComparison(false, []) }], files.Root, new Clock());
+        Assert.False(result.Passed);
+        Assert.Contains("ShadowIntentsToExpected: Comparable=false", File.ReadAllText(result.Path), StringComparison.Ordinal);
     }
 
     /// <summary>拒絕路徑穿越、大小寫變體與非核定基準，且驗證失敗不建立輸出根。</summary>
@@ -233,7 +246,10 @@ public sealed class ShadowReportWriterTests
     private static ShadowComparison Equal() => new(true, Array.Empty<ShadowDifference>());
 
     /// <summary>合成單一情境結果，三側預設全可比且相同。</summary>
-    private static ShadowCaseResult Case() => new(1, Equal(), Equal(), Equal());
+    private static ShadowCaseResult Case() => new(1, Equal(), Equal(), Equal())
+    {
+        ShadowIntentsToExpected = Equal()
+    };
 
     /// <summary>固定 UTC 日期供檔名驗證；不啟動計時器、不借用系統可變時鐘。</summary>
     private sealed class Clock : TimeProvider
