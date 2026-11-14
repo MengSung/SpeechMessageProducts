@@ -25,7 +25,7 @@
 
 ## 唯一驗收清單（05A P5-03a 與 §4A）
 
-以下同名測試已存在，最近已驗證的 Deployment Release 全套 687／687 包含這些案例；這不等於整包驗收。
+以下同名測試已存在，最近已驗證的 Deployment Release 全套 724／724 包含這些案例；這不等於整包驗收。
 
 - [x] `Shadow_SameFields_NoDifference`
 - [x] `Shadow_DifferentValue_Reported`
@@ -54,7 +54,7 @@
 
 ## 完成定義（00 §7.1，不得加碼）
 
-- [x] 1. 本包上述同名測試全部通過；Deployment 為 net10.0 單目標，Release 687／687。
+- [x] 1. 本包上述同名測試全部通過；Deployment 為 net10.0 單目標，Release 724／724。
 - [ ] 2. 00 §8.1 全部命令在固定 guard `C:\smv\guard` 通過；本包尚未完成，不能沿用 P5-02 的守門。
 - [x] 3. 本包沒有新增專案，覆蓋率條件不適用。
 - [ ] 4. diagnostics enabled → smoke → off → verify=0、步驟 ID 不變、殘留 0 與一頁操作紀錄；F16 已確認為 Microsoft ActivityFeeds 分類誤判，修正後只重跑唯讀匯出，已執行本項，但 smoke 未取得 trace，不能勾選完成。
@@ -62,7 +62,7 @@
 
 ## 尚缺產物與時間盒
 
-- `shadow` 的 new／reading／legacy-golden CRUD 新輪 CLI、同步 RequestId、關聯 observe 與 Create 別名已接通；26 項新測試含舊輪 SDK 關聯讀回、歧義拒絕、同輪 Create／Delete 的完整意圖及送達後失敗／取消的子列清理。受控 `switch --to legacy` 及 live 基準受審 token 盤點接線、推播／外部修改摘要、映像接線與同步實機追蹤識別仍待完成；全部仍是離線證據。
+- `shadow` 的 new／reading／legacy-golden CRUD 新輪 CLI、同步 RequestId、關聯 observe 與 Create 別名已接通；26 項新測試含舊輪 SDK 關聯讀回、歧義拒絕、同輪 Create／Delete 的完整意圖及送達後失敗／取消的子列清理。受控 `switch --to legacy`、live 基準受審 token 盤點、推播及映像已接線；外部修改摘要與同步實機追蹤識別仍待完成，全部仍是離線證據。
 - P5-03a 上限為 1 天；P5-03 已依 D5-11／D5-12 拆 a、b。原 2026-11-14 23:30 Asia/Taipei (UTC+08:00) 驗收估計不再承諾，離線契約完成後重新估計，不虛填完成時間。
 - 39 個啟用步驟已以公開簽章、managed 狀態及 ActivityFeedsCore／microsoftdynamics 的正式方案關聯確認為 Microsoft ActivityFeeds；`0323f4cd` 修正窄分類後，唯讀 CLI 回 0、舊步驟與流程啟用各 0，沒有變更遠端狀態，無需使用者處置。
 
@@ -78,3 +78,9 @@
 ## 2026-11-15 02:39 Asia/Taipei (UTC+08:00) 推播接線進度
 
 2026-11-15 02:39 Asia/Taipei (UTC+08:00)：P5-03a續作，b8953380接通expected推播摘要至reader／factory／真CLI；新增14項離線測試，含內容差異、缺摘要／錯收件者／不受控Retry Key拒絕及清理。修正Push中繼Entity須為空的parser一致性，保留嚴格驗證。Deployment Release701/701、文件1562檔零失敗、變更編碼零問題。獨立受控legacy switch、外部修改摘要、映像接線及同步實機識別仍待完成。diagnostics在All(2)下未取得trace的既有結果不變；未再實機重試。P5-03未驗收、未推送，完整固定guard未跑；驗收時間待接線及追蹤原因釐清後重估，沒有等待使用者的事項；P5-02工具三小時修正尚未開始。
+
+## 2026-11-15 02:58 Asia/Taipei (UTC+08:00) 映像接線與受控第一輪現況
+
+2026-11-15 02:58 Asia/Taipei (UTC+08:00)：P5-03a續作；a20a1e8c接通公開legacy切換的受控第一輪及確定清理（710項通過），75568edd接通情境映像與正式步驟的別名、欄位及前後值核對，14項新增測試含真CLI舊新兩輪；完整Deployment Release724/724。映像由平台產生，不注入合成context。本輪沒有實機寫入或推送；diagnostics成功作業無trace的原因仍待查，外部修改摘要、同步實機識別、固定guard及P5-03b尚未完成。P5-03未驗收，驗收時刻待證據補齊後重估，無需使用者操作；P5-02工具三小時修正尚未開始。
+
+2026-11-15 02:58 Asia/Taipei (UTC+08:00)：更正02:39的701項證據適用範圍：b8953380曾在測試後的註解編輯漏掉Push意圖加入；a20a1e8c已補回，且在全部程式修改後完整710項通過。本次724項亦為最終程式修改後的完整執行，不以先前測試代替提交版本驗證。
