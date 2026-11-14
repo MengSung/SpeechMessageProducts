@@ -240,11 +240,11 @@ footer{margin-top:36px;color:var(--muted);font-size:12.5px;text-align:center}
  */
 const DATA = {
   "planVersion": "3.5",
-  "snapshot": "2026-11-14 23:16 Asia/Taipei (UTC+08:00)",
-  "lastUpdated": "2026-11-14T23:16:33+08:00",
+  "snapshot": "2026-11-14 23:54 Asia/Taipei (UTC+08:00)",
+  "lastUpdated": "2026-11-14T23:54:38+08:00",
   "branch": "1.0.0.11.Integration.P5.Worktree",
-  "head": "2f946479",
-  "headline": "2026-11-14 23:16 Asia/Taipei (UTC+08:00)：P5-03a續作，受審 token inventory 與先舊後新 shadow 舊輪已接通；Deployment Release684/684、文件1562檔零失敗。goodshepherdback 的 diagnostics 已完成 export-legacy（啟用舊步驟／流程各0），enabled→smoke→off→verify 回歸中 smoke 三分鐘內未收到追蹤而失敗，隨即 off 且 verify=0；本次沒有宣稱通過，仍待查明追蹤未送達原因，P5-03未驗收、未推送。目前沒有等待使用者的事項。",
+  "head": "4727fa8c",
+  "headline": "2026-11-14 23:54 Asia/Taipei (UTC+08:00)：P5-03a續作，固定受審 token inventory 與先舊後新 shadow 舊輪已接通；Deployment Release684/684、文件1562檔零失敗。goodshepherdback diagnostics 的新版 step 可啟用，但 smoke 對應 async operation 進入 statecode=3／statuscode=30，沒有 plugin trace；已精確清除本次 smoke task，執行 off 並 verify=0。失敗證據已記錄，P5-03仍未驗收、未推送，目前沒有等待使用者的事項。",
   "notices": [
     {
       "id": "plan-3.5-summary",
@@ -1414,7 +1414,7 @@ const DATA = {
       "timebox": "1 天",
       "doneAt": "",
       "commit": "",
-      "note": "2026-11-14 23:16 Asia/Taipei (UTC+08:00)：P5-03a續作，受審 token inventory 與先舊後新 shadow 舊輪已接通；Deployment Release684/684、文件1562檔零失敗。goodshepherdback 的 diagnostics 已完成 export-legacy（啟用舊步驟／流程各0），enabled→smoke→off→verify 回歸中 smoke 三分鐘內未收到追蹤而失敗，隨即 off 且 verify=0；本次沒有宣稱通過，仍待查明追蹤未送達原因，P5-03未驗收、未推送。目前沒有等待使用者的事項。"
+      "note": "2026-11-14 23:54 Asia/Taipei (UTC+08:00)：P5-03a續作，固定受審 token inventory 與先舊後新 shadow 舊輪已接通；Deployment Release684/684、文件1562檔零失敗。goodshepherdback diagnostics 的新版 step 可啟用，但 smoke 對應 async operation 進入 statecode=3／statuscode=30，沒有 plugin trace；已精確清除本次 smoke task，執行 off 並 verify=0。失敗證據已記錄，P5-03仍未驗收、未推送，目前沒有等待使用者的事項。"
     },
     {
       "id": "P5-04",
