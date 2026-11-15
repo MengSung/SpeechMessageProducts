@@ -1,0 +1,289 @@
+{
+  "module": "weeklyreports",
+  "basis": "reading",
+  "cases": [
+    {
+      "name": "statistics-normal",
+      "entrypoint": "SpeechMessage.Dynamics.Plugins.WeeklyReports.WeeklyReportStatisticsPlugin",
+      "writes": [
+        {
+          "operation": "Update",
+          "entity": "contact",
+          "alias": "member-c",
+          "fields": {
+            "customertypecode": {
+              "option": 100000000
+            }
+          }
+        },
+        {
+          "operation": "Update",
+          "entity": "new_group_present_weekly_report",
+          "alias": "report",
+          "fields": {
+            "new_saved_flag": "event-guid-present",
+            "new_sunday_present_number": 1,
+            "new_small_group_number": 1,
+            "new_sunday_present_rate": 0.5,
+            "new_small_group_rate": 0.5
+          }
+        }
+      ],
+      "lineCalls": [],
+      "outputs": {},
+      "exception": null
+    },
+    {
+      "name": "statistics-missing-integer",
+      "entrypoint": "SpeechMessage.Dynamics.Plugins.WeeklyReports.WeeklyReportStatisticsPlugin",
+      "writes": [
+        {
+          "operation": "Update",
+          "entity": "new_group_present_weekly_report",
+          "alias": "report",
+          "fields": {
+            "new_saved_flag": "event-guid-present",
+            "new_sunday_present_number": -9999,
+            "new_small_group_number": 1,
+            "new_sunday_present_rate": -9999.0,
+            "new_small_group_rate": 1.0
+          }
+        }
+      ],
+      "lineCalls": [],
+      "outputs": {},
+      "exception": null
+    },
+    {
+      "name": "statistics-zero",
+      "entrypoint": "SpeechMessage.Dynamics.Plugins.WeeklyReports.WeeklyReportStatisticsPlugin",
+      "writes": [
+        {
+          "operation": "Update",
+          "entity": "new_group_present_weekly_report",
+          "alias": "report",
+          "fields": {
+            "new_saved_flag": "event-guid-present"
+          }
+        }
+      ],
+      "lineCalls": [],
+      "outputs": {},
+      "exception": null
+    },
+    {
+      "name": "notification-changed",
+      "entrypoint": "SpeechMessage.Dynamics.Plugins.WeeklyReports.WeeklyReportNotificationPlugin",
+      "writes": [],
+      "lineCalls": [
+        {
+          "method": "POST",
+          "endpoint": "/v2/bot/message/push",
+          "recipients": [
+            "leader"
+          ],
+          "messageCount": 1,
+          "messages": [
+            {
+              "type": "text",
+              "text": "Synthetic Pastor 回應您主日日期為 2026/11/8 的聚會回報 \r\nSynthetic reply"
+            }
+          ]
+        }
+      ],
+      "outputs": {},
+      "exception": null
+    },
+    {
+      "name": "notification-unchanged",
+      "entrypoint": "SpeechMessage.Dynamics.Plugins.WeeklyReports.WeeklyReportNotificationPlugin",
+      "writes": [],
+      "lineCalls": [],
+      "outputs": {},
+      "exception": null
+    },
+    {
+      "name": "generation-two-weeks",
+      "entrypoint": "SpeechMessage.Dynamics.Workflows.WeeklyReports.WeeklyReportGenerationActivity",
+      "writes": [
+        {
+          "operation": "Create",
+          "entity": "new_group_present_weekly_report",
+          "alias": "report-this",
+          "fields": {
+            "new_name": "Synthetic Group-2026/11/8",
+            "new_list_group_present_weekly_report": {
+              "ref": "list",
+              "entity": "list"
+            },
+            "new_groupleader_group_present_weekly_": {
+              "ref": "leader",
+              "entity": "contact"
+            },
+            "new_sunday_date": "2026-11-07T16:00:00Z",
+            "new_group_date": "2026-11-07T16:00:00Z",
+            "new_group_place": "Room",
+            "new_group_time": "19:00",
+            "new_sunday_present_number": 0,
+            "new_small_group_number": 0,
+            "new_sunday_present_rate": 0.0,
+            "new_small_group_rate": 0.0,
+            "ownerid": {
+              "ref": "owner",
+              "entity": "systemuser"
+            }
+          }
+        },
+        {
+          "operation": "Create",
+          "entity": "new_present_record",
+          "alias": "attendance-this",
+          "fields": {
+            "new_name": "未填",
+            "new_contact_new_present_record": {
+              "ref": "leader",
+              "entity": "contact"
+            },
+            "new_group_present_weekly_report_prese": {
+              "ref": "report-this",
+              "entity": "new_group_present_weekly_report"
+            },
+            "new_list_new_present_record": {
+              "ref": "list",
+              "entity": "list"
+            },
+            "new_groupleader_present_record": {
+              "ref": "leader",
+              "entity": "contact"
+            },
+            "new_sunday_date": "2026-11-07T16:00:00Z",
+            "new_group_date": "2026-11-07T16:00:00Z",
+            "new_group_place": "Room",
+            "new_group_time": "19:00",
+            "new_sunday_present_this_week": 0,
+            "new_group_present_this_week": 0,
+            "new_sunday_rate": 0.0,
+            "new_small_group_rate": 0.0,
+            "new_cell_hpone": "",
+            "ownerid": {
+              "ref": "owner",
+              "entity": "systemuser"
+            }
+          }
+        },
+        {
+          "operation": "Create",
+          "entity": "new_group_present_weekly_report",
+          "alias": "report-next",
+          "fields": {
+            "new_name": "Synthetic Group-2026/11/15",
+            "new_list_group_present_weekly_report": {
+              "ref": "list",
+              "entity": "list"
+            },
+            "new_groupleader_group_present_weekly_": {
+              "ref": "leader",
+              "entity": "contact"
+            },
+            "new_sunday_date": "2026-11-14T16:00:00Z",
+            "new_group_date": "2026-11-14T16:00:00Z",
+            "new_group_place": "Room",
+            "new_group_time": "19:00",
+            "new_sunday_present_number": 0,
+            "new_small_group_number": 0,
+            "new_sunday_present_rate": 0.0,
+            "new_small_group_rate": 0.0,
+            "ownerid": {
+              "ref": "owner",
+              "entity": "systemuser"
+            }
+          }
+        },
+        {
+          "operation": "Create",
+          "entity": "new_present_record",
+          "alias": "attendance-next",
+          "fields": {
+            "new_name": "未填",
+            "new_contact_new_present_record": {
+              "ref": "leader",
+              "entity": "contact"
+            },
+            "new_group_present_weekly_report_prese": {
+              "ref": "report-next",
+              "entity": "new_group_present_weekly_report"
+            },
+            "new_list_new_present_record": {
+              "ref": "list",
+              "entity": "list"
+            },
+            "new_groupleader_present_record": {
+              "ref": "leader",
+              "entity": "contact"
+            },
+            "new_sunday_date": "2026-11-14T16:00:00Z",
+            "new_group_date": "2026-11-14T16:00:00Z",
+            "new_group_place": "Room",
+            "new_group_time": "19:00",
+            "new_sunday_present_this_week": 0,
+            "new_group_present_this_week": 0,
+            "new_sunday_rate": 0.0,
+            "new_small_group_rate": 0.0,
+            "new_cell_hpone": "",
+            "ownerid": {
+              "ref": "owner",
+              "entity": "systemuser"
+            }
+          }
+        }
+      ],
+      "lineCalls": [],
+      "outputs": {},
+      "exception": null
+    }
+  ],
+  "declaredDifferences": [
+    {
+      "case": "statistics-normal",
+      "position": "$.cases[0].writes",
+      "category": 5,
+      "reason": "WeeklyReportPlugIn/WeeklyReportPlugInClass.cs:156-188,260-345,355-417；ToolUtilityClass.cs:3902-3915。reading未實跑；保留分類補值、-9999與N=0，改最小patch及穩定事件旗標，不重送整個Retrieve列。",
+      "test": "WeeklyReport_Statistics_FromPreImageDelta"
+    },
+    {
+      "case": "statistics-missing-integer",
+      "position": "$.cases[1].writes",
+      "category": 5,
+      "reason": "WeeklyReportPlugIn/WeeklyReportPlugInClass.cs:156-188,260-345,355-417；ToolUtilityClass.cs:3902-3915。reading未實跑；保留分類補值、-9999與N=0，改最小patch及穩定事件旗標，不重送整個Retrieve列。",
+      "test": "WeeklyReport_Statistics_FromPreImageDelta"
+    },
+    {
+      "case": "statistics-zero",
+      "position": "$.cases[2].writes",
+      "category": 5,
+      "reason": "WeeklyReportPlugIn/WeeklyReportPlugInClass.cs:156-188,260-345,355-417；ToolUtilityClass.cs:3902-3915。reading未實跑；保留分類補值、-9999與N=0，改最小patch及穩定事件旗標，不重送整個Retrieve列。",
+      "test": "WeeklyReport_Statistics_FromPreImageDelta"
+    },
+    {
+      "case": "notification-changed",
+      "position": "$.cases[3].lineCalls",
+      "category": 5,
+      "reason": "WeeklyReportLinePlugIn/WeeklyReportLinePlugInClass.cs:273-328,364-391。reading未實跑；精確保留回報後空格換行與回應比較；逐正式contact去重、同教會驗證、直接push並等待取代舊multicast；教會當地zh-TW短日期取代伺服器文化。",
+      "test": "WeeklyReport_Notification_PushesOncePerRecipient"
+    },
+    {
+      "case": "notification-unchanged",
+      "position": "$.cases[4].lineCalls",
+      "category": 5,
+      "reason": "WeeklyReportLinePlugIn/WeeklyReportLinePlugInClass.cs:273-328,364-391。reading未實跑；精確保留回報後空格換行與回應比較；逐正式contact去重、同教會驗證、直接push並等待取代舊multicast；教會當地zh-TW短日期取代伺服器文化。",
+      "test": "WeeklyReport_Notification_PushesOncePerRecipient"
+    },
+    {
+      "case": "generation-two-weeks",
+      "position": "$.cases[5].writes",
+      "category": 5,
+      "reason": "WeeklyReportWorkflow/WeeklyReportClassLibrary.cs:49-109,118-160,201-321,335-497。reading未實跑；改教會Sunday午夜UTC、正式主鍵唯一約束與原子Create交易（含ownerid）取代Create/Assign；四個9.1缺欄位不寫；已存在多筆拒絕、全查詢有界完整且每名單獨立驗教會。",
+      "test": "WeeklyReport_Generation_SameWeekTwice_NoDuplicateReport"
+    }
+  ]
+}

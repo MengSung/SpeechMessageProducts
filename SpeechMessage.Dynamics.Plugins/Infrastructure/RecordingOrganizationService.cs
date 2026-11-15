@@ -7,7 +7,9 @@
  * 不維護另一份隱私規則。兩宿主都必須保留相同 JSON、例外類型及資源排空契約。
  * 主要功能與流程：同次新建列的 Update／Retrieve 使用深複製 overlay，Delete 留墓碑；
  * RetrieveMultiple 永遠只讀真服務，不合併 overlay。Execute 只轉送明列的唯讀訊息，
- * 已知 CRUD／關聯寫入走相同記錄路徑，未知、批次及缺參數訊息均拒絕且不回顯輸入。
+ * 已知 CRUD／關聯寫入走相同記錄路徑，僅額外允許具型別的 Create-only 原子交易；
+ * 全批深複製、正式主鍵查重、總容量及安全投影完成後才交換候選，不呼叫真實 Execute。
+ * 交易不產生主鍵或推進單筆建立序號；其他未知、批次及缺參數訊息拒絕且不回顯輸入。
  * 讀取結果允許經逐段驗證的 alias.field；寫入仍只接受實際 schema 欄位。
  * RelatedEntities 尚未支援，任何複製路徑都明確拒絕，不能靜默遺失相關寫入。
  * 使用邊界與維護：每次 Execute 獨占實例，不支援同實例平行使用；overlay 最多 64 列，
@@ -40,8 +42,8 @@ internal sealed record ShadowOrganizationWrite(string Operation, string LogicalN
 internal sealed class RecordingOrganizationService : IOrganizationService, IDisposable
 {
     private readonly IOrganizationService inner;
-    private readonly List<ShadowOrganizationWrite> writes = new();
-    private readonly Dictionary<string, Entity?> localRows = new(StringComparer.Ordinal);
+    private List<ShadowOrganizationWrite> writes = new();
+    private Dictionary<string, Entity?> localRows = new(StringComparer.Ordinal);
     private long createSequence;
     private int projectionCharacters;
     private bool disposed;
@@ -148,7 +150,10 @@ internal sealed class RecordingOrganizationService : IOrganizationService, IDisp
     public void Disassociate(string entityName, Guid entityId, Relationship relationship, EntityReferenceCollection relatedEntities) =>
         RecordRelationship("Disassociate", entityName, entityId, relationship, relatedEntities);
 
-    /// <summary>明確白名單分類讀寫；未知／複合批次／缺參數訊息固定拒絕且不回顯輸入。</summary>
+    /// <summary>
+    /// 明確白名單分類讀寫；具型別交易先獨立驗證，避免改名成唯讀訊息穿透真服務。
+    /// 只有 Create-only 原子交易例外放行，其他未知／複合批次／缺參數訊息固定拒絕。
+    /// </summary>
     public OrganizationResponse Execute(OrganizationRequest request)
     {
         EnsureActive();
@@ -157,6 +162,7 @@ internal sealed class RecordingOrganizationService : IOrganizationService, IDisp
 #else
         if (request is null) throw new ArgumentNullException(nameof(request));
 #endif
+        if (request is ExecuteTransactionRequest transaction) return ExecuteCreateTransaction(transaction);
         switch (request.RequestName)
         {
             case "WhoAmI": case "RetrieveCurrentOrganization": case "RetrievePrincipalAccess":
@@ -188,6 +194,74 @@ internal sealed class RecordingOrganizationService : IOrganizationService, IDisp
                 return request.RequestName == "Associate" ? new AssociateResponse() : new DisassociateResponse();
             default: throw new NotSupportedException("Unsupported organization request.");
         }
+    }
+
+    /// <summary>
+    /// 驗證週報使用的有界 Create-only 交易，呼叫端必須預配非空正式資料庫 GUID。
+    /// 所有 Clone、欄位驗證、批內／overlay（含墓碑）查重、總容量及投影皆在候選中完成；
+    /// 回應也先建立，任何驗證、配置或投影失敗均不變更本次 owner 的既有狀態。
+    /// 候選最多新增 64 列且沿用每列預算；安全摘要仍依既有 128 筆／16000 字元規則截斷。
+    /// 本服務僅支援單一同步 owner，交換期間不呼叫外部程式；不保存 request 或來源參照，
+    /// 不借用 inner.Execute、不生成 ID，候選成功後由 Clear／Dispose 統一排空。
+    /// </summary>
+    private ExecuteTransactionResponse ExecuteCreateTransaction(ExecuteTransactionRequest request)
+    {
+        if (request.GetType() != typeof(ExecuteTransactionRequest) || request.RequestName != "ExecuteTransaction" ||
+            request.Parameters.Keys.Any(name => name != "Requests" && name != "ReturnResponses"))
+            throw new NotSupportedException("Unsupported shadow transaction parameters.");
+        var returnResponses = false;
+        if (request.Parameters.TryGetValue("ReturnResponses", out var requestedResponses))
+        {
+            if (requestedResponses is not bool enabled) throw new NotSupportedException("Unsupported shadow transaction parameters.");
+            returnResponses = enabled;
+        }
+        var requests = Parameter<OrganizationRequestCollection>(request, "Requests");
+        if (requests.Count < 1 || requests.Count > 64) throw new NotSupportedException("Shadow transaction capacity exceeded.");
+        var items = requests.ToArray();
+        if (items.Length > 64 - localRows.Count) throw new InvalidOperationException("Shadow overlay capacity exceeded.");
+
+        // 整個下一版狀態都屬於操作區域；不以逐筆 Create 發布，避免後列故障留下先前列。
+        var candidateRows = new Dictionary<string, Entity?>(localRows, StringComparer.Ordinal);
+        var candidateWrites = new List<ShadowOrganizationWrite>(writes);
+        var candidateCharacters = projectionCharacters;
+        var candidateOverflow = Overflow;
+        var candidateTotal = checked(TotalCount + items.Length);
+        var responses = new OrganizationResponseCollection();
+        foreach (var item in items)
+        {
+            if (item is null || item.GetType() != typeof(CreateRequest) || item.RequestName != "Create" ||
+                item.Parameters.Count != 1 || !item.Parameters.ContainsKey("Target"))
+                throw new NotSupportedException("Unsupported shadow transaction item.");
+            var row = CloneEntity(Parameter<Entity>(item, "Target"), allowAliases: false);
+            if (row.Id == Guid.Empty || row.KeyAttributes.Count != 0)
+                throw new NotSupportedException("Shadow transaction requires a primary identity without alternate keys.");
+            var key = Key(row.LogicalName, row.Id);
+            if (candidateRows.ContainsKey(key)) throw new InvalidOperationException("Duplicate shadow row identity.");
+            var projection = Project("Create", row);
+            candidateRows.Add(key, row);
+            if (candidateOverflow || candidateWrites.Count >= 128 || projection.Length > 16000 - candidateCharacters)
+                candidateOverflow = true;
+            else
+            {
+                candidateWrites.Add(new ShadowOrganizationWrite("Create", row.LogicalName, row.Id, projection));
+                candidateCharacters += projection.Length;
+            }
+            if (returnResponses)
+            {
+                var created = new CreateResponse();
+                created.Results["id"] = row.Id;
+                responses.Add(created);
+            }
+        }
+        var response = new ExecuteTransactionResponse();
+        response.Results["Responses"] = responses;
+        // 以下只有欄位賦值，不配置、不驗證、不呼叫 provider；單次同步 owner 無中間觀察者。
+        localRows = candidateRows;
+        writes = candidateWrites;
+        projectionCharacters = candidateCharacters;
+        Overflow = candidateOverflow;
+        TotalCount = candidateTotal;
+        return response;
     }
 
     /// <summary>清除原始 overlay、安全摘要及計數；由本次 Execute 的唯一 owner 呼叫。</summary>

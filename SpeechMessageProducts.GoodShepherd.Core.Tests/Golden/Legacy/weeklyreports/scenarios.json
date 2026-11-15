@@ -1,0 +1,1136 @@
+{
+  "module": "weeklyreports",
+  "cases": [
+    {
+      "name": "statistics-normal",
+      "church": {
+        "alias": "church",
+        "organizationName": "synthetic-weekly",
+        "timeZone": "Asia/Taipei",
+        "culture": "zh-TW"
+      },
+      "seed": [
+        {
+          "alias": "church",
+          "entity": "account",
+          "fields": {
+            "name": "Synthetic Church",
+            "new_timezone": "Asia/Taipei",
+            "new_defaultlanguage": "zh-TW",
+            "new_enabledlanguages": "zh-TW",
+            "new_linechannelid": {
+              "ref": "channel",
+              "entity": "new_linechannel"
+            }
+          }
+        },
+        {
+          "alias": "channel",
+          "entity": "new_linechannel",
+          "fields": {}
+        },
+        {
+          "alias": "leader",
+          "entity": "contact",
+          "fields": {
+            "parentcustomerid": {
+              "ref": "church",
+              "entity": "account"
+            },
+            "customertypecode": {
+              "option": 1
+            },
+            "statecode": {
+              "option": 0
+            },
+            "new_lineid": {
+              "line": "leader"
+            },
+            "fullname": "Synthetic Member",
+            "ownerid": {
+              "ref": "owner",
+              "entity": "systemuser"
+            }
+          }
+        },
+        {
+          "alias": "list",
+          "entity": "list",
+          "fields": {
+            "listname": "Synthetic Group",
+            "new_contact_family_leader_list": {
+              "ref": "leader",
+              "entity": "contact"
+            },
+            "new_contact_list_vice_family_leader": {
+              "ref": "leader",
+              "entity": "contact"
+            },
+            "new_contact_list_arealeader": {
+              "ref": "pastor",
+              "entity": "contact",
+              "name": "Synthetic Pastor"
+            },
+            "new_app_named": true,
+            "statuscode": {
+              "option": 0
+            },
+            "purpose": "Synthetic Group",
+            "type": false,
+            "new_group_place": "Room",
+            "new_group_time": "19:00"
+          }
+        },
+        {
+          "alias": "pastor",
+          "entity": "contact",
+          "fields": {
+            "parentcustomerid": {
+              "ref": "church",
+              "entity": "account"
+            },
+            "statecode": {
+              "option": 0
+            }
+          }
+        },
+        {
+          "alias": "owner",
+          "entity": "systemuser",
+          "fields": {}
+        },
+        {
+          "alias": "report",
+          "entity": "new_group_present_weekly_report",
+          "fields": {
+            "new_list_group_present_weekly_report": {
+              "ref": "list",
+              "entity": "list"
+            },
+            "new_saved_flag": "計算出席率-new",
+            "statecode": {
+              "option": 0
+            },
+            "new_sunday_present_number": 7,
+            "new_small_group_number": 8,
+            "new_sunday_present_rate": 0.7,
+            "new_small_group_rate": 0.8
+          }
+        },
+        {
+          "alias": "member-a",
+          "entity": "contact",
+          "fields": {
+            "parentcustomerid": {
+              "ref": "church",
+              "entity": "account"
+            },
+            "statecode": {
+              "option": 0
+            },
+            "fullname": "Synthetic Member",
+            "customertypecode": {
+              "option": 1
+            }
+          }
+        },
+        {
+          "alias": "present-1",
+          "entity": "new_present_record",
+          "fields": {
+            "new_contact_new_present_record": {
+              "ref": "member-a",
+              "entity": "contact"
+            },
+            "new_group_present_weekly_report_prese": {
+              "ref": "report",
+              "entity": "new_group_present_weekly_report"
+            },
+            "new_list_new_present_record": {
+              "ref": "list",
+              "entity": "list"
+            },
+            "statecode": {
+              "option": 0
+            },
+            "new_group_present_this_week": 0,
+            "new_sunday_present_this_week": 1
+          }
+        },
+        {
+          "alias": "member-b",
+          "entity": "contact",
+          "fields": {
+            "parentcustomerid": {
+              "ref": "church",
+              "entity": "account"
+            },
+            "statecode": {
+              "option": 0
+            },
+            "fullname": "Synthetic Member",
+            "customertypecode": {
+              "option": 1
+            }
+          }
+        },
+        {
+          "alias": "present-2",
+          "entity": "new_present_record",
+          "fields": {
+            "new_contact_new_present_record": {
+              "ref": "member-b",
+              "entity": "contact"
+            },
+            "new_group_present_weekly_report_prese": {
+              "ref": "report",
+              "entity": "new_group_present_weekly_report"
+            },
+            "new_list_new_present_record": {
+              "ref": "list",
+              "entity": "list"
+            },
+            "statecode": {
+              "option": 0
+            },
+            "new_group_present_this_week": 1,
+            "new_sunday_present_this_week": 0
+          }
+        },
+        {
+          "alias": "member-c",
+          "entity": "contact",
+          "fields": {
+            "parentcustomerid": {
+              "ref": "church",
+              "entity": "account"
+            },
+            "statecode": {
+              "option": 0
+            },
+            "fullname": "Synthetic Member"
+          }
+        },
+        {
+          "alias": "present-3",
+          "entity": "new_present_record",
+          "fields": {
+            "new_contact_new_present_record": {
+              "ref": "member-c",
+              "entity": "contact"
+            },
+            "new_group_present_weekly_report_prese": {
+              "ref": "report",
+              "entity": "new_group_present_weekly_report"
+            },
+            "new_list_new_present_record": {
+              "ref": "list",
+              "entity": "list"
+            },
+            "statecode": {
+              "option": 0
+            },
+            "new_group_present_this_week": 99,
+            "new_sunday_present_this_week": 99
+          }
+        },
+        {
+          "alias": "member-d",
+          "entity": "contact",
+          "fields": {
+            "parentcustomerid": {
+              "ref": "church",
+              "entity": "account"
+            },
+            "statecode": {
+              "option": 0
+            },
+            "fullname": "Synthetic Member",
+            "customertypecode": {
+              "option": 100000004
+            }
+          }
+        },
+        {
+          "alias": "present-4",
+          "entity": "new_present_record",
+          "fields": {
+            "new_contact_new_present_record": {
+              "ref": "member-d",
+              "entity": "contact"
+            },
+            "new_group_present_weekly_report_prese": {
+              "ref": "report",
+              "entity": "new_group_present_weekly_report"
+            },
+            "new_list_new_present_record": {
+              "ref": "list",
+              "entity": "list"
+            },
+            "statecode": {
+              "option": 0
+            },
+            "new_group_present_this_week": 99,
+            "new_sunday_present_this_week": 99
+          }
+        }
+      ],
+      "trigger": {
+        "project": "SpeechMessage.Dynamics.Plugins",
+        "type": "SpeechMessage.Dynamics.Plugins.WeeklyReports.WeeklyReportStatisticsPlugin",
+        "message": "Update",
+        "entity": "new_group_present_weekly_report",
+        "target": "report",
+        "fields": {
+          "new_saved_flag": "計算出席率-new"
+        },
+        "depth": 1,
+        "images": {
+          "pre": {
+            "PreImage": {
+              "new_saved_flag": "old"
+            }
+          }
+        }
+      },
+      "now": "2026-11-11T02:00:00Z",
+      "volatile": [
+        "new_saved_flag"
+      ],
+      "liveShadow": false,
+      "observe": [
+        {
+          "alias": "report",
+          "entity": "new_group_present_weekly_report",
+          "fields": [
+            "new_saved_flag",
+            "new_sunday_present_number",
+            "new_small_group_number",
+            "new_sunday_present_rate",
+            "new_small_group_rate"
+          ]
+        }
+      ],
+      "queryResults": {
+        "1": [
+          "present-1",
+          "present-2",
+          "present-3",
+          "present-4"
+        ]
+      }
+    },
+    {
+      "name": "statistics-missing-integer",
+      "church": {
+        "alias": "church",
+        "organizationName": "synthetic-weekly",
+        "timeZone": "Asia/Taipei",
+        "culture": "zh-TW"
+      },
+      "seed": [
+        {
+          "alias": "church",
+          "entity": "account",
+          "fields": {
+            "name": "Synthetic Church",
+            "new_timezone": "Asia/Taipei",
+            "new_defaultlanguage": "zh-TW",
+            "new_enabledlanguages": "zh-TW",
+            "new_linechannelid": {
+              "ref": "channel",
+              "entity": "new_linechannel"
+            }
+          }
+        },
+        {
+          "alias": "channel",
+          "entity": "new_linechannel",
+          "fields": {}
+        },
+        {
+          "alias": "leader",
+          "entity": "contact",
+          "fields": {
+            "parentcustomerid": {
+              "ref": "church",
+              "entity": "account"
+            },
+            "customertypecode": {
+              "option": 1
+            },
+            "statecode": {
+              "option": 0
+            },
+            "new_lineid": {
+              "line": "leader"
+            },
+            "fullname": "Synthetic Member",
+            "ownerid": {
+              "ref": "owner",
+              "entity": "systemuser"
+            }
+          }
+        },
+        {
+          "alias": "list",
+          "entity": "list",
+          "fields": {
+            "listname": "Synthetic Group",
+            "new_contact_family_leader_list": {
+              "ref": "leader",
+              "entity": "contact"
+            },
+            "new_contact_list_vice_family_leader": {
+              "ref": "leader",
+              "entity": "contact"
+            },
+            "new_contact_list_arealeader": {
+              "ref": "pastor",
+              "entity": "contact",
+              "name": "Synthetic Pastor"
+            },
+            "new_app_named": true,
+            "statuscode": {
+              "option": 0
+            },
+            "purpose": "Synthetic Group",
+            "type": false,
+            "new_group_place": "Room",
+            "new_group_time": "19:00"
+          }
+        },
+        {
+          "alias": "pastor",
+          "entity": "contact",
+          "fields": {
+            "parentcustomerid": {
+              "ref": "church",
+              "entity": "account"
+            },
+            "statecode": {
+              "option": 0
+            }
+          }
+        },
+        {
+          "alias": "owner",
+          "entity": "systemuser",
+          "fields": {}
+        },
+        {
+          "alias": "report",
+          "entity": "new_group_present_weekly_report",
+          "fields": {
+            "new_list_group_present_weekly_report": {
+              "ref": "list",
+              "entity": "list"
+            },
+            "new_saved_flag": "計算出席率-new",
+            "statecode": {
+              "option": 0
+            },
+            "new_sunday_present_number": 7,
+            "new_small_group_number": 8,
+            "new_sunday_present_rate": 0.7,
+            "new_small_group_rate": 0.8
+          }
+        },
+        {
+          "alias": "member-a",
+          "entity": "contact",
+          "fields": {
+            "parentcustomerid": {
+              "ref": "church",
+              "entity": "account"
+            },
+            "statecode": {
+              "option": 0
+            },
+            "fullname": "Synthetic Member",
+            "customertypecode": {
+              "option": 1
+            }
+          }
+        },
+        {
+          "alias": "present-1",
+          "entity": "new_present_record",
+          "fields": {
+            "new_contact_new_present_record": {
+              "ref": "member-a",
+              "entity": "contact"
+            },
+            "new_group_present_weekly_report_prese": {
+              "ref": "report",
+              "entity": "new_group_present_weekly_report"
+            },
+            "new_list_new_present_record": {
+              "ref": "list",
+              "entity": "list"
+            },
+            "statecode": {
+              "option": 0
+            },
+            "new_group_present_this_week": 1
+          }
+        }
+      ],
+      "trigger": {
+        "project": "SpeechMessage.Dynamics.Plugins",
+        "type": "SpeechMessage.Dynamics.Plugins.WeeklyReports.WeeklyReportStatisticsPlugin",
+        "message": "Update",
+        "entity": "new_group_present_weekly_report",
+        "target": "report",
+        "fields": {
+          "new_saved_flag": "計算出席率-new"
+        },
+        "depth": 1,
+        "images": {
+          "pre": {
+            "PreImage": {
+              "new_saved_flag": "old"
+            }
+          }
+        }
+      },
+      "now": "2026-11-11T02:00:00Z",
+      "volatile": [
+        "new_saved_flag"
+      ],
+      "liveShadow": false,
+      "observe": [
+        {
+          "alias": "report",
+          "entity": "new_group_present_weekly_report",
+          "fields": [
+            "new_saved_flag",
+            "new_sunday_present_number",
+            "new_small_group_number",
+            "new_sunday_present_rate",
+            "new_small_group_rate"
+          ]
+        }
+      ],
+      "queryResults": {
+        "1": [
+          "present-1"
+        ]
+      }
+    },
+    {
+      "name": "statistics-zero",
+      "church": {
+        "alias": "church",
+        "organizationName": "synthetic-weekly",
+        "timeZone": "Asia/Taipei",
+        "culture": "zh-TW"
+      },
+      "seed": [
+        {
+          "alias": "church",
+          "entity": "account",
+          "fields": {
+            "name": "Synthetic Church",
+            "new_timezone": "Asia/Taipei",
+            "new_defaultlanguage": "zh-TW",
+            "new_enabledlanguages": "zh-TW",
+            "new_linechannelid": {
+              "ref": "channel",
+              "entity": "new_linechannel"
+            }
+          }
+        },
+        {
+          "alias": "channel",
+          "entity": "new_linechannel",
+          "fields": {}
+        },
+        {
+          "alias": "leader",
+          "entity": "contact",
+          "fields": {
+            "parentcustomerid": {
+              "ref": "church",
+              "entity": "account"
+            },
+            "customertypecode": {
+              "option": 1
+            },
+            "statecode": {
+              "option": 0
+            },
+            "new_lineid": {
+              "line": "leader"
+            },
+            "fullname": "Synthetic Member",
+            "ownerid": {
+              "ref": "owner",
+              "entity": "systemuser"
+            }
+          }
+        },
+        {
+          "alias": "list",
+          "entity": "list",
+          "fields": {
+            "listname": "Synthetic Group",
+            "new_contact_family_leader_list": {
+              "ref": "leader",
+              "entity": "contact"
+            },
+            "new_contact_list_vice_family_leader": {
+              "ref": "leader",
+              "entity": "contact"
+            },
+            "new_contact_list_arealeader": {
+              "ref": "pastor",
+              "entity": "contact",
+              "name": "Synthetic Pastor"
+            },
+            "new_app_named": true,
+            "statuscode": {
+              "option": 0
+            },
+            "purpose": "Synthetic Group",
+            "type": false,
+            "new_group_place": "Room",
+            "new_group_time": "19:00"
+          }
+        },
+        {
+          "alias": "pastor",
+          "entity": "contact",
+          "fields": {
+            "parentcustomerid": {
+              "ref": "church",
+              "entity": "account"
+            },
+            "statecode": {
+              "option": 0
+            }
+          }
+        },
+        {
+          "alias": "owner",
+          "entity": "systemuser",
+          "fields": {}
+        },
+        {
+          "alias": "report",
+          "entity": "new_group_present_weekly_report",
+          "fields": {
+            "new_list_group_present_weekly_report": {
+              "ref": "list",
+              "entity": "list"
+            },
+            "new_saved_flag": "計算出席率-new",
+            "statecode": {
+              "option": 0
+            },
+            "new_sunday_present_number": 7,
+            "new_small_group_number": 8,
+            "new_sunday_present_rate": 0.7,
+            "new_small_group_rate": 0.8
+          }
+        },
+        {
+          "alias": "member-a",
+          "entity": "contact",
+          "fields": {
+            "parentcustomerid": {
+              "ref": "church",
+              "entity": "account"
+            },
+            "statecode": {
+              "option": 0
+            },
+            "fullname": "Synthetic Member",
+            "customertypecode": {
+              "option": 100000007
+            }
+          }
+        },
+        {
+          "alias": "present-1",
+          "entity": "new_present_record",
+          "fields": {
+            "new_contact_new_present_record": {
+              "ref": "member-a",
+              "entity": "contact"
+            },
+            "new_group_present_weekly_report_prese": {
+              "ref": "report",
+              "entity": "new_group_present_weekly_report"
+            },
+            "new_list_new_present_record": {
+              "ref": "list",
+              "entity": "list"
+            },
+            "statecode": {
+              "option": 0
+            },
+            "new_group_present_this_week": 1,
+            "new_sunday_present_this_week": 1
+          }
+        }
+      ],
+      "trigger": {
+        "project": "SpeechMessage.Dynamics.Plugins",
+        "type": "SpeechMessage.Dynamics.Plugins.WeeklyReports.WeeklyReportStatisticsPlugin",
+        "message": "Update",
+        "entity": "new_group_present_weekly_report",
+        "target": "report",
+        "fields": {
+          "new_saved_flag": "計算出席率-new"
+        },
+        "depth": 1,
+        "images": {
+          "pre": {
+            "PreImage": {
+              "new_saved_flag": "old"
+            }
+          }
+        }
+      },
+      "now": "2026-11-11T02:00:00Z",
+      "volatile": [
+        "new_saved_flag"
+      ],
+      "liveShadow": false,
+      "observe": [
+        {
+          "alias": "report",
+          "entity": "new_group_present_weekly_report",
+          "fields": [
+            "new_saved_flag"
+          ]
+        }
+      ],
+      "queryResults": {
+        "1": [
+          "present-1"
+        ]
+      }
+    },
+    {
+      "name": "notification-changed",
+      "church": {
+        "alias": "church",
+        "organizationName": "synthetic-weekly",
+        "timeZone": "Asia/Taipei",
+        "culture": "zh-TW"
+      },
+      "seed": [
+        {
+          "alias": "church",
+          "entity": "account",
+          "fields": {
+            "name": "Synthetic Church",
+            "new_timezone": "Asia/Taipei",
+            "new_defaultlanguage": "zh-TW",
+            "new_enabledlanguages": "zh-TW",
+            "new_linechannelid": {
+              "ref": "channel",
+              "entity": "new_linechannel"
+            }
+          }
+        },
+        {
+          "alias": "channel",
+          "entity": "new_linechannel",
+          "fields": {}
+        },
+        {
+          "alias": "leader",
+          "entity": "contact",
+          "fields": {
+            "parentcustomerid": {
+              "ref": "church",
+              "entity": "account"
+            },
+            "customertypecode": {
+              "option": 1
+            },
+            "statecode": {
+              "option": 0
+            },
+            "new_lineid": {
+              "line": "leader"
+            },
+            "fullname": "Synthetic Member",
+            "ownerid": {
+              "ref": "owner",
+              "entity": "systemuser"
+            }
+          }
+        },
+        {
+          "alias": "list",
+          "entity": "list",
+          "fields": {
+            "listname": "Synthetic Group",
+            "new_contact_family_leader_list": {
+              "ref": "leader",
+              "entity": "contact"
+            },
+            "new_contact_list_vice_family_leader": {
+              "ref": "leader",
+              "entity": "contact"
+            },
+            "new_contact_list_arealeader": {
+              "ref": "pastor",
+              "entity": "contact",
+              "name": "Synthetic Pastor"
+            },
+            "new_app_named": true,
+            "statuscode": {
+              "option": 0
+            },
+            "purpose": "Synthetic Group",
+            "type": false,
+            "new_group_place": "Room",
+            "new_group_time": "19:00"
+          }
+        },
+        {
+          "alias": "pastor",
+          "entity": "contact",
+          "fields": {
+            "parentcustomerid": {
+              "ref": "church",
+              "entity": "account"
+            },
+            "statecode": {
+              "option": 0
+            }
+          }
+        },
+        {
+          "alias": "owner",
+          "entity": "systemuser",
+          "fields": {}
+        },
+        {
+          "alias": "report",
+          "entity": "new_group_present_weekly_report",
+          "fields": {
+            "new_list_group_present_weekly_report": {
+              "ref": "list",
+              "entity": "list"
+            },
+            "new_paster_reply": "Synthetic reply",
+            "new_sunday_date": "2026-11-07T16:00:00Z"
+          }
+        }
+      ],
+      "trigger": {
+        "project": "SpeechMessage.Dynamics.Plugins",
+        "type": "SpeechMessage.Dynamics.Plugins.WeeklyReports.WeeklyReportNotificationPlugin",
+        "message": "Update",
+        "entity": "new_group_present_weekly_report",
+        "target": "report",
+        "fields": {
+          "new_paster_reply": "Synthetic reply"
+        },
+        "depth": 1,
+        "images": {
+          "pre": {
+            "PreImage": {
+              "new_paster_reply": "old"
+            }
+          }
+        }
+      },
+      "now": "2026-11-11T02:00:00Z",
+      "volatile": [],
+      "liveShadow": false,
+      "observe": [
+        {
+          "alias": "report",
+          "entity": "new_group_present_weekly_report",
+          "fields": [
+            "new_paster_reply"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "notification-unchanged",
+      "church": {
+        "alias": "church",
+        "organizationName": "synthetic-weekly",
+        "timeZone": "Asia/Taipei",
+        "culture": "zh-TW"
+      },
+      "seed": [
+        {
+          "alias": "church",
+          "entity": "account",
+          "fields": {
+            "name": "Synthetic Church",
+            "new_timezone": "Asia/Taipei",
+            "new_defaultlanguage": "zh-TW",
+            "new_enabledlanguages": "zh-TW",
+            "new_linechannelid": {
+              "ref": "channel",
+              "entity": "new_linechannel"
+            }
+          }
+        },
+        {
+          "alias": "channel",
+          "entity": "new_linechannel",
+          "fields": {}
+        },
+        {
+          "alias": "leader",
+          "entity": "contact",
+          "fields": {
+            "parentcustomerid": {
+              "ref": "church",
+              "entity": "account"
+            },
+            "customertypecode": {
+              "option": 1
+            },
+            "statecode": {
+              "option": 0
+            },
+            "new_lineid": {
+              "line": "leader"
+            },
+            "fullname": "Synthetic Member",
+            "ownerid": {
+              "ref": "owner",
+              "entity": "systemuser"
+            }
+          }
+        },
+        {
+          "alias": "list",
+          "entity": "list",
+          "fields": {
+            "listname": "Synthetic Group",
+            "new_contact_family_leader_list": {
+              "ref": "leader",
+              "entity": "contact"
+            },
+            "new_contact_list_vice_family_leader": {
+              "ref": "leader",
+              "entity": "contact"
+            },
+            "new_contact_list_arealeader": {
+              "ref": "pastor",
+              "entity": "contact",
+              "name": "Synthetic Pastor"
+            },
+            "new_app_named": true,
+            "statuscode": {
+              "option": 0
+            },
+            "purpose": "Synthetic Group",
+            "type": false,
+            "new_group_place": "Room",
+            "new_group_time": "19:00"
+          }
+        },
+        {
+          "alias": "pastor",
+          "entity": "contact",
+          "fields": {
+            "parentcustomerid": {
+              "ref": "church",
+              "entity": "account"
+            },
+            "statecode": {
+              "option": 0
+            }
+          }
+        },
+        {
+          "alias": "owner",
+          "entity": "systemuser",
+          "fields": {}
+        },
+        {
+          "alias": "report",
+          "entity": "new_group_present_weekly_report",
+          "fields": {
+            "new_list_group_present_weekly_report": {
+              "ref": "list",
+              "entity": "list"
+            },
+            "new_paster_reply": "Synthetic reply",
+            "new_sunday_date": "2026-11-07T16:00:00Z"
+          }
+        }
+      ],
+      "trigger": {
+        "project": "SpeechMessage.Dynamics.Plugins",
+        "type": "SpeechMessage.Dynamics.Plugins.WeeklyReports.WeeklyReportNotificationPlugin",
+        "message": "Update",
+        "entity": "new_group_present_weekly_report",
+        "target": "report",
+        "fields": {
+          "new_paster_reply": "Synthetic reply"
+        },
+        "depth": 1,
+        "images": {
+          "pre": {
+            "PreImage": {
+              "new_paster_reply": "Synthetic reply"
+            }
+          }
+        }
+      },
+      "now": "2026-11-11T02:00:00Z",
+      "volatile": [],
+      "liveShadow": false,
+      "observe": [
+        {
+          "alias": "report",
+          "entity": "new_group_present_weekly_report",
+          "fields": [
+            "new_paster_reply"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "generation-two-weeks",
+      "church": {
+        "alias": "church",
+        "organizationName": "synthetic-weekly",
+        "timeZone": "Asia/Taipei",
+        "culture": "zh-TW"
+      },
+      "seed": [
+        {
+          "alias": "church",
+          "entity": "account",
+          "fields": {
+            "name": "Synthetic Church",
+            "new_timezone": "Asia/Taipei",
+            "new_defaultlanguage": "zh-TW",
+            "new_enabledlanguages": "zh-TW",
+            "new_linechannelid": {
+              "ref": "channel",
+              "entity": "new_linechannel"
+            }
+          }
+        },
+        {
+          "alias": "channel",
+          "entity": "new_linechannel",
+          "fields": {}
+        },
+        {
+          "alias": "leader",
+          "entity": "contact",
+          "fields": {
+            "parentcustomerid": {
+              "ref": "church",
+              "entity": "account"
+            },
+            "customertypecode": {
+              "option": 1
+            },
+            "statecode": {
+              "option": 0
+            },
+            "new_lineid": {
+              "line": "leader"
+            },
+            "fullname": "Synthetic Member",
+            "ownerid": {
+              "ref": "owner",
+              "entity": "systemuser"
+            }
+          }
+        },
+        {
+          "alias": "list",
+          "entity": "list",
+          "fields": {
+            "listname": "Synthetic Group",
+            "new_contact_family_leader_list": {
+              "ref": "leader",
+              "entity": "contact"
+            },
+            "new_contact_list_vice_family_leader": {
+              "ref": "leader",
+              "entity": "contact"
+            },
+            "new_app_named": true,
+            "statuscode": {
+              "option": 0
+            },
+            "purpose": "Synthetic Group",
+            "type": false,
+            "new_group_place": "Room",
+            "new_group_time": "19:00"
+          }
+        },
+        {
+          "alias": "pastor",
+          "entity": "contact",
+          "fields": {
+            "parentcustomerid": {
+              "ref": "church",
+              "entity": "account"
+            },
+            "statecode": {
+              "option": 0
+            }
+          }
+        },
+        {
+          "alias": "owner",
+          "entity": "systemuser",
+          "fields": {}
+        },
+        {
+          "alias": "membership",
+          "entity": "listmember",
+          "fields": {
+            "listid": {
+              "ref": "list",
+              "entity": "list"
+            },
+            "entityid": {
+              "ref": "leader",
+              "entity": "contact"
+            }
+          }
+        }
+      ],
+      "trigger": {
+        "project": "SpeechMessage.Dynamics.Workflows",
+        "type": "SpeechMessage.Dynamics.Workflows.WeeklyReports.WeeklyReportGenerationActivity",
+        "activity": true,
+        "inputs": {
+          "ExecutionMode": "Shadow"
+        },
+        "depth": 1
+      },
+      "now": "2026-11-11T02:00:00Z",
+      "volatile": [],
+      "liveShadow": false,
+      "observe": [
+        {
+          "alias": "report-this",
+          "entity": "new_group_present_weekly_report",
+          "fields": [
+            "new_name",
+            "new_sunday_date"
+          ],
+          "related": {
+            "attribute": "new_list_group_present_weekly_report",
+            "alias": "list"
+          }
+        }
+      ]
+    }
+  ]
+}

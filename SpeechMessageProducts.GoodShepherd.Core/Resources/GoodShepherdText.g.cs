@@ -219,6 +219,11 @@ namespace SpeechMessageProducts.GoodShepherd.Core.Resources
             new string?[] { "Webhook.Word.Times", "次", null, "［次ǂ］" },
             new string?[] { "Webhook.Word.Visit", "小組探訪", null, "［小組探訪ǂǂ］" },
             new string?[] { "Webhook.Word.Watch", "同工守望", null, "［同工守望ǂǂ］" },
+            new string?[] { "WeeklyReport.CalculatePrefix", "計算出席率", null, "［計算出席率ǂǂ］" },
+            new string?[] { "WeeklyReport.CareList", "關懷", null, "［關懷ǂ］" },
+            new string?[] { "WeeklyReport.HappinessPurpose", "幸福", null, "［幸福ǂ］" },
+            new string?[] { "WeeklyReport.ReplyNotification", "{pastor} 回應您主日日期為 {date} 的聚會回報 \r\n{reply}", null, "［{pastor} 回應您主日日期為 {date} 的聚會回報 \r\n{reply}ǂǂǂǂǂǂǂǂ］" },
+            new string?[] { "WeeklyReport.Unfilled", "未填", null, "［未填ǂ］" },
         };
     }
 }

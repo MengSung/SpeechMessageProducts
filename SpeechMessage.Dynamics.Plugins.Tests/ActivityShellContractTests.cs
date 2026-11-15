@@ -5,7 +5,7 @@
  * 以 WorkflowInvoker 執行真實 ActivityShellBase，Moq 僅替代平台 extension；
  * Dataverse 使用案例擁有的記憶體 FakeOrganizationService，不連外、不推 LINE。
  *
- * 主要功能與流程：三個核定測試先驗證 Shadow 意圖、空白 Live 與 probe 參數；
+ * 主要功能與流程：三個核定測試先驗證 Shadow 意圖、空白 Live 與正式週報活動參數；
  * 必要故障案例注入規則拒絕、未知例外及追蹤失敗，斷言原例外、完整收尾與 Dispose。
  * 同一活動依序執行 A／B／A，以不同組織、使用者與記錄檢查 scope 不混用。
  * 盤點已確認舊週報活動完全沒有 Input／Output；正式活動加入後，反射契約
@@ -25,6 +25,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using Microsoft.Xrm.Sdk;
+using Microsoft.Xrm.Sdk.Messages;
 using Microsoft.Xrm.Sdk.Query;
 using Microsoft.Xrm.Sdk.Workflow;
 using Moq;
@@ -38,6 +39,7 @@ using ActivityShellBase = Workflows::SpeechMessage.Dynamics.Workflows.Infrastruc
 using PluginServices = Workflows::SpeechMessage.Dynamics.Plugins.Infrastructure.PluginServices;
 using RecordingOrganizationService = Workflows::SpeechMessage.Dynamics.Plugins.Infrastructure.RecordingOrganizationService;
 using ShadowPushRecorder = Workflows::SpeechMessage.Dynamics.Plugins.Infrastructure.ShadowPushRecorder;
+using Money = Microsoft.Xrm.Sdk.Money;
 
 namespace SpeechMessage.Dynamics.Plugins.Tests;
 
@@ -117,9 +119,9 @@ public sealed class ActivityShellContractTests
     }
 
     /// <summary>
-    /// probe 只宣告基礎模式輸入；反射保護公開 CodeActivity、可省略的字串 InArgument
+    /// 正式週報活動只宣告基礎模式輸入；反射保護公開 CodeActivity、可省略的字串 InArgument
     /// 與 internal 規則入口。舊週報活動已確認沒有 Input／Output，因此新增模式
-    /// 必須是唯一參數；目前以 probe 驗證，正式活動加入後沿用相同斷言。
+    /// 必須是唯一參數，直接核對正式活動，不能以 probe 取代。
     /// </summary>
     [Fact]
     public void ActivityShell_ArgumentsMatchLegacyNamesAndTypes()
@@ -128,7 +130,8 @@ public sealed class ActivityShellContractTests
         Assert.True(shell.IsPublic);
         Assert.True(shell.IsAbstract);
         Assert.True(typeof(CodeActivity).IsAssignableFrom(shell));
-        var arguments = typeof(ProbeActivity).GetProperties(BindingFlags.Public | BindingFlags.Instance)
+        var arguments = typeof(Workflows::SpeechMessage.Dynamics.Workflows.WeeklyReports.WeeklyReportGenerationActivity)
+            .GetProperties(BindingFlags.Public | BindingFlags.Instance)
             .Where(property => property.PropertyType.IsGenericType &&
                 (property.PropertyType.GetGenericTypeDefinition() == typeof(InArgument<>) ||
                  property.PropertyType.GetGenericTypeDefinition() == typeof(OutArgument<>))).ToArray();
@@ -316,6 +319,73 @@ public sealed class ActivityShellContractTests
                 Assert.NotSame(recorders[j].Pushes, recorders[i].Pushes);
             }
         }
+    }
+
+    /// <summary>
+    /// 活動連結進自己的 recorder 必須保留 SDK 深複製、純 Create 交易及拒絕契約；
+    /// 注入來源 mutation、第二筆混寫、關聯及墓碑，驗零真寫入、零部分發布和收尾排空。
+    /// </summary>
+    [Fact]
+    public void ActivityShell_ShadowRecorder_TransactionAndDetachedSdkValues()
+    {
+        using var scope = new ActivityScope();
+        var activity = new ProbeActivity((_, services) =>
+        {
+            var recorder = Assert.IsType<RecordingOrganizationService>(services.Organization);
+            var first = new Entity("task", Guid.NewGuid())
+            {
+                ["new_amount"] = new Money(7m), ["new_bytes"] = new byte[] { 1, 2 },
+                ["new_options"] = new OptionSetValueCollection { new(1), new(2) },
+                ["new_reference"] = new EntityReference("contact", Guid.NewGuid()) { Name = "synthetic" },
+                ["new_collection"] = new EntityCollection(new[] { new Entity("task", Guid.NewGuid()) }),
+                ["new_entities"] = new[] { new Entity("task", Guid.NewGuid()) },
+                ["new_alias"] = new AliasedValue("task", "new_value", 7m)
+            };
+            var second = new Entity("task", Guid.NewGuid()) { ["new_status"] = 8 };
+            var transaction = new ExecuteTransactionRequest
+            {
+                Requests = new OrganizationRequestCollection
+                {
+                    new CreateRequest { Target = first }, new CreateRequest { Target = second }
+                },
+                ReturnResponses = true
+            };
+            var response = Assert.IsType<ExecuteTransactionResponse>(recorder.Execute(transaction));
+            Assert.Equal(first.Id, Assert.IsType<CreateResponse>(response.Responses[0]).id);
+            ((Money)first["new_amount"]).Value = 99;
+            var retrieve = new RetrieveRequest { Target = first.ToEntityReference(), ColumnSet = new ColumnSet(true) };
+            var copy = Assert.IsType<RetrieveResponse>(recorder.Execute(retrieve)).Entity;
+            Assert.Equal(7m, copy.GetAttributeValue<Money>("new_amount").Value);
+            ((byte[])copy["new_bytes"])[0] = 99;
+            Assert.Equal(1, ((byte[])recorder.Retrieve("task", first.Id, new ColumnSet(true))["new_bytes"])[0]);
+            var before = recorder.TotalCount;
+            var invalid = new ExecuteTransactionRequest
+            {
+                Requests = new OrganizationRequestCollection
+                {
+                    new CreateRequest { Target = new Entity("task", Guid.NewGuid()) },
+                    new UpdateRequest { Target = second }
+                }
+            };
+            Assert.Throws<NotSupportedException>(() => recorder.Execute(invalid));
+            Assert.Equal(before, recorder.TotalCount);
+            var relationship = new Relationship("new_tasks") { PrimaryEntityRole = EntityRole.Referenced };
+            var related = new EntityReferenceCollection { first.ToEntityReference() };
+            recorder.Associate("task", second.Id, relationship, related);
+            recorder.Disassociate("task", second.Id, relationship, related);
+            var deleted = new DeleteRequest { Target = second.ToEntityReference() };
+            Assert.IsType<DeleteResponse>(recorder.Execute(deleted));
+            Assert.Throws<InvalidOperationException>(() => recorder.Retrieve("task", second.Id, new ColumnSet()));
+            Assert.Throws<InvalidOperationException>(() => recorder.Update(second));
+            Assert.Throws<NotSupportedException>(() => recorder.Execute(new OrganizationRequest("ExecuteMultiple")));
+        });
+        scope.Invoke(activity, "Shadow");
+        Assert.Empty(scope.Service.WriteRecords);
+        var lines = ShadowLines(scope.Tracing);
+        Assert.Equal(6, lines.Length);
+        Assert.True((bool)lines[5]["end"]!);
+        Assert.Equal(5, (int)lines[5]["count"]!);
+        Assert.DoesNotContain("synthetic", string.Join("", scope.Tracing.Entries), StringComparison.Ordinal);
     }
 
     /// <summary>只解析有版本前綴的安全影子投影，忽略例外型別診斷，避免混淆兩種輸出。</summary>

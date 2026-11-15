@@ -37,4 +37,8 @@
     <PackageReference Include="Microsoft.CrmSdk.Workflow" PrivateAssets="all" />
     <ProjectReference Include="../SpeechMessage.Dynamics.Workflows/SpeechMessage.Dynamics.Workflows.csproj" Aliases="Workflows" />
   </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="../SpeechMessageProducts.GoodShepherd.Core.Tests/Golden/Legacy/weeklyreports/*.json"
+                      Link="Golden/weeklyreports/%(Filename)%(Extension)" />
+  </ItemGroup>
 </Project>

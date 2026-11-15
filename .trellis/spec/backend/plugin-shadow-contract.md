@@ -28,8 +28,9 @@ PluginInput 擷取與讀出皆深層複製；保留前後映像、Depth、Organi
 overlay 最多 64 列，超量明確拒絕。映像與查詢只取模組需要的欄位，不註冊全部欄位。
 
 Shadow 不寫真服務、不解密、不推播。Create／同次新建列 Update／Retrieve 經 overlay；
-既有列 Update 只記錄，RetrieveMultiple 不合併 overlay。未知 Execute、批次、Upsert、
-非空 RelatedEntities 均明確拒絕。讀取允許具 AliasedValue 的 `alias.field`，逐段驗證；
+既有列 Update 只記錄，RetrieveMultiple 不合併 overlay。未知 Execute、一般批次、Upsert、
+非空 RelatedEntities 均明確拒絕；僅下述 typed Create-only 原子交易列入白名單。
+讀取允許具 AliasedValue 的 `alias.field`，逐段驗證；
 寫入仍只接受真正 schema 欄位。Fake 的主鍵對照明列 account、contact、appointment、
 task 及合成 region；活動用 activityid，未知表具名拒絕，擴充須據實際 metadata 加測試。
 
@@ -47,6 +48,34 @@ new_personal_id、手機 new_cell_hpone、公司電話 company 及帳號欄位�
 server sender，忽略全域 JSON defaults。ShadowRecorded 回 Rejected 且 Success=false，
 不冒充 HTTP 成功。範本代號採固定 ASCII 識別字；在首個通知模組前統一入口與 sink 的
 格式限制並補雙模式測試，不能把目前兩者的可接受集合說成完全一致。
+
+### 3.1 週報 Create-only 原子交易
+
+`RecordingOrganizationService.Execute` 僅額外接受精確 SDK 型別
+`ExecuteTransactionRequest`，且 RequestName 必須為 `ExecuteTransaction`；
+typed 交易須先於名稱分派攔截，改名為唯讀訊息也不得穿透 inner。
+外層參數僅允許必要的 `Requests`（`OrganizationRequestCollection`，1～64 筆）
+及可省略的 `ReturnResponses`（若存在須為 bool，允許 true／false）；其餘參數拒絕。
+
+每筆必須是精確 SDK 型別 `CreateRequest`、名稱 `Create`，且參數恰為非 null
+`Target` Entity。每列必須具合法 LogicalName、預配的非空正式資料庫 Id，
+KeyAttributes 與 RelatedEntities 均為空，並通過既有有界寫入深複製。
+不得藉 raw `OrganizationRequest` 同名偽裝、Update、Delete、巢狀交易或未知訊息繞過。
+交易不生成新 ID，也不推進單筆 Create 的序號。
+
+先建立獨立候選：完整 Clone、驗證、批內及既有 localRows（包含墓碑）身分衝突檢查，
+確認既有 overlay 加整批不超過 64 列，並逐列完成安全 Project；回應、摘要及計數
+也須在候選內完成。全部成功後才以不配置、不呼叫外部程式的欄位交換發布。
+任一列失敗，既有 overlay、Writes、TotalCount、Overflow 均保持原狀；
+不得逐筆呼叫 Create 再嘗試回滾。此為單一同步 owner 契約，不支援同實例平行使用。
+
+回傳 `ExecuteTransactionResponse`，Results 的 Responses 為
+`OrganizationResponseCollection`。ReturnResponses=true 時按輸入索引提供
+`CreateResponse` 與對應 id；false 或省略則為空集合。不得呼叫 inner.Execute、
+保存來源 request／Entity 的可變參照或擴充部署工具。安全摘要仍沿用 128 筆／16000
+字元上限及 Overflow／TotalCount 語意；Clear／Dispose 的排空、借用 inner 的所有權
+及隱私投影規則不變。Shadow 不能證明實機唯一性；呼叫端每週報使用一個交易，
+預配正式 GUID，並由真實資料庫 Create 唯一約束阻止重複建立。
 
 ## 4. 驗證與失敗矩陣
 
@@ -72,6 +101,11 @@ server sender，忽略全域 JSON defaults。ShadowRecorded 回 Rejected 且 Suc
 `Recording_DecimalAndOffset_PreserveProjectionValues`、活動主鍵兩種查詢格式、
 `NotifyComposed_InvalidRecipient_SameInBothModes`。GUID 固定向量必須在兩個宿主都過，
 不得比較同一函式呼叫充當跨目標證據。Release、架構、打包檢查及固定 guard 仍各自驗證。
+
+`RecordingTransactionTests` 保護有效批次完整意圖／typed 回應／讀回且零真寫入，
+第二筆非法零部分發布、同名不同 ID 完整保留、批內及既有 overlay／墓碑重複拒絕、
+1～64 筆及合計容量、未知混寫／額外參數／同名偽裝拒絕、來源及回應 mutation 隔離，
+以及反覆 Clear／Dispose 回到零基線。所有案例均為離線驗證，不宣稱 Dataverse 交易驗收。
 
 ## 7. 錯誤與正確作法
 

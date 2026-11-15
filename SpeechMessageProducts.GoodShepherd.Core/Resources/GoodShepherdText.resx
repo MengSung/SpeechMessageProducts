@@ -3,7 +3,7 @@
 檔案整體說明
 
 目的與定位：GoodShepherd 產品文字的中性資源來源，供 tools/I18nCheck 驗證並產生
-同模組的固定 C# 資料表；P3-06 納入 Golden 路由詞彙及可追溯的回覆模板。
+同模組的固定 C# 資料表；包含 Golden 路由詞彙、回覆模板與 P5-05 舊週報文字。
 
 主要功能與流程：ResourceCatalog 以 XML 安全讀取本檔及同名語系檔，驗證穩定鍵、
 翻譯參數及資源預算，再由 ResourceGenerator 產生 GoodShepherdText.g.cs。
@@ -237,4 +237,9 @@ ID (查詢您的LINE ID)
   <data name="Keyword.SundayAttendance" xml:space="preserve"><value>SERVICE|Service|service|主崇實體|主崇線上|主日1|主日2|主日6|主日?席|主日出席|主日報到|主日簽到|台語場|周六場|國語場|臺語場|華語場|週六場</value></data>
   <data name="Keyword.Testimony" xml:space="preserve"><value>@見證</value></data>
   <data name="Keyword.UserReply" xml:space="preserve"><value>$</value></data>
+  <data name="WeeklyReport.CalculatePrefix" xml:space="preserve"><value>計算出席率</value></data>
+  <data name="WeeklyReport.ReplyNotification" xml:space="preserve"><value>{pastor} 回應您主日日期為 {date} 的聚會回報 &#13;&#10;{reply}</value></data>
+  <data name="WeeklyReport.Unfilled" xml:space="preserve"><value>未填</value></data>
+  <data name="WeeklyReport.CareList" xml:space="preserve"><value>關懷</value></data>
+  <data name="WeeklyReport.HappinessPurpose" xml:space="preserve"><value>幸福</value></data>
 </root>
