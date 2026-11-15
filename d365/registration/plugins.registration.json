@@ -213,6 +213,108 @@
           "enabledByOrganization": {
             "goodshepherdback": false
           }
+        },
+        {
+          "message": "Update",
+          "entity": "new_group_present_weekly_report",
+          "stage": "PostOperation",
+          "rank": 40,
+          "module": "weeklyreports",
+          "unsecureConfig": "{\"mode\":\"Shadow\"}",
+          "secureConfig": "",
+          "enabledByOrganization": {
+            "goodshepherdback": false
+          },
+          "shadowReport": {
+            "file": "",
+            "differences": null,
+            "basis": "reading"
+          },
+          "type": "SpeechMessage.Dynamics.Plugins.WeeklyReports.WeeklyReportStatisticsPlugin",
+          "mode": "Synchronous",
+          "filteringAttributes": [
+            "new_saved_flag"
+          ],
+          "images": [
+            {
+              "name": "PreImage",
+              "attributes": [
+                "new_saved_flag",
+                "new_list_group_present_weekly_report"
+              ],
+              "type": "PreImage"
+            }
+          ],
+          "legacy": [
+            {
+              "assembly": "WeeklyReportPlugIn",
+              "type": "WeeklyReportPlugIn.WeeklyReportPlugIn",
+              "stepId": "907c7874-4de3-e911-810d-00155d006601"
+            }
+          ]
+        },
+        {
+          "message": "Update",
+          "entity": "new_group_present_weekly_report",
+          "stage": "PostOperation",
+          "rank": 40,
+          "module": "weeklyreports",
+          "unsecureConfig": "{\"mode\":\"Shadow\"}",
+          "secureConfig": "",
+          "enabledByOrganization": {
+            "goodshepherdback": false
+          },
+          "shadowReport": {
+            "file": "",
+            "differences": null,
+            "basis": "reading"
+          },
+          "type": "SpeechMessage.Dynamics.Plugins.WeeklyReports.WeeklyReportNotificationPlugin",
+          "mode": "Asynchronous",
+          "filteringAttributes": [
+            "new_paster_reply"
+          ],
+          "images": [
+            {
+              "name": "PreImage",
+              "attributes": [
+                "new_paster_reply",
+                "new_sunday_date",
+                "new_list_group_present_weekly_report"
+              ],
+              "type": "PreImage"
+            }
+          ],
+          "legacy": [
+            {
+              "assembly": "WeeklyReportLinePlugInDatabase",
+              "type": "WeeklyReportLinePlugIn.WeeklyReportLinePlugIn",
+              "stepId": "b533a2a3-f50d-f011-8143-00155d006608"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "assemblyName": "SpeechMessage.Dynamics.Workflows",
+      "activityGroup": "GoodShepherd",
+      "steps": [],
+      "activities": [
+        {
+          "module": "weeklyreports",
+          "type": "SpeechMessage.Dynamics.Workflows.WeeklyReports.WeeklyReportGenerationActivity",
+          "displayName": "WeeklyReportWorkflow",
+          "legacy": [
+            {
+              "assembly": "WeeklyReportWorkflow",
+              "type": "WeeklyReportWorkflowNameSpace.WeeklyReportWorkflow"
+            }
+          ],
+          "shadowReport": {
+            "file": "",
+            "differences": null,
+            "basis": "reading"
+          }
         }
       ]
     }
