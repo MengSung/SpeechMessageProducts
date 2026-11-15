@@ -1,0 +1,13 @@
+{
+  "id": "p5-02-legacy-golden",
+  "title": "P5-02 真實舊入口離線黃金與安全攔截",
+  "status": "completed",
+  "complexity": "L",
+  "risk": "high",
+  "domain": "tools",
+  "currentPhase": "completed",
+  "nextAction": "依修訂2時間盒退路完成工具修正；出席保留reading，下一包P5-04。",
+  "createdAt": "2026-11-14T13:44:31+08:00",
+  "branch": "1.0.0.11.Integration.P5.Worktree",
+  "completedAt": "2026-11-15T08:48:09+08:00"
+}

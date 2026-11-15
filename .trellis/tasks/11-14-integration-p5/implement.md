@@ -36,3 +36,7 @@ Find-DuplicateCode、verify=0、所有資源清理與跨教會隔離證據；依
 
 ## 2026-11-14 12:54 Asia/Taipei (UTC+08:00) 模組部署標準（前置實測）
 goodshepherdback診斷版本1.0.0.3→1.0.0.4→1.0.0.3、step ID不變、三次smoke/verify=0；只改FileVersion本輪足夠，沒有重啟。後續每模組固定AssemblyVersion/名稱/簽章，遞增FileVersion後plan→審核→apply→verify=0，仍以實際沙箱追蹤確認；舊版只等一次兩分鐘再試，仍舊才依授權重啟。不得以資料庫DLL hash取代執行證據。模組驗收新步驟只用Shadow，最後舊新皆停用、trace還原且殘留0。
+
+## 2026-11-15 08:43 Asia/Taipei (UTC+08:00) 修訂 2 續跑
+
+使用者 07:44 完成重啟後的 diagnostics 及唯讀調查已依 D5-19 收尾，不再重試。P5-03 已驗收、live=deferred。P5-02 工具限時修正已完成案例內反射、背景工作排空、scratch 診斷與 SDK 來源閉包；矩陣 1 個 Generated／28 個 CompileFailed，出席沒有 legacy.json，保留 reading 並停止工具擴充。固定 guard 與收尾完成後依序 P5-04～P5-13。

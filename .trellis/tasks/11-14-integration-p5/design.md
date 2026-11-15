@@ -27,4 +27,4 @@ task 與 cancellation registration。
 
 舊程式若在兩小時內無法由 harness 編譯或執行，依 D5-3 改為逐檔閱讀對照並標記
 `basis=reading`；活動若無法在 P5-03b 時間盒完成測試流程，依 D5-9 標記
-`basis=deferred-to-P7`。舊步驟／舊流程僅能在 `switch --to legacy` 或 `shadow` 的第一輪期間啟用，且先通過 D5-18；第一輪結束（含失敗、取消）必須停用。新步驟只用 Shadow，不以 Live 啟用；舊、新步驟不得同時啟用。任何需要放寬檢查、正式組織或變更 D5-2 的情況均停止該路徑並記錄，不以替代實作掩蓋。
+`basis=deferred-to-P7`。依修訂 2，退役舊步驟及流程不得在任何 D365 組織執行；舊輪程式保留不用。新步驟只用 Shadow，不以 Live 啟用。D5-19 追蹤無法恢復時，實機影子延到階段 7 前，differences=null、live=deferred，階段 5 依離線測試、部分信任、打包及停用部署 verify=0 收尾。任何需要放寬檢查、正式組織或變更 D5-2 的情況均停止該路徑並記錄，不以替代實作掩蓋。

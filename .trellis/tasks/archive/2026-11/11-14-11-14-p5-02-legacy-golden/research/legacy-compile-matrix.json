@@ -3,7 +3,7 @@
   "mode": "compile-only",
   "generatedMeaning": "CompilationSucceededOnly",
   "sourceRootId": "ApprovedDynamics365Line",
-  "runUtc": "2026-11-14T07:32:41.4232595+00:00",
+  "runUtc": "2026-11-15T00:39:38.2733949+00:00",
   "inventoryValid": true,
   "diagnostics": [],
   "expectedCounts": {
@@ -177,10 +177,23 @@
       "entryTypeActual": null,
       "status": "CompileFailed",
       "diagnostics": [
+        "DynamicExecutionRefused:LineMessagingClient.cs",
+        "DynamicExecutionRefused:CameraRollTemplateAction.cs",
+        "DynamicExecutionRefused:CameraTemplateAction.cs",
+        "DynamicExecutionRefused:DateTimePickerTemplateAction.cs",
+        "DynamicExecutionRefused:LocationTemplateAction.cs",
+        "DynamicExecutionRefused:MessageTemplateAction.cs",
+        "DynamicExecutionRefused:PostbackTemplateAction.cs",
+        "DynamicExecutionRefused:UriTemplateAction.cs",
+        "DynamicExecutionRefused:ActionArea.cs",
+        "DynamicExecutionRefused:ResponseRichMenu.cs",
+        "DynamicExecutionRefused:EventMessage.cs",
+        "DynamicExecutionRefused:WebhookEvent.cs",
+        "DynamicExecutionRefused:WebhookEventParser.cs",
+        "DynamicExecutionRefused:WebhookEventSource.cs",
+        "DynamicExecutionRefused:WebhookRequestMessageHelper.cs",
         "ExternalExecutionApiRefused:QPayToolkit.cs",
-        "ExecutionEscapeRefused:QPayToolkit.cs",
-        "ExternalExecutionApiRefused:ToolUtilityClass.cs",
-        "ExternalExecutionApiRefused:BSUStackTrace.cs"
+        "ExternalExecutionApiRefused:ToolUtilityClass.cs"
       ]
     },
     {
@@ -194,10 +207,23 @@
         "HttpTransportApiRefused:AllotApiClient.cs",
         "CustomHttpHandlerRefused:AllotApiClient.cs",
         "ExecutionEscapeRefused:AllotDebugTrace.cs",
+        "DynamicExecutionRefused:LineMessagingClient.cs",
+        "DynamicExecutionRefused:CameraRollTemplateAction.cs",
+        "DynamicExecutionRefused:CameraTemplateAction.cs",
+        "DynamicExecutionRefused:DateTimePickerTemplateAction.cs",
+        "DynamicExecutionRefused:LocationTemplateAction.cs",
+        "DynamicExecutionRefused:MessageTemplateAction.cs",
+        "DynamicExecutionRefused:PostbackTemplateAction.cs",
+        "DynamicExecutionRefused:UriTemplateAction.cs",
+        "DynamicExecutionRefused:ActionArea.cs",
+        "DynamicExecutionRefused:ResponseRichMenu.cs",
+        "DynamicExecutionRefused:EventMessage.cs",
+        "DynamicExecutionRefused:WebhookEvent.cs",
+        "DynamicExecutionRefused:WebhookEventParser.cs",
+        "DynamicExecutionRefused:WebhookEventSource.cs",
+        "DynamicExecutionRefused:WebhookRequestMessageHelper.cs",
         "ExternalExecutionApiRefused:QPayToolkit.cs",
-        "ExecutionEscapeRefused:QPayToolkit.cs",
-        "ExternalExecutionApiRefused:ToolUtilityClass.cs",
-        "ExternalExecutionApiRefused:BSUStackTrace.cs"
+        "ExternalExecutionApiRefused:ToolUtilityClass.cs"
       ]
     },
     {
@@ -208,10 +234,23 @@
       "entryTypeActual": null,
       "status": "CompileFailed",
       "diagnostics": [
+        "DynamicExecutionRefused:LineMessagingClient.cs",
+        "DynamicExecutionRefused:CameraRollTemplateAction.cs",
+        "DynamicExecutionRefused:CameraTemplateAction.cs",
+        "DynamicExecutionRefused:DateTimePickerTemplateAction.cs",
+        "DynamicExecutionRefused:LocationTemplateAction.cs",
+        "DynamicExecutionRefused:MessageTemplateAction.cs",
+        "DynamicExecutionRefused:PostbackTemplateAction.cs",
+        "DynamicExecutionRefused:UriTemplateAction.cs",
+        "DynamicExecutionRefused:ActionArea.cs",
+        "DynamicExecutionRefused:ResponseRichMenu.cs",
+        "DynamicExecutionRefused:EventMessage.cs",
+        "DynamicExecutionRefused:WebhookEvent.cs",
+        "DynamicExecutionRefused:WebhookEventParser.cs",
+        "DynamicExecutionRefused:WebhookEventSource.cs",
+        "DynamicExecutionRefused:WebhookRequestMessageHelper.cs",
         "ExternalExecutionApiRefused:QPayToolkit.cs",
-        "ExecutionEscapeRefused:QPayToolkit.cs",
-        "ExternalExecutionApiRefused:ToolUtilityClass.cs",
-        "ExternalExecutionApiRefused:BSUStackTrace.cs"
+        "ExternalExecutionApiRefused:ToolUtilityClass.cs"
       ]
     },
     {
@@ -222,10 +261,23 @@
       "entryTypeActual": null,
       "status": "CompileFailed",
       "diagnostics": [
+        "DynamicExecutionRefused:LineMessagingClient.cs",
+        "DynamicExecutionRefused:CameraRollTemplateAction.cs",
+        "DynamicExecutionRefused:CameraTemplateAction.cs",
+        "DynamicExecutionRefused:DateTimePickerTemplateAction.cs",
+        "DynamicExecutionRefused:LocationTemplateAction.cs",
+        "DynamicExecutionRefused:MessageTemplateAction.cs",
+        "DynamicExecutionRefused:PostbackTemplateAction.cs",
+        "DynamicExecutionRefused:UriTemplateAction.cs",
+        "DynamicExecutionRefused:ActionArea.cs",
+        "DynamicExecutionRefused:ResponseRichMenu.cs",
+        "DynamicExecutionRefused:EventMessage.cs",
+        "DynamicExecutionRefused:WebhookEvent.cs",
+        "DynamicExecutionRefused:WebhookEventParser.cs",
+        "DynamicExecutionRefused:WebhookEventSource.cs",
+        "DynamicExecutionRefused:WebhookRequestMessageHelper.cs",
         "ExternalExecutionApiRefused:QPayToolkit.cs",
-        "ExecutionEscapeRefused:QPayToolkit.cs",
-        "ExternalExecutionApiRefused:ToolUtilityClass.cs",
-        "ExternalExecutionApiRefused:BSUStackTrace.cs"
+        "ExternalExecutionApiRefused:ToolUtilityClass.cs"
       ]
     },
     {
@@ -236,10 +288,23 @@
       "entryTypeActual": null,
       "status": "CompileFailed",
       "diagnostics": [
+        "DynamicExecutionRefused:LineMessagingClient.cs",
+        "DynamicExecutionRefused:CameraRollTemplateAction.cs",
+        "DynamicExecutionRefused:CameraTemplateAction.cs",
+        "DynamicExecutionRefused:DateTimePickerTemplateAction.cs",
+        "DynamicExecutionRefused:LocationTemplateAction.cs",
+        "DynamicExecutionRefused:MessageTemplateAction.cs",
+        "DynamicExecutionRefused:PostbackTemplateAction.cs",
+        "DynamicExecutionRefused:UriTemplateAction.cs",
+        "DynamicExecutionRefused:ActionArea.cs",
+        "DynamicExecutionRefused:ResponseRichMenu.cs",
+        "DynamicExecutionRefused:EventMessage.cs",
+        "DynamicExecutionRefused:WebhookEvent.cs",
+        "DynamicExecutionRefused:WebhookEventParser.cs",
+        "DynamicExecutionRefused:WebhookEventSource.cs",
+        "DynamicExecutionRefused:WebhookRequestMessageHelper.cs",
         "ExternalExecutionApiRefused:QPayToolkit.cs",
-        "ExecutionEscapeRefused:QPayToolkit.cs",
-        "ExternalExecutionApiRefused:ToolUtilityClass.cs",
-        "ExternalExecutionApiRefused:BSUStackTrace.cs"
+        "ExternalExecutionApiRefused:ToolUtilityClass.cs"
       ]
     },
     {
@@ -250,10 +315,23 @@
       "entryTypeActual": null,
       "status": "CompileFailed",
       "diagnostics": [
+        "DynamicExecutionRefused:LineMessagingClient.cs",
+        "DynamicExecutionRefused:CameraRollTemplateAction.cs",
+        "DynamicExecutionRefused:CameraTemplateAction.cs",
+        "DynamicExecutionRefused:DateTimePickerTemplateAction.cs",
+        "DynamicExecutionRefused:LocationTemplateAction.cs",
+        "DynamicExecutionRefused:MessageTemplateAction.cs",
+        "DynamicExecutionRefused:PostbackTemplateAction.cs",
+        "DynamicExecutionRefused:UriTemplateAction.cs",
+        "DynamicExecutionRefused:ActionArea.cs",
+        "DynamicExecutionRefused:ResponseRichMenu.cs",
+        "DynamicExecutionRefused:EventMessage.cs",
+        "DynamicExecutionRefused:WebhookEvent.cs",
+        "DynamicExecutionRefused:WebhookEventParser.cs",
+        "DynamicExecutionRefused:WebhookEventSource.cs",
+        "DynamicExecutionRefused:WebhookRequestMessageHelper.cs",
         "ExternalExecutionApiRefused:QPayToolkit.cs",
-        "ExecutionEscapeRefused:QPayToolkit.cs",
-        "ExternalExecutionApiRefused:ToolUtilityClass.cs",
-        "ExternalExecutionApiRefused:BSUStackTrace.cs"
+        "ExternalExecutionApiRefused:ToolUtilityClass.cs"
       ]
     },
     {
@@ -264,10 +342,23 @@
       "entryTypeActual": null,
       "status": "CompileFailed",
       "diagnostics": [
+        "DynamicExecutionRefused:LineMessagingClient.cs",
+        "DynamicExecutionRefused:CameraRollTemplateAction.cs",
+        "DynamicExecutionRefused:CameraTemplateAction.cs",
+        "DynamicExecutionRefused:DateTimePickerTemplateAction.cs",
+        "DynamicExecutionRefused:LocationTemplateAction.cs",
+        "DynamicExecutionRefused:MessageTemplateAction.cs",
+        "DynamicExecutionRefused:PostbackTemplateAction.cs",
+        "DynamicExecutionRefused:UriTemplateAction.cs",
+        "DynamicExecutionRefused:ActionArea.cs",
+        "DynamicExecutionRefused:ResponseRichMenu.cs",
+        "DynamicExecutionRefused:EventMessage.cs",
+        "DynamicExecutionRefused:WebhookEvent.cs",
+        "DynamicExecutionRefused:WebhookEventParser.cs",
+        "DynamicExecutionRefused:WebhookEventSource.cs",
+        "DynamicExecutionRefused:WebhookRequestMessageHelper.cs",
         "ExternalExecutionApiRefused:QPayToolkit.cs",
-        "ExecutionEscapeRefused:QPayToolkit.cs",
-        "ExternalExecutionApiRefused:ToolUtilityClass.cs",
-        "ExternalExecutionApiRefused:BSUStackTrace.cs"
+        "ExternalExecutionApiRefused:ToolUtilityClass.cs"
       ]
     },
     {
@@ -278,10 +369,23 @@
       "entryTypeActual": null,
       "status": "CompileFailed",
       "diagnostics": [
+        "DynamicExecutionRefused:LineMessagingClient.cs",
+        "DynamicExecutionRefused:CameraRollTemplateAction.cs",
+        "DynamicExecutionRefused:CameraTemplateAction.cs",
+        "DynamicExecutionRefused:DateTimePickerTemplateAction.cs",
+        "DynamicExecutionRefused:LocationTemplateAction.cs",
+        "DynamicExecutionRefused:MessageTemplateAction.cs",
+        "DynamicExecutionRefused:PostbackTemplateAction.cs",
+        "DynamicExecutionRefused:UriTemplateAction.cs",
+        "DynamicExecutionRefused:ActionArea.cs",
+        "DynamicExecutionRefused:ResponseRichMenu.cs",
+        "DynamicExecutionRefused:EventMessage.cs",
+        "DynamicExecutionRefused:WebhookEvent.cs",
+        "DynamicExecutionRefused:WebhookEventParser.cs",
+        "DynamicExecutionRefused:WebhookEventSource.cs",
+        "DynamicExecutionRefused:WebhookRequestMessageHelper.cs",
         "ExternalExecutionApiRefused:QPayToolkit.cs",
-        "ExecutionEscapeRefused:QPayToolkit.cs",
-        "ExternalExecutionApiRefused:ToolUtilityClass.cs",
-        "ExternalExecutionApiRefused:BSUStackTrace.cs"
+        "ExternalExecutionApiRefused:ToolUtilityClass.cs"
       ]
     },
     {
@@ -292,10 +396,23 @@
       "entryTypeActual": null,
       "status": "CompileFailed",
       "diagnostics": [
+        "DynamicExecutionRefused:LineMessagingClient.cs",
+        "DynamicExecutionRefused:CameraRollTemplateAction.cs",
+        "DynamicExecutionRefused:CameraTemplateAction.cs",
+        "DynamicExecutionRefused:DateTimePickerTemplateAction.cs",
+        "DynamicExecutionRefused:LocationTemplateAction.cs",
+        "DynamicExecutionRefused:MessageTemplateAction.cs",
+        "DynamicExecutionRefused:PostbackTemplateAction.cs",
+        "DynamicExecutionRefused:UriTemplateAction.cs",
+        "DynamicExecutionRefused:ActionArea.cs",
+        "DynamicExecutionRefused:ResponseRichMenu.cs",
+        "DynamicExecutionRefused:EventMessage.cs",
+        "DynamicExecutionRefused:WebhookEvent.cs",
+        "DynamicExecutionRefused:WebhookEventParser.cs",
+        "DynamicExecutionRefused:WebhookEventSource.cs",
+        "DynamicExecutionRefused:WebhookRequestMessageHelper.cs",
         "ExternalExecutionApiRefused:QPayToolkit.cs",
-        "ExecutionEscapeRefused:QPayToolkit.cs",
-        "ExternalExecutionApiRefused:ToolUtilityClass.cs",
-        "ExternalExecutionApiRefused:BSUStackTrace.cs"
+        "ExternalExecutionApiRefused:ToolUtilityClass.cs"
       ]
     },
     {
@@ -306,10 +423,23 @@
       "entryTypeActual": null,
       "status": "CompileFailed",
       "diagnostics": [
+        "DynamicExecutionRefused:LineMessagingClient.cs",
+        "DynamicExecutionRefused:CameraRollTemplateAction.cs",
+        "DynamicExecutionRefused:CameraTemplateAction.cs",
+        "DynamicExecutionRefused:DateTimePickerTemplateAction.cs",
+        "DynamicExecutionRefused:LocationTemplateAction.cs",
+        "DynamicExecutionRefused:MessageTemplateAction.cs",
+        "DynamicExecutionRefused:PostbackTemplateAction.cs",
+        "DynamicExecutionRefused:UriTemplateAction.cs",
+        "DynamicExecutionRefused:ActionArea.cs",
+        "DynamicExecutionRefused:ResponseRichMenu.cs",
+        "DynamicExecutionRefused:EventMessage.cs",
+        "DynamicExecutionRefused:WebhookEvent.cs",
+        "DynamicExecutionRefused:WebhookEventParser.cs",
+        "DynamicExecutionRefused:WebhookEventSource.cs",
+        "DynamicExecutionRefused:WebhookRequestMessageHelper.cs",
         "ExternalExecutionApiRefused:QPayToolkit.cs",
-        "ExecutionEscapeRefused:QPayToolkit.cs",
-        "ExternalExecutionApiRefused:ToolUtilityClass.cs",
-        "ExternalExecutionApiRefused:BSUStackTrace.cs"
+        "ExternalExecutionApiRefused:ToolUtilityClass.cs"
       ]
     },
     {
@@ -320,10 +450,23 @@
       "entryTypeActual": null,
       "status": "CompileFailed",
       "diagnostics": [
+        "DynamicExecutionRefused:LineMessagingClient.cs",
+        "DynamicExecutionRefused:CameraRollTemplateAction.cs",
+        "DynamicExecutionRefused:CameraTemplateAction.cs",
+        "DynamicExecutionRefused:DateTimePickerTemplateAction.cs",
+        "DynamicExecutionRefused:LocationTemplateAction.cs",
+        "DynamicExecutionRefused:MessageTemplateAction.cs",
+        "DynamicExecutionRefused:PostbackTemplateAction.cs",
+        "DynamicExecutionRefused:UriTemplateAction.cs",
+        "DynamicExecutionRefused:ActionArea.cs",
+        "DynamicExecutionRefused:ResponseRichMenu.cs",
+        "DynamicExecutionRefused:EventMessage.cs",
+        "DynamicExecutionRefused:WebhookEvent.cs",
+        "DynamicExecutionRefused:WebhookEventParser.cs",
+        "DynamicExecutionRefused:WebhookEventSource.cs",
+        "DynamicExecutionRefused:WebhookRequestMessageHelper.cs",
         "ExternalExecutionApiRefused:QPayToolkit.cs",
-        "ExecutionEscapeRefused:QPayToolkit.cs",
-        "ExternalExecutionApiRefused:ToolUtilityClass.cs",
-        "ExternalExecutionApiRefused:BSUStackTrace.cs"
+        "ExternalExecutionApiRefused:ToolUtilityClass.cs"
       ]
     },
     {
@@ -345,10 +488,25 @@
       "entryTypeActual": null,
       "status": "CompileFailed",
       "diagnostics": [
+        "DynamicExecutionRefused:LineMessagingClient.cs",
+        "DynamicExecutionRefused:CameraRollTemplateAction.cs",
+        "DynamicExecutionRefused:CameraTemplateAction.cs",
+        "DynamicExecutionRefused:DateTimePickerTemplateAction.cs",
+        "DynamicExecutionRefused:LocationTemplateAction.cs",
+        "DynamicExecutionRefused:MessageTemplateAction.cs",
+        "DynamicExecutionRefused:PostbackTemplateAction.cs",
+        "DynamicExecutionRefused:UriTemplateAction.cs",
+        "DynamicExecutionRefused:ActionArea.cs",
+        "DynamicExecutionRefused:ResponseRichMenu.cs",
+        "DynamicExecutionRefused:EventMessage.cs",
+        "DynamicExecutionRefused:WebhookEvent.cs",
+        "DynamicExecutionRefused:WebhookEventParser.cs",
+        "DynamicExecutionRefused:WebhookEventSource.cs",
+        "DynamicExecutionRefused:WebhookRequestMessageHelper.cs",
+        "HttpTransportApiRefused:LineNotifyBotApi.cs",
+        "CustomHttpHandlerRefused:LineNotifyBotApi.cs",
         "ExternalExecutionApiRefused:QPayToolkit.cs",
-        "ExecutionEscapeRefused:QPayToolkit.cs",
-        "ExternalExecutionApiRefused:ToolUtilityClass.cs",
-        "ExternalExecutionApiRefused:BSUStackTrace.cs"
+        "ExternalExecutionApiRefused:ToolUtilityClass.cs"
       ]
     },
     {
@@ -359,10 +517,23 @@
       "entryTypeActual": null,
       "status": "CompileFailed",
       "diagnostics": [
+        "DynamicExecutionRefused:LineMessagingClient.cs",
+        "DynamicExecutionRefused:CameraRollTemplateAction.cs",
+        "DynamicExecutionRefused:CameraTemplateAction.cs",
+        "DynamicExecutionRefused:DateTimePickerTemplateAction.cs",
+        "DynamicExecutionRefused:LocationTemplateAction.cs",
+        "DynamicExecutionRefused:MessageTemplateAction.cs",
+        "DynamicExecutionRefused:PostbackTemplateAction.cs",
+        "DynamicExecutionRefused:UriTemplateAction.cs",
+        "DynamicExecutionRefused:ActionArea.cs",
+        "DynamicExecutionRefused:ResponseRichMenu.cs",
+        "DynamicExecutionRefused:EventMessage.cs",
+        "DynamicExecutionRefused:WebhookEvent.cs",
+        "DynamicExecutionRefused:WebhookEventParser.cs",
+        "DynamicExecutionRefused:WebhookEventSource.cs",
+        "DynamicExecutionRefused:WebhookRequestMessageHelper.cs",
         "ExternalExecutionApiRefused:QPayToolkit.cs",
-        "ExecutionEscapeRefused:QPayToolkit.cs",
-        "ExternalExecutionApiRefused:ToolUtilityClass.cs",
-        "ExternalExecutionApiRefused:BSUStackTrace.cs"
+        "ExternalExecutionApiRefused:ToolUtilityClass.cs"
       ]
     },
     {
@@ -373,7 +544,6 @@
       "entryTypeActual": null,
       "status": "CompileFailed",
       "diagnostics": [
-        "ExternalExecutionApiRefused:BSUStackTrace.cs",
         "ExternalExecutionApiRefused:ToolUtilityClass.cs"
       ]
     },
@@ -385,10 +555,23 @@
       "entryTypeActual": null,
       "status": "CompileFailed",
       "diagnostics": [
+        "DynamicExecutionRefused:LineMessagingClient.cs",
+        "DynamicExecutionRefused:CameraRollTemplateAction.cs",
+        "DynamicExecutionRefused:CameraTemplateAction.cs",
+        "DynamicExecutionRefused:DateTimePickerTemplateAction.cs",
+        "DynamicExecutionRefused:LocationTemplateAction.cs",
+        "DynamicExecutionRefused:MessageTemplateAction.cs",
+        "DynamicExecutionRefused:PostbackTemplateAction.cs",
+        "DynamicExecutionRefused:UriTemplateAction.cs",
+        "DynamicExecutionRefused:ActionArea.cs",
+        "DynamicExecutionRefused:ResponseRichMenu.cs",
+        "DynamicExecutionRefused:EventMessage.cs",
+        "DynamicExecutionRefused:WebhookEvent.cs",
+        "DynamicExecutionRefused:WebhookEventParser.cs",
+        "DynamicExecutionRefused:WebhookEventSource.cs",
+        "DynamicExecutionRefused:WebhookRequestMessageHelper.cs",
         "ExternalExecutionApiRefused:QPayToolkit.cs",
-        "ExecutionEscapeRefused:QPayToolkit.cs",
-        "ExternalExecutionApiRefused:ToolUtilityClass.cs",
-        "ExternalExecutionApiRefused:BSUStackTrace.cs"
+        "ExternalExecutionApiRefused:ToolUtilityClass.cs"
       ]
     },
     {
@@ -399,10 +582,23 @@
       "entryTypeActual": null,
       "status": "CompileFailed",
       "diagnostics": [
+        "DynamicExecutionRefused:LineMessagingClient.cs",
+        "DynamicExecutionRefused:CameraRollTemplateAction.cs",
+        "DynamicExecutionRefused:CameraTemplateAction.cs",
+        "DynamicExecutionRefused:DateTimePickerTemplateAction.cs",
+        "DynamicExecutionRefused:LocationTemplateAction.cs",
+        "DynamicExecutionRefused:MessageTemplateAction.cs",
+        "DynamicExecutionRefused:PostbackTemplateAction.cs",
+        "DynamicExecutionRefused:UriTemplateAction.cs",
+        "DynamicExecutionRefused:ActionArea.cs",
+        "DynamicExecutionRefused:ResponseRichMenu.cs",
+        "DynamicExecutionRefused:EventMessage.cs",
+        "DynamicExecutionRefused:WebhookEvent.cs",
+        "DynamicExecutionRefused:WebhookEventParser.cs",
+        "DynamicExecutionRefused:WebhookEventSource.cs",
+        "DynamicExecutionRefused:WebhookRequestMessageHelper.cs",
         "ExternalExecutionApiRefused:QPayToolkit.cs",
-        "ExecutionEscapeRefused:QPayToolkit.cs",
-        "ExternalExecutionApiRefused:ToolUtilityClass.cs",
-        "ExternalExecutionApiRefused:BSUStackTrace.cs"
+        "ExternalExecutionApiRefused:ToolUtilityClass.cs"
       ]
     },
     {
@@ -413,12 +609,25 @@
       "entryTypeActual": null,
       "status": "CompileFailed",
       "diagnostics": [
+        "DynamicExecutionRefused:LineMessagingClient.cs",
+        "DynamicExecutionRefused:CameraRollTemplateAction.cs",
+        "DynamicExecutionRefused:CameraTemplateAction.cs",
+        "DynamicExecutionRefused:DateTimePickerTemplateAction.cs",
+        "DynamicExecutionRefused:LocationTemplateAction.cs",
+        "DynamicExecutionRefused:MessageTemplateAction.cs",
+        "DynamicExecutionRefused:PostbackTemplateAction.cs",
+        "DynamicExecutionRefused:UriTemplateAction.cs",
+        "DynamicExecutionRefused:ActionArea.cs",
+        "DynamicExecutionRefused:ResponseRichMenu.cs",
+        "DynamicExecutionRefused:EventMessage.cs",
+        "DynamicExecutionRefused:WebhookEvent.cs",
+        "DynamicExecutionRefused:WebhookEventParser.cs",
+        "DynamicExecutionRefused:WebhookEventSource.cs",
+        "DynamicExecutionRefused:WebhookRequestMessageHelper.cs",
         "ExternalExecutionApiRefused:QrCodeUtility.cs",
         "UnsafeExecutionApiRefused:QrCodeUtility.cs",
         "ExternalExecutionApiRefused:QPayToolkit.cs",
-        "ExecutionEscapeRefused:QPayToolkit.cs",
-        "ExternalExecutionApiRefused:ToolUtilityClass.cs",
-        "ExternalExecutionApiRefused:BSUStackTrace.cs"
+        "ExternalExecutionApiRefused:ToolUtilityClass.cs"
       ]
     },
     {
@@ -429,7 +638,7 @@
       "entryTypeActual": null,
       "status": "CompileFailed",
       "diagnostics": [
-        "NoReadableCSharpSource"
+        "ExternalExecutionApiRefused:ToolUtilityClass.cs"
       ]
     },
     {
@@ -440,10 +649,23 @@
       "entryTypeActual": null,
       "status": "CompileFailed",
       "diagnostics": [
+        "DynamicExecutionRefused:LineMessagingClient.cs",
+        "DynamicExecutionRefused:CameraRollTemplateAction.cs",
+        "DynamicExecutionRefused:CameraTemplateAction.cs",
+        "DynamicExecutionRefused:DateTimePickerTemplateAction.cs",
+        "DynamicExecutionRefused:LocationTemplateAction.cs",
+        "DynamicExecutionRefused:MessageTemplateAction.cs",
+        "DynamicExecutionRefused:PostbackTemplateAction.cs",
+        "DynamicExecutionRefused:UriTemplateAction.cs",
+        "DynamicExecutionRefused:ActionArea.cs",
+        "DynamicExecutionRefused:ResponseRichMenu.cs",
+        "DynamicExecutionRefused:EventMessage.cs",
+        "DynamicExecutionRefused:WebhookEvent.cs",
+        "DynamicExecutionRefused:WebhookEventParser.cs",
+        "DynamicExecutionRefused:WebhookEventSource.cs",
+        "DynamicExecutionRefused:WebhookRequestMessageHelper.cs",
         "ExternalExecutionApiRefused:QPayToolkit.cs",
-        "ExecutionEscapeRefused:QPayToolkit.cs",
-        "ExternalExecutionApiRefused:ToolUtilityClass.cs",
-        "ExternalExecutionApiRefused:BSUStackTrace.cs"
+        "ExternalExecutionApiRefused:ToolUtilityClass.cs"
       ]
     },
     {
@@ -454,10 +676,23 @@
       "entryTypeActual": null,
       "status": "CompileFailed",
       "diagnostics": [
+        "DynamicExecutionRefused:LineMessagingClient.cs",
+        "DynamicExecutionRefused:CameraRollTemplateAction.cs",
+        "DynamicExecutionRefused:CameraTemplateAction.cs",
+        "DynamicExecutionRefused:DateTimePickerTemplateAction.cs",
+        "DynamicExecutionRefused:LocationTemplateAction.cs",
+        "DynamicExecutionRefused:MessageTemplateAction.cs",
+        "DynamicExecutionRefused:PostbackTemplateAction.cs",
+        "DynamicExecutionRefused:UriTemplateAction.cs",
+        "DynamicExecutionRefused:ActionArea.cs",
+        "DynamicExecutionRefused:ResponseRichMenu.cs",
+        "DynamicExecutionRefused:EventMessage.cs",
+        "DynamicExecutionRefused:WebhookEvent.cs",
+        "DynamicExecutionRefused:WebhookEventParser.cs",
+        "DynamicExecutionRefused:WebhookEventSource.cs",
+        "DynamicExecutionRefused:WebhookRequestMessageHelper.cs",
         "ExternalExecutionApiRefused:QPayToolkit.cs",
-        "ExecutionEscapeRefused:QPayToolkit.cs",
-        "ExternalExecutionApiRefused:ToolUtilityClass.cs",
-        "ExternalExecutionApiRefused:BSUStackTrace.cs"
+        "ExternalExecutionApiRefused:ToolUtilityClass.cs"
       ]
     },
     {
@@ -468,12 +703,25 @@
       "entryTypeActual": null,
       "status": "CompileFailed",
       "diagnostics": [
+        "DynamicExecutionRefused:LineMessagingClient.cs",
+        "DynamicExecutionRefused:CameraRollTemplateAction.cs",
+        "DynamicExecutionRefused:CameraTemplateAction.cs",
+        "DynamicExecutionRefused:DateTimePickerTemplateAction.cs",
+        "DynamicExecutionRefused:LocationTemplateAction.cs",
+        "DynamicExecutionRefused:MessageTemplateAction.cs",
+        "DynamicExecutionRefused:PostbackTemplateAction.cs",
+        "DynamicExecutionRefused:UriTemplateAction.cs",
+        "DynamicExecutionRefused:ActionArea.cs",
+        "DynamicExecutionRefused:ResponseRichMenu.cs",
+        "DynamicExecutionRefused:EventMessage.cs",
+        "DynamicExecutionRefused:WebhookEvent.cs",
+        "DynamicExecutionRefused:WebhookEventParser.cs",
+        "DynamicExecutionRefused:WebhookEventSource.cs",
+        "DynamicExecutionRefused:WebhookRequestMessageHelper.cs",
         "ExternalExecutionApiRefused:SundayQrCodeUtility.cs",
         "UnsafeExecutionApiRefused:SundayQrCodeUtility.cs",
         "ExternalExecutionApiRefused:QPayToolkit.cs",
-        "ExecutionEscapeRefused:QPayToolkit.cs",
-        "ExternalExecutionApiRefused:ToolUtilityClass.cs",
-        "ExternalExecutionApiRefused:BSUStackTrace.cs"
+        "ExternalExecutionApiRefused:ToolUtilityClass.cs"
       ]
     },
     {
@@ -484,10 +732,23 @@
       "entryTypeActual": null,
       "status": "CompileFailed",
       "diagnostics": [
+        "DynamicExecutionRefused:LineMessagingClient.cs",
+        "DynamicExecutionRefused:CameraRollTemplateAction.cs",
+        "DynamicExecutionRefused:CameraTemplateAction.cs",
+        "DynamicExecutionRefused:DateTimePickerTemplateAction.cs",
+        "DynamicExecutionRefused:LocationTemplateAction.cs",
+        "DynamicExecutionRefused:MessageTemplateAction.cs",
+        "DynamicExecutionRefused:PostbackTemplateAction.cs",
+        "DynamicExecutionRefused:UriTemplateAction.cs",
+        "DynamicExecutionRefused:ActionArea.cs",
+        "DynamicExecutionRefused:ResponseRichMenu.cs",
+        "DynamicExecutionRefused:EventMessage.cs",
+        "DynamicExecutionRefused:WebhookEvent.cs",
+        "DynamicExecutionRefused:WebhookEventParser.cs",
+        "DynamicExecutionRefused:WebhookEventSource.cs",
+        "DynamicExecutionRefused:WebhookRequestMessageHelper.cs",
         "ExternalExecutionApiRefused:QPayToolkit.cs",
-        "ExecutionEscapeRefused:QPayToolkit.cs",
-        "ExternalExecutionApiRefused:ToolUtilityClass.cs",
-        "ExternalExecutionApiRefused:BSUStackTrace.cs"
+        "ExternalExecutionApiRefused:ToolUtilityClass.cs"
       ]
     },
     {
@@ -498,10 +759,23 @@
       "entryTypeActual": null,
       "status": "CompileFailed",
       "diagnostics": [
+        "DynamicExecutionRefused:LineMessagingClient.cs",
+        "DynamicExecutionRefused:CameraRollTemplateAction.cs",
+        "DynamicExecutionRefused:CameraTemplateAction.cs",
+        "DynamicExecutionRefused:DateTimePickerTemplateAction.cs",
+        "DynamicExecutionRefused:LocationTemplateAction.cs",
+        "DynamicExecutionRefused:MessageTemplateAction.cs",
+        "DynamicExecutionRefused:PostbackTemplateAction.cs",
+        "DynamicExecutionRefused:UriTemplateAction.cs",
+        "DynamicExecutionRefused:ActionArea.cs",
+        "DynamicExecutionRefused:ResponseRichMenu.cs",
+        "DynamicExecutionRefused:EventMessage.cs",
+        "DynamicExecutionRefused:WebhookEvent.cs",
+        "DynamicExecutionRefused:WebhookEventParser.cs",
+        "DynamicExecutionRefused:WebhookEventSource.cs",
+        "DynamicExecutionRefused:WebhookRequestMessageHelper.cs",
         "ExternalExecutionApiRefused:QPayToolkit.cs",
-        "ExecutionEscapeRefused:QPayToolkit.cs",
-        "ExternalExecutionApiRefused:ToolUtilityClass.cs",
-        "ExternalExecutionApiRefused:BSUStackTrace.cs"
+        "ExternalExecutionApiRefused:ToolUtilityClass.cs"
       ]
     },
     {
@@ -512,10 +786,23 @@
       "entryTypeActual": null,
       "status": "CompileFailed",
       "diagnostics": [
+        "DynamicExecutionRefused:LineMessagingClient.cs",
+        "DynamicExecutionRefused:CameraRollTemplateAction.cs",
+        "DynamicExecutionRefused:CameraTemplateAction.cs",
+        "DynamicExecutionRefused:DateTimePickerTemplateAction.cs",
+        "DynamicExecutionRefused:LocationTemplateAction.cs",
+        "DynamicExecutionRefused:MessageTemplateAction.cs",
+        "DynamicExecutionRefused:PostbackTemplateAction.cs",
+        "DynamicExecutionRefused:UriTemplateAction.cs",
+        "DynamicExecutionRefused:ActionArea.cs",
+        "DynamicExecutionRefused:ResponseRichMenu.cs",
+        "DynamicExecutionRefused:EventMessage.cs",
+        "DynamicExecutionRefused:WebhookEvent.cs",
+        "DynamicExecutionRefused:WebhookEventParser.cs",
+        "DynamicExecutionRefused:WebhookEventSource.cs",
+        "DynamicExecutionRefused:WebhookRequestMessageHelper.cs",
         "ExternalExecutionApiRefused:QPayToolkit.cs",
-        "ExecutionEscapeRefused:QPayToolkit.cs",
-        "ExternalExecutionApiRefused:ToolUtilityClass.cs",
-        "ExternalExecutionApiRefused:BSUStackTrace.cs"
+        "ExternalExecutionApiRefused:ToolUtilityClass.cs"
       ]
     },
     {
@@ -526,10 +813,23 @@
       "entryTypeActual": null,
       "status": "CompileFailed",
       "diagnostics": [
+        "DynamicExecutionRefused:LineMessagingClient.cs",
+        "DynamicExecutionRefused:CameraRollTemplateAction.cs",
+        "DynamicExecutionRefused:CameraTemplateAction.cs",
+        "DynamicExecutionRefused:DateTimePickerTemplateAction.cs",
+        "DynamicExecutionRefused:LocationTemplateAction.cs",
+        "DynamicExecutionRefused:MessageTemplateAction.cs",
+        "DynamicExecutionRefused:PostbackTemplateAction.cs",
+        "DynamicExecutionRefused:UriTemplateAction.cs",
+        "DynamicExecutionRefused:ActionArea.cs",
+        "DynamicExecutionRefused:ResponseRichMenu.cs",
+        "DynamicExecutionRefused:EventMessage.cs",
+        "DynamicExecutionRefused:WebhookEvent.cs",
+        "DynamicExecutionRefused:WebhookEventParser.cs",
+        "DynamicExecutionRefused:WebhookEventSource.cs",
+        "DynamicExecutionRefused:WebhookRequestMessageHelper.cs",
         "ExternalExecutionApiRefused:QPayToolkit.cs",
-        "ExecutionEscapeRefused:QPayToolkit.cs",
-        "ExternalExecutionApiRefused:ToolUtilityClass.cs",
-        "ExternalExecutionApiRefused:BSUStackTrace.cs"
+        "ExternalExecutionApiRefused:ToolUtilityClass.cs"
       ]
     },
     {
@@ -548,11 +848,9 @@
       "projectFile": "WorkflowTemplate/WorkflowTemplate.csproj",
       "entrypointExpected": "WorkflowTemplate.WorkflowTemplatePlugin",
       "kind": "CodeActivity",
-      "entryTypeActual": null,
-      "status": "CompileFailed",
-      "diagnostics": [
-        "NoReadableCSharpSource"
-      ]
+      "entryTypeActual": "WorkflowTemplate.WorkflowTemplatePlugin",
+      "status": "Generated",
+      "diagnostics": []
     },
     {
       "project": "YangMeillcStorLessonsPlugIn",
@@ -562,16 +860,29 @@
       "entryTypeActual": null,
       "status": "CompileFailed",
       "diagnostics": [
+        "DynamicExecutionRefused:LineMessagingClient.cs",
+        "DynamicExecutionRefused:CameraRollTemplateAction.cs",
+        "DynamicExecutionRefused:CameraTemplateAction.cs",
+        "DynamicExecutionRefused:DateTimePickerTemplateAction.cs",
+        "DynamicExecutionRefused:LocationTemplateAction.cs",
+        "DynamicExecutionRefused:MessageTemplateAction.cs",
+        "DynamicExecutionRefused:PostbackTemplateAction.cs",
+        "DynamicExecutionRefused:UriTemplateAction.cs",
+        "DynamicExecutionRefused:ActionArea.cs",
+        "DynamicExecutionRefused:ResponseRichMenu.cs",
+        "DynamicExecutionRefused:EventMessage.cs",
+        "DynamicExecutionRefused:WebhookEvent.cs",
+        "DynamicExecutionRefused:WebhookEventParser.cs",
+        "DynamicExecutionRefused:WebhookEventSource.cs",
+        "DynamicExecutionRefused:WebhookRequestMessageHelper.cs",
         "ExternalExecutionApiRefused:QPayToolkit.cs",
-        "ExecutionEscapeRefused:QPayToolkit.cs",
-        "ExternalExecutionApiRefused:ToolUtilityClass.cs",
-        "ExternalExecutionApiRefused:BSUStackTrace.cs"
+        "ExternalExecutionApiRefused:ToolUtilityClass.cs"
       ]
     }
   ],
   "statusCounts": {
-    "Generated": 0,
-    "CompileFailed": 29,
+    "Generated": 1,
+    "CompileFailed": 28,
     "BlockedByNetworkApi": 0
   }
 }

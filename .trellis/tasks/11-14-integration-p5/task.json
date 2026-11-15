@@ -29,6 +29,6 @@
   ],
   "parent": null,
   "relatedFiles": [],
-  "notes": "2026-11-15 02:39 Asia/Taipei (UTC+08:00)：P5-03a續作，b8953380接通expected推播摘要至reader／factory／真CLI；新增14項離線測試，含內容差異、缺摘要／錯收件者／不受控Retry Key拒絕及清理。修正Push中繼Entity須為空的parser一致性，保留嚴格驗證。Deployment Release701/701、文件1562檔零失敗、變更編碼零問題。獨立受控legacy switch、外部修改摘要、映像接線及同步實機識別仍待完成。diagnostics在All(2)下未取得trace的既有結果不變；未再實機重試。P5-03未驗收、未推送，完整固定guard未跑；驗收時間待接線及追蹤原因釐清後重估，沒有等待使用者的事項；P5-02工具三小時修正尚未開始。",
+  "notes": "2026-11-15 08:48 Asia/Taipei (UTC+08:00)：P5-02 fix 限時修正收尾；反射、Task／Thread／Timer有界排空及scratch診斷已驗證，SDK預設來源已納入編譯閉包。矩陣36專案／29入口為1 Generated、28 CompileFailed、0 BlockedByNetworkApi；出席產生仍CompileFailed且無候選檔，保留basis=reading，不再擴充工具。3e040d32固定guard八項全通過，Plugin測試302項通過；P5-03依D5-19採live=deferred，接續P5-04。",
   "meta": {}
 }
