@@ -22,6 +22,7 @@ using Moq;
 using Newtonsoft.Json.Linq;
 using SpeechMessage.Dynamics.Plugins.Lessons;
 using SpeechMessage.Dynamics.Plugins.Tests.Fakes;
+using SpeechMessageProducts.GoodShepherd.Core.Tests;
 using Xunit;
 using LessonQrCodeActivity = Workflows::SpeechMessage.Dynamics.Workflows.Lessons.LessonQrCodeActivity;
 
@@ -34,6 +35,7 @@ public sealed class LessonLinkShellTests
     [Fact]
     public void Lessons_Link_ShadowMode_MatchesExpected()
     {
+        RunGoldenCases();
         var church = Guid.NewGuid(); var lessonId = Guid.NewGuid(); var contactId = Guid.NewGuid();
         var lesson = new Entity("new_disciple_lessons", lessonId) { ["new_contact_new_disciple_lessons"] = new EntityReference("contact", contactId) };
         var contact = new Entity("contact", contactId) { ["parentcustomerid"] = new EntityReference("account", church) };
@@ -127,5 +129,89 @@ public sealed class LessonLinkShellTests
             Assert.Empty(tasks);
         }
         finally { sdk.Reset(); factory.Reset(); tasks.Clear(); tracing.Entries.Clear(); }
+    }
+
+    /// <summary>同一份四案經真Plugin／活動，完整比對寫入與錯誤；只正規化正式ID為alias。</summary>
+    private static void RunGoldenCases()
+    {
+        var scenarios = LessonLinkGoldenFixture.Read("scenarios")["cases"]!.Children<JObject>().ToArray();
+        var expected = LessonLinkGoldenFixture.Read("expected")["cases"]!.Children<JObject>().ToArray();
+        var shell = new LessonLinkPlugin("{\"mode\":\"Shadow\"}", "");
+        var activity = new LessonQrCodeActivity();
+        Assert.Equal(scenarios.Length, expected.Length);
+        for (var index = 0; index < scenarios.Length; index++)
+        {
+            Assert.Equal((string?)scenarios[index]["name"], (string?)expected[index]["name"]);
+            var seed = scenarios[index]["seed"]!.Children<JObject>().ToArray();
+            var ids = seed.ToDictionary(x => (string)x["alias"]!, x => LessonLinkGoldenFixture.Id((string)x["alias"]!), StringComparer.Ordinal);
+            var aliases = ids.ToDictionary(x => x.Value, x => x.Key);
+            var rows = new Dictionary<Guid, Entity>();
+            foreach (var definition in seed)
+            {
+                var row = new Entity((string)definition["entity"]!, ids[(string)definition["alias"]!]);
+                foreach (var field in ((JObject)definition["fields"]!).Properties())
+                    row[field.Name] = field.Value is JObject reference
+                        ? new EntityReference((string)reference["entity"]!, ids[(string)reference["ref"]!])
+                        : field.Value.Type == JTokenType.Null ? null : throw new InvalidOperationException("Unsupported fixture value.");
+                rows.Add(row.Id, row);
+            }
+            var sdk = new Mock<IOrganizationService>(MockBehavior.Strict);
+            var factory = new Mock<IOrganizationServiceFactory>(MockBehavior.Strict);
+            var trace = new FakeTracingService();
+            try
+            {
+                var trigger = scenarios[index]["trigger"]!;
+                var id = ids[(string)trigger["target"]!];
+                var context = new RemoteExecutionContext
+                {
+                    MessageName = (string)trigger["message"]!, PrimaryEntityName = (string)trigger["entity"]!,
+                    PrimaryEntityId = id, Depth = (int)trigger["depth"]!, Stage = 40, Mode = 0,
+                    UserId = Guid.NewGuid(), OrganizationId = Guid.NewGuid(), OrganizationName = "synthetic-lessons",
+                    CorrelationId = Guid.NewGuid()
+                };
+                context.InputParameters["Target"] = new Entity(context.PrimaryEntityName, id);
+                factory.Setup(x => x.CreateOrganizationService(context.UserId)).Returns(sdk.Object);
+                sdk.Setup(x => x.Retrieve(It.IsAny<string>(), It.IsAny<Guid>(), It.IsAny<ColumnSet>()))
+                    .Returns<string, Guid, ColumnSet>((table, record, _) => rows[record].LogicalName == table ? rows[record] : throw new InvalidOperationException("Fixture identity mismatch."));
+                Exception? failure = null;
+                try
+                {
+                    if ((string?)trigger["project"] == "QrCodeWorkflow")
+                    {
+                        var workflow = new FakeWorkflowContext(messageName: context.MessageName, primaryEntityName: context.PrimaryEntityName, primaryEntityId: id);
+                        try
+                        {
+                            factory.Setup(x => x.CreateOrganizationService(workflow.Object.UserId)).Returns(sdk.Object);
+                            var invoker = new WorkflowInvoker(activity);
+                            invoker.Extensions.Add<IWorkflowContext>(() => workflow.Object);
+                            invoker.Extensions.Add<IOrganizationServiceFactory>(() => factory.Object);
+                            invoker.Extensions.Add<ITracingService>(() => trace);
+                            invoker.Invoke(new Dictionary<string, object> { ["InputParameter"] = (string)trigger["inputs"]!["InputParameter"]!, ["ExecutionMode"] = "Shadow" }, TimeSpan.FromSeconds(10));
+                        }
+                        finally { workflow.Mock.Reset(); }
+                    }
+                    else shell.Execute(new FakeServiceProvider().Add<IPluginExecutionContext>(context)
+                        .Add<IOrganizationServiceFactory>(factory.Object).Add<ITracingService>(trace));
+                }
+                catch (Exception exception) { failure = exception; }
+                Assert.Equal((string?)expected[index]["exception"], failure?.GetBaseException().GetType().Name);
+                var records = trace.Entries.Where(x => x.StartsWith("SMV-SHADOW|1|", StringComparison.Ordinal))
+                    .Select(x => JObject.Parse(x.Substring("SMV-SHADOW|1|".Length))).ToArray();
+                Assert.True((bool)records.Last()["end"]!);
+                Assert.DoesNotContain(records, x => (bool?)x["overflow"] == true);
+                var actual = new JArray();
+                foreach (var record in records.Where(x => x["operation"] is not null))
+                {
+                    var fields = (JObject)record["fields"]!;
+                    var account = (JObject)fields["new_accountid"]!;
+                    account["alias"] = aliases[Guid.Parse((string)account["id"]!)]; account.Remove("id");
+                    actual.Add(new JObject { ["operation"] = record["operation"], ["entity"] = record["entity"], ["alias"] = "qr-task", ["fields"] = fields });
+                }
+                Assert.True(JToken.DeepEquals(expected[index]["writes"], actual),
+                    "Synthetic lesson link case " + index + " differs: " + actual.ToString(Newtonsoft.Json.Formatting.None));
+                sdk.Verify(x => x.Create(It.IsAny<Entity>()), Times.Never);
+            }
+            finally { sdk.Reset(); factory.Reset(); trace.Entries.Clear(); rows.Clear(); }
+        }
     }
 }

@@ -1,0 +1,131 @@
+{
+  "module": "lessonslink",
+  "basis": "reading",
+  "cases": [
+    {
+      "name": "link-create",
+      "entrypoint": "DiscipleLessonsPluIn.DiscipleLessonsPluInClass",
+      "writes": [
+        {
+          "operation": "Create",
+          "entity": "new_outboundtask",
+          "alias": "qr-task",
+          "fields": {
+            "new_accountid": {
+              "entity": "account",
+              "alias": "church"
+            },
+            "new_attempts": 0,
+            "new_idempotencykey": "128fdbba037ef5a5c6357214c2f7d5ed-100000001-a9093d56c9a3bf53a7dc67b97f55a07c",
+            "new_name": {
+              "length": 91,
+              "sha256": "940303b775fc25a3bb9b88eb08bfdbb3cc5ebd3c92109315ca70b243209c911d"
+            },
+            "new_payload": "{\"contentVersion\":1,\"imageCount\":31,\"includePoll\":0,\"lessonId\":\"75588eb7-4f0d-fb05-33ff-fc966d320bc2\",\"schema\":1}",
+            "new_taskstatus": 100000000,
+            "new_type": 100000001
+          }
+        }
+      ],
+      "lineCalls": [],
+      "outputs": {},
+      "exception": null
+    },
+    {
+      "name": "link-update",
+      "entrypoint": "DiscipleLessonsPluIn.DiscipleLessonsPluInClass",
+      "writes": [
+        {
+          "operation": "Create",
+          "entity": "new_outboundtask",
+          "alias": "qr-task",
+          "fields": {
+            "new_accountid": {
+              "entity": "account",
+              "alias": "church"
+            },
+            "new_attempts": 0,
+            "new_idempotencykey": "128fdbba037ef5a5c6357214c2f7d5ed-100000001-a9093d56c9a3bf53a7dc67b97f55a07c",
+            "new_name": {
+              "length": 91,
+              "sha256": "940303b775fc25a3bb9b88eb08bfdbb3cc5ebd3c92109315ca70b243209c911d"
+            },
+            "new_payload": "{\"contentVersion\":1,\"imageCount\":31,\"includePoll\":0,\"lessonId\":\"75588eb7-4f0d-fb05-33ff-fc966d320bc2\",\"schema\":1}",
+            "new_taskstatus": 100000000,
+            "new_type": 100000001
+          }
+        }
+      ],
+      "lineCalls": [],
+      "outputs": {},
+      "exception": null
+    },
+    {
+      "name": "link-activity-with-poll",
+      "entrypoint": "QrCodeWorkflow.QrCodeWorkflow",
+      "writes": [
+        {
+          "operation": "Create",
+          "entity": "new_outboundtask",
+          "alias": "qr-task",
+          "fields": {
+            "new_accountid": {
+              "entity": "account",
+              "alias": "church"
+            },
+            "new_attempts": 0,
+            "new_idempotencykey": "128fdbba037ef5a5c6357214c2f7d5ed-100000001-cce2e144034a0d55ab56f19b0e46baf8",
+            "new_name": {
+              "length": 91,
+              "sha256": "f87ed4ea43d4d79f46670c9b5ec11c6113c8860802be409d930654d44af093c9"
+            },
+            "new_payload": "{\"contentVersion\":1,\"imageCount\":32,\"includePoll\":1,\"lessonId\":\"75588eb7-4f0d-fb05-33ff-fc966d320bc2\",\"schema\":1}",
+            "new_taskstatus": 100000000,
+            "new_type": 100000001
+          }
+        }
+      ],
+      "lineCalls": [],
+      "outputs": {},
+      "exception": null
+    },
+    {
+      "name": "link-missing-church",
+      "entrypoint": "DiscipleLessonsPluIn.DiscipleLessonsPluInClass",
+      "writes": [],
+      "lineCalls": [],
+      "outputs": {},
+      "exception": "InvalidOperationException"
+    }
+  ],
+  "declaredDifferences": [
+    {
+      "case": "link-create",
+      "position": "$.cases[0].writes",
+      "category": 2,
+      "reason": "依D5-6(2)以一筆31／32張圖片組待辦取代繪圖及URL更新，避免影子追蹤截斷；閱讀DiscipleLessonsPluInClass.cs:285-297、377-382及QrCodeUtility.cs:399-418，活動另有問卷；固定合成ID依情境alias的SHA-256前16 bytes，不讀舊秘密。",
+      "test": "Lessons_Link_QrImage_EnqueuesTaskNotDrawing"
+    },
+    {
+      "case": "link-update",
+      "position": "$.cases[1].writes",
+      "category": 2,
+      "reason": "依D5-6(2)以一筆31／32張圖片組待辦取代繪圖及URL更新，避免影子追蹤截斷；閱讀DiscipleLessonsPluInClass.cs:285-297、377-382及QrCodeUtility.cs:399-418，活動另有問卷；固定合成ID依情境alias的SHA-256前16 bytes，不讀舊秘密。",
+      "test": "Lessons_Link_QrImage_EnqueuesTaskNotDrawing"
+    },
+    {
+      "case": "link-activity-with-poll",
+      "position": "$.cases[2].writes",
+      "category": 2,
+      "reason": "依D5-6(2)以一筆31／32張圖片組待辦取代繪圖及URL更新，避免影子追蹤截斷；閱讀DiscipleLessonsPluInClass.cs:285-297、377-382及QrCodeUtility.cs:399-418，活動另有問卷；固定合成ID依情境alias的SHA-256前16 bytes，不讀舊秘密。",
+      "test": "Lessons_Link_QrImage_EnqueuesTaskNotDrawing"
+    },
+    {
+      "case": "link-missing-church",
+      "position": "$.cases[3].writes",
+      "category": 5,
+      "reason": "依永久隔離契約拒絕缺正式教會的來源；閱讀DiscipleLessonsPluInClass.cs:285-297、377-382及QrCodeUtility.cs:399-418，活動另有問卷；固定合成ID依情境alias的SHA-256前16 bytes，不讀舊秘密。",
+      "test": "Lessons_Link_ShadowMode_MatchesExpected"
+    }
+  ]
+}

@@ -1,0 +1,204 @@
+{
+  "module": "lessonslink",
+  "cases": [
+    {
+      "name": "link-create",
+      "church": {
+        "alias": "church",
+        "organizationName": "synthetic-lessons",
+        "timeZone": "Asia/Taipei",
+        "culture": "zh-TW"
+      },
+      "seed": [
+        {
+          "alias": "church",
+          "entity": "account",
+          "fields": {}
+        },
+        {
+          "alias": "coordinator",
+          "entity": "contact",
+          "fields": {
+            "parentcustomerid": {
+              "ref": "church",
+              "entity": "account"
+            }
+          }
+        },
+        {
+          "alias": "lesson",
+          "entity": "new_disciple_lessons",
+          "fields": {
+            "new_contact_new_disciple_lessons": {
+              "ref": "coordinator",
+              "entity": "contact"
+            }
+          }
+        }
+      ],
+      "trigger": {
+        "project": "DiscipleLessonsPluIn",
+        "type": "DiscipleLessonsPluIn.DiscipleLessonsPluInClass",
+        "message": "Create",
+        "entity": "new_disciple_lessons",
+        "target": "lesson",
+        "fields": {},
+        "depth": 1,
+        "inputs": {}
+      },
+      "now": "2026-11-15T04:00:00Z",
+      "volatile": [],
+      "liveShadow": false,
+      "observe": []
+    },
+    {
+      "name": "link-update",
+      "church": {
+        "alias": "church",
+        "organizationName": "synthetic-lessons",
+        "timeZone": "Asia/Taipei",
+        "culture": "zh-TW"
+      },
+      "seed": [
+        {
+          "alias": "church",
+          "entity": "account",
+          "fields": {}
+        },
+        {
+          "alias": "coordinator",
+          "entity": "contact",
+          "fields": {
+            "parentcustomerid": {
+              "ref": "church",
+              "entity": "account"
+            }
+          }
+        },
+        {
+          "alias": "lesson",
+          "entity": "new_disciple_lessons",
+          "fields": {
+            "new_contact_new_disciple_lessons": {
+              "ref": "coordinator",
+              "entity": "contact"
+            }
+          }
+        }
+      ],
+      "trigger": {
+        "project": "DiscipleLessonsPluIn",
+        "type": "DiscipleLessonsPluIn.DiscipleLessonsPluInClass",
+        "message": "Update",
+        "entity": "new_disciple_lessons",
+        "target": "lesson",
+        "fields": {},
+        "depth": 1,
+        "inputs": {}
+      },
+      "now": "2026-11-15T04:00:00Z",
+      "volatile": [],
+      "liveShadow": false,
+      "observe": []
+    },
+    {
+      "name": "link-activity-with-poll",
+      "church": {
+        "alias": "church",
+        "organizationName": "synthetic-lessons",
+        "timeZone": "Asia/Taipei",
+        "culture": "zh-TW"
+      },
+      "seed": [
+        {
+          "alias": "church",
+          "entity": "account",
+          "fields": {}
+        },
+        {
+          "alias": "coordinator",
+          "entity": "contact",
+          "fields": {
+            "parentcustomerid": {
+              "ref": "church",
+              "entity": "account"
+            }
+          }
+        },
+        {
+          "alias": "lesson",
+          "entity": "new_disciple_lessons",
+          "fields": {
+            "new_contact_new_disciple_lessons": {
+              "ref": "coordinator",
+              "entity": "contact"
+            }
+          }
+        }
+      ],
+      "trigger": {
+        "project": "QrCodeWorkflow",
+        "type": "QrCodeWorkflow.QrCodeWorkflow",
+        "message": "ExecuteWorkflow",
+        "entity": "new_disciple_lessons",
+        "target": "lesson",
+        "fields": {},
+        "depth": 1,
+        "inputs": {
+          "InputParameter": "synthetic"
+        }
+      },
+      "now": "2026-11-15T04:00:00Z",
+      "volatile": [],
+      "liveShadow": false,
+      "observe": []
+    },
+    {
+      "name": "link-missing-church",
+      "church": {
+        "alias": "church",
+        "organizationName": "synthetic-lessons",
+        "timeZone": "Asia/Taipei",
+        "culture": "zh-TW"
+      },
+      "seed": [
+        {
+          "alias": "church",
+          "entity": "account",
+          "fields": {}
+        },
+        {
+          "alias": "coordinator",
+          "entity": "contact",
+          "fields": {
+            "parentcustomerid": null
+          }
+        },
+        {
+          "alias": "lesson",
+          "entity": "new_disciple_lessons",
+          "fields": {
+            "new_contact_new_disciple_lessons": {
+              "ref": "coordinator",
+              "entity": "contact"
+            }
+          }
+        }
+      ],
+      "trigger": {
+        "project": "DiscipleLessonsPluIn",
+        "type": "DiscipleLessonsPluIn.DiscipleLessonsPluInClass",
+        "message": "Update",
+        "entity": "new_disciple_lessons",
+        "target": "lesson",
+        "fields": {},
+        "depth": 1,
+        "inputs": {}
+      },
+      "now": "2026-11-15T04:00:00Z",
+      "volatile": [],
+      "liveShadow": false,
+      "observe": []
+    }
+  ]
+}

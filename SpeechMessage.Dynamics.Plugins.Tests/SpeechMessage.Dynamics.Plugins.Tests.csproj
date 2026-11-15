@@ -44,5 +44,9 @@
                       Link="Golden/attendance/%(Filename)%(Extension)" />
     <EmbeddedResource Include="../SpeechMessageProducts.GoodShepherd.Core.Tests/Golden/Legacy/lessonsequipment/*.json"
                       Link="Golden/lessonsequipment/%(Filename)%(Extension)" />
+    <EmbeddedResource Include="../SpeechMessageProducts.GoodShepherd.Core.Tests/Golden/Legacy/lessonslink/*.json"
+                      Link="Golden/lessonslink/%(Filename)%(Extension)" />
+    <Compile Include="../SpeechMessageProducts.GoodShepherd.Core.Tests/LessonLinkGoldenFixture.cs"
+             Link="LessonLinkGoldenFixture.cs" />
   </ItemGroup>
 </Project>

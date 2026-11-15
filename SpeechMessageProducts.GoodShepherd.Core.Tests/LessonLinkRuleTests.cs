@@ -24,6 +24,7 @@ public sealed class LessonLinkRuleTests
     [Fact]
     public void Lessons_Link_QrImage_EnqueuesTaskNotDrawing()
     {
+        RunGoldenCases();
         var church = Guid.Parse("11111111-1111-1111-1111-111111111111");
         var other = Guid.Parse("22222222-2222-2222-2222-222222222222");
         var lesson = Guid.Parse("33333333-3333-3333-3333-333333333333");
@@ -69,6 +70,35 @@ public sealed class LessonLinkRuleTests
             Assert.Equal(1, store.Calls); Assert.Empty(store.Rows);
         }
         finally { store.Rows.Clear(); store.Failure = null; }
+    }
+
+    /// <summary>共享四案的有效輸入直接比對獨立reading期望；來源歸屬故障由真外殼驗證。</summary>
+    private static void RunGoldenCases()
+    {
+        var scenarios = LessonLinkGoldenFixture.Read("scenarios")["cases"]!.Children<JObject>().ToArray();
+        var expected = LessonLinkGoldenFixture.Read("expected")["cases"]!.Children<JObject>().ToArray();
+        Assert.Equal(4, scenarios.Length); Assert.Equal(scenarios.Length, expected.Length);
+        for (var index = 0; index < scenarios.Length; index++)
+        {
+            Assert.Equal((string?)scenarios[index]["name"], (string?)expected[index]["name"]);
+            if (expected[index]["exception"]!.Type != JTokenType.Null) continue;
+            var trigger = scenarios[index]["trigger"]!;
+            var lesson = LessonLinkGoldenFixture.Id((string)trigger["target"]!);
+            var church = LessonLinkGoldenFixture.Id((string)scenarios[index]["church"]!["alias"]!);
+            var poll = (string?)trigger["project"] == "QrCodeWorkflow";
+            var store = new Store();
+            try
+            {
+                Assert.Single(LessonLinkRule.Enqueue(store, church, lesson, 1, poll));
+                var command = Assert.Single(store.Rows).Value.Command;
+                var write = Assert.Single(expected[index]["writes"]!);
+                Assert.Equal((string?)write["fields"]!["new_payload"], command.PayloadJson);
+                Assert.Equal((string?)write["fields"]!["new_idempotencykey"], command.IdempotencyKey);
+                Assert.Equal((int)write["fields"]!["new_type"]!, (int)command.Type);
+                Assert.Equal(church, command.ChurchId); Assert.Null(command.ContactId);
+            }
+            finally { store.Rows.Clear(); }
+        }
     }
 
     /// <summary>單次合成store；同鍵驗不可變內容，正式ID由store另產生，不冒用業務事件ID。</summary>
