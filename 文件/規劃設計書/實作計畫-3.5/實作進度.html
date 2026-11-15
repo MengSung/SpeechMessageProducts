@@ -240,11 +240,11 @@ footer{margin-top:36px;color:var(--muted);font-size:12.5px;text-align:center}
  */
 const DATA = {
   "planVersion": "3.5",
-  "snapshot": "2026-11-15 20:13 Asia/Taipei (UTC+08:00)",
-  "lastUpdated": "2026-11-15T20:13:46+08:00",
+  "snapshot": "2026-11-15 20:53 Asia/Taipei (UTC+08:00)",
+  "lastUpdated": "2026-11-15T20:53:50+08:00",
   "branch": "1.0.0.11.Integration.P5.Worktree",
-  "head": "69bec613",
-  "headline": "2026-11-15 20:13 Asia/Taipei (UTC+08:00)：P5-07已驗收；Workflows8一次性診斷UpdateAssembly成功，正式verify=0、export=0、export-legacy=0；16新步驟全停用、secure0，舊步驟／舊流程啟用皆0。固定guard八項全0（Release6668、Debug tracer7、進度28）；基準reading／simulation、live=deferred，不宣稱實機影子差異0。收尾提交與推送前核對中，完成後進P5-08。",
+  "head": "7c81fb14",
+  "headline": "2026-11-15 20:53 Asia/Taipei (UTC+08:00)：P5-08預約簽核進行中；reading／simulation基準、live=deferred，已完成舊入口盤點、Core規則與Plugin／Workflow外殼，註冊清單與離線Golden已建立；接續CAS／共用回歸、DLL打包與停用部署驗證，不宣稱實機影子差異0。",
   "notices": [
     {
       "id": "plan-3.5-summary",
@@ -706,10 +706,10 @@ const DATA = {
       "id": "階段 5",
       "name": "Plugin／Workflow 重建（36 個 DLL → 2 個）",
       "planned": "8～12 個工作天",
-      "actual": "P5-01～P5-07已完成；P5-07固定guard與停用部署通過，P5-08待P5-07推送後開始。",
+      "actual": "P5-01～P5-07已驗收；P5-08進行中，reading／simulation與live=deferred，接續外殼／註冊／打包與停用驗證。",
       "current": true,
       "done": 7,
-      "active": 0
+      "active": 1
     },
     {
       "id": "階段 6",
@@ -1503,13 +1503,13 @@ const DATA = {
       "id": "P5-08",
       "phaseId": "階段 5",
       "name": "預約簽核",
-      "status": "todo",
+      "status": "active",
       "deps": "P5-03、更新回復前置",
       "live": "影子模式",
       "timebox": "1 天",
       "doneAt": "",
       "commit": "",
-      "note": "P5-07推送後開始；依05A修訂2採reading／simulation與live=deferred。"
+      "note": "2026-11-15 20:53 Asia/Taipei (UTC+08:00)：reading／simulation、live=deferred；舊入口只作reading，新Plugin／Workflow只作Shadow，Live依P5-PROP-006查詢前拒絕。Core與外殼已建立，接續CAS、註冊、打包、停用部署及固定guard。"
     },
     {
       "id": "P5-09",
@@ -1791,7 +1791,41 @@ const DATA = {
       "note": "2026-11-14 12:54 Asia/Taipei (UTC+08:00)：8ad4dccc完整守門通過，實機3→4→3、step ID不變、免重啟；三次smoke/verify0、收尾停用及殘留0，詳wp-reports/P5-update-rollback.md。"
     }
   ],
-  "active": [],
+  "active": [
+    {
+      "id": "P5-08",
+      "startedAt": "2026-11-15 20:53 Asia/Taipei (UTC+08:00)",
+      "timebox": "本工作包依05A固定時間盒；只做核定範圍，實機舊輪不可執行則維持reading。",
+      "dod": [
+        [
+          "舊入口盤點與reading／simulation Golden",
+          "ok",
+          "盤點與三個合成情境已建立；不宣稱舊程式實跑。"
+        ],
+        [
+          "Core規則、Plugin／Workflow外殼與CAS",
+          "ok",
+          "Core雙目標建置及具名測試通過；CAS／外殼回歸持續核對。"
+        ],
+        [
+          "兩個DLL打包與註冊清單",
+          "na",
+          "待完成打包與停用部署核對。"
+        ],
+        [
+          "goodshepherdback停用狀態與固定guard",
+          "na",
+          "新舊步驟／流程維持停用；待收尾驗證。"
+        ],
+        [
+          "一頁報告、驗收提交、push與ls-remote",
+          "na",
+          "未達五項完成定義前不推送。"
+        ]
+      ],
+      "next": "完成CAS／共用回歸與Golden核對，接著做兩DLL打包、goodshepherdback plan／apply／verify=0停用核對、固定guard及一頁報告。"
+    }
+  ],
   "gates": [
     {
       "item": "方案建置（Release）",
