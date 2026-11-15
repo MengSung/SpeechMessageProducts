@@ -1,0 +1,13 @@
+{
+  "id": "p5-06-attendance",
+  "title": "P5-06 出席外殼與規則",
+  "status": "completed",
+  "complexity": "M",
+  "risk": "medium",
+  "domain": "backend",
+  "currentPhase": "completed",
+  "nextAction": "P5-06封存收尾、乾淨固定guard八項全過後推送並ls-remote；接續P5-07",
+  "createdAt": "2026-11-15T11:23:29+08:00",
+  "branch": "1.0.0.11.Integration.P5.Worktree",
+  "completedAt": "2026-11-15T12:00:30+08:00"
+}

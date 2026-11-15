@@ -32,6 +32,6 @@
   ],
   "parent": null,
   "relatedFiles": [],
-  "notes": "2026-11-15 11:20 Asia/Taipei (UTC+08:00)：P5-05已驗收，Core週報雙目標各15、Plugins427含CAS、Deployment769、Workflows覆蓋86.50%；e9332eef固定guard八項通過；goodshepherdback兩DLL停用部署verify=0、九步驟全停用、舊啟用0。reading/live=deferred，接續P5-06。",
+  "notes": "2026-11-15 12:00 Asia/Taipei (UTC+08:00)：P5-06出席已依D5-19完成驗收：六案reading、Core雙目標各220/220、Plugins438/438含CAS、Deployment769/769；兩DLL封裝及goodshepherdback停用部署verify=0、十步驟全停用、舊啟用0。唯一一次diagnostics已連線、smoke失敗且追蹤0，off／verify與追蹤還原成功，維持live=deferred、differences=null，不再重試；固定guard七項及補正編碼全通過，收尾乾淨guard全過才推送，接續P5-07。",
   "meta": {}
 }

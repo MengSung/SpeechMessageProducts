@@ -1,6 +1,6 @@
 # P5-06 出席盤點
 
-2026-11-15 11:30 Asia/Taipei (UTC+08:00)：只讀PresentRecordLinePlugIn兩原檔、20261115-030842 export-legacy及既有結構。舊註冊唯一步驟891bf94a-f80d-f011-8143-00155d006608，assembly=PresentRecordLinePlugInDatabase、type=PresentRecordLinePlugIn.PresentRecordLinePlugIn；Update/new_present_record、40、同步mode0、rank1、未篩選、停用。PreImage名稱及alias=PresentRecordLineImage、未明列欄位。另一同名assembly無步驟，不猜配。
+補記 2026-11-15 11:44 Asia/Taipei (UTC+08:00)（原盤點時間未記錄）：只讀PresentRecordLinePlugIn兩原檔、20261115-030842 export-legacy及既有結構。舊註冊唯一步驟891bf94a-f80d-f011-8143-00155d006608，assembly=PresentRecordLinePlugInDatabase、type=PresentRecordLinePlugIn.PresentRecordLinePlugIn；Update/new_present_record、40、同步mode0、rank1、未篩選、停用。PreImage名稱及alias=PresentRecordLineImage、未明列欄位。另一同名assembly無步驟，不猜配。
 
 舊外層.cs:32-50：Depth>2且非Create返回，最外catch吞錯；Class.cs:192-250先讀前像、借user SDK再Retrieve。:257-269 Create推播為註解，無實際通知；:274-303 Update以C#字串差異比new_paster_reply，讀本人lookup後multicast一則；:319-337文字為lookup.Name＋空格＋代禱與CRLF牧者回應。:373-392只讀本人contact.new_lineid，沒有其他角色收件者。SetupSavedFlag未被呼叫，沒有業務寫入；外部效果只有LINE。兩同名部署組件沒有可供比較的另一份本地入口，不能宣稱相同。
 
