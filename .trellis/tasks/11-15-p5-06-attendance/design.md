@@ -1,0 +1,3 @@
+# 設計
+
+純規則只接收正式recordId、訊息、前後回應及外殼選定模板，返回不可變文字或null；RetryKey依05A為recordId。外殼從正式出席列的小組list→組長contact→account推導來源教會，另驗本人contact.parentcustomerid，避免以收件者自授權。Update註冊new_paster_reply與PreImage；Create沿舊規則無作用，不註冊多餘Create步驟。通知使用伺服器scope及共用服務，Shadow不解密。SDK/context/key局部有界，finally清零key與Dispose借用adapter；無背景工作。
