@@ -27,4 +27,4 @@
 - 離線規則與外殼回歸：Core net10/net48 各 3/3、Deployment 1/1、Plugins/CAS 19/19；LINE 子集真 URI／AltUri／Postback 序列化 3/3。
 - 兩個正式 net462 合併 DLL 已以 P5-08 版本參數產生；Plugins 與 Workflows 的 metadata／簽章／framework／reference 檢查均通過，分別保留正式組件身分。
 - `goodshepherdback` 的 `plan`、`apply`、`verify` 已完成；registration manifest 的 18 個新步驟全部停用，舊步驟與舊流程啟用數皆為 0。未執行舊程式、未啟用新 Live、未重試追蹤管線。
-- 固定 guard 與遠端推送須在本報告、進度頁及任務封存內容併入收尾提交後，依 P5-08 驗收順序完成；在此之前不得宣稱本包已推送。
+- 固定 guard 八項已全部通過；P5-08 收尾提交已完成，並已推送至遠端 `a90430dc`，`git ls-remote` 與本機一致。
