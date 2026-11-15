@@ -1,4 +1,0 @@
-{"file": ".trellis/spec/backend/file-documentation-contract.md", "reason": "P5-08 新增與修改 C#、JSON 的繁中檔首、UTF-8 無 BOM、CRLF、伴隨說明及驗證契約。"}
-{"file": ".trellis/spec/backend/plugin-shadow-contract.md", "reason": "P5-08 Plugin／Workflow 外殼的 Shadow、Live fail-closed、收件者隔離、推播意圖及生命週期契約。"}
-{"file": ".trellis/spec/backend/deployment-contract.md", "reason": "P5-08 註冊清單、停用部署、驗證與不得宣稱實機證據的邊界。"}
-{"file": ".trellis/spec/frontend/progress-page-contract.md", "reason": "P5-08 收尾需更新實作進度頁 DATA、狀態、摘要與日期時間格式。"}
