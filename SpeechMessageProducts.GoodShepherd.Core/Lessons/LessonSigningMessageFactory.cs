@@ -7,7 +7,7 @@
  *
  * 主要功能與流程：輸入正式課程紀錄 ID、簽核者 ID、課程／學員／設備文字及
  * HTTPS 圖片 URL，先驗證固定長度與 URI，再建立一個 bubble，包含舊流程的
- * alt text、圖片、三行摘要及「同意／退回」MessageTemplateAction。動作文字
+ * alt text、圖片、三行摘要及「同意／退回」PostbackTemplateAction。動作文字
  * 保留正式來源 ID與顯示簽核者，供上層以穩定事件鍵及伺服器端再次授權。
  *
  * 使用邊界與維護：本檔不保存 Session、使用者狀態、credential、快取、timer
@@ -36,7 +36,7 @@ public sealed record LessonSigningMessageInput(
 /// <summary>建立與舊課程簽核相容的單 bubble Flex 訊息。</summary>
 public static class LessonSigningMessageFactory
 {
-    private const string AltText = "有一個課程簽核的動作等待您的決定....";
+    private static string AltText => LessonText.Get("Lessons.Signing.AltText");
 
     /// <summary>
     /// 先驗證純值，再建立不含傳輸狀態的 Flex 模型。任何資料不完整時不回傳
@@ -51,9 +51,14 @@ public static class LessonSigningMessageFactory
 #endif
         Validate(input);
 
-        var actionPrefix = "訊息類別=課程簽核&動作=";
+        var actionPrefix = LessonText.Get("Lessons.Signing.ActionPrefix");
         var entity = "&EntityId=" + input.StorLessonId.ToString("D") +
-            "&簽核者=" + input.SignerDisplayName;
+            LessonText.Get("Lessons.Signing.SignerSuffix") + input.SignerDisplayName;
+        var approve = actionPrefix + LessonText.Get("Lessons.Signing.Approve") + entity;
+        var reject = actionPrefix + LessonText.Get("Lessons.Signing.Reject") + entity;
+        // SDK 建構式會靜默截斷 Data；先驗兩個完整候選，禁止發布截斷的簽核資料。
+        if (approve.Length > 300 || reject.Length > 300)
+            throw new ArgumentException("Signing action exceeds postback capacity.", nameof(input));
         var bubble = new BubbleContainer
         {
             Hero = new ImageComponent(input.ImageUrl)
@@ -61,36 +66,62 @@ public static class LessonSigningMessageFactory
                 Size = ComponentSize.Full,
                 AspectRatio = AspectRatio._20_13,
                 AspectMode = AspectMode.Cover,
-                Action = new UriTemplateAction("說明網頁/填寫表單", input.ImageUrl)
+                Action = new UriTemplateAction(LessonText.Get("Lessons.Signing.ImageAction"), input.ImageUrl)
             },
             Body = new BoxComponent(BoxLayout.Vertical)
             {
                 Contents =
                 {
-                    new TextComponent("課程名稱: " + input.CourseName + "\r\n" +
-                        "學員姓名: " + input.MemberName + "\r\n" +
-                        "裝備狀態: " + input.EquipmentStatus)
+                    new TextComponent(LessonText.Get("Lessons.Signing.Title")) { Weight = Weight.Bold, Size = ComponentSize.Md },
+                    new BoxComponent(BoxLayout.Baseline)
                     {
-                        Wrap = true,
-                        Size = ComponentSize.Sm,
-                        Color = "#666666"
+                        Margin = Spacing.Md,
+                        Contents =
+                        {
+                            Star(), Star(), Star(), Star(), Star(),
+                            new TextComponent("5.0") { Size = ComponentSize.Sm, Margin = Spacing.Md, Flex = 0, Color = "#999999" }
+                        }
+                    },
+                    new BoxComponent(BoxLayout.Baseline)
+                    {
+                        Spacing = Spacing.Sm,
+                        Contents =
+                        {
+                            new TextComponent(LessonText.Get("Lessons.Signing.CoursePrefix") + input.CourseName + "\r\n" +
+                                LessonText.Get("Lessons.Signing.MemberPrefix") + input.MemberName + "\r\n" + LessonText.Get("Lessons.Signing.EquipmentPrefix") + input.EquipmentStatus)
+                            { Wrap = true, Size = ComponentSize.Sm, Color = "#666666", Flex = 5 }
+                        }
                     }
                 }
             },
             Footer = new BoxComponent(BoxLayout.Vertical)
             {
+                Spacing = Spacing.Sm, Flex = 0,
                 Contents =
                 {
-                    new ButtonComponent(new MessageTemplateAction("同意",
-                        actionPrefix + "同意" + entity)),
-                    new ButtonComponent(new MessageTemplateAction("退回",
-                        actionPrefix + "退回" + entity))
+                    new ButtonComponent(new PostbackTemplateAction(LessonText.Get("Lessons.Signing.Approve"),
+                        approve, LessonText.Get("Lessons.Signing.ApproveDisplay"))) { Style = ButtonStyle.Link, Height = ButtonHeight.Sm },
+                    new ButtonComponent(new PostbackTemplateAction(LessonText.Get("Lessons.Signing.Reject"),
+                        reject, LessonText.Get("Lessons.Signing.RejectDisplay"))) { Style = ButtonStyle.Link, Height = ButtonHeight.Sm },
+                    new SpacerComponent { Size = ComponentSize.Sm }
                 }
+            },
+            Styles = new BubbleStyles
+            {
+                Body = new BlockStyle { BackgroundColor = "#C0C8C8", Separator = true, SeparatorColor = "#9400D3" },
+                Footer = new BlockStyle { BackgroundColor = "#FFFFF0" }
             }
         };
 
         return new FlexMessage(AltText) { Contents = bubble };
     }
+
+    /// <summary>每次建立新星號模型，避免任何可變Flex元件跨通知共用。</summary>
+    private static IconComponent Star() => new()
+    {
+        Url = "https://scdn.line-apps.com/n/channel_devcenter/img/fx/review_gold_star_28.png",
+        Size = ComponentSize.Sm
+    };
 
     /// <summary>固定上限及 HTTPS 邊界，拒絕空值與會造成跨資料列誤用的輸入。</summary>
     private static void Validate(LessonSigningMessageInput input)

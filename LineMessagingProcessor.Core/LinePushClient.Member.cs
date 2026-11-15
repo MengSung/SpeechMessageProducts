@@ -7,6 +7,8 @@
  * 覆寫每則 sender 為伺服器教會名稱，Retry Key 原樣沿用來源正式記錄 ID；私有 Flex
  * 投影以顯式 converter 寫入，不依賴沙箱非公開反射權限。P5 的純摘要入口也呼叫
  * 同一凍結器及 256 Ki 字元容量守門，回傳小寫 SHA-256 而不讀憑證或建立網路工作。
+ * SDK 的 ComponentSize 內部 attribute converter 由當次 resolver 顯式建立等價
+ * 公開 converter，保留 3xl／4xl／5xl 映射，不要求沙箱授予非公開反射權限。
  * ValidateRecipient 共用正式會友、來源教會及 LINE ID 檢查，使 Shadow 不需憑證也能
  * 執行與傳輸入口相同的收件者檢查；此純值檢查不取代 Host 的授權責任。
  * 使用邊界與維護：不保存 caller 集合、訊息、credential 或教會資料；client 只借用
@@ -156,7 +158,7 @@ public sealed partial class LinePushClient
                 throw new ArgumentException("Only SDK message models are accepted.", nameof(messages));
         var serializer = new JsonSerializer
         {
-            ContractResolver = new CamelCasePropertyNamesContractResolver(),
+            ContractResolver = new MemberMessageContractResolver(),
             NullValueHandling = NullValueHandling.Ignore
         };
         // 私有範本投影使用明確寫入，不要求 D365 沙箱允許非公開反射；一般 SDK 訊息維持原契約。
@@ -175,6 +177,28 @@ public sealed partial class LinePushClient
             row["sender"] = new JObject { ["name"] = senderName };
         }
         return snapshot;
+    }
+
+    /// <summary>
+    /// 當次凍結專用 resolver；只替換已知 SDK 尺寸列舉的內部 attribute converter。
+    /// 使用 SDK 公開轉換器及同一映射，其他協定模型仍沿原 resolver；不快取使用者模型。
+    /// resolver 與不可變映射只活到當次 serializer 釋放參照，不使用全域 JSON 設定。
+    /// </summary>
+    private sealed class MemberMessageContractResolver : CamelCasePropertyNamesContractResolver
+    {
+        /// <summary>
+        /// 直接建立 converter，避免 Newtonsoft 透過反射呼叫內部類別建構式。
+        /// 字串大小寫及特殊尺寸完全沿 SDK；沒有放寬 CAS、反序列化或型別白名單。
+        /// </summary>
+        protected override JsonConverter? ResolveContractConverter(Type objectType) =>
+            objectType == typeof(ComponentSize)
+                ? new CustomStringEnumConverter<ComponentSize>(new Dictionary<ComponentSize, string>
+                {
+                    [ComponentSize._3xl] = "3xl",
+                    [ComponentSize._4xl] = "4xl",
+                    [ComponentSize._5xl] = "5xl"
+                }) { NamingStrategy = new CamelCaseNamingStrategy() }
+                : base.ResolveContractConverter(objectType);
     }
 
     /// <summary>alias成功回應最多讀4096 bytes、深度8，只接受同alias及安全richmenu ID，不保存原本文。</summary>

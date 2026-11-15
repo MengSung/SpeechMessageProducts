@@ -1,0 +1,685 @@
+{
+  "module": "lessonssigning",
+  "cases": [
+    {
+      "name": "workflow-signing-leader",
+      "church": {
+        "alias": "church-a",
+        "organizationName": "synthetic-golden",
+        "timeZone": "Asia/Taipei",
+        "culture": "zh-TW"
+      },
+      "seed": [
+        {
+          "alias": "record",
+          "entity": "new_stor_lessons",
+          "fields": {
+            "new_contact_new_stor_lessons": {
+              "ref": "member",
+              "entity": "contact"
+            },
+            "new_new_disciple_lessons_new_stor_les": {
+              "ref": "course",
+              "entity": "new_disciple_lessons"
+            }
+          }
+        },
+        {
+          "alias": "member",
+          "entity": "contact",
+          "fields": {
+            "fullname": "學員",
+            "new_cell_list_contact": {
+              "ref": "list",
+              "entity": "list"
+            },
+            "parentcustomerid": {
+              "ref": "church-a",
+              "entity": "account"
+            },
+            "new_equipment_status": "已完成",
+            "new_lineid": "U00000000000000000000000000000000",
+            "new_preferredlanguage": "zh-TW"
+          }
+        },
+        {
+          "alias": "leader",
+          "entity": "contact",
+          "fields": {
+            "fullname": "組長",
+            "parentcustomerid": {
+              "ref": "church-a",
+              "entity": "account"
+            },
+            "new_lineid": "U00000000000000000000000000000000",
+            "new_preferredlanguage": "zh-TW"
+          }
+        },
+        {
+          "alias": "list",
+          "entity": "list",
+          "fields": {
+            "new_contact_family_leader_list": {
+              "ref": "leader",
+              "entity": "contact"
+            }
+          }
+        },
+        {
+          "alias": "course",
+          "entity": "new_disciple_lessons",
+          "fields": {
+            "new_name": "課程",
+            "new_picture_link": "https://image.example/course.png"
+          }
+        },
+        {
+          "alias": "church-a",
+          "entity": "account",
+          "fields": {
+            "name": "合成教會",
+            "new_defaultlanguage": "zh-TW",
+            "new_enabledlanguages": "zh-TW",
+            "new_linechannelid": {
+              "ref": "channel",
+              "entity": "new_linechannel"
+            }
+          }
+        },
+        {
+          "alias": "channel",
+          "entity": "new_linechannel",
+          "fields": {
+            "new_accesstokenencrypted": "synthetic-envelope"
+          }
+        }
+      ],
+      "trigger": {
+        "project": "StorLessonSigningWorkflow",
+        "type": "StorLessonSigningWorkflow.StorLessonWorkflowPlugin",
+        "message": "ExecuteWorkflow",
+        "entity": "new_stor_lessons",
+        "target": "record",
+        "fields": {},
+        "depth": 1,
+        "inputs": {
+          "InputParameter": "課程簽核"
+        }
+      },
+      "now": "2026-11-15T04:00:00Z",
+      "volatile": [],
+      "liveShadow": false,
+      "observe": []
+    },
+    {
+      "name": "create-member",
+      "church": {
+        "alias": "church-a",
+        "organizationName": "synthetic-golden",
+        "timeZone": "Asia/Taipei",
+        "culture": "zh-TW"
+      },
+      "seed": [
+        {
+          "alias": "record",
+          "entity": "new_stor_lessons",
+          "fields": {
+            "new_contact_new_stor_lessons": {
+              "ref": "member",
+              "entity": "contact"
+            },
+            "new_new_disciple_lessons_new_stor_les": {
+              "ref": "course",
+              "entity": "new_disciple_lessons"
+            }
+          }
+        },
+        {
+          "alias": "member",
+          "entity": "contact",
+          "fields": {
+            "fullname": "學員",
+            "new_cell_list_contact": {
+              "ref": "list",
+              "entity": "list"
+            },
+            "parentcustomerid": {
+              "ref": "church-a",
+              "entity": "account"
+            },
+            "new_equipment_status": "已完成",
+            "new_lineid": "U00000000000000000000000000000000",
+            "new_preferredlanguage": "zh-TW"
+          }
+        },
+        {
+          "alias": "leader",
+          "entity": "contact",
+          "fields": {
+            "fullname": "組長",
+            "parentcustomerid": {
+              "ref": "church-a",
+              "entity": "account"
+            },
+            "new_lineid": "U00000000000000000000000000000000",
+            "new_preferredlanguage": "zh-TW"
+          }
+        },
+        {
+          "alias": "list",
+          "entity": "list",
+          "fields": {
+            "new_contact_family_leader_list": {
+              "ref": "leader",
+              "entity": "contact"
+            }
+          }
+        },
+        {
+          "alias": "course",
+          "entity": "new_disciple_lessons",
+          "fields": {
+            "new_name": "課程",
+            "new_picture_link": "https://image.example/course.png"
+          }
+        },
+        {
+          "alias": "church-a",
+          "entity": "account",
+          "fields": {
+            "name": "合成教會",
+            "new_defaultlanguage": "zh-TW",
+            "new_enabledlanguages": "zh-TW",
+            "new_linechannelid": {
+              "ref": "channel",
+              "entity": "new_linechannel"
+            }
+          }
+        },
+        {
+          "alias": "channel",
+          "entity": "new_linechannel",
+          "fields": {
+            "new_accesstokenencrypted": "synthetic-envelope"
+          }
+        }
+      ],
+      "trigger": {
+        "project": "StorLessonSigningWorkflow",
+        "type": "StorLessonSigningWorkflow.StorLessonWorkflowPlugin",
+        "message": "Create",
+        "entity": "new_stor_lessons",
+        "target": "record",
+        "fields": {},
+        "depth": 1,
+        "inputs": {
+          "InputParameter": "新增"
+        }
+      },
+      "now": "2026-11-15T04:00:00Z",
+      "volatile": [],
+      "liveShadow": false,
+      "observe": []
+    },
+    {
+      "name": "update-leader",
+      "church": {
+        "alias": "church-a",
+        "organizationName": "synthetic-golden",
+        "timeZone": "Asia/Taipei",
+        "culture": "zh-TW"
+      },
+      "seed": [
+        {
+          "alias": "record",
+          "entity": "new_stor_lessons",
+          "fields": {
+            "new_contact_new_stor_lessons": {
+              "ref": "member",
+              "entity": "contact"
+            },
+            "new_new_disciple_lessons_new_stor_les": {
+              "ref": "course",
+              "entity": "new_disciple_lessons"
+            }
+          }
+        },
+        {
+          "alias": "member",
+          "entity": "contact",
+          "fields": {
+            "fullname": "學員",
+            "new_cell_list_contact": {
+              "ref": "list",
+              "entity": "list"
+            },
+            "parentcustomerid": {
+              "ref": "church-a",
+              "entity": "account"
+            },
+            "new_equipment_status": "已完成",
+            "new_lineid": "U00000000000000000000000000000000",
+            "new_preferredlanguage": "zh-TW"
+          }
+        },
+        {
+          "alias": "leader",
+          "entity": "contact",
+          "fields": {
+            "fullname": "組長",
+            "parentcustomerid": {
+              "ref": "church-a",
+              "entity": "account"
+            },
+            "new_lineid": "U00000000000000000000000000000000",
+            "new_preferredlanguage": "zh-TW"
+          }
+        },
+        {
+          "alias": "list",
+          "entity": "list",
+          "fields": {
+            "new_contact_family_leader_list": {
+              "ref": "leader",
+              "entity": "contact"
+            }
+          }
+        },
+        {
+          "alias": "course",
+          "entity": "new_disciple_lessons",
+          "fields": {
+            "new_name": "課程",
+            "new_picture_link": "https://image.example/course.png"
+          }
+        },
+        {
+          "alias": "church-a",
+          "entity": "account",
+          "fields": {
+            "name": "合成教會",
+            "new_defaultlanguage": "zh-TW",
+            "new_enabledlanguages": "zh-TW",
+            "new_linechannelid": {
+              "ref": "channel",
+              "entity": "new_linechannel"
+            }
+          }
+        },
+        {
+          "alias": "channel",
+          "entity": "new_linechannel",
+          "fields": {
+            "new_accesstokenencrypted": "synthetic-envelope"
+          }
+        }
+      ],
+      "trigger": {
+        "project": "StorLessonSigningWorkflow",
+        "type": "StorLessonSigningWorkflow.StorLessonWorkflowPlugin",
+        "message": "Update",
+        "entity": "new_stor_lessons",
+        "target": "record",
+        "fields": {},
+        "depth": 1,
+        "inputs": {
+          "InputParameter": "更新"
+        }
+      },
+      "now": "2026-11-15T04:00:00Z",
+      "volatile": [],
+      "liveShadow": false,
+      "observe": []
+    },
+    {
+      "name": "create-signing-priority",
+      "church": {
+        "alias": "church-a",
+        "organizationName": "synthetic-golden",
+        "timeZone": "Asia/Taipei",
+        "culture": "zh-TW"
+      },
+      "seed": [
+        {
+          "alias": "record",
+          "entity": "new_stor_lessons",
+          "fields": {
+            "new_contact_new_stor_lessons": {
+              "ref": "member",
+              "entity": "contact"
+            },
+            "new_new_disciple_lessons_new_stor_les": {
+              "ref": "course",
+              "entity": "new_disciple_lessons"
+            }
+          }
+        },
+        {
+          "alias": "member",
+          "entity": "contact",
+          "fields": {
+            "fullname": "學員",
+            "new_cell_list_contact": {
+              "ref": "list",
+              "entity": "list"
+            },
+            "parentcustomerid": {
+              "ref": "church-a",
+              "entity": "account"
+            },
+            "new_equipment_status": "已完成",
+            "new_lineid": "U00000000000000000000000000000000",
+            "new_preferredlanguage": "zh-TW"
+          }
+        },
+        {
+          "alias": "leader",
+          "entity": "contact",
+          "fields": {
+            "fullname": "組長",
+            "parentcustomerid": {
+              "ref": "church-a",
+              "entity": "account"
+            },
+            "new_lineid": "U00000000000000000000000000000000",
+            "new_preferredlanguage": "zh-TW"
+          }
+        },
+        {
+          "alias": "list",
+          "entity": "list",
+          "fields": {
+            "new_contact_family_leader_list": {
+              "ref": "leader",
+              "entity": "contact"
+            }
+          }
+        },
+        {
+          "alias": "course",
+          "entity": "new_disciple_lessons",
+          "fields": {
+            "new_name": "課程",
+            "new_picture_link": "https://image.example/course.png"
+          }
+        },
+        {
+          "alias": "church-a",
+          "entity": "account",
+          "fields": {
+            "name": "合成教會",
+            "new_defaultlanguage": "zh-TW",
+            "new_enabledlanguages": "zh-TW",
+            "new_linechannelid": {
+              "ref": "channel",
+              "entity": "new_linechannel"
+            }
+          }
+        },
+        {
+          "alias": "channel",
+          "entity": "new_linechannel",
+          "fields": {
+            "new_accesstokenencrypted": "synthetic-envelope"
+          }
+        }
+      ],
+      "trigger": {
+        "project": "StorLessonSigningWorkflow",
+        "type": "StorLessonSigningWorkflow.StorLessonWorkflowPlugin",
+        "message": "Create",
+        "entity": "new_stor_lessons",
+        "target": "record",
+        "fields": {},
+        "depth": 1,
+        "inputs": {
+          "InputParameter": "新增課程簽核"
+        }
+      },
+      "now": "2026-11-15T04:00:00Z",
+      "volatile": [],
+      "liveShadow": false,
+      "observe": []
+    },
+    {
+      "name": "workflow-fee-not-implemented",
+      "church": {
+        "alias": "church-a",
+        "organizationName": "synthetic-golden",
+        "timeZone": "Asia/Taipei",
+        "culture": "zh-TW"
+      },
+      "seed": [
+        {
+          "alias": "record",
+          "entity": "new_stor_lessons",
+          "fields": {
+            "new_contact_new_stor_lessons": {
+              "ref": "member",
+              "entity": "contact"
+            },
+            "new_new_disciple_lessons_new_stor_les": {
+              "ref": "course",
+              "entity": "new_disciple_lessons"
+            },
+            "new_item": "合成課程費",
+            "new_fee": 100
+          }
+        },
+        {
+          "alias": "member",
+          "entity": "contact",
+          "fields": {
+            "fullname": "學員",
+            "new_cell_list_contact": {
+              "ref": "list",
+              "entity": "list"
+            },
+            "parentcustomerid": {
+              "ref": "church-a",
+              "entity": "account"
+            },
+            "new_equipment_status": "已完成",
+            "new_lineid": "U00000000000000000000000000000000",
+            "new_preferredlanguage": "zh-TW",
+            "lastname": "學員",
+            "new_visa_info": ""
+          }
+        },
+        {
+          "alias": "leader",
+          "entity": "contact",
+          "fields": {
+            "fullname": "組長",
+            "parentcustomerid": {
+              "ref": "church-a",
+              "entity": "account"
+            },
+            "new_lineid": "",
+            "new_preferredlanguage": "zh-TW"
+          }
+        },
+        {
+          "alias": "list",
+          "entity": "list",
+          "fields": {
+            "new_contact_family_leader_list": {
+              "ref": "leader",
+              "entity": "contact"
+            }
+          }
+        },
+        {
+          "alias": "course",
+          "entity": "new_disciple_lessons",
+          "fields": {
+            "new_name": "課程",
+            "new_picture_link": "https://image.example/course.png"
+          }
+        },
+        {
+          "alias": "church-a",
+          "entity": "account",
+          "fields": {
+            "name": "合成教會",
+            "new_defaultlanguage": "zh-TW",
+            "new_enabledlanguages": "zh-TW",
+            "new_linechannelid": {
+              "ref": "channel",
+              "entity": "new_linechannel"
+            }
+          }
+        },
+        {
+          "alias": "channel",
+          "entity": "new_linechannel",
+          "fields": {
+            "new_accesstokenencrypted": "synthetic-envelope"
+          }
+        }
+      ],
+      "trigger": {
+        "project": "StorLessonSigningWorkflow",
+        "type": "StorLessonSigningWorkflow.StorLessonWorkflowPlugin",
+        "message": "ExecuteWorkflow",
+        "entity": "new_stor_lessons",
+        "target": "record",
+        "fields": {},
+        "depth": 1,
+        "inputs": {
+          "InputParameter": "付款"
+        }
+      },
+      "now": "2026-11-15T04:00:00Z",
+      "volatile": [],
+      "liveShadow": false,
+      "observe": [],
+      "legacyPaymentPreconditions": {
+        "basis": "合成輸入支援舊付款成功路徑的靜態 reading；不執行舊金流。",
+        "moneyMapping": "new_fee=100 代表舊 D365 Money.Value；新 Shadow 在查詢前記核定缺口，不以這個數字當作已執行舊 SDK Money。",
+        "contactLookup": "此案只有 member 有合成 LINE 綁定，避免舊 RetrieveContactCollectionByLineId 命中同值組長；lastname 用於付款文案。",
+        "savedCards": "new_visa_info 為空，信用卡字典為空，仍建立新信用卡訂單及 ATM 訂單。",
+        "externalResponses": "未提供或捏造金流回應；expected 的 runtimeFieldSources 僅記唯讀程式的資料依賴，副作用期望以外部成功為前提。",
+        "newShadowMarker": "未實作：P5-PROP-006",
+        "approvalStatus": "已核定缺口；非 declaredDifferences、reading 相等、差異零或 P7 補驗。"
+      }
+    },
+    {
+      "name": "update-other-church-leader",
+      "church": {
+        "alias": "church-a",
+        "organizationName": "synthetic-golden",
+        "timeZone": "Asia/Taipei",
+        "culture": "zh-TW"
+      },
+      "seed": [
+        {
+          "alias": "record",
+          "entity": "new_stor_lessons",
+          "fields": {
+            "new_contact_new_stor_lessons": {
+              "ref": "member",
+              "entity": "contact"
+            },
+            "new_new_disciple_lessons_new_stor_les": {
+              "ref": "course",
+              "entity": "new_disciple_lessons"
+            }
+          }
+        },
+        {
+          "alias": "member",
+          "entity": "contact",
+          "fields": {
+            "fullname": "學員",
+            "new_cell_list_contact": {
+              "ref": "list",
+              "entity": "list"
+            },
+            "parentcustomerid": {
+              "ref": "church-a",
+              "entity": "account"
+            },
+            "new_equipment_status": "已完成",
+            "new_lineid": "U00000000000000000000000000000000",
+            "new_preferredlanguage": "zh-TW"
+          }
+        },
+        {
+          "alias": "leader",
+          "entity": "contact",
+          "fields": {
+            "fullname": "組長",
+            "parentcustomerid": {
+              "ref": "church-b",
+              "entity": "account"
+            },
+            "new_lineid": "U00000000000000000000000000000000",
+            "new_preferredlanguage": "zh-TW"
+          }
+        },
+        {
+          "alias": "list",
+          "entity": "list",
+          "fields": {
+            "new_contact_family_leader_list": {
+              "ref": "leader",
+              "entity": "contact"
+            }
+          }
+        },
+        {
+          "alias": "course",
+          "entity": "new_disciple_lessons",
+          "fields": {
+            "new_name": "課程",
+            "new_picture_link": "https://image.example/course.png"
+          }
+        },
+        {
+          "alias": "church-a",
+          "entity": "account",
+          "fields": {
+            "name": "合成教會",
+            "new_defaultlanguage": "zh-TW",
+            "new_enabledlanguages": "zh-TW",
+            "new_linechannelid": {
+              "ref": "channel",
+              "entity": "new_linechannel"
+            }
+          }
+        },
+        {
+          "alias": "channel",
+          "entity": "new_linechannel",
+          "fields": {
+            "new_accesstokenencrypted": "synthetic-envelope"
+          }
+        },
+        {
+          "alias": "church-b",
+          "entity": "account",
+          "fields": {
+            "name": "其他合成教會"
+          }
+        }
+      ],
+      "trigger": {
+        "project": "StorLessonSigningWorkflow",
+        "type": "StorLessonSigningWorkflow.StorLessonWorkflowPlugin",
+        "message": "Update",
+        "entity": "new_stor_lessons",
+        "target": "record",
+        "fields": {},
+        "depth": 1,
+        "inputs": {
+          "InputParameter": "更新"
+        }
+      },
+      "now": "2026-11-15T04:00:00Z",
+      "volatile": [],
+      "liveShadow": false,
+      "observe": []
+    }
+  ]
+}

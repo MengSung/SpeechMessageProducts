@@ -1,0 +1,388 @@
+{
+  "module": "lessonssigning",
+  "basis": "reading",
+  "cases": [
+    {
+      "name": "workflow-signing-leader",
+      "entrypoint": "StorLessonSigningWorkflow.StorLessonWorkflowPlugin",
+      "source": [
+        {
+          "file": "StorLessonSigningClassLibrary.cs",
+          "lines": "370-450"
+        },
+        {
+          "file": "StorLessonSigningClass.cs",
+          "lines": "84-318"
+        }
+      ],
+      "writes": [],
+      "lineCalls": [
+        {
+          "contactAlias": "leader",
+          "templateKey": "Lessons.Signing",
+          "messageCount": 1
+        }
+      ],
+      "outputs": {
+        "OutputResult": 0
+      },
+      "exception": null
+    },
+    {
+      "name": "create-member",
+      "entrypoint": "StorLessonSigningWorkflow.StorLessonWorkflowPlugin",
+      "source": [
+        {
+          "file": "StorLessonSigningClassLibrary.cs",
+          "lines": "370-450"
+        },
+        {
+          "file": "StorLessonSigningClass.cs",
+          "lines": "84-318"
+        }
+      ],
+      "writes": [],
+      "lineCalls": [
+        {
+          "contactAlias": "member",
+          "templateKey": "Lessons.Signing",
+          "messageCount": 1
+        }
+      ],
+      "outputs": {
+        "OutputResult": 0
+      },
+      "exception": null
+    },
+    {
+      "name": "update-leader",
+      "entrypoint": "StorLessonSigningWorkflow.StorLessonWorkflowPlugin",
+      "source": [
+        {
+          "file": "StorLessonSigningClassLibrary.cs",
+          "lines": "370-450"
+        },
+        {
+          "file": "StorLessonSigningClass.cs",
+          "lines": "84-318"
+        }
+      ],
+      "writes": [],
+      "lineCalls": [
+        {
+          "contactAlias": "leader",
+          "templateKey": "Lessons.Signing",
+          "messageCount": 1
+        }
+      ],
+      "outputs": {
+        "OutputResult": 0
+      },
+      "exception": null
+    },
+    {
+      "name": "create-signing-priority",
+      "entrypoint": "StorLessonSigningWorkflow.StorLessonWorkflowPlugin",
+      "source": [
+        {
+          "file": "StorLessonSigningClassLibrary.cs",
+          "lines": "370-450"
+        },
+        {
+          "file": "StorLessonSigningClass.cs",
+          "lines": "84-318"
+        }
+      ],
+      "writes": [],
+      "lineCalls": [
+        {
+          "contactAlias": "leader",
+          "templateKey": "Lessons.Signing",
+          "messageCount": 1
+        }
+      ],
+      "outputs": {
+        "OutputResult": 0
+      },
+      "exception": null
+    },
+    {
+      "name": "workflow-fee-not-implemented",
+      "entrypoint": "StorLessonSigningWorkflow.StorLessonWorkflowPlugin",
+      "source": [
+        {
+          "file": "StorLessonSigningClassLibrary.cs",
+          "lines": "370-388"
+        },
+        {
+          "file": "FeeFlexMessageClass.cs",
+          "lines": "91-175"
+        },
+        {
+          "file": "QPayProcessor.cs",
+          "lines": "147-198,297-314,681-869,896-947,1066-1113,1138-1237"
+        },
+        {
+          "file": "StorLessonWorkflowPlugin.cs",
+          "lines": "32-33,38-70"
+        }
+      ],
+      "writes": [
+        {
+          "operation": "Create",
+          "entity": "new_fee",
+          "alias": "legacy-created-fee",
+          "fields": {
+            "new_name": "課程_學員",
+            "new_contact_new_fee": {
+              "ref": "member",
+              "entity": "contact"
+            },
+            "new_disciple_lessons_new_fee": {
+              "ref": "course",
+              "entity": "new_disciple_lessons"
+            },
+            "new_item": "合成課程費",
+            "new_fee_shoud_pay": 100,
+            "new_fee_really_paid": 0,
+            "new_pay_way": {
+              "option": 100000004
+            },
+            "new_pay_status": {
+              "option": 100000000
+            },
+            "new_stor_lessons_new_fee": {
+              "ref": "record",
+              "entity": "new_stor_lessons"
+            }
+          },
+          "runtimeFieldSources": {
+            "id": "IOrganizationService.Create 回傳的正式 GUID",
+            "new_pay_date": "DateTime.Now.ToLocalTime()"
+          }
+        },
+        {
+          "operation": "Update",
+          "entity": "new_fee",
+          "alias": "legacy-created-fee",
+          "fields": {
+            "new_name": "課程_學員",
+            "new_contact_new_fee": {
+              "ref": "member",
+              "entity": "contact"
+            },
+            "new_disciple_lessons_new_fee": {
+              "ref": "course",
+              "entity": "new_disciple_lessons"
+            },
+            "new_item": "合成課程費",
+            "new_fee_shoud_pay": 100,
+            "new_fee_really_paid": 0,
+            "new_pay_way": {
+              "option": 100000004
+            },
+            "new_pay_status": {
+              "option": 100000000
+            },
+            "new_stor_lessons_new_fee": {
+              "ref": "record",
+              "entity": "new_stor_lessons"
+            }
+          },
+          "runtimeFieldSources": {
+            "new_q_pay_card_order_no": "CreatedNullCardOrder.OrderNo",
+            "new_atm_pay_number": "既有內容 + 當下時間 + 信用卡訂單編號文字 + CreatedNullCardOrder.OrderNo + 換行",
+            "new_pay_date": "DateTime.Now.ToLocalTime()"
+          }
+        },
+        {
+          "operation": "Update",
+          "entity": "new_fee",
+          "alias": "legacy-created-fee",
+          "fields": {
+            "new_name": "課程_學員",
+            "new_contact_new_fee": {
+              "ref": "member",
+              "entity": "contact"
+            },
+            "new_disciple_lessons_new_fee": {
+              "ref": "course",
+              "entity": "new_disciple_lessons"
+            },
+            "new_item": "合成課程費",
+            "new_fee_shoud_pay": 100,
+            "new_fee_really_paid": 0,
+            "new_pay_way": {
+              "option": 100000004
+            },
+            "new_pay_status": {
+              "option": 100000000
+            },
+            "new_stor_lessons_new_fee": {
+              "ref": "record",
+              "entity": "new_stor_lessons"
+            }
+          },
+          "runtimeFieldSources": {
+            "new_q_pay_order_atm_no": "CreatedAtmOrder.OrderNo",
+            "new_atm_pay_number": "保留信用卡歷程，再附加當下時間、ATM 訂單編號及 CreatedAtmOrder.ATMParam.AtmPayNo",
+            "new_pay_date": "DateTime.Now.ToLocalTime()"
+          }
+        }
+      ],
+      "lineCalls": [
+        {
+          "contactAlias": "member",
+          "messageType": "FlexCarouselMessage",
+          "altText": "繳費",
+          "messageCount": 1,
+          "runtimeFieldSources": {
+            "信用卡繳費.Uri": "CreatedNullCardOrder.CardParam.CardPayURL（CardParam 非 null 時加入）",
+            "ATM轉帳/匯款.Message": "學員 lastname、課程名稱、品項、金額、當下時間加十天到期日及 CreatedAtmOrder.ATMParam.AtmPayNo"
+          }
+        }
+      ],
+      "outputs": {
+        "OutputResult": 0
+      },
+      "exception": null,
+      "legacyPaymentBehavior": {
+        "basis": "唯讀舊原始碼的靜態 reading；不是舊程式執行、付款成功或 LINE 送達證據。",
+        "preconditions": [
+          "new_stor_lessons.new_fee 的舊 D365 Money.Value 為 100，new_item 為合成課程費；JSON 金額純量只表達輸入值，不宣稱 SDK 替身重現 Money。",
+          "學員有唯一的合成 LINE 綁定及 lastname；new_visa_info 為空，不走既存信用卡迴圈。",
+          "收費單建立／讀取／更新及外部訂單建立均成功；信用卡回應含 CardParam.CardPayURL，ATM 回應含 ATMParam.AtmPayNo。此為成功路徑前提，不是已有外部回應。"
+        ],
+        "sequence": [
+          "DisplayFeeFlexMessage 讀取學員、課程、new_item 與 new_fee，將金額轉整數字串後呼叫 CreateFeeFlexMessage。",
+          "金額大於零時建立繳費 bubble；SetCreditCardFlexComponentList 先建立一張 new_fee，取得正式收費單 ID。",
+          "空信用卡清單不進既存卡迴圈；仍呼叫 CreOrderCard 建立一筆新信用卡訂單，以收費單 ID 作 Param1，再回寫同一張 new_fee。",
+          "呼叫 CreateOrderATM 建立一筆 ATM 訂單，以同一收費單 ID 作 Param1，回寫 ATM 訂單編號及累加付款歷程，不建立第二張收費單。",
+          "加入信用卡 URI 與 ATM 付款說明按鈕後，SendMessage 向學員發送一個 altText=繳費 的 Flex carousel。"
+        ],
+        "gatewayRequests": {
+          "creditCard": {
+            "method": "CreOrderCard",
+            "payType": "C",
+            "amount": 10000,
+            "currencyId": "TWD",
+            "productName": "課程",
+            "feeIdSource": "legacy-created-fee 的 Create 回傳 ID",
+            "orderNoSource": "C + 執行當下 OrderDate"
+          },
+          "atm": {
+            "method": "CreateOrderATM",
+            "payType": "A",
+            "amount": 10000,
+            "currencyId": "TWD",
+            "productName": "課程",
+            "feeIdSource": "同一 legacy-created-fee 的 Create 回傳 ID",
+            "orderNoSource": "A + 執行當下 OrderDate",
+            "expireDateSource": "DateTime.Now.AddDays(10).ToLocalTime()"
+          }
+        },
+        "projectionBoundary": "writes.fields 僅列可由合成前置決定的欄位；runtimeFieldSources 記動態來源，不是字面付款回應或完整 SDK Entity 快照。Update 使用 Retrieve 回來的同一收費單，ATM 更新保留信用卡欄位並累加歷程。沒有捏造訂單號、正式 ID、付款網址或虛擬帳號。",
+        "asyncBoundary": "FeeFlexMessageClass.cs:121 未 await 回傳 Task；後續付款／推播失敗可能只留在 faulted Task，不能宣稱由 Workflow 同步觀察、交易回滾或完成全部副作用。exception=null 表示此前提下的正常路徑，不保證任意金流失敗都無例外。",
+        "outputBoundary": "舊 StorLessonWorkflowPlugin 宣告 OutArgument<int> 但 Execute 未賦值；0 為預設值，不是付款成功碼。",
+        "approvedGap": {
+          "decision": "P5-PROP-006",
+          "status": "已核定缺口",
+          "shadowMarker": "未實作：P5-PROP-006",
+          "scope": "新 Shadow 只記固定標記，不建收費單／訂單、不回寫、不呼叫金流或推播；Live 拒絕。不得列 declaredDifferences、宣稱 reading 相等／差異零，或改列 P7 補驗。"
+        }
+      }
+    },
+    {
+      "name": "update-other-church-leader",
+      "entrypoint": "StorLessonSigningWorkflow.StorLessonWorkflowPlugin",
+      "source": [
+        {
+          "file": "StorLessonSigningClassLibrary.cs",
+          "lines": "370-450"
+        },
+        {
+          "file": "StorLessonSigningClass.cs",
+          "lines": "84-318"
+        }
+      ],
+      "writes": [],
+      "lineCalls": [],
+      "outputs": {
+        "OutputResult": 0
+      },
+      "exception": null
+    }
+  ],
+  "declaredDifferences": [
+    {
+      "case": "workflow-signing-leader",
+      "position": "$.cases[0].lineCalls",
+      "category": 5,
+      "reason": "reading：StorLessonSigningClass.cs:84-318 有無綁定時回落固定收件者；新版依永久隔離契約拒絕跨教會／未綁定收件者，不回落任何固定帳號。來源檔只讀，沒有執行舊程式或實機通知。 reading StorLessonSigningClass.cs:430-639 的 PostbackTemplateAction、星號評分、摘要、按鈕與顏色已由獨立 Core／CAS 期望驗證。安全差異：不依教會名稱選取硬碼後備圖，來源須提供 HTTPS；決策資料超過 300 字時在建構前拒絕，避免 SDK 靜默截斷正式來源與簽核者資料。這些是離線相容及輸入邊界證據，不是實機送達結果。",
+      "test": "Lessons_Signing_ReadingBaseline_MatchesExpected"
+    },
+    {
+      "case": "create-member",
+      "position": "$.cases[1].lineCalls",
+      "category": 5,
+      "reason": "reading：StorLessonSigningClass.cs:84-318 有無綁定時回落固定收件者；新版依永久隔離契約拒絕跨教會／未綁定收件者，不回落任何固定帳號。來源檔只讀，沒有執行舊程式或實機通知。 reading StorLessonSigningClass.cs:430-639 的 PostbackTemplateAction、星號評分、摘要、按鈕與顏色已由獨立 Core／CAS 期望驗證。安全差異：不依教會名稱選取硬碼後備圖，來源須提供 HTTPS；決策資料超過 300 字時在建構前拒絕，避免 SDK 靜默截斷正式來源與簽核者資料。這些是離線相容及輸入邊界證據，不是實機送達結果。",
+      "test": "Lessons_Signing_ReadingBaseline_MatchesExpected"
+    },
+    {
+      "case": "update-leader",
+      "position": "$.cases[2].lineCalls",
+      "category": 5,
+      "reason": "reading：StorLessonSigningClass.cs:84-318 有無綁定時回落固定收件者；新版依永久隔離契約拒絕跨教會／未綁定收件者，不回落任何固定帳號。來源檔只讀，沒有執行舊程式或實機通知。 reading StorLessonSigningClass.cs:430-639 的 PostbackTemplateAction、星號評分、摘要、按鈕與顏色已由獨立 Core／CAS 期望驗證。安全差異：不依教會名稱選取硬碼後備圖，來源須提供 HTTPS；決策資料超過 300 字時在建構前拒絕，避免 SDK 靜默截斷正式來源與簽核者資料。這些是離線相容及輸入邊界證據，不是實機送達結果。",
+      "test": "Lessons_Signing_ReadingBaseline_MatchesExpected"
+    },
+    {
+      "case": "create-signing-priority",
+      "position": "$.cases[3].lineCalls",
+      "category": 5,
+      "reason": "reading：StorLessonSigningClass.cs:84-318 有無綁定時回落固定收件者；新版依永久隔離契約拒絕跨教會／未綁定收件者，不回落任何固定帳號。來源檔只讀，沒有執行舊程式或實機通知。 reading StorLessonSigningClass.cs:430-639 的 PostbackTemplateAction、星號評分、摘要、按鈕與顏色已由獨立 Core／CAS 期望驗證。安全差異：不依教會名稱選取硬碼後備圖，來源須提供 HTTPS；決策資料超過 300 字時在建構前拒絕，避免 SDK 靜默截斷正式來源與簽核者資料。這些是離線相容及輸入邊界證據，不是實機送達結果。",
+      "test": "Lessons_Signing_ReadingBaseline_MatchesExpected"
+    },
+    {
+      "case": "update-other-church-leader",
+      "position": "$.cases[5].lineCalls",
+      "category": 5,
+      "reason": "reading：StorLessonSigningClass.cs:84-318 有無綁定時回落固定收件者；新版依永久隔離契約拒絕跨教會／未綁定收件者，不回落任何固定帳號。來源檔只讀，沒有執行舊程式或實機通知。 reading StorLessonSigningClass.cs:430-639 的 PostbackTemplateAction、星號評分、摘要、按鈕與顏色已由獨立 Core／CAS 期望驗證。安全差異：不依教會名稱選取硬碼後備圖，來源須提供 HTTPS；決策資料超過 300 字時在建構前拒絕，避免 SDK 靜默截斷正式來源與簽核者資料。這些是離線相容及輸入邊界證據，不是實機送達結果。",
+      "test": "Lessons_Signing_ReadingBaseline_MatchesExpected"
+    },
+    {
+      "case": "workflow-signing-leader",
+      "position": "$.cases[0].outputs",
+      "category": 5,
+      "reason": "StorLessonSigningClassLibrary.cs:370-450; 所有案例只跑 Shadow reading 基準。活動缺安全 key provider，Live 在查詢前拒絕；Plugin 可經註冊 secureConfig 取得 64-byte key 並 finally 清零，不讀來源列 token。不得把活動 Shadow 通過當作 Live 已完成。",
+      "test": "Lessons_Signing_WorkflowLiveWithoutKey_RejectsBeforeReads"
+    },
+    {
+      "case": "create-member",
+      "position": "$.cases[1].outputs",
+      "category": 5,
+      "reason": "StorLessonSigningClassLibrary.cs:370-450; 所有案例只跑 Shadow reading 基準。活動缺安全 key provider，Live 在查詢前拒絕；Plugin 可經註冊 secureConfig 取得 64-byte key 並 finally 清零，不讀來源列 token。不得把活動 Shadow 通過當作 Live 已完成。",
+      "test": "Lessons_Signing_WorkflowLiveWithoutKey_RejectsBeforeReads"
+    },
+    {
+      "case": "update-leader",
+      "position": "$.cases[2].outputs",
+      "category": 5,
+      "reason": "StorLessonSigningClassLibrary.cs:370-450; 所有案例只跑 Shadow reading 基準。活動缺安全 key provider，Live 在查詢前拒絕；Plugin 可經註冊 secureConfig 取得 64-byte key 並 finally 清零，不讀來源列 token。不得把活動 Shadow 通過當作 Live 已完成。",
+      "test": "Lessons_Signing_WorkflowLiveWithoutKey_RejectsBeforeReads"
+    },
+    {
+      "case": "create-signing-priority",
+      "position": "$.cases[3].outputs",
+      "category": 5,
+      "reason": "StorLessonSigningClassLibrary.cs:370-450; 所有案例只跑 Shadow reading 基準。活動缺安全 key provider，Live 在查詢前拒絕；Plugin 可經註冊 secureConfig 取得 64-byte key 並 finally 清零，不讀來源列 token。不得把活動 Shadow 通過當作 Live 已完成。",
+      "test": "Lessons_Signing_WorkflowLiveWithoutKey_RejectsBeforeReads"
+    },
+    {
+      "case": "update-other-church-leader",
+      "position": "$.cases[5].outputs",
+      "category": 5,
+      "reason": "StorLessonSigningClassLibrary.cs:370-450; 所有案例只跑 Shadow reading 基準。活動缺安全 key provider，Live 在查詢前拒絕；Plugin 可經註冊 secureConfig 取得 64-byte key 並 finally 清零，不讀來源列 token。不得把活動 Shadow 通過當作 Live 已完成。",
+      "test": "Lessons_Signing_WorkflowLiveWithoutKey_RejectsBeforeReads"
+    }
+  ]
+}

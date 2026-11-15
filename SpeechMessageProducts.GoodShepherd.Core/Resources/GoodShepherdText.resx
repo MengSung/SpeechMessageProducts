@@ -244,4 +244,66 @@ ID (查詢您的LINE ID)
   <data name="WeeklyReport.HappinessPurpose" xml:space="preserve"><value>幸福</value></data>
   <data name="Attendance.PastorReply" xml:space="preserve"><value>{member} 代禱事項: {prayer}&#13;&#10;牧者回應: {reply}</value></data>
   <data name="Lessons.EquipmentStages" xml:space="preserve"><value>尚未裝備|門徒學校上|E1成長營|門徒學校下|E2門徒營|幸福大學上|E3領袖營|幸福大學下</value></data>
+  <data name="Lessons.Progression.HomeworkKind" xml:space="preserve"><value>作業</value></data>
+  <data name="Lessons.Progression.ExamKind" xml:space="preserve"><value>考試</value></data>
+  <data name="Lessons.Progression.PracticeKind" xml:space="preserve"><value>實習</value></data>
+  <data name="Lessons.Progression.MorningCourse" xml:space="preserve"><value>晨禱</value></data>
+  <data name="Lessons.Progression.SavedGridPrefix" xml:space="preserve"><value>編輯式表格被按儲存</value></data>
+  <data name="Lessons.Progression.AreaUnset" xml:space="preserve"><value>未設定區名</value></data>
+  <data name="Lessons.Progression.PreviousNameMissing" xml:space="preserve"><value>沒有前階段課程名稱&#13;&#10;</value></data>
+  <data name="Lessons.Progression.PreviousRowsMissing" xml:space="preserve"><value>前階段沒有任何紀錄&#13;&#10;</value></data>
+  <data name="Lessons.Progression.Because" xml:space="preserve"><value>由於 </value></data>
+  <data name="Lessons.Progression.PreviousEnterSticky" xml:space="preserve"><value> 進入下階段的旗標是通過的，所以就直接可以進入本次課程紀錄&#13;&#10;</value></data>
+  <data name="Lessons.Progression.PreviousCompleteSticky" xml:space="preserve"><value> 結業的旗標是通過的，所已上階段就可以結業&#13;&#10;</value></data>
+  <data name="Lessons.Progression.CurrentNameMissing" xml:space="preserve"><value>沒有本階段課程名稱&#13;&#10;</value></data>
+  <data name="Lessons.Progression.CurrentRowsMissing" xml:space="preserve"><value>本階段沒有任何紀錄&#13;&#10;</value></data>
+  <data name="Lessons.Progression.CurrentEnterSticky" xml:space="preserve"><value> 進入下階段的旗標是通過的，所以本次課程紀錄就可以進入下階段&#13;&#10;</value></data>
+  <data name="Lessons.Progression.CurrentCompleteSticky" xml:space="preserve"><value> 結業的旗標是通過的，所以本次課程紀錄就可以結業&#13;&#10;</value></data>
+  <data name="Lessons.Progression.RollCardMarker" xml:space="preserve"><value>楊梅靈糧堂更新學籍卡</value></data>
+  <data name="Lessons.Progression.RollCardKey" xml:space="preserve"><value>更新學籍卡</value></data>
+  <data name="Lessons.Progression.Morning" xml:space="preserve"><value>晨禱</value></data>
+  <data name="Lessons.Progression.InnerHealing" xml:space="preserve"><value>內在醫治</value></data>
+  <data name="Lessons.Progression.Pregnancy" xml:space="preserve"><value>懷相</value></data>
+  <data name="Lessons.Progression.ReadingGroup" xml:space="preserve"><value>讀書會</value></data>
+  <data name="Lessons.Progression.Conference" xml:space="preserve"><value>特會</value></data>
+  <data name="Lessons.Progression.Foundation" xml:space="preserve"><value>基礎課程</value></data>
+  <data name="Lessons.Progression.AttendedPrefix" xml:space="preserve"><value>上過的課程:第 </value></data>
+  <data name="Lessons.Progression.HomeworkPrefix" xml:space="preserve"><value> 課，繳交過的作業:</value></data>
+  <data name="Lessons.Progression.HoursHeading" xml:space="preserve"><value>////////////  評估上過課程的總時數是否通過  ////////////</value></data>
+  <data name="Lessons.Progression.HoursPrefix" xml:space="preserve"><value>上課時數:</value></data>
+  <data name="Lessons.Progression.HistoryPrefix" xml:space="preserve"><value>上課歷程: </value></data>
+  <data name="Lessons.Progression.CurrentHours" xml:space="preserve"><value>本階段目前總時數 : </value></data>
+  <data name="Lessons.Progression.NextHours" xml:space="preserve"><value>可以進入下階段所需要的時數 : </value></data>
+  <data name="Lessons.Progression.NextHoursPass" xml:space="preserve"><value>上課時數評估:可以進入下階段</value></data>
+  <data name="Lessons.Progression.NextHoursFail" xml:space="preserve"><value>上課時數評估:不可進入下階段</value></data>
+  <data name="Lessons.Progression.CompleteHours" xml:space="preserve"><value>可以結業所需要的時數 : </value></data>
+  <data name="Lessons.Progression.CompleteHoursPass" xml:space="preserve"><value>上課時數評估:可以結業</value></data>
+  <data name="Lessons.Progression.CompleteHoursFail" xml:space="preserve"><value>上課時數評估:不可結業</value></data>
+  <data name="Lessons.Progression.RequiredHeading" xml:space="preserve"><value>////////////  評估必修課程即必須上的特會/作業  ////////////</value></data>
+  <data name="Lessons.Progression.NextHeading" xml:space="preserve"><value>評估下階段是否可以進行</value></data>
+  <data name="Lessons.Progression.NextPass" xml:space="preserve"><value>可以進入下一階段</value></data>
+  <data name="Lessons.Progression.NextFail" xml:space="preserve"><value>無法進入下一階段</value></data>
+  <data name="Lessons.Progression.CompleteHeading" xml:space="preserve"><value>評估是否可以結業</value></data>
+  <data name="Lessons.Progression.CompletePass" xml:space="preserve"><value>可以結業</value></data>
+  <data name="Lessons.Progression.CompleteFail" xml:space="preserve"><value>無法結業</value></data>
+  <data name="Lessons.Progression.NoRequirements" xml:space="preserve"><value>沒有必修的課程及作業，</value></data>
+  <data name="Lessons.Progression.MissingClassPrefix" xml:space="preserve"><value>沒有上第 </value></data>
+  <data name="Lessons.Progression.ClassSuffix" xml:space="preserve"><value> 課，</value></data>
+  <data name="Lessons.Progression.MissingHomework" xml:space="preserve"><value>沒有完成，</value></data>
+  <data name="Lessons.Signing.SigningParameter" xml:space="preserve"><value>課程簽核</value></data>
+  <data name="Lessons.Signing.CreateParameter" xml:space="preserve"><value>新增</value></data>
+  <data name="Lessons.Signing.UpdateParameter" xml:space="preserve"><value>更新</value></data>
+  <data name="Lessons.Signing.EquipmentUnset" xml:space="preserve"><value>未設定</value></data>
+  <data name="Lessons.Signing.AltText" xml:space="preserve"><value>有一個課程簽核的動作等待您的決定....</value></data>
+  <data name="Lessons.Signing.ActionPrefix" xml:space="preserve"><value>訊息類別=課程簽核&amp;動作=</value></data>
+  <data name="Lessons.Signing.SignerSuffix" xml:space="preserve"><value>&amp;簽核者=</value></data>
+  <data name="Lessons.Signing.ImageAction" xml:space="preserve"><value>說明網頁/填寫表單</value></data>
+  <data name="Lessons.Signing.Title" xml:space="preserve"><value>課程簽核</value></data>
+  <data name="Lessons.Signing.CoursePrefix" xml:space="preserve"><value>課程名稱: </value></data>
+  <data name="Lessons.Signing.MemberPrefix" xml:space="preserve"><value>學員姓名: </value></data>
+  <data name="Lessons.Signing.EquipmentPrefix" xml:space="preserve"><value>裝備狀態: </value></data>
+  <data name="Lessons.Signing.Approve" xml:space="preserve"><value>同意</value></data>
+  <data name="Lessons.Signing.ApproveDisplay" xml:space="preserve"><value>您簽核同意</value></data>
+  <data name="Lessons.Signing.Reject" xml:space="preserve"><value>退回</value></data>
+  <data name="Lessons.Signing.RejectDisplay" xml:space="preserve"><value>您簽核退回</value></data>
 </root>

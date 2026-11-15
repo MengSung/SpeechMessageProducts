@@ -14,8 +14,8 @@
   "SpeechMessageProducts.ChurchReport/bower.json": "宣告舊前端套件及版本需求，供Bower相容工具辨識；目前頁面仍以實際資源引用為準，變更不能自行下載替換已核定DevExtreme／Bootstrap，套件內容及授權須另外核對。",
   "SpeechMessageProducts.ChurchReport/runtimeconfig.template.json": "提供.NET主機runtimeconfig的發佈範本，讓建置輸出採用核定執行階段選項；修改會影響程序行為，須核對Debug／Release、GC及ICU相關啟動守門，不以模板存在當實際啟動驗證。",
   "SpeechMessageProducts.sln": "列出正式方案的產品、共用層及測試專案與組態映射，供IDE、dotnet及架構工具取得權威依賴範圍；新增／移除專案須同步核對中央套件、測試、target及重複來源守門，不能只改資料夾。",
-  "d365/registration/plugins.registration.json": "宣告schemaVersion 2的SpeechMessage沙箱多組件、型別、模組與step註冊需求，含legacy對照與尚未驗收的shadowReport欄位，供Deployment CLI離線驗證及plan／apply比對；清單只可含受管metadata與秘密佔位，不保存真實secure configuration、憑證或收件者資料。只允許核定測試組織的受控命令消費，清單本身沒有授權能力。",
-  "d365/schema/speechmessagecore.schema.json": "宣告SpeechMessageCore受管實體、欄位、lookup、日期行為與alternate key需求；頂層activePhase限制本次規劃可納入的最高欄位phase，現行值4使new_sinopacprofile進入只新增plan。讀取或產生plan不代表已在D365建立欄位；不得以此自動修改既有欄位，所有寫入仍需組織白名單、即時metadata及plan hash核對。",
+  "d365/registration/plugins.registration.json": "宣告schemaVersion 2的SpeechMessage沙箱多組件、型別、模組與step註冊需求，含legacy對照與尚未驗收的shadowReport欄位；依05A修訂2，基準只接受legacy-golden、reading、deferred-to-P7或new，不保存已退役的legacy-live／legacy-live-only。供Deployment CLI離線驗證及plan／apply比對；清單只可含受管metadata與秘密佔位，不保存真實secure configuration、憑證或收件者資料。只允許核定測試組織的受控命令消費，清單本身沒有授權能力。",
+  "d365/schema/speechmessagecore.schema.json": "宣告SpeechMessageCore受管實體、欄位、lookup、日期行為與alternate key需求；頂層activePhase限制本次規劃可納入的最高欄位phase，現行值5納入P4永豐設定與P5課程進階設定及儲存標記，兩個P5 optional字串欄必須先plan確認只新增本包。讀取或產生plan不代表已在D365建立欄位；不得以此自動修改既有欄位，所有寫入仍需組織白名單、即時metadata及plan hash核對。",
   "docs/portable/member-info-portable-kit/manifest.json": "記錄可攜會友功能套件的檔案相對身分與完整性資訊，由verify-package.ps1核對交付內容；參考實作是特定版本快照，不能冒充目前工作樹的正式產品來源或藉更新manifest掩蓋缺漏。",
   "docs/publication-contracts.json": "宣告跨產品資料列發布的契約覆蓋範圍與可追溯實作／測試入口，供PublicationContractManifestTests檢查；新增產品須登記穩定ID、完整快照、隔離與排空證據，不能只增加檔名聲稱已完成。",
   "global.json": "固定目前方案.NET SDK版本與roll-forward選擇，讓本機、IDE及CI採同一工具鏈；SDK版本不是產品TargetFramework，升版必須核對net462／net10輸出、還原及完整建置證據。所有目標仍須實際建置與執行測試，不以工具鏈選擇成功替代驗收。",
@@ -58,5 +58,7 @@
   "SpeechMessageProducts.GoodShepherd.Core.Tests/Golden/Legacy/lessonsequipment/scenarios.json": "保存P5-07設備模組四案合成輸入，供Core及真活動離線測試共用；依舊EquipmentUtility逐欄閱讀，不含機密，不觸發實機，正式身分使用唯一代號且保留來源／會友教會差異。",
   "SpeechMessageProducts.GoodShepherd.Core.Tests/Golden/Legacy/lessonsequipment/expected.json": "保存P5-07設備模組四案合成期望，basis=reading並逐案附舊檔行號與declaredDifferences；正常最高階、未完成、未知階名及跨教會拒絕由獨立手寫值判斷，不以實作重生，不宣稱legacy-golden或實機差異0。",
   "SpeechMessageProducts.GoodShepherd.Core.Tests/Golden/Legacy/lessonslink/scenarios.json": "P5-07課程連結的四個共享合成情境；Create／Update、QR活動及缺教會拒絕，alias依harness固定SHA-256建立ID，不保存真實組織或機密。每案明列來源課程、主要聯絡人、教會、訊息及活動參數；由兩個測試宿主唯讀載入，所有樹與身分映射只屬於該次測試。",
-  "SpeechMessageProducts.GoodShepherd.Core.Tests/Golden/Legacy/lessonslink/expected.json": "P5-07課程連結的reading期望及D5-6刻意差異；舊31／32張圖改成單筆圖片組待辦，規則與真外殼逐欄核對，不冒稱舊程式實跑或實機影子驗收。待辦型別與狀態依結構快照固定為整數；名稱依既有追蹤契約只存字元長度與雜湊，課程識別為固定合成值，沒有推播或真實圖片發布結果。"
+  "SpeechMessageProducts.GoodShepherd.Core.Tests/Golden/Legacy/lessonslink/expected.json": "P5-07課程連結的reading期望及D5-6刻意差異；舊31／32張圖改成單筆圖片組待辦，規則與真外殼逐欄核對，不冒稱舊程式實跑或實機影子驗收。待辦型別與狀態依結構快照固定為整數；名稱依既有追蹤契約只存字元長度與雜湊，課程識別為固定合成值，沒有推播或真實圖片發布結果。",
+  "SpeechMessageProducts.GoodShepherd.Core.Tests/Golden/Legacy/lessonssigning/scenarios.json": "P5-07簽核分派離線合成情境，所有正式身分均為測試資料，不連任何組織、不含機密。提供可重現輸入供規則或真外殼讀取，liveShadow=false，不代表實機成功。",
+  "SpeechMessageProducts.GoodShepherd.Core.Tests/Golden/Legacy/lessonssigning/expected.json": "P5-07簽核reading期望，逐條附舊來源與行號；付款成功前置保留舊建單／兩次回寫及金流依賴，動態回應只記來源、不捏造結果。P5-PROP-006核定缺口另列，不放declaredDifferences、不算差異0或P7補驗；其他正常簽核由真外殼核對，不宣稱LINE送達。"
 }

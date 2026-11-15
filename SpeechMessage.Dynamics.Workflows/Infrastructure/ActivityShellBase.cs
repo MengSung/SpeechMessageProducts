@@ -8,7 +8,8 @@
  * 主要功能與流程：每次 Execute 評估 ExecutionMode，未提供或空白使用 Live，
  * 明確 Shadow 才建立兩個 recorder，其他值固定拒絕而不回顯原輸入。由平台
  * extension 取得 context／tracing／factory，以本次 UserId 借用 service；
- * 建立 ActivityInput 與 PluginServices 後呼叫 internal ExecuteRule。
+ * 建立 ActivityInput 與 PluginServices 後呼叫 internal ExecuteWithArguments；需要引數的模組
+ * 在當次 context 求值並立即轉成純值，預設仍委派原規則入口。
  * 業務拒絕比照 Plugin 使用固定資源及事件 ID；未知例外保留原實例重新拋出。
  *
  * 資源與隔離：context、規則輸入、service 與 recorder 都只屬本次同步呼叫；
@@ -92,7 +93,7 @@ public abstract class ActivityShellBase : CodeActivity
                 organization = realService;
             }
 
-            ExecuteRule(input, new PluginServices(organization, shadowPush, isShadow));
+            ExecuteWithArguments(context, input, new PluginServices(organization, shadowPush, isShadow));
         }
         catch (BusinessRuleException exception)
         {
@@ -175,6 +176,17 @@ public abstract class ActivityShellBase : CodeActivity
             // 沙箱失敗交回平台；不保存例外、SDK 或使用者內容以建立另一條背景通知路徑。
         }
     }
+
+    /// <summary>
+    /// 需要 WF 引數的模組可於本次呼叫覆寫此入口，使用 context 求值後立即轉成純值；
+    /// 預設委派既有規則，維持其他活動及 CAS 的原介面與行為。context 只供同步借用，
+    /// 不得保存於活動欄位、靜態資料、快取或脫離本次呼叫的工作。
+    /// </summary>
+    /// <param name="context">平台本次 WF context，求值後不得保留參照。</param>
+    /// <param name="input">已擷取的不可變平台識別，活動引數不能覆寫其授權邊界。</param>
+    /// <param name="services">本次借用服務，非同步工作仍須同步排空。</param>
+    internal virtual void ExecuteWithArguments(CodeActivityContext context, ActivityInput input, PluginServices services) =>
+        ExecuteRule(input, services);
 
     /// <summary>
     /// 模組的同步規則入口，只接受當次不可變識別與借用服務。
