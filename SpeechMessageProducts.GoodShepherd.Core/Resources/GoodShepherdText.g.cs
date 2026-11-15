@@ -53,6 +53,7 @@ namespace SpeechMessageProducts.GoodShepherd.Core.Resources
             new string?[] { "Keyword.SundayAttendance", "SERVICE|Service|service|主崇實體|主崇線上|主日1|主日2|主日6|主日?席|主日出席|主日報到|主日簽到|台語場|周六場|國語場|臺語場|華語場|週六場", null, "［SERVICE|Service|service|主崇實體|主崇線上|主日1|主日2|主日6|主日?席|主日出席|主日報到|主日簽到|台語場|周六場|國語場|臺語場|華語場|週六場ǂǂǂǂǂǂǂǂǂǂǂǂǂǂǂǂǂǂǂǂǂǂǂǂǂǂǂǂǂǂǂǂǂǂǂǂ］" },
             new string?[] { "Keyword.Testimony", "@見證", null, "［@見證ǂǂ］" },
             new string?[] { "Keyword.UserReply", "$", null, "［$ǂ］" },
+            new string?[] { "Lessons.EquipmentStages", "尚未裝備|門徒學校上|E1成長營|門徒學校下|E2門徒營|幸福大學上|E3領袖營|幸福大學下", null, "［尚未裝備|門徒學校上|E1成長營|門徒學校下|E2門徒營|幸福大學上|E3領袖營|幸福大學下ǂǂǂǂǂǂǂǂǂǂǂǂǂǂǂǂǂǂǂ］" },
             new string?[] { "Webhook.Audio.FileName", "聲音檔案.m4a", null, "［聲音檔案.m4aǂǂǂǂ］" },
             new string?[] { "Webhook.Audio.Subject", "附加聲音檔案", null, "［附加聲音檔案ǂǂǂ］" },
             new string?[] { "Webhook.Postback.Action", "動作", null, "［動作ǂ］" },
