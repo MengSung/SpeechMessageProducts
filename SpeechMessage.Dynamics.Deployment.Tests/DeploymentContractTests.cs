@@ -7,6 +7,8 @@
  * 主要功能與流程：
  * 本檔宣告 DeploymentContractTests、ThrowingConnector、TrackingConnector、DeploymentWorkingDirectoryScope、Fixture、
  * MemoryOrganization、AdvancingClock、OwnedTimer。
+ * - 匯出 CLI 案例使用案例私有的單組件清單及方案根，避免正式清單新增模組改變故障注入路徑；
+ *   工作目錄 scope 先恢復原目錄，再由 fixture 清除暫存，不與其他集合平行。
  * - 保留 plan 操作的固定順序，避免每個案例重複配置相同期待陣列。
  * - 只供 CLI 拒絕案例使用的合成密碼參數範本；呼叫時複製以維持案例隔離。
  * - 只供白名單拒絕案例使用的合成參數範本；每次呼叫複製避免共用可變陣列。
@@ -977,6 +979,7 @@ public sealed class DeploymentContractTests
     public void Cli_ExportCommand_DisposesCommandLease()
     {
         using var f = new Fixture();
+        using var repository = f.EnterCliRepository();
         var connector = new TrackingConnector(f.Service);
         using var output = new StringWriter(CultureInfo.InvariantCulture);
 
@@ -998,6 +1001,7 @@ public sealed class DeploymentContractTests
     public void Cli_ExportFailure_DisposesLeaseAndRedactsException()
     {
         using var f = new Fixture();
+        using var repository = f.EnterCliRepository();
         var failure = new InvalidOperationException("synthetic connection detail " + Fixture.SecretValue);
         f.Service.RetrieveFailure = failure;
         var connector = new TrackingConnector(f.Service);
@@ -1032,6 +1036,7 @@ public sealed class DeploymentContractTests
     public void Cli_DataverseFault_ShowsOnlyCodesAndReportsOriginalOnce(bool reporterFails)
     {
         using var f = new Fixture();
+        using var repository = f.EnterCliRepository();
         var detail = CreateSensitiveFault(unchecked((int)0x80040220),
             CreateSensitiveFault(unchecked((int)0x80040217)));
         var failure = new FaultException<OrganizationServiceFault>(detail, new FaultReason(Fixture.SecretValue));
@@ -1082,6 +1087,7 @@ public sealed class DeploymentContractTests
     public void Cli_DataverseFault_NestedOrCyclicChain_IsBounded(bool cyclic)
     {
         using var f = new Fixture();
+        using var repository = f.EnterCliRepository();
         var fourth = CreateSensitiveFault(int.MaxValue, CreateSensitiveFault(42));
         var first = CreateSensitiveFault(int.MinValue,
             CreateSensitiveFault(0, CreateSensitiveFault(1, fourth)));
@@ -1111,6 +1117,7 @@ public sealed class DeploymentContractTests
     public void Cli_DataverseFault_NullDetail_PreservesFailure()
     {
         using var f = new Fixture();
+        using var repository = f.EnterCliRepository();
         var failure = new FaultException<OrganizationServiceFault>(null!, new FaultReason(Fixture.SecretValue));
         f.Service.RetrieveFailure = failure;
         var connector = new TrackingConnector(f.Service);
@@ -1138,6 +1145,7 @@ public sealed class DeploymentContractTests
         var run = typeof(Program).GetMethod("RunCommand", BindingFlags.NonPublic | BindingFlags.Static);
         Assert.NotNull(run);
         using var f = new Fixture();
+        using var repository = f.EnterCliRepository();
         f.Service.RetrieveFailure = new FaultException<OrganizationServiceFault>(
             CreateSensitiveFault(unchecked((int)0x80040220), CreateSensitiveFault(1)),
             new FaultReason(Fixture.SecretValue));
@@ -1438,6 +1446,49 @@ internal sealed class Fixture : IDisposable
         Assert.True(result.Success, string.Join("\n", result.Diagnostics.Select(x => x.ToString())));
         return path;
     }
+    /// <summary>
+    /// 為單組件匯出契約建立案例私有方案與清單，再短暫切換程序工作目錄。
+    /// 匯出不讀 DLL，因此不產生 PE；正式清單的組件數不得改變本案例的故障注入路徑。
+    /// 僅能由禁止平行的 Deployment working directory 集合使用，呼叫端必須在 fixture 前釋放 scope。
+    /// </summary>
+    /// <returns>唯一擁有本次工作目錄還原責任的 scope；檔案仍由 fixture 清除。</returns>
+    public IDisposable EnterCliRepository()
+    {
+        var manifestDirectory = Path.Combine(Root, "d365", "registration");
+        Directory.CreateDirectory(manifestDirectory);
+        File.WriteAllText(Path.Combine(Root, "SpeechMessageProducts.sln"), string.Empty);
+        File.WriteAllText(Path.Combine(manifestDirectory, "plugins.registration.json"),
+            System.Text.Json.JsonSerializer.Serialize(
+                new RegistrationDocument { Assemblies = new[] { Manifest } }, RegistrationManifestLoader.Json));
+        return new CliRepositoryScope(Root);
+    }
+
+    /// <summary>
+    /// 只持有原工作目錄至單一同步案例結束；不保存 SDK、憑證或背景工作。
+    /// 還原成功後清除原路徑，重複 Dispose 無副作用；還原失敗則保留責任並讓測試失敗。
+    /// </summary>
+    private sealed class CliRepositoryScope : IDisposable
+    {
+        /// <summary>尚未還原的程序工作目錄；不跨案例分享。</summary>
+        private string? previousDirectory;
+
+        /// <summary>檔案建立完畢後才切換；切換失敗不交付 scope，也不刪除呼叫端目錄。</summary>
+        /// <param name="root">本案例獨占且已建立的方案根。</param>
+        public CliRepositoryScope(string root)
+        {
+            previousDirectory = Directory.GetCurrentDirectory();
+            Directory.SetCurrentDirectory(root);
+        }
+
+        /// <summary>必須在外層 fixture 刪除暫存根之前恢復工作目錄，不吞掉還原失敗。</summary>
+        public void Dispose()
+        {
+            if (previousDirectory is null) return;
+            Directory.SetCurrentDirectory(previousDirectory);
+            previousDirectory = null;
+        }
+    }
+
     /// <summary>待測程式已釋放 reader、stream、timer 後立即刪除案例自己的唯一根。</summary>
     public void Dispose() => Directory.Delete(Root, recursive: true);
 }
