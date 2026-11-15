@@ -40,5 +40,7 @@
   <ItemGroup>
     <EmbeddedResource Include="../SpeechMessageProducts.GoodShepherd.Core.Tests/Golden/Legacy/weeklyreports/*.json"
                       Link="Golden/weeklyreports/%(Filename)%(Extension)" />
+    <EmbeddedResource Include="../SpeechMessageProducts.GoodShepherd.Core.Tests/Golden/Legacy/attendance/*.json"
+                      Link="Golden/attendance/%(Filename)%(Extension)" />
   </ItemGroup>
 </Project>

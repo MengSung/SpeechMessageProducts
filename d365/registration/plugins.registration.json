@@ -292,6 +292,44 @@
               "stepId": "b533a2a3-f50d-f011-8143-00155d006608"
             }
           ]
+        },
+        {
+          "type": "SpeechMessage.Dynamics.Plugins.Attendance.PresentRecordPlugin",
+          "message": "Update",
+          "entity": "new_present_record",
+          "stage": "PostOperation",
+          "mode": "Asynchronous",
+          "rank": 40,
+          "module": "attendance",
+          "filteringAttributes": [
+            "new_paster_reply"
+          ],
+          "images": [
+            {
+              "name": "PreImage",
+              "attributes": [
+                "new_paster_reply"
+              ],
+              "type": "PreImage"
+            }
+          ],
+          "unsecureConfig": "{\"mode\":\"Shadow\"}",
+          "secureConfig": "",
+          "enabledByOrganization": {
+            "goodshepherdback": false
+          },
+          "legacy": [
+            {
+              "assembly": "PresentRecordLinePlugInDatabase",
+              "type": "PresentRecordLinePlugIn.PresentRecordLinePlugIn",
+              "stepId": "891bf94a-f80d-f011-8143-00155d006608"
+            }
+          ],
+          "shadowReport": {
+            "file": "",
+            "differences": null,
+            "basis": "reading"
+          }
         }
       ]
     },
