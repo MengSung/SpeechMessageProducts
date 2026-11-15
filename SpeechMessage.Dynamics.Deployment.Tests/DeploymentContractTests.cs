@@ -12,6 +12,8 @@
  * - 只供白名單拒絕案例使用的合成參數範本；每次呼叫複製避免共用可變陣列。
  * - CLI 說明案例的固定輸入，避免每次執行測試重複配置參數陣列。
  * - member 以首次建立與 trace 更新兩條真實 Apply 路徑驗證單欄 tokenKey JSON，並斷言重新計畫冪等及 plan／export 不含合成秘密。
+ * - 新步驟模擬 CRM 固定從啟用狀態建立；預設停用須以同 ID 的建立／更新交易完成，
+ *   第二項寫入故障時捨棄獨立候選及交易寫入紀錄，原組織不得留下啟用步驟。
  * 測試案例入口包含 Plan_EmptyOrganization_CreatesAssemblyTypeAndStep、Plan_SameState_NoOperations、
  * Apply_ConfigurationChanged_UpdatesSameStepAndRemainsIdempotent、
  * Verify_SecretValuesUnchecked_ReturnsIncompleteAndDisclosesScope、
@@ -509,7 +511,11 @@ public sealed class DeploymentContractTests
         Assert.NotEmpty(f.Service.Writes);
     }
 
-    /// <summary>缺少組織啟用值一律停用；只有明確 true 才啟用，兩者皆保護。</summary>
+    /// <summary>
+    /// 缺少組織啟用值時，須以同一預配 ID 交易建立啟用列並立即停用；
+    /// 明確 true 則直接建立。獨立 SDK 替身拒絕建立時使用停用 status，
+    /// 並核對兩項請求、初始／最終狀態及重新規劃冪等；fixture 清除案例暫存。
+    /// </summary>
     /// <param name="enabled">該組織是否明確核定啟用。</param>
     [Theory(DisplayName = "新步驟預設停用，明確啟用才開啟")]
     [InlineData(false)] [InlineData(true)]
@@ -519,6 +525,69 @@ public sealed class DeploymentContractTests
         f.Engine.Apply(f.Plan(), f.Manifest, f.Image);
         var step = Assert.Single(f.Service.Rows.Where(x => x.LogicalName == "sdkmessageprocessingstep"));
         Assert.Equal(enabled ? 0 : 1, step.GetAttributeValue<OptionSetValue>("statecode").Value);
+        Assert.Equal(enabled ? 1 : 2, step.GetAttributeValue<OptionSetValue>("statuscode").Value);
+        if (enabled)
+        {
+            Assert.Null(f.Service.LastTransaction);
+            Assert.DoesNotContain("Update:sdkmessageprocessingstep", f.Service.Writes);
+        }
+        else
+        {
+            var transaction = Assert.IsType<ExecuteTransactionRequest>(f.Service.LastTransaction);
+            Assert.Equal(2, transaction.Requests.Count);
+            var create = Assert.IsType<CreateRequest>(transaction.Requests[0]).Target;
+            var update = Assert.IsType<UpdateRequest>(transaction.Requests[1]).Target;
+            Assert.Equal("sdkmessageprocessingstep", create.LogicalName);
+            Assert.Equal(create.LogicalName, update.LogicalName);
+            Assert.NotEqual(Guid.Empty, create.Id);
+            Assert.Equal(step.Id, create.Id);
+            Assert.Equal(create.Id, update.Id);
+            Assert.Equal(0, create.GetAttributeValue<OptionSetValue>("statecode").Value);
+            Assert.Equal(1, create.GetAttributeValue<OptionSetValue>("statuscode").Value);
+            Assert.Equal(1, update.GetAttributeValue<OptionSetValue>("statecode").Value);
+            Assert.Equal(2, update.GetAttributeValue<OptionSetValue>("statuscode").Value);
+            Assert.Equal(["Create:sdkmessageprocessingstep", "Update:sdkmessageprocessingstep"],
+                f.Service.Writes.Where(write => write.EndsWith(":sdkmessageprocessingstep", StringComparison.Ordinal)));
+        }
+        Assert.Empty(f.Plan().Operations);
+    }
+
+    /// <summary>
+    /// 由 BeforeWrite 在停用交易第二項注入原始例外，確認第一項建立只存在於交易候選，
+    /// 失敗後無任何啟用或停用步驟、無已提交的步驟寫入紀錄；既有組件／型別仍保留。
+    /// 移除故障後重新規劃套用須產生唯一停用步驟且冪等；案例自己的 fixture 清除暫存。
+    /// </summary>
+    [Fact(DisplayName = "停用交易第二項失敗回滾且不殘留啟用步驟")]
+    public void Apply_NewDisabledStep_SecondTransactionWriteFails_RollsBackWithoutEnabledResidue()
+    {
+        using var f = new Fixture();
+        var failure = new InvalidOperationException("Synthetic disabled-step update failure.");
+        var transactionWrites = 0;
+        f.Service.BeforeWrite = () =>
+        {
+            if (f.Service.LastTransaction is null) return;
+            Assert.Empty(f.Service.Rows.Where(row => row.LogicalName == "sdkmessageprocessingstep"));
+            if (++transactionWrites == 2) throw failure;
+        };
+
+        var actual = Assert.Throws<InvalidOperationException>(() =>
+            f.Engine.Apply(f.Plan(), f.Manifest, f.Image));
+
+        Assert.Same(failure, actual);
+        Assert.Equal(2, transactionWrites);
+        Assert.Empty(f.Service.Rows.Where(row => row.LogicalName == "sdkmessageprocessingstep"));
+        Assert.Single(f.Service.Rows.Where(row => row.LogicalName == "pluginassembly"));
+        Assert.Single(f.Service.Rows.Where(row => row.LogicalName == "plugintype"));
+        Assert.DoesNotContain(f.Service.Writes,
+            write => write.EndsWith(":sdkmessageprocessingstep", StringComparison.Ordinal));
+        f.Service.BeforeWrite = null;
+
+        f.Engine.Apply(f.Plan(), f.Manifest, f.Image);
+
+        var step = Assert.Single(f.Service.Rows.Where(row => row.LogicalName == "sdkmessageprocessingstep"));
+        Assert.Equal(1, step.GetAttributeValue<OptionSetValue>("statecode").Value);
+        Assert.Equal(2, step.GetAttributeValue<OptionSetValue>("statuscode").Value);
+        Assert.Empty(f.Plan().Operations);
     }
 
     /// <summary>更新組件內容及停用狀態後，rollback 要還原兩者而非只改版本字串。</summary>
@@ -1391,6 +1460,11 @@ internal sealed class MemoryOrganization : IOrganizationService, IDisposable
     public List<Entity> Rows { get; } = new();
     /// <summary>用於驗證寫入先後順序的固定事件，不包含欄位值。</summary>
     public List<string> Writes { get; } = new();
+    /// <summary>
+    /// 僅保留本案例最後一筆兩項交易供核對請求 ID 與初始狀態；下一筆覆寫，不另增 Writes 事件。
+    /// 請求與合成設定只活到 fixture 結束，不跨案例共用，也不代表已提交。
+    /// </summary>
+    public ExecuteTransactionRequest? LastTransaction { get; private set; }
     /// <summary>寫入前檢查 export 的故障注入點。</summary>
     public Action? BeforeWrite { get; set; }
     /// <summary>只供 smoke 對應記錄的合成追蹤內容；null 表示尚無回應。</summary>
@@ -1408,13 +1482,24 @@ internal sealed class MemoryOrganization : IOrganizationService, IDisposable
     /// <summary>只在安排階段注入列，不計入產品 SDK 寫入。</summary>
     /// <param name="entity">只屬本案例的假列。</param>
     public void Seed(Entity entity) => Rows.Add(entity);
-    /// <summary>模擬資料庫生成 ID，並記錄唯一身份；task 帶動自己專用的非同步作業。</summary>
+    /// <summary>
+    /// 模擬資料庫生成 ID；步驟建立固定採 CRM 初始 state 0，拒絕與之不相容的 status 2，
+    /// 不讓輸入的 state 1 掩蓋錯誤。其餘實體保持既有行為，task 帶動案例自己的非同步作業。
+    /// </summary>
     /// <param name="entity">候選列。</param><returns>資料庫身份。</returns>
     public Guid Create(Entity entity)
     {
         ValidateStepAttributes(entity.LogicalName, entity.Attributes.Keys);
+        var copy = Copy(entity);
+        if (entity.LogicalName == "sdkmessageprocessingstep")
+        {
+            if (entity.GetAttributeValue<OptionSetValue>("statuscode") is { Value: not 1 })
+                throw new InvalidOperationException("Synthetic InvalidStateCodeStatusCode: initial step state is Enabled.");
+            copy["statecode"] = new OptionSetValue(0);
+            copy["statuscode"] = new OptionSetValue(1);
+        }
         Record("Create:" + entity.LogicalName);
-        var copy = Copy(entity); if (copy.Id == Guid.Empty) copy.Id = Guid.NewGuid(); Rows.Add(copy);
+        if (copy.Id == Guid.Empty) copy.Id = Guid.NewGuid(); Rows.Add(copy);
         if (entity.LogicalName == "task")
         {
             var correlation = Guid.NewGuid();
@@ -1504,10 +1589,44 @@ internal sealed class MemoryOrganization : IOrganizationService, IDisposable
             ValidateStepFilter(entityName, child);
         }
     }
-    /// <summary>模擬狀態切換；未定義訊息拒絕，避免假的成功。</summary>
+    /// <summary>
+    /// 模擬中繼資料、狀態切換及只含兩項 Create／Update 的交易；其他訊息拒絕。
+    /// 交易使用獨立候選，故障自然捨棄，成功後才同步發布列與原有種類的 Writes。
+    /// </summary>
     /// <param name="request">SDK 訊息。</param><returns>合成回應。</returns>
     public OrganizationResponse Execute(OrganizationRequest request)
     {
+        if (request is ExecuteTransactionRequest transaction)
+        {
+            if (transaction.Requests.Count != 2 ||
+                transaction.Requests.Any(item => item is not (CreateRequest or UpdateRequest)))
+                throw new NotSupportedException("Synthetic transactions require two Create/Update requests.");
+
+            LastTransaction = transaction;
+            using var candidate = new MemoryOrganization { BeforeWrite = BeforeWrite };
+            candidate.Rows.AddRange(Rows.Select(Copy));
+            var responses = new OrganizationResponseCollection();
+            foreach (var item in transaction.Requests)
+            {
+                if (item is CreateRequest create)
+                {
+                    var id = candidate.Create(create.Target);
+                    if (transaction.ReturnResponses == true)
+                        responses.Add(new CreateResponse { Results = { ["id"] = id } });
+                }
+                else if (item is UpdateRequest update)
+                {
+                    candidate.Update(update.Target);
+                    if (transaction.ReturnResponses == true) responses.Add(new UpdateResponse());
+                }
+            }
+
+            // 假服務只在單一案例同步使用；發布前所有寫入與故障掛鉤均已完成，不能逐項改動原 Rows。
+            Rows.Clear();
+            Rows.AddRange(candidate.Rows);
+            Writes.AddRange(candidate.Writes);
+            return new ExecuteTransactionResponse { Results = { ["Responses"] = responses } };
+        }
         if (request is RetrieveEntityRequest metadata)
         {
             Assert.Equal("task", metadata.LogicalName);

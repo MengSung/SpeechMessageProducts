@@ -11,6 +11,7 @@
  * - 將清單、組件 PE 與組織中的受管理 metadata 作離線式比對，建立沒有憑證值的 plan。 此方法只讀取組件、類型、訊息、篩選器與步驟，不讀取業務記錄，也不解析秘密。
  * - 建立可由人工審核的 Markdown 摘要。輸出只列固定欄位、operation、hash 與佔位名稱， 不列出 unsecure／secure 設定實值、帳密、LINE token 或 userId。
  * - member 安全設定僅在 apply 寫入時組成單欄 tokenKey JSON，建立與更新共用轉換；trace／push 保持原契約，秘密不進 plan、export 或快取。
+ * - 新停用步驟以當次 GUID 在固定兩項交易內建立並停用；交易失敗回滾，不發布暫時啟用列。
  * - smoke 版本輸出只接受本次 task 關聯的唯一診斷追蹤，驗證完整 PluginFileVersion 行後才透過操作區域回呼發布；
  *   原始追蹤與回呼不存入欄位，拒絕缺失、重複或非正規版本，task／timer 仍由原 finally／using 清理。
  * 主要操作入口包含 Plan、Markdown、Apply、WriteExport、Rollback、SmokeAsync、Inspect、CreateAssembly；其餘入口見下方成員契約。
@@ -32,6 +33,7 @@ using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Xrm.Sdk;
+using Microsoft.Xrm.Sdk.Messages;
 using Microsoft.Xrm.Sdk.Query;
 
 namespace SpeechMessage.Dynamics.Deployment;
@@ -572,7 +574,13 @@ internal sealed partial class DeploymentEngine
         });
     }
 
-    /// <summary>以服務生成的穩定 ID 建立步驟；秘密只在寫入框架內解析，secure 建立後若步驟失敗則確定清理。</summary>
+    /// <summary>
+    /// 建立步驟並維持清單核定狀態。CRM 9.1 建立時使用初始啟用狀態，
+    /// 因此停用步驟須以當次預配 GUID，在同一交易內建立合法初始列並立即停用；
+    /// 任一項失敗即回滾，交易外不能看到啟用列。明確啟用仍直接建立。
+    /// 固定兩項同步請求只借用本命令 SDK 租約，不建立背景工作或跨命令狀態；
+    /// 秘密僅在寫入框架解析，交易失敗沿既有路徑清除事先建立的 secure 設定。
+    /// </summary>
     private void CreateStep(string stepKey, RegistrationManifest manifest)
     {
         var registration = FindStepRegistration(manifest, stepKey);
@@ -612,15 +620,36 @@ internal sealed partial class DeploymentEngine
                 ["rank"] = registration.Rank,
                 ["filteringattributes"] = string.Join(",", registration.FilteringAttributes),
                 ["configuration"] = unsecureConfiguration,
-                ["statecode"] = new OptionSetValue(enabled ? 0 : 1),
-                ["statuscode"] = new OptionSetValue(enabled ? 1 : 2)
+                ["statecode"] = new OptionSetValue(0),
+                ["statuscode"] = new OptionSetValue(1)
             };
             if (secureConfigurationReference is not null)
             {
                 step[StepSecureConfigurationLookup] = secureConfigurationReference;
             }
 
-            service.Create(step);
+            if (enabled)
+            {
+                service.Create(step);
+            }
+            else
+            {
+                step.Id = Guid.NewGuid();
+                var disabled = new Entity(StepLogicalName, step.Id)
+                {
+                    ["statecode"] = new OptionSetValue(1),
+                    ["statuscode"] = new OptionSetValue(2)
+                };
+                service.Execute(new ExecuteTransactionRequest
+                {
+                    ReturnResponses = false,
+                    Requests = new OrganizationRequestCollection
+                    {
+                        new CreateRequest { Target = step },
+                        new UpdateRequest { Target = disabled }
+                    }
+                });
+            }
         }
         catch
         {
