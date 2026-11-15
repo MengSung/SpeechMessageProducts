@@ -31,7 +31,7 @@ public sealed class LessonSigningMessageFactoryTests
 
     /// <summary>同意與退回的 action 都指向同一正式課程紀錄及簽核者。</summary>
     [Fact]
-    public void Create_ApproveAndReject_MatchLegacyDecisionContract()
+    public void Lessons_Signing_ApproveAndReject_MatchLegacy()
     {
         var message = LessonSigningMessageFactory.Create(new LessonSigningMessageInput(
             StorLessonId, SignerId, "課程名稱", "學員姓名", "已完成", "https://image.example/course.png",
