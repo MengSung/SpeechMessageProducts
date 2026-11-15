@@ -9,16 +9,28 @@
       "lineCalls": [
         {
           "method": "POST",
-          "endpoint": "/v2/bot/message/multicast",
-          "recipients": [ "contact-1" ],
-          "messageCount": 1
+          "endpoint": "/v2/bot/message/push",
+          "recipients": [
+            "contact-1"
+          ],
+          "messageCount": 1,
+          "messages": [
+            {
+              "type": "text",
+              "text": "Synthetic Member 代禱事項: 合成代禱事項：測試平安\r\n牧者回應: 合成牧者回應：持續關懷"
+            }
+          ],
+          "templateKey": "Attendance.PastorReply",
+          "retryKey": "present-1"
         }
       ],
       "outputs": {
         "observed": {
           "entity": "new_present_record",
           "alias": "present-1",
-          "changedFields": [ "new_paster_reply" ]
+          "changedFields": [
+            "new_paster_reply"
+          ]
         }
       },
       "exception": null
@@ -63,36 +75,82 @@
         }
       },
       "exception": null
+    },
+    {
+      "name": "attendance-other-church",
+      "entrypoint": "PresentRecordLinePlugIn.PresentRecordLinePlugIn",
+      "writes": [],
+      "lineCalls": [],
+      "outputs": {
+        "observed": {
+          "entity": "new_present_record",
+          "alias": "present-1",
+          "changedFields": [
+            "new_paster_reply"
+          ]
+        }
+      },
+      "exception": null
+    },
+    {
+      "name": "attendance-not-bound",
+      "entrypoint": "PresentRecordLinePlugIn.PresentRecordLinePlugIn",
+      "writes": [],
+      "lineCalls": [],
+      "outputs": {
+        "observed": {
+          "entity": "new_present_record",
+          "alias": "present-1",
+          "changedFields": [
+            "new_paster_reply"
+          ]
+        }
+      },
+      "exception": null
     }
   ],
   "declaredDifferences": [
     {
       "case": "attendance-reply-changed",
-      "position": "$.cases[0].lineCalls[0]",
+      "position": "$.cases[0].lineCalls",
       "category": 5,
-      "reason": "D5-3 閱讀對照：Update 只在 new_paster_reply 與 PresentRecordLineImage 不同時組訊息並推播；依 PresentRecordLinePlugIn/PresentRecordLinePlugInClass.cs:236-271。",
-      "test": "Attendance_ReadingComparison_ReplyChanged"
+      "reason": "D5-3閱讀：PresentRecordLinePlugInClass.cs:257-303、319-337；Create原呼叫註解不推播，Update回應Ordinal差異才通知。新入口依D5-6共用教會Channel與本人push，教會不符／未綁定拒絕；原外層吞錯改重拋。",
+      "test": "PresentRecord_Scenarios_MatchExpected"
     },
     {
       "case": "attendance-reply-unchanged",
       "position": "$.cases[1].lineCalls",
       "category": 5,
-      "reason": "D5-3 閱讀對照：回覆與前映像相同時不推播；依 PresentRecordLinePlugIn/PresentRecordLinePlugInClass.cs:236-251。",
-      "test": "Attendance_ReadingComparison_ReplyUnchanged"
+      "reason": "D5-3閱讀：PresentRecordLinePlugInClass.cs:257-303、319-337；Create原呼叫註解不推播，Update回應Ordinal差異才通知。新入口依D5-6共用教會Channel與本人push，教會不符／未綁定拒絕；原外層吞錯改重拋。",
+      "test": "PresentRecord_Scenarios_MatchExpected"
     },
     {
       "case": "attendance-created-no-push",
       "position": "$.cases[2].lineCalls",
       "category": 5,
-      "reason": "D5-3 閱讀對照：Create 的 directioncode 分支推播呼叫為註解，實際路徑不產生 LINE 呼叫；依 PresentRecordLinePlugIn/PresentRecordLinePlugInClass.cs:216-224。",
-      "test": "Attendance_ReadingComparison_CreateNoPush"
+      "reason": "D5-3閱讀：PresentRecordLinePlugInClass.cs:257-303、319-337；Create原呼叫註解不推播，Update回應Ordinal差異才通知。新入口依D5-6共用教會Channel與本人push，教會不符／未綁定拒絕；原外層吞錯改重拋。",
+      "test": "PresentRecord_Scenarios_MatchExpected"
     },
     {
       "case": "attendance-depth3-update-blocked",
-      "position": "$.cases[3].outputs.observed.execution",
+      "position": "$.cases[3].lineCalls",
       "category": 5,
-      "reason": "D5-3 閱讀對照：Depth 3 的非 Create 入口在外層直接返回，不建立服務或推播；依 PresentRecordLinePlugIn/PresentRecordLinePlugIn.cs:32-36。",
-      "test": "Attendance_ReadingComparison_DepthGuard"
+      "reason": "D5-3閱讀：PresentRecordLinePlugInClass.cs:257-303、319-337；Create原呼叫註解不推播，Update回應Ordinal差異才通知。新入口依D5-6共用教會Channel與本人push，教會不符／未綁定拒絕；原外層吞錯改重拋。",
+      "test": "PresentRecord_Scenarios_MatchExpected"
+    },
+    {
+      "case": "attendance-other-church",
+      "position": "$.cases[4].lineCalls",
+      "category": 5,
+      "reason": "D5-3閱讀：PresentRecordLinePlugInClass.cs:257-303、319-337；Create原呼叫註解不推播，Update回應Ordinal差異才通知。新入口依D5-6共用教會Channel與本人push，教會不符／未綁定拒絕；原外層吞錯改重拋。",
+      "test": "PresentRecord_Scenarios_MatchExpected"
+    },
+    {
+      "case": "attendance-not-bound",
+      "position": "$.cases[5].lineCalls",
+      "category": 5,
+      "reason": "D5-3閱讀：PresentRecordLinePlugInClass.cs:257-303、319-337；Create原呼叫註解不推播，Update回應Ordinal差異才通知。新入口依D5-6共用教會Channel與本人push，教會不符／未綁定拒絕；原外層吞錯改重拋。",
+      "test": "PresentRecord_Scenarios_MatchExpected"
     }
   ]
 }

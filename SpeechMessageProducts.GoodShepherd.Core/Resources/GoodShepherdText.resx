@@ -242,4 +242,5 @@ ID (查詢您的LINE ID)
   <data name="WeeklyReport.Unfilled" xml:space="preserve"><value>未填</value></data>
   <data name="WeeklyReport.CareList" xml:space="preserve"><value>關懷</value></data>
   <data name="WeeklyReport.HappinessPurpose" xml:space="preserve"><value>幸福</value></data>
+  <data name="Attendance.PastorReply" xml:space="preserve"><value>{member} 代禱事項: {prayer}&#13;&#10;牧者回應: {reply}</value></data>
 </root>
