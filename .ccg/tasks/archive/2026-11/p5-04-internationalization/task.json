@@ -1,0 +1,13 @@
+{
+  "id": "p5-04-internationalization",
+  "title": "P5-04 國際化 Plugin",
+  "status": "completed",
+  "complexity": "L",
+  "risk": "high",
+  "domain": "backend",
+  "currentPhase": "completed",
+  "nextAction": "P5-04驗收完成，封存後推送並核對遠端；接續P5-05",
+  "createdAt": "2026-11-15T08:50:37.123271+08:00",
+  "branch": "1.0.0.11.Integration.P5.Worktree",
+  "completedAt": "2026-11-15T10:00:51+08:00"
+}

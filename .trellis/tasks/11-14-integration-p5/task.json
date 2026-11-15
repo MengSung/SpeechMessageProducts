@@ -25,10 +25,11 @@
     "11-14-p5-update-rollback",
     "11-14-11-14-p5-02-legacy-golden",
     "11-14-p5-03a-shadow-switch",
-    "11-15-p5-03b-ui-activity-probe"
+    "11-15-p5-03b-ui-activity-probe",
+    "11-15-p5-04-internationalization"
   ],
   "parent": null,
   "relatedFiles": [],
-  "notes": "2026-11-15 08:48 Asia/Taipei (UTC+08:00)：P5-02 fix 限時修正收尾；反射、Task／Thread／Timer有界排空及scratch診斷已驗證，SDK預設來源已納入編譯閉包。矩陣36專案／29入口為1 Generated、28 CompileFailed、0 BlockedByNetworkApi；出席產生仍CompileFailed且無候選檔，保留basis=reading，不再擴充工具。3e040d32固定guard八項全通過，Plugin測試302項通過；P5-03依D5-19採live=deferred，接續P5-04。",
+  "notes": "2026-11-15 10:00 Asia/Taipei (UTC+08:00)：P5-04 已依 D5-19 驗收（basis=new、live=deferred、differences=null）。Core net48／net10 各201/201、Plugins347/347、Deployment768/768；52b49678 固定guard八項全通過。goodshepherdback apply成功、verify=0，六個新Shadow步驟停用、四映像；舊步驟／流程啟用數皆0。alias不符4筆保持拒絕，P5-PROP-003另案處理；接續P5-05。",
   "meta": {}
 }
