@@ -58,6 +58,22 @@ public sealed class LessonQrBundlePlanTests
             plan.Images.Single(x => x.FieldName == "new_poll_url").Content);
     }
 
+    /// <summary>待辦 payload 只接受固定 schema，並以 imageCount 重新核對問卷旗標。</summary>
+    [Fact]
+    public void Payload_Parse_ValidatesClosedCanonicalShape()
+    {
+        var payload = LessonQrBundlePayload.Parse(
+            "{\"contentVersion\":1,\"imageCount\":32,\"includePoll\":1," +
+            "\"lessonId\":\"11111111-2222-3333-4444-555555555555\",\"schema\":1}");
+
+        Assert.Equal(LessonId, payload.LessonId);
+        Assert.Equal(1, payload.ContentVersion);
+        Assert.True(payload.IncludePoll);
+        Assert.Throws<ArgumentException>(() => LessonQrBundlePayload.Parse(
+            "{\"contentVersion\":1,\"imageCount\":31,\"includePoll\":1," +
+            "\"lessonId\":\"11111111-2222-3333-4444-555555555555\",\"schema\":1}"));
+    }
+
     /// <summary>所有圖片完成後才發布，且發布返回後每個暫存stream均已關閉。</summary>
     [Fact]
     public async Task Handler_PublishesOnlyCompleteCandidateAndDisposesStreams()

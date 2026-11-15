@@ -22,6 +22,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Text.Json;
 using SpeechMessageProducts.GoodShepherd.Core.QrCodes;
 
 namespace LineMessagingProcessor.RichMenus.QrImages;
@@ -140,4 +141,59 @@ public sealed class LessonQrBundlePlan
                 throw new InvalidOperationException("QR image field is duplicated.");
         images.Add(new LessonQrImageDescriptor(field, content));
     }
+}
+
+/// <summary>解碼 D365 QR 待辦封閉 payload 的純值邊界，不保存原始 JSON 或可變節點。</summary>
+public sealed record LessonQrBundlePayload(Guid LessonId, int ContentVersion, bool IncludePoll)
+{
+    /// <summary>
+    /// 只接受 schema 1 的五欄 canonical payload；重複、遺漏、未知欄位及數量
+    /// 不一致均拒絕，避免不同版本被同一 handler 靜默解讀。
+    /// </summary>
+    public static LessonQrBundlePayload Parse(string payloadJson)
+    {
+        if (string.IsNullOrWhiteSpace(payloadJson) || payloadJson.Length > 4000)
+            throw new ArgumentException("QR bundle payload is not bounded.", nameof(payloadJson));
+
+        using var document = JsonDocument.Parse(payloadJson,
+            new JsonDocumentOptions { MaxDepth = 8, AllowTrailingCommas = false });
+        if (document.RootElement.ValueKind != JsonValueKind.Object)
+            throw new ArgumentException("QR bundle payload must be an object.", nameof(payloadJson));
+
+        var names = new HashSet<string>(StringComparer.Ordinal);
+        int? schema = null;
+        Guid? lessonId = null;
+        int? version = null;
+        int? count = null;
+        int? includePoll = null;
+        foreach (var property in document.RootElement.EnumerateObject())
+        {
+            if (!names.Add(property.Name))
+                throw new ArgumentException("QR bundle payload contains duplicate fields.", nameof(payloadJson));
+            switch (property.Name)
+            {
+                case "schema": schema = ReadInt(property.Value, property.Name); break;
+                case "lessonId": lessonId = ReadGuid(property.Value, property.Name); break;
+                case "contentVersion": version = ReadInt(property.Value, property.Name); break;
+                case "imageCount": count = ReadInt(property.Value, property.Name); break;
+                case "includePoll": includePoll = ReadInt(property.Value, property.Name); break;
+                default: throw new ArgumentException("QR bundle payload contains an unknown field.", nameof(payloadJson));
+            }
+        }
+
+        if (schema != 1 || lessonId is null || lessonId == Guid.Empty || version is null || version <= 0 ||
+            includePoll is not (0 or 1) || count != (includePoll == 1 ? 32 : 31))
+            throw new ArgumentException("QR bundle payload is invalid.", nameof(payloadJson));
+        return new LessonQrBundlePayload(lessonId.Value, version.Value, includePoll == 1);
+    }
+
+    /// <summary>讀取固定整數，拒絕浮點、字串及超出 Int32 的值。</summary>
+    private static int ReadInt(JsonElement value, string field) =>
+        value.ValueKind == JsonValueKind.Number && value.TryGetInt32(out var result)
+            ? result : throw new ArgumentException("QR bundle integer field is invalid.", field);
+
+    /// <summary>讀取正式 GUID，拒絕任意 JSON 型別與空識別。</summary>
+    private static Guid ReadGuid(JsonElement value, string field) =>
+        value.ValueKind == JsonValueKind.String && Guid.TryParse(value.GetString(), out var result) &&
+        result != Guid.Empty ? result : throw new ArgumentException("QR bundle identity field is invalid.", field);
 }
