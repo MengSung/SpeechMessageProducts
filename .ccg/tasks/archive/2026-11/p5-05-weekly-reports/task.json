@@ -1,0 +1,14 @@
+{
+  "id": "p5-05-weekly-reports",
+  "title": "P5-05 週報與Workflows專案",
+  "status": "completed",
+  "complexity": "L",
+  "risk": "high",
+  "domain": "backend",
+  "currentPhase": "completed",
+  "nextAction": "P5-05已驗收；封存收尾後推送並ls-remote核對，接續P5-06",
+  "createdAt": "2026-11-15T10:02:39+08:00",
+  "branch": "1.0.0.11.Integration.P5.Worktree",
+  "updatedAt": "2026-11-15T11:20:14+08:00",
+  "completedAt": "2026-11-15"
+}

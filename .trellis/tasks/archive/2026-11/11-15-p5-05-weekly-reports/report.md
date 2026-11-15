@@ -1,0 +1,11 @@
+# P5-05 週報與 Workflows 驗收
+
+2026-11-15 11:20 Asia/Taipei (UTC+08:00)：依05A修訂2完成統計／通知兩Plugin與生成Activity、net462嚴格Workflows專案及七輸入打包、方案與CI整合。六個共用情境涵蓋正常／邊界／錯誤，expected逐條標舊來源及declaredDifferences；basis=reading，沒有冒造legacy.json。沿用P5-02編譯結果，不再擴充harness。
+
+規則保留分類排除、缺Int32=-9999、精確舊通知文字及兩週週日；以完整教會範圍驗所有領袖／會員與正式contact身分，不寫9.1缺少的四欄。建立週報與出席使用正式穩定GUID及Create-only交易，資料庫主鍵唯一約束負責跨程序防重；各名單owner不沿用。Shadow交易先驗完整候選才發布，故障不穿透SDK。活動參數反射比對舊入口，唯一新增ExecutionMode。
+
+驗證：Core週報net48／net10各15/15；Plugins完整未插樁427/427含部分信任；Deployment769/769。Workflows覆蓋86.50%，未排除產品檔；覆蓋量測418/418略過CAS，另以未插樁完整測試驗CAS，避免Coverlet需要EnvironmentPermission。兩DLL封裝檢查通過。Plugins FileVersion1.0.0.6、SHA256 27D032EA4EE2ADBE58BF5DD3F59A5852674741FFC97B7183C477A6A9F6B02919；Workflows FileVersion1.0.0.1、SHA256 47D1456565E202DE39F6FBDA9F1F309F75D7F65DF3EC43B8EF0B9BB07FD9A87D。
+
+goodshepherdback停用plan／apply成功、verify=0；最新具名匯出共九個Plugin步驟全停用，Workflows一個活動，舊步驟／流程啟用數皆0。D5-19已結案live=deferred、differences=null，不再重試實機活動／影子；沒有業務seed或推播。11:07的export.json是Apply前況，套用後證據為document-7227951ebfd24b3ba3912adcb1b465dd下兩份具名backup：Plugins SHA256 58BAB009F2AA1CA4C2A618D8B9B95F28330672B1343D7A19D964379295CB4D17，Workflows 1871F103E08E2313E42F9BA61F9F4E0ABB87A2B0D43FDE4F5BFF2D7D4FACBBF8，均在artifacts/d365/goodshepherdback，不進版控。
+
+固定C:/smv/guard在e9332eef八項全通過；guard-p5-05-e9332eef-full.log SHA256 2DCD542A747DCFF2D4139044A6BCCC5A5DFCF0CE5D22546B35CA54FDC7415777。最初CLI八案依賴正式單組件清單，新增Workflows後提前走metadata而未觸發原故障；e9332eef讓這些匯出案例使用獨占單組件方案，保留原例外、遮罩與租約釋放斷言，未放寬假SDK或產品。綠燈後方驗收與推送，無包內外審驗收結果；代理回報的外審偏差及缺證據記plan。下一包P5-06，無需使用者操作。

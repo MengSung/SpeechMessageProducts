@@ -26,10 +26,11 @@
     "11-14-11-14-p5-02-legacy-golden",
     "11-14-p5-03a-shadow-switch",
     "11-15-p5-03b-ui-activity-probe",
-    "11-15-p5-04-internationalization"
+    "11-15-p5-04-internationalization",
+    "11-15-p5-05-weekly-reports"
   ],
   "parent": null,
   "relatedFiles": [],
-  "notes": "2026-11-15 10:00 Asia/Taipei (UTC+08:00)：P5-04 已依 D5-19 驗收（basis=new、live=deferred、differences=null）。Core net48／net10 各201/201、Plugins347/347、Deployment768/768；52b49678 固定guard八項全通過。goodshepherdback apply成功、verify=0，六個新Shadow步驟停用、四映像；舊步驟／流程啟用數皆0。alias不符4筆保持拒絕，P5-PROP-003另案處理；接續P5-05。",
+  "notes": "2026-11-15 11:20 Asia/Taipei (UTC+08:00)：P5-05已驗收，Core週報雙目標各15、Plugins427含CAS、Deployment769、Workflows覆蓋86.50%；e9332eef固定guard八項通過；goodshepherdback兩DLL停用部署verify=0、九步驟全停用、舊啟用0。reading/live=deferred，接續P5-06。",
   "meta": {}
 }
