@@ -35,6 +35,9 @@ namespace SpeechMessageProducts.GoodShepherd.Core.Lessons;
 /// <summary>僅在當次通知期間借用 SDK 與 key 的共用分派；所有來源由服務端正式 lookup 決定。</summary>
 public static class LessonSigningDispatch
 {
+    /// <summary>核定缺口的固定繁中標記，從中性資源取得，不帶來源或credential。</summary>
+    public static string ApprovedGapMarker => LessonText.Get("Lessons.Signing.ApprovedGapMarker");
+
     /// <summary>Plugin只依平台Create／Update選擇既有分派參數，業務文字由固定資源取得。</summary>
     public static string DefaultParameter(string message) => message switch
     {
@@ -54,7 +57,7 @@ public static class LessonSigningDispatch
     public static bool NotifyLeader(string message, string? parameter)
     {
         if (TryNotifyLeader(message, parameter, out var leader)) return leader;
-        throw new InvalidPluginExecutionException("未實作：P5-PROP-006");
+        throw new InvalidPluginExecutionException(ApprovedGapMarker);
     }
 
     /// <summary>

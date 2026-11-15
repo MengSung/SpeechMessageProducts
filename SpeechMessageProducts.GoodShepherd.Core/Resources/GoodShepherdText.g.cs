@@ -104,6 +104,7 @@ namespace SpeechMessageProducts.GoodShepherd.Core.Resources
             new string?[] { "Lessons.Signing.AltText", "有一個課程簽核的動作等待您的決定....", null, "［有一個課程簽核的動作等待您的決定....ǂǂǂǂǂǂǂǂ］" },
             new string?[] { "Lessons.Signing.Approve", "同意", null, "［同意ǂ］" },
             new string?[] { "Lessons.Signing.ApproveDisplay", "您簽核同意", null, "［您簽核同意ǂǂ］" },
+            new string?[] { "Lessons.Signing.ApprovedGapMarker", "未實作：P5-PROP-006", null, "［未實作：P5-PROP-006ǂǂǂǂǂǂ］" },
             new string?[] { "Lessons.Signing.CoursePrefix", "課程名稱: ", null, "［課程名稱: ǂǂǂ］" },
             new string?[] { "Lessons.Signing.CreateParameter", "新增", null, "［新增ǂ］" },
             new string?[] { "Lessons.Signing.EquipmentPrefix", "裝備狀態: ", null, "［裝備狀態: ǂǂǂ］" },

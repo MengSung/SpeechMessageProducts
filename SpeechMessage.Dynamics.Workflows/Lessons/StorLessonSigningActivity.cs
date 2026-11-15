@@ -64,7 +64,7 @@ public sealed class StorLessonSigningActivity : ActivityShellBase
         // 核定缺口不產生假的Create或Push；固定標記不含來源、參數、付款或credential內容。
         if (!LessonSigningDispatch.TryNotifyLeader(input.MessageName, parameter, out _))
         {
-            context.GetExtension<ITracingService>().Trace("未實作：P5-PROP-006");
+            context.GetExtension<ITracingService>().Trace(LessonSigningDispatch.ApprovedGapMarker);
             return;
         }
         PluginServices.Wait(LessonSigningDispatch.NotifyAsync(services.Organization, new LinePushClient(), input.PrimaryEntityId,

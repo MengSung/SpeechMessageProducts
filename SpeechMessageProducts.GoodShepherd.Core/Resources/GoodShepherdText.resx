@@ -306,4 +306,5 @@ ID (查詢您的LINE ID)
   <data name="Lessons.Signing.ApproveDisplay" xml:space="preserve"><value>您簽核同意</value></data>
   <data name="Lessons.Signing.Reject" xml:space="preserve"><value>退回</value></data>
   <data name="Lessons.Signing.RejectDisplay" xml:space="preserve"><value>您簽核退回</value></data>
+  <data name="Lessons.Signing.ApprovedGapMarker" xml:space="preserve"><value>未實作：P5-PROP-006</value></data>
 </root>
