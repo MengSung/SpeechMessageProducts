@@ -1,11 +1,11 @@
 /*
 檔案整體說明
 
-目的與定位：把舊 Plugin／Workflow 的 HTTP、RestSharp 與檔案建構改寫成 harness 記錄或 scratch 入口，並拒絕不能證明安全的傳輸、程序、反射及實體檔案操作。
+目的與定位：把舊 Plugin／Workflow 的 HTTP、RestSharp 與檔案建構改寫成 harness 記錄或 scratch 入口，並拒絕不能證明安全的傳輸、程序及未改寫實體檔案操作。
 
-主要功能與流程：使用改寫前的 Roslyn semantic model 識別 alias 與完整型別名稱，逐樹轉換 HttpClient、RestClient、FileStream、File／Directory 與文字 reader／writer 的路徑建構。URL 常值本身不構成拒絕條件；只有無法替換的 WebRequest/WebClient、Socket/TcpClient 等明確傳輸型別會分類為網路阻擋。純資料型別不因位於 System.Net namespace 而整批拒絕。工具組件內只明列容許既有六個純離線 Rest 相容型別，其他工具 API 仍不可由來源直接使用。改寫後重新建立 semantic model 驗證，不依註解或字串裡的 API 名稱判定；IOrganizationService 是假服務契約，不視為連外。其他檔案、反射或執行逃逸限制仍拒絕，但由編譯失敗分類承載。錯誤只回固定代碼與檔名，不回原始碼、URL、token 或例外本文。
+主要功能與流程：使用改寫前的 Roslyn semantic model 識別 alias 與完整型別名稱，逐樹轉換 HttpClient、RestClient、FileStream、File／Directory 與文字 reader／writer 的路徑建構。URL 常值本身不構成拒絕條件；只有無法替換的 WebRequest/WebClient、Socket/TcpClient 等明確傳輸型別會分類為網路阻擋。純資料型別不因位於 System.Net namespace 而整批拒絕。工具組件內只明列容許既有七個純離線 Rest 相容型別，其他工具 API 仍不可由來源直接使用。改寫後重新建立 semantic model 驗證，不依註解或字串裡的 API 名稱判定；IOrganizationService 是假服務契約，不視為連外。反射容許可信退役來源在單案例執行域內使用；其他未攔截外部操作仍拒絕，但由編譯失敗分類承載。錯誤只回固定代碼與檔名，不回原始碼、URL、token 或例外本文。
 
-使用邊界與維護：本檔不建立傳輸、不開啟檔案、不執行改寫產物，僅保存單次編譯的語法樹與有界診斷。ScratchFiles 的路徑映射／容量及釋放由 runtime owner 負責，HttpClient 的固定 handler 由記錄替身擁有；來源不得覆寫 handler、透過原始網路型別或反射逃逸。源碼驗證不能替代 runner 的隔離 AppDomain、不可用 proxy 與 finally 卸載。新增 API 必須有精確攔截與負向測試，不得因依賴出現未知 API 就放寬邊界。
+使用邊界與維護：本檔不建立傳輸、不開啟檔案、不執行改寫產物，僅保存單次編譯的語法樹與有界診斷。ScratchFiles 的路徑映射／容量及釋放由 runtime owner 負責，HttpClient 的固定 handler 由記錄替身擁有；來源不得覆寫 handler 或直接使用原始網路型別；容許反射後不宣稱能防禦敵意來源，操作者只可使用已盤點的退役來源。源碼驗證不能替代 runner 的隔離 AppDomain、不可用 proxy 與 finally 卸載。新增 API 必須有精確攔截與負向測試，不得因依賴出現未知 API 就放寬邊界。
 */
 using System;
 using System.Collections.Generic;
@@ -42,7 +42,7 @@ internal sealed class TransportRewriter : CSharpSyntaxRewriter
     private readonly List<string> diagnostics;
     private readonly bool rewrittenPass;
     private static readonly string[] FileMethods = { "ReadAllBytes", "ReadAllText", "ReadAllLines", "WriteAllBytes", "WriteAllText", "WriteAllLines", "AppendAllText", "AppendAllLines", "Exists", "Delete" };
-    private static readonly string[] OfflineRestTypes = { "RestSharp.RestClient", "RestSharp.RestRequest", "RestSharp.IRestResponse", "RestSharp.RestResponse", "RestSharp.Method", "RestSharp.ParameterType" };
+    private static readonly string[] OfflineRestTypes = { "RestSharp.RestClient", "RestSharp.RestRequest", "RestSharp.IRestResponse", "RestSharp.RestResponse", "RestSharp.Method", "RestSharp.ParameterType", "RestSharp.Deserializers.JsonDeserializer" };
     private static readonly string[] PureIoTypes = { "Stream", "MemoryStream", "TextReader", "TextWriter", "StringReader", "StringWriter", "BinaryReader", "BinaryWriter",
         "IOException", "InvalidDataException", "FileNotFoundException", "EndOfStreamException", "FileMode", "FileAccess", "FileShare", "SeekOrigin", "Path", "StreamReader", "StreamWriter", "FileStream" };
     private static readonly string[] HttpDataTypes = { "HttpClient", "HttpMessageInvoker", "HttpRequestMessage", "HttpResponseMessage", "HttpContent", "StringContent", "ByteArrayContent", "StreamContent", "MultipartContent", "MultipartFormDataContent", "FormUrlEncodedContent", "HttpMethod", "HttpCompletionOption", "HttpRequestException", "HttpResponseHeaders", "HttpRequestHeaders", "HttpContentHeaders", "MediaTypeHeaderValue", "AuthenticationHeaderValue", "HttpHeaders", "NameValueHeaderValue", "ContentDispositionHeaderValue", "HttpResponseMessageExtensions", "HttpClientExtensions", "HttpContentExtensions" };
@@ -110,10 +110,30 @@ internal sealed class TransportRewriter : CSharpSyntaxRewriter
         return base.Visit(node);
     }
 
+    /// <summary>async void 沒有可等待工作句柄，無法證明快照完整與失敗清理，因此在執行前拒絕。</summary>
+    public override SyntaxNode? VisitMethodDeclaration(MethodDeclarationSyntax node)
+    {
+        if (node.Modifiers.Any(SyntaxKind.AsyncKeyword)
+            && model.GetDeclaredSymbol(node)?.ReturnsVoid == true) Block(node, "AsyncVoidExecutionRefused");
+        return base.VisitMethodDeclaration(node);
+    }
+
     /// <summary>只攔截可解析的指定建構；handler 參數、未知衍生傳輸或未支援的路徑建構拒絕。</summary>
     public override SyntaxNode? VisitObjectCreationExpression(ObjectCreationExpressionSyntax node)
     {
         var type = model.GetTypeInfo(node).Type?.ToDisplayString();
+        if (!rewrittenPass && type == "System.Threading.Thread")
+        {
+            if (node.Initializer != null) { Block(node, "ThreadInitializerUnsupported"); return node; }
+            return SyntaxFactory.InvocationExpression(SyntaxFactory.ParseExpression(Runtime + "BackgroundWork.CreateThread"),
+                (ArgumentListSyntax)Visit(node.ArgumentList)!).WithTriviaFrom(node);
+        }
+        if (!rewrittenPass && ReplacementType(type) is string replacement && type != "RestSharp.RestClient")
+        {
+            return node.WithType(SyntaxFactory.ParseTypeName(Runtime + replacement))
+                .WithArgumentList((ArgumentListSyntax?)Visit(node.ArgumentList))
+                .WithInitializer((InitializerExpressionSyntax?)Visit(node.Initializer));
+        }
         if (!rewrittenPass && type == "System.Net.Http.HttpClient")
         {
             if (node.ArgumentList != null && node.ArgumentList.Arguments.Count != 0)
@@ -167,6 +187,17 @@ internal sealed class TransportRewriter : CSharpSyntaxRewriter
             Block(node, "ImplicitTransportConstructorRefused");
         }
 
+        if (!rewrittenPass && type?.ToDisplayString() == "System.Threading.Thread")
+        {
+            if (node.Initializer != null) { Block(node, "ThreadInitializerUnsupported"); return node; }
+            return SyntaxFactory.InvocationExpression(SyntaxFactory.ParseExpression(Runtime + "BackgroundWork.CreateThread"),
+                (ArgumentListSyntax)Visit(node.ArgumentList)!).WithTriviaFrom(node);
+        }
+        if (!rewrittenPass && ReplacementType(type?.ToDisplayString()) is string replacement)
+        {
+            return SyntaxFactory.ObjectCreationExpression(SyntaxFactory.ParseTypeName(Runtime + replacement),
+                (ArgumentListSyntax)Visit(node.ArgumentList)!, (InitializerExpressionSyntax?)Visit(node.Initializer)).WithTriviaFrom(node);
+        }
         CheckType(type, node, construction: true);
         return base.VisitImplicitObjectCreationExpression(node);
     }
@@ -177,6 +208,17 @@ internal sealed class TransportRewriter : CSharpSyntaxRewriter
         var symbol = model.GetSymbolInfo(node).Symbol as IMethodSymbol;
         var type = symbol?.ContainingType.ToDisplayString();
         var name = symbol?.Name;
+        if (!rewrittenPass && (type == "System.Diagnostics.Trace" || type == "System.Diagnostics.Debug")
+            && name != null && DiagnosticMethods.Contains(name, StringComparer.Ordinal))
+        {
+            return node.WithExpression(SyntaxFactory.ParseExpression(Runtime + "ScratchDiagnostics." + name))
+                .WithArgumentList((ArgumentListSyntax)Visit(node.ArgumentList)!);
+        }
+        if (!rewrittenPass && type == "System.Diagnostics.EventLog" && symbol?.IsStatic == true && name == "WriteEntry")
+        {
+            return node.WithExpression(SyntaxFactory.ParseExpression(Runtime + "ScratchDiagnostics.WriteEntry"))
+                .WithArgumentList((ArgumentListSyntax)Visit(node.ArgumentList)!);
+        }
         if (!rewrittenPass && (type == "System.IO.File" || type == "System.IO.Directory"))
         {
             if (name != null && (type == "System.IO.File" && FileMethods.Contains(name, StringComparer.Ordinal)
@@ -210,24 +252,20 @@ internal sealed class TransportRewriter : CSharpSyntaxRewriter
         }
 
         if (type == "System.IO.Path" && name == "GetTempFileName"
-            || type == "System.Environment" && name != "get_NewLine"
-            || type == "System.Type" && name != "GetTypeCode" && name != "get_Name" && name != "get_FullName"
-            || type == "System.Delegate" && name == "CreateDelegate")
+            || type == "System.Environment" && name != "get_NewLine")
         {
             Block(node, "ExecutionEscapeRefused");
         }
 
-        if (type == "System.Threading.Tasks.Task" && (name == "Run" || name == "Delay")
-            || type?.StartsWith("System.Threading.Tasks.TaskFactory", StringComparison.Ordinal) == true
-            || type?.StartsWith("System.Threading.Tasks.Task", StringComparison.Ordinal) == true && name == "ContinueWith"
-            || type == "System.Threading.ThreadPool" || type == "System.Threading.Thread" || type == "System.Threading.Timer"
-            || type == "System.Timers.Timer")
-        {
-            Block(node, "BackgroundExecutionRefused");
-        }
-
+        if (type == "System.Threading.ThreadPool") Block(node, "UnownedBackgroundApiRefused");
         CheckType(symbol?.ContainingType, node, construction: false);
-        return base.VisitInvocationExpression(node);
+        var visited = (InvocationExpressionSyntax)base.VisitInvocationExpression(node)!;
+        if (!rewrittenPass && IsTask(symbol?.ReturnType))
+        {
+            return SyntaxFactory.InvocationExpression(SyntaxFactory.ParseExpression(Runtime + "BackgroundWork.Track"),
+                SyntaxFactory.ArgumentList(SyntaxFactory.SingletonSeparatedList(SyntaxFactory.Argument(visited)))).WithTriviaFrom(node);
+        }
+        return visited;
     }
 
     /// <summary>方法群組也必須檢查，避免 File.WriteAllText 指派成 delegate 後逃過 invocation 攔截。</summary>
@@ -242,8 +280,7 @@ internal sealed class TransportRewriter : CSharpSyntaxRewriter
         }
 
         if (type?.ToDisplayString() == "System.Environment" && symbol?.Name != "NewLine"
-            || type?.ToDisplayString() == "System.AppDomain"
-            || type?.ToDisplayString() == "System.Type" && symbol?.Name != "Name" && symbol?.Name != "FullName" && symbol?.Name != "GetTypeCode")
+            || type?.ToDisplayString() == "System.AppDomain")
         {
             Block(node, "ExecutionEscapeRefused");
         }
@@ -263,12 +300,12 @@ internal sealed class TransportRewriter : CSharpSyntaxRewriter
 
         if (symbol is INamedTypeSymbol type)
         {
-            if (!rewrittenPass && type.ToDisplayString() == "RestSharp.RestClient")
+            if (!rewrittenPass && ReplacementType(type.ToDisplayString()) is string replacement)
             {
                 // 完整 qualified name 由 VisitQualifiedName 處理，避免產生 RestSharp.global::...。
                 if (!(node.Parent is QualifiedNameSyntax) && !(node.Parent is AliasQualifiedNameSyntax))
                 {
-                    return SyntaxFactory.ParseName(Runtime + "RecordingRestClient").WithTriviaFrom(node);
+                    return SyntaxFactory.ParseName(Runtime + replacement).WithTriviaFrom(node);
                 }
             }
 
@@ -289,9 +326,9 @@ internal sealed class TransportRewriter : CSharpSyntaxRewriter
     /// <summary>完整 RestSharp.RestClient 及 namespace alias 也替換整個型別，不依文字搜尋。</summary>
     public override SyntaxNode? VisitQualifiedName(QualifiedNameSyntax node)
     {
-        if (!rewrittenPass && model.GetSymbolInfo(node).Symbol is INamedTypeSymbol type && type.ToDisplayString() == "RestSharp.RestClient")
+        if (!rewrittenPass && model.GetSymbolInfo(node).Symbol is INamedTypeSymbol type && ReplacementType(type.ToDisplayString()) is string replacement)
         {
-            return SyntaxFactory.ParseName(Runtime + "RecordingRestClient").WithTriviaFrom(node);
+            return SyntaxFactory.ParseName(Runtime + replacement).WithTriviaFrom(node);
         }
 
         return base.VisitQualifiedName(node);
@@ -352,19 +389,13 @@ internal sealed class TransportRewriter : CSharpSyntaxRewriter
 
         var ns = type.ContainingNamespace?.ToDisplayString() ?? string.Empty;
         var full = type.ToDisplayString();
-        // Rest 相容面和工具共用組件，但六個明列型別只記錄、不開網路；不能按組件整批誤擋。
+        // Rest 相容面和工具共用組件，但七個明列型別只記錄、不開網路；不能按組件整批誤擋。
         // 其餘工具公開 API 包含發布與讀取功能，不是舊來源可借用的安全能力；不可放行整個 namespace。
         // 第二遍才容許由本rewriter插入的記錄替身與scratch呼叫，不能讓來源自行取得它們。
         if (!rewrittenPass && type.ContainingAssembly?.Name == typeof(TransportRewriter).Assembly.GetName().Name
             && !OfflineRestTypes.Contains(full, StringComparer.Ordinal))
         {
             Block(node, "HarnessApiRefused");
-        }
-
-        if (construction && (full == "System.Threading.Thread" || full == "System.Threading.Timer"
-            || full == "System.Timers.Timer" || full.StartsWith("System.Threading.Tasks.Task", StringComparison.Ordinal)))
-        {
-            Block(node, "BackgroundExecutionRefused");
         }
 
         if (ns == "System.IO" && !PureIoTypes.Contains(type.Name, StringComparer.Ordinal))
@@ -389,8 +420,8 @@ internal sealed class TransportRewriter : CSharpSyntaxRewriter
         }
 
         if (full == "Microsoft.Xrm.Sdk.Client.OrganizationServiceProxy" || full == "Microsoft.Xrm.Tooling.Connector.CrmServiceClient"
-            || full == "Microsoft.PowerPlatform.Dataverse.Client.ServiceClient" || full == "System.Activator" || full == "System.AppDomain"
-            || ns.StartsWith("System.Reflection", StringComparison.Ordinal) || ns.StartsWith("System.Runtime.InteropServices", StringComparison.Ordinal)
+            || full == "Microsoft.PowerPlatform.Dataverse.Client.ServiceClient" || full == "System.AppDomain"
+            || ns.StartsWith("System.Runtime.InteropServices", StringComparison.Ordinal)
             || ns.StartsWith("System.Runtime.Remoting", StringComparison.Ordinal) || ns.StartsWith("System.Linq.Expressions", StringComparison.Ordinal)
             || ns.StartsWith("System.IO.IsolatedStorage", StringComparison.Ordinal) || ns.StartsWith("System.IO.Pipes", StringComparison.Ordinal)
             || ns.StartsWith("System.IO.MemoryMappedFiles", StringComparison.Ordinal) || ns.StartsWith("System.Data.SqlClient", StringComparison.Ordinal)
@@ -398,7 +429,7 @@ internal sealed class TransportRewriter : CSharpSyntaxRewriter
             || ns.StartsWith("System.Configuration", StringComparison.Ordinal) || ns.StartsWith("Microsoft.Win32", StringComparison.Ordinal)
             || ns.StartsWith("System.Management", StringComparison.Ordinal)
             || ns.StartsWith("System.ServiceModel", StringComparison.Ordinal) || ns == "System.Web" && type.Name != "HttpUtility"
-            || ns == "System.Diagnostics" && (type.Name == "Process" || type.Name == "ProcessStartInfo" || type.Name == "EventLog" || type.Name == "EventLogTraceListener"))
+            || ns == "System.Diagnostics" && (type.Name == "Process" || type.Name == "ProcessStartInfo" || type.Name == "EventLogTraceListener"))
         {
             Block(node, "ExternalExecutionApiRefused");
         }
@@ -408,6 +439,28 @@ internal sealed class TransportRewriter : CSharpSyntaxRewriter
             Block(node, "RestClientInterfaceRefused");
         }
     }
+
+    /// <summary>型別替換只依語意完整名稱；計時器與事件記錄由案例 owner 管理，不能建立原生系統出口。</summary>
+    private static string? ReplacementType(string? type) => type switch
+    {
+        "RestSharp.RestClient" => "RecordingRestClient",
+        "System.Threading.Timer" => "ScenarioTimer",
+        "System.Timers.Timer" => "ScenarioEventTimer",
+        "System.Diagnostics.EventLog" => "ScratchDiagnostics.EventLog",
+        _ => null
+    };
+
+    /// <summary>Task 衍生結果也必須排空；單次登錄原樣保留泛型結果，不建立額外 continuation。</summary>
+    private static bool IsTask(ITypeSymbol? type)
+    {
+        for (var current = type as INamedTypeSymbol; current != null; current = current.BaseType)
+            if (current.OriginalDefinition.ToDisplayString() == "System.Threading.Tasks.Task"
+                || current.OriginalDefinition.ToDisplayString() == "System.Threading.Tasks.Task<TResult>") return true;
+        return false;
+    }
+
+    private static readonly string[] DiagnosticMethods =
+        { "Write", "WriteLine", "TraceInformation", "TraceWarning", "TraceError", "Flush", "Close", "Assert", "Fail" };
 
     /// <summary>診斷容量固定二十筆；重複節點不使輸出無界成長，也不保存 symbol 或來源。</summary>
     private void Block(SyntaxNode node, string code)

@@ -13,7 +13,7 @@ Dispose 假服務並清除 scratch。
 均獨立；逾時、無法卸載或清理失敗時停止整批，不重用不確定執行域，也不回傳部分黃金。
 單次情境數、JSON 大小、執行時間與來源組件大小皆有上限。此處的 AppDomain 是舊程式隔離
 與確定卸載邊界，不是對敵意 native code 的作業系統沙箱；編譯器須先拒絕 unsafe、P/Invoke、
-dynamic、反射與所有未攔截外部 API。驗證以合成 Plugin／Activity 的寫入、訊息、輸出、
+dynamic 與所有未攔截外部 API；可信舊來源的反射只在案例域內存活。驗證以合成 Plugin／Activity 的寫入、訊息、輸出、
 逾時、隔離與失敗清理測試為準。
 queryResults 依一開始為一的 RetrieveMultiple 次序指定 seed alias 陣列；最多 256 次覆蓋、
 總共 4096 答案列，保留明列順序及不同 ID 的同名記錄，重複 ID 與未知 alias 在入口執行前拒絕。
@@ -297,6 +297,7 @@ public sealed class ScenarioDomainWorker : MarshalByRefObject
         var aliases = new AliasMap(scenario);
         using var service = new FakeOrganizationService(aliases.ReadSeed(), aliases.ReadQueryResults(scenario));
         using var capture = new ExecutionCapture(scratch, aliases.RecipientAlias);
+        using var background = new BackgroundWork();
         WebRequest.DefaultWebProxy = new WebProxy(new Uri("http://127.0.0.1:9"));
 
         string? exceptionType = null;
@@ -325,6 +326,8 @@ public sealed class ScenarioDomainWorker : MarshalByRefObject
             exceptionType = cause.GetType().Name;
         }
 
+        // 先排空再取快照；排空失敗屬工具基礎設施失敗，不能偽裝成舊程式例外的 Generated。
+        background.Drain();
         return SerializeCase(scenario.Value<string>("name") ?? "", aliases, service, capture, outputs, exceptionType);
     }
 

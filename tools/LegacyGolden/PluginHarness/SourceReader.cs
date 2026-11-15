@@ -3,7 +3,7 @@
 
 目的與定位：提供 PluginHarness 舊專案編譯器所需的唯讀來源閉包；來源來自工作樹外 Dynamics365Line 第一層 csproj，不以遞迴目錄掃描猜測編譯輸入。
 
-主要功能與流程：解析禁止 DTD 的專案 XML，依明列 Compile Include 與 ProjectReference 讀取來源。排除 Properties、bin、obj、packages、backup 及 AssemblyInfo，拒絕未支援的條件／glob、越界路徑與 reparse point。來源上限為 512 檔、單檔 1 MiB、總量 16 MiB、64 個相依專案；嚴格解碼並以原始位元組雜湊建立摘要，來源中的既有常值不修改。
+主要功能與流程：解析禁止 DTD 的專案 XML，依明列 Compile Include 與 ProjectReference 讀取來源，SDK 預設 Compile 則只在專案自有目錄有界枚舉。排除 Properties、bin、obj、packages、backup 及 AssemblyInfo，拒絕未支援的條件／glob、越界路徑與 reparse point。來源上限為 512 檔、單檔 1 MiB、總量 16 MiB、64 個相依專案；嚴格解碼並以原始位元組雜湊建立摘要，來源中的既有常值不修改。
 
 使用邊界與維護：不執行 MSBuild Import／Target，不寫回、複製或載入舊程式，不保存跨請求快取。所有文字只由單次 ProjectInput 擁有至編譯結束；讀取失敗回固定代碼，不含例外本文或來源秘密。檔案及 XML reader 由 using 決定性關閉；任何閉包失敗不得交付可執行結果。維護後以閉包、編碼與編譯測試核對本契約。
 */
@@ -216,6 +216,15 @@ internal static class BoundedSourceReader
         }
 
         var directory = Path.GetDirectoryName(projectFile)!;
+        // SDK 專案的預設 Compile 不寫在 XML；只枚舉該專案自有樹，仍逐層拒絕 reparse 並套用相同容量。
+        if ((string?)document.Root?.Attribute("Sdk") == "Microsoft.NET.Sdk"
+            && !document.Descendants().Any(item => item.Name.LocalName == "EnableDefaultCompileItems" && item.Value == "false"))
+        {
+            if (document.Descendants().Any(item => item.Name.LocalName == "Compile"))
+                throw new InvalidDataException("SdkCompileOverrideUnsupported");
+            CollectDefaultSources(root, directory, paths);
+        }
+
         foreach (var element in document.Descendants().Where(item => item.Name.LocalName == "Compile" || item.Name.LocalName == "ProjectReference"))
         {
             var include = (string?)element.Attribute("Include");
@@ -252,6 +261,31 @@ internal static class BoundedSourceReader
             else
             {
                 throw new InvalidDataException("SourceExtensionInvalid");
+            }
+        }
+    }
+
+    /// <summary>SDK 預設來源只在目前專案內走訪；禁止目錄在下探前排除，任何 link、檔案數或目錄數超量均整批拒絕。</summary>
+    private static void CollectDefaultSources(string root, string directory, HashSet<string> paths)
+    {
+        var pending = new Stack<string>();
+        pending.Push(directory);
+        var directories = 0;
+        while (pending.Count > 0)
+        {
+            var current = pending.Pop();
+            if (++directories > 512) throw new InvalidDataException("SourceDirectoryCountExceeded");
+            foreach (var file in Directory.EnumerateFiles(current, "*.cs"))
+            {
+                if (Path.GetFileName(file).Equals("AssemblyInfo.cs", StringComparison.OrdinalIgnoreCase)) continue;
+                paths.Add(CheckedPath(root, current, Path.GetFileName(file)));
+                if (paths.Count > MaxFiles) throw new InvalidDataException("SourceFileCountExceeded");
+            }
+            foreach (var child in Directory.EnumerateDirectories(current))
+            {
+                if (IsForbiddenName(child)) continue;
+                pending.Push(CheckedPath(root, current, Path.GetFileName(child)));
+                if (pending.Count > 512) throw new InvalidDataException("SourceDirectoryCountExceeded");
             }
         }
     }

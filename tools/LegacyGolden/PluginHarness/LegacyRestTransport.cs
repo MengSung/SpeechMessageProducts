@@ -1,7 +1,7 @@
 /*
 檔案整體說明
 目的與定位：提供舊RestSharp呼叫的離線相容面，供執行時compiler取代缺少或不可安全攔截的舊傳輸組件。
-主要功能與流程：RestRequest只保留方法、資源及JSON body，不保存Authorization等header；RestClient將Get或Execute導向相同的有界capture並回固定成功內容。RecordingRestClient保留語法改寫後的建構介面，不繼承任何真實網路實作。
+主要功能與流程：JsonDeserializer只解碼本案例合成JSON回應；RestRequest只保留方法、資源及JSON body，不保存Authorization等header；RestClient將Get或Execute導向相同的有界capture並回固定成功內容。RecordingRestClient保留語法改寫後的建構介面，不繼承任何真實網路實作。
 使用邊界與維護：本檔是明列子集，不模擬完整RestSharp；不支援的簽章應讓編譯失敗而非默默發送。所有可變request只存活於單次域，沒有socket、背景工作、憑證快取或外部服務；recording上限與域清理由正式runner負責。
 */
 using System;
@@ -103,5 +103,16 @@ namespace LegacyGolden.PluginHarness
         public RecordingRestClient(string url) : base(url) { }
         /// <summary>建立URI端點替身。</summary>
         public RecordingRestClient(Uri url) : base(url) { }
+    }
+}
+
+namespace RestSharp.Deserializers
+{
+    /// <summary>舊 RestSharp 的純 JSON 解碼相容面；只讀單次合成回應，不建立傳輸或保存來源。</summary>
+    public sealed class JsonDeserializer
+    {
+        /// <summary>將離線回應轉成呼叫端型別；無效 JSON 直接傳出，沒有全域快取或外部查詢。</summary>
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Performance", "CA1822:Mark members as static", Justification = "保留第三方舊 API 的實例呼叫契約，無可變狀態。 -- 2026-11-15")]
+        public T? Deserialize<T>(RestSharp.IRestResponse response) => Newtonsoft.Json.JsonConvert.DeserializeObject<T>(response.Content);
     }
 }

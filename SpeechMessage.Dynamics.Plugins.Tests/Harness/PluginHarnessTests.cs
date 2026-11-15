@@ -262,15 +262,69 @@ public sealed class PluginHarnessTests
         Assert.Equal("CompileFailed", result.Status);
     }
 
-    /// <summary>不受信任舊來源不得藉公開工具型別直接發布檔案，亦不得排入超過案例的背景工作。</summary>
+    /// <summary>不受信任舊來源不得藉公開工具型別直接發布檔案，任何背景工作必須由案例排空。</summary>
     [Theory]
     [InlineData("LegacyGolden.PluginHarness.GoldenWriter.Write(\"escape.json\",new Newtonsoft.Json.Linq.JObject());")]
-    [InlineData("System.Threading.Tasks.Task.Run(()=>{});")]
-    [InlineData("new System.Threading.Thread(()=>{}).Start();")]
+    [InlineData("System.Diagnostics.Process.Start(\"synthetic-never-run\");")]
+
     public void Compiler_HarnessEscapeOrBackgroundWork_IsRejected(string statement)
     {
         using var result = CompileSource("public sealed class Escape { public void Go() { " + statement + " } }");
         Assert.Equal("CompileFailed", result.Status);
+    }
+
+    /// <summary>舊共用診斷的反射與背景入口可編譯，不能再把它們誤分類為未攔截連外。</summary>
+    [Theory]
+    [InlineData("var method=typeof(string).GetMethod(\"ToString\",Type.EmptyTypes);")]
+    [InlineData("System.Threading.Tasks.Task.Run(()=>{}).ContinueWith(t=>{});")]
+    [InlineData("new System.Threading.Thread(()=>{}).Start();")]
+    public void Compiler_ReflectionAndOwnedBackgroundWork_AreAllowed(string statement)
+    {
+        using var result = CompileSource("using System; public sealed class Allowed { public void Go(){" + statement + "} }");
+        Assert.True(result.Status == "Generated", string.Join(",", result.Diagnostics));
+    }
+
+    /// <summary>注入延遲背景寫入，主 Execute 先返回；快照必須等 Task、continuation、Thread 與 Timer 完成，兩輪結果相同。</summary>
+    [Theory]
+    [InlineData("System.Threading.Tasks.Task.Run(work);")]
+    [InlineData("System.Threading.Tasks.Task.Run(()=>{}).ContinueWith(t=>work());")]
+    [InlineData("new System.Threading.Thread(()=>work()).Start();")]
+    [InlineData("new System.Threading.Timer(_=>work(),null,20,System.Threading.Timeout.Infinite);")]
+    [InlineData("var timer=new System.Timers.Timer(20); timer.AutoReset=false; timer.Elapsed+=(a,b)=>work(); timer.Start();")]
+    public void Harness_BackgroundWork_DrainsBeforeSnapshot(string statement)
+    {
+        var source = "using System; using Microsoft.Xrm.Sdk; public sealed class Sample:IPlugin { public void Execute(IServiceProvider p){"
+            + "var c=(IPluginExecutionContext)p.GetService(typeof(IPluginExecutionContext));"
+            + "var s=((IOrganizationServiceFactory)p.GetService(typeof(IOrganizationServiceFactory))).CreateOrganizationService(c.UserId);"
+            + "var e=(Entity)c.InputParameters[\"Target\"]; Action work=()=>{System.Threading.Thread.Sleep(25);"
+            + "s.Update(new Entity(e.LogicalName,e.Id){[\"name\"]=\"finished\"});};" + statement + "}}";
+        var result = GoldenHarness.RunSources(new[] { source }, Scenarios);
+        Assert.True((string?)result["status"] == "Generated", result.ToString());
+        Assert.Equal("finished", (string?)result["cases"]![0]!["writes"]![0]!["fields"]!["name"]);
+        Assert.Equal(result.ToString(), GoldenHarness.RunSources(new[] { source }, Scenarios).ToString());
+    }
+
+    /// <summary>背景失敗不可發布部分黃金；後續獨立案例仍可正常執行，證明失敗域沒有洩漏。</summary>
+    [Fact]
+    public void Harness_BackgroundFailure_RejectsWholeCandidate()
+    {
+        const string source = "using System; using Microsoft.Xrm.Sdk; public sealed class Sample:IPlugin { public void Execute(IServiceProvider p){System.Threading.Tasks.Task.Run(()=>{throw new InvalidOperationException();});}}";
+        var result = GoldenHarness.RunSources(new[] { source }, Scenarios);
+        Assert.Equal("CompileFailed", (string?)result["status"]);
+        Assert.Null(result["cases"]);
+        Assert.Equal("Generated", (string?)GoldenHarness.RunSources(new[] { Plugin }, Scenarios)["status"]);
+    }
+
+    /// <summary>反射讀取名稱與診斷替身可一起執行，診斷不混入黃金寫入或 LINE 投影。</summary>
+    [Fact]
+    public void Harness_ReflectionAndDiagnostics_RemainScenarioLocal()
+    {
+        const string source = "using System; using System.Diagnostics; using Microsoft.Xrm.Sdk; public sealed class Sample:IPlugin { public void Execute(IServiceProvider p){Trace.WriteLine(typeof(string).GetMethod(\"ToString\",Type.EmptyTypes).Name); EventLog.WriteEntry(\"synthetic\",\"message\"); using(var log=new EventLog()){log.WriteEntry(\"local\");}}}";
+        var result = GoldenHarness.RunSources(new[] { source }, Scenarios);
+        Assert.True((string?)result["status"] == "Generated", result.ToString());
+        Assert.Null(result["cases"]![0]!["exception"]!.Value<string>());
+        Assert.Empty((JArray)result["cases"]![0]!["writes"]!);
+        Assert.Empty((JArray)result["cases"]![0]!["lineCalls"]!);
     }
 
     /// <summary>秘密輸出既不能新建檔案也不能覆蓋完整舊檔，案例owner最後清除唯一目錄。</summary>

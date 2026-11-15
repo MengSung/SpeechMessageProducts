@@ -115,7 +115,7 @@ public static class LegacyProjectCompiler
         return CompileInput(new ProjectInput("Synthetic", files, Array.Empty<string>()));
     }
 
-    /// <summary>共用分類與公開編譯 API；先改寫並證明來源邊界，再 emit 真正完整 DLL。</summary>
+    /// <summary>共用分類與公開編譯 API；舊專案先用既有保守入口切片排除不可達來源，遇反射或未知語法退回全量，再改寫並驗證邊界後 emit DLL。</summary>
     internal static CompilationResult CompileInput(ProjectInput input)
     {
         if (input.ReadIssues.Count != 0 || input.Sources.Count == 0)
@@ -130,6 +130,14 @@ public static class LegacyProjectCompiler
             var compilation = CSharpCompilation.Create("LegacyGoldenCompiled", trees, FrameworkReferences(input.LegacyRoot),
                 new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, optimizationLevel: OptimizationLevel.Release, deterministic: true,
                     assemblyIdentityComparer: DesktopAssemblyIdentityComparer.Default));
+            if (input.LegacyRoot != null)
+            {
+                var entry = FindEntryType(compilation, input.Name);
+                if (entry != null)
+                {
+                    compilation = ReachableSourceSubset.Create(compilation, new[] { entry });
+                }
+            }
             var rewritten = TransportRewriter.Rewrite(compilation);
             if (rewritten.Diagnostics.Count != 0)
             {
