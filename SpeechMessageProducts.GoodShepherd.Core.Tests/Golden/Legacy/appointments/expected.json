@@ -1,0 +1,14 @@
+{
+  "module": "appointments",
+  "basis": "reading",
+  "cases": [
+    { "name": "create-leave-signing", "entrypoint": "AppointmentWorkflow.AppointmentWorkflowPlugin", "source": [{ "file": "AppointmentSigningClass.cs", "lines": "80-128,390-540" }], "writes": [], "lineCalls": [{ "contactAlias": "signer", "templateKey": "Appointments.Signing", "messageCount": 1 }], "outputs": { "OutputResult": 0 }, "exception": null },
+    { "name": "update-location-signing", "entrypoint": "SpeechMessage.Dynamics.Plugins.Appointments.AppointmentPlugin", "source": [{ "file": "AppointmentSigningClass.cs", "lines": "192-254,390-540" }], "writes": [], "lineCalls": [{ "contactAlias": "signer", "templateKey": "Appointments.Signing", "messageCount": 1 }], "outputs": { "OutputResult": 0 }, "exception": null },
+    { "name": "no-signing-when-both-unset", "entrypoint": "SpeechMessage.Dynamics.Plugins.Appointments.AppointmentPlugin", "source": [{ "file": "AppointmentSigningClass.cs", "lines": "1624-1647" }], "writes": [], "lineCalls": [], "outputs": { "OutputResult": 0 }, "exception": null }
+  ],
+  "declaredDifferences": [
+    { "case": "create-leave-signing", "position": "$.cases[0].lineCalls", "category": 5, "reason": "reading：舊程式在簽核者未綁定時回落寫死開發者 LINE ID；新版依跨教會／收件者隔離契約拒絕，不讀 new_channel_access_token，不回落固定帳號。Flex 的 Postback、按鈕與內容由離線 Core／CAS 測試核對；不是舊程式實跑或實機送達證據。", "test": "Appointment_Signing_ApproveAndReject_MatchLegacy" },
+    { "case": "update-location-signing", "position": "$.cases[1].lineCalls", "category": 5, "reason": "reading：新版以正式 new_signing_contact 作為下一位簽核者，經共用教會／LINE 綁定檢查後才記錄 Shadow 意圖；不執行退役的寫死 token 路徑。", "test": "Appointment_Signing_NotifiesNextSigner" },
+    { "case": "create-leave-signing", "position": "$.cases[0].outputs", "category": 5, "reason": "活動 Live 依 P5-PROP-006 在安全金鑰查詢前拒絕；這三個情境只作 reading／simulation 離線驗證，不宣稱實機影子差異為零。", "test": "Appointment_TokenNeverReadFromRecordField" }
+  ]
+}

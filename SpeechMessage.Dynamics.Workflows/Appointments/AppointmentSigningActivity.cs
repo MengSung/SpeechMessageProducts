@@ -5,12 +5,12 @@
  * InputParameter、InputAppointment 與 OutputResult 名稱／型別，並由
  * ActivityShellBase 提供選填 ExecutionMode。
  *
- * 流程與邊界：活動只在本次 CodeActivityContext 求值引數，驗證可省略的
+ * 主要功能與流程：活動只在本次 CodeActivityContext 求值引數，驗證可省略的
  * appointment 參照與平台主記錄相符，再把純值交共用規則。Shadow 才記錄通知
  * 意圖；Live 依 P5-PROP-006 在任何安全金鑰查詢前固定拒絕。活動實例不保存
  * context、SDK、Entity、token、Session、cache 或背景工作。
  *
- * 驗證方式：離線 WorkflowInvoker／CAS 測試檢查引數相容、A/B/A 隔離、Shadow
+ * 維護與驗證：離線 WorkflowInvoker／CAS 測試檢查引數相容、A/B/A 隔離、Shadow
  * 影子記錄與 Live fail-closed；不宣稱活動流程已在 D365 實機送達。
  */
 using System;

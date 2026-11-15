@@ -5,12 +5,12 @@
  * 本檔只接收平台已借用的 IOrganizationService、正式 appointment ID、純值模式
  * 與通知介面，不認識 PluginInput、Workflow context 或外殼欄位。
  *
- * 執行流程：讀取最小 appointment 欄位，確認 new_signing_contact 是正式 contact，
+ * 主要功能與流程：讀取最小 appointment 欄位，確認 new_signing_contact 是正式 contact，
  * 依 new_leave_kind／new_location_kind 判定請假或場地簽核；再讀簽核者、其教會
  * 與顯示名稱，組合固定 Flex，最後經 MemberNotificationService 的共用入口。
  * Shadow 只記推播意圖；Live 的 key 由外殼提供且在本檔不保存。
  *
- * 隔離與生命週期：所有 SDK、source、訊息與 key 僅屬單次同步操作，不使用 static
+ * 使用邊界與維護：所有 SDK、source、訊息與 key 僅屬單次同步操作，不使用 static
  * 業務狀態、Session、cache、timer 或無界背景工作。LineRecipientQueries 由本次
  * 呼叫擁有並在通知排空後 Dispose；key 的清零責任仍由外殼持有。跨教會／未綁定／
  * 缺少簽核者時由共用服務 fail-closed。測試為離線契約，不宣稱實機送達。

@@ -4,10 +4,11 @@
  * 目的與定位：驗證 P5-08 預約簽核 Core 的離線訊息契約。測試使用合成純值，
  * 不建立 D365、LINE、HTTP 或 token provider；每個測試只擁有當次 Flex 模型。
  *
- * 保護契約：同意／退回兩個 Postback 必須攜帶正式 appointment ID 與簽核者，
+ * 測試範圍：同意／退回兩個 Postback 必須攜帶正式 appointment ID 與簽核者，
  * 下一位簽核者不可被顯示名稱取代；規則固定參數只接受三個舊入口；產品新規則
  * 不以資料列 token 作為輸入。決定性斷言以序列化後的 Flex 結構及公開契約完成。
- * 沒有實機送達、舊程式實跑或 Shadow 差異宣稱。
+ * 維護與驗證：沒有實機送達、舊程式實跑或 Shadow 差異宣稱；測試只使用當次合成資料，
+ * 測試執行完即由框架釋放模型與序列化暫存，不保留跨案例狀態。
  */
 using System;
 using Newtonsoft.Json;

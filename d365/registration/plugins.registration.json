@@ -594,6 +594,70 @@
             "differences": null,
             "basis": "reading"
           }
+        },
+        {
+          "type": "SpeechMessage.Dynamics.Plugins.Appointments.AppointmentPlugin",
+          "message": "Create",
+          "entity": "appointment",
+          "stage": "PostOperation",
+          "mode": "Asynchronous",
+          "rank": 50,
+          "module": "appointments",
+          "filteringAttributes": [],
+          "images": [],
+          "unsecureConfig": "{\"mode\":\"Shadow\"}",
+          "secureConfig": "",
+          "enabledByOrganization": {
+            "goodshepherdback": false
+          },
+          "legacy": [
+            {
+              "assembly": "AppointmentPlugIn",
+              "type": "AppointmentPlugIn.AppointmentPlugIn",
+              "stepId": "00000000-0000-0000-0000-000000000801"
+            }
+          ],
+          "shadowReport": {
+            "file": "",
+            "differences": null,
+            "basis": "reading"
+          }
+        },
+        {
+          "type": "SpeechMessage.Dynamics.Plugins.Appointments.AppointmentPlugin",
+          "message": "Update",
+          "entity": "appointment",
+          "stage": "PostOperation",
+          "mode": "Asynchronous",
+          "rank": 50,
+          "module": "appointments",
+          "filteringAttributes": [
+            "new_signing_contact",
+            "new_signing_content",
+            "new_leave_kind",
+            "new_location_kind",
+            "scheduledstart",
+            "scheduledend",
+            "description"
+          ],
+          "images": [],
+          "unsecureConfig": "{\"mode\":\"Shadow\"}",
+          "secureConfig": "",
+          "enabledByOrganization": {
+            "goodshepherdback": false
+          },
+          "legacy": [
+            {
+              "assembly": "AppointmentPlugIn",
+              "type": "AppointmentPlugIn.AppointmentPlugIn",
+              "stepId": "00000000-0000-0000-0000-000000000802"
+            }
+          ],
+          "shadowReport": {
+            "file": "",
+            "differences": null,
+            "basis": "reading"
+          }
         }
       ]
     },
@@ -658,6 +722,26 @@
             {
               "assembly": "EquipmentWorkflow",
               "type": "EquipmentWorkflow.EquipmentWorkflowClass"
+            }
+          ],
+          "shadowReport": {
+            "file": "",
+            "differences": null,
+            "basis": "reading"
+          }
+        },
+        {
+          "module": "appointments",
+          "type": "SpeechMessage.Dynamics.Workflows.Appointments.AppointmentSigningActivity",
+          "displayName": "AppointmentSigningActivity",
+          "legacy": [
+            {
+              "assembly": "AppointmentSigning",
+              "type": "AppointmentSigning.AppointmentSigningWorkflow"
+            },
+            {
+              "assembly": "AppointmentWorkflow",
+              "type": "AppointmentWorkflow.AppointmentWorkflowPlugin"
             }
           ],
           "shadowReport": {

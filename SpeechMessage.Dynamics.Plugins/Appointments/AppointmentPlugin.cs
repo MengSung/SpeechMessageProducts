@@ -6,12 +6,12 @@
  * 舊深度政策與 Shadow／Live 模式路由，業務查詢及訊息組合委派
  * GoodShepherd.Core.AppointmentSigningRule。
  *
- * 流程與邊界：只接受 appointment 的 Create／Update、PostOperation、非同步事件；
+ * 主要功能與流程：只接受 appointment 的 Create／Update、PostOperation、非同步事件；
  * Depth > 1 依舊入口政策返回。Live 先驗證單次 secure key，Shadow 不讀 Token。
  * SDK、recorder、push client 與 key 都只在一次 Execute 內借用／清理，不保存
  * Session、組織資料、credential、timer 或背景工作。
  *
- * 驗證方式：離線 shell 測試檢查深度、模式、輸入隔離、Shadow 影子投影及
+ * 維護與驗證：離線 shell 測試檢查深度、模式、輸入隔離、Shadow 影子投影及
  * Live fail-closed；不啟用正式步驟、不宣稱 D365 或 LINE 實機送達。
  */
 using System;

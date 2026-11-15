@@ -9,7 +9,7 @@
  * ID、簽核者 ID、類型、內容、申請人及簽核者顯示名稱；本檔驗證純值與 HTTPS
  * 圖片網址，建立一個含「同意／退回」Postback 的單 Bubble Flex。
  *
- * 使用邊界與驗證：Postback 僅攜帶正式來源 ID，真正授權仍由 webhook handler
+ * 使用邊界與維護：Postback 僅攜帶正式來源 ID，真正授權仍由 webhook handler
  * 在回呼時重新查證。輸入只活到同步建立模型結束，不使用 Session、cache、timer、
  * 背景工作或 credential；失敗時不回傳部分模型。測試只驗離線結構，不宣稱實機送達。
  */

@@ -1,0 +1,49 @@
+{
+  "module": "appointments",
+  "cases": [
+    {
+      "name": "create-leave-signing",
+      "church": { "alias": "church-a", "organizationName": "synthetic-golden", "timeZone": "Asia/Taipei", "culture": "zh-TW" },
+      "seed": [
+        { "alias": "record", "entity": "appointment", "fields": { "new_signing_contact": { "ref": "signer", "entity": "contact" }, "new_signing_content": "請假事由：病假", "new_leave_kind": { "option": 4 }, "new_location_kind": { "option": 100000000 }, "scheduledstart": "2026-11-15T01:00:00Z", "scheduledend": "2026-11-15T03:00:00Z", "description": "合成測試" } },
+        { "alias": "signer", "entity": "contact", "fields": { "fullname": "下一位簽核者", "parentcustomerid": { "ref": "church-a", "entity": "account" }, "new_lineid": "U00000000000000000000000000000000", "new_preferredlanguage": "zh-TW" } },
+        { "alias": "church-a", "entity": "account", "fields": { "name": "合成教會", "new_defaultlanguage": "zh-TW", "new_linechannelid": { "ref": "channel", "entity": "new_linechannel" } } },
+        { "alias": "channel", "entity": "new_linechannel", "fields": { "new_accesstokenencrypted": "synthetic-envelope" } }
+      ],
+      "trigger": { "project": "AppointmentWorkflow", "type": "AppointmentWorkflow.AppointmentWorkflowPlugin", "message": "ExecuteWorkflow", "entity": "appointment", "target": "record", "fields": {}, "depth": 1, "inputs": { "InputParameter": "工作流程" } },
+      "now": "2026-11-15T04:00:00Z",
+      "volatile": [],
+      "liveShadow": false,
+      "observe": []
+    },
+    {
+      "name": "update-location-signing",
+      "church": { "alias": "church-a", "organizationName": "synthetic-golden", "timeZone": "Asia/Taipei", "culture": "zh-TW" },
+      "seed": [
+        { "alias": "record", "entity": "appointment", "fields": { "new_signing_contact": { "ref": "signer", "entity": "contact" }, "new_signing_content": "場地：2F大堂", "new_leave_kind": { "option": 1 }, "new_location_kind": { "option": 100000001 }, "scheduledstart": "2026-11-15T05:00:00Z", "scheduledend": "2026-11-15T06:00:00Z" } },
+        { "alias": "signer", "entity": "contact", "fields": { "fullname": "下一位簽核者", "parentcustomerid": { "ref": "church-a", "entity": "account" }, "new_lineid": "U00000000000000000000000000000000", "new_preferredlanguage": "zh-TW" } },
+        { "alias": "church-a", "entity": "account", "fields": { "name": "合成教會", "new_defaultlanguage": "zh-TW", "new_linechannelid": { "ref": "channel", "entity": "new_linechannel" } } },
+        { "alias": "channel", "entity": "new_linechannel", "fields": { "new_accesstokenencrypted": "synthetic-envelope" } }
+      ],
+      "trigger": { "project": "AppointmentPlugin", "type": "SpeechMessage.Dynamics.Plugins.Appointments.AppointmentPlugin", "message": "Update", "entity": "appointment", "target": "record", "fields": {}, "depth": 1 },
+      "now": "2026-11-15T04:00:00Z",
+      "volatile": [],
+      "liveShadow": false,
+      "observe": []
+    },
+    {
+      "name": "no-signing-when-both-unset",
+      "church": { "alias": "church-a", "organizationName": "synthetic-golden", "timeZone": "Asia/Taipei", "culture": "zh-TW" },
+      "seed": [
+        { "alias": "record", "entity": "appointment", "fields": { "new_signing_contact": { "ref": "signer", "entity": "contact" }, "new_signing_content": "一般約會", "new_leave_kind": { "option": 1 }, "new_location_kind": { "option": 100000000 } } },
+        { "alias": "signer", "entity": "contact", "fields": { "fullname": "簽核者", "parentcustomerid": { "ref": "church-a", "entity": "account" }, "new_lineid": "U00000000000000000000000000000000", "new_preferredlanguage": "zh-TW" } },
+        { "alias": "church-a", "entity": "account", "fields": { "name": "合成教會" } }
+      ],
+      "trigger": { "project": "AppointmentPlugin", "type": "SpeechMessage.Dynamics.Plugins.Appointments.AppointmentPlugin", "message": "Update", "entity": "appointment", "target": "record", "fields": {}, "depth": 1 },
+      "now": "2026-11-15T04:00:00Z",
+      "volatile": [],
+      "liveShadow": false,
+      "observe": []
+    }
+  ]
+}
