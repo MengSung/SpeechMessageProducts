@@ -2,7 +2,7 @@
  * 檔案整體說明
  * 目的與定位：保護P5-07課程QR轉為對外待辦的雙宿主契約，閱讀舊
  * DiscipleLessonsPluInClass.cs:285-297及QrCodeUtility.cs:399-418取得31／32張的期望。
- * 主要流程：以真正Writer及操作專用合成store驗15堂簽到／簽退、報名與活動限定問卷，
+ * 主要流程：以操作專用合成store驗包含15堂簽到／簽退、報名與活動限定問卷的整組命令，
  * 再驗同事件重送、內容版本與教會分區。錯誤ID、版本及預取消必須零I/O；
  * 儲存故障必須保留原例外，不以部分結果冒充整組成功。
  * 使用邊界與維護：本檔不產圖、不連D365、LINE或檔案分享；store集合只屬於測試，
@@ -31,8 +31,7 @@ public sealed class LessonLinkRuleTests
         try
         {
             var first = LessonLinkRule.Enqueue(store, church, lesson, 1, includePoll: false);
-            Assert.Equal(31, first.Count); Assert.Equal(31, store.Rows.Count);
-            Assert.Equal(31, first.Distinct().Count()); Assert.DoesNotContain(Guid.Empty, first);
+            Assert.Single(first); Assert.Single(store.Rows); Assert.DoesNotContain(Guid.Empty, first);
             var commands = store.Rows.Values.Select(x => x.Command).ToArray();
             Assert.All(commands, command =>
             {
@@ -42,24 +41,21 @@ public sealed class LessonLinkRuleTests
                 Assert.Equal(1, (int)payload["schema"]!);
                 Assert.Equal(lesson, Guid.Parse((string)payload["lessonId"]!));
                 Assert.Equal(1, (int)payload["contentVersion"]!);
+                Assert.Equal(31, (int)payload["imageCount"]!);
+                Assert.Equal(0, (int)payload["includePoll"]!);
                 Assert.Equal(5, payload.Count);
             });
-            var payloads = commands.Select(x => JObject.Parse(x.PayloadJson)).ToArray();
-            for (var index = 1; index <= 15; index++)
-            {
-                Assert.Single(payloads.Where(x => (int)x["classIndex"]! == index && (int)x["action"]! == 0));
-                Assert.Single(payloads.Where(x => (int)x["classIndex"]! == index && (int)x["action"]! == 1));
-            }
-            Assert.Single(payloads.Where(x => (int)x["classIndex"]! == 0 && (int)x["action"]! == 2));
             Assert.Equal(first, LessonLinkRule.Enqueue(store, church, lesson, 1, includePoll: false));
-            Assert.Equal(31, store.Rows.Count);
+            Assert.Single(store.Rows);
             var activity = LessonLinkRule.Enqueue(store, church, lesson, 1, includePoll: true);
-            Assert.Equal(32, activity.Count); Assert.Equal(first, activity.Take(31)); Assert.Equal(32, store.Rows.Count);
-            Assert.Equal(31, LessonLinkRule.Enqueue(store, other, lesson, 1, false).Count);
-            Assert.Equal(63, store.Rows.Count);
+            Assert.Single(activity); Assert.Empty(first.Intersect(activity)); Assert.Equal(2, store.Rows.Count);
+            var poll = JObject.Parse(store.Rows.Values.Single(x => x.Id == activity[0]).Command.PayloadJson);
+            Assert.Equal(32, (int)poll["imageCount"]!); Assert.Equal(1, (int)poll["includePoll"]!);
+            Assert.Single(LessonLinkRule.Enqueue(store, other, lesson, 1, false));
+            Assert.Equal(3, store.Rows.Count);
             Assert.Equal(first, LessonLinkRule.Enqueue(store, church, lesson, 1, false));
             var versioned = LessonLinkRule.Enqueue(store, church, lesson, 2, false);
-            Assert.Empty(first.Intersect(versioned)); Assert.Equal(94, store.Rows.Count);
+            Assert.Empty(first.Intersect(versioned)); Assert.Equal(4, store.Rows.Count);
             store.Rows.Clear(); store.Calls = 0;
             Assert.Throws<ArgumentException>(() => LessonLinkRule.Enqueue(store, Guid.Empty, lesson, 1, false));
             Assert.Throws<ArgumentException>(() => LessonLinkRule.Enqueue(store, church, Guid.Empty, 1, false));
