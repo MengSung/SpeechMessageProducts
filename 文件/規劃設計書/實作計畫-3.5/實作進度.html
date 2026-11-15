@@ -240,11 +240,11 @@ footer{margin-top:36px;color:var(--muted);font-size:12.5px;text-align:center}
  */
 const DATA = {
   "planVersion": "3.5",
-  "snapshot": "2026-11-15 04:16 Asia/Taipei (UTC+08:00)",
-  "lastUpdated": "2026-11-15T04:16:05+08:00",
+  "snapshot": "2026-11-15 08:00 Asia/Taipei (UTC+08:00)",
+  "lastUpdated": "2026-11-15T08:00:00+08:00",
   "branch": "1.0.0.11.Integration.P5.Worktree",
-  "head": "58f73438",
-  "headline": "2026-11-15 04:16 Asia/Taipei (UTC+08:00)：P5-03b離線段完成；UI封裝／D26／ui-export／ui-import與活動探針已接通，UI 16／16、Activity 2／2、Deployment 766／766，提交後固定guard八項全部通過。P5-03a實機diagnostics仍待處置，故P5-03整包維持active、未推送；P5-02出席基準已依D5-3更正為reading，工具三小時修正仍待P5-03整包驗收後開始。",
+  "head": "ad898df3",
+  "headline": "2026-11-15 08:00 Asia/Taipei (UTC+08:00)：P5-03a／b 依 05A 修訂 2 完成離線與實機收尾；重啟後 diagnostics smoke 在端點階段回 EndpointNotFoundException，off／verify 重試成功，主機唯讀檢查受本機系統管理員授權限制，依 D5-19 第 4 項將實機影子標為 live=deferred。P5-03 已驗收，下一步先做 P5-02 工具三小時修正，再進 P5-04。",
   "notices": [
     {
       "id": "plan-3.5-summary",
@@ -512,7 +512,7 @@ const DATA = {
       "level": "info",
       "title": "P5 進度摘要",
       "lastUpdated": "2026-11-15T04:16:05+08:00",
-      "body": "2026-11-15 04:16 Asia/Taipei (UTC+08:00)：P5-03b離線段完成；UI封裝／D26／ui-export／ui-import與活動探針已接通，UI 16／16、Activity 2／2、Deployment 766／766，提交後固定guard八項全部通過。P5-03a實機diagnostics仍待處置，故P5-03整包維持active、未推送；P5-02出席基準已依D5-3更正為reading，工具三小時修正仍待P5-03整包驗收後開始。",
+      "body": "2026-11-15 08:00 Asia/Taipei (UTC+08:00)：P5-03a／b 已依 05A 修訂 2 收尾；UI 16／16、Activity 2／2、Deployment 766／766，固定 guard 前版八項通過。重啟後 diagnostics enabled 成功但 smoke 回 EndpointNotFoundException，off／verify 重試成功且步驟維持停用；PowerShell Direct 唯讀主機查詢受本機授權限制，未自行提升權限。依 D5-19 第 4 項實機影子 live=deferred，P5-03 已驗收；下一步先做 P5-02 工具修正，再進 P5-04。",
       "steps": [
         "2026-11-14 08:26 Asia/Taipei (UTC+08:00)：已確認目標殘留目錄不是 Git worktree，移除後正式 P4／P5 worktree 清單不受影響。",
         "2026-11-14 08:26 Asia/Taipei (UTC+08:00)：export-metadata 唯讀結構快照建立成功；verify 因本機部署執行檔／連線前置失敗，未宣稱 goodshepherdback verify=0。",
@@ -552,7 +552,8 @@ const DATA = {
         "2026-11-15 02:58 Asia/Taipei (UTC+08:00)：P5-03a續作；a20a1e8c接通公開legacy切換的受控第一輪及確定清理（710項通過），75568edd接通情境映像與正式步驟的別名、欄位及前後值核對，14項新增測試含真CLI舊新兩輪；完整Deployment Release724/724。映像由平台產生，不注入合成context。本輪沒有實機寫入或推送；diagnostics成功作業無trace的原因仍待查，外部修改摘要、同步實機識別、固定guard及P5-03b尚未完成。P5-03未驗收，驗收時刻待證據補齊後重估，無需使用者操作；P5-02工具三小時修正尚未開始。",
         "2026-11-15 03:50 Asia/Taipei (UTC+08:00)：P5-03a離線Deployment 748／748；33485508修復queue停止時timer清理競爭，一千輪回歸及AspNetCore 79／79通過，固定C:\\smv\\guard完整八項全通過。diagnostics實機同一步驟多次未取得trace，成功作業不等於追蹤驗收，依05A §7第3點停重試並請選處置；仍未驗收、未推送。P5-03b離線規劃已提交b5edf560，尚未實作；P5-02工具三小時修正尚未開始。",
         "2026-11-15 04:16 Asia/Taipei (UTC+08:00)：P5-03b離線段完成；UI封裝／D26／ui-export／ui-import與活動探針已接通，UI 16／16、Activity 2／2、Deployment 766／766，提交後固定guard八項全部通過。P5-03a實機diagnostics仍待處置，故P5-03整包維持active、未推送；P5-02出席基準已依D5-3更正為reading，工具三小時修正仍待P5-03整包驗收後開始。",
-        "2026-11-15 04:24 Asia/Taipei (UTC+08:00)：未重跑實機；唯讀查詢 goodshepherdback 自 2026-11-14 18:14:00 UTC 起 plugintracelog 得 traceCount=0，與既有精確步驟時間窗 1 筆成功 async 作業／全組織 trace=0 一致。依 05A §7 第 3 點維持 diagnostics 停點，P5-03a／P5-03 不驗收、不推送；P5-03b 離線段已完成，P5-02 工具三小時修正仍待 P5-03 驗收後、P5-05 前。"
+        "2026-11-15 04:24 Asia/Taipei (UTC+08:00)：未重跑實機；唯讀查詢 goodshepherdback 自 2026-11-14 18:14:00 UTC 起 plugintracelog 得 traceCount=0，與既有精確步驟時間窗 1 筆成功 async 作業／全組織 trace=0 一致。依 05A §7 第 3 點維持 diagnostics 停點，P5-03a／P5-03 不驗收、不推送；P5-03b 離線段已完成，P5-02 工具三小時修正仍待 P5-03 驗收後、P5-05 前。",
+        "2026-11-15 08:00 Asia/Taipei (UTC+08:00)：使用者已重啟 D365-9.1 三項服務並執行 iisreset；diagnostics enabled 成功，smoke 於端點階段回 EndpointNotFoundException。收尾 off／verify 重試成功；PowerShell Direct／Hyper-V 唯讀主機檢查受本機授權限制。依 D5-19 第 4 項採 live=deferred，P5-03 以離線驗證及 plan→apply（步驟停用）→verify=0 收尾，接續 P5-02 工具修正。"
       ]
     }
   ],
@@ -685,7 +686,7 @@ const DATA = {
       "id": "階段 5",
       "name": "Plugin／Workflow 重建（36 個 DLL → 2 個）",
       "planned": "8～12 個工作天",
-      "actual": "2026-11-15 04:16 Asia/Taipei (UTC+08:00)：P5-03b離線段完成；UI封裝／D26／ui-export／ui-import與活動探針已接通，UI 16／16、Activity 2／2、Deployment 766／766，提交後固定guard八項全部通過。P5-03a實機diagnostics仍待處置，故P5-03整包維持active、未推送；P5-02出席基準已依D5-3更正為reading，工具三小時修正仍待P5-03整包驗收後開始。",
+      "actual": "2026-11-15 08:00 Asia/Taipei (UTC+08:00)：P5-03a／b 已依 05A 修訂 2 收尾；UI 16／16、Activity 2／2、Deployment 766／766，固定 guard 前版八項通過。重啟後 diagnostics enabled 成功但 smoke 回 EndpointNotFoundException，off／verify 重試成功且步驟維持停用；PowerShell Direct 唯讀主機查詢受本機授權限制，未自行提升權限。依 D5-19 第 4 項實機影子 live=deferred，P5-03 已驗收；下一步先做 P5-02 工具修正，再進 P5-04。",
       "current": true,
       "done": 2,
       "active": 1
@@ -1422,13 +1423,13 @@ const DATA = {
       "id": "P5-03",
       "phaseId": "階段 5",
       "name": "影子模式比對 shadow＋佈署擴充",
-      "status": "active",
+      "status": "done",
       "deps": "P5-01",
       "live": "唯讀比對",
       "timebox": "1 天",
-      "doneAt": "",
-      "commit": "",
-      "note": "2026-11-15 04:16 Asia/Taipei (UTC+08:00)：P5-03b離線段完成；UI封裝／D26／ui-export／ui-import與活動探針已接通，UI 16／16、Activity 2／2、Deployment 766／766，提交後固定guard八項全部通過。P5-03a實機diagnostics仍待處置，故P5-03整包維持active、未推送；P5-02出席基準已依D5-3更正為reading，工具三小時修正仍待P5-03整包驗收後開始。"
+      "doneAt": "2026-11-15 08:00 Asia/Taipei (UTC+08:00)",
+      "commit": "6e92d04c",
+      "note": "2026-11-15 08:00 Asia/Taipei (UTC+08:00)：P5-03a／b 離線驗收通過；實機 diagnostics 重啟後 smoke 回 EndpointNotFoundException，off／verify 重試成功且步驟停用。PowerShell Direct 唯讀主機查詢受本機授權限制；依 D5-19 第 4 項 shadow live=deferred。P5-03 已驗收，報告 `wp-reports/P5-03a.md`；先做 P5-02 工具修正，再進 P5-04。"
     },
     {
       "id": "P5-04",
@@ -1770,38 +1771,7 @@ const DATA = {
       "note": "2026-11-14 12:54 Asia/Taipei (UTC+08:00)：8ad4dccc完整守門通過，實機3→4→3、step ID不變、免重啟；三次smoke/verify0、收尾停用及殘留0，詳wp-reports/P5-update-rollback.md。"
     }
   ],
-  "active": [
-    {
-      "id": "P5-03",
-      "dod": [
-        [
-          "註冊清單 v2、映像與活動註冊",
-          "no",
-          "v2／映像／活動註冊已離線通過，P5-03b活動流程待實作；實機未驗收"
-        ],
-        [
-          "export-legacy 與 switch 互斥切換",
-          "no",
-          "受控legacy公開CLI及D5-18已離線接線；只有受審舊輪可短暫啟用，實機證據待補"
-        ],
-        [
-          "先舊後新 shadow 兩輪與 observe",
-          "no",
-          "CRUD／推播完整意圖／映像／外部既有列摘要已離線接通；實機trace仍缺"
-        ],
-        [
-          "失敗／取消還原與資料清理",
-          "no",
-          "離線故障及取消清理通過；最近實機off／verify=0且追蹤還原，job零殘留未證明"
-        ],
-        [
-          "固定守門及P5-03a回報",
-          "no",
-          "33485508固定guard八項全通過；diagnostics smoke多次無trace，依05A §7第3點待選處置，仍未驗收"
-        ]
-      ]
-    }
-  ],
+  "active": [],
   "gates": [
     {
       "item": "方案建置（Release）",
@@ -2115,19 +2085,19 @@ const DATA = {
     },
     {
       "id": "P5-PROP-001",
-      "problem": "05 檔的影子比對沒有寫舊、新步驟不能同時啟用，也沒有寫啟用舊步驟前的關卡",
-      "evidence": "05A 修訂 1 已在 D5-2、D5-18 及相關 P5-03a／P5-03b 規則定義先舊後新兩輪、互斥啟用與啟用前安全關卡。",
-      "proposal": "3.6 改成 D5-2（先舊後新兩輪）與 D5-18",
-      "impact": "P5-03a／P5-03b 與 P5-04～P5-12 的影子比對流程；不得啟用正式組織或以 Live 啟用新步驟。",
-      "status": "待核定"
+      "problem": "舊程式已退役（使用者 2026-11-15）：05 檔「與舊 Plugin 的實際寫入逐筆比對」與設計 16.2、第十七章的「停用舊步驟、新舊切換」都以「舊程式在 9.1 上運作」為前提",
+      "evidence": "05A 修訂 2、D5-2、D5-3、D5-5、D5-17、D5-19 已改為舊行為只取 PluginHarness 的 legacy-golden 或 reading；goodshepherdback 只跑新程式影子一輪。",
+      "proposal": "3.6 把影子比對改成「離線模擬舊程式＋新程式影子模式」（D5-2 修訂 2）；舊步驟不在任何組織啟用，階段 7 不執行舊程式切換。",
+      "impact": "P5-03a／P5-03b 與 P5-04～P5-12 的影子比對流程；實機追蹤不可用時依 D5-19 延至階段 7 前，期間各模組以 live=deferred 收尾。",
+      "status": "依 05A 修訂 2 登錄（2026-11-15）"
     },
     {
       "id": "P5-PROP-002",
-      "problem": "2026-11-14 21:00 Asia/Taipei (UTC+08:00)：出席模組目前只有閱讀對照，未實跑舊入口或實機第一輪，原basis=legacy-live-only誤標已改reading。",
-      "evidence": "PresentRecordLinePlugInClass.cs:205、:230以空token建立LineUtilityClass，走其:108–116、:126–143的寫死正式token後備；:75的DEVELOPER_LINE_ID未被使用。",
-      "proposal": "出席模組在 P7-02 演練時補驗。",
-      "impact": "依D5-3保留reading限制；P5-03驗收後、P5-05前另做最多3小時離線工具修正，成功產生legacy.json才改legacy-golden。",
-      "status": "使用者已核定（2026-11-14 21:00 Asia/Taipei (UTC+08:00)）"
+      "problem": "出席模組原先把未實跑舊入口誤標成 legacy-live-only；05A 修訂 2 已禁止 legacy-live／legacy-live-only。",
+      "evidence": "PresentRecordLinePlugInClass.cs:205、:230以空token建立LineUtilityClass，會走寫死正式token後備；:75的DEVELOPER_LINE_ID未被使用。",
+      "proposal": "不適用（修訂 2）：不再安排 P7-02 舊程式補驗；保留 reading 基準，若 P5-02 工具修正成功才改為 legacy-golden。",
+      "impact": "不影響 P5-03 收尾；工具修正限三小時，失敗則各模組依 D5-3／D5-19 收斂。",
+      "status": "不適用（修訂 2，2026-11-15）"
     }
   ],
   "decisions": [

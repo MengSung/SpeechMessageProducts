@@ -3,7 +3,7 @@
   "name": "p5-03a-shadow-switch",
   "title": "P5-03a 部署清單與影子切換",
   "description": "",
-  "status": "in_progress",
+  "status": "completed",
   "dev_type": null,
   "scope": null,
   "package": null,
@@ -11,7 +11,7 @@
   "creator": "Codex",
   "assignee": "Codex",
   "createdAt": "2026-11-14",
-  "completedAt": null,
+  "completedAt": "2026-11-15 07:58 Asia/Taipei (UTC+08:00)",
   "branch": null,
   "base_branch": "1.0.0.11.Integration.P5.Worktree",
   "worktree_path": null,
@@ -21,7 +21,7 @@
   "children": [],
   "parent": "11-14-integration-p5",
   "relatedFiles": [],
-  "notes": "2026-11-15 04:24 Asia/Taipei (UTC+08:00)：已完成不重跑 smoke 的唯讀追蹤管線診斷；查詢 goodshepherdback 自 2026-11-14 18:14:00 UTC 起 plugintracelog 得 traceCount=0，與精確步驟時間窗 1 筆 state=3/status=30 成功 async 作業一致。未新增實機寫入、啟停或推送；依 05A §7 第 3 點維持 diagnostics 停點，等待測試主機事件記錄或使用者核定延至 P7。",
+  "notes": "2026-11-15 07:58 Asia/Taipei (UTC+08:00)：依 D5-19 完成重啟後 diagnostics 嘗試；switch enabled 成功，smoke 在端點階段回 EndpointNotFoundException，收尾 off／verify 重試成功且步驟維持停用。PowerShell Direct 唯讀主機檢查受本機系統管理員授權限制，未讀取事件記錄；依預先核定退路採 live=deferred，P5-03 以離線驗證及 plan→apply（停用）→verify=0 收尾。詳 wp-reports/P5-03a.md。",
   "meta": {},
-  "nextAction": "2026-11-15 04:24 Asia/Taipei (UTC+08:00)：已完成不重跑 smoke 的唯讀追蹤管線診斷；查詢 goodshepherdback 自 2026-11-14 18:14:00 UTC 起 plugintracelog 得 traceCount=0，與精確步驟時間窗 1 筆 state=3/status=30 成功 async 作業一致。未新增實機寫入、啟停或推送；依 05A §7 第 3 點維持 diagnostics 停點，等待測試主機事件記錄或使用者核定延至 P7。"
+  "nextAction": "封存 P5-03a 子任務；P5-03 整包完成後接續 P5-02 工具修正與 P5-04。"
 }
