@@ -93,14 +93,26 @@ public sealed class LocalizedTextChangedPluginTests
         }
         Assert.Empty(writes);
     }
-    /// <summary>新模組採深度一；超過門檻時不得解析輸入或取得服務。</summary>
+    /// <summary>新模組採深度二；超過門檻時不得解析輸入或取得服務。</summary>
     [Fact]
     public void LocalizedText_DepthPolicy_MatchesLegacy()
     {
-        var context = new FakePluginExecutionContext(depth: 2, primaryEntityName: "new_localizedtext");
+        var context = new FakePluginExecutionContext(depth: 3, primaryEntityName: "new_localizedtext");
         var provider = new FakeServiceProvider().Add<IPluginExecutionContext>(context.Object)
             .Add<ITracingService>(new FakeTracingService());
         new LocalizedTextChangedPlugin("{\"mode\":\"Shadow\"}", "", () => Now).Execute(provider);
+    }
+    /// <summary>門檻二仍須執行真寫入，避免只測超量跳過而容許錯誤的門檻一。</summary>
+    [Fact]
+    public void LocalizedText_DepthTwo_StillExecutes()
+    {
+        var writes = new List<Entity>();
+        var service = Service(writes);
+        var context = Context("Create", Guid.NewGuid(), Guid.NewGuid());
+        context.Mock.SetupGet(value => value.Depth).Returns(2);
+        new LocalizedTextChangedPlugin("{\"mode\":\"Live\"}", "", () => Now)
+            .Execute(Provider(context, service.Object, new FakeTracingService()));
+        Assert.Single(writes);
     }
     /// <summary>注入真服務寫入失敗，驗證外殼不包裝、不吞掉原始未知例外。</summary>
     [Fact]

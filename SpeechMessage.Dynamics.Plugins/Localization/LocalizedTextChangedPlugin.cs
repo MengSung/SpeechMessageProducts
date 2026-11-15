@@ -3,7 +3,7 @@
  *
  * 目的與定位：P5-04 教會文字覆寫變更外殼；收到 new_localizedtext 的建立、
  * 更新或刪除後，使 account.new_textchangedon 失效標記前進。沒有舊入口；
- * 深度超過一直接返回，實際註冊限定 PostOperation 非同步。
+ * 深度超過二直接返回，實際註冊限定 PostOperation 非同步。
  * 主要功能與流程：Create 由平台 Target 取得教會，Update 合併 Target 與必要前像，
  * Delete 只讀必要前像。兩個 lookup 都驗證完成後才寫入；換教會同時更新前後兩間。
  * 每次只讀一次 UTC 時鐘，向下取整到秒；不保存覆寫原文或將顯示名稱當識別。
@@ -32,7 +32,7 @@ public sealed class LocalizedTextChangedPlugin : PluginShellBase
         : this(unsecureConfig, secureConfig, () => DateTimeOffset.UtcNow) { }
     /// <summary>測試注入固定 UTC 時鐘，不改動程序時鐘或其他教會設定。</summary>
     internal LocalizedTextChangedPlugin(string unsecureConfig, string secureConfig, Func<DateTimeOffset> utcNow)
-        : base(unsecureConfig, secureConfig, new DepthPolicy(1))
+        : base(unsecureConfig, secureConfig, new DepthPolicy(2))
     {
         this.utcNow = utcNow ?? throw new ArgumentNullException(nameof(utcNow));
     }

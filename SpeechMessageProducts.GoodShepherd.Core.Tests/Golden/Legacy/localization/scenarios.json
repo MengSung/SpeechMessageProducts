@@ -18,7 +18,8 @@
             "new_defaultlanguage": "zh-TW",
             "new_enabledlanguages": "zh-TW",
             "new_timezone": "Asia/Taipei",
-            "new_countrycode": "TW"
+            "new_countrycode": "TW",
+            "name": "Synthetic Church"
           }
         },
         {
@@ -76,7 +77,8 @@
             "new_defaultlanguage": "zh-TW",
             "new_enabledlanguages": "zh-TW",
             "new_timezone": "Asia/Taipei",
-            "new_countrycode": "TW"
+            "new_countrycode": "TW",
+            "name": "Synthetic Church"
           }
         },
         {
@@ -87,7 +89,8 @@
             "new_defaultlanguage": "zh-TW",
             "new_enabledlanguages": "zh-TW",
             "new_timezone": "Asia/Taipei",
-            "new_countrycode": "TW"
+            "new_countrycode": "TW",
+            "name": "Synthetic Church"
           }
         },
         {
@@ -162,7 +165,8 @@
             "new_defaultlanguage": "zh-TW",
             "new_enabledlanguages": "zh-TW",
             "new_timezone": "Asia/Taipei",
-            "new_countrycode": "TW"
+            "new_countrycode": "TW",
+            "name": "Synthetic Church"
           }
         }
       ],
@@ -240,7 +244,8 @@
             "new_defaultlanguage": "zh-TW",
             "new_enabledlanguages": "zh-TW",
             "new_timezone": "Asia/Taipei",
-            "new_countrycode": "TW"
+            "new_countrycode": "TW",
+            "name": "Synthetic Church"
           }
         }
       ],
@@ -305,7 +310,8 @@
             "new_linechannelid": {
               "ref": "channel-a",
               "entity": "new_linechannel"
-            }
+            },
+            "name": "Synthetic Church"
           }
         },
         {
@@ -374,7 +380,8 @@
             "new_linechannelid": {
               "ref": "channel-a",
               "entity": "new_linechannel"
-            }
+            },
+            "name": "Synthetic Church"
           }
         },
         {

@@ -30,6 +30,7 @@ namespace SpeechMessage.Dynamics.Plugins.Localization;
 /// <summary>以共用 Core 服務執行會友語言變更的單次 alias 換綁意圖。</summary>
 public sealed class MemberLanguageChangedPlugin : PluginShellBase
 {
+    /// <summary>只借用無操作狀態的傳輸及文化策略，不保存 SDK、會友或憑證。</summary>
     private readonly MemberRichMenuService menuService;
     /// <summary>平台建構入口；client 使用 net462 無狀態共享 HTTP owner。</summary>
     public MemberLanguageChangedPlugin(string unsecureConfig, string secureConfig)
@@ -37,7 +38,7 @@ public sealed class MemberLanguageChangedPlugin : PluginShellBase
             new MemberRichMenuService(new LinePushClient(), new MemberCultureResolver(new LocalizationOptions()))) { }
     /// <summary>離線注入 Core 服務，外殼不保存會友或教會資料。</summary>
     internal MemberLanguageChangedPlugin(string unsecureConfig, string secureConfig, MemberRichMenuService menuService)
-        : base(unsecureConfig, secureConfig, new DepthPolicy(1)) =>
+        : base(unsecureConfig, secureConfig, new DepthPolicy(2)) =>
         this.menuService = menuService ?? throw new ArgumentNullException(nameof(menuService));
     /// <summary>只接受 contact Update 及必要篩選欄位，完成所有同步 I/O 後返回。</summary>
     internal override void ExecuteRule(PluginInput input, PluginServices services)
@@ -47,8 +48,11 @@ public sealed class MemberLanguageChangedPlugin : PluginShellBase
         var target = input.Target;
         if (target is null || target.LogicalName != "contact" || target.Id != input.PrimaryEntityId ||
             !target.Contains("new_preferredlanguage")) return;
-        var queries = new LineRecipientQueries(services.Organization);
-        var church = queries.ReadMember(input.PrimaryEntityId, CancellationToken.None).ChurchId;
+        using var queries = new LineRecipientQueries(services.Organization);
+        var member = queries.ReadMember(input.PrimaryEntityId, CancellationToken.None);
+        // 未綁定在教會、頻道及 secure key 解析前正常結束；重讀若換教會仍由 Core 拒絕。
+        if (LinePushClient.ValidateRecipient(member, member.ChurchId) is not null) return;
+        var church = member.ChurchId;
         var account = services.Organization.Retrieve("account", church, new ColumnSet("accountnumber"));
         if (account is null || account.Id != church || account.LogicalName != "account" ||
             account.GetAttributeValue<string>("accountnumber") is not { Length: > 0 } churchCode)
@@ -66,10 +70,12 @@ public sealed class MemberLanguageChangedPlugin : PluginShellBase
         }
         finally { if (key is not null) Array.Clear(key, 0, key.Length); }
     }
+    /// <summary>只在當次 Shadow sink 記錄正式會友與 alias 摘要，不保留或輸出憑證。</summary>
     private static void TraceAlias(PluginServices services, Guid contactId, string alias) =>
         services.ShadowPush!.Record(contactId, "RichMenuAlias", contactId, 0,
             HashAlias(alias));
 
+    /// <summary>有界 alias 轉為固定 SHA-256；雜湊 owner 於同步返回前釋放。</summary>
     private static string HashAlias(string alias)
     {
         using var hash = SHA256.Create();
@@ -78,11 +84,13 @@ public sealed class MemberLanguageChangedPlugin : PluginShellBase
         foreach (var value in bytes) text.Append(value.ToString("x2", System.Globalization.CultureInfo.InvariantCulture));
         return text.ToString();
     }
+    /// <summary>只解碼本次 Live key；呼叫端 finally 清零，格式拒絕不回顯 secure 設定。</summary>
     private static byte[] DecodeKey(string value)
     {
         if (string.IsNullOrWhiteSpace(value)) throw Invalid();
         try { return Convert.FromBase64String(value); } catch (FormatException) { throw Invalid(); }
     }
-    private static InvalidPluginExecutionException Invalid() =>
-        new(new SystemTextTable().GetText("zh-TW", new TextKey("Common.Plugin.InvalidConfiguration")));
+    /// <summary>固定業務錯誤鍵交由共用外殼附事件識別，不帶任何原始資料。</summary>
+    private static SpeechMessageProducts.GoodShepherd.Core.Rules.BusinessRuleException Invalid() =>
+        new(new TextKey("Common.Plugin.InvalidConfiguration"));
 }
