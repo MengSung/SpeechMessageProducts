@@ -13,11 +13,14 @@ using System;
 using System.Activities;
 using System.Collections.Generic;
 using System.Linq;
+using System.IO;
+using System.Text;
 using Microsoft.Xrm.Sdk;
 using Microsoft.Xrm.Sdk.Query;
 using Microsoft.Xrm.Sdk.Workflow;
 using Moq;
 using Newtonsoft.Json.Linq;
+using Newtonsoft.Json;
 using SpeechMessage.Dynamics.Plugins.Tests.Fakes;
 using Xunit;
 using EquipmentStatusActivity = Workflows::SpeechMessage.Dynamics.Workflows.Lessons.EquipmentStatusActivity;
@@ -31,6 +34,7 @@ public sealed class LessonEquipmentShellTests
     [Fact]
     public void Lessons_Equipment_ShadowMode_MatchesExpected()
     {
+        RunGoldenCases();
         var church = Guid.NewGuid(); var member = Guid.NewGuid(); var record = Guid.NewGuid(); var course = Guid.NewGuid();
         var context = new FakeWorkflowContext(messageName: "ExecuteWorkflow", primaryEntityName: "new_stor_lessons", primaryEntityId: record);
         var sdk = new Mock<IOrganizationService>(MockBehavior.Strict);
@@ -82,5 +86,88 @@ public sealed class LessonEquipmentShellTests
             Assert.ThrowsAny<Exception>(() => Run("Live")); Assert.Empty(writes);
         }
         finally { sdk.Reset(); factory.Reset(); context.Mock.Reset(); tracing.Entries.Clear(); rows.Entities.Clear(); writes.Clear(); }
+    }
+    /// <summary>同份四案輸入與期望經真活動雙模式執行；不以產品輸出反寫期望或只檢查計數。</summary>
+    private static void RunGoldenCases()
+    {
+        var cases = Read("scenarios")["cases"]!.Children<JObject>().ToArray();
+        var expected = Read("expected")["cases"]!.Children<JObject>().ToArray();
+        var activity = new EquipmentStatusActivity();
+        Assert.Equal(cases.Length, expected.Length);
+        for (var i = 0; i < cases.Length; i++)
+        {
+            Assert.Equal((string?)cases[i]["name"], (string?)expected[i]["name"]);
+            var definitions = cases[i]["seed"]!.Children<JObject>().ToArray();
+            var ids = definitions.ToDictionary(x => (string)x["alias"]!, _ => Guid.NewGuid(), StringComparer.Ordinal);
+            var aliases = ids.ToDictionary(x => x.Value, x => x.Key);
+            var rows = new Dictionary<Guid, Entity>();
+            foreach (var definition in definitions)
+            {
+                var row = new Entity((string)definition["entity"]!, ids[(string)definition["alias"]!]);
+                foreach (var field in ((JObject)definition["fields"]!).Properties())
+                    row[field.Name] = field.Value is JObject reference
+                        ? new EntityReference((string)reference["entity"]!, ids[(string)reference["ref"]!])
+                        : ((JValue)field.Value).Value;
+                rows.Add(row.Id, row);
+            }
+            var context = new FakeWorkflowContext(messageName: "ExecuteWorkflow", primaryEntityName: "new_stor_lessons", primaryEntityId: ids["record"]);
+            var sdk = new Mock<IOrganizationService>(MockBehavior.Strict);
+            var factory = new Mock<IOrganizationServiceFactory>(MockBehavior.Strict);
+            var tracing = new FakeTracingService(); var writes = new List<Entity>();
+            try
+            {
+                factory.Setup(x => x.CreateOrganizationService(context.Object.UserId)).Returns(sdk.Object);
+                sdk.Setup(x => x.Retrieve(It.IsAny<string>(), It.IsAny<Guid>(), It.IsAny<ColumnSet>()))
+                    .Returns<string, Guid, ColumnSet>((table, id, _) => rows[id].LogicalName == table ? rows[id] : throw new InvalidOperationException("Wrong synthetic table."));
+                sdk.Setup(x => x.RetrieveMultiple(It.IsAny<QueryBase>()))
+                    .Returns(() => new EntityCollection(rows.Values.Where(x => x.LogicalName == "new_stor_lessons").ToArray()));
+                sdk.Setup(x => x.Update(It.IsAny<Entity>())).Callback<Entity>(e => writes.Add(e));
+                foreach (var mode in new[] { "Shadow", "Live" })
+                {
+                    tracing.Entries.Clear(); writes.Clear();
+                    var invoker = new WorkflowInvoker(activity);
+                    invoker.Extensions.Add<IWorkflowContext>(() => context.Object);
+                    invoker.Extensions.Add<IOrganizationServiceFactory>(() => factory.Object);
+                    invoker.Extensions.Add<ITracingService>(() => tracing);
+                    Exception? failure = null;
+                    try { invoker.Invoke(new Dictionary<string, object> { ["InputParameter"] = "synthetic", ["ExecutionMode"] = mode }, TimeSpan.FromSeconds(10)); }
+                    catch (Exception exception) { failure = exception; }
+                    if (expected[i]["exception"]!.Type != JTokenType.Null)
+                    {
+                        Assert.NotNull(failure); Assert.Equal((string?)expected[i]["exception"], failure.GetBaseException().GetType().Name);
+                        Assert.Empty(writes); continue;
+                    }
+                    Assert.Null(failure);
+                    var actual = new JArray();
+                    if (mode == "Shadow")
+                    {
+                        Assert.Empty(writes);
+                        var projection = tracing.Entries.Where(x => x.StartsWith("SMV-SHADOW|1|", StringComparison.Ordinal))
+                            .Select(x => JObject.Parse(x.Substring("SMV-SHADOW|1|".Length))).ToArray();
+                        Assert.True((bool)projection.Last()["end"]!);
+                        foreach (var line in projection.Where(x => x["operation"] is not null))
+                            actual.Add(new JObject { ["operation"] = line["operation"], ["entity"] = line["entity"], ["alias"] = aliases[Guid.Parse((string)line["id"]!)], ["fields"] = line["fields"] });
+                    }
+                    else
+                    {
+                        foreach (var row in writes)
+                            actual.Add(new JObject { ["operation"] = "Update", ["entity"] = row.LogicalName, ["alias"] = aliases[row.Id], ["fields"] = JObject.FromObject(row.Attributes.ToDictionary(x => x.Key, x => x.Value)) });
+                    }
+                    Assert.True(JToken.DeepEquals(expected[i]["writes"], actual), "Equipment writes differ from reading expectation.");
+                }
+            }
+            finally { sdk.Reset(); factory.Reset(); context.Mock.Reset(); tracing.Entries.Clear(); writes.Clear(); rows.Clear(); }
+        }
+    }
+
+    /// <summary>有界讀取與Core相同的嵌入情境；所有reader／stream逆序using釋放。</summary>
+    private static JObject Read(string kind)
+    {
+        using var stream = typeof(LessonEquipmentShellTests).Assembly.GetManifestResourceStream(
+            "SpeechMessage.Dynamics.Plugins.Tests.Golden.lessonsequipment." + kind + ".json") ?? throw new InvalidDataException("Missing equipment fixture.");
+        if (stream.Length > 1048576) throw new InvalidDataException("Equipment fixture exceeds capacity.");
+        using var text = new StreamReader(stream, new UTF8Encoding(false, true));
+        using var reader = new JsonTextReader(text) { MaxDepth = 32, DateParseHandling = DateParseHandling.None, FloatParseHandling = FloatParseHandling.Decimal };
+        return JObject.Load(reader);
     }
 }

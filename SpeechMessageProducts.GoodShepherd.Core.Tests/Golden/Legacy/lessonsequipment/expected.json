@@ -1,0 +1,95 @@
+{
+  "module": "lessonsequipment",
+  "basis": "reading",
+  "cases": [
+    {
+      "name": "equipment-highest-completed",
+      "entrypoint": "EquipmentWorkflow.EquipmentWorkflowClass",
+      "writes": [
+        {
+          "operation": "Update",
+          "entity": "contact",
+          "alias": "member",
+          "fields": {
+            "new_equipment_status": "E2門徒營"
+          }
+        }
+      ],
+      "lineCalls": [],
+      "outputs": {},
+      "exception": null
+    },
+    {
+      "name": "equipment-no-completed",
+      "entrypoint": "EquipmentWorkflow.EquipmentWorkflowClass",
+      "writes": [
+        {
+          "operation": "Update",
+          "entity": "contact",
+          "alias": "member",
+          "fields": {
+            "new_equipment_status": "尚未裝備"
+          }
+        }
+      ],
+      "lineCalls": [],
+      "outputs": {},
+      "exception": null
+    },
+    {
+      "name": "equipment-unknown-stage",
+      "entrypoint": "EquipmentWorkflow.EquipmentWorkflowClass",
+      "writes": [
+        {
+          "operation": "Update",
+          "entity": "contact",
+          "alias": "member",
+          "fields": {
+            "new_equipment_status": "尚未裝備"
+          }
+        }
+      ],
+      "lineCalls": [],
+      "outputs": {},
+      "exception": null
+    },
+    {
+      "name": "equipment-other-church",
+      "entrypoint": "EquipmentWorkflow.EquipmentWorkflowClass",
+      "writes": [],
+      "lineCalls": [],
+      "outputs": {},
+      "exception": "InvalidOperationException"
+    }
+  ],
+  "declaredDifferences": [
+    {
+      "case": "equipment-highest-completed",
+      "position": "$.cases[0].writes",
+      "category": 5,
+      "reason": "D5-3閱讀：EquipmentUtility.cs:62、267-296、305-334；只取完成課程最高階、未知／無完成回零階，會友為唯一觸發列以外更新。依05A §4A與永久隔離契約先驗來源教會，錯配拒絕。",
+      "test": "Lessons_Equipment_StatusTransitions_MatchLegacy"
+    },
+    {
+      "case": "equipment-no-completed",
+      "position": "$.cases[1].writes",
+      "category": 5,
+      "reason": "D5-3閱讀：EquipmentUtility.cs:62、267-296、305-334；只取完成課程最高階、未知／無完成回零階，會友為唯一觸發列以外更新。依05A §4A與永久隔離契約先驗來源教會，錯配拒絕。",
+      "test": "Lessons_Equipment_StatusTransitions_MatchLegacy"
+    },
+    {
+      "case": "equipment-unknown-stage",
+      "position": "$.cases[2].writes",
+      "category": 5,
+      "reason": "D5-3閱讀：EquipmentUtility.cs:62、267-296、305-334；只取完成課程最高階、未知／無完成回零階，會友為唯一觸發列以外更新。依05A §4A與永久隔離契約先驗來源教會，錯配拒絕。",
+      "test": "Lessons_Equipment_StatusTransitions_MatchLegacy"
+    },
+    {
+      "case": "equipment-other-church",
+      "position": "$.cases[3].writes",
+      "category": 5,
+      "reason": "D5-3閱讀：EquipmentUtility.cs:62、267-296、305-334；只取完成課程最高階、未知／無完成回零階，會友為唯一觸發列以外更新。依05A §4A與永久隔離契約先驗來源教會，錯配拒絕。",
+      "test": "Lessons_Equipment_StatusTransitions_MatchLegacy"
+    }
+  ]
+}

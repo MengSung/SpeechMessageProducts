@@ -7,6 +7,9 @@
  * 使用邊界與維護：所有狀態只屬於測試呼叫；沒有SDK、機密、背景Task、連線或共享快取，列舉器由規則
  * 同步關閉。A／B／A呼叫證明沒有上一個會友結果殘留；不把純值檢查當伺服器授權。
  */
+using System.Text;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using SpeechMessageProducts.GoodShepherd.Core.Lessons;
 using Xunit;
 
@@ -20,6 +23,22 @@ public sealed class LessonEquipmentRuleTests
     public void Lessons_Equipment_StatusTransitions_MatchLegacy()
     {
         var stages = new[] { "尚未裝備", "門徒學校上", "E1成長營", "門徒學校下", "E2門徒營", "幸福大學上", "E3領袖營", "幸福大學下" };
+        var inputs = Read("scenarios"); var outputs = Read("expected");
+        Assert.Equal("reading", (string?)outputs["basis"]);
+        var cases = inputs["cases"]!.Children<JObject>().ToArray();
+        var expected = outputs["cases"]!.Children<JObject>().ToArray();
+        Assert.Equal(4, cases.Length); Assert.Equal(cases.Length, expected.Length);
+        for (var index = 0; index < cases.Length; index++)
+        {
+            Assert.Equal((string?)cases[index]["name"], (string?)expected[index]["name"]);
+            if (expected[index]["exception"]!.Type != JTokenType.Null) continue; // scope拒絕由真活動測試驗證。
+            var seeds = cases[index]["seed"]!.Children<JObject>().ToDictionary(x => (string)x["alias"]!, StringComparer.Ordinal);
+            var completions = seeds.Values.Where(x => (string?)x["entity"] == "new_stor_lessons")
+                .Select((x, i) => new LessonCompletion(new Guid(i + 1, 0, 0, new byte[8]),
+                    (bool)x["fields"]!["new_current_complete"]!,
+                    (string?)seeds[(string)x["fields"]!["new_new_disciple_lessons_new_stor_les"]!["ref"]!]["fields"]!["new_now_stage_name"]));
+            Assert.Equal((string?)expected[index]["writes"]![0]!["fields"]!["new_equipment_status"], LessonEquipmentRule.Evaluate(completions, stages));
+        }
         var first = new Guid("11111111-1111-1111-1111-111111111111");
         var second = new Guid("22222222-2222-2222-2222-222222222222");
         var third = new Guid("33333333-3333-3333-3333-333333333333");
@@ -34,5 +53,15 @@ public sealed class LessonEquipmentRuleTests
         var duplicateStages = new[] { "尚未裝備", "尚未裝備" };
         Assert.Throws<ArgumentException>(() => LessonEquipmentRule.Evaluate(rows, duplicateStages));
         Assert.Throws<InvalidOperationException>(() => LessonEquipmentRule.Evaluate(Enumerable.Range(1, 4097).Select(i => new LessonCompletion(new Guid(i, 0, 0, new byte[8]), false, null)), stages));
+    }
+    /// <summary>兩個宿主讀同一份有界嵌入JSON；reader／stream同步using釋放，不保存樹於static。</summary>
+    private static JObject Read(string kind)
+    {
+        using var stream = typeof(LessonEquipmentRuleTests).Assembly.GetManifestResourceStream(
+            "SpeechMessageProducts.GoodShepherd.Core.Tests.Golden.Legacy.lessonsequipment." + kind + ".json") ?? throw new InvalidDataException("Missing equipment fixture.");
+        if (stream.Length > 1048576) throw new InvalidDataException("Equipment fixture exceeds capacity.");
+        using var text = new StreamReader(stream, new UTF8Encoding(false, true));
+        using var reader = new JsonTextReader(text) { MaxDepth = 32, DateParseHandling = DateParseHandling.None, FloatParseHandling = FloatParseHandling.Decimal };
+        return JObject.Load(reader);
     }
 }

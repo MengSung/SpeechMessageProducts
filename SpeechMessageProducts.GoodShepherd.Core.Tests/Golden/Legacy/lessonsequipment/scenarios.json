@@ -1,0 +1,375 @@
+{
+  "module": "lessonsequipment",
+  "cases": [
+    {
+      "name": "equipment-highest-completed",
+      "church": {
+        "alias": "church-a",
+        "organizationName": "synthetic-golden",
+        "timeZone": "Asia/Taipei",
+        "culture": "zh-TW"
+      },
+      "seed": [
+        {
+          "alias": "church-a",
+          "entity": "account",
+          "fields": {
+            "name": "Synthetic Church"
+          }
+        },
+        {
+          "alias": "church-b",
+          "entity": "account",
+          "fields": {
+            "name": "Synthetic Other Church"
+          }
+        },
+        {
+          "alias": "member",
+          "entity": "contact",
+          "fields": {
+            "fullname": "Synthetic Member",
+            "parentcustomerid": {
+              "ref": "church-a",
+              "entity": "account"
+            }
+          }
+        },
+        {
+          "alias": "lesson",
+          "entity": "new_disciple_lessons",
+          "fields": {
+            "new_now_stage_name": "E2門徒營"
+          }
+        },
+        {
+          "alias": "record",
+          "entity": "new_stor_lessons",
+          "fields": {
+            "new_account_new_stor_lessons": {
+              "ref": "church-a",
+              "entity": "account"
+            },
+            "new_contact_new_stor_lessons": {
+              "ref": "member",
+              "entity": "contact"
+            },
+            "new_new_disciple_lessons_new_stor_les": {
+              "ref": "lesson",
+              "entity": "new_disciple_lessons"
+            },
+            "new_current_complete": true
+          }
+        },
+        {
+          "alias": "lesson-2",
+          "entity": "new_disciple_lessons",
+          "fields": {
+            "new_now_stage_name": "幸福大學下"
+          }
+        },
+        {
+          "alias": "record-2",
+          "entity": "new_stor_lessons",
+          "fields": {
+            "new_account_new_stor_lessons": {
+              "ref": "church-a",
+              "entity": "account"
+            },
+            "new_contact_new_stor_lessons": {
+              "ref": "member",
+              "entity": "contact"
+            },
+            "new_new_disciple_lessons_new_stor_les": {
+              "ref": "lesson-2",
+              "entity": "new_disciple_lessons"
+            },
+            "new_current_complete": false
+          }
+        }
+      ],
+      "trigger": {
+        "project": "EquipmentWorkflow",
+        "type": "EquipmentWorkflow.EquipmentWorkflowClass",
+        "message": "ExecuteWorkflow",
+        "entity": "new_stor_lessons",
+        "target": "record",
+        "fields": {},
+        "depth": 1,
+        "inputs": {
+          "InputParameter": "synthetic"
+        }
+      },
+      "now": "2026-11-15T04:00:00Z",
+      "volatile": [],
+      "liveShadow": false,
+      "observe": [
+        {
+          "entity": "contact",
+          "alias": "member",
+          "fields": [
+            "new_equipment_status"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "equipment-no-completed",
+      "church": {
+        "alias": "church-a",
+        "organizationName": "synthetic-golden",
+        "timeZone": "Asia/Taipei",
+        "culture": "zh-TW"
+      },
+      "seed": [
+        {
+          "alias": "church-a",
+          "entity": "account",
+          "fields": {
+            "name": "Synthetic Church"
+          }
+        },
+        {
+          "alias": "church-b",
+          "entity": "account",
+          "fields": {
+            "name": "Synthetic Other Church"
+          }
+        },
+        {
+          "alias": "member",
+          "entity": "contact",
+          "fields": {
+            "fullname": "Synthetic Member",
+            "parentcustomerid": {
+              "ref": "church-a",
+              "entity": "account"
+            }
+          }
+        },
+        {
+          "alias": "lesson",
+          "entity": "new_disciple_lessons",
+          "fields": {
+            "new_now_stage_name": "E2門徒營"
+          }
+        },
+        {
+          "alias": "record",
+          "entity": "new_stor_lessons",
+          "fields": {
+            "new_account_new_stor_lessons": {
+              "ref": "church-a",
+              "entity": "account"
+            },
+            "new_contact_new_stor_lessons": {
+              "ref": "member",
+              "entity": "contact"
+            },
+            "new_new_disciple_lessons_new_stor_les": {
+              "ref": "lesson",
+              "entity": "new_disciple_lessons"
+            },
+            "new_current_complete": false
+          }
+        }
+      ],
+      "trigger": {
+        "project": "EquipmentWorkflow",
+        "type": "EquipmentWorkflow.EquipmentWorkflowClass",
+        "message": "ExecuteWorkflow",
+        "entity": "new_stor_lessons",
+        "target": "record",
+        "fields": {},
+        "depth": 1,
+        "inputs": {
+          "InputParameter": "synthetic"
+        }
+      },
+      "now": "2026-11-15T04:00:00Z",
+      "volatile": [],
+      "liveShadow": false,
+      "observe": [
+        {
+          "entity": "contact",
+          "alias": "member",
+          "fields": [
+            "new_equipment_status"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "equipment-unknown-stage",
+      "church": {
+        "alias": "church-a",
+        "organizationName": "synthetic-golden",
+        "timeZone": "Asia/Taipei",
+        "culture": "zh-TW"
+      },
+      "seed": [
+        {
+          "alias": "church-a",
+          "entity": "account",
+          "fields": {
+            "name": "Synthetic Church"
+          }
+        },
+        {
+          "alias": "church-b",
+          "entity": "account",
+          "fields": {
+            "name": "Synthetic Other Church"
+          }
+        },
+        {
+          "alias": "member",
+          "entity": "contact",
+          "fields": {
+            "fullname": "Synthetic Member",
+            "parentcustomerid": {
+              "ref": "church-a",
+              "entity": "account"
+            }
+          }
+        },
+        {
+          "alias": "lesson",
+          "entity": "new_disciple_lessons",
+          "fields": {
+            "new_now_stage_name": "Synthetic Unknown Stage"
+          }
+        },
+        {
+          "alias": "record",
+          "entity": "new_stor_lessons",
+          "fields": {
+            "new_account_new_stor_lessons": {
+              "ref": "church-a",
+              "entity": "account"
+            },
+            "new_contact_new_stor_lessons": {
+              "ref": "member",
+              "entity": "contact"
+            },
+            "new_new_disciple_lessons_new_stor_les": {
+              "ref": "lesson",
+              "entity": "new_disciple_lessons"
+            },
+            "new_current_complete": true
+          }
+        }
+      ],
+      "trigger": {
+        "project": "EquipmentWorkflow",
+        "type": "EquipmentWorkflow.EquipmentWorkflowClass",
+        "message": "ExecuteWorkflow",
+        "entity": "new_stor_lessons",
+        "target": "record",
+        "fields": {},
+        "depth": 1,
+        "inputs": {
+          "InputParameter": "synthetic"
+        }
+      },
+      "now": "2026-11-15T04:00:00Z",
+      "volatile": [],
+      "liveShadow": false,
+      "observe": [
+        {
+          "entity": "contact",
+          "alias": "member",
+          "fields": [
+            "new_equipment_status"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "equipment-other-church",
+      "church": {
+        "alias": "church-a",
+        "organizationName": "synthetic-golden",
+        "timeZone": "Asia/Taipei",
+        "culture": "zh-TW"
+      },
+      "seed": [
+        {
+          "alias": "church-a",
+          "entity": "account",
+          "fields": {
+            "name": "Synthetic Church"
+          }
+        },
+        {
+          "alias": "church-b",
+          "entity": "account",
+          "fields": {
+            "name": "Synthetic Other Church"
+          }
+        },
+        {
+          "alias": "member",
+          "entity": "contact",
+          "fields": {
+            "fullname": "Synthetic Member",
+            "parentcustomerid": {
+              "ref": "church-b",
+              "entity": "account"
+            }
+          }
+        },
+        {
+          "alias": "lesson",
+          "entity": "new_disciple_lessons",
+          "fields": {
+            "new_now_stage_name": "E2門徒營"
+          }
+        },
+        {
+          "alias": "record",
+          "entity": "new_stor_lessons",
+          "fields": {
+            "new_account_new_stor_lessons": {
+              "ref": "church-a",
+              "entity": "account"
+            },
+            "new_contact_new_stor_lessons": {
+              "ref": "member",
+              "entity": "contact"
+            },
+            "new_new_disciple_lessons_new_stor_les": {
+              "ref": "lesson",
+              "entity": "new_disciple_lessons"
+            },
+            "new_current_complete": true
+          }
+        }
+      ],
+      "trigger": {
+        "project": "EquipmentWorkflow",
+        "type": "EquipmentWorkflow.EquipmentWorkflowClass",
+        "message": "ExecuteWorkflow",
+        "entity": "new_stor_lessons",
+        "target": "record",
+        "fields": {},
+        "depth": 1,
+        "inputs": {
+          "InputParameter": "synthetic"
+        }
+      },
+      "now": "2026-11-15T04:00:00Z",
+      "volatile": [],
+      "liveShadow": false,
+      "observe": [
+        {
+          "entity": "contact",
+          "alias": "member",
+          "fields": [
+            "new_equipment_status"
+          ]
+        }
+      ]
+    }
+  ]
+}
