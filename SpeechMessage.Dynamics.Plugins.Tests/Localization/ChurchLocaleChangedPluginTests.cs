@@ -136,7 +136,7 @@ public sealed class ChurchLocaleChangedPluginTests
     }
     /// <summary>門檻二必須走真待辦鏈；三跳過時連教會代碼也不能讀。</summary>
     [Fact]
-    public void ChurchLocale_DepthPolicy_MatchesLegacy()
+    public void Localization_DepthPolicy_MatchesLegacy()
     {
         using var fixture = new LocalizationFixture();
         var shell = Shell();
@@ -149,7 +149,7 @@ public sealed class ChurchLocaleChangedPluginTests
     }
     /// <summary>待辦建立時注入未知失敗，必須原實例拋出且無部分成功記錄。</summary>
     [Fact]
-    public void ChurchLocale_UnexpectedError_Rethrown()
+    public void Localization_UnexpectedError_Rethrown()
     {
         using var fixture = new LocalizationFixture();
         var failure = new InvalidOperationException("synthetic-sensitive-detail");

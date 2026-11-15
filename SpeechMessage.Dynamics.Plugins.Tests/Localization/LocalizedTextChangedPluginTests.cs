@@ -95,7 +95,7 @@ public sealed class LocalizedTextChangedPluginTests
     }
     /// <summary>新模組採深度二；超過門檻時不得解析輸入或取得服務。</summary>
     [Fact]
-    public void LocalizedText_DepthPolicy_MatchesLegacy()
+    public void Localization_DepthPolicy_MatchesLegacy()
     {
         var context = new FakePluginExecutionContext(depth: 3, primaryEntityName: "new_localizedtext");
         var provider = new FakeServiceProvider().Add<IPluginExecutionContext>(context.Object)
@@ -116,7 +116,7 @@ public sealed class LocalizedTextChangedPluginTests
     }
     /// <summary>注入真服務寫入失敗，驗證外殼不包裝、不吞掉原始未知例外。</summary>
     [Fact]
-    public void LocalizedText_UnexpectedError_Rethrown()
+    public void Localization_UnexpectedError_Rethrown()
     {
         var failure = new InvalidOperationException("Synthetic failure.");
         var service = new Mock<IOrganizationService>();

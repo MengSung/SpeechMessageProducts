@@ -50,7 +50,7 @@ public sealed class MemberLanguageChangedPluginTests
     }
     /// <summary>固定做法同名入口亦保護未綁定零傳輸及不丟例外，包含無效 secure 設定。</summary>
     [Fact]
-    public void MemberLanguage_NotBound_NoPushNoThrow() => MemberLanguage_NotBound_NoCall();
+    public void Localization_NotBound_NoPushNoThrow() => MemberLanguage_NotBound_NoCall();
     /// <summary>大小寫不合 alias 的教會不能被自動清洗，也不得發布任何換綁意圖。</summary>
     [Fact]
     public void MemberLanguage_ChurchCodeInvalidForAlias_Rejected()
@@ -63,7 +63,7 @@ public sealed class MemberLanguageChangedPluginTests
     }
     /// <summary>首讀後會友換到另一教會時 Core 必須拒絕，不讀頻道、不解密也不發布 Push。</summary>
     [Fact]
-    public void MemberLanguage_RecipientOtherChurch_NoPush()
+    public void Localization_RecipientOtherChurch_NoPush()
     {
         using var fixture = new LocalizationFixture();
         var retrieve = fixture.Service.RetrieveHandler!;
@@ -87,7 +87,7 @@ public sealed class MemberLanguageChangedPluginTests
     }
     /// <summary>新入口無舊版；D5-8 精確要求二可執行，三不接觸任何 SDK。</summary>
     [Fact]
-    public void MemberLanguage_DepthPolicy_MatchesLegacy()
+    public void Localization_DepthPolicy_MatchesLegacy()
     {
         using var fixture = new LocalizationFixture();
         var shell = new MemberLanguageChangedPlugin("{\"mode\":\"Shadow\"}", "");
@@ -100,7 +100,7 @@ public sealed class MemberLanguageChangedPluginTests
     }
     /// <summary>注入第一個 SDK 讀取失敗；外殼不能吞掉、包裝或保留原始訊息於 trace。</summary>
     [Fact]
-    public void MemberLanguage_UnexpectedError_Rethrown()
+    public void Localization_UnexpectedError_Rethrown()
     {
         using var fixture = new LocalizationFixture();
         var failure = new InvalidOperationException("synthetic-sensitive-detail");
@@ -111,7 +111,7 @@ public sealed class MemberLanguageChangedPluginTests
     }
     /// <summary>同一事件重跑只發布相同純值 retry 識別，不採用本次執行的新 GUID。</summary>
     [Fact]
-    public void MemberLanguage_RetryKey_IsStableForSameEvent()
+    public void Localization_RetryKey_IsStableForSameEvent()
     {
         using var fixture = new LocalizationFixture();
         var shell = new MemberLanguageChangedPlugin("{\"mode\":\"Shadow\"}", "");
