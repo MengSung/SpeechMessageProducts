@@ -1,0 +1,7 @@
+{"file": "AGENTS.md", "reason": "永久隔離、資源、文件與提交規則"}
+{"file": "文件/規劃設計書/實作計畫-3.5/05A_階段5_執行細則.md", "reason": "P5-07及修訂2唯一執行契約"}
+{"file": ".trellis/spec/backend/plugin-shadow-contract.md", "reason": "薄外殼及影子安全投影"}
+{"file": ".trellis/spec/backend/plugin-packaging-contract.md", "reason": "雙DLL打包及部分信任"}
+{"file": ".trellis/spec/backend/schema-deployment-contract.md", "reason": "phase5只新增欄位"}
+{"file": ".trellis/spec/backend/duplicate-row-publication-contract.md", "reason": "正式身分與完整候選發布"}
+{"file": ".trellis/spec/backend/file-documentation-contract.md", "reason": "繁中說明及位元組守門"}

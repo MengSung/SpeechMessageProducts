@@ -1,0 +1,7 @@
+# 設計
+
+沿用PluginShellBase、WorkflowShellBase、共用通知與對外待辦。Core/Lessons接收正式ID與明確值，資料查詢及命令依單次操作隔離；不同正式ID即使同名完整保留，重複ID拒絕發布。簽核共同規則供P5-08沿用；QR以QrImageGenerate待辦取代繪圖。進階差異先盤點既有課程／教會欄位，只有確實不足才按05A新增phase5欄位。所有SDK服務借用，無靜態可變資料與無界背景工作；影子透過現有recorder執行且不讀token。盤點確認精確欄位與行為後補入實施細節。
+
+## 已核對的連結與設備契約
+
+設備以來源stor的正式教會與本人關聯核對後更新contact最高完成階；四案reading期望由Core及真活動共用。課程連結以課程主要聯絡人解析正式教會；缺歸屬fail closed。Plugin保留31張、QR活動保留32張問卷差異，因既有影子追蹤只能放下12個逐張Create，採每組一個QrImageGenerate待辦。事件依課程／版本／問卷旗標穩定；每次最多一命令及結果，不新增部署工具選項。新增薄LessonQrCodeActivity只負責保留原活動入口及參數，不增加新業務。圖片組consumer及LIFF設定解析、簽核Shadow、設定式進階及CAS已有離線驗證；活動Live安全金鑰與舊付款fallback依P5-PROP-006列已核定缺口；前者查詢前fail-closed、由共用活動失敗邊界保留真例外交D365共用彙總告警，後者Shadow只記固定未實作標記、Live拒絕。不在P5新增待辦或中繼，Host架構留階段審查／3.6並須P7切換前完成。Workflows第二次apply及verify已0，仍待最終候選部署與固定guard，不以測試綠燈代替整包驗收。

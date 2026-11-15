@@ -1,0 +1,12 @@
+{
+  "id": "p5-07-lessons",
+  "title": "P5-07 課程",
+  "status": "completed",
+  "complexity": "L",
+  "risk": "high",
+  "domain": "backend",
+  "currentPhase": "completed",
+  "nextAction": "已完成P5-07驗收與收尾，待封存。",
+  "createdAt": "2026-11-15T04:06:38.522571+00:00",
+  "branch": "1.0.0.11.Integration.P5.Worktree"
+}

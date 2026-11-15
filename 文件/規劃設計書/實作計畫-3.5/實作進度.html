@@ -240,11 +240,11 @@ footer{margin-top:36px;color:var(--muted);font-size:12.5px;text-align:center}
  */
 const DATA = {
   "planVersion": "3.5",
-  "snapshot": "2026-11-15 12:00 Asia/Taipei (UTC+08:00)",
-  "lastUpdated": "2026-11-15T12:00:30+08:00",
+  "snapshot": "2026-11-15 20:13 Asia/Taipei (UTC+08:00)",
+  "lastUpdated": "2026-11-15T20:13:46+08:00",
   "branch": "1.0.0.11.Integration.P5.Worktree",
-  "head": "de05a86e",
-  "headline": "2026-11-15 12:00 Asia/Taipei (UTC+08:00)：P5-06出席已依D5-19完成驗收：六案reading、Core雙目標各220/220、Plugins438/438含CAS、Deployment769/769；兩DLL封裝及goodshepherdback停用部署verify=0、十步驟全停用、舊啟用0。唯一一次diagnostics已連線、smoke失敗且追蹤0，off／verify與追蹤還原成功，維持live=deferred、differences=null，不再重試；固定guard七項及補正編碼全通過，收尾乾淨guard全過才推送，接續P5-07。",
+  "head": "a825f9da",
+  "headline": "2026-11-15 20:13 Asia/Taipei (UTC+08:00)：P5-07已驗收；Workflows8一次性診斷UpdateAssembly成功，正式verify=0、export=0、export-legacy=0；16新步驟全停用、secure0，舊步驟／舊流程啟用皆0。固定guard八項全0（Release6668、Debug tracer7、進度28）；基準reading／simulation、live=deferred，不宣稱實機影子差異0。收尾提交與推送前核對中，完成後進P5-08。",
   "notices": [
     {
       "id": "plan-3.5-summary",
@@ -511,8 +511,8 @@ const DATA = {
       "phaseId": "階段 5",
       "level": "info",
       "title": "P5 進度摘要",
-      "lastUpdated": "2026-11-15T12:00:30+08:00",
-      "body": "2026-11-15 12:00 Asia/Taipei (UTC+08:00)：P5-06出席已依D5-19完成驗收：六案reading、Core雙目標各220/220、Plugins438/438含CAS、Deployment769/769；兩DLL封裝及goodshepherdback停用部署verify=0、十步驟全停用、舊啟用0。唯一一次diagnostics已連線、smoke失敗且追蹤0，off／verify與追蹤還原成功，維持live=deferred、differences=null，不再重試；固定guard七項及補正編碼全通過，收尾乾淨guard全過才推送，接續P5-07。",
+      "lastUpdated": "2026-11-15T20:13:46+08:00",
+      "body": "2026-11-15 20:13 Asia/Taipei (UTC+08:00)：P5-07已驗收；Workflows8一次性診斷UpdateAssembly成功，正式verify=0、export=0、export-legacy=0；16新步驟全停用、secure0，舊步驟／舊流程啟用皆0。固定guard八項全0（Release6668、Debug tracer7、進度28）；基準reading／simulation、live=deferred，不宣稱實機影子差異0。收尾提交與推送前核對中，完成後進P5-08。",
       "steps": [
         "2026-11-14 08:26 Asia/Taipei (UTC+08:00)：已確認目標殘留目錄不是 Git worktree，移除後正式 P4／P5 worktree 清單不受影響。",
         "2026-11-14 08:26 Asia/Taipei (UTC+08:00)：export-metadata 唯讀結構快照建立成功；verify 因本機部署執行檔／連線前置失敗，未宣稱 goodshepherdback verify=0。",
@@ -562,7 +562,17 @@ const DATA = {
         "2026-11-15 11:09 Asia/Taipei (UTC+08:00)：P5-05週報規則及三外殼完成（216f8cd8），註冊清單6d18f6e4；Core雙宿主週報各15/15、Plugins完整427/427含部分信任、Workflows覆蓋86.50%。雙DLL打包通過，goodshepherdback停用apply成功、verify=0；固定guard執行中，未驗收未推送，預計今日12:00前驗收，live=deferred、basis=reading。",
         "2026-11-15 11:20 Asia/Taipei (UTC+08:00)：P5-05週報與Workflows已驗收；Core週報雙目標各15/15、Plugins427/427含CAS、Deployment769/769，覆蓋86.50%；e9332eef固定guard八項全通過，goodshepherdback停用部署verify=0、九步驟全停用。basis=reading、live=deferred、differences=null；封存收尾後推送核對，接續P5-06。",
         "2026-11-15 11:44 Asia/Taipei (UTC+08:00)：P5-06出席收尾中，Core雙目標及六案、Plugins438/438含CAS、Deployment769/769通過；兩DLL打包與goodshepherdback停用部署verify=0，十步驟全停用、舊啟用0。期望格式及六案相容測試已更正，4681bf76固定guard重跑中，通過後驗收推送；basis=reading、live=deferred、differences=null。",
-        "2026-11-15 12:00 Asia/Taipei (UTC+08:00)：P5-06出席已依D5-19完成驗收：六案reading、Core雙目標各220/220、Plugins438/438含CAS、Deployment769/769；兩DLL封裝及goodshepherdback停用部署verify=0、十步驟全停用、舊啟用0。唯一一次diagnostics已連線、smoke失敗且追蹤0，off／verify與追蹤還原成功，維持live=deferred、differences=null，不再重試；固定guard七項及補正編碼全通過，收尾乾淨guard全過才推送，接續P5-07。"
+        "2026-11-15 12:00 Asia/Taipei (UTC+08:00)：P5-06出席已依D5-19完成驗收：六案reading、Core雙目標各220/220、Plugins438/438含CAS、Deployment769/769；兩DLL封裝及goodshepherdback停用部署verify=0、十步驟全停用、舊啟用0。唯一一次diagnostics已連線、smoke失敗且追蹤0，off／verify與追蹤還原成功，維持live=deferred、differences=null，不再重試；固定guard七項及補正編碼全通過，收尾乾淨guard全過才推送，接續P5-07。",
+        "2026-11-15 12:28 Asia/Taipei (UTC+08:00)：P5-06已驗收，固定guard八項全過並推送aa7adf06、遠端一致。P5-07 active：設備純規則與活動已小步提交，Core雙目標各221/221、Plugins439/439；正在補reading情境並繼續簽核／QR／設定式進階。唯一追蹤重測0，live=deferred，不再重試。",
+        "2026-11-15 13:10 Asia/Taipei (UTC+08:00)：P5-06已驗收並推送aa7adf06、遠端一致；P5-07 active，設備及連結四案reading期望、真Plugin／活動已完成小段提交（本機d424f837，本包6提交）。Core最近完整雙目標各222/222、Plugins440/440；共享連結情境與黃金契約各36/36、真外殼1/1通過，兩DLL打包檢查通過。正在接圖片組處理、簽核與設定式進階，整包尚未驗收未推送；預計2026-11-16 18:00 Asia/Taipei (UTC+08:00)驗收。唯一追蹤重測0，live=deferred、differences=null，不再重試。",
+        "2026-11-15 14:18 Asia/Taipei (UTC+08:00)：P5-06已驗收推送aa7adf06；P5-07 active，本機14/15提交、HEAD ccb44b71，尚未推送。設備／連結及QR待辦已分段完成，正在整合QR真發布、進階CRM adapter、CAS與簽核參數分派回歸；部署全測試最近760/760。尚待完整整合、兩DLL打包、停用部署及固定guard，預計2026-11-16 18:00 Asia/Taipei (UTC+08:00)驗收。唯一追蹤重測正常連線但0筆，live=deferred、differences=null，不再重試。",
+        "2026-11-15 16:02 Asia/Taipei (UTC+08:00)：P5-07 active，HEAD ccb44b71、本包仍14筆且未推送；Core完整雙目標各235/235、Plugins493/493、Deployment761/761通過，i18n及文件檢查通過。已補簽核完整Flex、postback容量紅綠回歸、進階第三案reading及移除新增ValueTuple；全方案測試首次揭露兩個期望宣告格式錯誤，已修且Core完整重跑通過，仍需重跑全方案。phase5僅新增兩欄及必要納入操作，goodshepherdback結構apply成功，獨立verify待確認退出碼。簽核活動Live金鑰入口、舊付款fallback及學籍卡consumer範圍仍待釐清，不以安全拒絕宣稱完整移植；整包不驗收、不推送。預計2026-11-16 18:00 Asia/Taipei (UTC+08:00)驗收；live=deferred、differences=null，不再重試追蹤。",
+        "2026-11-15 16:10 Asia/Taipei (UTC+08:00)：P5-07仍active、HEAD ccb44b71、14筆提交，未新增提交或推送。全方案Release build／test=0，22目標6661項通過（Core雙目標各235、Plugins493含六入口CAS、Deployment761）；兩DLL 1.0.0.11／1.0.0.5打包檢查通過。goodshepherdback兩欄結構及本包註冊均apply／verify=0，16個新步驟全停用，舊步驟／舊流程啟用各0。i18n、重複碼、文件及進度頁綠燈，但尚未跑最終乾淨guard。課程付款fallback與活動Live安全金鑰交付尚未完成，不能以Shadow通過冒稱驗收；需核定執行邊界，證據與三方案見P5-07-closure-status.md。預估2026-11-16 18:00 Asia/Taipei (UTC+08:00)，以缺口核定及實作完成為前提；live=deferred、differences=null，不重試追蹤。",
+        "2026-11-15 16:26 Asia/Taipei (UTC+08:00)：P5-07 active、HEAD ccb44b71、14筆提交未推送。補完進階三案共用reading的真Plugin／Shadow逐欄比對及Core完整診斷文字；紅燈揭露缺區名被改寫提示文字，已依舊來源修回空字串。報告回傳型別另經雙宿主紅綠移除ValueTuple，保留舊插入迴圈30項歷程。全方案Release build／test=0、22目標6665項通過（Core各236、Plugins495含CAS、Deployment761）。最新兩DLL 1.0.0.12／1.0.0.6打包檢查通過，尚未部署；先前停用部署verify=0對應1.0.0.11／1.0.0.5，不冒充最新候選。課程付款fallback及活動安全金鑰入口仍待核定，整包未驗收、未跑最終固定guard。預估2026-11-16 18:00 Asia/Taipei (UTC+08:00)，以缺口核定及完成為前提；live=deferred、differences=null，不重試追蹤。",
+        "2026-11-15 16:35 Asia/Taipei (UTC+08:00)：P5-07 active、HEAD ccb44b71、仍14筆未推送。最新兩DLL 1.0.0.12／1.0.0.6打包檢查通過；goodshepherdback plan只含兩個UpdateAssembly，但apply=1（0x8004501D）。未重送；唯讀verify=1及前後匯出SHA確認Plugins已更新為候選12，Workflows仍為先前5，不能聲稱兩DLL部署驗收通過。16個新步驟全部停用且無secure，舊步驟／舊流程啟用皆0；未重試smoke／shadow／diagnostics。最近全方案22目標6665項通過不代替部署與固定guard。活動安全金鑰及舊付款fallback待P5-PROP-006核定；暫不驗收、不推送、不啟動P5-08。預估2026-11-16 18:00 Asia/Taipei (UTC+08:00)，以缺口核定、修復及固定guard通過為前提；live=deferred、differences=null。",
+        "2026-11-15 17:24 Asia/Taipei (UTC+08:00)：P5-PROP-006已核定（使用者授權 Claude 代為核定）；P5-07依D5-12拆a／b，不受原15筆限制。WinRM／事件RPC／PowerShell Direct唯讀事件查詢均未成功，全文僅留C:/smv；第二次plan只剩Workflows一個UpdateAssembly，第二次apply=0，正進行verify及新舊全停用核對。基準reading／simulation、live=deferred，不重測追蹤；未驗收未推送。",
+        "2026-11-15 18:14 Asia/Taipei (UTC+08:00)：P5-07 active，P5-PROP-006核定實作完成；固定C:/smv/guard八項全0（Release 22目標6668、Debug tracer7、進度28）。最終DLL14／8打包通過；首次apply及僅Workflows重plan後第二次apply均0x8004501D、verify=1。匯出核對Plugins14／Workflows7，16新步驟全停用、secure0、舊步驟與舊流程啟用皆0。依核定停止部署，不驗收、不推送、不啟動P5-08；reading／simulation、live=deferred、differences=null，不重試追蹤。",
+        "2026-11-15 20:13 Asia/Taipei (UTC+08:00)：P5-07已驗收；Workflows8一次性診斷UpdateAssembly成功，正式verify=0、export=0、export-legacy=0；16新步驟全停用、secure0，舊步驟／舊流程啟用皆0。固定guard八項全0（Release6668、Debug tracer7、進度28）；基準reading／simulation、live=deferred，不宣稱實機影子差異0。收尾提交與推送前核對中，完成後進P5-08。"
       ]
     }
   ],
@@ -696,9 +706,9 @@ const DATA = {
       "id": "階段 5",
       "name": "Plugin／Workflow 重建（36 個 DLL → 2 個）",
       "planned": "8～12 個工作天",
-      "actual": "2026-11-15 12:00 Asia/Taipei (UTC+08:00)：P5-06出席已依D5-19完成驗收：六案reading、Core雙目標各220/220、Plugins438/438含CAS、Deployment769/769；兩DLL封裝及goodshepherdback停用部署verify=0、十步驟全停用、舊啟用0。唯一一次diagnostics已連線、smoke失敗且追蹤0，off／verify與追蹤還原成功，維持live=deferred、differences=null，不再重試；固定guard七項及補正編碼全通過，收尾乾淨guard全過才推送，接續P5-07。",
+      "actual": "P5-01～P5-07已完成；P5-07固定guard與停用部署通過，P5-08待P5-07推送後開始。",
       "current": true,
-      "done": 6,
+      "done": 7,
       "active": 0
     },
     {
@@ -1474,20 +1484,20 @@ const DATA = {
       "live": "deferred",
       "timebox": "1 天",
       "doneAt": "2026-11-15 12:00 Asia/Taipei (UTC+08:00)",
-      "commit": "de05a86e",
-      "note": "2026-11-15 12:00 Asia/Taipei (UTC+08:00)：P5-06出席已依D5-19完成驗收：六案reading、Core雙目標各220/220、Plugins438/438含CAS、Deployment769/769；兩DLL封裝及goodshepherdback停用部署verify=0、十步驟全停用、舊啟用0。唯一一次diagnostics已連線、smoke失敗且追蹤0，off／verify與追蹤還原成功，維持live=deferred、differences=null，不再重試；固定guard七項及補正編碼全通過，收尾乾淨guard全過才推送，接續P5-07。"
+      "commit": "aa7adf06",
+      "note": "2026-11-15 12:06 Asia/Taipei (UTC+08:00)：P5-06驗收及固定guard八項全過，已推送aa7adf06且遠端一致；Core雙目標各220/220、Plugins438/438含CAS、Deployment769/769、兩DLL打包與停用部署verify=0。唯一diagnostics正常連線但追蹤0，停用／verify及設定還原成功，basis=reading、live=deferred、differences=null，不再重試。"
     },
     {
       "id": "P5-07",
       "phaseId": "階段 5",
       "name": "課程（8 個舊專案）",
-      "status": "todo",
+      "status": "done",
       "deps": "P5-03、更新回復前置",
-      "live": "影子模式",
+      "live": "deferred",
       "timebox": "2 天",
-      "doneAt": "",
-      "commit": "",
-      "note": "兩套進階評估合成一個引擎"
+      "doneAt": "2026-11-15 20:13 Asia/Taipei (UTC+08:00)",
+      "commit": "a825f9da",
+      "note": "2026-11-15 20:13 Asia/Taipei (UTC+08:00)：P5-07已驗收；Workflows8一次性診斷UpdateAssembly成功，正式verify=0、export=0、export-legacy=0；16新步驟全停用、secure0，舊步驟／舊流程啟用皆0。固定guard八項全0（Release6668、Debug tracer7、進度28）；基準reading／simulation、live=deferred，不宣稱實機影子差異0。收尾提交與推送前核對中，完成後進P5-08。"
     },
     {
       "id": "P5-08",
@@ -1499,7 +1509,7 @@ const DATA = {
       "timebox": "1 天",
       "doneAt": "",
       "commit": "",
-      "note": ""
+      "note": "P5-07推送後開始；依05A修訂2採reading／simulation與live=deferred。"
     },
     {
       "id": "P5-09",
@@ -2116,6 +2126,14 @@ const DATA = {
       "proposal": "另案由資料 owner 確認正式教會代碼與既有 alias 遷移；本階段保留拒絕，不自動轉小寫或清洗，也不修改測試組織資料。",
       "impact": "會友換綁與 RichMenuGenerate 遇不合法代碼明確拒絕；P5-04 其他離線及停用部署驗收照常進行，實機影子依 D5-19 延後。",
       "status": "待核定"
+    },
+    {
+      "id": "P5-PROP-006",
+      "problem": "課程簽核活動需要Live推播，但現有WF沒有安全金鑰入口；舊fallback還會建立收費單、信用卡與ATM訂單，P5-11僅明列觸發／通知，沒有承接課程建單。不能擅自把未實作拒絕列成相容完成。",
+      "evidence": "2026-11-15 16:10 Asia/Taipei (UTC+08:00); StorLessonSigningActivity.cs:59-62; FeeFlexMessageClass.cs:91-121; ToolUtility/QPayProcessor.cs:1138-1225; P5-07-closure-status.md; 2026-11-15 17:24 Asia/Taipei (UTC+08:00)：使用者授權 Claude 代為核定（使用者交付核定全文）。",
+      "proposal": "使用者授權 Claude 代為核定：P5不實作活動Live金鑰；推播活動Live查詢前fail-closed並將真實例外交共用告警邊界，Shadow完整記錄推播意圖。不讀token、不新增待辦種類／中繼Plugin。付款fallback不在D365建收費單或信用卡／ATM訂單、不呼叫金流；reading維持舊行為且不列declaredDifferences，Shadow固定標記「未實作：P5-PROP-006」，Live拒絕，列已核定缺口而非差異0或P7補驗。Host非機密意圖架構留階段審查與3.6，P7切換前完成；P5-11核對付款分支與收費模組關係。",
+      "impact": "P5-07可在其他條件通過後驗收；P5-08及P5-11等推播活動沿用；P7切換前須完成後續設計。",
+      "status": "已核定（2026-11-15，使用者授權 Claude 代為核定）"
     }
   ],
   "decisions": [

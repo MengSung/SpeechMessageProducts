@@ -28,10 +28,11 @@
     "11-15-p5-03b-ui-activity-probe",
     "11-15-p5-04-internationalization",
     "11-15-p5-05-weekly-reports",
-    "11-15-p5-06-attendance"
+    "11-15-p5-06-attendance",
+    "11-15-p5-07-lessons"
   ],
   "parent": null,
   "relatedFiles": [],
-  "notes": "2026-11-15 12:00 Asia/Taipei (UTC+08:00)：P5-06出席已依D5-19完成驗收：六案reading、Core雙目標各220/220、Plugins438/438含CAS、Deployment769/769；兩DLL封裝及goodshepherdback停用部署verify=0、十步驟全停用、舊啟用0。唯一一次diagnostics已連線、smoke失敗且追蹤0，off／verify與追蹤還原成功，維持live=deferred、differences=null，不再重試；固定guard七項及補正編碼全通過，收尾乾淨guard全過才推送，接續P5-07。",
+  "notes": "2026-11-15 20:13 Asia/Taipei (UTC+08:00)：P5-PROP-006依核定完成；Workflows8一次性診斷UpdateAssembly成功，正式verify=0、export=0、export-legacy=0，16新步驟停用、secure0、舊啟用皆0；固定guard八項全0。P5-07已具備驗收條件，正進行紀錄收尾與推送前核對，之後進P5-08。",
   "meta": {}
 }
