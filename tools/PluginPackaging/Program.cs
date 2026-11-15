@@ -11,6 +11,9 @@
  * 不誤拒合法的 System.Net.Http 等框架參考。
  * - 輸出固定 JSON 檢查結果；未完成檢查時不得以結束碼零假稱通過。
  * - 由呼叫者擁有輸出 writer，讓並行離線驗證不必改全域 Console 或共享診斷緩衝。
+ * - 以 PE 正式組件名稱選擇 Plugins 診斷入口或 Workflows 公開非抽象活動入口；只有後者可參考 Workflow SDK。
+ *   活動基類沿本檔 TypeDefinition 有界追溯，只接受指向 System.Activities 組件的 CodeActivity 參考，
+ *   不解析磁碟相依、不載入 DLL；所有追溯狀態只存活於當次 reader 操作。
  * 主要操作入口包含 Main、Run、ReadFramework、ReadFrameworkName、ValidateMergeInputFramework、HasNoFrameworkFacade、
  * IsFrameworkAtOrBelowLimit、Reject。
  *
@@ -128,6 +131,10 @@ internal static class Program
             var metadata = pe.GetMetadataReader();
             if (!metadata.IsAssembly) return Reject("InvalidImage", output);
             var assembly = metadata.GetAssemblyDefinition();
+            var assemblyName = metadata.GetString(assembly.Name);
+            var isPlugins = string.Equals(assemblyName, "SpeechMessage.Dynamics.Plugins", StringComparison.Ordinal);
+            var isWorkflows = string.Equals(assemblyName, "SpeechMessage.Dynamics.Workflows", StringComparison.Ordinal);
+            var assemblyIdentity = isPlugins || isWorkflows;
             var publicKey = metadata.GetBlobBytes(assembly.PublicKey);
             var identity = new AssemblyName("InspectionOnly");
             identity.SetPublicKey(publicKey);
@@ -136,22 +143,30 @@ internal static class Program
             var targetFramework = ReadFramework(metadata, assembly);
             var references = metadata.AssemblyReferences.Select(handle => metadata.GetString(metadata.GetAssemblyReference(handle).Name)).ToArray();
             var allowed = references.All(name => name is "mscorlib" or "System" or "Microsoft.Xrm.Sdk" or "Microsoft.Crm.Sdk.Proxy" ||
+                (isWorkflows && string.Equals(name, "Microsoft.Xrm.Sdk.Workflow", StringComparison.Ordinal)) ||
                 name.StartsWith("System.", StringComparison.Ordinal));
             var noDrawing = references.All(name => !string.Equals(name, "System.Drawing", StringComparison.Ordinal) &&
                 !name.StartsWith("System.Drawing.", StringComparison.Ordinal));
-            var plugin = metadata.TypeDefinitions.Any(handle =>
+            var plugin = isPlugins && metadata.TypeDefinitions.Any(handle =>
             {
                 var type = metadata.GetTypeDefinition(handle);
                 return (type.Attributes & TypeAttributes.VisibilityMask) == TypeAttributes.Public &&
                     string.Equals(metadata.GetString(type.Namespace), "SpeechMessage.Dynamics.Plugins.Diagnostics", StringComparison.Ordinal) &&
                     string.Equals(metadata.GetString(type.Name), "DiagnosticsPingPlugin", StringComparison.Ordinal);
             });
+            var workflowActivity = isWorkflows && metadata.TypeDefinitions.Any(handle =>
+            {
+                var type = metadata.GetTypeDefinition(handle);
+                return (type.Attributes & TypeAttributes.VisibilityMask) == TypeAttributes.Public &&
+                    (type.Attributes & TypeAttributes.Abstract) == 0 && InheritsCodeActivity(metadata, type.BaseType);
+            });
             var noNetStandardFacade = HasNoFrameworkFacade(metadata, assembly);
-            var ok = strongName && targetFramework && allowed && noDrawing && plugin && noNetStandardFacade;
+            var ok = strongName && targetFramework && allowed && noDrawing && assemblyIdentity &&
+                (plugin || workflowActivity) && noNetStandardFacade;
             output.WriteLine(JsonSerializer.Serialize(new
             {
                 ok,
-                checks = new { readable = true, strongName, targetFramework, allowedReferences = allowed, noNetStandardFacade, noDrawing, diagnosticsPlugin = plugin, size = true },
+                checks = new { readable = true, strongName, targetFramework, allowedReferences = allowed, noNetStandardFacade, noDrawing, assemblyIdentity, diagnosticsPlugin = plugin, workflowActivity, size = true },
                 assemblyVersion = assembly.Version.ToString(),
                 references,
                 sizeBytes = stream.Length
@@ -163,6 +178,37 @@ internal static class Program
             // 損壞影像、不可讀檔與不合法中繼資料都是預期輸入拒絕；不輸出原始路徑或例外訊息。
             return Reject("InvalidImage", output);
         }
+    }
+
+    /// <summary>
+    /// 只沿本組件的非泛型基類定義追溯，允許 internal 或抽象外殼作為中間節點。
+    /// 終點必須是 System.Activities 組件所提供的 System.Activities.CodeActivity；
+    /// 本地同名型別、其他外部基類或無法證明的簽章一律拒絕，不載入或執行任何相依 DLL。
+    /// 使用迴圈且最多走訪本檔型別數量，循環中繼資料不能造成無限迴圈或堆疊溢位，
+    /// 也不配置跨操作快取或保留 reader；串流與 PE reader 仍由 Run 的 using 唯一擁有。
+    /// </summary>
+    /// <param name="metadata">本次大小受限 PE 的唯讀中繼資料，不能逸出呼叫範圍。</param>
+    /// <param name="baseType">候選公開非抽象活動的直接基類 handle。</param>
+    /// <returns>本地鏈可證明抵達指定外部 CodeActivity 時才回傳 true。</returns>
+    private static bool InheritsCodeActivity(MetadataReader metadata, EntityHandle baseType)
+    {
+        for (var remaining = metadata.TypeDefinitions.Count; remaining > 0 && !baseType.IsNil; remaining--)
+        {
+            if (baseType.Kind == HandleKind.TypeDefinition)
+            {
+                baseType = metadata.GetTypeDefinition((TypeDefinitionHandle)baseType).BaseType;
+                continue;
+            }
+            if (baseType.Kind != HandleKind.TypeReference) return false;
+            var reference = metadata.GetTypeReference((TypeReferenceHandle)baseType);
+            if (reference.ResolutionScope.Kind != HandleKind.AssemblyReference ||
+                !string.Equals(metadata.GetString(reference.Namespace), "System.Activities", StringComparison.Ordinal) ||
+                !string.Equals(metadata.GetString(reference.Name), "CodeActivity", StringComparison.Ordinal))
+                return false;
+            var scope = metadata.GetAssemblyReference((AssemblyReferenceHandle)reference.ResolutionScope);
+            return string.Equals(metadata.GetString(scope.Name), "System.Activities", StringComparison.Ordinal);
+        }
+        return false;
     }
 
     /// <summary>只解析 assembly 的框架屬性 blob，不反射載入待測型別或執行屬性建構式。</summary>
@@ -268,7 +314,7 @@ internal static class Program
         {
             ok = false,
             reason,
-            checks = new { readable = false, strongName = false, targetFramework = false, allowedReferences = false, noNetStandardFacade = false, noDrawing = false, diagnosticsPlugin = false, size = false }
+            checks = new { readable = false, strongName = false, targetFramework = false, allowedReferences = false, noNetStandardFacade = false, noDrawing = false, assemblyIdentity = false, diagnosticsPlugin = false, workflowActivity = false, size = false }
         }));
         return 1;
     }

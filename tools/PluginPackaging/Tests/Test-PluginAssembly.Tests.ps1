@@ -4,7 +4,7 @@
 目的與定位：以獨立暫存樣本驗證外掛組件檢查會接受正確簽章net462並拒絕net48等不符產物；測試金鑰為一次性合成資料，樣本不載入執行。
 
 主要功能與流程：
-依下方原生宣告執行本檔所述工作；入口、條件及順序須與實際呼叫端一致，不能把示範或預覽視為已套用。
+樣本明列正式 Plugins 組件名稱，防止錯誤名稱的拒絕掩蓋正樣本或個別故障檢查；逐案驗證結構化 checks，再驗多檔失敗彙整。
 
 使用邊界與維護：修改前先核對引用此檔的專案、頁面、腳本或CI步驟，保留既有參數、輸出及失敗結束碼。
 涉及寫入、外部命令或暫存資源時，依本檔實際實作的owner及清理路徑處理；說明不能取代執行前的範圍驗證。
@@ -34,6 +34,7 @@ try {
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>net462</TargetFramework>
+    <AssemblyName>SpeechMessage.Dynamics.Plugins</AssemblyName>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <SignAssembly>true</SignAssembly>
     <AssemblyOriginatorKeyFile>$escapedKey</AssemblyOriginatorKeyFile>
@@ -84,7 +85,7 @@ namespace SpeechMessage.Dynamics.Plugins.Diagnostics
         [IO.File]::WriteAllText((Join-Path $fixtureRoot 'Fixture.cs'), ($sampleSource -replace "`r?`n", "`r`n") + "`r`n", $utf8)
         & dotnet build $projectPath -c Release -p:SignAssembly=$signed -o $sampleOutput --nologo -v quiet
         if ($LASTEXITCODE -ne 0) { throw 'Fixture build failed; this is not a functional red result.' }
-        $assemblyPath = Join-Path $sampleOutput 'Fixture.dll'
+        $assemblyPath = Join-Path $sampleOutput 'SpeechMessage.Dynamics.Plugins.dll'
         if ($sample -eq 'oversize') {
             $sizedStream = [IO.File]::OpenWrite($assemblyPath)
             try { $sizedStream.SetLength(16 * 1024 * 1024) } finally { $sizedStream.Dispose() }
@@ -107,8 +108,8 @@ namespace SpeechMessage.Dynamics.Plugins.Diagnostics
         else { $failures++; Write-Output ('FAIL ' + $sample + ': contract not satisfied') }
     }
     # 多檔結果必須逐檔輸出，且任何一個未簽章都讓整體失敗；不能只驗最後一個 DLL。
-    Copy-Item -LiteralPath (Join-Path $fixtureRoot 'signed/Fixture.dll') -Destination (Join-Path $fixtureRoot 'a-signed.dll')
-    Copy-Item -LiteralPath (Join-Path $fixtureRoot 'unsigned/Fixture.dll') -Destination (Join-Path $fixtureRoot 'z-unsigned.dll')
+    Copy-Item -LiteralPath (Join-Path $fixtureRoot 'signed/SpeechMessage.Dynamics.Plugins.dll') -Destination (Join-Path $fixtureRoot 'a-signed.dll')
+    Copy-Item -LiteralPath (Join-Path $fixtureRoot 'unsigned/SpeechMessage.Dynamics.Plugins.dll') -Destination (Join-Path $fixtureRoot 'z-unsigned.dll')
     $output = @(& powershell -NoProfile -File $checker -AssemblyPath (Join-Path $fixtureRoot '*.dll') 2>&1)
     $code = $LASTEXITCODE
     $results = @($output | Where-Object { $_.ToString().StartsWith('{', [StringComparison]::Ordinal) } | ForEach-Object { $_.ToString() | ConvertFrom-Json })

@@ -142,3 +142,16 @@ live DLL hash 等於本機、合併 IL 含新字串，不代表沙箱已執行�
 - 正常／基本／錯誤：明確 converter 不需提高權限；一般 SDK 訊息沿原 serializer；禁止放寬 ReflectionPermission、公開私有投影或放寬 R2／metadata 來消除錯誤。
 - 測試：`MemberFlex_WithoutPrivateReflection_SendsCompleteSnapshot` 兩案，僅 Execution 與測試輸出唯讀；無網路權限、真引擎／Core及合成 handler，finally 卸載 domain，using 排空並 Dispose HTTP 資源。
 - 反例／正例：錯誤為把 FullTrust 合併六案當成沙箱權限驗收；正確為保留合併六案及 metadata，另有部分信任回歸，再由核定後實機證明。離線重現同型錯誤仍不等於已讀到原 trace 的完整根因；本次原 trace 僅備份 metadata，不能宣稱根因已由實機堆疊證實。
+
+## P5-05：自訂活動組件檢查（2026-11-15）
+
+正式 PE 組件名稱必須是 `SpeechMessage.Dynamics.Plugins` 或
+`SpeechMessage.Dynamics.Workflows`。前者維持公開 DiagnosticsPingPlugin；
+後者至少一個公開非抽象 CodeActivity，沿本檔基類追溯可經 internal／abstract
+外殼，但終點必須是 System.Activities 組件提供的 CodeActivity，不能冒名。
+只有 Workflows 允許 Microsoft.Xrm.Sdk.Workflow；Plugins 參考它仍拒絕。
+共同的簽章、net462、大小、facade、System.Drawing 及其他參考限制完全保留。
+
+測試正樣本也必須用正式組件名，否則錯誤身分會遮蔽檢查結果；抽象活動獨存、
+假 CodeActivity、錯組件與 Plugins 帶 Workflow SDK 皆為拒絕案例。
+所有工具僅解析 PE，不能為辨識活動而載入或執行受檢組件。

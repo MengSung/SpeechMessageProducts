@@ -1,11 +1,13 @@
 /*
  * 檔案整體說明
  *
- * 目的與定位：定義 Plugin 外殼使用的防遞迴政策純值，讓每次 Execute 只依本次
+ * 目的與定位：定義 Plugin 與 Workflow 外殼共用的防遞迴政策純值，讓每次 Execute 只依本次
  * Dataverse execution context 判斷是否跳過，不保存跨請求、跨使用者或跨組織狀態。
  *
  * 主要功能與流程：DepthPolicy 保存最大深度及舊流程允許的例外條件；ShouldSkip
- * 只讀取 MessageName、Depth 與最大深度，回傳是否停止規則執行。此檔不建立
+ * 只讀取共同 IExecutionContext 的 MessageName、Depth 與最大深度，回傳是否停止規則執行。
+ * 保留原 Plugin 簽章並委派共同入口，讓連結到 Workflows 的同一來源不依賴 Plugin context。
+ * 此檔不建立
  * SDK service、Task、timer、cache 或背景工作，資源生命週期完全由呼叫端掌握。
  *
  * 使用邊界與維護：政策只屬註冊步驟的不可變設定，不能被輸入資料或規則中途改寫。
@@ -47,9 +49,16 @@ internal sealed class DepthPolicy
     /// <summary>最大深度的單一訊息例外。</summary>
     public DepthException Exception { get; }
 
-    /// <summary>判斷本次 context 是否應跳過規則。</summary>
-    /// <param name="context">本次執行的 Dataverse context，不能保存。</param>
-    public bool ShouldSkip(IPluginExecutionContext context)
+    /// <summary>保留既有 Plugin 呼叫簽章，委派共同判斷，不保存任何本次 context。</summary>
+    /// <param name="context">本次借用的 Plugin context；null 仍由共同入口明確拒絕。</param>
+    public bool ShouldSkip(IPluginExecutionContext context) => ShouldSkip((IExecutionContext)context);
+
+    /// <summary>
+    /// 依共同平台欄位判斷 Plugin 或 Workflow 是否應停止；等於最大深度仍執行，
+    /// 超過才套用固定的訊息例外，不建立跨執行計數或使用者狀態。
+    /// </summary>
+    /// <param name="context">本次借用的共同 Dataverse context，不能保存或修改。</param>
+    public bool ShouldSkip(IExecutionContext context)
     {
         if (context is null) throw new ArgumentNullException(nameof(context));
         if (context.Depth <= MaximumDepth) return false;

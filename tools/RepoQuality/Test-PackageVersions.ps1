@@ -151,6 +151,7 @@ try {
     }
     foreach ($pluginProjectRelativePath in @(
         'SpeechMessage.Dynamics.Plugins/SpeechMessage.Dynamics.Plugins.csproj',
+        'SpeechMessage.Dynamics.Workflows/SpeechMessage.Dynamics.Workflows.csproj',
         'SpeechMessage.Dynamics.Plugins.Tests/SpeechMessage.Dynamics.Plugins.Tests.csproj'
     )) {
         $pluginProjectPath = Get-SafePackagePath $pluginProjectRelativePath

@@ -7,6 +7,8 @@
  * 本檔宣告 AssemblyInspectionTests、Fixture。
  * - 逐項注入錯誤框架、未簽章、未公開型別及禁用相依，正樣本必須通過全部檢查。
  * - 損毀、過大、缺檔與缺參數皆 fail closed，輸出固定原因且不能包含原始本機路徑。
+ * - 以正式組件名稱的合成 PE 區分 Plugins 與 Workflows，驗證活動的公開非抽象入口、本地基類鏈及 Workflow SDK 專屬白名單。
+ *   internal 外殼以中繼資料旗標注入，避免 C# 可存取性規則阻止建立離線測試輸入；不將這類樣本當成可執行活動。
  * - 保護 ILRepack 的每一個輸入都不得宣告高於伺服器核定的 v4.6.2； 以離線合成 PE 注入 v4.6.2、v4.5、v4.8 與非 Framework 屬性，斷言只接受不高於上限的明確 .NET
  * Framework 目標。
  * - 合成真實的 facade 名稱參考，重現 System.* 前綴把它誤判為安全相依的缺口； 合併前與部署 DLL 檢查兩個入口都必須拒絕，普通 Framework 名稱則維持可用。 每次建立獨立惰性 PE，不載入執行；
@@ -23,6 +25,10 @@ using System;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Reflection;
+using System.Reflection.Metadata;
+using System.Reflection.Metadata.Ecma335;
+using System.Reflection.PortableExecutable;
 using System.Security.Cryptography;
 using System.Text.Json;
 using Microsoft.CodeAnalysis;
@@ -180,6 +186,114 @@ public sealed class AssemblyInspectionTests
         }
     }
 
+    /// <summary>
+    /// 以合成的正式名稱組件保護兩種部署入口不能互相替代；活動必須公開且非抽象，
+    /// 並可沿本地抽象外殼追到 System.Activities 的 CodeActivity，不能接受同名偽造基類。
+    /// 每案唯一 fixture 負責刪除 PE 與測試金鑰，獨佔重開斷言檢查器已關檔。
+    /// </summary>
+    /// <param name="assemblyName">人工指定的正式或偽裝組件簡名。</param>
+    /// <param name="shape">活動合成來源的固定形狀；null 表示只產生診斷 Plugin。</param>
+    /// <param name="expected">此入口是否符合所屬組件的部署契約。</param>
+    [Theory(DisplayName = "正式組件名稱決定入口且活動必須公開非抽象")]
+    [InlineData("SpeechMessage.Dynamics.Plugins", null, true)]
+    [InlineData("InspectionFixture", null, false)]
+    [InlineData("SpeechMessage.Dynamics.Workflows.Tests", "direct", false)]
+    [InlineData("SpeechMessage.Dynamics.Plugins", "direct", false)]
+    [InlineData("SpeechMessage.Dynamics.Workflows", null, false)]
+    [InlineData("SpeechMessage.Dynamics.Workflows", "direct", true)]
+    [InlineData("SpeechMessage.Dynamics.Workflows", "local", true)]
+    [InlineData("SpeechMessage.Dynamics.Workflows", "internal-base", true)]
+    [InlineData("SpeechMessage.Dynamics.Workflows", "abstract", false)]
+    [InlineData("SpeechMessage.Dynamics.Workflows", "private", false)]
+    [InlineData("SpeechMessage.Dynamics.Workflows", "unrelated", false)]
+    [InlineData("SpeechMessage.Dynamics.Workflows", "local-spoof", false)]
+    [InlineData("SpeechMessage.Dynamics.Workflows", "external-spoof", false)]
+    public void Inspect_AssemblyIdentity_SelectsRequiredEntry(string assemblyName, string? shape, bool expected)
+    {
+        using var fixture = new Fixture();
+        var path = fixture.Emit("valid", assemblyName: assemblyName, activityShape: shape);
+        // 路徑及檔名刻意不等於正式名稱：角色只能取自 PE 的 AssemblyDefinition。
+        using var output = new StringWriter(CultureInfo.InvariantCulture);
+        Assert.Equal(expected ? 0 : 1, Program.Run(new[] { path }, output));
+        using var result = JsonDocument.Parse(output.ToString());
+        var checks = result.RootElement.GetProperty("checks");
+        Assert.Equal(expected, result.RootElement.GetProperty("ok").GetBoolean());
+        Assert.Equal(assemblyName is "SpeechMessage.Dynamics.Plugins" or "SpeechMessage.Dynamics.Workflows",
+            checks.GetProperty("assemblyIdentity").GetBoolean());
+        Assert.Equal(expected && assemblyName == "SpeechMessage.Dynamics.Workflows",
+            checks.GetProperty("workflowActivity").GetBoolean());
+        Assert.Equal(expected && assemblyName == "SpeechMessage.Dynamics.Plugins",
+            checks.GetProperty("diagnosticsPlugin").GetBoolean());
+        Assert.True(checks.GetProperty("strongName").GetBoolean());
+        Assert.True(checks.GetProperty("targetFramework").GetBoolean());
+        Assert.True(checks.GetProperty("allowedReferences").GetBoolean());
+        Assert.True(checks.GetProperty("noNetStandardFacade").GetBoolean());
+        Assert.True(checks.GetProperty("noDrawing").GetBoolean());
+        Assert.DoesNotContain(fixture.Root, output.ToString(), StringComparison.Ordinal);
+        using var exclusive = new FileStream(path, FileMode.Open, FileAccess.ReadWrite, FileShare.None);
+        Assert.True(exclusive.Length > 0);
+    }
+
+    /// <summary>
+    /// 注入真實的 AssemblyRef 而非未使用的編譯參考，保護 Workflow SDK 只在正式 Workflows 白名單中。
+    /// Plugins 即使保有正確診斷入口仍必須拒絕；相似名稱不得因前綴而放行。
+    /// </summary>
+    /// <param name="assemblyName">合成部署組件的正式簡名。</param>
+    /// <param name="dependency">藉由繼承 RequiredType 強制寫入的相依簡名。</param>
+    /// <param name="expected">此組件是否可參考指定相依。</param>
+    [Theory(DisplayName = "只有 Workflows 可以參考精確 Workflow SDK 名稱")]
+    [InlineData("SpeechMessage.Dynamics.Plugins", "Microsoft.Xrm.Sdk.Workflow", false)]
+    [InlineData("SpeechMessage.Dynamics.Workflows", "Microsoft.Xrm.Sdk.Workflow", true)]
+    [InlineData("SpeechMessage.Dynamics.Workflows", "Microsoft.Xrm.Sdk.Workflow.Other", false)]
+    public void Inspect_WorkflowReference_IsAssemblySpecific(string assemblyName, string dependency, bool expected)
+    {
+        using var fixture = new Fixture();
+        var path = fixture.Emit("facade-reference", dependency, assemblyName,
+            assemblyName == "SpeechMessage.Dynamics.Workflows" ? "direct" : null);
+        using var output = new StringWriter(CultureInfo.InvariantCulture);
+        Assert.Equal(expected ? 0 : 1, Program.Run(new[] { path }, output));
+        using var result = JsonDocument.Parse(output.ToString());
+        Assert.Equal(expected, result.RootElement.GetProperty("ok").GetBoolean());
+        Assert.Equal(expected, result.RootElement.GetProperty("checks").GetProperty("allowedReferences").GetBoolean());
+        Assert.True(result.RootElement.GetProperty("checks").GetProperty(
+            assemblyName == "SpeechMessage.Dynamics.Workflows" ? "workflowActivity" : "diagnosticsPlugin").GetBoolean());
+    }
+
+    /// <summary>
+    /// 對有正確活動入口的 Workflows 逐一注入原有簽章、框架、相依、繪圖、facade 與大小故障；
+    /// 必須由對應檢查拒絕，防止新增活動分支時略過原有部署守門。
+    /// </summary>
+    /// <param name="fault">編譯或寫入合成 PE 的固定故障種類。</param>
+    /// <param name="check">必須明確失敗的既有 JSON 檢查欄位。</param>
+    [Theory(DisplayName = "Workflows 保留全部既有部署檢查")]
+    [InlineData("unsigned", "strongName")]
+    [InlineData("net48", "targetFramework")]
+    [InlineData("no-framework", "targetFramework")]
+    [InlineData("reference", "allowedReferences")]
+    [InlineData("drawing", "noDrawing")]
+    [InlineData("facade-reference", "noNetStandardFacade")]
+    [InlineData("oversize", "size")]
+    public void Inspect_WorkflowFaults_PreserveExistingGuards(string fault, string check)
+    {
+        using var fixture = new Fixture();
+        var path = fixture.Emit(fault, "System.Runtime", "SpeechMessage.Dynamics.Workflows", "direct");
+        if (fault == "oversize")
+        {
+            using var stream = File.OpenWrite(path);
+            stream.SetLength(16 * 1024 * 1024);
+        }
+        using var output = new StringWriter(CultureInfo.InvariantCulture);
+        Assert.Equal(1, Program.Run(new[] { path }, output));
+        using var result = JsonDocument.Parse(output.ToString());
+        Assert.False(result.RootElement.GetProperty("ok").GetBoolean());
+        Assert.False(result.RootElement.GetProperty("checks").GetProperty(check).GetBoolean());
+        if (fault != "oversize")
+            Assert.True(result.RootElement.GetProperty("checks").GetProperty("workflowActivity").GetBoolean());
+        Assert.DoesNotContain(fixture.Root, output.ToString(), StringComparison.Ordinal);
+        using var exclusive = new FileStream(path, FileMode.Open, FileAccess.ReadWrite, FileShare.None);
+        Assert.True(exclusive.Length > 0);
+    }
+
     /// <summary>獨佔暫存目錄及測試金鑰的唯一 owner；只產生惰性 DLL，Dispose 刪除所有測試資源。</summary>
     private sealed class Fixture : IDisposable
     {
@@ -198,9 +312,11 @@ public sealed class AssemblyInspectionTests
         /// <summary>以 net462 參考組件離線編譯指定故障；編譯失敗是測試錯誤，不當作檢查器成功拒絕。</summary>
         /// <param name="fault">固定測試故障種類。</param>
         /// <param name="dependencyName">可選的合成相依名稱，只用來注入 facade 參考。</param>
-        /// <param name="assemblyName">可選的合成組件身分，用來驗證 facade 本身也必須拒絕。</param>
+        /// <param name="assemblyName">合成組件身分，預設使用正式 Plugins 名稱，也可注入未知身分或 facade。</param>
+        /// <param name="activityShape">非 null 時改產生活動來源與惰性 System.Activities 相依，不連結正式產品。</param>
         /// <returns>尚未被載入的測試 DLL 路徑。</returns>
-        public string Emit(string fault, string? dependencyName = null, string assemblyName = "InspectionFixture")
+        public string Emit(string fault, string? dependencyName = null, string assemblyName = "SpeechMessage.Dynamics.Plugins",
+            string? activityShape = null)
         {
             var reference = MetadataReference.CreateFromFile(Path.Combine(AppContext.BaseDirectory, "Framework", "mscorlib.dll"));
             var framework = fault == "no-framework" ? "" :
@@ -208,6 +324,18 @@ public sealed class AssemblyInspectionTests
             var source = framework + "namespace SpeechMessage.Dynamics.Plugins.Diagnostics { " +
                 (fault == "private" ? "internal" : "public") + " sealed class DiagnosticsPingPlugin { } }";
             var references = new[] { reference }.AsEnumerable();
+            if (activityShape is not null)
+            {
+                var activityAssembly = activityShape == "external-spoof" ? "System.ActivitySpoof" : "System.Activities";
+                var dependency = Path.Combine(Root, activityAssembly + ".dll");
+                var dependencyCompilation = CSharpCompilation.Create(activityAssembly,
+                    new[] { CSharpSyntaxTree.ParseText("namespace System.Activities { public abstract class CodeActivity { } }") },
+                    references, new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
+                var emitted = dependencyCompilation.Emit(dependency);
+                Assert.True(emitted.Success, string.Join("\n", emitted.Diagnostics));
+                references = references.Append(MetadataReference.CreateFromFile(dependency));
+                source = framework + GetActivitySource(activityShape);
+            }
             if (fault is "reference" or "drawing" or "facade-reference")
             {
                 var name = fault == "facade-reference"
@@ -226,7 +354,50 @@ public sealed class AssemblyInspectionTests
             var path = Path.Combine(Root, "fixture.dll");
             var result = compilation.Emit(path);
             Assert.True(result.Success, string.Join("\n", result.Diagnostics.Select(value => value.ToString())));
+            if (activityShape == "internal-base") MakeShellInternal(path);
             return path;
+        }
+
+        /// <summary>
+        /// 回傳人工指定的活動繼承圖；本地鏈含兩層抽象基類，負案例分別移除可見性、具體型別或可信基類。
+        /// 來源只是離線中繼資料輸入，沒有服務、執行內容或需排空的背景資源。
+        /// </summary>
+        /// <param name="shape">固定測試形狀。</param>
+        /// <returns>不包含框架屬性的 C# 合成來源。</returns>
+        private static string GetActivitySource(string shape) => shape switch
+        {
+            "local" or "internal-base" =>
+                "public abstract class ActivityShellBase : System.Activities.CodeActivity { } " +
+                "public abstract class WeeklyShell : ActivityShellBase { } public sealed class WeeklyActivity : WeeklyShell { }",
+            "abstract" => "public abstract class WeeklyActivity : System.Activities.CodeActivity { }",
+            "private" => "internal sealed class WeeklyActivity : System.Activities.CodeActivity { }",
+            "unrelated" => "public sealed class WeeklyActivity { }",
+            "local-spoof" =>
+                "namespace System.Activities { public abstract class CodeActivity { } } " +
+                "public sealed class WeeklyActivity : System.Activities.CodeActivity { }",
+            _ => "public sealed class WeeklyActivity : System.Activities.CodeActivity { }"
+        };
+
+        /// <summary>
+        /// 僅在本次 fixture 的合成 PE 中把外殼改為 internal，建立 C# 編譯器可存取性規則無法輸出的測試圖。
+        /// 修改 TypeDef 的可見性旗標，保留基類 token；不載入 DLL，也不聲稱修改後的密碼簽章仍可驗證。
+        /// reader 先關閉再寫回，輸入路徑只由 Emit 產生且位於 fixture 自有目錄。
+        /// </summary>
+        /// <param name="path">此 fixture 剛編譯完成的惰性 PE。</param>
+        private static void MakeShellInternal(string path)
+        {
+            var bytes = File.ReadAllBytes(path);
+            using (var pe = new PEReader(new MemoryStream(bytes, writable: false)))
+            {
+                var metadata = pe.GetMetadataReader();
+                var shell = metadata.TypeDefinitions.Single(handle =>
+                    metadata.GetString(metadata.GetTypeDefinition(handle).Name) == "ActivityShellBase");
+                var offset = pe.PEHeaders.MetadataStartOffset + metadata.GetTableMetadataOffset(TableIndex.TypeDef) +
+                    (MetadataTokens.GetRowNumber(shell) - 1) * metadata.GetTableRowSize(TableIndex.TypeDef);
+                var attributes = (uint)metadata.GetTypeDefinition(shell).Attributes & ~(uint)TypeAttributes.VisibilityMask;
+                System.Buffers.Binary.BinaryPrimitives.WriteUInt32LittleEndian(bytes.AsSpan(offset, sizeof(uint)), attributes);
+            }
+            File.WriteAllBytes(path, bytes);
         }
 
         /// <summary>依固定測試案例產生框架屬性，分別覆蓋低於、等於、超過上限及非 Framework 情境。</summary>
