@@ -1,0 +1,124 @@
+{
+  "module": "localization",
+  "basis": "new",
+  "cases": [
+    {
+      "name": "text-create",
+      "entrypoint": "SpeechMessage.Dynamics.Plugins.Localization.LocalizedTextChangedPlugin",
+      "writes": [
+        {
+          "operation": "Update",
+          "entity": "account",
+          "alias": "church-a",
+          "fields": {
+            "new_textchangedon": "2026-11-15T01:02:03Z"
+          }
+        }
+      ],
+      "lineCalls": [],
+      "outputs": {},
+      "exception": null
+    },
+    {
+      "name": "text-reassigned",
+      "entrypoint": "SpeechMessage.Dynamics.Plugins.Localization.LocalizedTextChangedPlugin",
+      "writes": [
+        {
+          "operation": "Update",
+          "entity": "account",
+          "alias": "church-a",
+          "fields": {
+            "new_textchangedon": "2026-11-15T01:02:03Z"
+          }
+        },
+        {
+          "operation": "Update",
+          "entity": "account",
+          "alias": "church-b",
+          "fields": {
+            "new_textchangedon": "2026-11-15T01:02:03Z"
+          }
+        }
+      ],
+      "lineCalls": [],
+      "outputs": {},
+      "exception": null
+    },
+    {
+      "name": "church-valid-post",
+      "entrypoint": "SpeechMessage.Dynamics.Plugins.Localization.ChurchLocaleChangedPlugin",
+      "writes": [
+        {
+          "operation": "Create",
+          "entity": "new_outboundtask",
+          "alias": "richmenu-task",
+          "fields": {
+            "new_name": "RichMenuGenerate|11111111222233334444555555555555-100000000-078e0c6a0aaf0f5c8f0be61ef0ecb6f0",
+            "new_idempotencykey": "11111111222233334444555555555555-100000000-078e0c6a0aaf0f5c8f0be61ef0ecb6f0",
+            "new_type": {
+              "option": 100000000
+            },
+            "new_taskstatus": {
+              "option": 100000000
+            },
+            "new_accountid": {
+              "ref": "church-a",
+              "entity": "account"
+            },
+            "new_payload": "{\"settings\":\"078e0c6a-0aaf-0f5c-8f0b-e61ef0ecb6f0\"}",
+            "new_attempts": 0
+          }
+        }
+      ],
+      "lineCalls": [],
+      "outputs": {
+        "defaultLanguage": "zh-TW",
+        "enabledLanguages": "zh-TW",
+        "timeZone": "Asia/Taipei",
+        "countryCode": "TW",
+        "sourceId": "078e0c6a-0aaf-0f5c-8f0b-e61ef0ecb6f0"
+      },
+      "exception": null
+    },
+    {
+      "name": "church-unreleased-error",
+      "entrypoint": "SpeechMessage.Dynamics.Plugins.Localization.ChurchLocaleChangedPlugin",
+      "writes": [],
+      "lineCalls": [],
+      "outputs": {
+        "errorKey": "Common.Plugin.InvalidConfiguration",
+        "coreException": "SpeechMessageProducts.GoodShepherd.Core.Rules.BusinessRuleException"
+      },
+      "exception": "Microsoft.Xrm.Sdk.InvalidPluginExecutionException"
+    },
+    {
+      "name": "member-bound",
+      "entrypoint": "SpeechMessage.Dynamics.Plugins.Localization.MemberLanguageChangedPlugin",
+      "writes": [],
+      "lineCalls": [],
+      "outputs": {
+        "success": false,
+        "reason": "ShadowRecorded",
+        "memberReads": 1,
+        "channelReads": 1,
+        "alias": "ch-main-home-zh-tw",
+        "contact": "contact-1"
+      },
+      "exception": null
+    },
+    {
+      "name": "member-unbound",
+      "entrypoint": "SpeechMessage.Dynamics.Plugins.Localization.MemberLanguageChangedPlugin",
+      "writes": [],
+      "lineCalls": [],
+      "outputs": {
+        "success": false,
+        "reason": "NotBound",
+        "memberReads": 1,
+        "channelReads": 0
+      },
+      "exception": null
+    }
+  ],
+  "declaredDifferences": []
+}

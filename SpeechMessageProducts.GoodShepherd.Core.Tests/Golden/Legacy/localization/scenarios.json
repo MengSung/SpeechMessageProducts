@@ -1,0 +1,424 @@
+{
+  "module": "localization",
+  "cases": [
+    {
+      "name": "text-create",
+      "church": {
+        "alias": "church-a",
+        "organizationName": "synthetic-localization",
+        "timeZone": "Asia/Taipei",
+        "culture": "zh-TW"
+      },
+      "seed": [
+        {
+          "alias": "church-a",
+          "entity": "account",
+          "fields": {
+            "accountnumber": "ch",
+            "new_defaultlanguage": "zh-TW",
+            "new_enabledlanguages": "zh-TW",
+            "new_timezone": "Asia/Taipei",
+            "new_countrycode": "TW"
+          }
+        },
+        {
+          "alias": "text-1",
+          "entity": "new_localizedtext",
+          "fields": {
+            "new_accountid": {
+              "ref": "church-a",
+              "entity": "account"
+            }
+          }
+        }
+      ],
+      "trigger": {
+        "project": "SpeechMessage.Dynamics.Plugins",
+        "type": "SpeechMessage.Dynamics.Plugins.Localization.LocalizedTextChangedPlugin",
+        "message": "Create",
+        "entity": "new_localizedtext",
+        "target": "text-1",
+        "fields": {
+          "new_accountid": {
+            "ref": "church-a",
+            "entity": "account"
+          }
+        },
+        "depth": 1
+      },
+      "now": "2026-11-15T01:02:03.456Z",
+      "volatile": [],
+      "liveShadow": false,
+      "observe": [
+        {
+          "alias": "church-a",
+          "entity": "account",
+          "fields": [
+            "new_textchangedon"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "text-reassigned",
+      "church": {
+        "alias": "church-a",
+        "organizationName": "synthetic-localization",
+        "timeZone": "Asia/Taipei",
+        "culture": "zh-TW"
+      },
+      "seed": [
+        {
+          "alias": "church-a",
+          "entity": "account",
+          "fields": {
+            "accountnumber": "ch",
+            "new_defaultlanguage": "zh-TW",
+            "new_enabledlanguages": "zh-TW",
+            "new_timezone": "Asia/Taipei",
+            "new_countrycode": "TW"
+          }
+        },
+        {
+          "alias": "church-b",
+          "entity": "account",
+          "fields": {
+            "accountnumber": "chb",
+            "new_defaultlanguage": "zh-TW",
+            "new_enabledlanguages": "zh-TW",
+            "new_timezone": "Asia/Taipei",
+            "new_countrycode": "TW"
+          }
+        },
+        {
+          "alias": "text-1",
+          "entity": "new_localizedtext",
+          "fields": {
+            "new_accountid": {
+              "ref": "church-a",
+              "entity": "account"
+            }
+          }
+        }
+      ],
+      "trigger": {
+        "project": "SpeechMessage.Dynamics.Plugins",
+        "type": "SpeechMessage.Dynamics.Plugins.Localization.LocalizedTextChangedPlugin",
+        "message": "Update",
+        "entity": "new_localizedtext",
+        "target": "text-1",
+        "fields": {
+          "new_accountid": {
+            "ref": "church-b",
+            "entity": "account"
+          }
+        },
+        "depth": 1,
+        "images": {
+          "pre": {
+            "PreImage": {
+              "new_accountid": {
+                "ref": "church-a",
+                "entity": "account"
+              }
+            }
+          }
+        }
+      },
+      "now": "2026-11-15T01:02:03.456Z",
+      "volatile": [],
+      "liveShadow": false,
+      "observe": [
+        {
+          "alias": "church-a",
+          "entity": "account",
+          "fields": [
+            "new_textchangedon"
+          ]
+        },
+        {
+          "alias": "church-b",
+          "entity": "account",
+          "fields": [
+            "new_textchangedon"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "church-valid-post",
+      "church": {
+        "alias": "church-a",
+        "organizationName": "synthetic-localization",
+        "timeZone": "Asia/Taipei",
+        "culture": "zh-TW"
+      },
+      "seed": [
+        {
+          "alias": "church-a",
+          "entity": "account",
+          "fields": {
+            "accountnumber": "ch",
+            "new_defaultlanguage": "zh-TW",
+            "new_enabledlanguages": "zh-TW",
+            "new_timezone": "Asia/Taipei",
+            "new_countrycode": "TW"
+          }
+        }
+      ],
+      "trigger": {
+        "project": "SpeechMessage.Dynamics.Plugins",
+        "type": "SpeechMessage.Dynamics.Plugins.Localization.ChurchLocaleChangedPlugin",
+        "message": "Update",
+        "entity": "account",
+        "target": "church-a",
+        "fields": {
+          "new_defaultlanguage": "zh-TW",
+          "new_enabledlanguages": "zh-TW",
+          "new_timezone": "Asia/Taipei",
+          "new_countrycode": "TW"
+        },
+        "depth": 1,
+        "images": {
+          "pre": {
+            "PreImage": {
+              "new_defaultlanguage": "zh-TW",
+              "new_enabledlanguages": "zh-TW",
+              "new_timezone": "Asia/Taipei",
+              "new_countrycode": "TW"
+            }
+          }
+        }
+      },
+      "now": "2026-11-15T01:02:03.456Z",
+      "volatile": [],
+      "liveShadow": false,
+      "observe": [
+        {
+          "alias": "church-a",
+          "entity": "account",
+          "fields": [
+            "new_defaultlanguage",
+            "new_enabledlanguages",
+            "new_timezone",
+            "new_countrycode"
+          ]
+        },
+        {
+          "alias": "richmenu-task",
+          "entity": "new_outboundtask",
+          "fields": [
+            "new_name",
+            "new_idempotencykey",
+            "new_type",
+            "new_taskstatus",
+            "new_accountid",
+            "new_payload",
+            "new_attempts"
+          ],
+          "related": {
+            "attribute": "new_accountid",
+            "alias": "church-a"
+          }
+        }
+      ]
+    },
+    {
+      "name": "church-unreleased-error",
+      "church": {
+        "alias": "church-a",
+        "organizationName": "synthetic-localization",
+        "timeZone": "Asia/Taipei",
+        "culture": "zh-TW"
+      },
+      "seed": [
+        {
+          "alias": "church-a",
+          "entity": "account",
+          "fields": {
+            "accountnumber": "ch",
+            "new_defaultlanguage": "zh-TW",
+            "new_enabledlanguages": "zh-TW",
+            "new_timezone": "Asia/Taipei",
+            "new_countrycode": "TW"
+          }
+        }
+      ],
+      "trigger": {
+        "project": "SpeechMessage.Dynamics.Plugins",
+        "type": "SpeechMessage.Dynamics.Plugins.Localization.ChurchLocaleChangedPlugin",
+        "message": "Update",
+        "entity": "account",
+        "target": "church-a",
+        "fields": {
+          "new_defaultlanguage": "en",
+          "new_enabledlanguages": "en",
+          "new_timezone": "Asia/Taipei",
+          "new_countrycode": "TW"
+        },
+        "depth": 1,
+        "images": {
+          "pre": {
+            "PreImage": {
+              "new_defaultlanguage": "zh-TW",
+              "new_enabledlanguages": "zh-TW",
+              "new_timezone": "Asia/Taipei",
+              "new_countrycode": "TW"
+            }
+          }
+        }
+      },
+      "now": "2026-11-15T01:02:03.456Z",
+      "volatile": [],
+      "liveShadow": false,
+      "observe": [
+        {
+          "alias": "church-a",
+          "entity": "account",
+          "fields": [
+            "new_defaultlanguage",
+            "new_enabledlanguages",
+            "new_timezone",
+            "new_countrycode"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "member-bound",
+      "church": {
+        "alias": "church-a",
+        "organizationName": "synthetic-localization",
+        "timeZone": "Asia/Taipei",
+        "culture": "zh-TW"
+      },
+      "seed": [
+        {
+          "alias": "church-a",
+          "entity": "account",
+          "fields": {
+            "accountnumber": "ch",
+            "new_defaultlanguage": "zh-TW",
+            "new_enabledlanguages": "zh-TW",
+            "new_timezone": "Asia/Taipei",
+            "new_countrycode": "TW",
+            "new_linechannelid": {
+              "ref": "channel-a",
+              "entity": "new_linechannel"
+            }
+          }
+        },
+        {
+          "alias": "channel-a",
+          "entity": "new_linechannel",
+          "fields": {}
+        },
+        {
+          "alias": "contact-1",
+          "entity": "contact",
+          "fields": {
+            "parentcustomerid": {
+              "ref": "church-a",
+              "entity": "account"
+            },
+            "new_preferredlanguage": "zh-TW",
+            "new_lineid": {
+              "line": "contact-1"
+            }
+          }
+        }
+      ],
+      "trigger": {
+        "project": "SpeechMessage.Dynamics.Plugins",
+        "type": "SpeechMessage.Dynamics.Plugins.Localization.MemberLanguageChangedPlugin",
+        "message": "Update",
+        "entity": "contact",
+        "target": "contact-1",
+        "fields": {
+          "new_preferredlanguage": "zh-TW"
+        },
+        "depth": 1
+      },
+      "now": "2026-11-15T01:02:03.456Z",
+      "volatile": [],
+      "liveShadow": false,
+      "observe": [
+        {
+          "alias": "contact-1",
+          "entity": "contact",
+          "fields": [
+            "new_preferredlanguage",
+            "parentcustomerid"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "member-unbound",
+      "church": {
+        "alias": "church-a",
+        "organizationName": "synthetic-localization",
+        "timeZone": "Asia/Taipei",
+        "culture": "zh-TW"
+      },
+      "seed": [
+        {
+          "alias": "church-a",
+          "entity": "account",
+          "fields": {
+            "accountnumber": "ch",
+            "new_defaultlanguage": "zh-TW",
+            "new_enabledlanguages": "zh-TW",
+            "new_timezone": "Asia/Taipei",
+            "new_countrycode": "TW",
+            "new_linechannelid": {
+              "ref": "channel-a",
+              "entity": "new_linechannel"
+            }
+          }
+        },
+        {
+          "alias": "channel-a",
+          "entity": "new_linechannel",
+          "fields": {}
+        },
+        {
+          "alias": "contact-1",
+          "entity": "contact",
+          "fields": {
+            "parentcustomerid": {
+              "ref": "church-a",
+              "entity": "account"
+            },
+            "new_preferredlanguage": "zh-TW",
+            "new_lineid": null
+          }
+        }
+      ],
+      "trigger": {
+        "project": "SpeechMessage.Dynamics.Plugins",
+        "type": "SpeechMessage.Dynamics.Plugins.Localization.MemberLanguageChangedPlugin",
+        "message": "Update",
+        "entity": "contact",
+        "target": "contact-1",
+        "fields": {
+          "new_preferredlanguage": "zh-TW"
+        },
+        "depth": 1
+      },
+      "now": "2026-11-15T01:02:03.456Z",
+      "volatile": [],
+      "liveShadow": false,
+      "observe": [
+        {
+          "alias": "contact-1",
+          "entity": "contact",
+          "fields": [
+            "new_preferredlanguage",
+            "parentcustomerid"
+          ]
+        }
+      ]
+    }
+  ]
+}

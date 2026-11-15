@@ -4,7 +4,8 @@
  * 目的與定位：保護 05A §4.2 的跨模組黃金差異契約，從組件嵌入資源讀取人寫情境、
  * 實際舊入口產出的 legacy 及人工審核 expected；本檔不執行或模擬舊業務規則。
  *
- * 主要功能與流程：逐模組要求三檔齊備，驗證情境與入口身分後，遞迴比較每個 JSON
+ * 主要功能與流程：舊模組要求三檔齊備；D5-3 閱讀基準與 P5-04 全新模組只需兩檔。
+ * 驗證情境與入口身分後，遞迴比較每個 JSON
  * 值與陣列位置。每個實際差異都須有唯一 case／JSONPath 宣告，類別限 D5-6 的
  * 整數 1 至 5，理由與對應測試不可空白；未宣告、過時或祖先路徑的宣告一律拒絕。
  * 合成正反例刻意注入欄位、型別、集合及宣告錯誤，與實際舊入口證據分開。
@@ -33,8 +34,8 @@ namespace SpeechMessageProducts.GoodShepherd.Core.Tests.Harness;
 public sealed class ExpectedGoldenTests
 {
     /// <summary>
-    /// 遍歷所有 Legacy 模組，缺任一固定三檔即失敗，不以 Skip 或空集合視為成功；
-    /// 實際 JSON 差異必須與期望檔中經 D5-6 分類的逐位置宣告完全一對一。
+    /// 遍歷所有模組；缺黃金檔只接受 D5-3 閱讀基準或 P5-04 的 new 基準。
+    /// 舊黃金的實際差異必須與 D5-6 宣告一對一；新模組不得偽造舊黃金或差異宣告。
     /// </summary>
     [Fact]
     public void Expected_DiffersFromLegacy_OnlyByDeclaredDifferences()
@@ -64,7 +65,7 @@ public sealed class ExpectedGoldenTests
             }
             else
             {
-                ValidateReadingOnlyExpected(scenarios, expected);
+                ValidateWithoutLegacy(scenarios, expected);
             }
         }
     }
@@ -271,23 +272,31 @@ public sealed class ExpectedGoldenTests
     }
 
     /// <summary>
-    /// 驗證 D5-3 的閱讀對照期望檔。這條路徑只在 D5-18 阻止舊入口安全執行時使用；
-    /// 它確認每個合成情境都有完整的預期投影、固定替代基準及可追溯的舊檔案行號，
-    /// 但不把人工閱讀結果冒稱為 legacy.json 或舊程式實跑證據。
+    /// D5-3 閱讀基準要求完整投影及可追溯舊檔案行號，不冒稱舊程式實跑。
+    /// P5-04 沒有舊入口，僅 localization 可用 new，且情境須完整配對、差異宣告為空；
+    /// 不讓任意缺少 legacy.json 的舊模組以 new 繞過閱讀證據。
     /// </summary>
 #pragma warning disable CA2249 // net48 沒有採用 StringComparison 的 string.Contains 多載。
-    private static void ValidateReadingOnlyExpected(JObject scenarios, JObject expected)
+    private static void ValidateWithoutLegacy(JObject scenarios, JObject expected)
     {
         Require(expected["module"]?.Type == JTokenType.String && !string.IsNullOrWhiteSpace((string?)expected["module"]), "ModuleMissing");
-        Require((string?)expected["basis"] == "reading", "ReadingBasisMissing");
+        var isNew = (string?)expected["basis"] == "new";
+        Require(isNew ? (string?)expected["module"] == "localization" : (string?)expected["basis"] == "reading", "ReadingBasisMissing");
         Require(expected.Properties().All(property => property.Name is "module" or "basis" or "cases" or "declaredDifferences"), "UnknownRootField");
         Require(expected["declaredDifferences"] is JArray, "DeclarationsMissing");
+        if (isNew) Require(JToken.DeepEquals(scenarios["module"], expected["module"]), "ModuleMismatch");
 
         var names = new HashSet<string>(StringComparer.Ordinal);
         foreach (var scenario in (JArray?)scenarios["cases"] ?? throw new InvalidDataException("ScenariosMissing"))
             Require(names.Add(Text(scenario["name"])), "DuplicateScenario");
 
         var cases = Cases(expected, names);
+        if (isNew)
+        {
+            Require(names.Count is >= 3 and <= 6 && cases.Count == names.Count, "CaseCountMismatch");
+            Require(!((JArray)expected["declaredDifferences"]!).Any(), "NewDeclarationsNotEmpty");
+            return;
+        }
         var seenDeclarations = new HashSet<string>(StringComparer.Ordinal);
         foreach (var item in (JArray)expected["declaredDifferences"]!)
         {
