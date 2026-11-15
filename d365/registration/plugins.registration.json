@@ -25,6 +25,198 @@
             "differences": null,
             "basis": ""
           }
+        },
+        {
+          "type": "SpeechMessage.Dynamics.Plugins.Localization.LocalizedTextChangedPlugin",
+          "message": "Create",
+          "entity": "new_localizedtext",
+          "stage": "PostOperation",
+          "mode": "Asynchronous",
+          "rank": 10,
+          "module": "internationalization",
+          "filteringAttributes": [],
+          "images": [],
+          "unsecureConfig": "{\"mode\":\"Shadow\"}",
+          "secureConfig": "",
+          "enabledByOrganization": {
+            "goodshepherdback": false
+          },
+          "legacy": [],
+          "shadowReport": {
+            "file": "",
+            "differences": null,
+            "basis": "new"
+          }
+        },
+        {
+          "type": "SpeechMessage.Dynamics.Plugins.Localization.LocalizedTextChangedPlugin",
+          "message": "Update",
+          "entity": "new_localizedtext",
+          "stage": "PostOperation",
+          "mode": "Asynchronous",
+          "rank": 10,
+          "filteringAttributes": [
+            "new_name",
+            "new_key",
+            "new_culture",
+            "new_text",
+            "new_accountid"
+          ],
+          "images": [
+            {
+              "name": "PreImage",
+              "entity": "new_localizedtext",
+              "attributes": [
+                "new_accountid"
+              ],
+              "Type": "PreImage"
+            }
+          ],
+          "unsecureConfig": "{\"mode\":\"Shadow\"}",
+          "secureConfig": "",
+          "enabledByOrganization": {
+            "goodshepherdback": false
+          },
+          "module": "internationalization",
+          "legacy": [],
+          "shadowReport": {
+            "file": "",
+            "differences": null,
+            "basis": "new"
+          }
+        },
+        {
+          "type": "SpeechMessage.Dynamics.Plugins.Localization.LocalizedTextChangedPlugin",
+          "message": "Delete",
+          "entity": "new_localizedtext",
+          "stage": "PostOperation",
+          "mode": "Asynchronous",
+          "rank": 10,
+          "filteringAttributes": [],
+          "images": [
+            {
+              "name": "PreImage",
+              "entity": "new_localizedtext",
+              "attributes": [
+                "new_accountid"
+              ],
+              "Type": "PreImage"
+            }
+          ],
+          "unsecureConfig": "{\"mode\":\"Shadow\"}",
+          "secureConfig": "",
+          "enabledByOrganization": {
+            "goodshepherdback": false
+          },
+          "module": "internationalization",
+          "legacy": [],
+          "shadowReport": {
+            "file": "",
+            "differences": null,
+            "basis": "new"
+          }
+        },
+        {
+          "type": "SpeechMessage.Dynamics.Plugins.Localization.MemberLanguageChangedPlugin",
+          "message": "Update",
+          "entity": "contact",
+          "stage": "PostOperation",
+          "mode": "Asynchronous",
+          "rank": 20,
+          "filteringAttributes": [
+            "new_preferredlanguage"
+          ],
+          "images": [],
+          "module": "internationalization",
+          "legacy": [],
+          "shadowReport": {
+            "file": "",
+            "differences": null,
+            "basis": "new"
+          },
+          "unsecureConfig": "{\"mode\":\"Shadow\"}",
+          "secureConfig": "",
+          "enabledByOrganization": {
+            "goodshepherdback": false
+          }
+        },
+        {
+          "type": "SpeechMessage.Dynamics.Plugins.Localization.ChurchLocaleChangedPlugin",
+          "message": "Update",
+          "entity": "account",
+          "stage": "PreOperation",
+          "mode": "Synchronous",
+          "rank": 30,
+          "filteringAttributes": [
+            "new_defaultlanguage",
+            "new_enabledlanguages",
+            "new_timezone",
+            "new_countrycode"
+          ],
+          "images": [
+            {
+              "name": "PreImage",
+              "entity": "account",
+              "attributes": [
+                "new_defaultlanguage",
+                "new_enabledlanguages",
+                "new_timezone",
+                "new_countrycode"
+              ],
+              "Type": "PreImage"
+            }
+          ],
+          "module": "internationalization",
+          "legacy": [],
+          "shadowReport": {
+            "file": "",
+            "differences": null,
+            "basis": "new"
+          },
+          "unsecureConfig": "{\"mode\":\"Shadow\"}",
+          "secureConfig": "",
+          "enabledByOrganization": {
+            "goodshepherdback": false
+          }
+        },
+        {
+          "type": "SpeechMessage.Dynamics.Plugins.Localization.ChurchLocaleChangedPlugin",
+          "message": "Update",
+          "entity": "account",
+          "stage": "PostOperation",
+          "mode": "Asynchronous",
+          "rank": 30,
+          "filteringAttributes": [
+            "new_defaultlanguage",
+            "new_enabledlanguages",
+            "new_timezone",
+            "new_countrycode"
+          ],
+          "images": [
+            {
+              "name": "PreImage",
+              "entity": "account",
+              "attributes": [
+                "new_defaultlanguage",
+                "new_enabledlanguages",
+                "new_timezone",
+                "new_countrycode"
+              ],
+              "Type": "PreImage"
+            }
+          ],
+          "module": "internationalization",
+          "legacy": [],
+          "shadowReport": {
+            "file": "",
+            "differences": null,
+            "basis": "new"
+          },
+          "unsecureConfig": "{\"mode\":\"Shadow\"}",
+          "secureConfig": "",
+          "enabledByOrganization": {
+            "goodshepherdback": false
+          }
         }
       ]
     }

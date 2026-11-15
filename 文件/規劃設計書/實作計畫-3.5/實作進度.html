@@ -240,11 +240,11 @@ footer{margin-top:36px;color:var(--muted);font-size:12.5px;text-align:center}
  */
 const DATA = {
   "planVersion": "3.5",
-  "snapshot": "2026-11-15 08:48 Asia/Taipei (UTC+08:00)",
-  "lastUpdated": "2026-11-15T08:48:09+08:00",
+  "snapshot": "2026-11-15 09:03 Asia/Taipei (UTC+08:00)",
+  "lastUpdated": "2026-11-15T09:03:55+08:00",
   "branch": "1.0.0.11.Integration.P5.Worktree",
-  "head": "3e040d32",
-  "headline": "2026-11-15 08:48 Asia/Taipei (UTC+08:00)：P5-02 fix 限時修正收尾；反射、Task／Thread／Timer有界排空及scratch診斷已驗證，SDK預設來源已納入編譯閉包。矩陣36專案／29入口為1 Generated、28 CompileFailed、0 BlockedByNetworkApi；出席產生仍CompileFailed且無候選檔，保留basis=reading，不再擴充工具。3e040d32固定guard八項全通過，Plugin測試302項通過；P5-03依D5-19採live=deferred，接續P5-04。",
+  "head": "9b8fc4d8",
+  "headline": "2026-11-15 09:03 Asia/Taipei (UTC+08:00)：P5-04 國際化 Plugin 實作中。三個新外殼、共用語系驗證、RichMenu alias 換綁服務與 Shadow 停用註冊已接通；Core 雙目標54/54、RichMenus64/64、文字覆寫外殼8/8，情境基準為 basis=new。Deployment 全套目前受既有環境基線失敗影響，固定 guard 尚未驗收；goodshepherdback 不啟用新步驟。",
   "notices": [
     {
       "id": "plan-3.5-summary",
@@ -511,8 +511,8 @@ const DATA = {
       "phaseId": "階段 5",
       "level": "info",
       "title": "P5 進度摘要",
-      "lastUpdated": "2026-11-15T08:48:09+08:00",
-      "body": "2026-11-15 08:48 Asia/Taipei (UTC+08:00)：P5-02 fix 限時修正收尾；反射、Task／Thread／Timer有界排空及scratch診斷已驗證，SDK預設來源已納入編譯閉包。矩陣36專案／29入口為1 Generated、28 CompileFailed、0 BlockedByNetworkApi；出席產生仍CompileFailed且無候選檔，保留basis=reading，不再擴充工具。3e040d32固定guard八項全通過，Plugin測試302項通過；P5-03依D5-19採live=deferred，接續P5-04。",
+      "lastUpdated": "2026-11-15T09:03:55+08:00",
+      "body": "2026-11-15 09:03 Asia/Taipei (UTC+08:00)：P5-04 國際化 Plugin 實作中。三個新外殼、共用語系驗證、RichMenu alias 換綁服務與 Shadow 停用註冊已接通；Core 雙目標54/54、RichMenus64/64、文字覆寫外殼8/8，情境基準為 basis=new。Deployment 全套目前受既有環境基線失敗影響，固定 guard 尚未驗收；goodshepherdback 不啟用新步驟。",
       "steps": [
         "2026-11-14 08:26 Asia/Taipei (UTC+08:00)：已確認目標殘留目錄不是 Git worktree，移除後正式 P4／P5 worktree 清單不受影響。",
         "2026-11-14 08:26 Asia/Taipei (UTC+08:00)：export-metadata 唯讀結構快照建立成功；verify 因本機部署執行檔／連線前置失敗，未宣稱 goodshepherdback verify=0。",
@@ -554,7 +554,8 @@ const DATA = {
         "2026-11-15 04:16 Asia/Taipei (UTC+08:00)：P5-03b離線段完成；UI封裝／D26／ui-export／ui-import與活動探針已接通，UI 16／16、Activity 2／2、Deployment 766／766，提交後固定guard八項全部通過。P5-03a實機diagnostics仍待處置，故P5-03整包維持active、未推送；P5-02出席基準已依D5-3更正為reading，工具三小時修正仍待P5-03整包驗收後開始。",
         "2026-11-15 04:24 Asia/Taipei (UTC+08:00)：未重跑實機；唯讀查詢 goodshepherdback 自 2026-11-14 18:14:00 UTC 起 plugintracelog 得 traceCount=0，與既有精確步驟時間窗 1 筆成功 async 作業／全組織 trace=0 一致。依 05A §7 第 3 點維持 diagnostics 停點，P5-03a／P5-03 不驗收、不推送；P5-03b 離線段已完成，P5-02 工具三小時修正仍待 P5-03 驗收後、P5-05 前。",
         "2026-11-15 08:00 Asia/Taipei (UTC+08:00)：使用者已重啟 D365-9.1 三項服務並執行 iisreset；diagnostics enabled 成功，smoke 於端點階段回 EndpointNotFoundException。收尾 off／verify 重試成功；PowerShell Direct／Hyper-V 唯讀主機檢查受本機授權限制。依 D5-19 第 4 項採 live=deferred，P5-03 以離線驗證及 plan→apply（步驟停用）→verify=0 收尾，接續 P5-02 工具修正。",
-        "2026-11-15 08:48 Asia/Taipei (UTC+08:00)：P5-02 fix 限時修正收尾；反射、Task／Thread／Timer有界排空及scratch診斷已驗證，SDK預設來源已納入編譯閉包。矩陣36專案／29入口為1 Generated、28 CompileFailed、0 BlockedByNetworkApi；出席產生仍CompileFailed且無候選檔，保留basis=reading，不再擴充工具。3e040d32固定guard八項全通過，Plugin測試302項通過；P5-03依D5-19採live=deferred，接續P5-04。"
+        "2026-11-15 08:48 Asia/Taipei (UTC+08:00)：P5-02 fix 限時修正收尾；反射、Task／Thread／Timer有界排空及scratch診斷已驗證，SDK預設來源已納入編譯閉包。矩陣36專案／29入口為1 Generated、28 CompileFailed、0 BlockedByNetworkApi；出席產生仍CompileFailed且無候選檔，保留basis=reading，不再擴充工具。3e040d32固定guard八項全通過，Plugin測試302項通過；P5-03依D5-19採live=deferred，接續P5-04。",
+        "2026-11-15 09:03 Asia/Taipei (UTC+08:00)：P5-04 國際化 Plugin 實作中。三個新外殼、共用語系驗證、RichMenu alias 換綁服務與 Shadow 停用註冊已接通；Core 雙目標54/54、RichMenus64/64、文字覆寫外殼8/8，情境基準為 basis=new。Deployment 全套目前受既有環境基線失敗影響，固定 guard 尚未驗收；goodshepherdback 不啟用新步驟。"
       ]
     }
   ],
@@ -691,7 +692,7 @@ const DATA = {
       "actual": "2026-11-15 08:00 Asia/Taipei (UTC+08:00)：P5-03a／b 已依 05A 修訂 2 收尾；UI 16／16、Activity 2／2、Deployment 766／766，固定 guard 前版八項通過。重啟後 diagnostics enabled 成功但 smoke 回 EndpointNotFoundException，off／verify 重試成功且步驟維持停用；PowerShell Direct 唯讀主機查詢受本機授權限制，未自行提升權限。依 D5-19 第 4 項實機影子 live=deferred，P5-03 已驗收；下一步先做 P5-02 工具修正，再進 P5-04。",
       "current": true,
       "done": 3,
-      "active": 0
+      "active": 1
     },
     {
       "id": "階段 6",
@@ -1437,13 +1438,13 @@ const DATA = {
       "id": "P5-04",
       "phaseId": "階段 5",
       "name": "國際化 Plugin",
-      "status": "todo",
+      "status": "active",
       "deps": "P5-03、更新回復前置、P2-08、P2-10",
       "live": "影子模式",
       "timebox": "1 天",
       "doneAt": "",
       "commit": "",
-      "note": "改字時間、會友語言換宮格、教會語系驗證"
+      "note": "2026-11-15 09:03 Asia/Taipei (UTC+08:00)：P5-04 國際化 Plugin 實作中。三個新外殼、共用語系驗證、RichMenu alias 換綁服務與 Shadow 停用註冊已接通；Core 雙目標54/54、RichMenus64/64、文字覆寫外殼8/8，情境基準為 basis=new。Deployment 全套目前受既有環境基線失敗影響，固定 guard 尚未驗收；goodshepherdback 不啟用新步驟。"
     },
     {
       "id": "P5-05",
@@ -1773,7 +1774,41 @@ const DATA = {
       "note": "2026-11-14 12:54 Asia/Taipei (UTC+08:00)：8ad4dccc完整守門通過，實機3→4→3、step ID不變、免重啟；三次smoke/verify0、收尾停用及殘留0，詳wp-reports/P5-update-rollback.md。"
     }
   ],
-  "active": [],
+  "active": [
+    {
+      "id": "P5-04",
+      "startedAt": "2026-11-15 08:48 Asia/Taipei (UTC+08:00)",
+      "timebox": "1天",
+      "next": "完成固定guard、驗收、提交及推送",
+      "dod": [
+        [
+          "三外殼與規則",
+          "ok",
+          "已接通離線契約"
+        ],
+        [
+          "雙目標測試",
+          "ok",
+          "Core及相關測試通過"
+        ],
+        [
+          "Shadow註冊",
+          "ok",
+          "goodshepherdback維持停用"
+        ],
+        [
+          "固定guard",
+          "no",
+          "尚未完成"
+        ],
+        [
+          "驗收推送",
+          "no",
+          "待guard後執行"
+        ]
+      ]
+    }
+  ],
   "gates": [
     {
       "item": "方案建置（Release）",

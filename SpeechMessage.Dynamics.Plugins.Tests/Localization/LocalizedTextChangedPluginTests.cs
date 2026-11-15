@@ -3,10 +3,10 @@
  *
  * 目的與定位：以合成 SDK context 保護 P5-04 文字覆寫變更的快取失效契約，
  * 真正執行 LocalizedTextChangedPlugin，不把離線意圖當作 D365 實機結果。
- * 流程與斷言：Create、Update、Delete 都必須碰觸所屬教會的 UTC 整秒時間；
+ * 主要功能與流程：Create、Update、Delete 都必須碰觸所屬教會的 UTC 整秒時間；
  * 搬移時兩間教會各寫一次，缺映像或非法 lookup 在任何寫入前拒絕。
  * 同一外殼交錯執行不同教會，檢查 Shadow 沒有真寫入，沒有上一案的識別殘留。
- * 資源與失敗：每案擁有 Mock、追蹤及輸入，沒有連線、秘密、計時器或背景工作；
+ * 使用邊界與維護：每案擁有 Mock、追蹤及輸入，沒有連線、秘密、計時器或背景工作；
  * 注入的 SDK 失敗必須原樣拋出。所有操作同步排空，案例結束不保存 provider。
  */
 using System;
@@ -18,15 +18,12 @@ using Newtonsoft.Json.Linq;
 using SpeechMessage.Dynamics.Plugins.Localization;
 using SpeechMessage.Dynamics.Plugins.Tests.Fakes;
 using Xunit;
-
 namespace SpeechMessage.Dynamics.Plugins.Tests.Localization;
-
 /// <summary>文字覆寫外殼的完整訊息、前像及隔離契約。</summary>
 public sealed class LocalizedTextChangedPluginTests
 {
     /// <summary>固定時鐘包含次秒，驗證產品寫入 UTC 並向下量化，不使用主機當地時間。</summary>
     private static readonly DateTimeOffset Now = new(2026, 11, 15, 1, 2, 3, 456, TimeSpan.Zero);
-
     /// <summary>三種訊息各寫一次正式 account，並確定沒有把文字內容寫入 account。</summary>
     [Theory]
     [InlineData("Create")]
@@ -48,7 +45,6 @@ public sealed class LocalizedTextChangedPluginTests
         Assert.Equal(DateTimeKind.Utc, time.Kind);
         Assert.Equal(Now.UtcDateTime.Ticks - Now.Ticks % TimeSpan.TicksPerSecond, time.Ticks);
     }
-
     /// <summary>同一次搬移必須先驗證兩個 lookup，再各自使快取失效，不能只處理新教會。</summary>
     [Fact]
     public void LocalizedText_ChurchReassigned_TouchesBothChurches()
@@ -63,7 +59,6 @@ public sealed class LocalizedTextChangedPluginTests
         Assert.Equal(new[] { first, second }, writes.Select(row => row.Id));
         Assert.Equal(writes[0]["new_textchangedon"], writes[1]["new_textchangedon"]);
     }
-
     /// <summary>更新未包含 lookup 時使用已註冊前像；缺前像則零寫入拒絕。</summary>
     [Fact]
     public void LocalizedText_MissingRequiredImage_RejectsBeforeWrite()
@@ -77,7 +72,6 @@ public sealed class LocalizedTextChangedPluginTests
                 .Execute(Provider(context, service.Object, new FakeTracingService())));
         Assert.Empty(writes);
     }
-
     /// <summary>以相同外殼 A→B→A 執行，Shadow 只有當案 account 意圖且真服務零寫入。</summary>
     [Fact]
     public void LocalizedText_ShadowMode_MatchesExpected()
@@ -99,7 +93,6 @@ public sealed class LocalizedTextChangedPluginTests
         }
         Assert.Empty(writes);
     }
-
     /// <summary>新模組採深度一；超過門檻時不得解析輸入或取得服務。</summary>
     [Fact]
     public void LocalizedText_DepthPolicy_MatchesLegacy()
@@ -109,7 +102,6 @@ public sealed class LocalizedTextChangedPluginTests
             .Add<ITracingService>(new FakeTracingService());
         new LocalizedTextChangedPlugin("{\"mode\":\"Shadow\"}", "", () => Now).Execute(provider);
     }
-
     /// <summary>注入真服務寫入失敗，驗證外殼不包裝、不吞掉原始未知例外。</summary>
     [Fact]
     public void LocalizedText_UnexpectedError_Rethrown()
@@ -122,7 +114,6 @@ public sealed class LocalizedTextChangedPluginTests
                 .Execute(Provider(Context("Create", Guid.NewGuid(), Guid.NewGuid()), service.Object, new FakeTracingService())));
         Assert.Same(failure, actual);
     }
-
     /// <summary>建立只保存本案例寫入快照的 SDK 替身，不查詢或連線。</summary>
     private static Mock<IOrganizationService> Service(List<Entity> writes)
     {
@@ -130,7 +121,6 @@ public sealed class LocalizedTextChangedPluginTests
         service.Setup(x => x.Update(It.IsAny<Entity>())).Callback<Entity>(row => writes.Add(row));
         return service;
     }
-
     /// <summary>合成正式目標與必要前像，Delete 使用平台的 EntityReference 形狀。</summary>
     private static FakePluginExecutionContext Context(string message, Guid current, Guid previous)
     {
@@ -147,7 +137,6 @@ public sealed class LocalizedTextChangedPluginTests
             { ["new_accountid"] = new EntityReference("account", previous) };
         return context;
     }
-
     /// <summary>所有服務只借給本次 Execute，factory 不保存下一個使用者或組織。</summary>
     private static FakeServiceProvider Provider(FakePluginExecutionContext context, IOrganizationService service, FakeTracingService trace)
     {

@@ -1,0 +1,26 @@
+{
+  "schemaVersion": 1,
+  "module": "internationalization",
+  "basis": "new",
+  "declaredDifferences": [],
+  "expected": [
+    {
+      "scenario": "localizedtext-update",
+      "operations": [
+        "Update account.new_textchangedon"
+      ]
+    },
+    {
+      "scenario": "member-language-shadow",
+      "operations": [
+        "Push RichMenuAlias intent"
+      ]
+    },
+    {
+      "scenario": "church-locale-shadow",
+      "operations": [
+        "Create RichMenuGenerate outbound task"
+      ]
+    }
+  ]
+}

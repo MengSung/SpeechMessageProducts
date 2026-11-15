@@ -1,0 +1,12 @@
+{
+  "id": "p5-04-internationalization",
+  "title": "P5-04 國際化 Plugin",
+  "status": "in_progress",
+  "complexity": "L",
+  "risk": "high",
+  "domain": "backend",
+  "currentPhase": "implementation",
+  "nextAction": "已完成三外殼、共用語系驗證、alias換綁、Shadow註冊；補齊情境與雙目標測試後固定guard驗收。",
+  "createdAt": "2026-11-15T08:50:37.123271+08:00",
+  "branch": "1.0.0.11.Integration.P5.Worktree"
+}
