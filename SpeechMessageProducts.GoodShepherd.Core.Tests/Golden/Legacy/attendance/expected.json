@@ -20,8 +20,11 @@
               "text": "Synthetic Member 代禱事項: 合成代禱事項：測試平安\r\n牧者回應: 合成牧者回應：持續關懷"
             }
           ],
-          "templateKey": "Attendance.PastorReply",
-          "retryKey": "present-1"
+          "shadow": {
+            "templateKey": "Attendance.PastorReply",
+            "retryKey": "present-1",
+            "contentSha256": "0c2f293f9222ed3e3746128aba991ed24f24da03b8e2b8025bdfbbb2934de11a"
+          }
         }
       ],
       "outputs": {

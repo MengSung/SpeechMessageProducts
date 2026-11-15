@@ -89,7 +89,7 @@ public sealed class ShadowScenarioFilesTests
         Assert.False(item.IsActivity);
     }
 
-    /// <summary>既有 attendance 四案例原檔不改內容即可讀取；legacy 就算無效也不讀。</summary>
+    /// <summary>P5-06 attendance 六案共用檔須完整讀取；Depth3為離線案例，legacy就算無效也不讀。</summary>
     [Fact]
     public void Shadow_Files_CurrentAttendanceCompatible()
     {
@@ -97,10 +97,10 @@ public sealed class ShadowScenarioFilesTests
         while (!Directory.Exists(Path.Combine(root, "SpeechMessageProducts.GoodShepherd.Core.Tests", "Golden")))
             root = Directory.GetParent(root)?.FullName ?? throw new InvalidOperationException("Repository root absent.");
         var cases = ShadowScenarioFiles.Load(root, "attendance");
-        Assert.Equal(4, cases.Count);
+        Assert.Equal(6, cases.Count);
         Assert.All(cases, item => Assert.Equal("reading", item.Basis));
-        Assert.False(cases[^1].LiveShadow);
-        Assert.Equal(3, cases[^1].Trigger.GetProperty("depth").GetInt32());
+        Assert.False(cases[3].LiveShadow);
+        Assert.Equal(3, cases[3].Trigger.GetProperty("depth").GetInt32());
     }
 
     /// <summary>錯誤結構、欄位與別名均 fail closed；固定錯誤不可回顯輸入內容。</summary>

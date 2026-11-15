@@ -100,9 +100,9 @@ internal sealed class PresentRecordGoldenFixture : IDisposable
             {
                 var c = calls[j]; var push = actual[j];
                 var hash = LinePushClient.ComputeMemberContentSha256(new ISendMessage[] { new TextMessage((string)c["messages"]![0]!["text"]!) }, "Synthetic Church助手");
-                Require((string?)push["operation"] == "Push" && (string?)push["contactId"] == Id((string)c["recipients"]![0]!).ToString("D") &&
-                    (string?)push["retryKey"] == Id((string)c["retryKey"]!).ToString("D") &&
-                    (string?)push["templateKey"] == (string?)c["templateKey"] && (int?)push["messageCount"] == 1 && (string?)push["contentSha256"] == hash);
+                Require(hash == (string?)c["shadow"]!["contentSha256"] && (string?)push["operation"] == "Push" && (string?)push["contactId"] == Id((string)c["recipients"]![0]!).ToString("D") &&
+                    (string?)push["retryKey"] == Id((string)c["shadow"]!["retryKey"]!).ToString("D") &&
+                    (string?)push["templateKey"] == (string?)c["shadow"]!["templateKey"] && (int?)push["messageCount"] == 1 && (string?)push["contentSha256"] == hash);
             }
             if (f.Trace.Entries.Count != 0)
             {
