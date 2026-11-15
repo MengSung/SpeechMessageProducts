@@ -34,7 +34,7 @@ public sealed class AppointmentRegistrationTests
             .Where(item => item.Module == "appointments").ToArray();
 
         Assert.Equal(2, plugins.Length);
-        Assert.Contains(plugins, item => item.Message == "Create");
+        var create = Assert.Single(plugins, item => item.Message == "Create");
         var update = Assert.Single(plugins, item => item.Message == "Update");
         Assert.Equal("appointment", update.Entity);
         Assert.Equal("PostOperation", update.Stage);
@@ -47,6 +47,9 @@ public sealed class AppointmentRegistrationTests
         Assert.Single(update.Legacy);
         Assert.All(plugins, item => Assert.All(item.Legacy, legacy => Assert.False(string.IsNullOrWhiteSpace(legacy.StepId))));
         Assert.Equal(2, plugins.SelectMany(item => item.Legacy).Select(item => item.StepId).Distinct().Count());
+        // 身分來自 P5-08-inventory 所列的唯讀 export-legacy；合成 GUID 無法證明退役步驟的對照。
+        Assert.Equal("cd6d656f-aae1-e911-810d-00155d006601", Assert.Single(create.Legacy).StepId);
+        Assert.Equal("76f8d786-71df-e911-810d-00155d006601", Assert.Single(update.Legacy).StepId);
 
         var workflows = Assert.Single(document.Assemblies, item => item.AssemblyName == "SpeechMessage.Dynamics.Workflows");
         var activity = Assert.Single(workflows.Activities, item => item.Module == "appointments");

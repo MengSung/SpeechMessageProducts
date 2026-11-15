@@ -614,7 +614,7 @@
             {
               "assembly": "AppointmentPlugIn",
               "type": "AppointmentPlugIn.AppointmentPlugIn",
-              "stepId": "00000000-0000-0000-0000-000000000801"
+              "stepId": "cd6d656f-aae1-e911-810d-00155d006601"
             }
           ],
           "shadowReport": {
@@ -650,7 +650,7 @@
             {
               "assembly": "AppointmentPlugIn",
               "type": "AppointmentPlugIn.AppointmentPlugIn",
-              "stepId": "00000000-0000-0000-0000-000000000802"
+              "stepId": "76f8d786-71df-e911-810d-00155d006601"
             }
           ],
           "shadowReport": {

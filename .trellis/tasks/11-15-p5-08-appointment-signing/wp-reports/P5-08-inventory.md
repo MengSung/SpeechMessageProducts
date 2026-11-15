@@ -34,3 +34,8 @@
 - 舊行為基準為 `reading`，因退役程式含寫死 token 入口，不能在 D365 執行舊程式。
 - 新版 Shadow 只在收件者／教會／語系／訊息組合完成後記錄推播意圖；Live 在安全金鑰查詢前依 P5-PROP-006 fail-closed。
 - 本模組不啟用舊步驟、不啟用新 Live 步驟；離線 scenarios／expected 只證明規則與影子投影，不宣稱實機送達或舊程式實跑。
+
+## 退役步驟身分（唯讀匯出核對）
+
+來源：`artifacts/d365/goodshepherdback/legacy-20261115-100030-1398310-42ca8907ef0f4d60bce800174636ae8f.json`。
+`AppointmentPlugIn.AppointmentPlugIn` 的 Create 步驟為 `cd6d656f-aae1-e911-810d-00155d006601`，Update 為 `76f8d786-71df-e911-810d-00155d006601`；兩者皆 appointment、PostOperation（40）、Synchronous（0）、rank=1、無 filteringAttributes，且 Enabled=false。Update 舊前像別名為 `AppointmentPreImage`。這些身分僅用於退役對照與停用核對，不授權執行舊程式。前段清單的占位 ID 已撤換，不能當作實機證據。
