@@ -80,7 +80,7 @@ public interface IQrImageRenderer
 }
 
 /// <summary>唯一ZXing.Net矩陣至ImageSharp PNG的net10實作，不建立或修改全域影像設定。</summary>
-public sealed class QrImageRenderer : IQrImageRenderer
+public sealed class QrImageRenderer : IQrImageRenderer, ILessonQrImageRenderer
 {
     /// <summary>PNG輸出的固定上限，不依caller輸入決定持有容量。</summary>
     internal const int MaximumPngBytes = 512 * 1024;
