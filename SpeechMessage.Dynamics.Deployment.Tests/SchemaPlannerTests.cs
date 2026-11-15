@@ -3,7 +3,7 @@
  *
  * 目的與定位：本檔保護純planner的只新增／完整衝突拒絕與plan完整性；完全以單案純snapshot比對，不呼叫SDK或真環境。
  * 主要情境：只剩基礎表且ActivePhase=1時列精確新增數；完整結構及solution元件一致時零操作；
- * ActivePhase=4時只納入核定的教會永豐設定檔欄位。
+ * ActivePhase=4時只納入永豐設定，Phase5只新增教會進階設定及課程按鈕欄位。
  * 故障矩陣：逐一改變型別、長度、日期、安全、owner、entity/field audit、concurrency、key與managed solution，任何衝突都停止而非產生修改。
  * 決定性斷言：pending key不能當Active，failed key不能重建掩蓋；plan hash、正式orgID或版本漂移必須在apply之前拒絕。
  * 依賴與生命週期：正式schema每案重新讀，CompleteSnapshot產生本案獨占合成metadata ID／集合；固定UTC時刻，不修改全域Culture或建立背景資源。
@@ -21,6 +21,9 @@ namespace SpeechMessage.Dynamics.Deployment.Tests;
 /// <summary>純snapshot比對守門，不呼叫SDK；故障逐一改變正式型別/約束，驗證計畫不會將衝突轉成自動修改。</summary>
 public sealed class SchemaPlannerTests
 {
+    /// <summary>P5只允許的兩個正式欄位，獨立於被測schema。</summary>
+    private static readonly string[] PhaseFiveFields = { "account.new_lessonprogressionprofile", "new_stor_lessons.new_saved_flag" };
+
     /// <summary>明確以ActivePhase=1規劃時，只新增P1實體、欄位與key，不能提前建立account的P4永豐設定檔欄。</summary>
     [Fact]
     public void Plan_OnlyBaseEntities_ContainsOnlyRequiredP1Additions()
@@ -72,6 +75,30 @@ public sealed class SchemaPlannerTests
         var p1Plan = SchemaPlanner.Create(phaseOne, snapshot, Now);
         Assert.Empty(p1Plan.Operations);
         Assert.Throws<InvalidDataException>(() => SchemaPlanner.ValidatePlan(p1Plan, phaseFour, snapshot));
+    }
+
+    /// <summary>在完整P4及既有課程表上只新增兩個P5欄位，不變更舊欄位、表或權限。</summary>
+    [Fact]
+    public void Plan_ActivePhase5_AddsOnlyProgressionProfileAndSaveFlag()
+    {
+        var definition = SchemaFiles.Load(SchemaDefinitionTests.SchemaPath());
+        var snapshot = CompleteSnapshot(definition);
+        var account = snapshot.Entities.Single(entity => entity.LogicalName == "account");
+        var profile = new SchemaFieldState(Guid.NewGuid(), "new_sinopacprofile", "string", 64,
+            "None", false, Array.Empty<string>(), "", "", Array.Empty<int>(), false, false);
+        snapshot = snapshot with
+        {
+            Entities = snapshot.Entities.Select(entity => entity.Id == account.Id
+                ? entity with { Fields = entity.Fields.Append(profile).ToArray() } : entity).ToArray(),
+            Components = snapshot.Components.Append(new SchemaComponentState(Guid.NewGuid(), 2, profile.Id)).ToArray()
+        };
+        var plan = SchemaPlanner.Create(definition, snapshot, Now);
+        Assert.Equal(PhaseFiveFields,
+            plan.Operations.Where(operation => operation.Kind == "CreateAttribute")
+                .Select(operation => operation.Entity + "." + operation.Name).Order(StringComparer.Ordinal));
+        Assert.Equal(4, plan.Operations.Count);
+        Assert.All(plan.Operations, operation => Assert.True(operation.Kind is "CreateAttribute" or "IncludeAttribute"));
+        Assert.Empty(plan.PendingKeys);
     }
 
     /// <summary>完整一致且所有元件已納入solution時不得再寫；來源候選只屬本案，不會因規劃而被修改。</summary>
@@ -239,7 +266,12 @@ public sealed class SchemaPlannerTests
     /// <summary>固定UTC計畫時刻，不讀取本機時間、時區或文化。</summary>
     private static readonly DateTimeOffset Now = new(2026, 11, 6, 0, 0, 0, TimeSpan.Zero);
     /// <summary>同worktree唯一正式schema，每案重新讀取，避免mutable清單跨案例共享。</summary>
-    internal static SchemaDefinition Definition() => SchemaFiles.Load(SchemaDefinitionTests.SchemaPath()) with { ActivePhase = 1 };
+    internal static SchemaDefinition Definition()
+    {
+        var definition = SchemaFiles.Load(SchemaDefinitionTests.SchemaPath());
+        return definition with { ActivePhase = 1,
+            Entities = definition.Entities.Where(entity => entity.Fields.Any(field => field.Phase == 1)).ToArray() };
+    }
 
     /// <summary>建立本案獨佔的完整純metadata候選；不代表SDK建立成功，實際SDK契約由整合案例另驗。</summary>
     internal static SchemaSnapshot CompleteSnapshot(SchemaDefinition definition)

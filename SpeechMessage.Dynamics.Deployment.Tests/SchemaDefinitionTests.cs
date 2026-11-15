@@ -2,7 +2,7 @@
  * 檔案整體說明
  *
  * 目的與定位：本檔用獨立於產品清單的附錄A期望，驗P1 schema解析／hash契約；它保護正式結構內容，而不只是檔案存在。
- * 測試範圍：六個受管實體、四新表／唯一鍵、Account與Contact欄位、phase邊界、日期UserLocal/DateAndTime與兩個加密欄位安全。
+ * 測試範圍：七個受管實體、四新表／唯一鍵、Account與Contact欄位、phase邊界、日期UserLocal/DateAndTime與兩個加密欄位安全。
  * 故障注入：未知及重複JSON屬性、重複表／欄、非法名稱／型別、錯phase、缺key欄與錯日期行為；任何錯誤必須拒絕整個候選。
  * 決定性斷言：P4永豐欄不能參與P1、key順序與choice正式值精確符合附錄；完整同檔hash穩定，有效欄位改變必須使hash不同。
  * 依賴與生命週期：只讀本worktree正式schema，各案獨立暫存JSON由WithFile建立並在finally刪除；不連D365、不讀憑證、不持有背景資源。
@@ -25,24 +25,37 @@ public sealed class SchemaDefinitionTests
     private static readonly int[] LanguageSourceValues = { 100000000, 100000001, 100000002 };
     /// <summary>附錄A.6正式唯一鍵順序，不能由被測清單生成自身oracle。</summary>
     private static readonly string[] LocalizedKeyFields = { "new_accountid", "new_key", "new_culture" };
-    /// <summary>正式清單須含六個受管實體、四新表與四唯一鍵；核對activePhase、P4欄位階段、日期及安全契約。</summary>
+    /// <summary>正式清單須含七個受管實體、四新表與四唯一鍵；核對activePhase、P4／P5欄位階段、日期及安全契約。</summary>
     [Fact]
     public void Load_FormalSchema_MatchesAppendixAAndPhaseBoundaries()
     {
         var schema = SchemaFiles.Load(SchemaPath());
         Assert.Equal("SpeechMessageCore", schema.Solution);
         Assert.Equal("new", schema.Prefix);
-        Assert.Equal(4, schema.ActivePhase);
+        Assert.Equal(5, schema.ActivePhase);
         var withoutActivePhase = JsonNode.Parse(File.ReadAllText(SchemaPath(), Encoding.UTF8))!.AsObject();
         withoutActivePhase.Remove("activePhase");
         WithFile(withoutActivePhase.ToJsonString(), path => Assert.Equal(1, SchemaFiles.Load(path).ActivePhase));
-        Assert.Equal(6, schema.Entities.Count);
+        Assert.Equal(7, schema.Entities.Count);
         Assert.Equal(4, schema.Entities.Count(entity => entity.IsNew));
         Assert.Equal(4, schema.Entities.Sum(entity => entity.Keys.Count));
         var account = schema.Entities.Single(entity => entity.LogicalName == "account");
         Assert.Equal(6, account.Fields.Count(field => field.Phase == 1));
         Assert.Equal(4, account.Fields.Single(field => field.LogicalName == "new_sinopacprofile").Phase);
         Assert.Equal("new_linechannel", account.Fields.Single(field => field.LogicalName == "new_linechannelid").Target);
+        var profile = account.Fields.Single(field => field.LogicalName == "new_lessonprogressionprofile");
+        Assert.Equal(5, profile.Phase);
+        Assert.Equal("string", profile.Type);
+        Assert.Equal(64, profile.MaxLength);
+        Assert.False(profile.Required);
+        var lessonRecord = schema.Entities.Single(entity => entity.LogicalName == "new_stor_lessons");
+        Assert.False(lessonRecord.IsNew);
+        var saveFlag = Assert.Single(lessonRecord.Fields);
+        Assert.Equal("new_saved_flag", saveFlag.LogicalName);
+        Assert.Equal(5, saveFlag.Phase);
+        Assert.Equal("string", saveFlag.Type);
+        Assert.Equal(2000, saveFlag.MaxLength);
+        Assert.False(saveFlag.Required);
         var contact = schema.Entities.Single(entity => entity.LogicalName == "contact");
         Assert.Equal(2, contact.Fields.Count);
         Assert.Equal(LanguageSourceValues, contact.Fields.Single(field => field.LogicalName == "new_languagesource").Options.Select(option => option.Value));

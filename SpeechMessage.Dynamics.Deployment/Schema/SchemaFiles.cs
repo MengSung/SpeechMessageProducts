@@ -174,7 +174,7 @@ internal static class SchemaFiles
             foreach (var item in element.EnumerateArray()) RejectDuplicateProperties(item);
     }
 
-    /// <summary>驗全部實體與欄位後才交規劃器；所有錯誤固定訊息，不回顯清單未知值。</summary>
+    /// <summary>驗全部實體與欄位後才交規劃器；既有表限account、contact及P5課程紀錄，所有錯誤固定訊息，不回顯清單未知值。</summary>
     internal static void Validate(SchemaDefinition definition)
     {
         ArgumentNullException.ThrowIfNull(definition);
@@ -186,7 +186,7 @@ internal static class SchemaFiles
         foreach (var entity in definition.Entities)
         {
             if (entity is null || !entities.Add(entity.LogicalName)
-                || (entity.IsNew ? !ValidName(entity.LogicalName) : entity.LogicalName is not ("account" or "contact"))
+                || (entity.IsNew ? !ValidName(entity.LogicalName) : entity.LogicalName is not ("account" or "contact" or "new_stor_lessons"))
                 || !ValidLabel(entity.DisplayName) || !ValidLabel(entity.PluralName)
                 || entity.Fields is null || entity.Fields.Count is < 1 or > 128 || entity.Keys is null || entity.Keys.Count > 8)
                 throw new InvalidDataException("Invalid or duplicate schema entity.");

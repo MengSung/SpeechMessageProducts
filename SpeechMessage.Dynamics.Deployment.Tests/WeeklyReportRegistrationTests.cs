@@ -5,7 +5,7 @@
  * 合成清單而漏掉實際模組、前像、活動或舊型別對照錯誤。
  * 主要功能與流程：嚴格 loader 讀正式 JSON，統計為同步 PostOperation、通知為
  * 非同步 PostOperation，兩者有精確 PreImage 與篩選欄位、Shadow、空 secure、
- * goodshepherdback 停用；Workflows 只註冊生成活動並保留真正舊 namespace。
+ * goodshepherdback 停用；Workflows 的本模組生成活動保留真正舊 namespace。
  * 使用邊界與維護：僅讀取本工作樹公開結構與合成期望，不建立 SDK、不讀 Secrets，
  * 不啟用步驟或流程、不推播。reader 同步關閉串流，候選及集合只存活於本次測試，
  * 沒有跨使用者資料或需排空的背景資源；這不代表實機影子比對已完成。
@@ -61,7 +61,7 @@ public sealed class WeeklyReportRegistrationTests
         Assert.Equal("WeeklyReportLinePlugInDatabase", Assert.Single(notice.Legacy).Assembly);
         var workflows = Assert.Single(document.Assemblies, item => item.AssemblyName == "SpeechMessage.Dynamics.Workflows");
         Assert.Empty(workflows.Steps);
-        var activity = Assert.Single(workflows.Activities);
+        var activity = Assert.Single(workflows.Activities, item => item.Module == "weeklyreports");
         Assert.Equal("weeklyreports", activity.Module);
         Assert.EndsWith(".WeeklyReportGenerationActivity", activity.Type, StringComparison.Ordinal);
         Assert.Equal("WeeklyReportWorkflowNameSpace.WeeklyReportWorkflow", Assert.Single(activity.Legacy).Type);

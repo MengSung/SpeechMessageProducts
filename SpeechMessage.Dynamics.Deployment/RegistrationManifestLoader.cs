@@ -186,8 +186,8 @@ internal static class RegistrationManifestLoader
     /// <summary>報告基準保持未驗收與實機、離線、閱讀對照的區別，不自行推導證據。</summary>
     private static void ValidateReport(ShadowReport report)
     {
-        if (report.Differences < 0 || report.Basis is not ("" or "legacy-live" or "legacy-golden" or
-            "legacy-live-only" or "reading" or "deferred-to-P7" or "new")) throw InvalidManifest();
+        if (report.Differences < 0 || report.Basis is not ("" or "legacy-golden" or
+            "reading" or "deferred-to-P7" or "new")) throw InvalidManifest();
     }
 
     /// <summary>固定摘要不攜帶 JSON、secret、檔案內容或內層解析例外。</summary>

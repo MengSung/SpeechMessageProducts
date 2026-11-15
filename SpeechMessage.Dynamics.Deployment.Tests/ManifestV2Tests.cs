@@ -195,6 +195,19 @@ public sealed class ManifestV2Tests
         Assert.Throws<InvalidDataException>(() => RegistrationManifestLoader.Load(fixture.Root));
     }
 
+    /// <summary>修訂二已退役的舊實機基準不得再進入任何註冊清單。</summary>
+    [Theory]
+    [InlineData("legacy-live")]
+    [InlineData("legacy-live-only")]
+    public void Manifest_Revision2_RetiredLiveBasis_Rejected(string basis)
+    {
+        using var fixture = new Fixture();
+        var document = JsonNode.Parse(Document)!;
+        document["assemblies"]![0]!["steps"]![0]!["shadowReport"]!["basis"] = basis;
+        Write(fixture, document);
+        Assert.Throws<InvalidDataException>(() => RegistrationManifestLoader.Load(fixture.Root));
+    }
+
     /// <summary>完全相同的穩定鍵不能被合併或重建，必須拒絕整份候選。</summary>
     [Fact]
     public void Manifest_DuplicateStepIdentity_Refused()

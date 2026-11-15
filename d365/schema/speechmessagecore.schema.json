@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "activePhase": 4,
+  "activePhase": 5,
   "solution": "SpeechMessageCore",
   "publisher": "SpeechMessagePublisher",
   "prefix": "new",
@@ -61,6 +61,13 @@
           "displayName": "永豐設定檔名稱",
           "type": "string",
           "phase": 4,
+          "maxLength": 64
+        },
+        {
+          "logicalName": "new_lessonprogressionprofile",
+          "displayName": "課程進階規則設定",
+          "type": "string",
+          "phase": 5,
           "maxLength": 64
         }
       ],
@@ -413,6 +420,23 @@
         }
       ],
       "primaryName": "new_name"
+    },
+    {
+      "logicalName": "new_stor_lessons",
+      "displayName": "學員課程紀錄",
+      "pluralName": "學員課程紀錄",
+      "isNew": false,
+      "audit": false,
+      "fields": [
+        {
+          "logicalName": "new_saved_flag",
+          "displayName": "課程儲存觸發標記",
+          "type": "string",
+          "phase": 5,
+          "maxLength": 2000
+        }
+      ],
+      "keys": []
     }
   ]
 }

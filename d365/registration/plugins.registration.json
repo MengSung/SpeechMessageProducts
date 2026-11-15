@@ -330,6 +330,270 @@
             "differences": null,
             "basis": "reading"
           }
+        },
+        {
+          "type": "SpeechMessage.Dynamics.Plugins.Lessons.LessonLinkPlugin",
+          "message": "Create",
+          "entity": "new_disciple_lessons",
+          "stage": "PostOperation",
+          "mode": "Synchronous",
+          "rank": 50,
+          "module": "lessons",
+          "filteringAttributes": [],
+          "images": [],
+          "unsecureConfig": "{\"mode\":\"Shadow\"}",
+          "secureConfig": "",
+          "enabledByOrganization": {
+            "goodshepherdback": false
+          },
+          "legacy": [
+            {
+              "assembly": "DiscipleLessonsPluIn",
+              "type": "DiscipleLessonsPluIn.DiscipleLessonsPluIn",
+              "stepId": "ce2d4441-03fe-e911-810e-00155d006601"
+            }
+          ],
+          "shadowReport": {
+            "file": "",
+            "differences": null,
+            "basis": "reading"
+          }
+        },
+        {
+          "type": "SpeechMessage.Dynamics.Plugins.Lessons.LessonLinkPlugin",
+          "message": "Update",
+          "entity": "new_disciple_lessons",
+          "stage": "PostOperation",
+          "mode": "Synchronous",
+          "rank": 50,
+          "module": "lessons",
+          "filteringAttributes": [
+            "new_contact_new_disciple_lessons"
+          ],
+          "images": [],
+          "unsecureConfig": "{\"mode\":\"Shadow\"}",
+          "secureConfig": "",
+          "enabledByOrganization": {
+            "goodshepherdback": false
+          },
+          "legacy": [
+            {
+              "assembly": "DiscipleLessonsPluIn",
+              "type": "DiscipleLessonsPluIn.DiscipleLessonsPluIn",
+              "stepId": "24480136-03fe-e911-810e-00155d006601"
+            }
+          ],
+          "shadowReport": {
+            "file": "",
+            "differences": null,
+            "basis": "reading"
+          }
+        },
+        {
+          "type": "SpeechMessage.Dynamics.Plugins.Lessons.StorLessonSigningPlugin",
+          "message": "Create",
+          "entity": "new_stor_lessons",
+          "stage": "PostOperation",
+          "mode": "Asynchronous",
+          "rank": 50,
+          "module": "lessons",
+          "filteringAttributes": [],
+          "images": [],
+          "unsecureConfig": "{\"mode\":\"Shadow\"}",
+          "secureConfig": "",
+          "enabledByOrganization": {
+            "goodshepherdback": false
+          },
+          "legacy": [],
+          "shadowReport": {
+            "file": "",
+            "differences": null,
+            "basis": "reading"
+          }
+        },
+        {
+          "type": "SpeechMessage.Dynamics.Plugins.Lessons.StorLessonSigningPlugin",
+          "message": "Update",
+          "entity": "new_stor_lessons",
+          "stage": "PostOperation",
+          "mode": "Asynchronous",
+          "rank": 50,
+          "module": "lessons",
+          "filteringAttributes": [
+            "new_contact_new_stor_lessons",
+            "new_new_disciple_lessons_new_stor_les"
+          ],
+          "images": [
+            {
+              "name": "PostImage",
+              "attributes": [
+                "new_contact_new_stor_lessons",
+                "new_new_disciple_lessons_new_stor_les"
+              ],
+              "type": "PostImage"
+            }
+          ],
+          "unsecureConfig": "{\"mode\":\"Shadow\"}",
+          "secureConfig": "",
+          "enabledByOrganization": {
+            "goodshepherdback": false
+          },
+          "legacy": [],
+          "shadowReport": {
+            "file": "",
+            "differences": null,
+            "basis": "reading"
+          }
+        },
+        {
+          "type": "SpeechMessage.Dynamics.Plugins.Lessons.LessonProgressionPlugin",
+          "message": "Create",
+          "entity": "new_stor_lessons",
+          "stage": "PostOperation",
+          "mode": "Synchronous",
+          "rank": 50,
+          "module": "lessons",
+          "filteringAttributes": [],
+          "images": [],
+          "unsecureConfig": "{\"mode\":\"Shadow\"}",
+          "secureConfig": "",
+          "enabledByOrganization": {
+            "goodshepherdback": false
+          },
+          "legacy": [
+            {
+              "assembly": "TwoWingsPlugIn",
+              "type": "TwoWingsPlugIn.TwoWingsPlugIn",
+              "stepId": "142a14b9-f7e4-ef11-813f-00155d006608"
+            },
+            {
+              "assembly": "TwoWingsPlugInDatabase",
+              "type": "TwoWingsPlugIn.TwoWingsPlugIn",
+              "stepId": "37aa7a6a-d902-f011-8143-00155d006608"
+            }
+          ],
+          "shadowReport": {
+            "file": "",
+            "differences": null,
+            "basis": "reading"
+          }
+        },
+        {
+          "type": "SpeechMessage.Dynamics.Plugins.Lessons.LessonProgressionPlugin",
+          "message": "Update",
+          "entity": "new_stor_lessons",
+          "stage": "PostOperation",
+          "mode": "Synchronous",
+          "rank": 50,
+          "module": "lessons",
+          "filteringAttributes": [
+            "new_contact_new_stor_lessons",
+            "new_new_disciple_lessons_new_stor_les",
+            "new_saved_flag",
+            "new_roll_card_new_stor_lessons",
+            "new_registration_form_new_stor_lesson",
+            "new_credit",
+            "new_present",
+            "new_homework",
+            "new_exam",
+            "new_practice",
+            "new_achieved_credit",
+            "new_classification",
+            "new_current_complete",
+            "new_current_enter_next_level",
+            "new_1_present",
+            "new_2_present",
+            "new_3_present",
+            "new_4_present",
+            "new_5_present",
+            "new_6_present",
+            "new_7_present",
+            "new_8_present",
+            "new_9_present",
+            "new_10_present",
+            "new_11_present",
+            "new_12_present",
+            "new_13_present",
+            "new_14_present",
+            "new_15_present",
+            "new_16_present",
+            "new_17_present",
+            "new_18_present",
+            "new_19_present",
+            "new_20_present",
+            "new_21_present",
+            "new_22_present",
+            "new_23_present",
+            "new_24_present",
+            "new_25_present",
+            "new_26_present",
+            "new_27_present",
+            "new_28_present",
+            "new_29_present",
+            "new_30_present",
+            "new_first_date",
+            "new_2_date",
+            "new_3_date",
+            "new_4_date",
+            "new_5_date",
+            "new_6_date",
+            "new_7_date",
+            "new_l8_date",
+            "new_l9_date",
+            "new_l10_date",
+            "new_l11_date",
+            "new_l12_date",
+            "new_l13_date",
+            "new_l14_date",
+            "new_l15_date",
+            "new_a_homework1",
+            "new_a_complete_date",
+            "new_a_score",
+            "new_b_homework2",
+            "new_b_complete_date",
+            "new_b_score",
+            "new_c_homework3",
+            "new_c_complete_date",
+            "new_c_score",
+            "new_d_homework4",
+            "new_d_complete_date",
+            "new_d_score",
+            "new_e_homework5",
+            "new_e_complete_date",
+            "new_e_score",
+            "new_f_homework6",
+            "new_f_complete_date",
+            "new_f_score",
+            "new_g_homework7",
+            "new_g_complete_date",
+            "new_g_score",
+            "new_h_homework8",
+            "new_h_complete_date",
+            "new_h_score"
+          ],
+          "images": [],
+          "unsecureConfig": "{\"mode\":\"Shadow\"}",
+          "secureConfig": "",
+          "enabledByOrganization": {
+            "goodshepherdback": false
+          },
+          "legacy": [
+            {
+              "assembly": "TwoWingsPlugIn",
+              "type": "TwoWingsPlugIn.TwoWingsPlugIn",
+              "stepId": "a6c151cb-f7e4-ef11-813f-00155d006608"
+            },
+            {
+              "assembly": "TwoWingsPlugInDatabase",
+              "type": "TwoWingsPlugIn.TwoWingsPlugIn",
+              "stepId": "61819f5f-d902-f011-8143-00155d006608"
+            }
+          ],
+          "shadowReport": {
+            "file": "",
+            "differences": null,
+            "basis": "reading"
+          }
         }
       ]
     },
@@ -346,6 +610,54 @@
             {
               "assembly": "WeeklyReportWorkflow",
               "type": "WeeklyReportWorkflowNameSpace.WeeklyReportWorkflow"
+            }
+          ],
+          "shadowReport": {
+            "file": "",
+            "differences": null,
+            "basis": "reading"
+          }
+        },
+        {
+          "module": "lessons",
+          "type": "SpeechMessage.Dynamics.Workflows.Lessons.LessonQrCodeActivity",
+          "displayName": "LessonQrCodeActivity",
+          "legacy": [
+            {
+              "assembly": "QrCodeWorkflow",
+              "type": "QrCodeWorkflow.QrCodeWorkflow"
+            }
+          ],
+          "shadowReport": {
+            "file": "",
+            "differences": null,
+            "basis": "reading"
+          }
+        },
+        {
+          "module": "lessons",
+          "type": "SpeechMessage.Dynamics.Workflows.Lessons.StorLessonSigningActivity",
+          "displayName": "StorLessonSigningActivity",
+          "legacy": [
+            {
+              "assembly": "StorLessonSigningWorkflow",
+              "type": "StorLessonSigningWorkflow.StorLessonWorkflowPlugin"
+            }
+          ],
+          "shadowReport": {
+            "file": ".trellis/tasks/archive/2026-11/11-15-p5-07-lessons/wp-reports/P5-07-closure-status.md#已核定缺口：P5-PROP-006",
+            "differences": null,
+            "basis": "reading"
+          }
+        },
+        {
+          "module": "lessons",
+          "type": "SpeechMessage.Dynamics.Workflows.Lessons.EquipmentStatusActivity",
+          "displayName": "EquipmentStatusActivity",
+          "legacy": [
+            {
+              "assembly": "EquipmentWorkflow",
+              "type": "EquipmentWorkflow.EquipmentWorkflowClass"
             }
           ],
           "shadowReport": {

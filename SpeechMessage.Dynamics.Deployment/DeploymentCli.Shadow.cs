@@ -6,9 +6,8 @@
  * 主要功能與流程：連線前檢查固定模組目錄；連線後核對完整部署 PE／註冊狀態、
  * User Secrets 中的測試 GUID 與權威 LINE 綁定，再準備整批情境，唯讀匯出後執行。
  * 每輪由 runner 停用、核對、清理自己的記錄並還原追蹤；成功返回後才寫安全報告。
- * 信任與適用邊界：CRUD live 基準由固定受審 token 盤點接通先舊後新兩輪；
- * new／reading／legacy-golden 仍只跑新輪，不假造舊證據。legacy switch 共用完整前置，
- * 只跑核定實機舊輪；報告明標範圍，不能把舊輪欄位通過寫成兩輪推播驗收。
+ * 信任與適用邊界：修訂 2 公開入口僅接受 new／reading／legacy-golden 的新輪；
+ * 舊輪與 switch 程式保留供歷史維護，但 legacyOnly 在任何 SDK I/O 前拒絕，不能執行舊程式。
  * 外部既有列範圍來自固定盤點與正式metadata，觀察只保存教會內ID／版本，報告只含筆數。
  * 同步 trigger 依正式 mode 帶獨立 RequestId，不以情境 JSON 指定同步追蹤。
  * 關聯觀察以明列 lookup 及本輪 owned 父列配對；缺盤點、未釐清／寫死 token
@@ -45,8 +44,8 @@ internal static partial class DeploymentCli
 
     /// <summary>
     /// 在既有租約內完成核定輪次；先完成整批準備才可寫 trace 或 seed。
-    /// legacyOnly 專供公開 legacy switch，不接受閱讀基準，不執行新輪或宣稱完整比較。
-    /// 尚無受審舊入口 inventory 的 live 基準不可降級為只跑新輪。
+    /// 修訂 2 保留 legacyOnly 簽章但一律拒絕；舊輪程式不刪除，也不可由公開命令執行。
+    /// 公開基準由情境 reader 與此入口共同核對，只執行新程式影子一輪。
     /// 報告只在 runner 成功收尾後發布，非零差異回一而非丟棄失敗證據。
     /// </summary>
     private static int RunShadow(ParsedCommand command, IReadOnlyList<ShadowFileCase> cases,
@@ -54,10 +53,9 @@ internal static partial class DeploymentCli
         Func<string, string>? secretReader, CancellationToken cancellationToken, bool legacyOnly = false)
     {
         var selected = cases.Where(item => item.LiveShadow).ToArray();
-        if (selected.Length == 0 || selected.Any(item => item.IsActivity ||
-            item.Basis is not ("new" or "reading" or "legacy-golden" or "legacy-live" or "legacy-live-only")) ||
-            selected.Select(item => item.Basis).Distinct(StringComparer.Ordinal).Count() != 1 ||
-            (legacyOnly && selected.Any(item => item.Basis is not ("legacy-live" or "legacy-live-only"))))
+        if (legacyOnly || selected.Length == 0 || selected.Any(item => item.IsActivity ||
+            item.Basis is not ("new" or "reading" or "legacy-golden")) ||
+            selected.Select(item => item.Basis).Distinct(StringComparer.Ordinal).Count() != 1)
             throw InvalidShadowCommand();
         var document = RegistrationManifestLoader.LoadDocument(repositoryRoot);
         var images = document.Assemblies.Select(manifest => AssemblyCatalog.Read(

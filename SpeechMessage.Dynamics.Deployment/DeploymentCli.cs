@@ -8,8 +8,8 @@
  * 明確--schema或export-metadata轉交SchemaDeploymentCli，該路徑不需Plugin DLL。
  * export-legacy 以有界唯讀查詢匯出安全 metadata 並回報啟用筆數，不需要清單或 DLL；
  * shadow 使用同一寫鎖及租約，固定情境來源先驗證，再交影子 partial 核對實機身分、
- * 已部署映像與步驟，完成執行、清理及安全報告；legacy switch 使用固定情境只跑第一輪，
- * 同程序經 D5-18 後暫啟舊步驟，完成或失敗均停用；未核定的舊輪盤點仍拒絕。
+ * 已部署映像與步驟，完成新程式影子執行、清理及安全報告。修訂 2 起 legacy switch
+ * 僅保留解析與歷史程式，公開入口一律拒絕，不在任何組織執行舊程式。
  * 舊plan/apply/verify/export/rollback/smoke則載入固定registration manifest及必要Plugin PE，
  * 單組件委派DeploymentEngine；多組件由 partial 的文件路由完整交給DocumentDeploymentEngine，
  * 使用組織共用備份根及已 flush 的固定名稱索引，保留原P0公開語法與設定佔位安全驗證。
@@ -592,7 +592,7 @@ internal static partial class DeploymentCli
         output.WriteLine("          shadow --org goodshepherdback --module <module> --scenario-root <fixed-module-golden-directory>");
         output.WriteLine("          ui-export --org goodshepherdback | ui-import --org goodshepherdback --from <archive>");
         output.WriteLine("          export-legacy --org goodshepherdback (read-only; stops if legacy registrations are enabled)");
-        output.WriteLine("          switch --to legacy uses the fixed module golden scenarios for one scoped legacy round, then disables registrations.");
+        output.WriteLine("          switch --to legacy is retained for history and refused under revision 2; legacy code is never executed.");
         output.WriteLine("          export --org <name> | rollback --org <name> --from <file>");
         output.WriteLine("          smoke --org <name> --scenario <p0-ping-trace|p0-ping-push>");
         output.WriteLine("          export-metadata --org <name> | plan/verify --org <name> --schema <file>");
@@ -606,7 +606,7 @@ internal static partial class DeploymentCli
     {
         /// <summary>切換的核定模組，不作資料存取授權。</summary>
         public string? Module { get; init; }
-        /// <summary>切換目標；舊輪由程序內 runner 帶完整安全範圍才可執行。</summary>
+        /// <summary>切換目標；legacy 僅保留歷史語法，修訂 2 由影子入口一律拒絕執行。</summary>
         public string? Target { get; init; }
         /// <summary>固定模組黃金目錄的候選路徑，不授權外部檔案來源。</summary>
         public string? ScenarioRoot { get; init; }

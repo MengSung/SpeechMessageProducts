@@ -60,5 +60,7 @@
   "SpeechMessageProducts.GoodShepherd.Core.Tests/Golden/Legacy/lessonslink/scenarios.json": "P5-07課程連結的四個共享合成情境；Create／Update、QR活動及缺教會拒絕，alias依harness固定SHA-256建立ID，不保存真實組織或機密。每案明列來源課程、主要聯絡人、教會、訊息及活動參數；由兩個測試宿主唯讀載入，所有樹與身分映射只屬於該次測試。",
   "SpeechMessageProducts.GoodShepherd.Core.Tests/Golden/Legacy/lessonslink/expected.json": "P5-07課程連結的reading期望及D5-6刻意差異；舊31／32張圖改成單筆圖片組待辦，規則與真外殼逐欄核對，不冒稱舊程式實跑或實機影子驗收。待辦型別與狀態依結構快照固定為整數；名稱依既有追蹤契約只存字元長度與雜湊，課程識別為固定合成值，沒有推播或真實圖片發布結果。",
   "SpeechMessageProducts.GoodShepherd.Core.Tests/Golden/Legacy/lessonssigning/scenarios.json": "P5-07簽核分派離線合成情境，所有正式身分均為測試資料，不連任何組織、不含機密。提供可重現輸入供規則或真外殼讀取，liveShadow=false，不代表實機成功。",
-  "SpeechMessageProducts.GoodShepherd.Core.Tests/Golden/Legacy/lessonssigning/expected.json": "P5-07簽核reading期望，逐條附舊來源與行號；付款成功前置保留舊建單／兩次回寫及金流依賴，動態回應只記來源、不捏造結果。P5-PROP-006核定缺口另列，不放declaredDifferences、不算差異0或P7補驗；其他正常簽核由真外殼核對，不宣稱LINE送達。"
+  "SpeechMessageProducts.GoodShepherd.Core.Tests/Golden/Legacy/lessonssigning/expected.json": "P5-07簽核reading期望，逐條附舊來源與行號；付款成功前置保留舊建單／兩次回寫及金流依賴，動態回應只記來源、不捏造結果。P5-PROP-006核定缺口另列，不放declaredDifferences、不算差異0或P7補驗；其他正常簽核由真外殼核對，不宣稱LINE送達。",
+  "SpeechMessageProducts.GoodShepherd.Core.Tests/Golden/Legacy/lessonsprogression/scenarios.json": "P5-07兩套設定式進階離線合成情境，所有正式身分均為測試資料，不連任何組織、不含機密。提供可重現輸入供規則或真外殼讀取，liveShadow=false，不代表實機成功。",
+  "SpeechMessageProducts.GoodShepherd.Core.Tests/Golden/Legacy/lessonsprogression/expected.json": "P5-07兩套設定式進階的reading期望，附舊來源與行號及declaredDifferences，由測試逐欄核對；不冒稱舊程式執行，未產生legacy.json，不以本檔證明LINE送達或實機影子差異0。來源、期望與刻意差異由維護者獨立閱讀核對；新增情境須同步更新測試，不能由產品實作重生答案。"
 }

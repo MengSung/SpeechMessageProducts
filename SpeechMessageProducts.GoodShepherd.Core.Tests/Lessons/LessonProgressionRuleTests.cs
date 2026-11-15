@@ -9,7 +9,7 @@
  * 測試沒有背景工作、timer、Session 或外部資源，沒有額外清理責任。
  *
  * 使用邊界與維護：本檔保護的是設定式核心契約，不把合成 profile 結果描述成
- * 舊程式實機結果；真正的 legacy-live-only 或 reading 基準仍由階段驗收資料
+ * 舊程式實機結果；真正的reading基準由LessonProgressionEvaluationTests與實際欄位情境檔
  * 另行記錄。
  */
 using System;
@@ -25,7 +25,7 @@ public sealed class LessonProgressionRuleTests
 {
     /// <summary>第一組設定的門檻與核准契約產生完成結果。</summary>
     [Fact]
-    public void Lessons_Progression_TwoWingsProfile_MatchesLegacy()
+    public void GenericThreshold_ApprovalAndUnits_Complete()
     {
         var profile = new LessonProgressionProfile("profile-a", 3, true);
         Assert.Equal(LessonProgressionOutcome.Completed,
@@ -34,7 +34,7 @@ public sealed class LessonProgressionRuleTests
 
     /// <summary>第二組設定可保留不同核准差異，而非被第一組行為覆蓋。</summary>
     [Fact]
-    public void Lessons_Progression_SecondProfile_MatchesLegacy()
+    public void GenericThreshold_ApprovalFlag_IsIndependent()
     {
         var profile = new LessonProgressionProfile("profile-b", 2, false);
         Assert.Equal(LessonProgressionOutcome.Completed,
@@ -52,9 +52,12 @@ public sealed class LessonProgressionRuleTests
             !File.Exists(Path.Combine(repository.FullName, "SpeechMessageProducts.sln")))
             repository = repository.Parent;
         Assert.NotNull(repository);
-        var root = Path.Combine(repository!.FullName, "SpeechMessageProducts.GoodShepherd.Core", "Lessons");
+        var core = Path.Combine(repository!.FullName, "SpeechMessageProducts.GoodShepherd.Core", "Lessons");
+        var plugins = Path.Combine(repository.FullName, "SpeechMessage.Dynamics.Plugins", "Lessons");
+        var files = Directory.EnumerateFiles(core, "*.cs", SearchOption.TopDirectoryOnly)
+            .Concat(Directory.EnumerateFiles(plugins, "LessonProgression*.cs", SearchOption.TopDirectoryOnly));
         var forbidden = new[] { "TwoWings", "YangMeillc", "goodshepherdback" };
-        foreach (var file in Directory.EnumerateFiles(root, "*.cs", SearchOption.TopDirectoryOnly))
+        foreach (var file in files)
         {
             var text = File.ReadAllText(file);
             foreach (var value in forbidden)

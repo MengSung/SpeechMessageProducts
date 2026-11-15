@@ -1,0 +1,282 @@
+{
+  "module": "lessonsprogression",
+  "cases": [
+    {
+      "name": "stage-merged-attendance-required-homework",
+      "church": {
+        "alias": "church",
+        "organizationName": "synthetic-reading",
+        "timeZone": "Asia/Taipei",
+        "culture": "zh-TW"
+      },
+      "seed": [
+        {
+          "alias": "church",
+          "entity": "account",
+          "fields": {
+            "new_lessonprogressionprofile": "stage-history-v1"
+          }
+        },
+        {
+          "alias": "member",
+          "entity": "contact",
+          "fields": {
+            "parentcustomerid": {
+              "ref": "church",
+              "entity": "account"
+            }
+          }
+        },
+        {
+          "alias": "course",
+          "entity": "new_disciple_lessons",
+          "fields": {
+            "new_name": "一般課程",
+            "new_contact_new_disciple_lessons": {
+              "ref": "member",
+              "entity": "contact"
+            },
+            "new_now_stage_name": "一般",
+            "new_class_number_fornext_level": 2,
+            "new_complete_classes_number": 3,
+            "new_classes_for_next_level": "1,A",
+            "new_complete_need_classes": "1,2,3,A"
+          }
+        },
+        {
+          "alias": "record",
+          "entity": "new_stor_lessons",
+          "fields": {
+            "new_contact_new_stor_lessons": {
+              "ref": "member",
+              "entity": "contact"
+            },
+            "new_account_new_stor_lessons": {
+              "ref": "church",
+              "entity": "account"
+            },
+            "new_new_disciple_lessons_new_stor_les": {
+              "ref": "course",
+              "entity": "new_disciple_lessons"
+            },
+            "new_1_present": true,
+            "new_finishhomework_date1": "2026-01-01T00:00:00Z"
+          }
+        },
+        {
+          "alias": "record-2",
+          "entity": "new_stor_lessons",
+          "fields": {
+            "new_contact_new_stor_lessons": {
+              "ref": "member",
+              "entity": "contact"
+            },
+            "new_account_new_stor_lessons": {
+              "ref": "church",
+              "entity": "account"
+            },
+            "new_new_disciple_lessons_new_stor_les": {
+              "ref": "course",
+              "entity": "new_disciple_lessons"
+            },
+            "new_2_present": true
+          }
+        }
+      ],
+      "trigger": {
+        "project": "TwoWingsPlugIn",
+        "type": "TwoWingsPlugIn.TwoWingsPlugInClass",
+        "message": "Update",
+        "entity": "new_stor_lessons",
+        "target": "record",
+        "fields": {},
+        "depth": 1,
+        "inputs": {}
+      },
+      "now": "2026-11-15T04:00:00Z",
+      "volatile": [],
+      "liveShadow": false,
+      "observe": []
+    },
+    {
+      "name": "credit-weighted-homework-average",
+      "church": {
+        "alias": "church",
+        "organizationName": "synthetic-reading",
+        "timeZone": "Asia/Taipei",
+        "culture": "zh-TW"
+      },
+      "seed": [
+        {
+          "alias": "church",
+          "entity": "account",
+          "fields": {
+            "new_lessonprogressionprofile": "credit-score-v1"
+          }
+        },
+        {
+          "alias": "member",
+          "entity": "contact",
+          "fields": {
+            "parentcustomerid": {
+              "ref": "church",
+              "entity": "account"
+            }
+          }
+        },
+        {
+          "alias": "course",
+          "entity": "new_disciple_lessons",
+          "fields": {
+            "new_name": "一般課程",
+            "new_contact_new_disciple_lessons": {
+              "ref": "member",
+              "entity": "contact"
+            }
+          }
+        },
+        {
+          "alias": "record",
+          "entity": "new_stor_lessons",
+          "fields": {
+            "new_contact_new_stor_lessons": {
+              "ref": "member",
+              "entity": "contact"
+            },
+            "new_account_new_stor_lessons": {
+              "ref": "church",
+              "entity": "account"
+            },
+            "new_new_disciple_lessons_new_stor_les": {
+              "ref": "course",
+              "entity": "new_disciple_lessons"
+            },
+            "new_first_date": "2026-01-01T00:00:00Z",
+            "new_2_date": "2026-01-02T00:00:00Z",
+            "new_1_present": true,
+            "new_credit": 3.0,
+            "new_present": 20,
+            "new_homework": 80,
+            "new_a_homework1": "作業一",
+            "new_b_homework2": "作業二",
+            "new_a_complete_date": "2026-01-03T00:00:00Z",
+            "new_b_complete_date": "2026-01-03T00:00:00Z",
+            "new_a_score": 60.0,
+            "new_b_score": 80.0
+          }
+        }
+      ],
+      "trigger": {
+        "project": "YangMeillcStorLessonsPlugIn",
+        "type": "YangMeillcStorLessonsPlugIn.YangMeillcStorLessonsPlugInClass",
+        "message": "Update",
+        "entity": "new_stor_lessons",
+        "target": "record",
+        "fields": {},
+        "depth": 1,
+        "inputs": {}
+      },
+      "now": "2026-11-15T04:00:00Z",
+      "volatile": [],
+      "liveShadow": false,
+      "observe": []
+    },
+    {
+      "name": "stage-missing-required-homework",
+      "church": {
+        "alias": "church",
+        "organizationName": "synthetic-reading",
+        "timeZone": "Asia/Taipei",
+        "culture": "zh-TW"
+      },
+      "seed": [
+        {
+          "alias": "church",
+          "entity": "account",
+          "fields": {
+            "new_lessonprogressionprofile": "stage-history-v1"
+          }
+        },
+        {
+          "alias": "member",
+          "entity": "contact",
+          "fields": {
+            "parentcustomerid": {
+              "ref": "church",
+              "entity": "account"
+            }
+          }
+        },
+        {
+          "alias": "course",
+          "entity": "new_disciple_lessons",
+          "fields": {
+            "new_name": "一般課程",
+            "new_contact_new_disciple_lessons": {
+              "ref": "member",
+              "entity": "contact"
+            },
+            "new_now_stage_name": "一般",
+            "new_class_number_fornext_level": 2,
+            "new_complete_classes_number": 3,
+            "new_classes_for_next_level": "1,A",
+            "new_complete_need_classes": "1,2,3,A"
+          }
+        },
+        {
+          "alias": "record",
+          "entity": "new_stor_lessons",
+          "fields": {
+            "new_contact_new_stor_lessons": {
+              "ref": "member",
+              "entity": "contact"
+            },
+            "new_account_new_stor_lessons": {
+              "ref": "church",
+              "entity": "account"
+            },
+            "new_new_disciple_lessons_new_stor_les": {
+              "ref": "course",
+              "entity": "new_disciple_lessons"
+            },
+            "new_1_present": true,
+            "new_3_present": true
+          }
+        },
+        {
+          "alias": "record-2",
+          "entity": "new_stor_lessons",
+          "fields": {
+            "new_contact_new_stor_lessons": {
+              "ref": "member",
+              "entity": "contact"
+            },
+            "new_account_new_stor_lessons": {
+              "ref": "church",
+              "entity": "account"
+            },
+            "new_new_disciple_lessons_new_stor_les": {
+              "ref": "course",
+              "entity": "new_disciple_lessons"
+            },
+            "new_2_present": true
+          }
+        }
+      ],
+      "trigger": {
+        "project": "TwoWingsPlugIn",
+        "type": "TwoWingsPlugIn.TwoWingsPlugInClass",
+        "message": "Update",
+        "entity": "new_stor_lessons",
+        "target": "record",
+        "fields": {},
+        "depth": 1,
+        "inputs": {}
+      },
+      "now": "2026-11-15T04:00:00Z",
+      "volatile": [],
+      "liveShadow": false,
+      "observe": []
+    }
+  ]
+}

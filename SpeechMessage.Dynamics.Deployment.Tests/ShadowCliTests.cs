@@ -35,95 +35,35 @@ namespace SpeechMessage.Dynamics.Deployment.Tests;
 [Collection("Deployment working directory")]
 public sealed class ShadowCliTests
 {
-    /// <summary>外部範圍缺漏、重複或正式lookup不符，必須在任何設定／seed寫入前拒絕。</summary>
-    /// <param name="fault">每案僅破壞一個受審盤點或metadata條件。</param>
+    /// <summary>
+    /// 修訂 2 退役的實機舊基準必須在連線、追蹤設定、種子與 token 讀取前拒絕；
+    /// 舊 runner 的離線故障清理測試仍保留，但公開 shadow 不得再進入該路徑。
+    /// </summary>
+    /// <param name="basis">修訂 1 的兩種退役基準。</param>
     [Theory]
-    [InlineData("missing")]
-    [InlineData("duplicate")]
-    [InlineData("lookup")]
-    public void ShadowCli_InvalidExternalInventoryRefusesBeforeWrites(string fault)
+    [InlineData("legacy-live")]
+    [InlineData("legacy-live-only")]
+    public void ShadowCli_Revision2_RetiredBasisRefusedBeforeConnect(string basis)
     {
         using var f = new CliFixture();
-        f.AddLegacyCase(withoutToken: true);
-        var path = Path.Combine(f.Core.Root, "d365", "registration", "legacy-token-inventory.json");
-        var inventory = JsonNode.Parse(File.ReadAllText(path))!;
-        var entry = inventory["entries"]![0]!.AsObject();
-        if (fault == "missing") entry.Remove("externalWrites");
-        else
-        {
-            entry["externalWrites"] = JsonNode.Parse("""[{"entity":"region","churchAttribute":"parentid"}]""");
-            if (fault == "duplicate") entry["externalWrites"]!.AsArray().Add(entry["externalWrites"]![0]!.DeepClone());
-        }
-        File.WriteAllText(path, inventory.ToJsonString());
+        var path = Path.Combine(f.ScenarioRoot, "expected.json");
+        var expected = JsonNode.Parse(File.ReadAllText(path))!;
+        expected["basis"] = basis;
+        File.WriteAllText(path, expected.ToJsonString());
         var before = f.Core.Service.Writes.Count;
         Assert.Equal(1, f.Run());
-        Assert.Equal(before, f.Core.Service.Writes.Count);
+        Assert.Equal(0, f.Connects);
         Assert.Equal(0, f.Service.Triggers);
-        Assert.Equal(f.Connects, f.Releases);
-    }
-
-    /// <summary>外部快照不完整時不發布成功；觸發前後的故障都停用還原並清掉owned列，既有列保留。</summary>
-    /// <param name="read">在基線或觸發後讀取注入分頁，不能用部分結果宣稱零變動。</param>
-    [Theory]
-    [InlineData(1)]
-    [InlineData(2)]
-    public void ShadowCli_IncompleteExternalReadRestoresAndPreservesExistingRows(int read)
-    {
-        using var f = new CliFixture();
-        f.AddLegacyCase(withoutToken: true);
-        var path = Path.Combine(f.Core.Root, "d365", "registration", "legacy-token-inventory.json");
-        var inventory = JsonNode.Parse(File.ReadAllText(path))!;
-        inventory["entries"]![0]!["externalWrites"] = JsonNode.Parse("""[{"entity":"region","churchAttribute":"new_church"}]""");
-        File.WriteAllText(path, inventory.ToJsonString());
-        var id = Guid.NewGuid();
-        f.Core.Service.Seed(new Entity("region", id) { ["regionid"] = id,
-            ["new_church"] = new EntityReference("account", f.Service.Church), ["versionnumber"] = 1L });
-        f.Service.ExternalFaultRead = read;
-        Assert.Equal(1, f.Run());
-        Assert.Equal(read - 1, f.Service.Triggers);
-        f.AssertRestored();
-        Assert.Equal(1L, f.Core.Service.Rows.Single(row => row.Id == id).GetAttributeValue<long>("versionnumber"));
-        Assert.IsType<InvalidDataException>(Assert.Single(f.Reports));
-        var root = Path.Combine(f.Core.Root, "artifacts", "shadow");
-        Assert.True(!Directory.Exists(root) || Directory.GetFiles(root, "*.md", SearchOption.AllDirectories).Length == 0);
+        Assert.Equal(0, f.TokenSecretReads);
+        Assert.Equal(before, f.Core.Service.Writes.Count);
     }
 
     /// <summary>
-    /// 真CLI須依受審盤點讀取測試教會既有列的前後版本；新輪不重跑舊寫入，
-    /// 清理後仍保留既有列及其新版本，報告僅含實體和筆數，不洩露ID或名稱。
-    /// </summary>
-    [Fact]
-    public void ShadowCli_ExternalExistingChangesReachReportAndAreNotRestoredOrDeleted()
-    {
-        using var f = new CliFixture();
-        f.AddLegacyCase(withoutToken: true);
-        var path = Path.Combine(f.Core.Root, "d365", "registration", "legacy-token-inventory.json");
-        var inventory = JsonNode.Parse(File.ReadAllText(path))!;
-        inventory["entries"]![0]!["externalWrites"] = JsonNode.Parse("""[{"entity":"region","churchAttribute":"new_church"}]""");
-        File.WriteAllText(path, inventory.ToJsonString());
-        var id = Guid.NewGuid();
-        var external = new Entity("region", id) { ["regionid"] = id, ["new_church"] = new EntityReference("account", f.Service.Church),
-            ["versionnumber"] = 1L, ["name"] = "private-external-name" };
-        f.Core.Service.Seed(external);
-        f.Service.AfterTrigger = () =>
-        {
-            if (f.Service.RoundKinds.Last()) f.Core.Service.Rows.Single(row => row.Id == id)["versionnumber"] = 2L;
-        };
-        Assert.Equal(0, f.Run());
-        f.AssertRestored();
-        Assert.Equal(2L, f.Core.Service.Rows.Single(row => row.Id == id).GetAttributeValue<long>("versionnumber"));
-        var report = File.ReadAllText(Assert.Single(Directory.GetFiles(Path.Combine(f.Core.Root, "artifacts", "shadow"), "*.md", SearchOption.AllDirectories)));
-        Assert.Contains("ExternalExisting: Entity=region; Changed=1", report, StringComparison.Ordinal);
-        Assert.DoesNotContain(id.ToString("D"), report, StringComparison.Ordinal);
-        Assert.DoesNotContain("private-external-name", report, StringComparison.Ordinal);
-    }
-
-    /// <summary>
-    /// 真命令從已部署清單及舊註冊讀取映像綁定，不靠測試直接注入 factory。
-    /// 合成平台自行持有 context；斷言兩輪觸發、受控種子清理、設定還原與沒有例外告警。
+    /// 真命令從已部署清單讀取新步驟映像綁定，不靠測試直接注入 factory。
+    /// 合成平台自行持有 context；修訂 2 只觸發新輪，核對種子清理、設定還原與沒有例外告警。
     /// 舊映像故意使用不同 Name 與 EntityAlias，保護正式 context 必須依 alias 配對的契約。
     /// </summary>
-    /// <param name="legacy">含受審舊輪時，兩輪都必須通過相同映像宣告。</param>
+    /// <param name="legacy">包含舊註冊來源時也只能跑新輪，舊映像不得導致舊步驟啟用。</param>
     [Theory]
     [InlineData(false)]
     [InlineData(true)]
@@ -141,7 +81,7 @@ public sealed class ShadowCliTests
             });
         }
         Assert.Equal(0, f.Run());
-        Assert.Equal(legacy ? 2 : 1, f.Service.Triggers);
+        Assert.Equal(1, f.Service.Triggers);
         f.AssertRestored();
         Assert.Empty(f.Reports);
     }
@@ -169,74 +109,6 @@ public sealed class ShadowCliTests
         Assert.DoesNotContain(f.Service.Contact.ToString("D"), report, StringComparison.Ordinal);
     }
 
-    /// <summary>公開 legacy switch 只執行受控第一輪；D5-18 token 注入、結果讀回與清理沿用真 SDK runtime。</summary>
-    /// <param name="withoutToken">受審盤點為無 token 依賴時，第一輪不得解析測試 token。</param>
-    [Theory]
-    [InlineData(false)]
-    [InlineData(true)]
-    public void SwitchCli_LegacyRunsOnlyScopedFirstRound(bool withoutToken)
-    {
-        using var f = new CliFixture();
-        f.AddLegacyCase(withoutToken);
-        Assert.Equal(0, f.Run(["switch", "--org", Fixture.Organization, "--module", "localization", "--to", "legacy"]));
-        Assert.True(Assert.Single(f.Service.RoundKinds));
-        Assert.Equal(1, f.Service.Triggers);
-        Assert.Equal(withoutToken ? 0 : 1, f.TokenSecretReads);
-        f.AssertRestored();
-        Assert.DoesNotContain(f.Core.Service.Rows, row => row.LogicalName == "region");
-        Assert.Empty(f.Reports);
-        var report = File.ReadAllText(Assert.Single(Directory.GetFiles(Path.Combine(f.Core.Root, "artifacts", "shadow"), "*.md", SearchOption.AllDirectories)));
-        Assert.Contains("scope=legacy-round-only", report, StringComparison.Ordinal);
-        Assert.Contains("LegacyToExpected: Comparable=true; Differences=0", report, StringComparison.Ordinal);
-        Assert.Contains("ShadowToExpected: Comparable=false", report, StringComparison.Ordinal);
-        Assert.Contains("Passed=true", report, StringComparison.Ordinal);
-        Assert.DoesNotContain(Fixture.SecretValue, report, StringComparison.Ordinal);
-        Assert.DoesNotContain(f.Service.Contact.ToString("D"), report, StringComparison.Ordinal);
-    }
-
-    /// <summary>第一輪觸發已送達後的故障或 caller 取消仍排空所有自建記錄，停用及還原不得沿用取消 token。</summary>
-    /// <param name="cancel">取消不告警；真正故障必須在 lease 歸還後交出原例外。</param>
-    [Theory]
-    [InlineData(false)]
-    [InlineData(true)]
-    public void SwitchCli_LegacyFailureOrCancellationRestores(bool cancel)
-    {
-        using var f = new CliFixture();
-        using var cancellation = new CancellationTokenSource();
-        f.AddLegacyCase();
-        f.Service.FailTrigger = !cancel;
-        if (cancel) f.Service.AfterTrigger = cancellation.Cancel;
-        Assert.Equal(cancel ? 130 : 1, f.Run(["switch", "--org", Fixture.Organization, "--module", "localization", "--to", "legacy"], cancellation.Token));
-        Assert.True(Assert.Single(f.Service.RoundKinds));
-        f.AssertRestored();
-        Assert.DoesNotContain(f.Core.Service.Rows, row => row.LogicalName == "region");
-        if (cancel) Assert.Empty(f.Reports);
-        else Assert.Same(f.Service.Failure, Assert.Single(f.Reports));
-    }
-
-    /// <summary>第一輪不符合期望也要留下僅舊輪失敗報告；不可為取得綠燈偷偷執行新輪。</summary>
-    [Fact]
-    public void SwitchCli_LegacyDifferenceReportsFailureWithoutNewRound()
-    {
-        using var f = new CliFixture();
-        f.AddLegacyCase();
-        var path = Path.Combine(f.ScenarioRoot, "expected.json");
-        var expected = JsonNode.Parse(File.ReadAllText(path))!;
-        expected["cases"]![0]!["writes"]!.AsArray().Add(JsonNode.Parse("""{"operation":"Update","entity":"task","alias":"task-1","fields":{"score":9}}"""));
-        File.WriteAllText(path, expected.ToJsonString());
-        path = Path.Combine(f.ScenarioRoot, "scenarios.json");
-        var scenarios = JsonNode.Parse(File.ReadAllText(path))!;
-        scenarios["cases"]![0]!["observe"]![0]!["fields"]!.AsArray().Add("score");
-        File.WriteAllText(path, scenarios.ToJsonString());
-        Assert.Equal(1, f.Run(["switch", "--org", Fixture.Organization, "--module", "localization", "--to", "legacy"]));
-        Assert.True(Assert.Single(f.Service.RoundKinds));
-        f.AssertRestored();
-        Assert.Empty(f.Reports);
-        var report = File.ReadAllText(Assert.Single(Directory.GetFiles(Path.Combine(f.Core.Root, "artifacts", "shadow"), "*.md", SearchOption.AllDirectories)));
-        Assert.Contains("scope=legacy-round-only", report, StringComparison.Ordinal);
-        Assert.Contains("Passed=false", report, StringComparison.Ordinal);
-    }
-
     /// <summary>公開第一輪在 D34、盤點、權威身分或基準不合時拒絕；不得以 reading 取代真舊輪或先寫 trace。</summary>
     /// <param name="fault">一次注入一種啟用前關卡失敗；所有案例皆須零新寫入及零 token 解析。</param>
     [Theory]
@@ -253,7 +125,6 @@ public sealed class ShadowCliTests
         var path = Path.Combine(f.Core.Root, "d365", "registration", "legacy-token-inventory.json");
         if (fault == "hardcoded") File.WriteAllText(path, File.ReadAllText(path).Replace("record-fields", "unconditional-hardcoded", StringComparison.Ordinal));
         path = Path.Combine(f.ScenarioRoot, "expected.json");
-        if (fault == "reading") File.WriteAllText(path, File.ReadAllText(path).Replace("legacy-live-only", "reading", StringComparison.Ordinal));
         var before = f.Core.Service.Writes.Count;
         Assert.Equal(1, f.Run(["switch", "--org", Fixture.Organization, "--module", "localization", "--to", "legacy"]));
         Assert.Equal(before, f.Core.Service.Writes.Count);
@@ -262,31 +133,7 @@ public sealed class ShadowCliTests
         Assert.Equal(f.Connects, f.Releases);
     }
 
-    /// <summary>完整真 CLI 先舊後新：盤點欄位只在舊輪由 Secrets 注入，兩輪 seed ID 不同、步驟互斥且最後停用。</summary>
-    /// <param name="withoutToken">受審入口無 token 依賴時不解析 TestChannelToken，也不能把缺盤點當無依賴。</param>
-    [Theory]
-    [InlineData(false)]
-    [InlineData(true)]
-    public void ShadowCli_ReviewedInventoryRunsLegacyThenShadow(bool withoutToken)
-    {
-        using var f = new CliFixture();
-        f.AddLegacyCase(withoutToken);
-        Assert.Equal(0, f.Run());
-        Assert.Collection(f.Service.RoundKinds, item => Assert.True(item), item => Assert.False(item));
-        Assert.Equal(2, f.Service.TriggerTargets.Distinct().Count());
-        Assert.Equal(withoutToken ? 0 : 1, f.TokenSecretReads);
-        f.AssertRestored();
-        Assert.DoesNotContain(f.Core.Service.Rows, row => row.LogicalName == "region");
-        var path = Assert.Single(Directory.GetFiles(Path.Combine(f.Core.Root, "artifacts", "shadow"), "*.md", SearchOption.AllDirectories));
-        var report = File.ReadAllText(path);
-        Assert.Contains("LegacyExecuted=true", report, StringComparison.Ordinal);
-        Assert.Contains("Passed=true", report, StringComparison.Ordinal);
-        Assert.DoesNotContain(Fixture.SecretValue, report, StringComparison.Ordinal);
-        Assert.All(Directory.GetFiles(f.ArtifactRoot, "*.json", SearchOption.AllDirectories),
-            file => Assert.DoesNotContain(Fixture.SecretValue, File.ReadAllText(file), StringComparison.Ordinal));
-    }
-
-    /// <summary>任一受審入口缺失、未釐清或必走寫死 token，或欄位不屬 owned seed，都必須在 trace／seed 寫入前拒絕。</summary>
+    /// <summary>不論舊 token 盤點是否完整，修訂 2 的退役基準都須在連線及任何寫入前拒絕。</summary>
     /// <param name="fault">每案只破壞固定盤點的一個安全條件。</param>
     [Theory]
     [InlineData("missing-file")]
@@ -312,6 +159,10 @@ public sealed class ShadowCliTests
         if (fault == "duplicate-entry") data["entries"]!.AsArray().Add(data["entries"]![0]!.DeepClone());
         File.WriteAllText(path, data.ToJsonString());
         if (fault == "missing-file") File.Delete(path);
+        var expectedPath = Path.Combine(f.ScenarioRoot, "expected.json");
+        var expected = JsonNode.Parse(File.ReadAllText(expectedPath))!;
+        expected["basis"] = "legacy-live-only";
+        File.WriteAllText(expectedPath, expected.ToJsonString());
         var before = f.Core.Service.Writes.Count;
         Assert.Equal(1, f.Run());
         Assert.Equal(before, f.Core.Service.Writes.Count);
@@ -702,7 +553,7 @@ public sealed class ShadowCliTests
             File.WriteAllText(expectedPath, expected.ToJsonString());
         }
 
-        /// <summary>固定受審盤點與合成舊註冊一起建立；實際 source 僅供測試，不會加入正式 manifest 或對外送訊。</summary>
+        /// <summary>建立閱讀對照的合成舊註冊來源；盤點只保留測試素材，不授權啟用已退役入口。</summary>
         internal void AddLegacyCase(bool withoutToken = false)
         {
             var oldAssembly = new Entity("pluginassembly", Guid.NewGuid()) { ["name"] = "Vendor.Legacy", ["version"] = "1.0.0.0", ["isolationmode"] = new OptionSetValue(2) };
@@ -729,7 +580,7 @@ public sealed class ShadowCliTests
             File.WriteAllText(scenarioPath, scenarios.ToJsonString());
             var expectedPath = Path.Combine(ScenarioRoot, "expected.json");
             var expected = JsonNode.Parse(File.ReadAllText(expectedPath))!;
-            expected["basis"] = "legacy-live-only";
+            expected["basis"] = "reading";
             expected["cases"]![0]!["entrypoint"] = "Vendor.Legacy.Plugin";
             File.WriteAllText(expectedPath, expected.ToJsonString());
             Directory.CreateDirectory(Path.Combine(Core.Root, "wp-reports"));
@@ -822,7 +673,7 @@ public sealed class ShadowCliTests
         internal readonly List<Guid> TriggerTargets = [];
         internal Guid RequestId;
         internal int AsyncQueries;
-        internal int ExternalFaultRead;
+        internal int ExternalFaultRead { get; set; }
         private int externalReads;
         private Guid target;
 

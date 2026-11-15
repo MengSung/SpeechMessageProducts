@@ -197,6 +197,8 @@ public sealed class SchemaCliTests
     /// <summary>每案唯一定義／輸出與SDK；只改程序cwd的集合已序列化，finally恢復，沒有跨命令連線或request殘留。</summary>
     private sealed class CliFixture : IDisposable
     {
+        /// <summary>只含固定命名政策的唯讀序列化選項，不含每案資料。</summary>
+        private static readonly System.Text.Json.JsonSerializerOptions DefinitionJson = new() { PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase };
         private readonly string previous = Environment.CurrentDirectory;
         internal string Root { get; } = Path.Combine(Path.GetTempPath(), "p111-cli-" + Guid.NewGuid().ToString("N"));
         internal string Schema { get; }
@@ -210,7 +212,12 @@ public sealed class SchemaCliTests
             Directory.CreateDirectory(Path.Combine(Root, "d365", "schema"));
             File.WriteAllText(Path.Combine(Root, "SpeechMessageProducts.sln"), "synthetic solution");
             Schema = Path.Combine(Root, "d365", "schema", "speechmessagecore.schema.json");
-            File.Copy(originalSchema, Schema);
+            // P1 CLI回歸只使用P1表與原P4欄；P5既有課程表由專屬plan測試核對。
+            var definition = SchemaFiles.Load(originalSchema);
+            definition = definition with { ActivePhase = 4,
+                Entities = definition.Entities.Where(entity => entity.Fields.Any(field => field.Phase == 1)).ToArray() };
+            File.WriteAllText(Schema, System.Text.Json.JsonSerializer.Serialize(definition,
+                DefinitionJson));
             File.Copy(Path.Combine(Path.GetDirectoryName(originalSchema)!, "p1-12-acceptance.fixture.json"), Path.Combine(Root, "d365", "schema", "p1-12-acceptance.fixture.json"));
             Connector = new Connector(Root);
             Environment.CurrentDirectory = Root;

@@ -8,6 +8,7 @@
  * 每次 Load 獨占檔案及 JsonDocument，using 在成功或失敗都釋放；只發布 Clone 後
  * 的唯讀 JSON 與集合，保留數字原文精度，無跨請求快取或背景工作。DTO 的生命期由
  * 命令呼叫端擁有，不含連線及憑證。活動僅保存並標記，是否可執行由 runtime 明確拒絕。
+ * 修訂 2 不接受 legacy-live／legacy-live-only，退役舊基準於讀取邊界即拒絕。
  * observe 可明列 related.attribute／alias，僅指向 seed；owned 授權及 lookup 型別由
  * factory 再以 metadata 核對，reader 不接受任意查詢或顯示名稱比對。
  * 點分字串先驗是否真有 JWT JSON header；完整 CLR 型別名不得因三個長片段誤判，
@@ -77,7 +78,7 @@ internal static class ShadowScenarioFiles
         Shape(target, "module,basis,cases,declaredDifferences");
         if (Text(source, "module") != module || Text(target, "module") != module) throw Invalid();
         var basis = Text(target, "basis");
-        if (basis is not ("legacy-live" or "legacy-golden" or "legacy-live-only" or "reading" or "deferred-to-P7" or "new")) throw Invalid();
+        if (basis is not ("legacy-golden" or "reading" or "deferred-to-P7" or "new")) throw Invalid();
         var input = Cases(source.GetProperty("cases"));
         var output = Cases(target.GetProperty("cases"));
         if (!input.Keys.ToHashSet(StringComparer.Ordinal).SetEquals(output.Keys)) throw Invalid();

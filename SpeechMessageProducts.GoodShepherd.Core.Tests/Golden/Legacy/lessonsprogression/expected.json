@@ -1,0 +1,95 @@
+{
+  "module": "lessonsprogression",
+  "basis": "reading",
+  "cases": [
+    {
+      "name": "stage-merged-attendance-required-homework",
+      "entrypoint": "TwoWingsPlugIn.TwoWingsPlugInClass",
+      "writes": [
+        {
+          "operation": "Update",
+          "entity": "new_stor_lessons",
+          "alias": "record",
+          "fields": {
+            "new_current_enter_next_level": true,
+            "new_current_complete": false,
+            "new_not_yet": "沒有前階段課程名稱\r\n",
+            "new_previous_next_level_condition": true,
+            "new_previous_complete_condition": true,
+            "new_memo": "一般課程, 上過的課程:第 1 課，繳交過的作業:，\r\n一般課程, 上過的課程:第 2 課，繳交過的作業:\r\n////////////  評估上過課程的總時數是否通過  ////////////\r\n上課時數:2\r\n上課歷程: 1，2，\r\n_________________________________\r\n本階段目前總時數 : 2\r\n可以進入下階段所需要的時數 : 2\r\n上課時數評估:可以進入下階段\r\n可以結業所需要的時數 : 3\r\n上課時數評估:不可結業2\r\n\r\n////////////  評估必修課程即必須上的特會/作業  ////////////\r\n評估下階段是否可以進行\r\n可以進入下一階段\r\n\r\n評估是否可以結業\r\n沒有上第 3 課，\r\n無法結業\r\n",
+            "new_area_name": "",
+            "new_singon_number": 1
+          }
+        }
+      ],
+      "lineCalls": [],
+      "outputs": {},
+      "exception": null
+    },
+    {
+      "name": "credit-weighted-homework-average",
+      "entrypoint": "YangMeillcStorLessonsPlugIn.YangMeillcStorLessonsPlugInClass",
+      "writes": [
+        {
+          "operation": "Update",
+          "entity": "new_stor_lessons",
+          "alias": "record",
+          "fields": {
+            "new_estimated_credit": 3.0,
+            "new_score": 76.0
+          }
+        }
+      ],
+      "lineCalls": [],
+      "outputs": {},
+      "exception": null
+    },
+    {
+      "name": "stage-missing-required-homework",
+      "entrypoint": "TwoWingsPlugIn.TwoWingsPlugInClass",
+      "writes": [
+        {
+          "operation": "Update",
+          "entity": "new_stor_lessons",
+          "alias": "record",
+          "fields": {
+            "new_current_enter_next_level": false,
+            "new_current_complete": false,
+            "new_not_yet": "沒有前階段課程名稱\r\n",
+            "new_previous_next_level_condition": true,
+            "new_previous_complete_condition": true,
+            "new_memo": "一般課程, 上過的課程:第 1，3 課，繳交過的作業:\r\n一般課程, 上過的課程:第 2 課，繳交過的作業:\r\n////////////  評估上過課程的總時數是否通過  ////////////\r\n上課時數:30\r\n上課歷程: 1，2，2，2，2，2，2，2，2，2，2，2，2，2，2，2，2，2，2，2，2，2，2，2，2，2，2，2，2，3，\r\n_________________________________\r\n本階段目前總時數 : 30\r\n可以進入下階段所需要的時數 : 2\r\n上課時數評估:可以進入下階段\r\n可以結業所需要的時數 : 3\r\n上課時數評估:可以結業\r\n\r\n////////////  評估必修課程即必須上的特會/作業  ////////////\r\n評估下階段是否可以進行\r\nA 沒有完成，\r\n無法進入下一階段\r\n\r\n評估是否可以結業\r\nA 沒有完成，\r\n無法結業\r\n",
+            "new_area_name": "",
+            "new_singon_number": 2
+          }
+        }
+      ],
+      "lineCalls": [],
+      "outputs": {},
+      "exception": null
+    }
+  ],
+  "declaredDifferences": [
+    {
+      "case": "stage-merged-attendance-required-homework",
+      "position": "$.cases[0].writes",
+      "category": 5,
+      "reason": "D5-3閱讀 TwoWingsPlugIn/TwoWingsPlugInClass.cs:532-657,1072-1131,1134-1326；未執行舊DLL。完整列出Update變更欄位及逐字診斷，另核對306-335、462-498、979-999、1327-1380；缺區名依舊寫空字串，不自增提示文字。05A核准account設定選取模式；保留既有計算，不依教會名稱分支。",
+      "test": "Lessons_Progression_TwoWingsProfile_MatchesLegacy"
+    },
+    {
+      "case": "credit-weighted-homework-average",
+      "position": "$.cases[1].writes",
+      "category": 5,
+      "reason": "D5-3閱讀 YangMeillcStorLessonsPlugIn/YangMeillcStorLessonsPlugInClass.cs:340-734,735-898；未執行舊DLL。本Update情境未綁學籍卡，完整寫入僅預估學分及總分；Core與真Plugin共用本情境逐欄核對。05A核准account設定選取模式；保留既有計算，不依教會名稱分支。 學籍卡producer另依YangMeillcStorLessonsPlugInClass.cs:1741-1855閱讀驗證：五值SharedVariables及原卡觸碰；舊同鍵只換標記，新增容器隔離與本人關聯驗證。下游彙總consumer來源未取得，不推論公式或聲稱consumer驗收完成。",
+      "test": "Lessons_Progression_SecondProfile_MatchesLegacy"
+    },
+    {
+      "case": "stage-missing-required-homework",
+      "position": "$.cases[2].writes",
+      "category": 5,
+      "reason": "D5-3閱讀 TwoWingsPlugIn/TwoWingsPlugInClass.cs:532-657,1072-1131,1134-1326；未執行舊DLL。完整列出Update變更欄位及逐字診斷，另核對306-335、462-498、979-999、1327-1380；缺區名依舊寫空字串，不自增提示文字。05A核准account設定選取模式；保留既有計算，不依教會名稱分支。 來源1072-1115的插入迴圈將[1,3]後插入2累積至30項，保留1、28個2、3的舊歷程及時數，仍因缺作業A拒絕進階與結業。",
+      "test": "Stage_RequiredHomeworkMissing_DoesNotPassAttendanceAlone"
+    }
+  ]
+}

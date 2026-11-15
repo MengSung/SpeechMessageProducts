@@ -17,9 +17,10 @@ apply使用既有OrganizationWriteLock，先Dispose client再釋放寫鎖；不�
 
 ## 唯一定義與嚴格輸入
 
-`d365/schema/speechmessagecore.schema.json`記6個受管實體、37欄（P1 36、P4 1）與4個唯一鍵。
+`d365/schema/speechmessagecore.schema.json` 目前 activePhase=5，記7個受管實體、39欄（P1 36、P4 1、P5 2）與4個唯一鍵。
 Account的五個語系欄之外，附錄A.1的LINE lookup屬P1；`new_sinopacprofile`保留phase4，不提前apply。
-既有transactioncurrencyid/new_lineid/statecode沿用；A.7舊業務表lookup等P8盤點，不猜表名。
+既有transactioncurrencyid/new_lineid/statecode沿用；其餘A.7舊業務表lookup等P8盤點，不猜表名。
+P5-07精確納管既有 `new_stor_lessons` 表，只新增 `account.new_lessonprogressionprofile`（Optional string64）及 `new_stor_lessons.new_saved_flag`（Optional string2000）。既有表白名單只允許 account、contact、new_stor_lessons；不重建既有表、不修改業務列或放寬未知表。P1／P4測試使用原phase投影，不能以正式schema成長放寬原本欄位斷言。
 
 - schema最多1MiB、plan最多4MiB、JSON深度32；open後重驗大小，拒未知／重複屬性。
 - 固定SpeechMessageCore、清單指定publisher、new前綴；表／欄／key邏輯身份唯一且有界。
