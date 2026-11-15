@@ -3,7 +3,8 @@
  * 目的與定位：P5-06出席牧者回應通知的PostOperation非同步Plugin薄外殼。
  * 主要功能與流程：Update須命中回應欄位及必要PreImage，重讀正式出席列並以小組
  * list→組長contact→account決定來源教會，再驗本人contact歸屬與綁定；規則只組純文字，
- * 通知經MemberNotificationService.NotifyComposedAsync重驗語系及收件者。Create保留舊無效果，
+ * 通知經MemberNotificationService.NotifyComposedAsync重驗語系及收件者。設定Text保留完整組合，
+ * 由共用凍結器驗5000字上限，不經舊建構式2000字截斷。Create保留舊無效果，
  * Depth>2且非Create返回。異常保留原例外交平台，正常未綁定／錯教會不通知。
  * 使用邊界與維護：外殼欄位只有無狀態策略；SDK、context、出席、回應與key皆限一次Execute。
  * adapter借用平台SDK並在using清除參照；Live的64-byte key在finally清零，Shadow不讀key、
@@ -74,7 +75,7 @@ public sealed class PresentRecordPlugin : PluginShellBase
         {
             var text = PresentRecordNotificationRule.Evaluate(input.PrimaryEntityId, input.MessageName,
                 prior, current, name, prayer, PresentRecordNotificationRule.Template(resolved.TextCulture));
-            return new ISendMessage[] { new TextMessage(text!) };
+            return new ISendMessage[] { new TextMessage("") { Text = text! } };
         }
         byte[]? key = null;
         try

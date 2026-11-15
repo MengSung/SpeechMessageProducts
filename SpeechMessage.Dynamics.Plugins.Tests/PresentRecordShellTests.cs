@@ -29,6 +29,14 @@ public sealed class PresentRecordShellTests
     {
         using var f = Normal(); f.Context.MessageName = "Create"; f.Run(); Assert.Empty(f.Operations());
         f.Context.MessageName = "Update"; f.Run(); Assert.Single(f.Operations()); Assert.Empty(f.Service.WriteRecords);
+        // 每欄合法2000字時，組合訊息仍須完整，不能被舊SDK建構式截為2000字。
+        f.Rows["present-1"]["new_explanation"] = new string('p', 2000);
+        f.Rows["present-1"]["new_paster_reply"] = new string('r', 2000);
+        f.Run();
+        var fullText = "Synthetic Member 代禱事項: " + new string('p', 2000) + "\r\n牧者回應: " + new string('r', 2000);
+        var expectedHash = LineMessagingProcessor.Core.LinePushClient.ComputeMemberContentSha256(
+            new Line.Messaging.ISendMessage[] { new Line.Messaging.TextMessage("") { Text = fullText } }, "Synthetic Church助手");
+        Assert.Equal(expectedHash, (string?)Assert.Single(f.Operations())["contentSha256"]);
     }
     /// <summary>無關Target欄位即使資料庫回應已不同也不得補發；同值前像亦無意圖。</summary>
     [Fact]
