@@ -33,7 +33,7 @@
           "stage": "PostOperation",
           "mode": "Asynchronous",
           "rank": 10,
-          "module": "internationalization",
+          "module": "localization",
           "filteringAttributes": [],
           "images": [],
           "unsecureConfig": "{\"mode\":\"Shadow\"}",
@@ -65,11 +65,10 @@
           "images": [
             {
               "name": "PreImage",
-              "entity": "new_localizedtext",
               "attributes": [
                 "new_accountid"
               ],
-              "Type": "PreImage"
+              "type": "PreImage"
             }
           ],
           "unsecureConfig": "{\"mode\":\"Shadow\"}",
@@ -77,7 +76,7 @@
           "enabledByOrganization": {
             "goodshepherdback": false
           },
-          "module": "internationalization",
+          "module": "localization",
           "legacy": [],
           "shadowReport": {
             "file": "",
@@ -96,11 +95,10 @@
           "images": [
             {
               "name": "PreImage",
-              "entity": "new_localizedtext",
               "attributes": [
                 "new_accountid"
               ],
-              "Type": "PreImage"
+              "type": "PreImage"
             }
           ],
           "unsecureConfig": "{\"mode\":\"Shadow\"}",
@@ -108,7 +106,7 @@
           "enabledByOrganization": {
             "goodshepherdback": false
           },
-          "module": "internationalization",
+          "module": "localization",
           "legacy": [],
           "shadowReport": {
             "file": "",
@@ -127,7 +125,7 @@
             "new_preferredlanguage"
           ],
           "images": [],
-          "module": "internationalization",
+          "module": "localization",
           "legacy": [],
           "shadowReport": {
             "file": "",
@@ -156,17 +154,16 @@
           "images": [
             {
               "name": "PreImage",
-              "entity": "account",
               "attributes": [
                 "new_defaultlanguage",
                 "new_enabledlanguages",
                 "new_timezone",
                 "new_countrycode"
               ],
-              "Type": "PreImage"
+              "type": "PreImage"
             }
           ],
-          "module": "internationalization",
+          "module": "localization",
           "legacy": [],
           "shadowReport": {
             "file": "",
@@ -195,17 +192,16 @@
           "images": [
             {
               "name": "PreImage",
-              "entity": "account",
               "attributes": [
                 "new_defaultlanguage",
                 "new_enabledlanguages",
                 "new_timezone",
                 "new_countrycode"
               ],
-              "Type": "PreImage"
+              "type": "PreImage"
             }
           ],
-          "module": "internationalization",
+          "module": "localization",
           "legacy": [],
           "shadowReport": {
             "file": "",
