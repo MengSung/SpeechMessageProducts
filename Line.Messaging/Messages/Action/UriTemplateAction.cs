@@ -8,7 +8,8 @@
  * - Label for the action Required for templates other than image carousel.Max: 20 characters Optional for image
  * carousel templates.Max: 12 characters. RichMenu 可省略；用戶端啟用可及性功能時會朗讀此文字，最多 20 個字元。 LINE iOS 8.2.0 以後支援 RichMenu
  * 上的此可及性 label。
- * 主要操作入口包含 CreateFrom。
+ * 一般SDK以 CreateFrom 解析事件；沙箱Link子集僅提供建構與序列化，編譯時排除dynamic解析入口。
+ * 兩者共用同一份公開建構子與協定欄位，不複製模型；原SDK解析行為維持不變。
  *
  * 使用邊界與維護：
  * 協定模型與產品身分／業務授權分離；欄位或列舉值變更須同步檢查JSON相容性、解析分派及雙目標測試。
@@ -81,11 +82,15 @@ namespace Line.Messaging
             AltUri = altUri;
         }
 
+        // 沙箱只建立外送訊息，不解析動態事件；排除本入口以免引入Microsoft.CSharp繫結器。
+#if !SPEECHMESSAGE_PLUGIN_SUBSET
+        /// <summary>由完整SDK的動態事件建立本次操作持有的動作模型，不保留事件物件或跨使用者狀態。</summary>
         internal static UriTemplateAction CreateFrom(dynamic dynamicObject)
         {
             var desktopUri = (string)dynamicObject?.altUri?.desktop;
             var altUri = (desktopUri == null) ? null : new AltUri(desktopUri);
             return new UriTemplateAction((string)dynamicObject?.label, (string)dynamicObject?.uri, altUri);
         }
+#endif
     }
 }
