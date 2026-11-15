@@ -6,7 +6,7 @@
  * reading 基準；舊型別只作盤點對照，不被誤設成可執行的正式步驟。
  *
  * 主要功能與流程：透過共用 RegistrationManifestLoader 讀取實際 JSON，逐欄檢查
- * Create／Update 的事件、階段、非同步模式、篩選欄位、唯一 legacy stepId、活動
+ * Create／Update 的事件、階段、同步模式、篩選欄位、唯一 legacy stepId、活動
  * 顯示名稱與 shadowReport。任何新增、刪除、啟用或基準誤標都會在離線測試中失敗。
  *
  * 使用邊界與維護：本檔只讀工作樹公開清單與合成 Golden，不建立 D365 lease、不讀
@@ -29,6 +29,9 @@ public sealed class AppointmentRegistrationTests
     public void Appointment_Registration_DisabledShadowWithReadingBasis()
     {
         var root = Root();
+        var scenarios = ShadowScenarioFiles.Load(root, "appointments");
+        Assert.Equal(6, scenarios.Count);
+        Assert.All(scenarios, item => { Assert.Equal("reading", item.Basis); Assert.False(item.LiveShadow); });
         var document = RegistrationManifestLoader.LoadDocument(root);
         var plugins = document.Assemblies.SelectMany(item => item.Steps)
             .Where(item => item.Module == "appointments").ToArray();
@@ -38,7 +41,9 @@ public sealed class AppointmentRegistrationTests
         var update = Assert.Single(plugins, item => item.Message == "Update");
         Assert.Equal("appointment", update.Entity);
         Assert.Equal("PostOperation", update.Stage);
-        Assert.Equal("Asynchronous", update.Mode);
+        Assert.Equal("Synchronous", update.Mode);
+        Assert.Equal("new_signing_contact,new_signing_content,new_meeting_kind,new_applier_appointment",
+            string.Join(",", update.FilteringAttributes));
         Assert.Equal("{\"mode\":\"Shadow\"}", update.UnsecureConfig);
         Assert.Empty(update.SecureConfig);
         Assert.False(update.EnabledByOrganization["goodshepherdback"]);
@@ -57,7 +62,7 @@ public sealed class AppointmentRegistrationTests
         Assert.Equal("AppointmentSigningActivity", activity.DisplayName);
         Assert.Equal("reading", activity.ShadowReport.Basis);
         Assert.Null(activity.ShadowReport.Differences);
-        Assert.Equal(2, activity.Legacy.Count);
+        Assert.Equal("AppointmentWorkflow.AppointmentWorkflowPlugin", Assert.Single(activity.Legacy).Type);
     }
 
     /// <summary>只沿測試輸出向上找目前方案，避免跨入父工作樹的另一份清單。</summary>

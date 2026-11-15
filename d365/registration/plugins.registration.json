@@ -600,7 +600,7 @@
           "message": "Create",
           "entity": "appointment",
           "stage": "PostOperation",
-          "mode": "Asynchronous",
+          "mode": "Synchronous",
           "rank": 50,
           "module": "appointments",
           "filteringAttributes": [],
@@ -628,17 +628,14 @@
           "message": "Update",
           "entity": "appointment",
           "stage": "PostOperation",
-          "mode": "Asynchronous",
+          "mode": "Synchronous",
           "rank": 50,
           "module": "appointments",
           "filteringAttributes": [
             "new_signing_contact",
             "new_signing_content",
-            "new_leave_kind",
-            "new_location_kind",
-            "scheduledstart",
-            "scheduledend",
-            "description"
+            "new_meeting_kind",
+            "new_applier_appointment"
           ],
           "images": [],
           "unsecureConfig": "{\"mode\":\"Shadow\"}",
@@ -735,10 +732,6 @@
           "type": "SpeechMessage.Dynamics.Workflows.Appointments.AppointmentSigningActivity",
           "displayName": "AppointmentSigningActivity",
           "legacy": [
-            {
-              "assembly": "AppointmentSigning",
-              "type": "AppointmentSigning.AppointmentSigningWorkflow"
-            },
             {
               "assembly": "AppointmentWorkflow",
               "type": "AppointmentWorkflow.AppointmentWorkflowPlugin"

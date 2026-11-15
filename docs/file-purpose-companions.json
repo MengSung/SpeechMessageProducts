@@ -63,6 +63,6 @@
   "SpeechMessageProducts.GoodShepherd.Core.Tests/Golden/Legacy/lessonssigning/expected.json": "P5-07簽核reading期望，逐條附舊來源與行號；付款成功前置保留舊建單／兩次回寫及金流依賴，動態回應只記來源、不捏造結果。P5-PROP-006核定缺口另列，不放declaredDifferences、不算差異0或P7補驗；其他正常簽核由真外殼核對，不宣稱LINE送達。",
   "SpeechMessageProducts.GoodShepherd.Core.Tests/Golden/Legacy/lessonsprogression/scenarios.json": "P5-07兩套設定式進階離線合成情境，所有正式身分均為測試資料，不連任何組織、不含機密。提供可重現輸入供規則或真外殼讀取，liveShadow=false，不代表實機成功。",
   "SpeechMessageProducts.GoodShepherd.Core.Tests/Golden/Legacy/lessonsprogression/expected.json": "P5-07兩套設定式進階的reading期望，附舊來源與行號及declaredDifferences，由測試逐欄核對；不冒稱舊程式執行，未產生legacy.json，不以本檔證明LINE送達或實機影子差異0。來源、期望與刻意差異由維護者獨立閱讀核對；新增情境須同步更新測試，不能由產品實作重生答案。",
-  "SpeechMessageProducts.GoodShepherd.Core.Tests/Golden/Legacy/appointments/scenarios.json": "P5-08預約簽核三個合成情境，採reading／simulation，供離線規則、Plugin外殼、Workflow活動與CAS測試共用；固定使用合成教會、會友、預約與通道資料，不執行退役舊程式、不包含token或真實識別，也不宣稱實機影子結果。",
-  "SpeechMessageProducts.GoodShepherd.Core.Tests/Golden/Legacy/appointments/expected.json": "P5-08預約簽核reading期望，逐案引用AppointmentSigningClass舊來源行號，保留同意／退回與正式簽核者差異；declaredDifferences說明不讀new_channel_access_token、收件者隔離及P5-PROP-006，不宣稱舊程式實跑或實機送達。"
+  "SpeechMessageProducts.GoodShepherd.Core.Tests/Golden/Legacy/appointments/scenarios.json": "P5-08預約簽核六個合成reading情境，使用正式activity／Plugin trigger、LINE代號及明列查詢結果，涵蓋請假、場地、一般、參數不符、空參數與缺來源拒絕；測試fixture才注入合成LINE ID及不解密envelope，不保存憑證、不執行舊程式或實機追蹤。",
+  "SpeechMessageProducts.GoodShepherd.Core.Tests/Golden/Legacy/appointments/expected.json": "P5-08六案reading期望，outputs.ReadingSource逐條記舊檔與行號；outputs.FlexMessages保存獨立閱讀寫出的完整Carousel JSON、SenderName及實際RetryKey，lineCalls沿正式method／endpoint／recipients／shadow格式。外殼重算完整訊息摘要，不由產品重生答案；declaredDifferences只列隔離及server sender修正，Live缺口仍依P5-PROP-006明標，未經舊實跑或實機送達。"
 }

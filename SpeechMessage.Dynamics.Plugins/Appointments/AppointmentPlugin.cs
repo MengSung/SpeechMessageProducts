@@ -6,7 +6,7 @@
  * 舊深度政策與 Shadow／Live 模式路由，業務查詢及訊息組合委派
  * GoodShepherd.Core.AppointmentSigningRule。
  *
- * 主要功能與流程：只接受 appointment 的 Create／Update、PostOperation、非同步事件；
+ * 主要功能與流程：只接受 appointment 的 Create／Update、PostOperation、同步事件；
  * Depth > 1 依舊入口政策返回。Live 先驗證單次 secure key，Shadow 不讀 Token。
  * SDK、recorder、push client 與 key 都只在一次 Execute 內借用／清理，不保存
  * Session、組織資料、credential、timer 或背景工作。
@@ -34,8 +34,8 @@ public sealed class AppointmentPlugin : PluginShellBase
     internal override void ExecuteRule(PluginInput input, PluginServices services)
     {
         if (input.PrimaryEntityName != "appointment" || input.MessageName is not ("Create" or "Update")) return;
-        if (input.Stage != 40 || input.Mode != 1)
-            throw new InvalidPluginExecutionException("Appointment signing requires asynchronous PostOperation.");
+        if (input.Stage != 40 || input.Mode != 0)
+            throw new InvalidPluginExecutionException("Appointment signing requires synchronous PostOperation.");
         byte[]? key = null;
         try
         {

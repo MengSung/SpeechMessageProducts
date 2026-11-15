@@ -6,8 +6,9 @@
  * 與通知介面，不認識 PluginInput、Workflow context 或外殼欄位。
  *
  * 主要功能與流程：讀取最小 appointment 欄位，確認 new_signing_contact 是正式 contact，
- * 依 new_leave_kind／new_location_kind 判定請假或場地簽核；再讀簽核者、其教會
- * 與顯示名稱，組合固定 Flex，最後經 MemberNotificationService 的共用入口。
+ * 先依舊訊息／參數 Contains 分派，再以 new_meeting_kind 決定標題。從正式申請人
+ * 獨立推導來源教會、重驗簽核者同教會及綁定，才查有界年度休假摘要並組合 Carousel。
+ * 內文保留 new_signing_content，最後經 MemberNotificationService 的共用入口。
  * Shadow 只記推播意圖；Live 的 key 由外殼提供且在本檔不保存。
  *
  * 使用邊界與維護：所有 SDK、source、訊息與 key 僅屬單次同步操作，不使用 static
@@ -16,8 +17,10 @@
  * 缺少簽核者時由共用服務 fail-closed。測試為離線契約，不宣稱實機送達。
  */
 using System;
+using SigningText = SpeechMessageProducts.GoodShepherd.Core.Lessons.LessonText;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Line.Messaging;
@@ -42,9 +45,9 @@ public static class AppointmentSigningRule
     /// <summary>活動／Plugin 的固定訊息入口名稱，供測試及外殼保持相同契約。</summary>
     public static string DefaultParameter(string message) => message switch
     {
-        "ExecuteWorkflow" => "工作流程",
-        "Create" => "新增",
-        "Update" => "更新",
+        "ExecuteWorkflow" => SigningText.Get("Appointments.Signing.WorkflowParameter"),
+        // 退役 Plugin 的 MajorExecute 實際收到空字串，不能自行補入關鍵字而新增通知。
+        "Create" or "Update" => string.Empty,
         _ => throw new InvalidPluginExecutionException("Appointment signing message is unsupported.")
     };
 
@@ -73,28 +76,47 @@ public static class AppointmentSigningRule
             throw new InvalidPluginExecutionException("Appointment signing message is unsupported.");
         ct.ThrowIfCancellationRequested();
 
+        var keyword = message == "ExecuteWorkflow" ? SigningText.Get("Appointments.Signing.WorkflowParameter") : message == "Create" ? SigningText.Get("Lessons.Signing.CreateParameter") : SigningText.Get("Lessons.Signing.UpdateParameter");
+        if (!Contains(parameter, keyword)) return;
         var appointment = organization.Retrieve(Appointment, appointmentId, new ColumnSet(
-            "new_signing_contact", "new_signing_content", "new_leave_kind", "new_location_kind",
-            "scheduledstart", "scheduledend", "description"));
+            "new_signing_contact", "new_signing_content", "new_meeting_kind", "new_applier_appointment"));
+        ValidateRow(appointment, Appointment, appointmentId);
         var signer = Lookup(appointment, "new_signing_contact", Contact);
-        var leave = Option(appointment, "new_leave_kind");
-        var location = Option(appointment, "new_location_kind");
-        var subject = Subject(leave, location);
-        if (subject is null) return;
-
-        var contact = organization.Retrieve(Contact, signer, new ColumnSet(
-            "fullname", "parentcustomerid"));
-        var church = Lookup(contact, "parentcustomerid", "account");
-        var signerName = Text(contact, "fullname");
-        var content = Content(appointment, subject);
-        var context = new TextContext(church, "zh-TW", "zh-TW", organizationId.ToString("D"), "GoodShepherd");
+        var applicantId = Lookup(appointment, "new_applier_appointment", Contact);
+        var applicant = organization.Retrieve(Contact, applicantId, new ColumnSet(
+            "fullname", "parentcustomerid", "new_special_leave_days"));
+        ValidateRow(applicant, Contact, applicantId);
+        var church = Lookup(applicant, "parentcustomerid", "account");
         using var source = new LineRecipientQueries(organization);
+        var recipient = source.ReadMember(signer, ct);
+        // 來源 scope 必須先於 Channel／摘要查詢成立，不能用 signer 自己的教會反向授權。
+        if (LinePushClient.ValidateRecipient(recipient, church) is not null) return;
+        var subject = Option(appointment, "new_meeting_kind") switch
+        {
+            6 => SigningText.Get("Appointments.Signing.LeaveSubject"),
+            4 => SigningText.Get("Appointments.Signing.LocationSubject"),
+            _ => SigningText.Get("Appointments.Signing.GeneralSubject")
+        };
+        var contact = organization.Retrieve(Contact, signer, new ColumnSet("fullname"));
+        ValidateRow(contact, Contact, signer);
+        var reference = (EntityReference)appointment["new_signing_contact"];
+        var signerName = string.IsNullOrWhiteSpace(reference.Name)
+            ? OptionalText(contact, "fullname", SigningText.Get("Appointments.Signing.UnnamedSigner")) : reference.Name!;
+        var content = OptionalText(appointment, "new_signing_content", string.Empty);
+        if (subject == SigningText.Get("Appointments.Signing.LeaveSubject")) content += LeaveSummary(organization, applicant, ct);
+        if (content.Length > 2000)
+            throw new InvalidPluginExecutionException("Appointment signing content exceeds capacity.");
+        var account = organization.Retrieve("account", church, new ColumnSet("new_defaultlanguage"));
+        ValidateRow(account, "account", church);
+        var culture = OptionalText(account, "new_defaultlanguage", "zh-TW");
+        var context = new TextContext(church, culture, culture, organizationId.ToString("D"), "GoodShepherd");
         var notifications = new MemberNotificationService(push,
             new MemberCultureResolver(new SpeechMessage.Localization.LocalizationOptions()),
             new GoodShepherdTextCatalog(new NoOverrides()));
         IReadOnlyList<ISendMessage> Compose(TextContext _) =>
             new ISendMessage[] { AppointmentSigningMessageFactory.Create(
-                new AppointmentSigningMessageInput(appointmentId, signer, subject, content, signerName, signerName, ImageUrl)) };
+                new AppointmentSigningMessageInput(appointmentId, signer, subject, content,
+                    OptionalText(applicant, "fullname", string.Empty), signerName, Image(parameter))) };
         var retryKey = DeterministicGuid.Create("appointments.signing", appointmentId, signer);
         var result = shadowSink is not null
             ? await notifications.NotifyComposedAsync(source, context, signer, retryKey,
@@ -107,28 +129,93 @@ public static class AppointmentSigningRule
             throw new InvalidPluginExecutionException("Appointment signing notification failed.");
     }
 
-    /// <summary>依退役 option set 保留請假／場地簽核的分派，其他組合不通知。</summary>
-    private static string? Subject(int leave, int location)
+    /// <summary>
+    /// 只查正式申請人今年且位於三個舊簽核狀態的休假，完整候選最多 256 列。
+    /// 回應分頁、超量、重複正式 ID 或錯誤申請人一律拒絕，不發布部分統計。
+    /// 年度採 Dataverse ThisYear 的原語意，不冒稱已改成教會時區年度。
+    /// 字典、順序及文字都屬此次呼叫，取消／失敗不保留給下次 A/B/A 執行。
+    /// </summary>
+    private static string LeaveSummary(IOrganizationService organization, Entity applicant, CancellationToken ct)
     {
-        var hasLeave = leave > 1;
-        var hasLocation = location > 100000000;
-        if (hasLeave && !hasLocation) return "請假簽核";
-        if (!hasLeave && hasLocation) return "場地或資源簽核";
-        return null;
+        var query = new QueryExpression(Appointment)
+        {
+            ColumnSet = new ColumnSet("activityid", "new_applier_appointment", "new_leave_kind", "new_leave_signing_status", "new_days"),
+            PageInfo = new PagingInfo { Count = 257, PageNumber = 1 }
+        };
+        query.Criteria.AddCondition("new_applier_appointment", ConditionOperator.Equal, applicant.Id);
+        query.Criteria.AddCondition("scheduledstart", ConditionOperator.ThisYear);
+        query.Criteria.AddCondition("new_leave_signing_status", ConditionOperator.In, 100000004, 100000001, 100000007);
+        query.AddOrder("subject", OrderType.Ascending);
+        query.AddOrder("activityid", OrderType.Ascending);
+        ct.ThrowIfCancellationRequested();
+        var rows = organization.RetrieveMultiple(query);
+        ct.ThrowIfCancellationRequested();
+        if (rows is null || rows.MoreRecords || rows.Entities.Count > 256)
+            throw new InvalidPluginExecutionException("Appointment leave summary is incomplete.");
+        var name = OptionalText(applicant, "fullname", string.Empty);
+        var prefix = "\r\n------------------------ \r\n" + name;
+        if (rows.Entities.Count == 0) return prefix + SigningText.Get("Appointments.Signing.NoLeaveRecords");
+        var ids = new HashSet<Guid>();
+        var totals = new Dictionary<string, double>(StringComparer.Ordinal);
+        var order = new List<string>();
+        foreach (var row in rows.Entities)
+        {
+            ct.ThrowIfCancellationRequested();
+            if (row.LogicalName != Appointment || row.Id == Guid.Empty || !ids.Add(row.Id) ||
+                Lookup(row, "new_applier_appointment", Contact) != applicant.Id)
+                throw new InvalidPluginExecutionException("Appointment leave summary identity is invalid.");
+            var status = Option(row, "new_leave_signing_status") switch
+            {
+                100000001 => SigningText.Get("Appointments.Signing.PendingDeputy"),
+                100000004 => SigningText.Get("Appointments.Signing.PendingManager"),
+                100000007 => SigningText.Get("Appointments.Signing.ApprovedManager"),
+                _ => throw new InvalidPluginExecutionException("Appointment leave summary status is invalid.")
+            };
+            var leave = Option(row, "new_leave_kind") switch
+            {
+                2 => SigningText.Get("Appointments.Signing.LeaveRest"), 3 => SigningText.Get("Appointments.Signing.LeaveSpecial"), 4 => SigningText.Get("Appointments.Signing.LeaveSick"), 5 => SigningText.Get("Appointments.Signing.LeavePersonal"),
+                6 => SigningText.Get("Appointments.Signing.LeaveOfficial"), 7 => SigningText.Get("Appointments.Signing.LeaveMarriage"), 8 => SigningText.Get("Appointments.Signing.LeaveBereavement"), _ => SigningText.Get("Appointments.Signing.LeaveUnset")
+            };
+            var days = !row.Attributes.TryGetValue("new_days", out var value) ? 0d : value is double number
+                ? number : throw new InvalidPluginExecutionException("Appointment leave summary days are invalid.");
+            var group = leave + ":" + status;
+            if (!totals.TryGetValue(group, out var total)) order.Add(group);
+            total += days;
+            if (double.IsNaN(total) || double.IsInfinity(total))
+                throw new InvalidPluginExecutionException("Appointment leave summary days are invalid.");
+            totals[group] = total;
+        }
+        var entitled = !applicant.Attributes.TryGetValue("new_special_leave_days", out var entitlement) ? 0 :
+            entitlement is int count ? count : throw new InvalidPluginExecutionException("Appointment leave entitlement is invalid.");
+        var report = new StringBuilder(prefix).Append(SigningText.Get("Appointments.Signing.LeaveReportHeading"))
+            .Append(entitled.ToString(CultureInfo.InvariantCulture)).Append(SigningText.Get("Appointments.Signing.DaysSeparator"));
+        foreach (var group in order)
+            report.Append(group).Append('=').Append(totals[group].ToString(CultureInfo.InvariantCulture)).Append(SigningText.Get("Appointments.Signing.DaysSuffix"));
+        return report.ToString();
     }
 
-    /// <summary>保留舊簽核內容並附上有界的時間／描述欄位，不查詢其他資料列。</summary>
-    private static string Content(Entity appointment, string subject)
+    /// <summary>活動沿舊參數的圖片選擇，字串只分派樣式，不提供授權或組織 scope。</summary>
+    private static string Image(string parameter) =>
+        Contains(parameter, SigningText.Get("Appointments.Signing.TpeImageParameter"))
+            ? "https://od.lk/s/ODdfNTg5ODc5OF8/2017_06_sermon_6-18.jpg"
+            : Contains(parameter, SigningText.Get("Appointments.Signing.AbundanceImageParameter"))
+                ? "https://web.opendrive.com/api/v1/download/file.json/ODdfMTc5OTg5NTNf?inline=1" : ImageUrl;
+
+    /// <summary>在雙目標使用 ordinal 分派，不能讓執行環境文化改變舊關鍵字語意。</summary>
+    private static bool Contains(string value, string keyword)
     {
-        var content = OptionalText(appointment, "new_signing_content", "未提供簽核內容");
-        if (subject == "請假簽核")
-        {
-            content += "\r\n開始時間: " + OptionalDate(appointment, "scheduledstart") +
-                "\r\n結束時間: " + OptionalDate(appointment, "scheduledend");
-        }
-        var description = OptionalText(appointment, "description", string.Empty);
-        if (description.Length > 0) content += "\r\n描述: " + description;
-        return content.Length <= 2000 ? content : content.Substring(0, 2000);
+#if NETFRAMEWORK
+        return value.IndexOf(keyword, StringComparison.Ordinal) >= 0;
+#else
+        return value.Contains(keyword, StringComparison.Ordinal);
+#endif
+    }
+
+    /// <summary>SDK 回應須對應本次正式表與 ID，不能把其他來源誤當已驗證候選。</summary>
+    private static void ValidateRow(Entity row, string table, Guid id)
+    {
+        if (row is null || row.LogicalName != table || row.Id != id)
+            throw new InvalidPluginExecutionException("Appointment signing source identity is invalid.");
     }
 
     /// <summary>只接受精確表名、正式 ID、無 alternate key 的 lookup。</summary>
@@ -143,18 +230,13 @@ public static class AppointmentSigningRule
         value is OptionSetValue option ? option.Value :
         throw new InvalidPluginExecutionException("Appointment signing option is invalid.");
 
-    /// <summary>只接受有界純文字，避免將錯誤內容回顯至平台。</summary>
-    private static string Text(Entity row, string field) => OptionalText(row, field, "未命名簽核者");
-
-    /// <summary>選用欄位可缺省，但仍限制單次訊息的最大保留量。</summary>
-    private static string OptionalText(Entity row, string field, string fallback) =>
-        row.Attributes.TryGetValue(field, out var value) && value is string text &&
-        text.Length <= 2000 ? text : fallback;
-
-    /// <summary>日期僅格式化當次值，不保存 DateTime 或跨操作時區狀態。</summary>
-    private static string OptionalDate(Entity row, string field) =>
-        row.Attributes.TryGetValue(field, out var value) && value is DateTime date
-            ? date.ToString("yyyy-MM-dd HH:mm", CultureInfo.InvariantCulture) : "未提供";
+    /// <summary>選用文字缺省為固定值；錯誤型別或超長拒絕，不能靜默截斷簽核本文。</summary>
+    private static string OptionalText(Entity row, string field, string fallback)
+    {
+        if (!row.Attributes.TryGetValue(field, out var value) || value is null) return fallback;
+        return value is string text && text.Length <= 2000 ? text :
+            throw new InvalidPluginExecutionException("Appointment signing source text is invalid.");
+    }
 
     /// <summary>本模組暫使用空覆寫快照，避免把組織狀態存入服務欄位。</summary>
     private sealed class NoOverrides : IChurchTextOverrideSnapshotProvider

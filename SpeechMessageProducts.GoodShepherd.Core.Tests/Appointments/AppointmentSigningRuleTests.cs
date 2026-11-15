@@ -5,12 +5,15 @@
  * 不建立 D365、LINE、HTTP 或 token provider；每個測試只擁有當次 Flex 模型。
  *
  * 測試範圍：同意／退回兩個 Postback 必須攜帶正式 appointment ID 與簽核者，
- * 下一位簽核者不可被顯示名稱取代；規則固定參數只接受三個舊入口；產品新規則
- * 不以資料列 token 作為輸入。決定性斷言以序列化後的 Flex 結構及公開契約完成。
+ * 下一位簽核者不可被顯示名稱取代；Plugin 保留舊入口空字串而不擅自觸發通知，活動接受舊工作流程分派；產品新規則
+ * 不以資料列 token 作為輸入。決定性斷言以序列化後的 Flex 結構、原始碼掃描及公開契約完成。
  * 維護與驗證：沒有實機送達、舊程式實跑或 Shadow 差異宣稱；測試只使用當次合成資料，
  * 測試執行完即由框架釋放模型與序列化暫存，不保留跨案例狀態。
  */
 using System;
+using System.IO;
+using System.Linq;
+using Line.Messaging;
 using Newtonsoft.Json;
 using SpeechMessageProducts.GoodShepherd.Core.Appointments;
 using Xunit;
@@ -30,6 +33,11 @@ public sealed class AppointmentSigningRuleTests
         var message = AppointmentSigningMessageFactory.Create(Input("請假簽核", "請假事由：病假"));
         var json = JsonConvert.SerializeObject(message);
 
+        var carousel = Assert.IsType<CarouselContainer>(message.Contents);
+        var bubble = Assert.Single(carousel.Contents);
+        var body = Assert.IsType<BoxComponent>(bubble.Body);
+        var content = Assert.Single(Assert.IsType<BoxComponent>(body.Contents[2]).Contents.OfType<TextComponent>());
+        Assert.Equal("請假事由：病假", content.Text);
         Assert.Contains("同意", json, StringComparison.Ordinal);
         Assert.Contains("退回", json, StringComparison.Ordinal);
         Assert.Contains(AppointmentId.ToString("D"), json, StringComparison.Ordinal);
@@ -48,18 +56,28 @@ public sealed class AppointmentSigningRuleTests
         Assert.DoesNotContain("new_channel_access_token", json, StringComparison.Ordinal);
     }
 
-    /// <summary>輸入模型沒有資料列 token 欄位，防止新規則沿用退役寫死 token 入口。</summary>
+    /// <summary>對三層 Appointments 原始碼逐檔掃描，不得含資料列 token 欄位，防止新規則沿用退役寫死 token 入口。</summary>
     [Fact]
     public void Appointment_TokenNeverReadFromRecordField()
     {
-        var properties = typeof(AppointmentSigningMessageInput).GetProperties();
-        Assert.DoesNotContain(properties, property =>
-            property.Name.Contains("token", StringComparison.OrdinalIgnoreCase));
+        var root = FindRoot();
+        foreach (var directory in new[] { "SpeechMessageProducts.GoodShepherd.Core", "SpeechMessage.Dynamics.Plugins", "SpeechMessage.Dynamics.Workflows" })
+            foreach (var file in Directory.EnumerateFiles(Path.Combine(root, directory, "Appointments"), "*.cs", SearchOption.AllDirectories))
+                Assert.DoesNotContain("new_channel_access_token", File.ReadAllText(file), StringComparison.Ordinal);
         Assert.Equal("工作流程", AppointmentSigningRule.DefaultParameter("ExecuteWorkflow"));
-        Assert.Equal("新增", AppointmentSigningRule.DefaultParameter("Create"));
-        Assert.Equal("更新", AppointmentSigningRule.DefaultParameter("Update"));
+        Assert.Equal(string.Empty, AppointmentSigningRule.DefaultParameter("Create"));
+        Assert.Equal(string.Empty, AppointmentSigningRule.DefaultParameter("Update"));
     }
 
+    /// <summary>只沿目前測試輸出尋找方案，不跨入另一份工作樹讀取來源。</summary>
+    private static string FindRoot()
+    {
+        for (var directory = new DirectoryInfo(AppContext.BaseDirectory); directory is not null; directory = directory.Parent)
+            if (File.Exists(Path.Combine(directory.FullName, "SpeechMessageProducts.sln"))) return directory.FullName;
+        throw new DirectoryNotFoundException("Appointment test source root is unavailable.");
+    }
+
+    /// <summary>每次建立獨立純值，不保留跨測試可變訊息。</summary>
     private static AppointmentSigningMessageInput Input(string subject, string content) =>
         new(AppointmentId, SignerId, subject, content, "申請人", "下一位簽核者",
             "https://example.invalid/appointment-signing.png");

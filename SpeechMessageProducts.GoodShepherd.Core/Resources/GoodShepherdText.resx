@@ -307,4 +307,28 @@ ID (查詢您的LINE ID)
   <data name="Lessons.Signing.Reject" xml:space="preserve"><value>退回</value></data>
   <data name="Lessons.Signing.RejectDisplay" xml:space="preserve"><value>您簽核退回</value></data>
   <data name="Lessons.Signing.ApprovedGapMarker" xml:space="preserve"><value>未實作：P5-PROP-006</value></data>
+  <data name="Appointments.Signing.WorkflowParameter" xml:space="preserve"><value>工作流程</value></data>
+  <data name="Appointments.Signing.LeaveSubject" xml:space="preserve"><value>請假簽核</value></data>
+  <data name="Appointments.Signing.LocationSubject" xml:space="preserve"><value>場地或資源簽核</value></data>
+  <data name="Appointments.Signing.GeneralSubject" xml:space="preserve"><value>一般簽核</value></data>
+  <data name="Appointments.Signing.UnnamedSigner" xml:space="preserve"><value>未命名簽核者</value></data>
+  <data name="Appointments.Signing.NoLeaveRecords" xml:space="preserve"><value>您好，您沒有任何休假紀錄。</value></data>
+  <data name="Appointments.Signing.LeaveReportHeading" xml:space="preserve"><value> 今年休假統計:&#13;&#10;依據年資應得特休日數 = </value></data>
+  <data name="Appointments.Signing.DaysSeparator" xml:space="preserve"><value>日&#13;&#10;---------------------&#13;&#10;</value></data>
+  <data name="Appointments.Signing.DaysSuffix" xml:space="preserve"><value>日&#13;&#10;</value></data>
+  <data name="Appointments.Signing.PendingDeputy" xml:space="preserve"><value>等待代理人簽核中</value></data>
+  <data name="Appointments.Signing.PendingManager" xml:space="preserve"><value>等待主管簽核中</value></data>
+  <data name="Appointments.Signing.ApprovedManager" xml:space="preserve"><value>主管已簽核</value></data>
+  <data name="Appointments.Signing.LeaveRest" xml:space="preserve"><value>一例一休</value></data>
+  <data name="Appointments.Signing.LeaveSpecial" xml:space="preserve"><value>特休</value></data>
+  <data name="Appointments.Signing.LeaveSick" xml:space="preserve"><value>病假</value></data>
+  <data name="Appointments.Signing.LeavePersonal" xml:space="preserve"><value>事假</value></data>
+  <data name="Appointments.Signing.LeaveOfficial" xml:space="preserve"><value>公假</value></data>
+  <data name="Appointments.Signing.LeaveMarriage" xml:space="preserve"><value>婚假</value></data>
+  <data name="Appointments.Signing.LeaveBereavement" xml:space="preserve"><value>喪假</value></data>
+  <data name="Appointments.Signing.LeaveUnset" xml:space="preserve"><value>未填</value></data>
+  <data name="Appointments.Signing.TpeImageParameter" xml:space="preserve"><value>台北基督之家</value></data>
+  <data name="Appointments.Signing.AbundanceImageParameter" xml:space="preserve"><value>豐富教會</value></data>
+  <data name="Appointments.Signing.AltText" xml:space="preserve"><value>有一個簽核的動作等待您的決定....</value></data>
+  <data name="Appointments.Signing.ActionPrefix" xml:space="preserve"><value>訊息類別=簽核&amp;動作=</value></data>
 </root>

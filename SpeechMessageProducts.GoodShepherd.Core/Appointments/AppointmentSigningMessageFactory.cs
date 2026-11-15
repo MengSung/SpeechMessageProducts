@@ -7,13 +7,14 @@
  *
  * 主要流程：呼叫端先完成預約、簽核者與教會的授權查詢，再傳入正式 appointment
  * ID、簽核者 ID、類型、內容、申請人及簽核者顯示名稱；本檔驗證純值與 HTTPS
- * 圖片網址，建立一個含「同意／退回」Postback 的單 Bubble Flex。
+ * 圖片網址，建立一個含「同意／退回」Postback 的單 Bubble Carousel Flex。
  *
  * 使用邊界與維護：Postback 僅攜帶正式來源 ID，真正授權仍由 webhook handler
  * 在回呼時重新查證。輸入只活到同步建立模型結束，不使用 Session、cache、timer、
  * 背景工作或 credential；失敗時不回傳部分模型。測試只驗離線結構，不宣稱實機送達。
  */
 using System;
+using SigningText = SpeechMessageProducts.GoodShepherd.Core.Lessons.LessonText;
 using Line.Messaging;
 
 namespace SpeechMessageProducts.GoodShepherd.Core.Appointments;
@@ -31,9 +32,9 @@ public sealed record AppointmentSigningMessageInput(
 /// <summary>建立與退役預約簽核流程相容的單 Bubble Flex。</summary>
 public static class AppointmentSigningMessageFactory
 {
-    private const string AltText = "有一個簽核的動作等待您的決定....";
-    private const string ActionPrefix = "訊息類別=簽核&動作=";
-    private const string SignerSuffix = "&簽核者=";
+    private static string AltText => SigningText.Get("Appointments.Signing.AltText");
+    private static string ActionPrefix => SigningText.Get("Appointments.Signing.ActionPrefix");
+    private static string SignerSuffix => SigningText.Get("Lessons.Signing.SignerSuffix");
 
     /// <summary>
     /// 先驗證所有純值，再建立獨立的 Flex 物件。任何一個來源欄位不完整時
@@ -48,8 +49,8 @@ public static class AppointmentSigningMessageFactory
 #endif
         Validate(input);
         var suffix = "&EntityId=" + input.AppointmentId.ToString("D") + SignerSuffix + input.SignerDisplayName;
-        var approve = ActionPrefix + "同意" + suffix;
-        var reject = ActionPrefix + "退回" + suffix;
+        var approve = ActionPrefix + SigningText.Get("Lessons.Signing.Approve") + suffix;
+        var reject = ActionPrefix + SigningText.Get("Lessons.Signing.Reject") + suffix;
         if (approve.Length > 300 || reject.Length > 300)
             throw new ArgumentException("Appointment signing action exceeds postback capacity.", nameof(input));
 
@@ -60,7 +61,7 @@ public static class AppointmentSigningMessageFactory
                 Size = ComponentSize.Full,
                 AspectRatio = AspectRatio._20_13,
                 AspectMode = AspectMode.Cover,
-                Action = new UriTemplateAction("說明網頁/填寫表單", input.ImageUrl)
+                Action = new UriTemplateAction(SigningText.Get("Lessons.Signing.ImageAction"), input.ImageUrl)
             },
             Body = new BoxComponent(BoxLayout.Vertical)
             {
@@ -76,7 +77,7 @@ public static class AppointmentSigningMessageFactory
                     new BoxComponent(BoxLayout.Baseline)
                     {
                         Spacing = Spacing.Sm,
-                        Contents = { new TextComponent("申請人: " + input.ApplicantName + "\r\n" + input.Content)
+                        Contents = { new TextComponent(input.Content)
                             { Wrap = true, Size = ComponentSize.Sm, Color = "#666666", Flex = 5 } }
                     }
                 }
@@ -87,9 +88,9 @@ public static class AppointmentSigningMessageFactory
                 Flex = 0,
                 Contents =
                 {
-                    new ButtonComponent(new PostbackTemplateAction("同意", approve, "您簽核同意"))
+                    new ButtonComponent(new PostbackTemplateAction(SigningText.Get("Lessons.Signing.Approve"), approve, SigningText.Get("Lessons.Signing.ApproveDisplay")))
                         { Style = ButtonStyle.Link, Height = ButtonHeight.Sm },
-                    new ButtonComponent(new PostbackTemplateAction("退回", reject, "您簽核退回"))
+                    new ButtonComponent(new PostbackTemplateAction(SigningText.Get("Lessons.Signing.Reject"), reject, SigningText.Get("Lessons.Signing.RejectDisplay")))
                         { Style = ButtonStyle.Link, Height = ButtonHeight.Sm },
                     new SpacerComponent { Size = ComponentSize.Sm }
                 }
@@ -100,7 +101,7 @@ public static class AppointmentSigningMessageFactory
                 Footer = new BlockStyle { BackgroundColor = "#FFFFF0" }
             }
         };
-        return new FlexMessage(AltText) { Contents = bubble };
+        return new FlexMessage(AltText) { Contents = new CarouselContainer { Contents = { bubble } } };
     }
 
     /// <summary>每次建立新的星號元件，避免 Flex 可變物件跨操作共用。</summary>
@@ -116,8 +117,9 @@ public static class AppointmentSigningMessageFactory
         if (input.AppointmentId == Guid.Empty || input.SignerId == Guid.Empty)
             throw new ArgumentException("Appointment signing identities are required.");
         ValidateText(input.Subject, nameof(input.Subject));
-        ValidateText(input.Content, nameof(input.Content));
-        ValidateText(input.ApplicantName, nameof(input.ApplicantName));
+        if (input.Content is null || input.Content.Length > 2000)
+            throw new ArgumentException("Appointment signing content exceeds capacity.");
+        // ApplicantName 僅為來源純值，舊實際本文未使用 SetContent，不能擅自加入姓名。
         ValidateText(input.SignerDisplayName, nameof(input.SignerDisplayName));
         if (!Uri.TryCreate(input.ImageUrl, UriKind.Absolute, out var uri) ||
             !string.Equals(uri.Scheme, Uri.UriSchemeHttps, StringComparison.Ordinal))

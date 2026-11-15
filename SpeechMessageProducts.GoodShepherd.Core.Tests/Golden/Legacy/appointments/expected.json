@@ -2,13 +2,138 @@
   "module": "appointments",
   "basis": "reading",
   "cases": [
-    { "name": "create-leave-signing", "entrypoint": "AppointmentWorkflow.AppointmentWorkflowPlugin", "source": [{ "file": "AppointmentSigningClass.cs", "lines": "80-128,390-540" }], "writes": [], "lineCalls": [{ "contactAlias": "signer", "templateKey": "Appointments.Signing", "messageCount": 1 }], "outputs": { "OutputResult": 0 }, "exception": null },
-    { "name": "update-location-signing", "entrypoint": "SpeechMessage.Dynamics.Plugins.Appointments.AppointmentPlugin", "source": [{ "file": "AppointmentSigningClass.cs", "lines": "192-254,390-540" }], "writes": [], "lineCalls": [{ "contactAlias": "signer", "templateKey": "Appointments.Signing", "messageCount": 1 }], "outputs": { "OutputResult": 0 }, "exception": null },
-    { "name": "no-signing-when-both-unset", "entrypoint": "SpeechMessage.Dynamics.Plugins.Appointments.AppointmentPlugin", "source": [{ "file": "AppointmentSigningClass.cs", "lines": "1624-1647" }], "writes": [], "lineCalls": [], "outputs": { "OutputResult": 0 }, "exception": null }
+    {
+      "name": "workflow-leave-summary",
+      "entrypoint": "AppointmentWorkflow.AppointmentWorkflowPlugin",
+      "writes": [],
+      "lineCalls": [
+        {
+          "messageCount": 1,
+          "shadow": {
+            "retryKey": "record",
+            "contentSha256": "2cfa40c283de1d2d31d21f2a8c8bbd7562fd8826fde9f21fc507cb0d1186ae4e",
+            "templateKey": "Appointments.Signing"
+          },
+          "method": "POST",
+          "endpoint": "/v2/bot/message/push",
+          "recipients": [
+            "signer"
+          ]
+        }
+      ],
+      "outputs": {
+        "OutputResult": 0,
+        "ReadingSource": "AppointmentSigningClass.cs:82-118,129-182,192-261,345-359,382-568,576-594,810-891; AppointmentSigningClassLibrary.cs:199-263,412-440; ToolUtilityClass.cs:1501-1542",
+        "FlexMessages": "[{\"type\":\"flex\",\"contents\":{\"type\":\"carousel\",\"contents\":[{\"type\":\"bubble\",\"direction\":\"ltr\",\"hero\":{\"type\":\"image\",\"url\":\"https://web.opendrive.com/api/v1/download/file.json/ODdfMzk3Nzc5Nl8?inline=1\",\"size\":\"full\",\"aspectRatio\":\"20:13\",\"aspectMode\":\"cover\",\"action\":{\"type\":\"uri\",\"label\":\"說明網頁/填寫表單\",\"uri\":\"https://web.opendrive.com/api/v1/download/file.json/ODdfMzk3Nzc5Nl8?inline=1\"}},\"body\":{\"type\":\"box\",\"layout\":\"vertical\",\"contents\":[{\"type\":\"text\",\"text\":\"請假簽核\",\"size\":\"md\",\"weight\":\"bold\"},{\"type\":\"box\",\"layout\":\"baseline\",\"contents\":[{\"type\":\"icon\",\"url\":\"https://scdn.line-apps.com/n/channel_devcenter/img/fx/review_gold_star_28.png\",\"size\":\"sm\"},{\"type\":\"icon\",\"url\":\"https://scdn.line-apps.com/n/channel_devcenter/img/fx/review_gold_star_28.png\",\"size\":\"sm\"},{\"type\":\"icon\",\"url\":\"https://scdn.line-apps.com/n/channel_devcenter/img/fx/review_gold_star_28.png\",\"size\":\"sm\"},{\"type\":\"icon\",\"url\":\"https://scdn.line-apps.com/n/channel_devcenter/img/fx/review_gold_star_28.png\",\"size\":\"sm\"},{\"type\":\"icon\",\"url\":\"https://scdn.line-apps.com/n/channel_devcenter/img/fx/review_gold_star_28.png\",\"size\":\"sm\"},{\"type\":\"text\",\"text\":\"5.0\",\"flex\":0,\"margin\":\"md\",\"size\":\"sm\",\"color\":\"#999999\"}],\"margin\":\"md\"},{\"type\":\"box\",\"layout\":\"baseline\",\"contents\":[{\"type\":\"text\",\"text\":\"請假事由：病假\\r\\n------------------------ \\r\\n申請人 今年休假統計:\\r\\n依據年資應得特休日數 = 7日\\r\\n---------------------\\r\\n病假:主管已簽核=1.5日\\r\\n特休:等待主管簽核中=0.5日\\r\\n\",\"flex\":5,\"size\":\"sm\",\"wrap\":true,\"color\":\"#666666\"}],\"spacing\":\"sm\"}]},\"footer\":{\"type\":\"box\",\"layout\":\"vertical\",\"contents\":[{\"type\":\"button\",\"action\":{\"type\":\"postback\",\"label\":\"同意\",\"data\":\"訊息類別=簽核&動作=同意&EntityId={record}&簽核者=下一位簽核者\",\"displayText\":\"您簽核同意\"},\"height\":\"sm\",\"style\":\"link\"},{\"type\":\"button\",\"action\":{\"type\":\"postback\",\"label\":\"退回\",\"data\":\"訊息類別=簽核&動作=退回&EntityId={record}&簽核者=下一位簽核者\",\"displayText\":\"您簽核退回\"},\"height\":\"sm\",\"style\":\"link\"},{\"type\":\"spacer\",\"size\":\"sm\"}],\"flex\":0,\"spacing\":\"sm\"},\"styles\":{\"body\":{\"backgroundColor\":\"#C0C8C8\",\"separator\":true,\"separatorColor\":\"#9400D3\"},\"footer\":{\"backgroundColor\":\"#FFFFF0\",\"separator\":false}}}]},\"altText\":\"有一個簽核的動作等待您的決定....\"}]",
+        "SenderName": "合成教會助手",
+        "RetryKey": "fc48583d-791d-755a-b57a-5f6d823c4f04"
+      },
+      "exception": null
+    },
+    {
+      "name": "update-location-signing",
+      "entrypoint": "AppointmentWorkflow.AppointmentWorkflowPlugin",
+      "writes": [],
+      "lineCalls": [
+        {
+          "messageCount": 1,
+          "shadow": {
+            "retryKey": "record",
+            "contentSha256": "5ad3b447e3bcab2a1c46e6b144261dd1ce791d138c167fa4177b784382611bac",
+            "templateKey": "Appointments.Signing"
+          },
+          "method": "POST",
+          "endpoint": "/v2/bot/message/push",
+          "recipients": [
+            "signer"
+          ]
+        }
+      ],
+      "outputs": {
+        "OutputResult": 0,
+        "ReadingSource": "AppointmentSigningClass.cs:82-118,129-182,192-261,345-359,382-568,576-594,810-891; AppointmentSigningClassLibrary.cs:199-263,412-440; ToolUtilityClass.cs:1501-1542",
+        "FlexMessages": "[{\"type\":\"flex\",\"contents\":{\"type\":\"carousel\",\"contents\":[{\"type\":\"bubble\",\"direction\":\"ltr\",\"hero\":{\"type\":\"image\",\"url\":\"https://web.opendrive.com/api/v1/download/file.json/ODdfMzk3Nzc5Nl8?inline=1\",\"size\":\"full\",\"aspectRatio\":\"20:13\",\"aspectMode\":\"cover\",\"action\":{\"type\":\"uri\",\"label\":\"說明網頁/填寫表單\",\"uri\":\"https://web.opendrive.com/api/v1/download/file.json/ODdfMzk3Nzc5Nl8?inline=1\"}},\"body\":{\"type\":\"box\",\"layout\":\"vertical\",\"contents\":[{\"type\":\"text\",\"text\":\"場地或資源簽核\",\"size\":\"md\",\"weight\":\"bold\"},{\"type\":\"box\",\"layout\":\"baseline\",\"contents\":[{\"type\":\"icon\",\"url\":\"https://scdn.line-apps.com/n/channel_devcenter/img/fx/review_gold_star_28.png\",\"size\":\"sm\"},{\"type\":\"icon\",\"url\":\"https://scdn.line-apps.com/n/channel_devcenter/img/fx/review_gold_star_28.png\",\"size\":\"sm\"},{\"type\":\"icon\",\"url\":\"https://scdn.line-apps.com/n/channel_devcenter/img/fx/review_gold_star_28.png\",\"size\":\"sm\"},{\"type\":\"icon\",\"url\":\"https://scdn.line-apps.com/n/channel_devcenter/img/fx/review_gold_star_28.png\",\"size\":\"sm\"},{\"type\":\"icon\",\"url\":\"https://scdn.line-apps.com/n/channel_devcenter/img/fx/review_gold_star_28.png\",\"size\":\"sm\"},{\"type\":\"text\",\"text\":\"5.0\",\"flex\":0,\"margin\":\"md\",\"size\":\"sm\",\"color\":\"#999999\"}],\"margin\":\"md\"},{\"type\":\"box\",\"layout\":\"baseline\",\"contents\":[{\"type\":\"text\",\"text\":\"場地：2F大堂\",\"flex\":5,\"size\":\"sm\",\"wrap\":true,\"color\":\"#666666\"}],\"spacing\":\"sm\"}]},\"footer\":{\"type\":\"box\",\"layout\":\"vertical\",\"contents\":[{\"type\":\"button\",\"action\":{\"type\":\"postback\",\"label\":\"同意\",\"data\":\"訊息類別=簽核&動作=同意&EntityId={record}&簽核者=下一位簽核者\",\"displayText\":\"您簽核同意\"},\"height\":\"sm\",\"style\":\"link\"},{\"type\":\"button\",\"action\":{\"type\":\"postback\",\"label\":\"退回\",\"data\":\"訊息類別=簽核&動作=退回&EntityId={record}&簽核者=下一位簽核者\",\"displayText\":\"您簽核退回\"},\"height\":\"sm\",\"style\":\"link\"},{\"type\":\"spacer\",\"size\":\"sm\"}],\"flex\":0,\"spacing\":\"sm\"},\"styles\":{\"body\":{\"backgroundColor\":\"#C0C8C8\",\"separator\":true,\"separatorColor\":\"#9400D3\"},\"footer\":{\"backgroundColor\":\"#FFFFF0\",\"separator\":false}}}]},\"altText\":\"有一個簽核的動作等待您的決定....\"}]",
+        "SenderName": "合成教會助手",
+        "RetryKey": "fc48583d-791d-755a-b57a-5f6d823c4f04"
+      },
+      "exception": null
+    },
+    {
+      "name": "create-general-signing",
+      "entrypoint": "AppointmentWorkflow.AppointmentWorkflowPlugin",
+      "writes": [],
+      "lineCalls": [
+        {
+          "messageCount": 1,
+          "shadow": {
+            "retryKey": "record",
+            "contentSha256": "1f0b108c35f905d8ce069cdcf49739451df71673069f3aa5ac5cedfdd35899d9",
+            "templateKey": "Appointments.Signing"
+          },
+          "method": "POST",
+          "endpoint": "/v2/bot/message/push",
+          "recipients": [
+            "signer"
+          ]
+        }
+      ],
+      "outputs": {
+        "OutputResult": 0,
+        "ReadingSource": "AppointmentSigningClass.cs:82-118,129-182,192-261,345-359,382-568,576-594,810-891; AppointmentSigningClassLibrary.cs:199-263,412-440; ToolUtilityClass.cs:1501-1542",
+        "FlexMessages": "[{\"type\":\"flex\",\"contents\":{\"type\":\"carousel\",\"contents\":[{\"type\":\"bubble\",\"direction\":\"ltr\",\"hero\":{\"type\":\"image\",\"url\":\"https://web.opendrive.com/api/v1/download/file.json/ODdfMzk3Nzc5Nl8?inline=1\",\"size\":\"full\",\"aspectRatio\":\"20:13\",\"aspectMode\":\"cover\",\"action\":{\"type\":\"uri\",\"label\":\"說明網頁/填寫表單\",\"uri\":\"https://web.opendrive.com/api/v1/download/file.json/ODdfMzk3Nzc5Nl8?inline=1\"}},\"body\":{\"type\":\"box\",\"layout\":\"vertical\",\"contents\":[{\"type\":\"text\",\"text\":\"一般簽核\",\"size\":\"md\",\"weight\":\"bold\"},{\"type\":\"box\",\"layout\":\"baseline\",\"contents\":[{\"type\":\"icon\",\"url\":\"https://scdn.line-apps.com/n/channel_devcenter/img/fx/review_gold_star_28.png\",\"size\":\"sm\"},{\"type\":\"icon\",\"url\":\"https://scdn.line-apps.com/n/channel_devcenter/img/fx/review_gold_star_28.png\",\"size\":\"sm\"},{\"type\":\"icon\",\"url\":\"https://scdn.line-apps.com/n/channel_devcenter/img/fx/review_gold_star_28.png\",\"size\":\"sm\"},{\"type\":\"icon\",\"url\":\"https://scdn.line-apps.com/n/channel_devcenter/img/fx/review_gold_star_28.png\",\"size\":\"sm\"},{\"type\":\"icon\",\"url\":\"https://scdn.line-apps.com/n/channel_devcenter/img/fx/review_gold_star_28.png\",\"size\":\"sm\"},{\"type\":\"text\",\"text\":\"5.0\",\"flex\":0,\"margin\":\"md\",\"size\":\"sm\",\"color\":\"#999999\"}],\"margin\":\"md\"},{\"type\":\"box\",\"layout\":\"baseline\",\"contents\":[{\"type\":\"text\",\"text\":\"一般約會\",\"flex\":5,\"size\":\"sm\",\"wrap\":true,\"color\":\"#666666\"}],\"spacing\":\"sm\"}]},\"footer\":{\"type\":\"box\",\"layout\":\"vertical\",\"contents\":[{\"type\":\"button\",\"action\":{\"type\":\"postback\",\"label\":\"同意\",\"data\":\"訊息類別=簽核&動作=同意&EntityId={record}&簽核者=下一位簽核者\",\"displayText\":\"您簽核同意\"},\"height\":\"sm\",\"style\":\"link\"},{\"type\":\"button\",\"action\":{\"type\":\"postback\",\"label\":\"退回\",\"data\":\"訊息類別=簽核&動作=退回&EntityId={record}&簽核者=下一位簽核者\",\"displayText\":\"您簽核退回\"},\"height\":\"sm\",\"style\":\"link\"},{\"type\":\"spacer\",\"size\":\"sm\"}],\"flex\":0,\"spacing\":\"sm\"},\"styles\":{\"body\":{\"backgroundColor\":\"#C0C8C8\",\"separator\":true,\"separatorColor\":\"#9400D3\"},\"footer\":{\"backgroundColor\":\"#FFFFF0\",\"separator\":false}}}]},\"altText\":\"有一個簽核的動作等待您的決定....\"}]",
+        "SenderName": "合成教會助手",
+        "RetryKey": "fc48583d-791d-755a-b57a-5f6d823c4f04"
+      },
+      "exception": null
+    },
+    {
+      "name": "activity-unknown-parameter",
+      "entrypoint": "AppointmentWorkflow.AppointmentWorkflowPlugin",
+      "writes": [],
+      "lineCalls": [],
+      "outputs": {
+        "OutputResult": 0,
+        "ReadingSource": "AppointmentSigningClass.cs:82-118,129-182,192-261,345-359,382-568,576-594,810-891; AppointmentSigningClassLibrary.cs:199-263,412-440; ToolUtilityClass.cs:1501-1542"
+      },
+      "exception": null
+    },
+    {
+      "name": "plugin-empty-parameter",
+      "entrypoint": "AppointmentPlugIn.AppointmentPlugIn",
+      "writes": [],
+      "lineCalls": [],
+      "outputs": {
+        "OutputResult": 0,
+        "ReadingSource": "AppointmentSigningClass.cs:82-118,129-182,192-261,345-359,382-568,576-594,810-891; AppointmentSigningClassLibrary.cs:199-263,412-440; ToolUtilityClass.cs:1501-1542"
+      },
+      "exception": null
+    },
+    {
+      "name": "activity-missing-applicant",
+      "entrypoint": "AppointmentWorkflow.AppointmentWorkflowPlugin",
+      "writes": [],
+      "lineCalls": [],
+      "outputs": {
+        "OutputResult": 0,
+        "ReadingSource": "AppointmentSigningClass.cs:82-118,129-182,192-261,345-359,382-568,576-594,810-891; AppointmentSigningClassLibrary.cs:199-263,412-440; ToolUtilityClass.cs:1501-1542"
+      },
+      "exception": "InvalidPluginExecutionException"
+    }
   ],
   "declaredDifferences": [
-    { "case": "create-leave-signing", "position": "$.cases[0].lineCalls", "category": 5, "reason": "reading：舊程式在簽核者未綁定時回落寫死開發者 LINE ID；新版依跨教會／收件者隔離契約拒絕，不讀 new_channel_access_token，不回落固定帳號。Flex 的 Postback、按鈕與內容由離線 Core／CAS 測試核對；不是舊程式實跑或實機送達證據。", "test": "Appointment_Signing_ApproveAndReject_MatchLegacy" },
-    { "case": "update-location-signing", "position": "$.cases[1].lineCalls", "category": 5, "reason": "reading：新版以正式 new_signing_contact 作為下一位簽核者，經共用教會／LINE 綁定檢查後才記錄 Shadow 意圖；不執行退役的寫死 token 路徑。", "test": "Appointment_Signing_NotifiesNextSigner" },
-    { "case": "create-leave-signing", "position": "$.cases[0].outputs", "category": 5, "reason": "活動 Live 依 P5-PROP-006 在安全金鑰查詢前拒絕；這三個情境只作 reading／simulation 離線驗證，不宣稱實機影子差異為零。", "test": "Appointment_TokenNeverReadFromRecordField" }
+    {
+      "case": "activity-missing-applicant",
+      "position": "$.cases[5].exception",
+      "category": 5,
+      "reason": "新版必須由正式申請人獨立確立來源教會；缺失時拒絕，不能以簽核者自我授權或回落固定帳號。AppointmentSigningRule.cs:210-236。",
+      "test": "Appointments_RecipientOtherChurch_NoPush"
+    },
+    {
+      "case": "workflow-leave-summary",
+      "position": "$.cases[0].outputs.SenderName",
+      "category": 5,
+      "reason": "新版共用通知依伺服器教會字典指定 sender，並共用有界摘要與 Retry Key；不讀退役資料列 token。舊 SDK Carousel、內容、按鈕及年度摘要依來源逐欄保留。AppointmentSigningMessageFactory.cs:32-118。",
+      "test": "Appointments_ShadowMode_MatchesExpected"
+    }
   ]
 }

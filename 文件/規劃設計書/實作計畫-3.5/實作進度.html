@@ -240,11 +240,11 @@ footer{margin-top:36px;color:var(--muted);font-size:12.5px;text-align:center}
  */
 const DATA = {
   "planVersion": "3.5",
-  "snapshot": "2026-11-15 20:53 Asia/Taipei (UTC+08:00)",
-  "lastUpdated": "2026-11-15T20:53:50+08:00",
+  "snapshot": "2026-11-15 21:30 Asia/Taipei (UTC+08:00)",
+  "lastUpdated": "2026-11-15T21:30:54+08:00",
   "branch": "1.0.0.11.Integration.P5.Worktree",
-  "head": "7c81fb14",
-  "headline": "2026-11-15 20:53 Asia/Taipei (UTC+08:00)：P5-08預約簽核進行中；reading／simulation基準、live=deferred，已完成舊入口盤點、Core規則與Plugin／Workflow外殼，註冊清單與離線Golden已建立；接續CAS／共用回歸、DLL打包與停用部署驗證，不宣稱實機影子差異0。",
+  "head": "8166df16",
+  "headline": "2026-11-15 21:46 Asia/Taipei (UTC+08:00)：P5-08已驗收；離線規則／外殼／CAS回歸、兩個正式net462合併DLL檢查及goodshepherdback plan／apply／verify完成；18個新步驟全停用，舊步驟／舊流程啟用皆0。live=deferred，基準reading／simulation，不宣稱實機影子差異0。階段 5 接續 P5-09。",
   "notices": [
     {
       "id": "plan-3.5-summary",
@@ -511,8 +511,8 @@ const DATA = {
       "phaseId": "階段 5",
       "level": "info",
       "title": "P5 進度摘要",
-      "lastUpdated": "2026-11-15T20:13:46+08:00",
-      "body": "2026-11-15 20:13 Asia/Taipei (UTC+08:00)：P5-07已驗收；Workflows8一次性診斷UpdateAssembly成功，正式verify=0、export=0、export-legacy=0；16新步驟全停用、secure0，舊步驟／舊流程啟用皆0。固定guard八項全0（Release6668、Debug tracer7、進度28）；基準reading／simulation、live=deferred，不宣稱實機影子差異0。收尾提交與推送前核對中，完成後進P5-08。",
+      "lastUpdated": "2026-11-15T21:30:54+08:00",
+      "body": "2026-11-15 21:46 Asia/Taipei (UTC+08:00)：P5-08已完成離線規則／外殼／CAS回歸、兩個正式net462合併DLL檢查及goodshepherdback plan／apply／verify；18個新步驟全停用，舊步驟／舊流程啟用皆0。live=deferred，基準reading／simulation，不宣稱實機影子差異0。固定guard與推送待收尾核對。",
       "steps": [
         "2026-11-14 08:26 Asia/Taipei (UTC+08:00)：已確認目標殘留目錄不是 Git worktree，移除後正式 P4／P5 worktree 清單不受影響。",
         "2026-11-14 08:26 Asia/Taipei (UTC+08:00)：export-metadata 唯讀結構快照建立成功；verify 因本機部署執行檔／連線前置失敗，未宣稱 goodshepherdback verify=0。",
@@ -572,7 +572,8 @@ const DATA = {
         "2026-11-15 16:35 Asia/Taipei (UTC+08:00)：P5-07 active、HEAD ccb44b71、仍14筆未推送。最新兩DLL 1.0.0.12／1.0.0.6打包檢查通過；goodshepherdback plan只含兩個UpdateAssembly，但apply=1（0x8004501D）。未重送；唯讀verify=1及前後匯出SHA確認Plugins已更新為候選12，Workflows仍為先前5，不能聲稱兩DLL部署驗收通過。16個新步驟全部停用且無secure，舊步驟／舊流程啟用皆0；未重試smoke／shadow／diagnostics。最近全方案22目標6665項通過不代替部署與固定guard。活動安全金鑰及舊付款fallback待P5-PROP-006核定；暫不驗收、不推送、不啟動P5-08。預估2026-11-16 18:00 Asia/Taipei (UTC+08:00)，以缺口核定、修復及固定guard通過為前提；live=deferred、differences=null。",
         "2026-11-15 17:24 Asia/Taipei (UTC+08:00)：P5-PROP-006已核定（使用者授權 Claude 代為核定）；P5-07依D5-12拆a／b，不受原15筆限制。WinRM／事件RPC／PowerShell Direct唯讀事件查詢均未成功，全文僅留C:/smv；第二次plan只剩Workflows一個UpdateAssembly，第二次apply=0，正進行verify及新舊全停用核對。基準reading／simulation、live=deferred，不重測追蹤；未驗收未推送。",
         "2026-11-15 18:14 Asia/Taipei (UTC+08:00)：P5-07 active，P5-PROP-006核定實作完成；固定C:/smv/guard八項全0（Release 22目標6668、Debug tracer7、進度28）。最終DLL14／8打包通過；首次apply及僅Workflows重plan後第二次apply均0x8004501D、verify=1。匯出核對Plugins14／Workflows7，16新步驟全停用、secure0、舊步驟與舊流程啟用皆0。依核定停止部署，不驗收、不推送、不啟動P5-08；reading／simulation、live=deferred、differences=null，不重試追蹤。",
-        "2026-11-15 20:13 Asia/Taipei (UTC+08:00)：P5-07已驗收；Workflows8一次性診斷UpdateAssembly成功，正式verify=0、export=0、export-legacy=0；16新步驟全停用、secure0，舊步驟／舊流程啟用皆0。固定guard八項全0（Release6668、Debug tracer7、進度28）；基準reading／simulation、live=deferred，不宣稱實機影子差異0。收尾提交與推送前核對中，完成後進P5-08。"
+        "2026-11-15 20:13 Asia/Taipei (UTC+08:00)：P5-07已驗收；Workflows8一次性診斷UpdateAssembly成功，正式verify=0、export=0、export-legacy=0；16新步驟全停用、secure0，舊步驟／舊流程啟用皆0。固定guard八項全0（Release6668、Debug tracer7、進度28）；基準reading／simulation、live=deferred，不宣稱實機影子差異0。收尾提交與推送前核對中，完成後進P5-08。",
+        "2026-11-15 21:46 Asia/Taipei (UTC+08:00)：P5-08已完成離線規則／外殼／CAS回歸、兩個正式net462合併DLL檢查及goodshepherdback plan／apply／verify；18個新步驟全停用，舊步驟／舊流程啟用皆0。live=deferred，基準reading／simulation，不宣稱實機影子差異0。固定guard與推送待收尾核對。"
       ]
     }
   ],
@@ -706,10 +707,10 @@ const DATA = {
       "id": "階段 5",
       "name": "Plugin／Workflow 重建（36 個 DLL → 2 個）",
       "planned": "8～12 個工作天",
-      "actual": "P5-01～P5-07已驗收；P5-08進行中，reading／simulation與live=deferred，接續外殼／註冊／打包與停用驗證。",
+      "actual": "P5-01～P5-08已驗收；P5-08完成離線回歸、正式DLL打包檢查及goodshepherdback停用部署。live=deferred，基準reading／simulation；不宣稱實機影子差異0。",
       "current": true,
-      "done": 7,
-      "active": 1
+      "done": 8,
+      "active": 0
     },
     {
       "id": "階段 6",
@@ -1503,13 +1504,13 @@ const DATA = {
       "id": "P5-08",
       "phaseId": "階段 5",
       "name": "預約簽核",
-      "status": "active",
+      "status": "done",
       "deps": "P5-03、更新回復前置",
       "live": "影子模式",
       "timebox": "1 天",
-      "doneAt": "",
-      "commit": "",
-      "note": "2026-11-15 20:53 Asia/Taipei (UTC+08:00)：reading／simulation、live=deferred；舊入口只作reading，新Plugin／Workflow只作Shadow，Live依P5-PROP-006查詢前拒絕。Core與外殼已建立，接續CAS、註冊、打包、停用部署及固定guard。"
+      "doneAt": "2026-11-15 21:46 Asia/Taipei (UTC+08:00)",
+      "commit": "cd1a3902",
+      "note": "2026-11-15 21:46 Asia/Taipei (UTC+08:00)：P5-08已完成離線規則／外殼／CAS回歸、兩個正式net462合併DLL檢查及goodshepherdback plan／apply／verify；18個新步驟全停用，舊步驟／舊流程啟用皆0。live=deferred，基準reading／simulation，不宣稱實機影子差異0。固定guard與推送待收尾核對。"
     },
     {
       "id": "P5-09",
@@ -1791,41 +1792,7 @@ const DATA = {
       "note": "2026-11-14 12:54 Asia/Taipei (UTC+08:00)：8ad4dccc完整守門通過，實機3→4→3、step ID不變、免重啟；三次smoke/verify0、收尾停用及殘留0，詳wp-reports/P5-update-rollback.md。"
     }
   ],
-  "active": [
-    {
-      "id": "P5-08",
-      "startedAt": "2026-11-15 20:53 Asia/Taipei (UTC+08:00)",
-      "timebox": "本工作包依05A固定時間盒；只做核定範圍，實機舊輪不可執行則維持reading。",
-      "dod": [
-        [
-          "舊入口盤點與reading／simulation Golden",
-          "ok",
-          "盤點與三個合成情境已建立；不宣稱舊程式實跑。"
-        ],
-        [
-          "Core規則、Plugin／Workflow外殼與CAS",
-          "ok",
-          "Core雙目標建置及具名測試通過；CAS／外殼回歸持續核對。"
-        ],
-        [
-          "兩個DLL打包與註冊清單",
-          "na",
-          "待完成打包與停用部署核對。"
-        ],
-        [
-          "goodshepherdback停用狀態與固定guard",
-          "na",
-          "新舊步驟／流程維持停用；待收尾驗證。"
-        ],
-        [
-          "一頁報告、驗收提交、push與ls-remote",
-          "na",
-          "未達五項完成定義前不推送。"
-        ]
-      ],
-      "next": "完成CAS／共用回歸與Golden核對，接著做兩DLL打包、goodshepherdback plan／apply／verify=0停用核對、固定guard及一頁報告。"
-    }
-  ],
+  "active": [],
   "gates": [
     {
       "item": "方案建置（Release）",
