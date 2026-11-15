@@ -112,7 +112,7 @@ namespace RestSharp.Deserializers
     public sealed class JsonDeserializer
     {
         /// <summary>將離線回應轉成呼叫端型別；無效 JSON 直接傳出，沒有全域快取或外部查詢。</summary>
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Performance", "CA1822:Mark members as static", Justification = "保留第三方舊 API 的實例呼叫契約，無可變狀態。 -- 2026-11-15")]
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Performance", "CA1822:Mark members as static", Justification = "Preserves the legacy instance API contract without retaining mutable instance state.")]
         public T? Deserialize<T>(RestSharp.IRestResponse response) => Newtonsoft.Json.JsonConvert.DeserializeObject<T>(response.Content);
     }
 }

@@ -209,27 +209,27 @@ public static class ScratchDiagnostics
         public EventLog(string logName, string machineName, string source) { }
 
         /// <summary>不建立系統事件記錄；委派靜態有界入口，附加資料不被保留。</summary>
-        [SuppressMessage("Performance", "CA1822:Mark members as static", Justification = "保留舊 EventLog 實例方法的改寫契約；替身刻意不保存機器或來源狀態。設為靜態會破壞既有呼叫語法。")]
+        [SuppressMessage("Performance", "CA1822:Mark members as static", Justification = "Preserves the legacy instance API contract without retaining mutable instance state.")]
         public void WriteEntry(string message) => ScratchDiagnostics.WriteEntry(string.Empty, message);
 
         /// <summary>不建立系統事件記錄；委派靜態有界入口，附加資料不被保留。</summary>
-        [SuppressMessage("Performance", "CA1822:Mark members as static", Justification = "保留舊 EventLog 實例方法的改寫契約；替身刻意不保存機器或來源狀態。設為靜態會破壞既有呼叫語法。")]
+        [SuppressMessage("Performance", "CA1822:Mark members as static", Justification = "Preserves the legacy instance API contract without retaining mutable instance state.")]
         public void WriteEntry(string message, EventLogEntryType type) => ScratchDiagnostics.WriteEntry(string.Empty, message, type);
 
         /// <summary>不建立系統事件記錄；委派靜態有界入口，附加資料不被保留。</summary>
-        [SuppressMessage("Performance", "CA1822:Mark members as static", Justification = "保留舊 EventLog 實例方法的改寫契約；替身刻意不保存機器或來源狀態。設為靜態會破壞既有呼叫語法。")]
+        [SuppressMessage("Performance", "CA1822:Mark members as static", Justification = "Preserves the legacy instance API contract without retaining mutable instance state.")]
         public void WriteEntry(string message, EventLogEntryType type, int eventID) => ScratchDiagnostics.WriteEntry(string.Empty, message, type, eventID);
 
         /// <summary>不建立系統事件記錄；委派靜態有界入口，附加資料不被保留。</summary>
-        [SuppressMessage("Performance", "CA1822:Mark members as static", Justification = "保留舊 EventLog 實例方法的改寫契約；替身刻意不保存機器或來源狀態。設為靜態會破壞既有呼叫語法。")]
+        [SuppressMessage("Performance", "CA1822:Mark members as static", Justification = "Preserves the legacy instance API contract without retaining mutable instance state.")]
         public void WriteEntry(string message, EventLogEntryType type, int eventID, short category) => ScratchDiagnostics.WriteEntry(string.Empty, message, type, eventID, category);
 
         /// <summary>不建立系統事件記錄；委派靜態有界入口，附加資料不被保留。</summary>
-        [SuppressMessage("Performance", "CA1822:Mark members as static", Justification = "保留舊 EventLog 實例方法的改寫契約；替身刻意不保存機器或來源狀態。設為靜態會破壞既有呼叫語法。")]
+        [SuppressMessage("Performance", "CA1822:Mark members as static", Justification = "Preserves the legacy instance API contract without retaining mutable instance state.")]
         public void WriteEntry(string message, EventLogEntryType type, int eventID, short category, byte[]? rawData) => ScratchDiagnostics.WriteEntry(string.Empty, message, type, eventID, category, rawData);
 
         /// <summary>本替身沒有長駐資源；Close 不影響目前 capture 或其他實例，後續寫入仍走同一入口。</summary>
-        [SuppressMessage("Performance", "CA1822:Mark members as static", Justification = "保留舊 EventLog 的實例關閉語法，替身沒有長駐資源。")]
+        [SuppressMessage("Performance", "CA1822:Mark members as static", Justification = "Preserves the legacy instance API contract without retaining mutable instance state.")]
         public void Close() { }
 
         /// <summary>與框架常用 using 相容；沒有訂閱、handle 或保留參數，清理不接觸其他案例。</summary>
