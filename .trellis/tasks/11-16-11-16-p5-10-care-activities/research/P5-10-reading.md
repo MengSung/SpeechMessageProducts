@@ -27,3 +27,12 @@
 
 - 需要逐檔核對 `HappyBirthdayWorkflowClass`、`RecursiveWorkflowClass` 的錯誤／saved flag 分支，以及 NewPersonCare 的 `PresentRecordClassLibrary`／`AssignGroupClassLibrary` 是否已由 P5-06／P5-07承接。
 - 目前 evidence 只能支持 `reading`，不能支持 `legacy-golden`、實機影子或「差異為零」。
+
+
+## 第二輪逐檔核對（2026-11-16 10:05 Asia/Taipei (UTC+08:00)）
+
+- `HappyBirthdayWorkflowClass.MajorExecute`（約 170-176 行）只呼叫 `HappyBirthdayClassLibrary.ProcessBirthday`；`Create`、`Update` 與 `ExecuteWorkflow` 都先 Retrieve `contact` 再走同一路徑，沒有可達 LINE 推播。`SetupSavedFlag` 只在未被主流程呼叫且 `m_SavedFlag` 未填入時存在，故不列為可達資料行為。
+- `RecursiveWorkflowClass.MajorExecute`（約 153-159 行）只呼叫 `RecursiveWorkflowClassLibrary.ProcessWorkflow`；其 `SetupSavedFlag` 同樣未由可達主流程呼叫，沒有另一次有效更新。
+- 生日與年資兩個舊活動的推播搜尋只落在共用 `ToolUtilityClass` 的一般查詢／除錯工具，未由兩個入口的可達主路徑呼叫；P5-10 不新增 P5-PROP-006 推播提案。
+- NewPersonCare 的 `Execute` 分支確定是：`ExecuteWorkflow`→`PresentRecordClassLibrary.CreatePresentRecord`、`Create`→`AssignGroupClassLibrary.AssignGroupProcess`、`Update`→兩者皆執行。這兩份舊類別各自依賴大型 ToolUtility 與建立週報／名單副作用；目前既有 P5-06／P5-07 沒有同簽章的可重用 Care service，因此新外殼先只保留參數與分支盤點，未假裝已承接其資料副作用。
+- 基準仍為 `basis=reading`；不執行退役 DLL、不在 goodshepherdback 啟用舊或新 Live，且不宣稱實機影子差異為零。
