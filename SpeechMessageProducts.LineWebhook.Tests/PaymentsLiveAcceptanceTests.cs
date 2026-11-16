@@ -428,12 +428,14 @@ public sealed class PaymentsLiveAcceptanceTests
                 throw new InvalidOperationException("The test fee did not receive a Dataverse identity.");
 
             SetChurchProfileForThisTest();
+            var queryDate = new DateTime(2026, 11, 13, 0, 0, 0, DateTimeKind.Unspecified);
+            var sourceId = SpeechMessageProducts.GoodShepherd.Core.Fees.AllotTaskIdentity.SourceId(_feeId, queryDate);
             _idempotencyKey = string.Concat(
                 _churchId.ToString("N"),
                 "-",
                 ((int)OutboundTaskType.AllotQuery).ToString(System.Globalization.CultureInfo.InvariantCulture),
                 "-",
-                _feeId.ToString("N"));
+                sourceId.ToString("N"));
         }
 
         /// <summary>
@@ -450,7 +452,11 @@ public sealed class PaymentsLiveAcceptanceTests
                 _churchId,
                 _contactId,
                 _feeId,
-                new Dictionary<string, object> { ["feeId"] = _feeId },
+                new Dictionary<string, object>
+                {
+                    ["feeId"] = _feeId,
+                    ["queryDate"] = SpeechMessageProducts.GoodShepherd.Core.Fees.AllotTaskIdentity.ToQueryDate(new DateTime(2026, 11, 13, 0, 0, 0, DateTimeKind.Unspecified))
+                },
                 CancellationToken.None);
             if (taskId == Guid.Empty)
                 throw new InvalidOperationException("The test task did not receive a Dataverse identity.");

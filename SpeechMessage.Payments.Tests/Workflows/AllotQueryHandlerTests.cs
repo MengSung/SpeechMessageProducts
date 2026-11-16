@@ -211,6 +211,25 @@ public sealed class AllotQueryHandlerTests
         Assert.Equal(0, fixture.Gateway.Calls);
     }
 
+    /// <summary>payload 的 feeId/queryDate 重算 sourceId 不一致時，在任何 CRM 或永豐呼叫前拒絕。</summary>
+    [Fact]
+    public async Task Fees_AllotHandler_SourceIdMismatch_Rejected()
+    {
+        var fixture = CreateFixture(Success());
+        var queryDate = new DateTime(2026, 11, 13, 0, 0, 0, DateTimeKind.Unspecified);
+        var wrongSource = Guid.Parse("ffffffff-ffff-ffff-ffff-ffffffffffff");
+        var item = CreateItem(
+            payload: $"{{\"feeId\":\"{FeeId:D}\",\"queryDate\":{AllotTaskIdentity.ToQueryDate(queryDate)}}}",
+            idempotencyKey: $"{ChurchId:N}-{(int)OutboundWorkType.AllotQuery}-{wrongSource:N}");
+
+        var exception = await Assert.ThrowsAsync<InvalidOperationException>(
+            () => fixture.Handler(item).ExecuteAsync(CancellationToken.None));
+
+        Assert.Equal("InvalidAllotQueryPayload", exception.Message);
+        Assert.Equal(0, fixture.Sdk.RetrieveCalls);
+        Assert.Equal(0, fixture.Gateway.Calls);
+    }
+
     /// <summary>跨 UTC 午夜時以已核對教會時區取得的本地今日建立日期窗，不能使用伺服器 UTC 日期。</summary>
     [Fact]
     public async Task Handler_UsesChurchToday_AcrossUtcMidnight()
@@ -270,19 +289,23 @@ public sealed class AllotQueryHandlerTests
 
     private static OutboundWorkItem CreateItem(
         string? payload = null,
-        string? idempotencyKey = null) =>
-        new(
+        string? idempotencyKey = null)
+    {
+        var queryDate = new DateTime(2026, 11, 13, 0, 0, 0, DateTimeKind.Unspecified);
+        var sourceId = AllotTaskIdentity.SourceId(FeeId, queryDate);
+        return new(
             Guid.Parse("eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee"),
             "1",
             ChurchId,
             null,
             OutboundWorkType.AllotQuery,
-            payload ?? $"{{\"feeId\":\"{FeeId:D}\"}}",
-            idempotencyKey ?? $"{ChurchId:N}-{(int)OutboundWorkType.AllotQuery}-{FeeId:N}",
+            payload ?? $"{{\"feeId\":\"{FeeId:D}\",\"queryDate\":{AllotTaskIdentity.ToQueryDate(queryDate)}}}",
+            idempotencyKey ?? $"{ChurchId:N}-{(int)OutboundWorkType.AllotQuery}-{sourceId:N}",
             OutboundWorkStatus.Processing,
             0,
             null,
             new DateTime(2026, 11, 13, 12, 0, 0, DateTimeKind.Utc));
+    }
 
     private sealed record Fixture(
         SyntheticOrganizationService Sdk,

@@ -655,6 +655,58 @@
             "differences": null,
             "basis": "reading"
           }
+        },
+        {
+          "type": "SpeechMessage.Dynamics.Plugins.Fees.FeeAllotPlugin",
+          "message": "Create",
+          "entity": "new_fee",
+          "stage": "PostOperation",
+          "mode": "Synchronous",
+          "rank": 30,
+          "filteringAttributes": [],
+          "images": [],
+          "module": "fees",
+          "legacy": [],
+          "shadowReport": {
+            "file": "",
+            "differences": null,
+            "basis": "reading"
+          },
+          "unsecureConfig": "{\"mode\":\"Shadow\"}",
+          "secureConfig": "",
+          "enabledByOrganization": {
+            "goodshepherdback": false
+          }
+        },
+        {
+          "type": "SpeechMessage.Dynamics.Plugins.Fees.FeeAllotPlugin",
+          "message": "Update",
+          "entity": "new_fee",
+          "stage": "PostOperation",
+          "mode": "Synchronous",
+          "rank": 30,
+          "filteringAttributes": [
+            "new_pay_way",
+            "new_pay_date",
+            "new_contact_new_fee",
+            "new_q_pay_card_order_no",
+            "new_q_paid_card_order_no",
+            "new_q_pay_order_atm_no",
+            "new_q_paid_order_atm_no"
+          ],
+          "images": [],
+          "module": "fees",
+          "legacy": [],
+          "shadowReport": {
+            "file": "",
+            "differences": null,
+            "basis": "reading"
+          },
+          "unsecureConfig": "{\"mode\":\"Shadow\"}",
+          "secureConfig": "",
+          "enabledByOrganization": {
+            "goodshepherdback": false
+          }
         }
       ]
     },
@@ -819,6 +871,42 @@
             {
               "assembly": "PersonalQrCodeWorkflow",
               "type": "PersonalQrCodeWorkflow.PersonalQrCodeWorkflowClass"
+            }
+          ],
+          "shadowReport": {
+            "file": "",
+            "differences": null,
+            "basis": "reading"
+          }
+        },
+        {
+          "module": "fees",
+          "type": "SpeechMessage.Dynamics.Workflows.Fees.FeeAllotActivity",
+          "displayName": "FeeAllotActivity",
+          "legacy": [
+            {
+              "assembly": "AllotWorkflow",
+              "type": "AllotWorkflow.AllotWorkflowClass"
+            },
+            {
+              "assembly": "AllotTlsWorkflow",
+              "type": "AllotTlsWorkflow.AllotTlsWorkflowClass"
+            }
+          ],
+          "shadowReport": {
+            "file": "",
+            "differences": null,
+            "basis": "reading"
+          }
+        },
+        {
+          "module": "fees",
+          "type": "SpeechMessage.Dynamics.Workflows.Fees.FeeNotifyActivity",
+          "displayName": "FeeNotifyActivity",
+          "legacy": [
+            {
+              "assembly": "FeePushLineWorkflow",
+              "type": "FeePushLineWorkflow.FeePushLineWorkflowClass"
             }
           ],
           "shadowReport": {

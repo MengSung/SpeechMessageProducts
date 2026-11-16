@@ -101,14 +101,16 @@ public sealed class PaymentOutboundHostTests
     {
         var churchId = Guid.Parse("11111111-1111-1111-1111-111111111111");
         var feeId = Guid.Parse("22222222-2222-2222-2222-222222222222");
+        var queryDate = new DateTime(2026, 11, 13, 0, 0, 0, DateTimeKind.Unspecified);
+        var sourceId = SpeechMessageProducts.GoodShepherd.Core.Fees.AllotTaskIdentity.SourceId(feeId, queryDate);
         return new OutboundWorkItem(
             Guid.Parse("33333333-3333-3333-3333-333333333333"),
             "1",
             churchId,
             null,
             OutboundWorkType.AllotQuery,
-            $"{{\"feeId\":\"{feeId:D}\"}}",
-            $"{churchId:N}-{(int)OutboundWorkType.AllotQuery}-{feeId:N}",
+            $"{{\"feeId\":\"{feeId:D}\",\"queryDate\":{SpeechMessageProducts.GoodShepherd.Core.Fees.AllotTaskIdentity.ToQueryDate(queryDate)}}}",
+            $"{churchId:N}-{(int)OutboundWorkType.AllotQuery}-{sourceId:N}",
             OutboundWorkStatus.Processing,
             0,
             null,

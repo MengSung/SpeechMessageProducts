@@ -6,7 +6,7 @@
  * 費用資料邊界及 Localization Money；不擁有或建立 Dataverse 連線，也不持有 ASP.NET request。
  *
  * 主要功能與流程：ExecuteAsync 先驗證固定工作類型、冪等鍵內的教會與來源收費單 ID，以及只含
- * 一個合法 feeId 的 payload；確認 payload ID 與來源 ID 相同後，才呼叫 FeeAllotRecords.Read
+ * 精確 feeId/queryDate 的 payload；確認兩欄與來源 ID 相同後，才呼叫 FeeAllotRecords.Read
  * 驗證 fee→contact→church 範圍並讀取時區，再依該 account 的具名 profile、付款方式與教會今日
  * 建立查詢，將已驗簽批次轉為 Core 純值，只有找到有效訂單時才用原列版本更新四個撥款欄位。
  *
@@ -121,7 +121,7 @@ public sealed class AllotQueryHandler : IOutboundTaskHandler
     }
 
     /// <summary>
-    /// 僅接受 AllotQuery 及單一 feeId JSON 欄位，並確認它等於正式冪等鍵攜帶的來源收費單 ID。
+    /// 僅接受 AllotQuery 及精確 feeId/queryDate JSON 欄位，並重算 sourceId 確認 payload 與正式冪等鍵一致。
     /// 這些純值檢查必須先於任何 SDK I/O，避免不合法工作觸發 CRM 或付款供應商。
     /// </summary>
     private static Guid ReadAndValidatePayload(OutboundWorkItem item)
@@ -137,8 +137,8 @@ public sealed class AllotQueryHandler : IOutboundTaskHandler
             ((int)OutboundWorkType.AllotQuery).ToString(System.Globalization.CultureInfo.InvariantCulture),
             "-");
         if (!item.IdempotencyKey.StartsWith(prefix, StringComparison.Ordinal)
-            || !Guid.TryParseExact(item.IdempotencyKey.AsSpan(prefix.Length), "N", out var sourceFeeId)
-            || sourceFeeId == Guid.Empty)
+            || !Guid.TryParseExact(item.IdempotencyKey.AsSpan(prefix.Length), "N", out var sourceId)
+            || sourceId == Guid.Empty)
         {
             throw InvalidPayload();
         }
@@ -156,19 +156,40 @@ public sealed class AllotQueryHandler : IOutboundTaskHandler
 
             var propertyCount = 0;
             Guid payloadFeeId = Guid.Empty;
+            var payloadQueryDate = 0;
             foreach (var property in root.EnumerateObject())
             {
                 propertyCount++;
-                if (propertyCount > 1
-                    || !string.Equals(property.Name, "feeId", StringComparison.Ordinal)
-                    || property.Value.ValueKind != JsonValueKind.String
-                    || !property.Value.TryGetGuid(out payloadFeeId))
+                if (propertyCount > 2)
                 {
                     throw InvalidPayload();
                 }
+
+                if (string.Equals(property.Name, "feeId", StringComparison.Ordinal)
+                    && property.Value.ValueKind == JsonValueKind.String
+                    && property.Value.TryGetGuid(out payloadFeeId))
+                {
+                    continue;
+                }
+
+                if (string.Equals(property.Name, "queryDate", StringComparison.Ordinal)
+                    && property.Value.ValueKind == JsonValueKind.Number
+                    && property.Value.TryGetInt32(out payloadQueryDate))
+                {
+                    continue;
+                }
+
+                throw InvalidPayload();
             }
 
-            if (propertyCount != 1 || payloadFeeId == Guid.Empty || payloadFeeId != sourceFeeId)
+            if (propertyCount != 2 || payloadFeeId == Guid.Empty)
+            {
+                throw InvalidPayload();
+            }
+
+            var queryDate = AllotTaskIdentity.FromQueryDate(payloadQueryDate);
+            var expectedSourceId = AllotTaskIdentity.SourceId(payloadFeeId, queryDate);
+            if (sourceId != expectedSourceId)
             {
                 throw InvalidPayload();
             }
@@ -176,6 +197,10 @@ public sealed class AllotQueryHandler : IOutboundTaskHandler
             return payloadFeeId;
         }
         catch (JsonException)
+        {
+            throw InvalidPayload();
+        }
+        catch (ArgumentException)
         {
             throw InvalidPayload();
         }
