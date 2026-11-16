@@ -1,0 +1,13 @@
+{
+  "id": "p5-09-qr-activities",
+  "title": "P5-09 QR活動與規則",
+  "status": "completed",
+  "complexity": "L",
+  "risk": "high",
+  "domain": "backend",
+  "currentPhase": "completed",
+  "nextAction": "已完成並封存",
+  "createdAt": "2026-11-16",
+  "branch": "1.0.0.11.Integration.P5.Worktree",
+  "completedAt": "2026-11-16T09:02:38+08:00"
+}
