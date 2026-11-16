@@ -1,25 +1,66 @@
 {
+  "module": "care",
   "basis": "reading",
-  "declaredDifferences": [
-    "DateTime.Now is replaced by the authorized church-local date supplied by the activity adapter.",
-    "The old external LINE path was not reachable from the two anniversary entry points and is not recreated."
-  ],
   "cases": [
     {
       "name": "birthday-local-today",
-      "result": "fields-match-reading"
+      "entrypoint": "HappyBirthdayWorkflowNamespace.HappyBirthdayWorkflowPlugIn",
+      "writes": [],
+      "lineCalls": [],
+      "outputs": {
+        "OutputResult": 0,
+        "ReadingSource": "P5-10 reading catalog; no live execution"
+      },
+      "exception": null
     },
     {
-      "name": "birthday-unknown-sentinel",
-      "result": "fields-match-reading"
+      "name": "birthday-feb29",
+      "entrypoint": "HappyBirthdayWorkflowNamespace.HappyBirthdayWorkflowPlugIn",
+      "writes": [],
+      "lineCalls": [],
+      "outputs": {
+        "OutputResult": 0,
+        "ReadingSource": "P5-10 reading catalog; no live execution"
+      },
+      "exception": null
     },
     {
-      "name": "onboarding-special-leave",
-      "result": "fields-match-reading"
+      "name": "new-person-create",
+      "entrypoint": "NewPersonCareWorkflow.NewPersonCareWorkflowClass",
+      "writes": [],
+      "lineCalls": [],
+      "outputs": {
+        "OutputResult": 0,
+        "ReadingSource": "P5-10 reading catalog; no live execution"
+      },
+      "exception": null
     },
     {
-      "name": "february-29-non-leap-target",
-      "result": "legacy-date-construction-error-preserved"
+      "name": "new-person-update",
+      "entrypoint": "NewPersonCareWorkflow.NewPersonCareWorkflowClass",
+      "writes": [],
+      "lineCalls": [],
+      "outputs": {
+        "OutputResult": 0,
+        "ReadingSource": "P5-10 reading catalog; no live execution"
+      },
+      "exception": null
+    }
+  ],
+  "declaredDifferences": [
+    {
+      "case": "birthday-local-today",
+      "position": "$.cases[0].writes",
+      "category": 5,
+      "reason": "本包以 reading 對照保留欄位與活動邊界，未執行退役 DLL 或實機影子。",
+      "test": "Care_Anniversary_TodayUsesChurchTimeZone_AcrossUtcMidnight"
+    },
+    {
+      "case": "birthday-feb29",
+      "position": "$.cases[1].exception",
+      "category": 5,
+      "reason": "二月二十九日非閏年行為以閱讀對照保留舊 DateTime 建構式例外。",
+      "test": "Care_Anniversary_Feb29_HandledLikeLegacy"
     }
   ]
 }

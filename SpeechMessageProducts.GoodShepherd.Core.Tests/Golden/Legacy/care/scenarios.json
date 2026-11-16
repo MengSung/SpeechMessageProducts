@@ -1,48 +1,193 @@
 {
-  "basis": "reading",
+  "module": "care",
   "cases": [
     {
       "name": "birthday-local-today",
-      "kind": "birthday",
-      "today": "2026-11-17",
-      "birthdate": "1990-11-17",
-      "expected": {
-        "new_next_birthdate": "2027-11-17",
-        "new_birthday_month": 100000010,
-        "new_age_number": 36,
-        "new_age_level": 100000003
-      }
+      "church": {
+        "alias": "church-a",
+        "organizationName": "synthetic-care",
+        "timeZone": "Asia/Taipei",
+        "culture": "zh-TW"
+      },
+      "seed": [
+        {
+          "alias": "record",
+          "entity": "contact",
+          "fields": {
+            "parentcustomerid": {
+              "ref": "church-a",
+              "entity": "account"
+            }
+          }
+        },
+        {
+          "alias": "church-a",
+          "entity": "account",
+          "fields": {}
+        }
+      ],
+      "trigger": {
+        "project": "HappyBirthdayWorkflowNamespace",
+        "type": "HappyBirthdayWorkflowNamespace.HappyBirthdayWorkflowPlugIn",
+        "activity": true,
+        "inputs": {
+          "InputParameter": "birthday"
+        },
+        "depth": 1
+      },
+      "now": "2026-11-16T00:00:00Z",
+      "volatile": [],
+      "liveShadow": false,
+      "observe": [
+        {
+          "alias": "record",
+          "entity": "contact",
+          "fields": [
+            "parentcustomerid"
+          ]
+        }
+      ]
     },
     {
-      "name": "birthday-unknown-sentinel",
-      "kind": "birthday",
-      "today": "2026-11-17",
-      "birthdate": "1000-01-01",
-      "expected": {
-        "new_birthday_month": 100000012,
-        "new_age_level": 100000011
-      }
+      "name": "birthday-feb29",
+      "church": {
+        "alias": "church-a",
+        "organizationName": "synthetic-care",
+        "timeZone": "Asia/Taipei",
+        "culture": "zh-TW"
+      },
+      "seed": [
+        {
+          "alias": "record",
+          "entity": "contact",
+          "fields": {
+            "parentcustomerid": {
+              "ref": "church-a",
+              "entity": "account"
+            }
+          }
+        },
+        {
+          "alias": "church-a",
+          "entity": "account",
+          "fields": {}
+        }
+      ],
+      "trigger": {
+        "project": "HappyBirthdayWorkflowNamespace",
+        "type": "HappyBirthdayWorkflowNamespace.HappyBirthdayWorkflowPlugIn",
+        "activity": true,
+        "inputs": {
+          "InputParameter": "birthday-feb29"
+        },
+        "depth": 1
+      },
+      "now": "2026-11-16T00:00:00Z",
+      "volatile": [],
+      "liveShadow": false,
+      "observe": [
+        {
+          "alias": "record",
+          "entity": "contact",
+          "fields": [
+            "parentcustomerid"
+          ]
+        }
+      ]
     },
     {
-      "name": "onboarding-special-leave",
-      "kind": "onboarding",
-      "today": "2026-11-16",
-      "onboard_date": "2024-11-16",
-      "next_update": null,
-      "expected": {
-        "new_on_board_year": 730,
-        "new_special_leave_days": 10,
-        "new_next_update_onboard_date": "2026-11-17"
-      }
+      "name": "new-person-create",
+      "church": {
+        "alias": "church-a",
+        "organizationName": "synthetic-care",
+        "timeZone": "Asia/Taipei",
+        "culture": "zh-TW"
+      },
+      "seed": [
+        {
+          "alias": "record",
+          "entity": "contact",
+          "fields": {
+            "parentcustomerid": {
+              "ref": "church-a",
+              "entity": "account"
+            }
+          }
+        },
+        {
+          "alias": "church-a",
+          "entity": "account",
+          "fields": {}
+        }
+      ],
+      "trigger": {
+        "project": "NewPersonCareWorkflow",
+        "type": "NewPersonCareWorkflow.NewPersonCareWorkflowClass",
+        "activity": true,
+        "inputs": {
+          "InputParameter": "Create"
+        },
+        "depth": 1
+      },
+      "now": "2026-11-16T00:00:00Z",
+      "volatile": [],
+      "liveShadow": false,
+      "observe": [
+        {
+          "alias": "record",
+          "entity": "contact",
+          "fields": [
+            "parentcustomerid"
+          ]
+        }
+      ]
     },
     {
-      "name": "february-29-non-leap-target",
-      "kind": "birthday",
-      "today": "2026-03-01",
-      "birthdate": "2000-02-29",
-      "expected": {
-        "exception": "ArgumentOutOfRangeException"
-      }
+      "name": "new-person-update",
+      "church": {
+        "alias": "church-a",
+        "organizationName": "synthetic-care",
+        "timeZone": "Asia/Taipei",
+        "culture": "zh-TW"
+      },
+      "seed": [
+        {
+          "alias": "record",
+          "entity": "contact",
+          "fields": {
+            "parentcustomerid": {
+              "ref": "church-a",
+              "entity": "account"
+            }
+          }
+        },
+        {
+          "alias": "church-a",
+          "entity": "account",
+          "fields": {}
+        }
+      ],
+      "trigger": {
+        "project": "NewPersonCareWorkflow",
+        "type": "NewPersonCareWorkflow.NewPersonCareWorkflowClass",
+        "activity": true,
+        "inputs": {
+          "InputParameter": "Update"
+        },
+        "depth": 1
+      },
+      "now": "2026-11-16T00:00:00Z",
+      "volatile": [],
+      "liveShadow": false,
+      "observe": [
+        {
+          "alias": "record",
+          "entity": "contact",
+          "fields": [
+            "parentcustomerid"
+          ]
+        }
+      ]
     }
   ]
 }
