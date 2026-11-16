@@ -1,0 +1,457 @@
+{
+  "module": "fees",
+  "cases": [
+    {
+      "name": "notify-normal",
+      "church": {
+        "alias": "church",
+        "organizationName": "synthetic-fees",
+        "timeZone": "Asia/Taipei",
+        "culture": "zh-TW"
+      },
+      "seed": [
+        {
+          "alias": "record",
+          "entity": "new_fee",
+          "fields": {
+            "new_contact_new_fee": {
+              "ref": "member",
+              "entity": "contact"
+            },
+            "new_pay_date": "2026-11-15T16:30:00Z",
+            "new_category": {
+              "option": 100000002
+            },
+            "new_pay_way": {
+              "option": 100000002
+            },
+            "new_others": "測試",
+            "new_fee_really_paid": {
+              "money": 1000.5
+            }
+          }
+        },
+        {
+          "alias": "member",
+          "entity": "contact",
+          "fields": {
+            "fullname": "合成會友",
+            "parentcustomerid": {
+              "ref": "church",
+              "entity": "account"
+            },
+            "new_lineid": "Uaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+          }
+        },
+        {
+          "alias": "church",
+          "entity": "account",
+          "fields": {
+            "name": "合成教會",
+            "new_timezone": "Asia/Taipei",
+            "new_linechannelid": {
+              "ref": "channel",
+              "entity": "new_linechannel"
+            }
+          }
+        },
+        {
+          "alias": "channel",
+          "entity": "new_linechannel",
+          "fields": {}
+        }
+      ],
+      "trigger": {
+        "project": "FeePushLineWorkflow",
+        "type": "FeePushLineWorkflow.FeePushLineWorkflowClass",
+        "activity": true,
+        "message": "ExecuteWorkflow",
+        "inputs": {
+          "InputParameter": ""
+        },
+        "depth": 1
+      },
+      "now": "2026-11-16T00:00:00Z",
+      "volatile": [],
+      "liveShadow": false,
+      "observe": []
+    },
+    {
+      "name": "notify-defaults-timezone",
+      "church": {
+        "alias": "church",
+        "organizationName": "synthetic-fees",
+        "timeZone": "America/Los_Angeles",
+        "culture": "zh-TW"
+      },
+      "seed": [
+        {
+          "alias": "record",
+          "entity": "new_fee",
+          "fields": {
+            "new_contact_new_fee": {
+              "ref": "member",
+              "entity": "contact"
+            },
+            "new_pay_date": "2026-11-15T16:30:00Z",
+            "new_category": {
+              "option": -1
+            },
+            "new_pay_way": {
+              "option": -1
+            },
+            "new_others": "測試",
+            "new_fee_really_paid": {
+              "money": 1001.5
+            }
+          }
+        },
+        {
+          "alias": "member",
+          "entity": "contact",
+          "fields": {
+            "fullname": "合成會友",
+            "parentcustomerid": {
+              "ref": "church",
+              "entity": "account"
+            },
+            "new_lineid": "Uaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+          }
+        },
+        {
+          "alias": "church",
+          "entity": "account",
+          "fields": {
+            "name": "合成教會",
+            "new_timezone": "America/Los_Angeles",
+            "new_linechannelid": {
+              "ref": "channel",
+              "entity": "new_linechannel"
+            }
+          }
+        },
+        {
+          "alias": "channel",
+          "entity": "new_linechannel",
+          "fields": {}
+        }
+      ],
+      "trigger": {
+        "project": "FeePushLineWorkflow",
+        "type": "FeePushLineWorkflow.FeePushLineWorkflowClass",
+        "activity": true,
+        "message": "ExecuteWorkflow",
+        "inputs": {
+          "InputParameter": ""
+        },
+        "depth": 1
+      },
+      "now": "2026-11-16T00:00:00Z",
+      "volatile": [],
+      "liveShadow": false,
+      "observe": []
+    },
+    {
+      "name": "notify-unbound",
+      "church": {
+        "alias": "church",
+        "organizationName": "synthetic-fees",
+        "timeZone": "Asia/Taipei",
+        "culture": "zh-TW"
+      },
+      "seed": [
+        {
+          "alias": "record",
+          "entity": "new_fee",
+          "fields": {
+            "new_contact_new_fee": {
+              "ref": "member",
+              "entity": "contact"
+            },
+            "new_pay_date": "2026-11-15T16:30:00Z",
+            "new_category": {
+              "option": 100000002
+            },
+            "new_pay_way": {
+              "option": 100000002
+            },
+            "new_others": "測試",
+            "new_fee_really_paid": {
+              "money": 1000.5
+            }
+          }
+        },
+        {
+          "alias": "member",
+          "entity": "contact",
+          "fields": {
+            "fullname": "合成會友",
+            "parentcustomerid": {
+              "ref": "church",
+              "entity": "account"
+            },
+            "new_lineid": ""
+          }
+        },
+        {
+          "alias": "church",
+          "entity": "account",
+          "fields": {
+            "name": "合成教會",
+            "new_timezone": "Asia/Taipei",
+            "new_linechannelid": {
+              "ref": "channel",
+              "entity": "new_linechannel"
+            }
+          }
+        },
+        {
+          "alias": "channel",
+          "entity": "new_linechannel",
+          "fields": {}
+        }
+      ],
+      "trigger": {
+        "project": "FeePushLineWorkflow",
+        "type": "FeePushLineWorkflow.FeePushLineWorkflowClass",
+        "activity": true,
+        "message": "ExecuteWorkflow",
+        "inputs": {
+          "InputParameter": ""
+        },
+        "depth": 1
+      },
+      "now": "2026-11-16T00:00:00Z",
+      "volatile": [],
+      "liveShadow": false,
+      "observe": []
+    },
+    {
+      "name": "notify-read-failure",
+      "church": {
+        "alias": "church",
+        "organizationName": "synthetic-fees",
+        "timeZone": "Asia/Taipei",
+        "culture": "zh-TW"
+      },
+      "seed": [
+        {
+          "alias": "record",
+          "entity": "new_fee",
+          "fields": {
+            "new_contact_new_fee": {
+              "ref": "member",
+              "entity": "contact"
+            },
+            "new_pay_date": "2026-11-15T16:30:00Z",
+            "new_category": {
+              "option": 100000002
+            },
+            "new_pay_way": {
+              "option": 100000002
+            },
+            "new_others": "測試",
+            "new_fee_really_paid": {
+              "money": 1000.5
+            }
+          }
+        },
+        {
+          "alias": "member",
+          "entity": "contact",
+          "fields": {
+            "fullname": "合成會友",
+            "parentcustomerid": {
+              "ref": "church",
+              "entity": "account"
+            },
+            "new_lineid": "Uaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+          }
+        },
+        {
+          "alias": "church",
+          "entity": "account",
+          "fields": {
+            "name": "合成教會",
+            "new_timezone": "Asia/Taipei",
+            "new_linechannelid": {
+              "ref": "channel",
+              "entity": "new_linechannel"
+            }
+          }
+        },
+        {
+          "alias": "channel",
+          "entity": "new_linechannel",
+          "fields": {}
+        }
+      ],
+      "trigger": {
+        "project": "FeePushLineWorkflow",
+        "type": "FeePushLineWorkflow.FeePushLineWorkflowClass",
+        "activity": true,
+        "message": "ExecuteWorkflow",
+        "inputs": {
+          "InputParameter": ""
+        },
+        "depth": 1
+      },
+      "now": "2026-11-16T00:00:00Z",
+      "volatile": [],
+      "liveShadow": false,
+      "observe": [],
+      "fault": "first-read"
+    },
+    {
+      "name": "notify-create-noop",
+      "church": {
+        "alias": "church",
+        "organizationName": "synthetic-fees",
+        "timeZone": "Asia/Taipei",
+        "culture": "zh-TW"
+      },
+      "seed": [
+        {
+          "alias": "record",
+          "entity": "new_fee",
+          "fields": {
+            "new_contact_new_fee": {
+              "ref": "member",
+              "entity": "contact"
+            },
+            "new_pay_date": "2026-11-15T16:30:00Z",
+            "new_category": {
+              "option": 100000002
+            },
+            "new_pay_way": {
+              "option": 100000002
+            },
+            "new_others": "測試",
+            "new_fee_really_paid": {
+              "money": 1000.5
+            }
+          }
+        },
+        {
+          "alias": "member",
+          "entity": "contact",
+          "fields": {
+            "fullname": "合成會友",
+            "parentcustomerid": {
+              "ref": "church",
+              "entity": "account"
+            },
+            "new_lineid": "Uaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+          }
+        },
+        {
+          "alias": "church",
+          "entity": "account",
+          "fields": {
+            "name": "合成教會",
+            "new_timezone": "Asia/Taipei",
+            "new_linechannelid": {
+              "ref": "channel",
+              "entity": "new_linechannel"
+            }
+          }
+        },
+        {
+          "alias": "channel",
+          "entity": "new_linechannel",
+          "fields": {}
+        }
+      ],
+      "trigger": {
+        "project": "FeePushLineWorkflow",
+        "type": "FeePushLineWorkflow.FeePushLineWorkflowClass",
+        "activity": true,
+        "message": "Create",
+        "inputs": {
+          "InputParameter": ""
+        },
+        "depth": 1
+      },
+      "now": "2026-11-16T00:00:00Z",
+      "volatile": [],
+      "liveShadow": false,
+      "observe": []
+    },
+    {
+      "name": "notify-church-changed",
+      "church": {
+        "alias": "church",
+        "organizationName": "synthetic-fees",
+        "timeZone": "Asia/Taipei",
+        "culture": "zh-TW"
+      },
+      "seed": [
+        {
+          "alias": "record",
+          "entity": "new_fee",
+          "fields": {
+            "new_contact_new_fee": {
+              "ref": "member",
+              "entity": "contact"
+            },
+            "new_pay_date": "2026-11-15T16:30:00Z",
+            "new_category": {
+              "option": 100000002
+            },
+            "new_pay_way": {
+              "option": 100000002
+            },
+            "new_others": "測試",
+            "new_fee_really_paid": {
+              "money": 1000.5
+            }
+          }
+        },
+        {
+          "alias": "member",
+          "entity": "contact",
+          "fields": {
+            "fullname": "合成會友",
+            "parentcustomerid": {
+              "ref": "church",
+              "entity": "account"
+            },
+            "new_lineid": "Uaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+          }
+        },
+        {
+          "alias": "church",
+          "entity": "account",
+          "fields": {
+            "name": "合成教會",
+            "new_timezone": "Asia/Taipei",
+            "new_linechannelid": {
+              "ref": "channel",
+              "entity": "new_linechannel"
+            }
+          }
+        },
+        {
+          "alias": "channel",
+          "entity": "new_linechannel",
+          "fields": {}
+        }
+      ],
+      "trigger": {
+        "project": "FeePushLineWorkflow",
+        "type": "FeePushLineWorkflow.FeePushLineWorkflowClass",
+        "activity": true,
+        "message": "ExecuteWorkflow",
+        "inputs": {
+          "InputParameter": ""
+        },
+        "depth": 1
+      },
+      "now": "2026-11-16T00:00:00Z",
+      "volatile": [],
+      "liveShadow": false,
+      "observe": [],
+      "fault": "recipient-church-change"
+    }
+  ]
+}
