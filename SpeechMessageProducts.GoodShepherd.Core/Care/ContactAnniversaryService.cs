@@ -34,7 +34,11 @@ public sealed class ContactAnniversaryService
     /// <param name="contactId">平台主要 contact 的資料庫 ID。</param>
     public static void Execute(IOrganizationService service, Guid contactId)
     {
+#if NETFRAMEWORK
         if (service is null) throw new ArgumentNullException(nameof(service));
+#else
+        ArgumentNullException.ThrowIfNull(service);
+#endif
         if (contactId == Guid.Empty) throw new ArgumentException("A contact identity is required.", nameof(contactId));
 
         var contact = service.Retrieve("contact", contactId, new ColumnSet(
@@ -60,14 +64,41 @@ public sealed class ContactAnniversaryService
         var birthdayUpdate = ContactAnniversaryRule.CalculateBirthday(birthday, today);
         var onboardingUpdate = ContactAnniversaryRule.CalculateOnboarding(onboarding, nextUpdate, today);
         var patch = new Entity("contact", contactId);
-        if (birthdayUpdate.NextBirthdate.HasValue) patch["new_next_birthdate"] = birthdayUpdate.NextBirthdate.Value;
-        if (birthdayUpdate.BirthdayMonth.HasValue) patch["new_birthday_month"] = new OptionSetValue(birthdayUpdate.BirthdayMonth.Value);
-        if (birthdayUpdate.AgeNumber.HasValue) patch["new_age_number"] = birthdayUpdate.AgeNumber.Value;
-        if (birthdayUpdate.AgeLevel.HasValue) patch["new_age_level"] = new OptionSetValue(birthdayUpdate.AgeLevel.Value);
-        if (onboardingUpdate.OnboardDays.HasValue) patch["new_on_board_year"] = onboardingUpdate.OnboardDays.Value;
-        if (onboardingUpdate.SpecialLeaveDays.HasValue) patch["new_special_leave_days"] = onboardingUpdate.SpecialLeaveDays.Value;
-        if (onboardingUpdate.NextOnboardUpdate.HasValue) patch["new_next_update_onboard_date"] = onboardingUpdate.NextOnboardUpdate.Value;
+        AddDateIfChanged(contact, patch, "new_next_birthdate", birthdayUpdate.NextBirthdate);
+        AddOptionIfChanged(contact, patch, "new_birthday_month", birthdayUpdate.BirthdayMonth);
+        AddIntIfChanged(contact, patch, "new_age_number", birthdayUpdate.AgeNumber);
+        AddOptionIfChanged(contact, patch, "new_age_level", birthdayUpdate.AgeLevel);
+        AddIntIfChanged(contact, patch, "new_on_board_year", onboardingUpdate.OnboardDays);
+        AddIntIfChanged(contact, patch, "new_special_leave_days", onboardingUpdate.SpecialLeaveDays);
+        AddDateIfChanged(contact, patch, "new_next_update_onboard_date", onboardingUpdate.NextOnboardUpdate);
         if (patch.Attributes.Count != 0) service.Update(patch);
+    }
+
+    /// <summary>只在日期真的不同時加入 patch，避免同日重跑再次寫入同一筆 contact。</summary>
+    private static void AddDateIfChanged(Entity source, Entity patch, string name, DateTime? value)
+    {
+        if (!value.HasValue) return;
+        var existing = source.GetAttributeValue<DateTime>(name);
+        if (existing != default && existing == value.Value) return;
+        patch[name] = value.Value;
+    }
+
+    /// <summary>只在選項值真的不同時加入 patch，避免重跑產生無效更新事件。</summary>
+    private static void AddOptionIfChanged(Entity source, Entity patch, string name, int? value)
+    {
+        if (!value.HasValue) return;
+        var existing = source.GetAttributeValue<OptionSetValue>(name);
+        if (existing?.Value == value.Value) return;
+        patch[name] = new OptionSetValue(value.Value);
+    }
+
+    /// <summary>只在整數真的不同時加入 patch，維持同一事件的寫入冪等性。</summary>
+    private static void AddIntIfChanged(Entity source, Entity patch, string name, int? value)
+    {
+        if (!value.HasValue) return;
+        var existing = source.Contains(name) ? source.GetAttributeValue<int>(name) : (int?)null;
+        if (existing.HasValue && existing.Value == value.Value) return;
+        patch[name] = value.Value;
     }
 }
 

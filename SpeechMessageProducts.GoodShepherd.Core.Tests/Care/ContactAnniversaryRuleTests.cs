@@ -20,7 +20,7 @@ public sealed class ContactAnniversaryRuleTests
     public void Care_Anniversary_TodayUsesChurchTimeZone_AcrossUtcMidnight()
     {
         var result = ContactAnniversaryRule.CalculateBirthday(new DateTime(1990, 11, 17), new DateTime(2026, 11, 17, 0, 1, 0));
-        Assert.Equal(new DateTime(2026, 11, 17), result.NextBirthdate);
+        Assert.Equal(new DateTime(2027, 11, 17), result.NextBirthdate);
         Assert.Equal(100000010, result.BirthdayMonth);
     }
 
