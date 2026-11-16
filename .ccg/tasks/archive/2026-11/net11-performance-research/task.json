@@ -1,0 +1,13 @@
+{
+  "id": "net11-performance-research",
+  "title": "研究本方案 .NET 10 與 .NET 11 的實際效能差異",
+  "status": "completed",
+  "complexity": "L",
+  "risk": "low",
+  "domain": "performance-research",
+  "currentPhase": "completed",
+  "nextAction": "歸檔研究任務並保留可重現證據",
+  "createdAt": "2026-11-16T10:38:43.1513781+08:00",
+  "branch": "1.0.0.11.Integration.P5.Worktree",
+  "baselineCommit": "77e66d16b8da9341729310a65e30c0ae78d8d40c"
+}
