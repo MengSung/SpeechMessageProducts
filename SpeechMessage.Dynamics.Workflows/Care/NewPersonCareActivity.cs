@@ -35,6 +35,8 @@ public sealed class NewPersonCareActivity : ActivityShellBase
     internal override void ExecuteRule(ActivityInput input, PluginServices services)
     {
         if (!string.Equals(input.PrimaryEntityName, "contact", StringComparison.Ordinal)) return;
-        _ = NewPersonCareRule.Operation(input.MessageName);
+        var operation = NewPersonCareRule.Operation(input.MessageName);
+        if (operation is NewPersonCareOperation.AssignGroup or NewPersonCareOperation.PresentRecordAndAssignGroup)
+            NewPersonCareAssignmentService.Execute(services.Organization, input.PrimaryEntityId);
     }
 }

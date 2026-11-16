@@ -158,3 +158,54 @@ public enum NewPersonCareOperation
     PresentRecordAndAssignGroup
 }
 
+/// <summary>新朋友分組日期與歷程的純值更新結果。</summary>
+public sealed class NewPersonCareAssignmentUpdate
+{
+    /// <summary>建立已驗證的分組更新結果；null 表示該欄位不應寫入。</summary>
+    public NewPersonCareAssignmentUpdate(DateTime? careDate, DateTime? assignedGroupDate, string? smallGroupLog)
+    {
+        CareDate = careDate;
+        AssignedGroupDate = assignedGroupDate;
+        SmallGroupLog = smallGroupLog;
+    }
+
+    /// <summary>關懷小組日期。</summary>
+    public DateTime? CareDate { get; }
+    /// <summary>一般細胞小組指派日期。</summary>
+    public DateTime? AssignedGroupDate { get; }
+    /// <summary>包含新增歷程後的完整小組歷程。</summary>
+    public string? SmallGroupLog { get; }
+}
+
+/// <summary>承接退役 AssignGroupClassLibrary 的無狀態欄位規則。</summary>
+public static class NewPersonCareAssignmentRule
+{
+    /// <summary>
+    /// 依正式名單名稱及教會當地日期建立一次性 patch。名單名稱只作業務分類，
+    /// 不作為 contact、教會或使用者授權；呼叫端必須先驗證 lookup 歸屬。
+    /// </summary>
+    public static NewPersonCareAssignmentUpdate Calculate(string listName, string? existingLog, DateTime churchToday)
+    {
+#if NETFRAMEWORK
+        if (listName is null) throw new ArgumentNullException(nameof(listName));
+#else
+        ArgumentNullException.ThrowIfNull(listName);
+#endif
+        if (listName.Length > 300) throw new ArgumentException("The list name exceeds its bounded budget.", nameof(listName));
+        var date = churchToday.Date;
+#if NETFRAMEWORK
+        var hasHistory = existingLog?.IndexOf(listName, StringComparison.Ordinal) >= 0;
+#else
+        var hasHistory = existingLog?.Contains(listName, StringComparison.Ordinal) == true;
+#endif
+        var history = hasHistory ? null : (existingLog ?? string.Empty) + date.ToShortDateString() + "," + listName + Environment.NewLine;
+#if NETFRAMEWORK
+        var isCareList = listName.IndexOf("關懷", StringComparison.Ordinal) >= 0;
+#else
+        var isCareList = listName.Contains("關懷", StringComparison.Ordinal);
+#endif
+        return isCareList
+            ? new NewPersonCareAssignmentUpdate(date, null, history)
+            : new NewPersonCareAssignmentUpdate(null, date, history);
+    }
+}

@@ -52,5 +52,18 @@ public sealed class ContactAnniversaryRuleTests
         Assert.Equal(NewPersonCareOperation.PresentRecordAndAssignGroup, NewPersonCareRule.Operation("Update"));
         Assert.Equal(NewPersonCareOperation.None, NewPersonCareRule.Operation("Delete"));
     }
-}
 
+    /// <summary>分組規則依名單分類寫入對應日期，並在同一名單已存在時保持歷程不變。</summary>
+    [Fact]
+    public void Care_NewPerson_AssignmentIsClassifiedAndIdempotent()
+    {
+        var date = new DateTime(2026, 11, 16);
+        var care = NewPersonCareAssignmentRule.Calculate("關懷小組", null, date);
+        Assert.Equal(date, care.CareDate);
+        Assert.Null(care.AssignedGroupDate);
+        Assert.Contains("關懷小組", care.SmallGroupLog, StringComparison.Ordinal);
+
+        var repeat = NewPersonCareAssignmentRule.Calculate("關懷小組", care.SmallGroupLog, date);
+        Assert.Null(repeat.SmallGroupLog);
+    }
+}
