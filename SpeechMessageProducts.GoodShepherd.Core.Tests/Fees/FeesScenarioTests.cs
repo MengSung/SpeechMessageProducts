@@ -4,6 +4,7 @@
  * scenarios／expected，不手造 legacy.json，不執行退役 DLL 或真網路。
  * 主要流程：六案依舊分派執行真 Core 與共用通知入口，完整比較通知摘要、數量、
  * 正式 retry ID 與錯誤型別；對正常及時區邊界另外逐字比對人工審閱的通知全文。
+ * 另以固定具名測試分別鎖住二次讀取教會變動、未綁定與同事件重跑的通知身分契約。
  * 資源與隔離：每案 using 獨占 SDK 與 sink，故障必須保留原實例、無真寫入；
  * owner 在同步 Task 排空後清除來源、回呼與摘要。無秘密、Session、Timer 或
  * 背景資源；這是離線規則證據，不代表舊程式實跑或實機影子差異零。
@@ -64,6 +65,58 @@ public sealed class FeesScenarioTests
                 Assert.Equal((string?)contract["outputs"]!["Text"], text);
             }
         }
+    }
+
+    /// <summary>
+    /// 注入會友第二次讀取時教會變動；正式共用入口必須正常拒絕，零推播且零寫入。
+    /// 當案 SDK 與 sink 在同步通知排空後由 using 清除，不跨案例保存原收件者。
+    /// </summary>
+    [Fact]
+    public async Task Fees_RecipientOtherChurch_NoPush()
+    {
+        using var sdk = new FeesGoldenFixture(FeesGoldenFixture.Read("scenarios")["cases"]![5]!);
+        await FeeNotificationService.RecordAsync(sdk, FeesGoldenFixture.Id("record"),
+            FeesGoldenFixture.Id("organization"), sdk, CancellationToken.None);
+        Assert.Empty(sdk.Calls);
+        Assert.Equal(0, sdk.WriteAttempts);
+        Assert.True(sdk.Reads > 0);
+    }
+
+    /// <summary>
+    /// 固定未綁定情境不得拋錯、解密或推播；替身拒絕所有 token 欄位及寫入。
+    /// 當案 owner 在等待真 Core 通知入口完成後釋放所有合成資料。
+    /// </summary>
+    [Fact]
+    public async Task Fees_NotBound_NoPushNoThrow()
+    {
+        using var sdk = new FeesGoldenFixture(FeesGoldenFixture.Read("scenarios")["cases"]![2]!);
+        await FeeNotificationService.RecordAsync(sdk, FeesGoldenFixture.Id("record"),
+            FeesGoldenFixture.Id("organization"), sdk, CancellationToken.None);
+        Assert.Empty(sdk.Calls);
+        Assert.Equal(0, sdk.WriteAttempts);
+        Assert.True(sdk.Reads > 0);
+    }
+
+    /// <summary>
+    /// 同一正式 fee 事件以兩個獨立 owner 重跑，兩次均須記錄一個相同 retry ID 的完整意圖。
+    /// sink 會驗證實際傳入的 fee GUID；此測試只證明身分穩定，不冒稱 LINE 去重或送達。
+    /// </summary>
+    [Fact]
+    public async Task Fees_RetryKey_IsStableForSameEvent()
+    {
+        var scenario = FeesGoldenFixture.Read("scenarios")["cases"]![0]!;
+        using var first = new FeesGoldenFixture(scenario);
+        using var second = new FeesGoldenFixture(scenario);
+        await FeeNotificationService.RecordAsync(first, FeesGoldenFixture.Id("record"),
+            FeesGoldenFixture.Id("organization"), first, CancellationToken.None);
+        await FeeNotificationService.RecordAsync(second, FeesGoldenFixture.Id("record"),
+            FeesGoldenFixture.Id("organization"), second, CancellationToken.None);
+        var firstCall = Assert.Single(first.Calls);
+        var secondCall = Assert.Single(second.Calls);
+        Assert.Equal("record", (string?)firstCall["shadow"]!["retryKey"]);
+        Assert.True(JToken.DeepEquals(firstCall, secondCall));
+        Assert.Equal(0, first.WriteAttempts);
+        Assert.Equal(0, second.WriteAttempts);
     }
 
     /// <summary>只回傳當次文字 scope 的空覆寫，測試無需快取或外部設定。</summary>

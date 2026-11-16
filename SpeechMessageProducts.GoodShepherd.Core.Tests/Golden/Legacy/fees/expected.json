@@ -113,6 +113,41 @@
     },
     {
       "case": "notify-defaults-timezone",
+      "position": "$.cases[1].lineCalls",
+      "category": 5,
+      "reason": "05A §4A 收件者隔離與 P5-PROP-006：FeePushLineWorkflowUtility.cs:186-254、293-311、402-470。Live 查詢前拒絕；Shadow 以共用入口核對教會／綁定、使用伺服器 sender，完全不讀 token。舊來源空 token 會用寫死正式 token，依修訂 2 不執行。",
+      "test": "Fees_ShadowMode_MatchesExpected"
+    },
+    {
+      "case": "notify-unbound",
+      "position": "$.cases[2].lineCalls",
+      "category": 5,
+      "reason": "05A §4A 收件者隔離與 P5-PROP-006：FeePushLineWorkflowUtility.cs:186-254、293-311、402-470。Live 查詢前拒絕；Shadow 以共用入口核對教會／綁定、使用伺服器 sender，完全不讀 token。舊來源空 token 會用寫死正式 token，依修訂 2 不執行。",
+      "test": "Fees_ShadowMode_MatchesExpected"
+    },
+    {
+      "case": "notify-read-failure",
+      "position": "$.cases[3].lineCalls",
+      "category": 5,
+      "reason": "05A §4A 收件者隔離與 P5-PROP-006：FeePushLineWorkflowUtility.cs:186-254、293-311、402-470。Live 查詢前拒絕；Shadow 以共用入口核對教會／綁定、使用伺服器 sender，完全不讀 token。舊來源空 token 會用寫死正式 token，依修訂 2 不執行。",
+      "test": "Fees_ShadowMode_MatchesExpected"
+    },
+    {
+      "case": "notify-create-noop",
+      "position": "$.cases[4].lineCalls",
+      "category": 5,
+      "reason": "05A §4A 收件者隔離與 P5-PROP-006：FeePushLineWorkflowUtility.cs:186-254、293-311、402-470。Live 查詢前拒絕；Shadow 以共用入口核對教會／綁定、使用伺服器 sender，完全不讀 token。舊來源空 token 會用寫死正式 token，依修訂 2 不執行。",
+      "test": "Fees_ShadowMode_MatchesExpected"
+    },
+    {
+      "case": "notify-church-changed",
+      "position": "$.cases[5].lineCalls",
+      "category": 5,
+      "reason": "05A §4A 收件者隔離與 P5-PROP-006：FeePushLineWorkflowUtility.cs:186-254、293-311、402-470。Live 查詢前拒絕；Shadow 以共用入口核對教會／綁定、使用伺服器 sender，完全不讀 token。舊來源空 token 會用寫死正式 token，依修訂 2 不執行。",
+      "test": "Fees_ShadowMode_MatchesExpected"
+    },
+    {
+      "case": "notify-defaults-timezone",
       "position": "$.cases[1].outputs.Text",
       "category": 4,
       "reason": "FeePushLineWorkflowUtility.cs:306 使用伺服器本地時間；改用 fee→contact→account 的教會時區。台北情境逐字保留；未知類別／付款方式與 Convert.ToInt32(decimal) 中點取偶數照舊。",
