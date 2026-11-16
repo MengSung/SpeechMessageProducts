@@ -1,0 +1,28 @@
+{
+  "id": "integration-p6",
+  "name": "integration-p6",
+  "title": "階段 6 ChurchReport 改用共用層",
+  "description": "依 06A 固定順序完成七包、頁面驗收與一次階段審查；起點 9b7ac0a0，完成後停止，不啟動 P7。",
+  "status": "in_progress",
+  "dev_type": null,
+  "scope": null,
+  "package": null,
+  "priority": "P2",
+  "creator": "Codex",
+  "assignee": "Codex",
+  "createdAt": "2026-11-16",
+  "completedAt": null,
+  "branch": null,
+  "base_branch": "1.0.0.11.Integration.P6.Worktree",
+  "worktree_path": null,
+  "commit": null,
+  "pr_url": null,
+  "subtasks": [],
+  "children": [
+    "11-16-p6-00-startup-preflight"
+  ],
+  "parent": null,
+  "relatedFiles": [],
+  "notes": "",
+  "meta": {}
+}

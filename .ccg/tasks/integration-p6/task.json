@@ -1,0 +1,12 @@
+{
+  "id": "integration-p6",
+  "title": "階段 6 ChurchReport 改用共用層",
+  "status": "in_progress",
+  "complexity": "L",
+  "risk": "high",
+  "domain": "backend",
+  "currentPhase": "implementation",
+  "nextAction": "2026-11-16 18:44 Asia/Taipei (UTC+08:00)：P6-00 收尾後執行 P6-06，依 06A 固定順序；D34 待使用者核定，不做頁面簽到或 LINE 實測。",
+  "createdAt": "2026-11-16T18:40:57+08:00",
+  "branch": "1.0.0.11.Integration.P6.Worktree"
+}

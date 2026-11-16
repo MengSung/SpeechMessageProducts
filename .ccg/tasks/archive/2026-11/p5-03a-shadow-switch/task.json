@@ -1,0 +1,13 @@
+{
+  "id": "p5-03a-shadow-switch",
+  "title": "P5-03a 部署清單與影子切換",
+  "status": "completed",
+  "complexity": "L",
+  "risk": "high",
+  "domain": "backend",
+  "currentPhase": "completed",
+  "nextAction": "2026-11-16 18:40 Asia/Taipei (UTC+08:00)：P6-00 依進度 DATA 與封存 P5 回報確認已驗收，修正殘留掛鉤狀態並封存，不重做 P5。",
+  "createdAt": "2026-11-14T19:28:56+08:00",
+  "branch": "1.0.0.11.Integration.P5.Worktree",
+  "completedAt": "2026-11-16T18:40:57+08:00"
+}

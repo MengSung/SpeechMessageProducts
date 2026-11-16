@@ -240,11 +240,11 @@ footer{margin-top:36px;color:var(--muted);font-size:12.5px;text-align:center}
  */
 const DATA = {
   "planVersion": "3.5",
-  "snapshot": "2026-11-16 16:35 Asia/Taipei (UTC+08:00)",
-  "lastUpdated": "2026-11-16T16:35:17+08:00",
-  "branch": "1.0.0.11.Integration.P5.Worktree",
-  "head": "558aa647",
-  "headline": "2026-11-16 16:35 Asia/Taipei (UTC+08:00)：階段5審查與總回報完成；13包全done。16:32當時DATA head 558aa647與git ls-remote相符；封存紀錄final CRLF已補。SDK 10.0.403已解析，使用者確認Visual Studio無錯誤；外審只有Claude輸出，不是雙模型完成或有效降級；未發現可重現Critical／High，兩項Medium列後續。reading／simulation、live=deferred、differences=null；不啟動P6。",
+  "snapshot": "2026-11-16 18:44 Asia/Taipei (UTC+08:00)",
+  "lastUpdated": "2026-11-16T18:44:20+08:00",
+  "branch": "1.0.0.11.Integration.P6.Worktree",
+  "head": "9b7ac0a0",
+  "headline": "2026-11-16 18:44 Asia/Taipei (UTC+08:00)：P6-00 開工切換完成；七包仍待驗收，接 P6-06。D34 連續失敗已停止並待替代方式核定，不影響離線包；不啟動 P7。",
   "notices": [
     {
       "id": "plan-3.5-summary",
@@ -586,6 +586,21 @@ const DATA = {
         "2026-11-16 16:32 Asia/Taipei (UTC+08:00)：校正DATA head為更新當時本機HEAD 558aa647，並以git ls-remote確認相符；階段總回報同步列出此遠端SHA收據。封存的兩個task.json及journal index補final CRLF，JSON解析、進度頁28/28與文件檢查通過；本筆僅為階段紀錄修正，不啟動P6。",
         "2026-11-16 16:35 Asia/Taipei (UTC+08:00)：使用者確認global.json指定SDK缺失已解除，Visual Studio沒有顯示錯誤；收尾驗證與提交依序進行，不啟動P6。"
       ]
+    },
+    {
+      "id": "phase-6-summary",
+      "phaseId": "階段 6",
+      "level": "info",
+      "title": "P6 進度摘要",
+      "lastUpdated": "2026-11-16T18:44:20+08:00",
+      "body": "2026-11-16 18:44 Asia/Taipei (UTC+08:00)：P6-00 開工切換完成；七包仍待驗收，接 P6-06。D34 連續失敗已停止並待替代方式核定，不影響離線包；不啟動 P7。",
+      "steps": [
+        "2026-11-16 18:40 Asia/Taipei (UTC+08:00)：完整讀取四份依據，核對分支、起點與七包 todo；建立父任務，保存四個基準數字，納入原樣 06A。",
+        "2026-11-16 18:40 Asia/Taipei (UTC+08:00)：三個 P5 殘留任務依既有驗收證據封存；330 筆 C:/smv 舊工具及原始證據保留移出，C:/smv 僅留 guard。",
+        "2026-11-16 18:40 Asia/Taipei (UTC+08:00)：goodshepherdback verify=0、新步驟 22 個皆停用、舊步驟及舊流程啟用 0；Development 首頁 HTTP 200，Node／Edge／repo 外 playwright-core 可用。",
+        "2026-11-16 18:40 Asia/Taipei (UTC+08:00)：D34 PowerShell／SDK 唯讀探針兩次程序崩潰，已停止重試並請使用者核定改用獨立程序；尚未完成 D34 當下核對，不做頁面簽到或真實推播。離線包繼續。",
+        "2026-11-16 18:44 Asia/Taipei (UTC+08:00)：AGENTS、DATA、原樣 06A、父任務與前置清單完成；輕量三項通過（編碼 19、文件 1747、進度頁 28），本包不推送。D34 未完成，如實登錄。"
+      ]
     }
   ],
   "userActions": [
@@ -718,8 +733,7 @@ const DATA = {
       "id": "階段 5",
       "name": "Plugin／Workflow 重建（36 個 DLL → 2 個）",
       "planned": "8～12 個工作天",
-      "actual": "2026-11-16 16:35 Asia/Taipei (UTC+08:00)：階段5審查與總回報完成；13包全done。16:32當時DATA head 558aa647且git ls-remote相符；封存紀錄final CRLF已補。SDK 10.0.403已解析，使用者確認Visual Studio無錯誤；唯一外審非雙模型完成（Claude有輸出、Gemini服務端錯誤），未發現可重現Critical／High；兩項Medium記入後續。基準reading／simulation、live=deferred、differences=null；不啟動P6。",
-      "current": true,
+      "actual": "2026-11-14～2026-11-16：13 包與階段審查完成；詳細證據及實機延後界線保留於 P5 摘要。",
       "done": 13,
       "active": 0
     },
@@ -727,7 +741,10 @@ const DATA = {
       "id": "階段 6",
       "name": "ChurchReport 改用共用層",
       "planned": "3～4 個工作天",
-      "actual": ""
+      "actual": "2026-11-16 18:44 Asia/Taipei (UTC+08:00)：P6-00 完成；七包尚未驗收，下一包 P6-06。",
+      "current": true,
+      "done": 0,
+      "active": 0
     },
     {
       "id": "階段 7",
@@ -1808,6 +1825,20 @@ const DATA = {
       "name": "階段5唯一審查與提案一次交付",
       "status": "done",
       "note": "2026-11-16 15:43 Asia/Taipei (UTC+08:00)：階段報告及處置紀錄完成；唯一外部審查摘要dualModelComplete=false、degradedFallback=false（Claude有輸出，Gemini服務端錯誤），因此不宣稱雙模型或單模型降級成功。未發現可重現Critical／High；M1部署順序與M2漏窗記入後續。進度頁28項與文件1747檔通過；不啟動P6。"
+    },
+    {
+      "id": "P6-00",
+      "phaseId": "階段 6",
+      "name": "階段 6 開工切換與前置缺項檢查",
+      "status": "done",
+      "note": "2026-11-16 18:44 Asia/Taipei (UTC+08:00)：AGENTS、DATA、原樣 06A、父任務與前置清單完成；輕量三項通過（編碼 19、文件 1747、進度頁 28），本包不推送。D34 未完成，如實登錄。"
+    },
+    {
+      "id": "M-P6-PAGE",
+      "phaseId": "階段 6",
+      "name": "階段 6 頁面驗收",
+      "status": "todo",
+      "note": "2026-11-16 18:40 Asia/Taipei (UTC+08:00)：依 06A §6A 四情境前後比對；D34 未確認前不執行簽到，D6-15 退路如實揭露。"
     }
   ],
   "active": [],
@@ -1975,6 +2006,30 @@ const DATA = {
       "text": "FailureSummaryWorker 讀取封閉窗口失敗時本次程序不重試該窗口；記錄為已知漏報限制，後續核定是否只在成功讀取後推進窗口。",
       "source": "P5 階段唯一外部審查 Medium M2",
       "addedAt": "2026-11-16 15:43 Asia/Taipei (UTC+08:00)"
+    },
+    {
+      "id": "P6-LATER-001",
+      "text": "2026-11-16 18:40 Asia/Taipei (UTC+08:00)：Microsoft.AspNet.WebApi.Client 是否仍需要，P6-06 只記使用次數、不移除套件。",
+      "source": "06A §9",
+      "addedAt": "2026-11-16 18:40 Asia/Taipei (UTC+08:00)"
+    },
+    {
+      "id": "P6-LATER-002",
+      "text": "2026-11-16 18:40 Asia/Taipei (UTC+08:00)：ChurchReport 其他 Obsolete 成員及 P6-03 保留的未使用公開建構式參數，留 P8-05。",
+      "source": "06A §9",
+      "addedAt": "2026-11-16 18:40 Asia/Taipei (UTC+08:00)"
+    },
+    {
+      "id": "P6-LATER-003",
+      "text": "2026-11-16 18:40 Asia/Taipei (UTC+08:00)：與共用資源相同但屬顯示文字的 ChurchReport 字串維持原樣，不全面國際化。",
+      "source": "06A §9",
+      "addedAt": "2026-11-16 18:40 Asia/Taipei (UTC+08:00)"
+    },
+    {
+      "id": "P6-LATER-004",
+      "text": "2026-11-16 18:40 Asia/Taipei (UTC+08:00)：本階段遇到的舊錯字與舊用語只記錄，不更動現役網站文字。",
+      "source": "06A §9",
+      "addedAt": "2026-11-16 18:40 Asia/Taipei (UTC+08:00)"
     }
   ],
   "proposals": [
@@ -2240,6 +2295,54 @@ const DATA = {
       "evidence": "2026-11-16 15:09 Asia/Taipei (UTC+08:00)：P5-12只接受from account或contact正式教會；systemuser無權威關聯、非文字與群組拒絕。失敗用取消2/5加固定SMV category/subcategory，不覆寫description或外部category；彙總沒有跨程序／重啟持久去重。",
       "proposal": "P7前核定systemuser來源教會、非文字／群組範圍、SMV類別欄位相容與彙總是否需持久去重；Host推播架構依已核定P5-PROP-006先完成。",
       "impact": "不能宣稱任意QuickCampaign、完整舊外送與跨重啟exactly-once已完成。",
+      "status": "待核定"
+    },
+    {
+      "id": "P6-PROP-001",
+      "problem": "2026-11-16 18:40 Asia/Taipei (UTC+08:00)：週報的建立有兩個寫入者：ChurchReport 依登入者即時建立（主鍵由 D365 產生、以設定檔的每週第一日算星期日），D365 的新活動整批建立（主鍵由固定規則算出、以教會時區算星期日）。兩邊同時運作時，同一個小組同一週可能各建一份（F9）",
+      "evidence": "2026-11-16 18:40 Asia/Taipei (UTC+08:00)：06A §9 原列提案，依 2026-11-16 授權登錄；本階段不修改計畫。",
+      "proposal": "**階段 7 啟用 `WeeklyReportGenerationActivity` 之前**由使用者決定。建議：ChurchReport 改用同一組固定主鍵規則，並把「主鍵重複」當成「已經有了」來處理；需要先確認兩邊算出的星期日一致",
+      "impact": "依 06A 對應工作包實作；3.6 由使用者核定，不提前啟動 P7。",
+      "status": "待核定"
+    },
+    {
+      "id": "P6-PROP-002",
+      "problem": "2026-11-16 18:40 Asia/Taipei (UTC+08:00)：05 檔 P6-03 寫「推給正式會友的改走 `LineMessagingProcessor.Core` 的會友推播」，但 ChurchReport 沒有適用的呼叫點（D6-6）",
+      "evidence": "2026-11-16 18:40 Asia/Taipei (UTC+08:00)：06A §9 原列提案，依 2026-11-16 授權登錄；本階段不修改計畫。",
+      "proposal": "3.6 改成 D6-6；ChurchReport 是否、何時改用 D365 裡加密的 Channel token，另外決定",
+      "impact": "依 06A 對應工作包實作；3.6 由使用者核定，不提前啟動 P7。",
+      "status": "待核定"
+    },
+    {
+      "id": "P6-PROP-003",
+      "problem": "2026-11-16 18:40 Asia/Taipei (UTC+08:00)：00 §3.4 寫「`ToolUtility → SpeechMessage.Hosting` 只為型別轉送，P6-04 一併拿掉」，但這個參考在 P2-07、P2-10 之後已有正式用途（F14）",
+      "evidence": "2026-11-16 18:40 Asia/Taipei (UTC+08:00)：06A §9 原列提案，依 2026-11-16 授權登錄；本階段不修改計畫。",
+      "proposal": "3.6 把這句改成「`ToolUtility` 可以往下參考 `SpeechMessage.Hosting`」",
+      "impact": "依 06A 對應工作包實作；3.6 由使用者核定，不提前啟動 P7。",
+      "status": "待核定"
+    },
+    {
+      "id": "P6-PROP-004",
+      "problem": "2026-11-16 18:40 Asia/Taipei (UTC+08:00)：05 檔 P6-06 的前提（專案仍參考 2.2.x 套件）已經不存在（F15）",
+      "evidence": "2026-11-16 18:40 Asia/Taipei (UTC+08:00)：06A §9 原列提案，依 2026-11-16 授權登錄；本階段不修改計畫。",
+      "proposal": "3.6 改成 D6-10 的實際結果",
+      "impact": "依 06A 對應工作包實作；3.6 由使用者核定，不提前啟動 P7。",
+      "status": "待核定"
+    },
+    {
+      "id": "P6-PROP-005",
+      "problem": "2026-11-16 18:40 Asia/Taipei (UTC+08:00)：05 檔 P6-07 的「允許清單（Controller、ViewModel、序列化契約）」在本檔改成由架構測試以程式判定的四類（§4.4）；清零之後仍有一批型別因為 C# 的存取規則必須公開",
+      "evidence": "2026-11-16 18:40 Asia/Taipei (UTC+08:00)：06A §9 原列提案，依 2026-11-16 授權登錄；本階段不修改計畫。",
+      "proposal": "3.6 改成 §4.4；是否再進一步把服務與模型搬出主機，由使用者決定要不要另開專案",
+      "impact": "依 06A 對應工作包實作；3.6 由使用者核定，不提前啟動 P7。",
+      "status": "待核定"
+    },
+    {
+      "id": "P6-PROP-006",
+      "problem": "2026-11-16 18:40 Asia/Taipei (UTC+08:00)：05 檔寫頁面驗收用 Playwright，但 repo 沒有這個工具，計畫中的工具要到 P8-04 才建立",
+      "evidence": "2026-11-16 18:40 Asia/Taipei (UTC+08:00)：06A §9 原列提案，依 2026-11-16 授權登錄；本階段不修改計畫。",
+      "proposal": "3.6 寫明階段 6 用的是 `tools\\PageAcceptance\\P6\\` 的腳本；P8-04 建立正式工具時決定是否合併",
+      "impact": "依 06A 對應工作包實作；3.6 由使用者核定，不提前啟動 P7。",
       "status": "待核定"
     }
   ],
