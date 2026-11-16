@@ -28,7 +28,7 @@ public sealed class MeetingScanCountService
     /// <summary>重算全部掃描欄位，唯一發布點必須位於完整讀取與驗證之後；SDK 由外殼管理同步期限。</summary>
     /// <param name="service">原授權範圍的借用 SDK，不保存、不 Dispose，也不提升權限。</param>
     /// <param name="meetingId">平台主要會議正式主鍵；仍須由 SDK 權威讀回確認存在與同一身分。</param>
-    [SuppressMessage("Performance", "CA1822:Mark members as static", Justification = "保留供活動外殼呼叫的實例介面；刻意不保存執行狀態。")]
+    [SuppressMessage("Performance", "CA1822:Mark members as static", Justification = "The instance shape is retained for activity-shell compatibility and stores no execution state.")]
     public void Execute(IOrganizationService service, Guid meetingId)
     {
 #if NET10_0_OR_GREATER
