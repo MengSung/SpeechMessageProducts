@@ -1,0 +1,13 @@
+{
+  "id": "p5-13-legacy-disposition",
+  "title": "P5-13 舊專案去向與停用端點契約",
+  "status": "completed",
+  "complexity": "M",
+  "risk": "low",
+  "domain": "backend",
+  "currentPhase": "completed",
+  "nextAction": "收尾輕量guard後推送，接05A§6",
+  "createdAt": "2026-11-16T14:51:39+08:00",
+  "branch": "1.0.0.11.Integration.P5.Worktree",
+  "completedAt": "2026-11-16T15:03:38+08:00"
+}
