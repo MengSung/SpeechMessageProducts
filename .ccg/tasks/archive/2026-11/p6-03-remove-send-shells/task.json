@@ -1,12 +1,12 @@
 {
   "id": "p6-03-remove-send-shells",
   "title": "P6-03 移除送訊相容殼",
-  "status": "in_progress",
+  "status": "completed",
   "complexity": "L",
   "risk": "high",
   "domain": "backend",
-  "currentPhase": "implementation",
-  "nextAction": "依修訂1完成誤用測試紅綠與全產品測試，提交後完整固定guard，驗收推送",
+  "currentPhase": "completed",
+  "nextAction": "已驗收；封存收尾與明確推送核對後接P6-05",
   "createdAt": "2026-11-16T20:24:00+08:00",
   "branch": "1.0.0.11.Integration.P6.Worktree"
 }
