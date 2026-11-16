@@ -1,7 +1,6 @@
 {
   "module": "fees",
   "basis": "reading",
-  "live": "deferred",
   "cases": [
     {
       "name": "notify-normal",
@@ -106,24 +105,24 @@
   ],
   "declaredDifferences": [
     {
-      "case": "*",
-      "position": "$.lineCalls",
+      "case": "notify-normal",
+      "position": "$.cases[0].lineCalls",
       "category": 5,
-      "reason": "05A §4A 收件者隔離與 P5-PROP-006：Live 查詢前拒絕；Shadow 以共用入口核對教會／綁定、使用伺服器 sender，完全不讀 token。舊來源空 token 會用寫死正式 token，依修訂 2 不執行。",
+      "reason": "05A §4A 收件者隔離與 P5-PROP-006：FeePushLineWorkflowUtility.cs:186-254、293-311、402-470。Live 查詢前拒絕；Shadow 以共用入口核對教會／綁定、使用伺服器 sender，完全不讀 token。舊來源空 token 會用寫死正式 token，依修訂 2 不執行。",
       "test": "Fees_ShadowMode_MatchesExpected"
     },
     {
       "case": "notify-defaults-timezone",
-      "position": "$.outputs.Text",
+      "position": "$.cases[1].outputs.Text",
       "category": 4,
       "reason": "FeePushLineWorkflowUtility.cs:306 使用伺服器本地時間；改用 fee→contact→account 的教會時區。台北情境逐字保留；未知類別／付款方式與 Convert.ToInt32(decimal) 中點取偶數照舊。",
       "test": "Fees_Scenarios_MatchExpected"
     },
     {
       "case": "notify-read-failure",
-      "position": "$.exception",
+      "position": "$.cases[3].exception",
       "category": 1,
-      "reason": "保留真例外原實例，避免舊 throw e 重設 stack；不記敏感訊息。",
+      "reason": "FeePushLineWorkflowUtility.cs:186-254、293-311、402-470；保留真例外原實例，避免舊 throw e 重設 stack；不記敏感訊息。",
       "test": "Fees_UnexpectedError_Rethrown"
     }
   ]
