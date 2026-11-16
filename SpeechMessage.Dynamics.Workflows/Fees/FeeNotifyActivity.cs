@@ -28,6 +28,8 @@ namespace SpeechMessage.Dynamics.Workflows.Fees;
 /// <summary>繳費通知外殼；Live 依核定缺口拒絕，Shadow 記錄安全意圖。</summary>
 public sealed class FeeNotifyActivity : ActivityShellBase
 {
+    private const string TemplateKey = "Fees.FeeNotify";
+
     /// <summary>保留舊活動輸入名稱；不作為資料授權或訊息內容。</summary>
     [Input("InputParameter")]
     public InArgument<string> InputParameter { get; set; } = new();
@@ -47,9 +49,20 @@ public sealed class FeeNotifyActivity : ActivityShellBase
                 "P5-PROP-006: Fee notification Live delivery is not implemented.");
 
         var contactId = FeeAllotTaskService.ResolveContactId(services.Organization, input.PrimaryEntityId);
+        services.ShadowPush!.Record(contactId, TemplateKey, RetryKey(input.PrimaryEntityId), 1, ContentSha256());
+    }
+
+    /// <summary>通知重試鍵固定使用伺服器提供的收費單正式 ID，不以會友或活動實例取代。</summary>
+    internal static Guid RetryKey(Guid feeId) =>
+        feeId == Guid.Empty ? throw new ArgumentException("A fee identity is required.", nameof(feeId)) : feeId;
+
+    /// <summary>
+    /// 以舊通知範本識別建立不含訊息原文的摘要；Shadow 只保存摘要，不保存 token、LINE ID 或個資。
+    /// </summary>
+    internal static string ContentSha256()
+    {
         using var hash = SHA256.Create();
-        var digest = BitConverter.ToString(hash.ComputeHash(
-            System.Text.Encoding.UTF8.GetBytes("Fees.FeeNotify"))).Replace("-", string.Empty).ToLowerInvariant();
-        services.ShadowPush!.Record(contactId, "Fees.FeeNotify", input.PrimaryEntityId, 1, digest);
+        return BitConverter.ToString(hash.ComputeHash(
+            System.Text.Encoding.UTF8.GetBytes(TemplateKey))).Replace("-", string.Empty).ToLowerInvariant();
     }
 }
