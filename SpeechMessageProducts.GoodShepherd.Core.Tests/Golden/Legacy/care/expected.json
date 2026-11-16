@@ -1,0 +1,25 @@
+{
+  "basis": "reading",
+  "declaredDifferences": [
+    "DateTime.Now is replaced by the authorized church-local date supplied by the activity adapter.",
+    "The old external LINE path was not reachable from the two anniversary entry points and is not recreated."
+  ],
+  "cases": [
+    {
+      "name": "birthday-local-today",
+      "result": "fields-match-reading"
+    },
+    {
+      "name": "birthday-unknown-sentinel",
+      "result": "fields-match-reading"
+    },
+    {
+      "name": "onboarding-special-leave",
+      "result": "fields-match-reading"
+    },
+    {
+      "name": "february-29-non-leap-target",
+      "result": "legacy-date-construction-error-preserved"
+    }
+  ]
+}
