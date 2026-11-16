@@ -1,0 +1,12 @@
+{
+  "id": "p5-13-legacy-disposition",
+  "title": "P5-13 舊專案去向與停用端點契約",
+  "status": "in_progress",
+  "complexity": "M",
+  "risk": "low",
+  "domain": "backend",
+  "currentPhase": "implementation",
+  "nextAction": "四同名契約先紅後綠；不連D365",
+  "createdAt": "2026-11-16T14:51:39+08:00",
+  "branch": "1.0.0.11.Integration.P5.Worktree"
+}

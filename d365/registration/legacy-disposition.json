@@ -1,0 +1,600 @@
+{
+  "schemaVersion": 1,
+  "basis": "reading",
+  "projects": [
+    {
+      "project": "AllotPlugIn",
+      "projectFile": "AllotPlugIn.csproj",
+      "disposition": "ported",
+      "sourceTypes": [
+        "AllotPlugIn.AllotPlugIn"
+      ],
+      "targets": [
+        "SpeechMessage.Dynamics.Plugins.Fees.FeeAllotPlugin"
+      ],
+      "registrationLegacy": [],
+      "reason": "P5-11盤點；舊匯出未見該步驟，legacy留空不猜ID；每日撥款待辦承接，Host負責狀態回寫。"
+    },
+    {
+      "project": "AllotTlsWorkflow",
+      "projectFile": "AllotTlsWorkflow.csproj",
+      "disposition": "ported",
+      "sourceTypes": [
+        "AllotTlsWorkflow.AllotTlsWorkflowClass"
+      ],
+      "targets": [
+        "SpeechMessage.Dynamics.Workflows.Fees.FeeAllotActivity"
+      ],
+      "registrationLegacy": [
+        {
+          "target": "SpeechMessage.Dynamics.Workflows.Fees.FeeAllotActivity",
+          "assembly": "AllotTlsWorkflow",
+          "type": "AllotTlsWorkflow.AllotTlsWorkflowClass"
+        }
+      ],
+      "reason": "對照現行註冊legacy的assembly／type；基準reading／simulation，live=deferred，不代表實機相容完成。"
+    },
+    {
+      "project": "AllotWorkflow",
+      "projectFile": "AllotWorkflow.csproj",
+      "disposition": "ported",
+      "sourceTypes": [
+        "AllotWorkflow.AllotWorkflowClass"
+      ],
+      "targets": [
+        "SpeechMessage.Dynamics.Workflows.Fees.FeeAllotActivity"
+      ],
+      "registrationLegacy": [
+        {
+          "target": "SpeechMessage.Dynamics.Workflows.Fees.FeeAllotActivity",
+          "assembly": "AllotWorkflow",
+          "type": "AllotWorkflow.AllotWorkflowClass"
+        }
+      ],
+      "reason": "對照現行註冊legacy的assembly／type；基準reading／simulation，live=deferred，不代表實機相容完成。"
+    },
+    {
+      "project": "AppointmentPlugIn",
+      "projectFile": "AppointmentPlugIn.csproj",
+      "disposition": "ported",
+      "sourceTypes": [
+        "AppointmentPlugIn.AppointmentPlugIn"
+      ],
+      "targets": [
+        "SpeechMessage.Dynamics.Plugins.Appointments.AppointmentPlugin"
+      ],
+      "registrationLegacy": [
+        {
+          "target": "SpeechMessage.Dynamics.Plugins.Appointments.AppointmentPlugin",
+          "assembly": "AppointmentPlugIn",
+          "type": "AppointmentPlugIn.AppointmentPlugIn"
+        }
+      ],
+      "reason": "對照現行註冊legacy的assembly／type；基準reading／simulation，live=deferred，不代表實機相容完成。"
+    },
+    {
+      "project": "AppointmentSigning",
+      "projectFile": "AppointmentSigning.csproj",
+      "disposition": "not-ported",
+      "sourceTypes": [
+        "AppointmentSigning.AppointmentSigningWorkflow"
+      ],
+      "targets": [],
+      "registrationLegacy": [],
+      "reason": "P5-08確認實際Execute為description改寫與固定帳號診斷推播，未呼叫SigningLibrary；不映射為等價簽核活動。"
+    },
+    {
+      "project": "AppointmentSigningLibrary",
+      "projectFile": "AppointmentSigningLibrary.csproj",
+      "disposition": "library",
+      "sourceTypes": [],
+      "targets": [
+        "SpeechMessageProducts.GoodShepherd.Core/Appointments",
+        "ToolUtility.Core/AppointmentOperations"
+      ],
+      "registrationLegacy": [],
+      "reason": "簽核訊息、分派及年度休假查詢拆入Core規則與ToolUtility.Core；平台適配歸D365外殼，不搬寫死token與固定通知副作用。"
+    },
+    {
+      "project": "AppointmentWorkflow",
+      "projectFile": "AppointmentWorkflow.csproj",
+      "disposition": "ported",
+      "sourceTypes": [
+        "AppointmentWorkflow.AppointmentWorkflowPlugin"
+      ],
+      "targets": [
+        "SpeechMessage.Dynamics.Workflows.Appointments.AppointmentSigningActivity"
+      ],
+      "registrationLegacy": [
+        {
+          "target": "SpeechMessage.Dynamics.Workflows.Appointments.AppointmentSigningActivity",
+          "assembly": "AppointmentWorkflow",
+          "type": "AppointmentWorkflow.AppointmentWorkflowPlugin"
+        }
+      ],
+      "reason": "對照現行註冊legacy的assembly／type；基準reading／simulation，live=deferred，不代表實機相容完成。"
+    },
+    {
+      "project": "CalculateQrCodeScanNumberWorkflow",
+      "projectFile": "CalculateQrCodeScanNumberWorkflow.csproj",
+      "disposition": "ported",
+      "sourceTypes": [
+        "CalculateQrCodeScanNumberWorkflow.CalculateQrCodeScanNumberWorkflow"
+      ],
+      "targets": [
+        "SpeechMessage.Dynamics.Workflows.QrCodes.MeetingScanCountActivity"
+      ],
+      "registrationLegacy": [
+        {
+          "target": "SpeechMessage.Dynamics.Workflows.QrCodes.MeetingScanCountActivity",
+          "assembly": "CalculateQrCodeScanNumberWorkflow",
+          "type": "CalculateQrCodeScanNumberWorkflow.CalculateQrCodeScanNumberWorkflow"
+        }
+      ],
+      "reason": "對照現行註冊legacy的assembly／type；基準reading／simulation，live=deferred，不代表實機相容完成。"
+    },
+    {
+      "project": "DiscipleLessonsPluIn",
+      "projectFile": "DiscipleLessonsPluIn.csproj",
+      "disposition": "ported",
+      "sourceTypes": [
+        "DiscipleLessonsPluIn.DiscipleLessonsPluIn"
+      ],
+      "targets": [
+        "SpeechMessage.Dynamics.Plugins.Lessons.LessonLinkPlugin"
+      ],
+      "registrationLegacy": [
+        {
+          "target": "SpeechMessage.Dynamics.Plugins.Lessons.LessonLinkPlugin",
+          "assembly": "DiscipleLessonsPluIn",
+          "type": "DiscipleLessonsPluIn.DiscipleLessonsPluIn"
+        }
+      ],
+      "reason": "對照現行註冊legacy的assembly／type；基準reading／simulation，live=deferred，不代表實機相容完成。"
+    },
+    {
+      "project": "EquipmentWorkflow",
+      "projectFile": "EquipmentWorkflow.csproj",
+      "disposition": "ported",
+      "sourceTypes": [
+        "EquipmentWorkflow.EquipmentWorkflowClass"
+      ],
+      "targets": [
+        "SpeechMessage.Dynamics.Workflows.Lessons.EquipmentStatusActivity"
+      ],
+      "registrationLegacy": [
+        {
+          "target": "SpeechMessage.Dynamics.Workflows.Lessons.EquipmentStatusActivity",
+          "assembly": "EquipmentWorkflow",
+          "type": "EquipmentWorkflow.EquipmentWorkflowClass"
+        }
+      ],
+      "reason": "對照現行註冊legacy的assembly／type；基準reading／simulation，live=deferred，不代表實機相容完成。"
+    },
+    {
+      "project": "ExampleWorkflow",
+      "projectFile": "ExampleWorkflow.csproj",
+      "disposition": "not-ported",
+      "sourceTypes": [
+        "ExampleWorkflow.ExampleWorkflowClass"
+      ],
+      "targets": [],
+      "registrationLegacy": [],
+      "reason": "舊工作流程示例，不是正式業務入口；依05A不移植，保留原始來源供歷史查閱。"
+    },
+    {
+      "project": "FeePushLineWorkflow",
+      "projectFile": "FeePushLineWorkflow.csproj",
+      "disposition": "ported",
+      "sourceTypes": [
+        "FeePushLineWorkflow.FeePushLineWorkflowClass"
+      ],
+      "targets": [
+        "SpeechMessage.Dynamics.Workflows.Fees.FeeNotifyActivity"
+      ],
+      "registrationLegacy": [
+        {
+          "target": "SpeechMessage.Dynamics.Workflows.Fees.FeeNotifyActivity",
+          "assembly": "FeePushLineWorkflow",
+          "type": "FeePushLineWorkflow.FeePushLineWorkflowClass"
+        }
+      ],
+      "reason": "對照現行註冊legacy的assembly／type；基準reading／simulation，live=deferred，不代表實機相容完成。"
+    },
+    {
+      "project": "HappyBirthdayWorkflow",
+      "projectFile": "HappyBirthdayWorkflow.csproj",
+      "disposition": "ported",
+      "sourceTypes": [
+        "HappyBirthdayWorkflowNamespace.HappyBirthdayWorkflowPlugIn"
+      ],
+      "targets": [
+        "SpeechMessage.Dynamics.Workflows.Care.ContactAnniversaryActivity"
+      ],
+      "registrationLegacy": [
+        {
+          "target": "SpeechMessage.Dynamics.Workflows.Care.ContactAnniversaryActivity",
+          "assembly": "HappyBirthdayWorkflow",
+          "type": "HappyBirthdayWorkflowNamespace.HappyBirthdayWorkflowPlugIn"
+        }
+      ],
+      "reason": "對照現行註冊legacy的assembly／type；基準reading／simulation，live=deferred，不代表實機相容完成。"
+    },
+    {
+      "project": "Line.Messaging",
+      "projectFile": "Line.Messaging.csproj",
+      "disposition": "library",
+      "sourceTypes": [],
+      "targets": [
+        "Line.Messaging"
+      ],
+      "registrationLegacy": [],
+      "reason": "既有SDK保留為正式雙目標共用專案，Plugin只用核定子集；不是新增另一份舊DLL。"
+    },
+    {
+      "project": "LineMessagePlugIn",
+      "projectFile": "LineMessagePlugIn.csproj",
+      "disposition": "ported",
+      "sourceTypes": [
+        "LineMessagePlugIn.LineMessagePlugIn"
+      ],
+      "targets": [
+        "SpeechMessage.Dynamics.Plugins.Messaging.OutboundLetterPlugin"
+      ],
+      "registrationLegacy": [
+        {
+          "target": "SpeechMessage.Dynamics.Plugins.Messaging.OutboundLetterPlugin",
+          "assembly": "AbundanceLineMessagePlugIn",
+          "type": "LineMessagePlugIn.LineMessagePlugIn"
+        },
+        {
+          "target": "SpeechMessage.Dynamics.Plugins.Messaging.OutboundLetterPlugin",
+          "assembly": "AbundanceLineMessagePlugInDatabase",
+          "type": "LineMessagePlugIn.LineMessagePlugIn"
+        }
+      ],
+      "reason": "對照現行註冊legacy的assembly／type；基準reading／simulation，live=deferred，不代表實機相容完成。 僅外送文字活動承接；23檔入站功能缺口與非文字／群組限制見P5-12-inventory，階段末待核定。"
+    },
+    {
+      "project": "LineNotifyLibrary",
+      "projectFile": "Line.NotifyBot.csproj",
+      "disposition": "not-ported",
+      "sourceTypes": [],
+      "targets": [],
+      "registrationLegacy": [],
+      "reason": "專案名Line.NotifyBot，LINE Notify已退役；不移植、不以Messaging API冒稱相同訂閱能力。"
+    },
+    {
+      "project": "LineUtility",
+      "projectFile": "LineUtility.csproj",
+      "disposition": "library",
+      "sourceTypes": [],
+      "targets": [
+        "LineMessagingProcessor.Core",
+        "SpeechMessageProducts.GoodShepherd.Core",
+        "SpeechMessage.Localization"
+      ],
+      "registrationLegacy": [],
+      "reason": "推播、sender及語系能力分層承接；不搬舊token fallback、固定LINE ID及靜態profile，不能宣稱整個舊Utility逐行相容。"
+    },
+    {
+      "project": "NewPersonCareWorkflow",
+      "projectFile": "NewPersonCareWorkflow.csproj",
+      "disposition": "ported",
+      "sourceTypes": [
+        "NewPersonCareWorkflow.NewPersonCareWorkflowClass"
+      ],
+      "targets": [
+        "SpeechMessage.Dynamics.Workflows.Care.NewPersonCareActivity"
+      ],
+      "registrationLegacy": [
+        {
+          "target": "SpeechMessage.Dynamics.Workflows.Care.NewPersonCareActivity",
+          "assembly": "NewPersonCareWorkflow",
+          "type": "NewPersonCareWorkflow.NewPersonCareWorkflowClass"
+        }
+      ],
+      "reason": "對照現行註冊legacy的assembly／type；基準reading／simulation，live=deferred，不代表實機相容完成。"
+    },
+    {
+      "project": "NewPersonCareWorkflow-ForDebug",
+      "projectFile": "NewPersonCareWorkflow-ForDebug.csproj",
+      "disposition": "not-ported",
+      "sourceTypes": [
+        "NewPersonCareWorkflow.NewPersonCareWorkflowClass"
+      ],
+      "targets": [],
+      "registrationLegacy": [],
+      "reason": "僅除錯副本，正式NewPersonCareWorkflow由Care活動承接；不搬診斷副作用。"
+    },
+    {
+      "project": "PersonalQrCodeWorkflow",
+      "projectFile": "PersonalQrCodeWorkflow.csproj",
+      "disposition": "ported",
+      "sourceTypes": [
+        "PersonalQrCodeWorkflow.PersonalQrCodeWorkflowClass"
+      ],
+      "targets": [
+        "SpeechMessage.Dynamics.Workflows.QrCodes.PersonalQrCodeActivity"
+      ],
+      "registrationLegacy": [
+        {
+          "target": "SpeechMessage.Dynamics.Workflows.QrCodes.PersonalQrCodeActivity",
+          "assembly": "PersonalQrCodeWorkflow",
+          "type": "PersonalQrCodeWorkflow.PersonalQrCodeWorkflowClass"
+        }
+      ],
+      "reason": "對照現行註冊legacy的assembly／type；基準reading／simulation，live=deferred，不代表實機相容完成。"
+    },
+    {
+      "project": "PresentRecordLinePlugIn",
+      "projectFile": "PresentRecordLinePlugIn.csproj",
+      "disposition": "ported",
+      "sourceTypes": [
+        "PresentRecordLinePlugIn.PresentRecordLinePlugIn"
+      ],
+      "targets": [
+        "SpeechMessage.Dynamics.Plugins.Attendance.PresentRecordPlugin"
+      ],
+      "registrationLegacy": [
+        {
+          "target": "SpeechMessage.Dynamics.Plugins.Attendance.PresentRecordPlugin",
+          "assembly": "PresentRecordLinePlugInDatabase",
+          "type": "PresentRecordLinePlugIn.PresentRecordLinePlugIn"
+        }
+      ],
+      "reason": "對照現行註冊legacy的assembly／type；基準reading／simulation，live=deferred，不代表實機相容完成。 部署組件名為PresentRecordLinePlugInDatabase；reading，P7-02補驗。"
+    },
+    {
+      "project": "QrCodeWorkflow",
+      "projectFile": "QrCodeWorkflow.csproj",
+      "disposition": "ported",
+      "sourceTypes": [
+        "QrCodeWorkflow.QrCodeWorkflow"
+      ],
+      "targets": [
+        "SpeechMessage.Dynamics.Workflows.Lessons.LessonQrCodeActivity"
+      ],
+      "registrationLegacy": [
+        {
+          "target": "SpeechMessage.Dynamics.Workflows.Lessons.LessonQrCodeActivity",
+          "assembly": "QrCodeWorkflow",
+          "type": "QrCodeWorkflow.QrCodeWorkflow"
+        }
+      ],
+      "reason": "對照現行註冊legacy的assembly／type；基準reading／simulation，live=deferred，不代表實機相容完成。"
+    },
+    {
+      "project": "RecursiveWorkflow",
+      "projectFile": "RecursiveWorkflow.csproj",
+      "disposition": "ported",
+      "sourceTypes": [
+        "RecursiveWorkflowNameSpace.RecursiveWorkflowPlugIn"
+      ],
+      "targets": [
+        "SpeechMessage.Dynamics.Workflows.Care.ContactAnniversaryActivity"
+      ],
+      "registrationLegacy": [
+        {
+          "target": "SpeechMessage.Dynamics.Workflows.Care.ContactAnniversaryActivity",
+          "assembly": "RecursiveWorkflow",
+          "type": "RecursiveWorkflowNameSpace.RecursiveWorkflowPlugIn"
+        }
+      ],
+      "reason": "對照現行註冊legacy的assembly／type；基準reading／simulation，live=deferred，不代表實機相容完成。"
+    },
+    {
+      "project": "StorLessonSigningLibrary",
+      "projectFile": "StorLessonSigningLibrary.csproj",
+      "disposition": "library",
+      "sourceTypes": [],
+      "targets": [
+        "SpeechMessageProducts.GoodShepherd.Core/Lessons"
+      ],
+      "registrationLegacy": [],
+      "reason": "簽核訊息與分派拆入Core；活動由StorLessonSigningActivity呼叫。付款fallback未搬，依P5-PROP-006列已核定缺口。"
+    },
+    {
+      "project": "StorLessonSigningWorkflow",
+      "projectFile": "StorLessonSigningWorkflow.csproj",
+      "disposition": "ported",
+      "sourceTypes": [
+        "StorLessonSigningWorkflow.StorLessonWorkflowPlugin"
+      ],
+      "targets": [
+        "SpeechMessage.Dynamics.Workflows.Lessons.StorLessonSigningActivity"
+      ],
+      "registrationLegacy": [
+        {
+          "target": "SpeechMessage.Dynamics.Workflows.Lessons.StorLessonSigningActivity",
+          "assembly": "StorLessonSigningWorkflow",
+          "type": "StorLessonSigningWorkflow.StorLessonWorkflowPlugin"
+        }
+      ],
+      "reason": "對照現行註冊legacy的assembly／type；基準reading／simulation，live=deferred，不代表實機相容完成。"
+    },
+    {
+      "project": "StorLessonSignningPlugIn",
+      "projectFile": "StorLessonSignningPlugIn.csproj",
+      "disposition": "ported",
+      "sourceTypes": [
+        "StorLessonSignningPlugIn.StorLessonSignningPlugIn"
+      ],
+      "targets": [
+        "SpeechMessage.Dynamics.Plugins.Lessons.StorLessonSigningPlugin"
+      ],
+      "registrationLegacy": [],
+      "reason": "P5-07盤點；舊匯出未見型別步驟，legacy留空不猜ID；Shadow簽核，付款fallback依P5-PROP-006為已核定缺口。"
+    },
+    {
+      "project": "SundayQrCodeWorkflow",
+      "projectFile": "SundayQrCodeWorkflow.csproj",
+      "disposition": "ported",
+      "sourceTypes": [
+        "SundayQrCodeWorkflow.QrCodeWorkflow"
+      ],
+      "targets": [
+        "SpeechMessage.Dynamics.Workflows.QrCodes.MeetingQrCodeActivity"
+      ],
+      "registrationLegacy": [
+        {
+          "target": "SpeechMessage.Dynamics.Workflows.QrCodes.MeetingQrCodeActivity",
+          "assembly": "SundayQrCodeWorkflow",
+          "type": "SundayQrCodeWorkflow.QrCodeWorkflow"
+        }
+      ],
+      "reason": "對照現行註冊legacy的assembly／type；基準reading／simulation，live=deferred，不代表實機相容完成。"
+    },
+    {
+      "project": "TemplatePlugIn",
+      "projectFile": "TemplatePlugIn.csproj",
+      "disposition": "not-ported",
+      "sourceTypes": [
+        "TemplatePlugIn.TemplatePlugIn"
+      ],
+      "targets": [],
+      "registrationLegacy": [],
+      "reason": "舊Plugin範本，沒有產品功能契約；依05A明列不移植，不在本包刪組件或步驟。"
+    },
+    {
+      "project": "ToolUtility",
+      "projectFile": "ToolUtility.csproj",
+      "disposition": "library",
+      "sourceTypes": [],
+      "targets": [
+        "ToolUtility.Core",
+        "ToolUtility.Dataverse"
+      ],
+      "registrationLegacy": [],
+      "reason": "共用資料契約與Dataverse適配拆分承接；不搬每專案副本、硬寫憑證及外部程序副作用。"
+    },
+    {
+      "project": "Trace",
+      "projectFile": "Trace.csproj",
+      "disposition": "not-ported",
+      "sourceTypes": [],
+      "targets": [],
+      "registrationLegacy": [],
+      "reason": "舊落檔與追蹤程式庫不移植；新Host共用diagnostics有獨立生命週期，不搬舊靜態與EventLog副作用。"
+    },
+    {
+      "project": "TwoWingsPlugIn",
+      "projectFile": "TwoWingsPlugIn.csproj",
+      "disposition": "ported",
+      "sourceTypes": [
+        "TwoWingsPlugIn.TwoWingsPlugIn"
+      ],
+      "targets": [
+        "SpeechMessage.Dynamics.Plugins.Lessons.LessonProgressionPlugin"
+      ],
+      "registrationLegacy": [
+        {
+          "target": "SpeechMessage.Dynamics.Plugins.Lessons.LessonProgressionPlugin",
+          "assembly": "TwoWingsPlugIn",
+          "type": "TwoWingsPlugIn.TwoWingsPlugIn"
+        },
+        {
+          "target": "SpeechMessage.Dynamics.Plugins.Lessons.LessonProgressionPlugin",
+          "assembly": "TwoWingsPlugInDatabase",
+          "type": "TwoWingsPlugIn.TwoWingsPlugIn"
+        }
+      ],
+      "reason": "對照現行註冊legacy的assembly／type；基準reading／simulation，live=deferred，不代表實機相容完成。"
+    },
+    {
+      "project": "WeeklyReportLinePlugIn",
+      "projectFile": "WeeklyReportLinePlugIn.csproj",
+      "disposition": "ported",
+      "sourceTypes": [
+        "WeeklyReportLinePlugIn.WeeklyReportLinePlugIn"
+      ],
+      "targets": [
+        "SpeechMessage.Dynamics.Plugins.WeeklyReports.WeeklyReportNotificationPlugin"
+      ],
+      "registrationLegacy": [
+        {
+          "target": "SpeechMessage.Dynamics.Plugins.WeeklyReports.WeeklyReportNotificationPlugin",
+          "assembly": "WeeklyReportLinePlugInDatabase",
+          "type": "WeeklyReportLinePlugIn.WeeklyReportLinePlugIn"
+        }
+      ],
+      "reason": "對照現行註冊legacy的assembly／type；基準reading／simulation，live=deferred，不代表實機相容完成。 部署組件名為WeeklyReportLinePlugInDatabase，不按專案名猜組件。"
+    },
+    {
+      "project": "WeeklyReportPlugIn",
+      "projectFile": "WeeklyReportPlugIn.csproj",
+      "disposition": "ported",
+      "sourceTypes": [
+        "WeeklyReportPlugIn.WeeklyReportPlugIn"
+      ],
+      "targets": [
+        "SpeechMessage.Dynamics.Plugins.WeeklyReports.WeeklyReportStatisticsPlugin"
+      ],
+      "registrationLegacy": [
+        {
+          "target": "SpeechMessage.Dynamics.Plugins.WeeklyReports.WeeklyReportStatisticsPlugin",
+          "assembly": "WeeklyReportPlugIn",
+          "type": "WeeklyReportPlugIn.WeeklyReportPlugIn"
+        }
+      ],
+      "reason": "對照現行註冊legacy的assembly／type；基準reading／simulation，live=deferred，不代表實機相容完成。"
+    },
+    {
+      "project": "WeeklyReportWorkflow",
+      "projectFile": "WeeklyReportWorkflow.csproj",
+      "disposition": "ported",
+      "sourceTypes": [
+        "WeeklyReportWorkflowNameSpace.WeeklyReportWorkflow"
+      ],
+      "targets": [
+        "SpeechMessage.Dynamics.Workflows.WeeklyReports.WeeklyReportGenerationActivity"
+      ],
+      "registrationLegacy": [
+        {
+          "target": "SpeechMessage.Dynamics.Workflows.WeeklyReports.WeeklyReportGenerationActivity",
+          "assembly": "WeeklyReportWorkflow",
+          "type": "WeeklyReportWorkflowNameSpace.WeeklyReportWorkflow"
+        }
+      ],
+      "reason": "對照現行註冊legacy的assembly／type；基準reading／simulation，live=deferred，不代表實機相容完成。"
+    },
+    {
+      "project": "WorkflowTemplate",
+      "projectFile": "WorkflowTemplate.csproj",
+      "disposition": "not-ported",
+      "sourceTypes": [
+        "WorkflowTemplate.WorkflowTemplatePlugin"
+      ],
+      "targets": [],
+      "registrationLegacy": [],
+      "reason": "舊工作流程範本，不是正式業務入口；依05A不移植，不產生空活動冒稱承接。"
+    },
+    {
+      "project": "YangMeillcStorLessonsPlugIn",
+      "projectFile": "YangMeillcStorLessonsPlugIn.csproj",
+      "disposition": "ported",
+      "sourceTypes": [
+        "YangMeillcStorLessonsPlugIn.YangMeillcStorLessonsPlugIn"
+      ],
+      "targets": [
+        "SpeechMessage.Dynamics.Plugins.Lessons.LessonProgressionPlugin"
+      ],
+      "registrationLegacy": [],
+      "reason": "P5-07兩套進階差異由正式教會設定選擇；來源型別存在但無舊step，legacy留空不捏造。"
+    }
+  ],
+  "excludedShell": {
+    "project": "Dynamics365Line",
+    "reason": "零個.cs檔的方案殼，使用者已核定排除，不列為第37個舊專案。"
+  },
+  "deferredProjects": [
+    {
+      "project": "SmsPlugInClassLibrary",
+      "reason": "05A明列暫緩不碰；不屬PluginHarness核定36清單，不在本包移除或改寫來源。"
+    },
+    {
+      "project": "SnsPlugInDatabase",
+      "reason": "05A明列暫緩不碰；不屬PluginHarness核定36清單，不在本包移除或改寫來源。"
+    }
+  ]
+}
