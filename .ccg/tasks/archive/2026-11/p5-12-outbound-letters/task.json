@@ -1,0 +1,13 @@
+{
+  "id": "p5-12-outbound-letters",
+  "title": "P5-12 訊息外送與失敗彙總",
+  "status": "completed",
+  "complexity": "L",
+  "risk": "high",
+  "domain": "backend",
+  "currentPhase": "completed",
+  "nextAction": "收尾輕量guard後推送並接P5-13",
+  "createdAt": "2026-11-16T13:45:45.656841+08:00",
+  "branch": "1.0.0.11.Integration.P5.Worktree",
+  "completedAt": "2026-11-16T14:43:35+08:00"
+}
