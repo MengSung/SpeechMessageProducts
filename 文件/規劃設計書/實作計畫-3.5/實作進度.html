@@ -240,11 +240,11 @@ footer{margin-top:36px;color:var(--muted);font-size:12.5px;text-align:center}
  */
 const DATA = {
   "planVersion": "3.5",
-  "snapshot": "2026-11-16 11:25 Asia/Taipei (UTC+08:00)",
-  "lastUpdated": "2026-11-16T11:25:00+08:00",
+  "snapshot": "2026-11-16 13:37 Asia/Taipei (UTC+08:00)",
+  "lastUpdated": "2026-11-16T13:37:31+08:00",
   "branch": "1.0.0.11.Integration.P5.Worktree",
-  "head": "1c52dbfc",
-  "headline": "2026-11-16 11:25 Asia/Taipei (UTC+08:00)：P5-10已驗收並推送待核對；關懷活動、出席交易與CAS整合完成，goodshepherdback全停用、固定八項guard通過。P5-11收費開始；live=deferred、differences=null。",
+  "head": "952a7c43",
+  "headline": "2026-11-16 13:37 Asia/Taipei (UTC+08:00)：P5-11收費已驗收；每日待辦、通知Shadow及CAS完成，兩DLL打包／全停用部署verify=0、乾淨固定八項guard全過。紀錄收尾後推送核對，接P5-12；live=deferred、differences=null。",
   "notices": [
     {
       "id": "plan-3.5-summary",
@@ -511,8 +511,8 @@ const DATA = {
       "phaseId": "階段 5",
       "level": "info",
       "title": "P5 進度摘要",
-      "lastUpdated": "2026-11-16T11:25:00+08:00",
-      "body": "2026-11-16 10:26 Asia/Taipei (UTC+08:00)：P5-09已驗收並推送36a9e23a；P5-10進行中，修正服務欄位投影／同日冪等，Care與Golden守門net10共54項通過。新朋友出席接線與活動/CAS仍在實作，尚未驗收或推送；live=deferred、differences=null。",
+      "lastUpdated": "2026-11-16T13:37:31+08:00",
+      "body": "2026-11-16 13:37 Asia/Taipei (UTC+08:00)：P5-01～P5-11已驗收；P5-11每日撥款待辦與繳費通知外殼完成，固定guard全方案7043測試通過，兩DLL打包／停用部署verify=0；待紀錄收尾推送核對後直接P5-12。reading／simulation、live=deferred、differences=null；不重測追蹤、不執行舊程式。",
       "steps": [
         "2026-11-14 08:26 Asia/Taipei (UTC+08:00)：已確認目標殘留目錄不是 Git worktree，移除後正式 P4／P5 worktree 清單不受影響。",
         "2026-11-14 08:26 Asia/Taipei (UTC+08:00)：export-metadata 唯讀結構快照建立成功；verify 因本機部署執行檔／連線前置失敗，未宣稱 goodshepherdback verify=0。",
@@ -575,7 +575,8 @@ const DATA = {
         "2026-11-15 20:13 Asia/Taipei (UTC+08:00)：P5-07已驗收；Workflows8一次性診斷UpdateAssembly成功，正式verify=0、export=0、export-legacy=0；16新步驟全停用、secure0，舊步驟／舊流程啟用皆0。固定guard八項全0（Release6668、Debug tracer7、進度28）；基準reading／simulation、live=deferred，不宣稱實機影子差異0。收尾提交與推送前核對中，完成後進P5-08。",
         "2026-11-15 21:46 Asia/Taipei (UTC+08:00)：P5-08已完成離線規則／外殼／CAS回歸、兩個正式net462合併DLL檢查及goodshepherdback plan／apply／verify；18個新步驟全停用，舊步驟／舊流程啟用皆0。live=deferred，基準reading／simulation，不宣稱實機影子差異0。固定guard與推送待收尾核對。",
         "2026-11-16 08:10 Asia/Taipei (UTC+08:00)：P5-08遠端a90430dc核對一致，封存結構已git mv修正；P5-09開始，基準reading／simulation，live=deferred，不重試追蹤。",
-        "2026-11-16 10:26 Asia/Taipei (UTC+08:00)：P5-09已驗收並推送36a9e23a；P5-10進行中，修正服務欄位投影／同日冪等，Care與Golden守門net10共54項通過。新朋友出席接線與活動/CAS仍在實作，尚未驗收或推送；live=deferred、differences=null。"
+        "2026-11-16 10:26 Asia/Taipei (UTC+08:00)：P5-09已驗收並推送36a9e23a；P5-10進行中，修正服務欄位投影／同日冪等，Care與Golden守門net10共54項通過。新朋友出席接線與活動/CAS仍在實作，尚未驗收或推送；live=deferred、differences=null。",
+        "2026-11-16 13:37 Asia/Taipei (UTC+08:00)：P5-11四入口盤點及六案reading、每日sourceId／兩欄payload、未來付款日拒絕、共用通知內容／教會隔離與Retry Key完成。Core雙目標各348、Plugins594含CAS，乾淨guard八項全過；DLL FileVersion16、20新步驟停用、舊步驟與流程啟用0。黃金宣告格式及三項同名測試已修補；課程付款fallback依P5-PROP-006仍為已核定缺口，不冒稱相容完成。"
       ]
     }
   ],
@@ -709,10 +710,10 @@ const DATA = {
       "id": "階段 5",
       "name": "Plugin／Workflow 重建（36 個 DLL → 2 個）",
       "planned": "8～12 個工作天",
-      "actual": "2026-11-16 11:25 Asia/Taipei (UTC+08:00)：P5-10已完成關懷活動、出席交易與CAS整合；兩DLL打包、goodshepherdback全停用部署與固定八項guard通過，收尾提交1c52dbfc；P5-11開始，live=deferred、differences=null。",
+      "actual": "2026-11-16 13:37 Asia/Taipei (UTC+08:00)：P5-11收費已驗收，乾淨固定guard八項全過；goodshepherdback 20新步驟停用、舊啟用皆0。紀錄提交後推送核對，接P5-12；reading／simulation、live=deferred、differences=null。",
       "current": true,
-      "done": 10,
-      "active": 1
+      "done": 11,
+      "active": 0
     },
     {
       "id": "階段 6",
@@ -1542,13 +1543,13 @@ const DATA = {
       "id": "P5-11",
       "phaseId": "階段 5",
       "name": "收費",
-      "status": "active",
+      "status": "done",
       "deps": "P5-03、P4-03",
-      "live": "影子模式",
+      "live": "deferred",
       "timebox": "1 天",
-      "doneAt": "",
-      "commit": "",
-      "note": "撥款走 AllotQuery 待辦"
+      "doneAt": "2026-11-16 13:37 Asia/Taipei (UTC+08:00)",
+      "commit": "952a7c43",
+      "note": "2026-11-16 13:37 Asia/Taipei (UTC+08:00)：四入口reading、六案Core／真WF共用期望；Core雙目標各348、Plugins594、全方案7043測試通過。兩DLL16打包通過，goodshepherdback停用部署verify=0、20新步驟停用、舊啟用皆0；live=deferred、differences=null；P5-PROP-006缺口併階段審查。"
     },
     {
       "id": "P5-12",
@@ -1794,57 +1795,43 @@ const DATA = {
       "note": "2026-11-14 12:54 Asia/Taipei (UTC+08:00)：8ad4dccc完整守門通過，實機3→4→3、step ID不變、免重啟；三次smoke/verify0、收尾停用及殘留0，詳wp-reports/P5-update-rollback.md。"
     }
   ],
-  "active": [
-    {
-      "id": "P5-11",
-      "startedAt": "2026-11-16 11:25 Asia/Taipei (UTC+08:00)",
-      "timebox": "1 天",
-      "dod": [
-        ["閱讀撥款待辦與繳費通知入口", "no", "依05A D5-14盤點收費單、教會與待辦契約"],
-        ["AllotTaskIdentity與payload精確欄位", "no", "尚未完成"],
-        ["FeeAllotPlugin／Activity外殼與測試", "no", "尚未完成"],
-        ["兩DLL打包／停用部署／固定八項guard", "no", "完成後才推送"],
-        ["一頁回報與推送核對", "no", "乾淨guard通過後才push及ls-remote"]
-      ],
-      "next": "先完成收費入口reading盤點與AllotTaskIdentity，再建立FeeAllotPlugin／Activity外殼。"
-    }
-  ],
+  "active": [],
   "gates": [
     {
       "item": "方案建置（Release）",
       "result": "ok",
-      "at": "2026-11-14 11:25 Asia/Taipei (UTC+08:00)",
-      "note": "P5固定guard fee2e909完整§8.1通過；Release5485/5485、Debug tracer7/7、編碼66檔零問題、文件1493檔零失敗、重複new=0/stale=0；full.log SHA-256 3BA8014896AEE49A215694D5572997F4DE661647466F975420797DF894A55CD4。"
+      "at": "2026-11-16 13:37 Asia/Taipei (UTC+08:00)",
+      "note": "P5-11 952a7c43乾淨固定guard八項全0；Release 7043測試、Debug tracer7、進度頁28，編碼／重複碼／I18n／文件均通過；full.log SHA-256 BC0F6A6568EAB258305401FA9D83D7E4783EE0ABF2BF1758A2604530E2E616B2。"
     },
     {
       "item": "全方案測試",
       "result": "ok",
-      "at": "2026-11-14 11:25 Asia/Taipei (UTC+08:00)",
-      "note": "P5固定guard fee2e909完整§8.1通過；Release5485/5485、Debug tracer7/7、編碼66檔零問題、文件1493檔零失敗、重複new=0/stale=0；full.log SHA-256 3BA8014896AEE49A215694D5572997F4DE661647466F975420797DF894A55CD4。"
+      "at": "2026-11-16 13:37 Asia/Taipei (UTC+08:00)",
+      "note": "P5-11 952a7c43乾淨固定guard八項全0；Release 7043測試、Debug tracer7、進度頁28，編碼／重複碼／I18n／文件均通過；full.log SHA-256 BC0F6A6568EAB258305401FA9D83D7E4783EE0ABF2BF1758A2604530E2E616B2。"
     },
     {
       "item": "檔案說明檢查",
       "result": "ok",
-      "at": "2026-11-14 11:25 Asia/Taipei (UTC+08:00)",
-      "note": "P5固定guard fee2e909完整§8.1通過；Release5485/5485、Debug tracer7/7、編碼66檔零問題、文件1493檔零失敗、重複new=0/stale=0；full.log SHA-256 3BA8014896AEE49A215694D5572997F4DE661647466F975420797DF894A55CD4。"
+      "at": "2026-11-16 13:37 Asia/Taipei (UTC+08:00)",
+      "note": "P5-11 952a7c43乾淨固定guard八項全0；Release 7043測試、Debug tracer7、進度頁28，編碼／重複碼／I18n／文件均通過；full.log SHA-256 BC0F6A6568EAB258305401FA9D83D7E4783EE0ABF2BF1758A2604530E2E616B2。"
     },
     {
       "item": "文字編碼（P5 範圍）",
       "result": "ok",
-      "at": "2026-11-14 11:25 Asia/Taipei (UTC+08:00)",
-      "note": "P5固定guard fee2e909完整§8.1通過；Release5485/5485、Debug tracer7/7、編碼66檔零問題、文件1493檔零失敗、重複new=0/stale=0；full.log SHA-256 3BA8014896AEE49A215694D5572997F4DE661647466F975420797DF894A55CD4。"
+      "at": "2026-11-16 13:37 Asia/Taipei (UTC+08:00)",
+      "note": "P5-11 952a7c43乾淨固定guard八項全0；Release 7043測試、Debug tracer7、進度頁28，編碼／重複碼／I18n／文件均通過；full.log SHA-256 BC0F6A6568EAB258305401FA9D83D7E4783EE0ABF2BF1758A2604530E2E616B2。"
     },
     {
       "item": "重複程式掃描",
       "result": "ok",
-      "at": "2026-11-14 11:25 Asia/Taipei (UTC+08:00)",
-      "note": "P5固定guard fee2e909完整§8.1通過；Release5485/5485、Debug tracer7/7、編碼66檔零問題、文件1493檔零失敗、重複new=0/stale=0；full.log SHA-256 3BA8014896AEE49A215694D5572997F4DE661647466F975420797DF894A55CD4。"
+      "at": "2026-11-16 13:37 Asia/Taipei (UTC+08:00)",
+      "note": "P5-11 952a7c43乾淨固定guard八項全0；Release 7043測試、Debug tracer7、進度頁28，編碼／重複碼／I18n／文件均通過；full.log SHA-256 BC0F6A6568EAB258305401FA9D83D7E4783EE0ABF2BF1758A2604530E2E616B2。"
     },
     {
       "item": "I18nCheck verify",
       "result": "ok",
-      "at": "2026-11-14 11:25 Asia/Taipei (UTC+08:00)",
-      "note": "P5固定guard fee2e909完整§8.1通過；Release5485/5485、Debug tracer7/7、編碼66檔零問題、文件1493檔零失敗、重複new=0/stale=0；full.log SHA-256 3BA8014896AEE49A215694D5572997F4DE661647466F975420797DF894A55CD4。"
+      "at": "2026-11-16 13:37 Asia/Taipei (UTC+08:00)",
+      "note": "P5-11 952a7c43乾淨固定guard八項全0；Release 7043測試、Debug tracer7、進度頁28，編碼／重複碼／I18n／文件均通過；full.log SHA-256 BC0F6A6568EAB258305401FA9D83D7E4783EE0ABF2BF1758A2604530E2E616B2。"
     },
     {
       "item": "雲端 CI（GitHub）",

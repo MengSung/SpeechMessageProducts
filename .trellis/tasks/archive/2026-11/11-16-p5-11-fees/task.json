@@ -1,0 +1,12 @@
+{
+  "id": "11-16-p5-11-fees",
+  "title": "P5-11 收費觸發與通知",
+  "status": "completed",
+  "createdAt": "2026-11-16",
+  "parent": "11-14-integration-p5",
+  "branch": "1.0.0.11.Integration.P5.Worktree",
+  "completedAt": "2026-11-16T13:37:31+08:00",
+  "commit": "952a7c43",
+  "currentPhase": "completed",
+  "nextAction": "紀錄型輕量守門通過後推送核對，接 P5-12"
+}
