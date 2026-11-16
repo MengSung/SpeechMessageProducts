@@ -19,7 +19,7 @@
   "pr_url": null,
   "subtasks": [],
   "children": [],
-  "parent": "11-14-integration-p5",
+  "parent": null,
   "relatedFiles": [],
   "notes": "P5-00 驗證與固定 guard 完成；提交 f673666e、修正提交 249f4b9a；下一包為 P4 審查修補。",
   "meta": {}
