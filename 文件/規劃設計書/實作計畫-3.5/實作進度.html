@@ -240,11 +240,11 @@ footer{margin-top:36px;color:var(--muted);font-size:12.5px;text-align:center}
  */
 const DATA = {
   "planVersion": "3.5",
-  "snapshot": "2026-11-16 19:13 Asia/Taipei (UTC+08:00)",
-  "lastUpdated": "2026-11-16T19:25:24+08:00",
+  "snapshot": "2026-11-16 19:35 Asia/Taipei (UTC+08:00)",
+  "lastUpdated": "2026-11-16T19:35:49+08:00",
   "branch": "1.0.0.11.Integration.P6.Worktree",
-  "head": "14e81b43",
-  "headline": "2026-11-16 19:25 Asia/Taipei (UTC+08:00)：P6-01 四個指定 QR 測試 11 實例先紅後綠，正跑既有測試；P6-04 待核定、D34 不做真實簽到，不啟動 P7。",
+  "head": "d66dc770",
+  "headline": "2026-11-16 19:35 Asia/Taipei (UTC+08:00)：P6-06、P6-01 已驗收；P6-01 原位置共用 QR 解析與固定 guard 7145 案全綠。P6-04 及 D34 待核定，接不受影響 P6-02，不啟動 P7。",
   "notices": [
     {
       "id": "plan-3.5-summary",
@@ -592,8 +592,8 @@ const DATA = {
       "phaseId": "階段 6",
       "level": "info",
       "title": "P6 進度摘要",
-      "lastUpdated": "2026-11-16T19:13:16+08:00",
-      "body": "2026-11-16 19:13 Asia/Taipei (UTC+08:00)：P6-06 已驗收；P6-04 待契約衝突核定，等待時接不受影響的 P6-01。 D34 仍待核定，不啟動 P7。",
+      "lastUpdated": "2026-11-16T19:35:49+08:00",
+      "body": "2026-11-16 19:35 Asia/Taipei (UTC+08:00)：P6-06、P6-01 已驗收；P6-01 原位置共用 QR 解析與固定 guard 7145 案全綠。P6-04 及 D34 待核定，接不受影響 P6-02，不啟動 P7。",
       "steps": [
         "2026-11-16 18:40 Asia/Taipei (UTC+08:00)：完整讀取四份依據，核對分支、起點與七包 todo；建立父任務，保存四個基準數字，納入原樣 06A。",
         "2026-11-16 18:40 Asia/Taipei (UTC+08:00)：三個 P5 殘留任務依既有驗收證據封存；330 筆 C:/smv 舊工具及原始證據保留移出，C:/smv 僅留 guard。",
@@ -605,7 +605,9 @@ const DATA = {
         "2026-11-16 19:03 Asia/Taipei (UTC+08:00)：e74e1402 固定 guard 完整八項全過；全方案 7,130 個測試、Debug tracer 7 個，重複新增 0、文字基準未增加。驗收後首次推送 P6，遠端 SHA 另以 ls-remote 核對。",
         "2026-11-16 19:10 Asia/Taipei (UTC+08:00)：P6-06 收尾 b53139fca5db2da4799c200d2a3cd59b29c46f8a 已首次推送，git ls-remote 核對等於本機 HEAD。",
         "2026-11-16 19:10 Asia/Taipei (UTC+08:00)：三個指定測試已呈現兩紅一綠；同組態實例證明通過，刪入口後依編譯錯誤找到並修正六個呼叫點；既有測試驗證中。",
-        "2026-11-16 19:13 Asia/Taipei (UTC+08:00)：P6-04 三個新契約已綠，但既有舊組件型別轉送斷言與 06A 移除要求互斥；未改期望、未驗收，程式已 stash 保存，依 §7 待核定。"
+        "2026-11-16 19:13 Asia/Taipei (UTC+08:00)：P6-04 三個新契約已綠，但既有舊組件型別轉送斷言與 06A 移除要求互斥；未改期望、未驗收，程式已 stash 保存，依 §7 待核定。",
+        "2026-11-16 19:35 Asia/Taipei (UTC+08:00)：P6-01 四個同名QR測試11實例紅綠成立；d66dc770 固定 guard 完整八項全過，全方案7145、Debug tracer7、重複新增0；無實機，本包已驗收，接P6-02。",
+        "2026-11-16 19:35 Asia/Taipei (UTC+08:00)：校正通過總數：重加總P6-06既有22宿主原始輸出為7134，原7130是紀錄加總誤差；未重跑已驗收守門。"
       ]
     }
   ],
@@ -759,10 +761,10 @@ const DATA = {
       "id": "階段 6",
       "name": "ChurchReport 改用共用層",
       "planned": "3～4 個工作天",
-      "actual": "2026-11-16 19:25 Asia/Taipei (UTC+08:00)：P6-01 四個指定 QR 測試 11 實例先紅後綠，正跑既有測試；P6-04 待核定、D34 不做真實簽到，不啟動 P7。",
+      "actual": "2026-11-16 19:35 Asia/Taipei (UTC+08:00)：P6-06、P6-01 已驗收；P6-04 待核定，接續離線 P6-02。",
       "current": true,
-      "done": 1,
-      "active": 2
+      "done": 2,
+      "active": 1
     },
     {
       "id": "階段 7",
@@ -1622,13 +1624,13 @@ const DATA = {
       "id": "P6-01",
       "phaseId": "階段 6",
       "name": "QR 改呼叫 GoodShepherd.Core",
-      "status": "active",
+      "status": "done",
       "deps": "P2-09、P5-09",
       "live": "頁面驗收",
       "timebox": "1 天",
-      "doneAt": "",
-      "commit": "",
-      "note": "2026-11-16 19:25 Asia/Taipei (UTC+08:00)：原位置委派共用 Codec，11 實例紅綠完成；既有測試與固定 guard 尚待完成，未驗收。"
+      "doneAt": "2026-11-16 19:35 Asia/Taipei (UTC+08:00)",
+      "commit": "d66dc770dbceef4bb55d09ca6dd0205f58844c61",
+      "note": "2026-11-16 19:35 Asia/Taipei (UTC+08:00)：四個指定測試11實例先紅後綠，新舊黃金逐欄相同，六類拒絕差異具證據；固定 guard 完整八項全過。頁面實機於階段末，不宣稱已完成。"
     },
     {
       "id": "P6-02",
@@ -1892,83 +1894,50 @@ const DATA = {
         ]
       ],
       "next": "等待 P6-PROP-007 核定；七檔程式保存在 stash，等待時接不受影響的 P6-01。"
-    },
-    {
-      "id": "P6-01",
-      "startedAt": "2026-11-16 19:16 Asia/Taipei (UTC+08:00)",
-      "timebox": "1 天",
-      "dod": [
-        [
-          "測試",
-          "no",
-          "指定11實例已綠，既有測試執行中。"
-        ],
-        [
-          "守門",
-          "no",
-          "程式提交後固定 guard 完整八項。"
-        ],
-        [
-          "覆蓋率",
-          "na",
-          "沒有新增專案。"
-        ],
-        [
-          "實機",
-          "na",
-          "本包離線，頁面驗收於階段末。"
-        ],
-        [
-          "回報與進度",
-          "no",
-          "待完整守門後驗收與一頁回報。"
-        ]
-      ],
-      "next": "既有測試、預提交文件／編碼檢查、程式提交及固定 guard。"
     }
   ],
   "gates": [
     {
       "item": "方案建置（Release）",
       "result": "ok",
-      "at": "2026-11-16 19:03 Asia/Taipei (UTC+08:00)",
-      "note": "P6-06 e74e1402 固定 guard 完整八項通過；全方案 7130、Debug tracer7、進度頁28。完整輸出 SHA-256 7bde58fb4a9b7e219f6aa0b8071683f300d2b6fcfd4eb432d9b65e7e5bf93b0f。"
+      "at": "2026-11-16 19:35 Asia/Taipei (UTC+08:00)",
+      "note": "P6-01 d66dc770 固定 guard 完整八項全過；Release 7145、Debug tracer7、編碼42、文件1749、進度28、重複新增0、I18nCheck0。SHA-256 21dc65ea30ebb932c3f36a0eecc390a699364cd31345deabb5f498eae36598bc。"
     },
     {
       "item": "全方案測試",
       "result": "ok",
-      "at": "2026-11-16 19:03 Asia/Taipei (UTC+08:00)",
-      "note": "P6-06 e74e1402 固定 guard 完整八項通過；全方案 7130、Debug tracer7、進度頁28。完整輸出 SHA-256 7bde58fb4a9b7e219f6aa0b8071683f300d2b6fcfd4eb432d9b65e7e5bf93b0f。"
+      "at": "2026-11-16 19:35 Asia/Taipei (UTC+08:00)",
+      "note": "P6-01 d66dc770 固定 guard 完整八項全過；Release 7145、Debug tracer7、編碼42、文件1749、進度28、重複新增0、I18nCheck0。SHA-256 21dc65ea30ebb932c3f36a0eecc390a699364cd31345deabb5f498eae36598bc。"
     },
     {
       "item": "檔案說明檢查",
       "result": "ok",
-      "at": "2026-11-16 19:03 Asia/Taipei (UTC+08:00)",
-      "note": "P6-06 e74e1402 固定 guard 完整八項通過；全方案 7130、Debug tracer7、進度頁28。完整輸出 SHA-256 7bde58fb4a9b7e219f6aa0b8071683f300d2b6fcfd4eb432d9b65e7e5bf93b0f。"
+      "at": "2026-11-16 19:35 Asia/Taipei (UTC+08:00)",
+      "note": "P6-01 d66dc770 固定 guard 完整八項全過；Release 7145、Debug tracer7、編碼42、文件1749、進度28、重複新增0、I18nCheck0。SHA-256 21dc65ea30ebb932c3f36a0eecc390a699364cd31345deabb5f498eae36598bc。"
     },
     {
-      "item": "文字編碼（P5 範圍）",
+      "item": "文字編碼（P6 範圍）",
       "result": "ok",
-      "at": "2026-11-16 19:03 Asia/Taipei (UTC+08:00)",
-      "note": "P6-06 e74e1402 固定 guard 完整八項通過；全方案 7130、Debug tracer7、進度頁28。完整輸出 SHA-256 7bde58fb4a9b7e219f6aa0b8071683f300d2b6fcfd4eb432d9b65e7e5bf93b0f。"
+      "at": "2026-11-16 19:35 Asia/Taipei (UTC+08:00)",
+      "note": "P6-01 d66dc770 固定 guard 完整八項全過；Release 7145、Debug tracer7、編碼42、文件1749、進度28、重複新增0、I18nCheck0。SHA-256 21dc65ea30ebb932c3f36a0eecc390a699364cd31345deabb5f498eae36598bc。"
     },
     {
       "item": "重複程式掃描",
       "result": "ok",
-      "at": "2026-11-16 19:03 Asia/Taipei (UTC+08:00)",
-      "note": "P6-06 e74e1402 固定 guard 完整八項通過；全方案 7130、Debug tracer7、進度頁28。完整輸出 SHA-256 7bde58fb4a9b7e219f6aa0b8071683f300d2b6fcfd4eb432d9b65e7e5bf93b0f。"
+      "at": "2026-11-16 19:35 Asia/Taipei (UTC+08:00)",
+      "note": "P6-01 d66dc770 固定 guard 完整八項全過；Release 7145、Debug tracer7、編碼42、文件1749、進度28、重複新增0、I18nCheck0。SHA-256 21dc65ea30ebb932c3f36a0eecc390a699364cd31345deabb5f498eae36598bc。"
     },
     {
       "item": "I18nCheck verify",
       "result": "ok",
-      "at": "2026-11-16 19:03 Asia/Taipei (UTC+08:00)",
-      "note": "P6-06 e74e1402 固定 guard 完整八項通過；全方案 7130、Debug tracer7、進度頁28。完整輸出 SHA-256 7bde58fb4a9b7e219f6aa0b8071683f300d2b6fcfd4eb432d9b65e7e5bf93b0f。"
+      "at": "2026-11-16 19:35 Asia/Taipei (UTC+08:00)",
+      "note": "P6-01 d66dc770 固定 guard 完整八項全過；Release 7145、Debug tracer7、編碼42、文件1749、進度28、重複新增0、I18nCheck0。SHA-256 21dc65ea30ebb932c3f36a0eecc390a699364cd31345deabb5f498eae36598bc。"
     },
     {
       "item": "雲端 CI（GitHub）",
-      "result": "ok",
-      "at": "2026-11-16 19:03 Asia/Taipei (UTC+08:00)",
-      "note": "P6-06 e74e1402 固定 guard 完整八項通過；全方案 7130、Debug tracer7、進度頁28。完整輸出 SHA-256 7bde58fb4a9b7e219f6aa0b8071683f300d2b6fcfd4eb432d9b65e7e5bf93b0f。"
+      "result": "na",
+      "at": "2026-11-16 19:35 Asia/Taipei (UTC+08:00)",
+      "note": "未另執行雲端 CI；本次證據是固定 C:/smv/guard 本機守門，不以本機綠燈宣稱雲端成功。"
     }
   ],
   "later": [
@@ -2562,6 +2531,11 @@ const DATA = {
     }
   ],
   "timeline": [
+    {
+      "at": "2026-11-16 19:35 Asia/Taipei (UTC+08:00)",
+      "text": "P6-01 五項完成定義驗收，d66dc770完整guard7145全綠；準備紀錄收尾後明確推送並核對。",
+      "cls": "info"
+    },
     {
       "at": "2026-11-16 19:25 Asia/Taipei (UTC+08:00)",
       "text": "P6-01 接續：四個同名 QR 測試 11 實例紅綠完成；P6-04 保持待核定且 stash 未動。",

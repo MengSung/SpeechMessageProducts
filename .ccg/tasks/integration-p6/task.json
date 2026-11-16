@@ -6,7 +6,7 @@
   "risk": "high",
   "domain": "backend",
   "currentPhase": "implementation",
-  "nextAction": "2026-11-16 19:13 Asia/Taipei (UTC+08:00)：P6-04 程式stash、轉送契約衝突待P6-PROP-007核定；等待時接不受影響的P6-01。D34待核定，不做真實推播。",
+  "nextAction": "2026-11-16 19:35 Asia/Taipei (UTC+08:00)：P6-01 已驗收，紀錄收尾後明確推送並核對；接 P6-02。P6-04 stash 與 D34 待核定。",
   "createdAt": "2026-11-16T18:40:57+08:00",
   "branch": "1.0.0.11.Integration.P6.Worktree"
 }
