@@ -42,6 +42,62 @@ public sealed class QrCodeLegacyCompatibilityTests
     }
 
     /// <summary>
+    /// 以獨立舊內容的兩筆聚會向量保護固定屬性 at 與動態代碼底線分支。
+    /// 明確要求各分支各一筆，逐字比對後再解碼正式 ID 與欄位，不能以空集合通過；
+    /// 向量只在本次呼叫持有，資源由 ReadGoldenRows 的 owner 關閉。
+    /// </summary>
+    [Fact]
+    public void QrCodes_Meeting_ContentMatchesLegacy()
+    {
+        var matches = 0;
+        var separators = new HashSet<QrCodePayloadSeparator>();
+        foreach (var row in ReadGoldenRows())
+        {
+            if (row[0] != "meeting-at" && row[0] != "meeting-under") continue;
+            var content = EncodeGolden(row);
+            Assert.Equal(row[4], content);
+            Assert.True(QrCodeContentCodec.TryDecodeMeeting(content, out var id, out var attribute,
+                out var action, out var separator));
+            Assert.Equal(Guid.Parse(row[1]), id);
+            Assert.Equal(row[2], attribute);
+            Assert.Equal(row[3], action);
+            Assert.True(separators.Add(separator));
+            matches++;
+        }
+        Assert.Equal(2, matches);
+        Assert.Contains(QrCodePayloadSeparator.AtSign, separators);
+        Assert.Contains(QrCodePayloadSeparator.Underscore, separators);
+    }
+
+    /// <summary>
+    /// 三筆個人向量包含一般姓名、底線加 at 及空尾欄，必須與獨立舊字串逐字相符。
+    /// 姓名僅是相容尾欄，解碼身分始終為正式合成 GUID；測試不執行授權或圖片生成，
+    /// 不保留姓名、資源或背景工作到下一案例。
+    /// </summary>
+    [Fact]
+    public void QrCodes_Personal_ContentMatchesLegacy()
+    {
+        var matches = 0;
+        var emptySuffixes = 0;
+        foreach (var row in ReadGoldenRows())
+        {
+            if (row[0] != "personal") continue;
+            var content = QrCodeContentCodec.EncodePersonal(Guid.Parse(row[1]), row[2]);
+            Assert.Equal(row[4], content);
+            Assert.True(QrCodeContentCodec.TryDecodePersonal(content, out var id));
+            Assert.Equal(Guid.Parse(row[1]), id);
+            if (row[2].Length == 0)
+            {
+                emptySuffixes++;
+                Assert.EndsWith("@", content, StringComparison.Ordinal);
+            }
+            matches++;
+        }
+        Assert.Equal(3, matches);
+        Assert.Equal(1, emptySuffixes);
+    }
+
+    /// <summary>
     /// 舊內容直接交給真實 decoder，必須還原資料庫 ID 與實際消費欄位；
     /// 個人掃碼只消費 ID，不把合成姓名當成身分，也不冒稱已驗證授權或 QR 圖片。
     /// </summary>
