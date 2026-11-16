@@ -240,11 +240,11 @@ footer{margin-top:36px;color:var(--muted);font-size:12.5px;text-align:center}
  */
 const DATA = {
   "planVersion": "3.5",
-  "snapshot": "2026-11-16 18:52 Asia/Taipei (UTC+08:00)",
-  "lastUpdated": "2026-11-16T18:52:17+08:00",
+  "snapshot": "2026-11-16 19:03 Asia/Taipei (UTC+08:00)",
+  "lastUpdated": "2026-11-16T19:03:23+08:00",
   "branch": "1.0.0.11.Integration.P6.Worktree",
-  "head": "1ebc563e",
-  "headline": "2026-11-16 18:52 Asia/Taipei (UTC+08:00)：P6-06 舊套件防回歸先紅後綠中；D34 待核定，不做實機簽到，不啟動 P7。",
+  "head": "e74e1402",
+  "headline": "2026-11-16 19:03 Asia/Taipei (UTC+08:00)：P6-00、P6-06 完成，接續 P6-04；其餘六包未驗收。 D34 待核定，不做實機簽到、不啟動 P7。",
   "notices": [
     {
       "id": "plan-3.5-summary",
@@ -592,15 +592,17 @@ const DATA = {
       "phaseId": "階段 6",
       "level": "info",
       "title": "P6 進度摘要",
-      "lastUpdated": "2026-11-16T18:52:17+08:00",
-      "body": "2026-11-16 18:52 Asia/Taipei (UTC+08:00)：P6-06 舊套件防回歸先紅後綠中；D34 待核定，不做實機簽到，不啟動 P7。",
+      "lastUpdated": "2026-11-16T19:03:23+08:00",
+      "body": "2026-11-16 19:03 Asia/Taipei (UTC+08:00)：P6-00、P6-06 完成，接續 P6-04；其餘六包未驗收。 D34 待核定，不做實機簽到、不啟動 P7。",
       "steps": [
         "2026-11-16 18:40 Asia/Taipei (UTC+08:00)：完整讀取四份依據，核對分支、起點與七包 todo；建立父任務，保存四個基準數字，納入原樣 06A。",
         "2026-11-16 18:40 Asia/Taipei (UTC+08:00)：三個 P5 殘留任務依既有驗收證據封存；330 筆 C:/smv 舊工具及原始證據保留移出，C:/smv 僅留 guard。",
         "2026-11-16 18:40 Asia/Taipei (UTC+08:00)：goodshepherdback verify=0、新步驟 22 個皆停用、舊步驟及舊流程啟用 0；Development 首頁 HTTP 200，Node／Edge／repo 外 playwright-core 可用。",
         "2026-11-16 18:40 Asia/Taipei (UTC+08:00)：D34 PowerShell／SDK 唯讀探針兩次程序崩潰，已停止重試並請使用者核定改用獨立程序；尚未完成 D34 當下核對，不做頁面簽到或真實推播。離線包繼續。",
         "2026-11-16 18:44 Asia/Taipei (UTC+08:00)：AGENTS、DATA、原樣 06A、父任務與前置清單完成；輕量三項通過（編碼 19、文件 1747、進度頁 28），本包不推送。D34 未完成，如實登錄。",
-        "2026-11-16 18:52 Asia/Taipei (UTC+08:00)：九個套件反例已紅燈；規則與真實兩組態評估驗證中，未驗收。"
+        "2026-11-16 18:52 Asia/Taipei (UTC+08:00)：九個套件反例已紅燈；規則與真實兩組態評估驗證中，未驗收。",
+        "2026-11-16 19:03 Asia/Taipei (UTC+08:00)：九套件無需保留；11 個指定測試實例紅綠成立，固定 guard 完整八項通過；有效套件及網站行為不變。",
+        "2026-11-16 19:03 Asia/Taipei (UTC+08:00)：e74e1402 固定 guard 完整八項全過；全方案 7,130 個測試、Debug tracer 7 個，重複新增 0、文字基準未增加。驗收後首次推送 P6，遠端 SHA 另以 ls-remote 核對。"
       ]
     }
   ],
@@ -742,10 +744,10 @@ const DATA = {
       "id": "階段 6",
       "name": "ChurchReport 改用共用層",
       "planned": "3～4 個工作天",
-      "actual": "2026-11-16 18:52 Asia/Taipei (UTC+08:00)：九個套件反例已紅燈；規則與真實兩組態評估驗證中，未驗收。",
+      "actual": "2026-11-16 19:03 Asia/Taipei (UTC+08:00)：P6-00、P6-06 完成，接續 P6-04；其餘六包未驗收。",
       "current": true,
-      "done": 0,
-      "active": 1
+      "done": 1,
+      "active": 0
     },
     {
       "id": "階段 7",
@@ -1665,13 +1667,13 @@ const DATA = {
       "id": "P6-06",
       "phaseId": "階段 6",
       "name": "AspNetCore 2.2.x 舊套件評估",
-      "status": "active",
+      "status": "done",
       "deps": "—",
       "live": "無",
       "timebox": "1 天",
-      "doneAt": "",
-      "commit": "",
-      "note": "2026-11-16 18:52 Asia/Taipei (UTC+08:00)：九個套件反例已紅燈；規則與真實兩組態評估驗證中，未驗收。"
+      "doneAt": "2026-11-16 19:03 Asia/Taipei (UTC+08:00)",
+      "commit": "e74e14024e20be063c361da284c59dd8c9b598a6",
+      "note": "2026-11-16 19:03 Asia/Taipei (UTC+08:00)：九套件無需保留；11 個指定測試實例紅綠成立，固定 guard 完整八項通過；有效套件及網站行為不變。"
     },
     {
       "id": "P6-07",
@@ -1842,83 +1844,49 @@ const DATA = {
       "note": "2026-11-16 18:40 Asia/Taipei (UTC+08:00)：依 06A §6A 四情境前後比對；D34 未確認前不執行簽到，D6-15 退路如實揭露。"
     }
   ],
-  "active": [
-    {
-      "id": "P6-06",
-      "startedAt": "2026-11-16 18:49 Asia/Taipei (UTC+08:00)",
-      "timebox": "2 小時",
-      "dod": [
-        [
-          "測試",
-          "no",
-          "九個反例已紅；真實組態測試驗證中。"
-        ],
-        [
-          "守門",
-          "no",
-          "程式提交後固定 guard 完整八項。"
-        ],
-        [
-          "覆蓋率",
-          "na",
-          "本包沒有新增專案。"
-        ],
-        [
-          "實機",
-          "na",
-          "本包不明列實機，不連 D365。"
-        ],
-        [
-          "回報與進度",
-          "no",
-          "一頁回報與驗收時間待守門後補齊。"
-        ]
-      ],
-      "next": "先確認架構測試與建置，再提交及固定 guard。"
-    }
-  ],
+  "active": [],
   "gates": [
     {
       "item": "方案建置（Release）",
       "result": "ok",
-      "at": "2026-11-16 15:03 Asia/Taipei (UTC+08:00)",
-      "note": "P5-13 22f90b66固定guard八項通過；Release 7119、Debug tracer7、進度頁28；SHA-256 78C629B11604BF3CDF4BEE242CB43018A47BC761C36617E326C4B6C579DE1D03。"
+      "at": "2026-11-16 19:03 Asia/Taipei (UTC+08:00)",
+      "note": "P6-06 e74e1402 固定 guard 完整八項通過；全方案 7130、Debug tracer7、進度頁28。完整輸出 SHA-256 7bde58fb4a9b7e219f6aa0b8071683f300d2b6fcfd4eb432d9b65e7e5bf93b0f。"
     },
     {
       "item": "全方案測試",
       "result": "ok",
-      "at": "2026-11-16 15:03 Asia/Taipei (UTC+08:00)",
-      "note": "P5-13 22f90b66固定guard八項通過；Release 7119、Debug tracer7、進度頁28；SHA-256 78C629B11604BF3CDF4BEE242CB43018A47BC761C36617E326C4B6C579DE1D03。"
+      "at": "2026-11-16 19:03 Asia/Taipei (UTC+08:00)",
+      "note": "P6-06 e74e1402 固定 guard 完整八項通過；全方案 7130、Debug tracer7、進度頁28。完整輸出 SHA-256 7bde58fb4a9b7e219f6aa0b8071683f300d2b6fcfd4eb432d9b65e7e5bf93b0f。"
     },
     {
       "item": "檔案說明檢查",
       "result": "ok",
-      "at": "2026-11-16 15:03 Asia/Taipei (UTC+08:00)",
-      "note": "P5-13 22f90b66固定guard八項通過；Release 7119、Debug tracer7、進度頁28；SHA-256 78C629B11604BF3CDF4BEE242CB43018A47BC761C36617E326C4B6C579DE1D03。"
+      "at": "2026-11-16 19:03 Asia/Taipei (UTC+08:00)",
+      "note": "P6-06 e74e1402 固定 guard 完整八項通過；全方案 7130、Debug tracer7、進度頁28。完整輸出 SHA-256 7bde58fb4a9b7e219f6aa0b8071683f300d2b6fcfd4eb432d9b65e7e5bf93b0f。"
     },
     {
       "item": "文字編碼（P5 範圍）",
       "result": "ok",
-      "at": "2026-11-16 15:03 Asia/Taipei (UTC+08:00)",
-      "note": "P5-13 22f90b66固定guard八項通過；Release 7119、Debug tracer7、進度頁28；SHA-256 78C629B11604BF3CDF4BEE242CB43018A47BC761C36617E326C4B6C579DE1D03。"
+      "at": "2026-11-16 19:03 Asia/Taipei (UTC+08:00)",
+      "note": "P6-06 e74e1402 固定 guard 完整八項通過；全方案 7130、Debug tracer7、進度頁28。完整輸出 SHA-256 7bde58fb4a9b7e219f6aa0b8071683f300d2b6fcfd4eb432d9b65e7e5bf93b0f。"
     },
     {
       "item": "重複程式掃描",
       "result": "ok",
-      "at": "2026-11-16 15:03 Asia/Taipei (UTC+08:00)",
-      "note": "P5-13 22f90b66固定guard八項通過；Release 7119、Debug tracer7、進度頁28；SHA-256 78C629B11604BF3CDF4BEE242CB43018A47BC761C36617E326C4B6C579DE1D03。"
+      "at": "2026-11-16 19:03 Asia/Taipei (UTC+08:00)",
+      "note": "P6-06 e74e1402 固定 guard 完整八項通過；全方案 7130、Debug tracer7、進度頁28。完整輸出 SHA-256 7bde58fb4a9b7e219f6aa0b8071683f300d2b6fcfd4eb432d9b65e7e5bf93b0f。"
     },
     {
       "item": "I18nCheck verify",
       "result": "ok",
-      "at": "2026-11-16 15:03 Asia/Taipei (UTC+08:00)",
-      "note": "P5-13 22f90b66固定guard八項通過；Release 7119、Debug tracer7、進度頁28；SHA-256 78C629B11604BF3CDF4BEE242CB43018A47BC761C36617E326C4B6C579DE1D03。"
+      "at": "2026-11-16 19:03 Asia/Taipei (UTC+08:00)",
+      "note": "P6-06 e74e1402 固定 guard 完整八項通過；全方案 7130、Debug tracer7、進度頁28。完整輸出 SHA-256 7bde58fb4a9b7e219f6aa0b8071683f300d2b6fcfd4eb432d9b65e7e5bf93b0f。"
     },
     {
       "item": "雲端 CI（GitHub）",
-      "result": "na",
-      "at": "—",
-      "note": "正式範圍 23 個專案（D33）；尚未取得成功紀錄"
+      "result": "ok",
+      "at": "2026-11-16 19:03 Asia/Taipei (UTC+08:00)",
+      "note": "P6-06 e74e1402 固定 guard 完整八項通過；全方案 7130、Debug tracer7、進度頁28。完整輸出 SHA-256 7bde58fb4a9b7e219f6aa0b8071683f300d2b6fcfd4eb432d9b65e7e5bf93b0f。"
     }
   ],
   "later": [

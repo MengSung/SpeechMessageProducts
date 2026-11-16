@@ -5,11 +5,11 @@
 
 ## 指定測試與實作
 
-- [ ] `SyntheticHost_AspNetCore2xPackage_IsReported`：先紅後綠；九個精確套件 ID 的直接參考及已還原相依須回報 `LegacyAspNetCorePackage`。
-- [ ] `ChurchReport_ResolvedPackages_ExcludeAspNetCore2xPackageIds`：Debug、Release 各一次，真實方案 ChurchReport 不得違規。
-- [ ] 如果真實傳遞相依含禁用 ID，不移除／升級上層套件；依 06A 改只查直接套件並記明原因。
-- [ ] csproj 只移除「.NET 10 使用框架引用」與九個被註解的套件參考。
-- [ ] WebApi.Client 五種 API 使用次數只盤點、登錄之後再說，不改程式或套件。
+- [x] `SyntheticHost_AspNetCore2xPackage_IsReported`：先紅後綠；九個精確套件 ID 的直接參考及已還原相依須回報 `LegacyAspNetCorePackage`。
+- [x] `ChurchReport_ResolvedPackages_ExcludeAspNetCore2xPackageIds`：Debug、Release 各一次，真實方案 ChurchReport 不得違規。
+- [x] 如果真實傳遞相依含禁用 ID，不移除／升級上層套件；依 06A 改只查直接套件並記明原因。
+- [x] csproj 只移除「.NET 10 使用框架引用」與九個被註解的套件參考。
+- [x] WebApi.Client 五種 API 使用次數只盤點、登錄之後再說，不改程式或套件。
 
 ## 五項完成定義
 
