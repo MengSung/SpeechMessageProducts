@@ -1,0 +1,242 @@
+{
+  "module": "qrcodes",
+  "basis": "reading",
+  "cases": [
+    {
+      "name": "meeting-images",
+      "entrypoint": "SundayQrCodeWorkflow.QrCodeWorkflow",
+      "writes": [
+        {
+          "operation": "Create",
+          "entity": "new_outboundtask",
+          "alias": "qr-task",
+          "fields": {
+            "new_accountid": {
+              "ref": "church-a",
+              "entity": "account"
+            },
+            "new_contactid": null,
+            "new_payload": "{\"contentVersion\":1,\"imageCount\":38,\"kind\":0,\"recordId\":\"1f87ce70-3d8a-b43f-49bc-3c3ace6547ce\",\"schema\":2}"
+          }
+        }
+      ],
+      "lineCalls": [],
+      "outputs": {
+        "OutputResult": 0,
+        "ReadingSource": "PersonalQrCodeUtility.cs:278-348; CalculateQrCodeScanNumberUtility.cs:258-322; SundayQrCodeUtility.cs:434-708"
+      },
+      "exception": null
+    },
+    {
+      "name": "personal-special-name",
+      "entrypoint": "PersonalQrCodeWorkflow.PersonalQrCodeWorkflowClass",
+      "writes": [
+        {
+          "operation": "Create",
+          "entity": "new_outboundtask",
+          "alias": "qr-task",
+          "fields": {
+            "new_accountid": {
+              "ref": "church-a",
+              "entity": "account"
+            },
+            "new_contactid": {
+              "ref": "record",
+              "entity": "contact"
+            },
+            "new_payload": "{\"contentVersion\":1,\"imageCount\":1,\"kind\":1,\"recordId\":\"1f87ce70-3d8a-b43f-49bc-3c3ace6547ce\",\"schema\":2}"
+          }
+        }
+      ],
+      "lineCalls": [],
+      "outputs": {
+        "OutputResult": 0,
+        "ReadingSource": "PersonalQrCodeUtility.cs:278-348; CalculateQrCodeScanNumberUtility.cs:258-322; SundayQrCodeUtility.cs:434-708"
+      },
+      "exception": null
+    },
+    {
+      "name": "personal-empty-name",
+      "entrypoint": "PersonalQrCodeWorkflow.PersonalQrCodeWorkflowClass",
+      "writes": [
+        {
+          "operation": "Create",
+          "entity": "new_outboundtask",
+          "alias": "qr-task",
+          "fields": {
+            "new_accountid": {
+              "ref": "church-a",
+              "entity": "account"
+            },
+            "new_contactid": {
+              "ref": "record",
+              "entity": "contact"
+            },
+            "new_payload": "{\"contentVersion\":1,\"imageCount\":1,\"kind\":1,\"recordId\":\"1f87ce70-3d8a-b43f-49bc-3c3ace6547ce\",\"schema\":2}"
+          }
+        }
+      ],
+      "lineCalls": [],
+      "outputs": {
+        "OutputResult": 0,
+        "ReadingSource": "PersonalQrCodeUtility.cs:278-348; CalculateQrCodeScanNumberUtility.cs:258-322; SundayQrCodeUtility.cs:434-708"
+      },
+      "exception": null
+    },
+    {
+      "name": "scan-same-name",
+      "entrypoint": "CalculateQrCodeScanNumberWorkflow.CalculateQrCodeScanNumberWorkflow",
+      "writes": [
+        {
+          "operation": "Update",
+          "entity": "new_meeting_statistics",
+          "fields": {
+            "new_sunday_first_qr_on_number": 2,
+            "new_sunday_second_qr_on_number": 0,
+            "new_saturday_worship_on_number": 0,
+            "new_yongmen_on_number": 0,
+            "new_prayer_meeting_qr_on_number": 0,
+            "new_child_on_number": 0,
+            "new_big_disciple_qr_on_number": 0,
+            "new_leadership_small_lecture_qr_on_number": 0,
+            "new_leaders_gather_qr_on_number": 0,
+            "new_sunday_first_qr_off_number": 1,
+            "new_sunday_second_qr_off_number": 0,
+            "new_saturday_worship_off_number": 0,
+            "new_yongmen_off_number": 0,
+            "new_prayer_meeting_qr_off_number": 0,
+            "new_child_off_number": 0,
+            "new_big_disciple_qr_off_number": 0,
+            "new_leadership_small_lecture_qr_off_number": 0,
+            "new_leaders_gather_qr_off_number": 0,
+            "new_1_sign_on_number": 0,
+            "new_1_sign_off_number": 0,
+            "new_2_sign_on_number": 0,
+            "new_2_sign_off_number": 0,
+            "new_3_sign_on_number": 0,
+            "new_3_sign_off_number": 0,
+            "new_4_sign_on_number": 0,
+            "new_4_sign_off_number": 0,
+            "new_5_sign_on_number": 0,
+            "new_5_sign_off_number": 0,
+            "new_6_sign_on_number": 0,
+            "new_6_sign_off_number": 0,
+            "new_7_sign_on_number": 0,
+            "new_7_sign_off_number": 0,
+            "new_8_sign_on_number": 0,
+            "new_8_sign_off_number": 0,
+            "new_9_sign_on_number": 0,
+            "new_9_sign_off_number": 0,
+            "new_10_sign_on_number": 0,
+            "new_10_sign_off_number": 0
+          },
+          "alias": "record"
+        }
+      ],
+      "lineCalls": [],
+      "outputs": {
+        "OutputResult": 0,
+        "ReadingSource": "PersonalQrCodeUtility.cs:278-348; CalculateQrCodeScanNumberUtility.cs:258-322; SundayQrCodeUtility.cs:434-708"
+      },
+      "exception": null
+    },
+    {
+      "name": "scan-empty",
+      "entrypoint": "CalculateQrCodeScanNumberWorkflow.CalculateQrCodeScanNumberWorkflow",
+      "writes": [
+        {
+          "operation": "Update",
+          "entity": "new_meeting_statistics",
+          "fields": {
+            "new_sunday_first_qr_on_number": 0,
+            "new_sunday_second_qr_on_number": 0,
+            "new_saturday_worship_on_number": 0,
+            "new_yongmen_on_number": 0,
+            "new_prayer_meeting_qr_on_number": 0,
+            "new_child_on_number": 0,
+            "new_big_disciple_qr_on_number": 0,
+            "new_leadership_small_lecture_qr_on_number": 0,
+            "new_leaders_gather_qr_on_number": 0,
+            "new_sunday_first_qr_off_number": 0,
+            "new_sunday_second_qr_off_number": 0,
+            "new_saturday_worship_off_number": 0,
+            "new_yongmen_off_number": 0,
+            "new_prayer_meeting_qr_off_number": 0,
+            "new_child_off_number": 0,
+            "new_big_disciple_qr_off_number": 0,
+            "new_leadership_small_lecture_qr_off_number": 0,
+            "new_leaders_gather_qr_off_number": 0,
+            "new_1_sign_on_number": 0,
+            "new_1_sign_off_number": 0,
+            "new_2_sign_on_number": 0,
+            "new_2_sign_off_number": 0,
+            "new_3_sign_on_number": 0,
+            "new_3_sign_off_number": 0,
+            "new_4_sign_on_number": 0,
+            "new_4_sign_off_number": 0,
+            "new_5_sign_on_number": 0,
+            "new_5_sign_off_number": 0,
+            "new_6_sign_on_number": 0,
+            "new_6_sign_off_number": 0,
+            "new_7_sign_on_number": 0,
+            "new_7_sign_off_number": 0,
+            "new_8_sign_on_number": 0,
+            "new_8_sign_off_number": 0,
+            "new_9_sign_on_number": 0,
+            "new_9_sign_off_number": 0,
+            "new_10_sign_on_number": 0,
+            "new_10_sign_off_number": 0
+          },
+          "alias": "record"
+        }
+      ],
+      "lineCalls": [],
+      "outputs": {
+        "OutputResult": 0,
+        "ReadingSource": "PersonalQrCodeUtility.cs:278-348; CalculateQrCodeScanNumberUtility.cs:258-322; SundayQrCodeUtility.cs:434-708"
+      },
+      "exception": null
+    },
+    {
+      "name": "personal-unowned",
+      "entrypoint": "PersonalQrCodeWorkflow.PersonalQrCodeWorkflowClass",
+      "writes": [],
+      "lineCalls": [],
+      "outputs": {
+        "OutputResult": 0,
+        "ReadingSource": "PersonalQrCodeUtility.cs:278-348; CalculateQrCodeScanNumberUtility.cs:258-322; SundayQrCodeUtility.cs:434-708"
+      },
+      "exception": "InvalidOperationException"
+    }
+  ],
+  "declaredDifferences": [
+    {
+      "case": "meeting-images",
+      "position": "$.cases[0].writes",
+      "category": 2,
+      "reason": "SundayQrCodeUtility.cs:491-559,615-708 同步畫圖逐欄更新改為既有圖片待辦；無歸屬拒絕為隔離收斂，不依組織名稱猜教會。",
+      "test": "QrCodes_ImageNeeded_EnqueuesTaskOnce"
+    },
+    {
+      "case": "personal-special-name",
+      "position": "$.cases[1].writes",
+      "category": 2,
+      "reason": "PersonalQrCodeUtility.cs:348 每次附件新增改同來源版本待辦一次；附件錯誤不再由ToolUtilityClass.cs:5789-5794吞掉。",
+      "test": "QrCodes_ImageNeeded_EnqueuesTaskOnce"
+    },
+    {
+      "case": "scan-same-name",
+      "position": "$.cases[3].writes",
+      "category": 1,
+      "reason": "CalculateQrCodeScanNumberUtility.cs:298,312-314 整體回寫改38欄最小patch；完整有界分頁與正式ID檢查，拒絕截斷與重複，不依姓名去重。",
+      "test": "QrCodes_ScanCount_MatchesLegacy"
+    },
+    {
+      "case": "personal-unowned",
+      "position": "$.cases[5].exception",
+      "category": 1,
+      "reason": "PersonalQrCodeUtility.cs:302-348 無教會檢查改正式parentcustomerid驗證，缺歸屬先拒絕。",
+      "test": "QrCodes_Scenarios_MatchExpected"
+    }
+  ]
+}

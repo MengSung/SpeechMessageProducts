@@ -1,0 +1,364 @@
+{
+  "module": "qrcodes",
+  "cases": [
+    {
+      "name": "meeting-images",
+      "church": {
+        "alias": "church-a",
+        "organizationName": "synthetic-qrcodes",
+        "timeZone": "Asia/Taipei",
+        "culture": "zh-TW"
+      },
+      "seed": [
+        {
+          "entity": "contact",
+          "fields": {
+            "fullname": "同名甲 @&?",
+            "parentcustomerid": {
+              "ref": "church-a",
+              "entity": "account"
+            }
+          },
+          "alias": "person"
+        },
+        {
+          "entity": "new_meeting_statistics",
+          "fields": {},
+          "alias": "record"
+        },
+        {
+          "entity": "new_present_record",
+          "fields": {
+            "new_meeting_statistics_new_present_re": {
+              "ref": "record",
+              "entity": "new_meeting_statistics"
+            },
+            "new_contact_new_present_record": {
+              "ref": "person",
+              "entity": "contact"
+            },
+            "new_name": "同名",
+            "new_sunday_first_qr_on_time": "2026-11-16T00:00:00Z",
+            "new_sunday_first_qr_off": "2026-11-16T01:00:00Z"
+          },
+          "alias": "attendance-2"
+        },
+        {
+          "entity": "new_present_record",
+          "fields": {
+            "new_meeting_statistics_new_present_re": {
+              "ref": "record",
+              "entity": "new_meeting_statistics"
+            },
+            "new_contact_new_present_record": {
+              "ref": "person",
+              "entity": "contact"
+            },
+            "new_name": "同名",
+            "new_sunday_first_qr_on_time": "2026-11-16T00:00:00Z"
+          },
+          "alias": "attendance-3"
+        },
+        {
+          "alias": "church-a",
+          "entity": "account",
+          "fields": {}
+        }
+      ],
+      "trigger": {
+        "project": "SundayQrCodeWorkflow",
+        "type": "SundayQrCodeWorkflow.QrCodeWorkflow",
+        "activity": true,
+        "depth": 3,
+        "inputs": {
+          "InputParameter": "synthetic"
+        }
+      },
+      "queryResults": {},
+      "now": "2026-11-16T00:00:00Z",
+      "volatile": [],
+      "liveShadow": false,
+      "observe": [
+        {
+          "alias": "record",
+          "entity": "new_meeting_statistics",
+          "fields": [
+            "new_name"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "personal-special-name",
+      "church": {
+        "alias": "church-a",
+        "organizationName": "synthetic-qrcodes",
+        "timeZone": "Asia/Taipei",
+        "culture": "zh-TW"
+      },
+      "seed": [
+        {
+          "entity": "contact",
+          "fields": {
+            "fullname": "同名甲 @&?",
+            "parentcustomerid": {
+              "ref": "church-a",
+              "entity": "account"
+            }
+          },
+          "alias": "record"
+        },
+        {
+          "alias": "church-a",
+          "entity": "account",
+          "fields": {}
+        }
+      ],
+      "trigger": {
+        "project": "PersonalQrCodeWorkflow",
+        "type": "PersonalQrCodeWorkflow.PersonalQrCodeWorkflowClass",
+        "activity": true,
+        "depth": 3,
+        "inputs": {
+          "InputParameter": "synthetic"
+        }
+      },
+      "queryResults": {},
+      "now": "2026-11-16T00:00:00Z",
+      "volatile": [],
+      "liveShadow": false,
+      "observe": [
+        {
+          "alias": "record",
+          "entity": "contact",
+          "fields": [
+            "fullname"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "personal-empty-name",
+      "church": {
+        "alias": "church-a",
+        "organizationName": "synthetic-qrcodes",
+        "timeZone": "Asia/Taipei",
+        "culture": "zh-TW"
+      },
+      "seed": [
+        {
+          "entity": "contact",
+          "fields": {
+            "parentcustomerid": {
+              "ref": "church-a",
+              "entity": "account"
+            }
+          },
+          "alias": "record"
+        },
+        {
+          "alias": "church-a",
+          "entity": "account",
+          "fields": {}
+        }
+      ],
+      "trigger": {
+        "project": "PersonalQrCodeWorkflow",
+        "type": "PersonalQrCodeWorkflow.PersonalQrCodeWorkflowClass",
+        "activity": true,
+        "depth": 3,
+        "inputs": {
+          "InputParameter": "synthetic"
+        }
+      },
+      "queryResults": {},
+      "now": "2026-11-16T00:00:00Z",
+      "volatile": [],
+      "liveShadow": false,
+      "observe": [
+        {
+          "alias": "record",
+          "entity": "contact",
+          "fields": [
+            "fullname"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "scan-same-name",
+      "church": {
+        "alias": "church-a",
+        "organizationName": "synthetic-qrcodes",
+        "timeZone": "Asia/Taipei",
+        "culture": "zh-TW"
+      },
+      "seed": [
+        {
+          "entity": "contact",
+          "fields": {
+            "fullname": "同名甲 @&?",
+            "parentcustomerid": {
+              "ref": "church-a",
+              "entity": "account"
+            }
+          },
+          "alias": "person"
+        },
+        {
+          "entity": "new_meeting_statistics",
+          "fields": {},
+          "alias": "record"
+        },
+        {
+          "entity": "new_present_record",
+          "fields": {
+            "new_meeting_statistics_new_present_re": {
+              "ref": "record",
+              "entity": "new_meeting_statistics"
+            },
+            "new_contact_new_present_record": {
+              "ref": "person",
+              "entity": "contact"
+            },
+            "new_name": "同名",
+            "new_sunday_first_qr_on_time": "2026-11-16T00:00:00Z",
+            "new_sunday_first_qr_off": "2026-11-16T01:00:00Z"
+          },
+          "alias": "attendance-2"
+        },
+        {
+          "entity": "new_present_record",
+          "fields": {
+            "new_meeting_statistics_new_present_re": {
+              "ref": "record",
+              "entity": "new_meeting_statistics"
+            },
+            "new_contact_new_present_record": {
+              "ref": "person",
+              "entity": "contact"
+            },
+            "new_name": "同名",
+            "new_sunday_first_qr_on_time": "2026-11-16T00:00:00Z"
+          },
+          "alias": "attendance-3"
+        },
+        {
+          "alias": "church-a",
+          "entity": "account",
+          "fields": {}
+        }
+      ],
+      "trigger": {
+        "project": "CalculateQrCodeScanNumberWorkflow",
+        "type": "CalculateQrCodeScanNumberWorkflow.CalculateQrCodeScanNumberWorkflow",
+        "activity": true,
+        "depth": 3,
+        "inputs": {
+          "InputParameter": "synthetic"
+        }
+      },
+      "queryResults": {},
+      "now": "2026-11-16T00:00:00Z",
+      "volatile": [],
+      "liveShadow": false,
+      "observe": [
+        {
+          "alias": "record",
+          "entity": "new_meeting_statistics",
+          "fields": [
+            "new_name"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "scan-empty",
+      "church": {
+        "alias": "church-a",
+        "organizationName": "synthetic-qrcodes",
+        "timeZone": "Asia/Taipei",
+        "culture": "zh-TW"
+      },
+      "seed": [
+        {
+          "entity": "new_meeting_statistics",
+          "fields": {},
+          "alias": "record"
+        },
+        {
+          "alias": "church-a",
+          "entity": "account",
+          "fields": {}
+        }
+      ],
+      "trigger": {
+        "project": "CalculateQrCodeScanNumberWorkflow",
+        "type": "CalculateQrCodeScanNumberWorkflow.CalculateQrCodeScanNumberWorkflow",
+        "activity": true,
+        "depth": 3,
+        "inputs": {
+          "InputParameter": "synthetic"
+        }
+      },
+      "queryResults": {},
+      "now": "2026-11-16T00:00:00Z",
+      "volatile": [],
+      "liveShadow": false,
+      "observe": [
+        {
+          "alias": "record",
+          "entity": "new_meeting_statistics",
+          "fields": [
+            "new_name"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "personal-unowned",
+      "church": {
+        "alias": "church-a",
+        "organizationName": "synthetic-qrcodes",
+        "timeZone": "Asia/Taipei",
+        "culture": "zh-TW"
+      },
+      "seed": [
+        {
+          "entity": "contact",
+          "fields": {
+            "fullname": "合成會友"
+          },
+          "alias": "record"
+        },
+        {
+          "alias": "church-a",
+          "entity": "account",
+          "fields": {}
+        }
+      ],
+      "trigger": {
+        "project": "PersonalQrCodeWorkflow",
+        "type": "PersonalQrCodeWorkflow.PersonalQrCodeWorkflowClass",
+        "activity": true,
+        "depth": 3,
+        "inputs": {
+          "InputParameter": "synthetic"
+        }
+      },
+      "queryResults": {},
+      "now": "2026-11-16T00:00:00Z",
+      "volatile": [],
+      "liveShadow": false,
+      "observe": [
+        {
+          "alias": "record",
+          "entity": "contact",
+          "fields": [
+            "fullname"
+          ]
+        }
+      ]
+    }
+  ]
+}
