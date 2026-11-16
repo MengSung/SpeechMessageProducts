@@ -1,13 +1,16 @@
 /*
  * 檔案整體說明
  *
- * 目的與定位：提供 P5-07 課程 QR 圖片待辦的 Hosting 組合邊界。它把 worker
- * 傳入的 detached payload 重新驗證成 LessonQrBundlePayload，再從每筆工作的
- * DI scope 取得教會設定與圖片發布服務，建立單筆 LessonQrBundleHandler。
+ * 目的與定位：提供課程、聚會與個人 QR 圖片待辦的唯一 Hosting 組合邊界。它把 worker
+ * 傳入的 detached payload 重新驗證成 LessonQrBundlePayload 或 schema2 的
+ * MeetingPersonalQrPayload，再從每筆工作的
+ * DI scope 取得教會設定與圖片發布服務，建立單筆 LessonQrBundleHandler 或
+ * MeetingPersonalQrHandler；不新增待辦類型或第二個同型別 consumer。
  *
  * 主要功能與流程：OpenAsync 只接受 QrImageGenerate 類型，先解析固定 schema 的
- * lessonId、contentVersion、includePoll，再由設定提供者依正式 churchId 取得
- * 前綴，最後交給 LessonQrBundleHandler。發布服務必須在所有圖片產生成功後，
+ * lessonId、contentVersion、includePoll，或重驗 schema2 五欄、numeric kind、
+ * contact 與穩定來源鍵；再由各設定提供者依正式 churchId 取得前綴並建立 handler。
+ * 發布服務必須在所有圖片產生成功後，
  * 以同一個 scope 完成圖片發布與課程 URL 欄位的原子回寫；本檔不自行更新
  * Dataverse，也不把 URL、token 或圖片內容放進跨工作狀態。
  *
@@ -52,7 +55,7 @@ public interface ILessonQrBundlePublicationService
         CancellationToken cancellationToken);
 }
 
-/// <summary>建立每筆課程 QR 待辦專屬 handler scope 的 Hosting factory。</summary>
+/// <summary>依封閉 schema 分派，每筆 QR 待辦都建立專屬 handler scope 的唯一 Hosting factory。</summary>
 public sealed class LessonQrBundleHostFactory : IOutboundTaskHandlerFactory
 {
     private readonly IServiceScopeFactory _scopeFactory;
@@ -64,8 +67,9 @@ public sealed class LessonQrBundleHostFactory : IOutboundTaskHandlerFactory
     }
 
     /// <summary>
-    /// 重新驗證 detached work item，再建立本工作專屬設定、publisher、renderer 與
-    /// handler。成功移交後由 LessonQrBundleHandlerScope 唯一擁有 async scope。
+    /// 重新驗證 detached work item，schema1 課程與 schema2 聚會／個人分開解析，
+    /// 再建立本工作專屬設定、publisher、renderer 與 handler。成功移交後由
+    /// LessonQrBundleHandlerScope 唯一擁有 async scope，建構失敗則當場排空。
     /// </summary>
     public async ValueTask<IOutboundTaskHandlerScope> OpenAsync(
         OutboundWorkItem item, CancellationToken cancellationToken)
@@ -74,6 +78,25 @@ public sealed class LessonQrBundleHostFactory : IOutboundTaskHandlerFactory
         cancellationToken.ThrowIfCancellationRequested();
         if (item.Type != OutboundWorkType.QrImageGenerate)
             throw new InvalidOperationException("Lesson QR handler type is invalid.");
+
+        if (MeetingPersonalQrPayload.IsSchemaTwo(item.PayloadJson))
+        {
+            var qrPayload = MeetingPersonalQrPayload.Parse(item.PayloadJson);
+            qrPayload.ValidateWorkItem(item);
+            var qrScope = _scopeFactory.CreateAsyncScope();
+            try
+            {
+                var publication = qrScope.ServiceProvider.GetRequiredService<MeetingPersonalQrPublicationService>();
+                cancellationToken.ThrowIfCancellationRequested();
+                return new LessonQrBundleHandlerScope(qrScope,
+                    new MeetingPersonalQrHandler(publication, item.ChurchId, qrPayload));
+            }
+            catch
+            {
+                await qrScope.DisposeAsync().ConfigureAwait(false);
+                throw;
+            }
+        }
 
         var payload = LessonQrBundlePayload.Parse(item.PayloadJson);
         var scope = _scopeFactory.CreateAsyncScope();

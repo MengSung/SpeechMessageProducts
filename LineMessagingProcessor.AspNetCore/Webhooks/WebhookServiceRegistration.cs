@@ -69,6 +69,7 @@ public static partial class WebhookServiceRegistration
     /// <summary>明確啟用才註冊 QR 專用 worker；無效開關拒絕，不替代付款的介面註冊。</summary>
     private static void RegisterLessonQr(IServiceCollection services, IConfiguration configuration)
     {
+        if (RegisterMeetingPersonalQr(services, configuration)) return;
         var flag = configuration.GetSection("Lessons:Qr:Enabled");
         if (flag.GetChildren().Any() ||
             (flag.Value is not null && !bool.TryParse(flag.Value, out _)))
