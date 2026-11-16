@@ -742,6 +742,54 @@
             "differences": null,
             "basis": "reading"
           }
+        },
+        {
+          "module": "qrcodes",
+          "type": "SpeechMessage.Dynamics.Workflows.QrCodes.MeetingQrCodeActivity",
+          "displayName": "MeetingQrCodeActivity",
+          "legacy": [
+            {
+              "assembly": "SundayQrCodeWorkflow",
+              "type": "SundayQrCodeWorkflow.QrCodeWorkflow"
+            }
+          ],
+          "shadowReport": {
+            "file": "",
+            "differences": null,
+            "basis": "reading"
+          }
+        },
+        {
+          "module": "qrcodes",
+          "type": "SpeechMessage.Dynamics.Workflows.QrCodes.MeetingScanCountActivity",
+          "displayName": "MeetingScanCountActivity",
+          "legacy": [
+            {
+              "assembly": "CalculateQrCodeScanNumberWorkflow",
+              "type": "CalculateQrCodeScanNumberWorkflow.CalculateQrCodeScanNumberWorkflow"
+            }
+          ],
+          "shadowReport": {
+            "file": "",
+            "differences": null,
+            "basis": "reading"
+          }
+        },
+        {
+          "module": "qrcodes",
+          "type": "SpeechMessage.Dynamics.Workflows.QrCodes.PersonalQrCodeActivity",
+          "displayName": "PersonalQrCodeActivity",
+          "legacy": [
+            {
+              "assembly": "PersonalQrCodeWorkflow",
+              "type": "PersonalQrCodeWorkflow.PersonalQrCodeWorkflowClass"
+            }
+          ],
+          "shadowReport": {
+            "file": "",
+            "differences": null,
+            "basis": "reading"
+          }
         }
       ]
     }
