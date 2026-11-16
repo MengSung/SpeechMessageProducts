@@ -208,11 +208,14 @@ public sealed class CareServiceTests
         internal Exception? UpdateFailure { get; set; }
 
         /// <summary>建立有正式教會與名單 lookup 的合成 contact，不以顯示名稱授權。</summary>
-        internal CareSdk() => Contact = new Entity("contact", Guid.NewGuid())
+        internal CareSdk()
         {
-            ["parentcustomerid"] = church.ToEntityReference(),
-            ["new_cell_list_contact"] = list.ToEntityReference()
-        };
+            Contact = new Entity("contact", Guid.NewGuid())
+            {
+                ["parentcustomerid"] = church.ToEntityReference(),
+                ["new_cell_list_contact"] = list.ToEntityReference()
+            };
+        }
 
         /// <summary>嚴格最小投影；未讀取欄位不會因測試便利而出現在回應。</summary>
         public Entity Retrieve(string entityName, Guid id, ColumnSet columnSet)
