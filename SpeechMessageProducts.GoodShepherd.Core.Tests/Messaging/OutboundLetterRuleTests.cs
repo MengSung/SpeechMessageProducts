@@ -4,13 +4,14 @@
  * 與 LINE HTTP 組裝管線，驗證單人、正式活動重試鍵、原文、sender 及失敗分類。
  * 主要流程：案例只替換最底層 HttpMessageHandler 與純值收件來源；200／409／403／
  * 429／503 與傳輸例外由 owner 注入，決定性斷言檢查真正送出的 JSON、標頭及回傳
- * 分類。快速行銷測試依一百個正式活動 ID 分開執行，不以姓名或內容去重。
+ * 分類。另掃描本模組產品來源，拒絕群送端點；只讀本工作樹、不遍歷父方案。快速行銷測試依一百個正式活動 ID 分開執行，不以姓名或內容去重。
  * 資源與隔離：每案 using fixture 唯一擁有 HttpClient／handler 與合成金鑰；Task
  * 全部 await 後清除 key、本文與重試集合。Shadow 不觸網，沒有真 D365、LINE、
  * Secrets、Session、Timer 或背景資源；離線 HTTP 替身不代表平台實機送達驗收。
  */
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
@@ -193,6 +194,27 @@ public sealed class OutboundLetterRuleTests
         await Assert.ThrowsAsync<ArgumentException>(() => f.Send(activityId: Guid.Empty));
         await Assert.ThrowsAsync<ArgumentException>(() => f.Send(content: ""));
         Assert.Equal(0, f.Calls);
+    }
+
+    /// <summary>掃描本模組的實際產品來源，禁止新增群送端點；共用 SDK 的其他功能不在此範圍。</summary>
+    [Fact]
+    public void Source_NoMulticastOrBroadcast()
+    {
+        var repository = new DirectoryInfo(AppContext.BaseDirectory);
+        while (repository is not null && !File.Exists(Path.Combine(repository.FullName, "SpeechMessageProducts.sln")))
+            repository = repository.Parent;
+        Assert.NotNull(repository);
+        var paths = new[] { "SpeechMessageProducts.GoodShepherd.Core", "SpeechMessage.Dynamics.Plugins" };
+        var count = 0;
+        foreach (var project in paths)
+            foreach (var file in Directory.EnumerateFiles(Path.Combine(repository!.FullName, project, "Messaging"), "*.cs"))
+            {
+                count++;
+                var source = File.ReadAllText(file);
+                Assert.DoesNotContain("multicast", source, StringComparison.OrdinalIgnoreCase);
+                Assert.DoesNotContain("broadcast", source, StringComparison.OrdinalIgnoreCase);
+            }
+        Assert.True(count >= 3);
     }
 
     /// <summary>來源、HTTP 與金鑰同屬當案 owner；沒有可供下一案例借用的 static 狀態。</summary>

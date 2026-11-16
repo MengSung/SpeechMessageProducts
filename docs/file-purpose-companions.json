@@ -70,5 +70,7 @@
   "SpeechMessageProducts.GoodShepherd.Core.Tests/Golden/Legacy/qrcodes/scenarios.json": "P5-09 QR模組的六案人工合成來源，涵蓋聚會、個人特殊姓名／空姓名、同名不同ID計數、空出席及缺教會拒絕；供雙宿主真Core規則及黃金格式守門驗證。basis=reading、live=deferred，不冒稱舊黃金、實機影子或像素一致；只含合成ID與資料，不保存正式LIFF或秘密。",
   "SpeechMessageProducts.GoodShepherd.Core.Tests/Golden/Legacy/qrcodes/expected.json": "P5-09 QR模組的由舊來源行號人工閱讀建立的完整觀察寫入與例外期望，含declaredDifferences；沒有執行舊DLL；供雙宿主真Core規則及黃金格式守門驗證。basis=reading、live=deferred，不冒稱舊黃金、實機影子或像素一致；只含合成ID與資料，不保存正式LIFF或秘密。",
   "SpeechMessageProducts.GoodShepherd.Core.Tests/Golden/Legacy/fees/scenarios.json": "P5-11 收費 reading 基準的六個共用合成情境，含正常、時區／預設值、未綁定、原始故障、Create 無效果與收件者教會變動；Core 雙目標與真 WF 外殼共用，不執行退役 DLL，不存真實憑證。",
-  "SpeechMessageProducts.GoodShepherd.Core.Tests/Golden/Legacy/fees/expected.json": "P5-11 收費 reading 基準的人工閱讀舊來源附行號的期望值，含完整合成通知文字、安全摘要、例外與核定差異；未經舊程式實跑，不能稱 legacy-golden 或實機差異零，不得由被測輸出重生。"
+  "SpeechMessageProducts.GoodShepherd.Core.Tests/Golden/Legacy/fees/expected.json": "P5-11 收費 reading 基準的人工閱讀舊來源附行號的期望值，含完整合成通知文字、安全摘要、例外與核定差異；未經舊程式實跑，不能稱 legacy-golden 或實機差異零，不得由被測輸出重生。",
+  "SpeechMessageProducts.GoodShepherd.Core.Tests/Golden/Legacy/messaging/scenarios.json": "保存P5-12六個外送閱讀情境，僅合成letter與正式來源別名，涵蓋方向、未綁定、教會錯配、深度及來源失敗；由真外殼與CAS共用，不執行舊DLL或實機推播。",
+  "SpeechMessageProducts.GoodShepherd.Core.Tests/Golden/Legacy/messaging/expected.json": "保存P5-12人工閱讀期望與逐案差異宣告，basis=reading，列出舊來源行號、字典原因及影子完成候選；沒有偽造legacy.json，不得當成實機零差異或送達證據。"
 }

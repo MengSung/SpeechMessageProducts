@@ -4,7 +4,8 @@
  * 單一正式收件者、權威來源教會、影子寫入及 Live 查詢前拒絕，不把 HTTP 替身當實機。
  * 主要流程：每案用正式外殼加既有 FakeOrganizationService，合成 letter／account／
  * contact／channel；追蹤須有完整推播摘要與完成意圖，真 SDK WriteRecords 必須空。
- * 故障注入會改變收件者教會、移除綁定、增加第二個 party 或使用無教會關聯的寄件者，
+ * 故障注入會改變收件者教會、移除綁定、增加第二個 party 或使用無教會關聯的寄件者；共用 fixture 使用真 RemoteExecutionContext，允許 CAS 子域
+ * 不依賴 Moq／私有反射重跑同一鏈。
  * 決定性斷言核對短路與原例外，不以姓名或收件者本身反推來源教會。
  * 資源與隔離：fixture 是單案 SDK／trace 的唯一 owner；同步 Execute 排空後清除
  * 所有來源及回呼。沒有真網路、秘密、Session、背景工作或跨案例共用狀態。
@@ -50,8 +51,8 @@ public sealed class OutboundLetterShellTests
     public void Messaging_DepthPolicy_MatchesLegacy(string message, int depth, bool executes)
     {
         using var f = new Fixture();
-        f.Context.Mock.SetupGet(x => x.MessageName).Returns(message);
-        f.Context.Mock.SetupGet(x => x.Depth).Returns(depth);
+        f.Context.MessageName = message;
+        f.Context.Depth = depth;
         f.Run();
         Assert.Equal(executes, f.Sdk.Calls.ContainsKey("Retrieve"));
     }
@@ -120,9 +121,9 @@ public sealed class OutboundLetterShellTests
     {
         using var f = new Fixture();
         var query = new QueryExpression("letter") { ColumnSet = new ColumnSet("activityid") };
-        query.Criteria.AddCondition("activityid", ConditionOperator.Equal, f.Context.Object.PrimaryEntityId);
+        query.Criteria.AddCondition("activityid", ConditionOperator.Equal, f.Context.PrimaryEntityId);
         var row = Assert.Single(f.Sdk.RetrieveMultiple(query).Entities);
-        Assert.Equal(f.Context.Object.PrimaryEntityId, row["activityid"]);
+        Assert.Equal(f.Context.PrimaryEntityId, row["activityid"]);
         Assert.False(row.Contains("letterid"));
     }
 
@@ -155,6 +156,20 @@ public sealed class OutboundLetterShellTests
         Assert.DoesNotContain(f.Trace.Entries, x => x.Contains(original.Message));
     }
 
+    /// <summary>缺少權威狀態不能推定為 Open；在任何收件者查詢或意圖前封閉失敗。</summary>
+    [Fact]
+    public void Messaging_MissingState_RefusedBeforePush()
+    {
+        using var f = new Fixture();
+        var original = f.Sdk.Retrieve("letter", f.Context.PrimaryEntityId, new ColumnSet(true));
+        original.Attributes.Remove("statecode");
+        f.Sdk.RetrieveHandler = (table, _, _) => table == "letter" ? original : throw new InvalidOperationException("Unexpected downstream read.");
+        var failure = Assert.Throws<InvalidOperationException>(() => f.Run());
+        Assert.Equal("A formal letter state is required.", failure.Message);
+        Assert.DoesNotContain(f.Trace.Entries, x => x.Contains("\"operation\":\"Push\""));
+        Assert.Empty(f.Sdk.WriteRecords);
+    }
+
     /// <summary>同外殼重用 A/B/A 各自只用當次服務，清理後不保留上一個活動來源。</summary>
     [Fact]
     public void Messaging_ReusedShell_ABA_Isolated()
@@ -170,24 +185,27 @@ public sealed class OutboundLetterShellTests
     }
 
     /// <summary>每案各自擁有合成 SDK 與平台服務，沒有共用可變資料或外部連線。</summary>
-    private sealed class Fixture : IDisposable
+    internal sealed class Fixture : IDisposable
     {
         internal readonly FakeOrganizationService Sdk;
+        /// <summary>本案正式收件人識別，供完整影子比對，不以顯示姓名判斷。</summary>
+        internal readonly Guid RecipientId;
         internal readonly FakeTracingService Trace = new();
-        internal readonly FakePluginExecutionContext Context;
+        internal readonly RemoteExecutionContext Context;
         internal readonly FakeServiceProvider Provider;
 
         /// <summary>正式活動 ID 與來源教會分別建立，不使用 sender 顯示名稱授權。</summary>
         internal Fixture(bool outbound = true, bool otherChurch = false, bool bound = true,
-            int recipientCount = 1, string senderTable = "account", string? category = null, int state = 0)
+            int recipientCount = 1, string senderTable = "account", string? category = null, int state = 0, string content = "synthetic raw text")
         {
             var activity = Guid.NewGuid(); var church = Guid.NewGuid(); var contact = Guid.NewGuid(); var channel = Guid.NewGuid();
+            RecipientId = contact;
             var recipients = new EntityCollection();
             for (var i = 0; i < recipientCount; i++)
                 recipients.Entities.Add(new Entity("activityparty", Guid.NewGuid()) { ["partyid"] = new EntityReference("contact", contact) });
             Sdk = new FakeOrganizationService(new[]
             {
-                new Entity("letter", activity) { ["directioncode"] = outbound, ["description"] = "synthetic raw text",
+                new Entity("letter", activity) { ["directioncode"] = outbound, ["description"] = content,
                     ["statecode"] = new OptionSetValue(state), ["statuscode"] = new OptionSetValue(1), ["category"] = category,
                     ["to"] = recipients, ["from"] = new EntityCollection(new[] { new Entity("activityparty", Guid.NewGuid())
                         { ["partyid"] = new EntityReference(senderTable, church) } }) },
@@ -197,11 +215,11 @@ public sealed class OutboundLetterShellTests
                     ["new_lineid"] = bound ? "U00000000000000000000000000000000" : null },
                 new Entity("new_linechannel", channel)
             });
-            Context = new FakePluginExecutionContext(primaryEntityName: "letter", primaryEntityId: activity);
-            Context.Mock.SetupGet(x => x.Stage).Returns(40);
-            Context.Mock.SetupGet(x => x.Mode).Returns(1);
-            Context.Object.InputParameters["Target"] = new Entity("letter", activity) { ["directioncode"] = outbound };
-            Provider = new FakeServiceProvider().Add<IPluginExecutionContext>(Context.Object).Add<ITracingService>(Trace)
+            Context = new RemoteExecutionContext { MessageName = "Create", PrimaryEntityName = "letter", PrimaryEntityId = activity,
+                Stage = 40, Mode = 1, Depth = 1, OrganizationId = Guid.NewGuid(), OrganizationName = "synthetic-messaging",
+                UserId = Guid.NewGuid(), CorrelationId = Guid.NewGuid() };
+            Context.InputParameters["Target"] = new Entity("letter", activity) { ["directioncode"] = outbound };
+            Provider = new FakeServiceProvider().Add<IPluginExecutionContext>(Context).Add<ITracingService>(Trace)
                 .Add<IOrganizationServiceFactory>(new FakeOrganizationServiceFactory(Sdk));
         }
 
@@ -217,7 +235,7 @@ public sealed class OutboundLetterShellTests
         }
 
         /// <summary>同步 Execute 排空後清除 SDK、回呼與追蹤，不處置平台並不存在的真連線。</summary>
-        public void Dispose() { Sdk.Dispose(); Trace.Entries.Clear(); }
+        public void Dispose() { Sdk.Dispose(); Trace.Entries.Clear(); Context.InputParameters.Clear(); Context.PreEntityImages.Clear(); Context.PostEntityImages.Clear(); }
     }
 
     /// <summary>只借出本案 SDK，不建立連線、不轉移 SDK owner 或保留跨案身分。</summary>

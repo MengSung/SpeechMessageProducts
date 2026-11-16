@@ -2,7 +2,8 @@
  * 檔案整體說明
  * 目的與定位：P5-12 外送 letter 的 Shadow 資料 adapter，從正式活動解出單人收件者、
  * 寄件者所屬教會及自由文字，委派 OutboundLetterRule 記錄完整意圖；不是 Live 實作。
- * 主要流程：先讀 directioncode，入站或已終止活動不繼續；外送只接受一個 contact
+ * 主要流程：先讀 directioncode，入站或已終止活動不繼續；外送缺狀態即拒絕，不把
+ * 未知狀態推定 Open。外送只接受一個 contact
  * 收件 party 與一個 account／contact 寄件 party。教會由寄件者 account 或正式 contact
  * 的 parentcustomerid 決定，絕不由收件者反推；systemuser 等未具權威關聯時封閉失敗。
  * 寄件者與頻道重讀後，規則完成意圖才產生假設送達的狀態候選；業務拒絕則產生失敗
@@ -55,7 +56,9 @@ public static class OutboundLetterRecords
             new ColumnSet("directioncode", "description", "from", "to", "statecode", "new_message_category",
                 "category", "subcategory"), ct);
         if (row.GetAttributeValue<bool?>("directioncode") != true) return;
-        if (row.GetAttributeValue<OptionSetValue>("statecode") is { Value: not 0 }) return;
+        var state = row.GetAttributeValue<OptionSetValue>("statecode")
+            ?? throw new InvalidOperationException("A formal letter state is required.");
+        if (state.Value != 0) return;
         var category = row.GetAttributeValue<string>("category");
         var subcategory = row.GetAttributeValue<string>("subcategory");
         if ((!string.IsNullOrEmpty(category) && !IsOwnedCategory(category)) ||

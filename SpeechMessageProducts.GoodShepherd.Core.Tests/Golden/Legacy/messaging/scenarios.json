@@ -1,0 +1,375 @@
+{
+  "module": "messaging",
+  "cases": [
+    {
+      "name": "outbound-normal",
+      "church": {
+        "alias": "church",
+        "organizationName": "synthetic-messaging",
+        "timeZone": "Asia/Taipei",
+        "culture": "zh-TW"
+      },
+      "seed": [
+        {
+          "alias": "letter",
+          "entity": "letter",
+          "fields": {
+            "directioncode": true,
+            "description": "synthetic raw text",
+            "statecode": {
+              "option": 0
+            },
+            "from": {
+              "ref": "church",
+              "entity": "account"
+            },
+            "to": {
+              "ref": "member",
+              "entity": "contact"
+            }
+          }
+        },
+        {
+          "alias": "member",
+          "entity": "contact",
+          "fields": {
+            "new_lineid": {
+              "line": "synthetic-member"
+            },
+            "parentcustomerid": {
+              "ref": "church",
+              "entity": "account"
+            }
+          }
+        },
+        {
+          "alias": "church",
+          "entity": "account",
+          "fields": {
+            "name": "Synthetic",
+            "new_defaultlanguage": "zh-TW"
+          }
+        }
+      ],
+      "trigger": {
+        "project": "LineMessagePlugIn",
+        "type": "LineMessagePlugIn.LineMessagePlugIn",
+        "message": "Create",
+        "depth": 1
+      },
+      "fault": null,
+      "now": "2026-11-16T00:00:00Z",
+      "volatile": [],
+      "liveShadow": false,
+      "observe": []
+    },
+    {
+      "name": "inbound-noop",
+      "church": {
+        "alias": "church",
+        "organizationName": "synthetic-messaging",
+        "timeZone": "Asia/Taipei",
+        "culture": "zh-TW"
+      },
+      "seed": [
+        {
+          "alias": "letter",
+          "entity": "letter",
+          "fields": {
+            "directioncode": false,
+            "description": "synthetic raw text",
+            "statecode": {
+              "option": 0
+            },
+            "from": {
+              "ref": "church",
+              "entity": "account"
+            },
+            "to": {
+              "ref": "member",
+              "entity": "contact"
+            }
+          }
+        },
+        {
+          "alias": "member",
+          "entity": "contact",
+          "fields": {
+            "new_lineid": {
+              "line": "synthetic-member"
+            },
+            "parentcustomerid": {
+              "ref": "church",
+              "entity": "account"
+            }
+          }
+        },
+        {
+          "alias": "church",
+          "entity": "account",
+          "fields": {
+            "name": "Synthetic",
+            "new_defaultlanguage": "zh-TW"
+          }
+        }
+      ],
+      "trigger": {
+        "project": "LineMessagePlugIn",
+        "type": "LineMessagePlugIn.LineMessagePlugIn",
+        "message": "Create",
+        "depth": 1
+      },
+      "fault": null,
+      "now": "2026-11-16T00:00:00Z",
+      "volatile": [],
+      "liveShadow": false,
+      "observe": []
+    },
+    {
+      "name": "outbound-unbound",
+      "church": {
+        "alias": "church",
+        "organizationName": "synthetic-messaging",
+        "timeZone": "Asia/Taipei",
+        "culture": "zh-TW"
+      },
+      "seed": [
+        {
+          "alias": "letter",
+          "entity": "letter",
+          "fields": {
+            "directioncode": true,
+            "description": "synthetic raw text",
+            "statecode": {
+              "option": 0
+            },
+            "from": {
+              "ref": "church",
+              "entity": "account"
+            },
+            "to": {
+              "ref": "member",
+              "entity": "contact"
+            }
+          }
+        },
+        {
+          "alias": "member",
+          "entity": "contact",
+          "fields": {
+            "new_lineid": null,
+            "parentcustomerid": {
+              "ref": "church",
+              "entity": "account"
+            }
+          }
+        },
+        {
+          "alias": "church",
+          "entity": "account",
+          "fields": {
+            "name": "Synthetic",
+            "new_defaultlanguage": "zh-TW"
+          }
+        }
+      ],
+      "trigger": {
+        "project": "LineMessagePlugIn",
+        "type": "LineMessagePlugIn.LineMessagePlugIn",
+        "message": "Create",
+        "depth": 1
+      },
+      "fault": null,
+      "now": "2026-11-16T00:00:00Z",
+      "volatile": [],
+      "liveShadow": false,
+      "observe": []
+    },
+    {
+      "name": "outbound-other-church",
+      "church": {
+        "alias": "church",
+        "organizationName": "synthetic-messaging",
+        "timeZone": "Asia/Taipei",
+        "culture": "zh-TW"
+      },
+      "seed": [
+        {
+          "alias": "letter",
+          "entity": "letter",
+          "fields": {
+            "directioncode": true,
+            "description": "synthetic raw text",
+            "statecode": {
+              "option": 0
+            },
+            "from": {
+              "ref": "church",
+              "entity": "account"
+            },
+            "to": {
+              "ref": "member",
+              "entity": "contact"
+            }
+          }
+        },
+        {
+          "alias": "member",
+          "entity": "contact",
+          "fields": {
+            "new_lineid": {
+              "line": "synthetic-member"
+            },
+            "parentcustomerid": {
+              "ref": "other-church",
+              "entity": "account"
+            }
+          }
+        },
+        {
+          "alias": "church",
+          "entity": "account",
+          "fields": {
+            "name": "Synthetic",
+            "new_defaultlanguage": "zh-TW"
+          }
+        }
+      ],
+      "trigger": {
+        "project": "LineMessagePlugIn",
+        "type": "LineMessagePlugIn.LineMessagePlugIn",
+        "message": "Create",
+        "depth": 1
+      },
+      "fault": null,
+      "now": "2026-11-16T00:00:00Z",
+      "volatile": [],
+      "liveShadow": false,
+      "observe": []
+    },
+    {
+      "name": "update-depth-stop",
+      "church": {
+        "alias": "church",
+        "organizationName": "synthetic-messaging",
+        "timeZone": "Asia/Taipei",
+        "culture": "zh-TW"
+      },
+      "seed": [
+        {
+          "alias": "letter",
+          "entity": "letter",
+          "fields": {
+            "directioncode": true,
+            "description": "synthetic raw text",
+            "statecode": {
+              "option": 0
+            },
+            "from": {
+              "ref": "church",
+              "entity": "account"
+            },
+            "to": {
+              "ref": "member",
+              "entity": "contact"
+            }
+          }
+        },
+        {
+          "alias": "member",
+          "entity": "contact",
+          "fields": {
+            "new_lineid": {
+              "line": "synthetic-member"
+            },
+            "parentcustomerid": {
+              "ref": "church",
+              "entity": "account"
+            }
+          }
+        },
+        {
+          "alias": "church",
+          "entity": "account",
+          "fields": {
+            "name": "Synthetic",
+            "new_defaultlanguage": "zh-TW"
+          }
+        }
+      ],
+      "trigger": {
+        "project": "LineMessagePlugIn",
+        "type": "LineMessagePlugIn.LineMessagePlugIn",
+        "message": "Update",
+        "depth": 3
+      },
+      "fault": null,
+      "now": "2026-11-16T00:00:00Z",
+      "volatile": [],
+      "liveShadow": false,
+      "observe": []
+    },
+    {
+      "name": "first-read-failure",
+      "church": {
+        "alias": "church",
+        "organizationName": "synthetic-messaging",
+        "timeZone": "Asia/Taipei",
+        "culture": "zh-TW"
+      },
+      "seed": [
+        {
+          "alias": "letter",
+          "entity": "letter",
+          "fields": {
+            "directioncode": true,
+            "description": "synthetic raw text",
+            "statecode": {
+              "option": 0
+            },
+            "from": {
+              "ref": "church",
+              "entity": "account"
+            },
+            "to": {
+              "ref": "member",
+              "entity": "contact"
+            }
+          }
+        },
+        {
+          "alias": "member",
+          "entity": "contact",
+          "fields": {
+            "new_lineid": {
+              "line": "synthetic-member"
+            },
+            "parentcustomerid": {
+              "ref": "church",
+              "entity": "account"
+            }
+          }
+        },
+        {
+          "alias": "church",
+          "entity": "account",
+          "fields": {
+            "name": "Synthetic",
+            "new_defaultlanguage": "zh-TW"
+          }
+        }
+      ],
+      "trigger": {
+        "project": "LineMessagePlugIn",
+        "type": "LineMessagePlugIn.LineMessagePlugIn",
+        "message": "Create",
+        "depth": 1
+      },
+      "fault": "first-read",
+      "now": "2026-11-16T00:00:00Z",
+      "volatile": [],
+      "liveShadow": false,
+      "observe": []
+    }
+  ]
+}
