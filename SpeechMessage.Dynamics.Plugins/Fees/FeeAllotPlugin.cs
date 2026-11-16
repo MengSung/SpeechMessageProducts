@@ -23,9 +23,9 @@ namespace SpeechMessage.Dynamics.Plugins.Fees;
 /// <summary>收費單 PostOperation 入列每日撥款查詢待辦的薄外掛。</summary>
 public sealed class FeeAllotPlugin : PluginShellBase
 {
-    /// <summary>保留退役入口的深度大於一返回政策。</summary>
+    /// <summary>保留退役 AllotPlugIn 的深度二門檻；Create 不受深度限制。</summary>
     public FeeAllotPlugin(string unsecureConfig, string secureConfig)
-        : base(unsecureConfig, secureConfig, new DepthPolicy(1)) { }
+        : base(unsecureConfig, secureConfig, new DepthPolicy(2, DepthException.Create)) { }
 
     /// <summary>只在核定同步 PostOperation 事件委派 Core 建立待辦。</summary>
     internal override void ExecuteRule(PluginInput input, PluginServices services)
