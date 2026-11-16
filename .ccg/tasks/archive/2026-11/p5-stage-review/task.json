@@ -1,0 +1,12 @@
+{
+  "id": "p5-stage-review",
+  "title": "05A §6階段5唯一外部審查與收尾",
+  "status": "completed",
+  "complexity": "L",
+  "risk": "high",
+  "domain": "backend",
+  "currentPhase": "completed",
+  "nextAction": "封存階段審查紀錄；不啟動P6",
+  "createdAt": "2026-11-16T15:06:08+08:00",
+  "branch": "1.0.0.11.Integration.P5.Worktree"
+}

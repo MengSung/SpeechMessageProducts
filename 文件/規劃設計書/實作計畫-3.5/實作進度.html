@@ -240,11 +240,11 @@ footer{margin-top:36px;color:var(--muted);font-size:12.5px;text-align:center}
  */
 const DATA = {
   "planVersion": "3.5",
-  "snapshot": "2026-11-16 15:03 Asia/Taipei (UTC+08:00)",
-  "lastUpdated": "2026-11-16T15:03:38+08:00",
+  "snapshot": "2026-11-16 15:43 Asia/Taipei (UTC+08:00)",
+  "lastUpdated": "2026-11-16T15:43:16+08:00",
   "branch": "1.0.0.11.Integration.P5.Worktree",
-  "head": "22f90b66",
-  "headline": "2026-11-16 15:03 Asia/Taipei (UTC+08:00)：P5-13驗收完成；36專案去向、四同名測試、Deployment769與固定八項guard通過，未連D365。13包均done，收尾輕量guard後推送並核對，接階段末審查；reading／simulation、live=deferred、differences=null，不啟動P6。",
+  "head": "ef84f9f4",
+  "headline": "2026-11-16 15:43 Asia/Taipei (UTC+08:00)：階段5審查與總回報完成；13包全done。SDK 10.0.403 已解析且 Visual Studio 無錯誤；進度／文件與位元組檢查通過。Claude 有審查、Gemini 服務端錯誤，非雙模型完成或有效降級；未發現可重現 Critical／High，兩項 Medium 記入後續。reading／simulation、live=deferred、differences=null；不啟動P6。",
   "notices": [
     {
       "id": "plan-3.5-summary",
@@ -511,8 +511,8 @@ const DATA = {
       "phaseId": "階段 5",
       "level": "info",
       "title": "P5 進度摘要",
-      "lastUpdated": "2026-11-16T15:03:38+08:00",
-      "body": "2026-11-16 15:03 Asia/Taipei (UTC+08:00)：P5-13驗收完成；36專案去向、四同名測試、Deployment769與固定八項guard通過，未連D365。13包均done，收尾輕量guard後推送並核對，接階段末審查；reading／simulation、live=deferred、differences=null，不啟動P6。",
+      "lastUpdated": "2026-11-16T15:43:16+08:00",
+      "body": "2026-11-16 15:43 Asia/Taipei (UTC+08:00)：階段5審查與總回報完成；13包全done。SDK 10.0.403 已解析且 Visual Studio 無錯誤；進度頁28項、文件1747檔與位元組檢查通過。Claude 有審查、Gemini 服務端錯誤，非雙模型完成或有效降級；未發現可重現 Critical／High，兩項 Medium 記入後續。基準reading／simulation、live=deferred、differences=null；不啟動P6。",
       "steps": [
         "2026-11-14 08:26 Asia/Taipei (UTC+08:00)：已確認目標殘留目錄不是 Git worktree，移除後正式 P4／P5 worktree 清單不受影響。",
         "2026-11-14 08:26 Asia/Taipei (UTC+08:00)：export-metadata 唯讀結構快照建立成功；verify 因本機部署執行檔／連線前置失敗，未宣稱 goodshepherdback verify=0。",
@@ -580,7 +580,9 @@ const DATA = {
         "2026-11-16 14:05 Asia/Taipei (UTC+08:00)：P5-12首段綠燈本機提交5245763b；逐檔盤點23檔並確認activityid及標準狀態。來源教會缺權威關聯、非文字及群組形式封閉拒絕，列階段末缺口，不冒稱完整舊相容。",
         "2026-11-16 14:43 Asia/Taipei (UTC+08:00)：P5-12驗收完成；Core雙目標各367、Plugins615含CAS、Hosting147、Webhook122；兩DLL17打包通過，goodshepherdback verify=0、22新步驟停用、舊啟用皆0；固定八項guard全通過。基準reading／simulation、live=deferred、differences=null；收尾輕量guard後推送，接P5-13。",
         "2026-11-16 14:51 Asia/Taipei (UTC+08:00)：P5-12已推送a14b71b5並ls-remote核對；P5-13開始36專案去向與四同名契約，不連D365，預計16:00前驗收，接階段末審查。reading／simulation、live=deferred不變。",
-        "2026-11-16 15:03 Asia/Taipei (UTC+08:00)：P5-13驗收完成；36專案去向、四同名測試、Deployment769與固定八項guard通過，未連D365。13包均done，收尾輕量guard後推送並核對，接階段末審查；reading／simulation、live=deferred、differences=null，不啟動P6。"
+        "2026-11-16 15:03 Asia/Taipei (UTC+08:00)：P5-13驗收完成；36專案去向、四同名測試、Deployment769與固定八項guard通過，未連D365。13包均done，收尾輕量guard後推送並核對，接階段末審查；reading／simulation、live=deferred、differences=null，不啟動P6。",
+        "2026-11-16 15:09 Asia/Taipei (UTC+08:00)：13包驗收並推送至9a48bd4b；階段末審查進行中。自審補齊P5-09兩個指定同名測試，雙目標各6項通過；唯一雙模型審查與最終固定guard執行中，尚未交付階段審查。reading／simulation、live=deferred、differences=null；不啟動P6。",
+        "2026-11-16 15:43 Asia/Taipei (UTC+08:00)：階段審查總回報已建立於`.trellis/tasks/11-14-integration-p5/wp-reports/階段5總回報.md`。唯一外部review為Claude有輸出、Gemini服務端錯誤；dualModelComplete=false、degradedFallback=false。未發現可重現Critical／High；P5-11 Host/D365待辦部署順序及FailureSummary讀取失敗漏窗列入後續。SDK 10.0.403解析成功、Visual Studio無錯誤；進度頁28項、文件1747檔通過，最終文件位元組檢查完成後推送並核對。"
       ]
     }
   ],
@@ -714,7 +716,7 @@ const DATA = {
       "id": "階段 5",
       "name": "Plugin／Workflow 重建（36 個 DLL → 2 個）",
       "planned": "8～12 個工作天",
-      "actual": "2026-11-16 15:03 Asia/Taipei (UTC+08:00)：P5-13驗收完成；36專案去向、四同名測試、Deployment769與固定八項guard通過，未連D365。13包均done，收尾輕量guard後推送並核對，接階段末審查；reading／simulation、live=deferred、differences=null，不啟動P6。",
+      "actual": "2026-11-16 15:43 Asia/Taipei (UTC+08:00)：階段5審查與總回報完成；13包全done。SDK 10.0.403已解析、Visual Studio無錯誤；進度頁28項及文件1747檔通過。唯一外審非雙模型完成（Claude有輸出、Gemini服務端錯誤），未發現可重現Critical／High；兩項Medium記入後續。基準reading／simulation、live=deferred、differences=null；不啟動P6。",
       "current": true,
       "done": 13,
       "active": 0
@@ -1797,6 +1799,13 @@ const DATA = {
       "name": "Plugin FileVersion 追蹤、只更新 FileVersion、回復（Codex 執行）",
       "status": "done",
       "note": "2026-11-14 12:54 Asia/Taipei (UTC+08:00)：8ad4dccc完整守門通過，實機3→4→3、step ID不變、免重啟；三次smoke/verify0、收尾停用及殘留0，詳wp-reports/P5-update-rollback.md。"
+    },
+    {
+      "id": "M-P5-REVIEW",
+      "phaseId": "階段 5",
+      "name": "階段5唯一審查與提案一次交付",
+      "status": "done",
+      "note": "2026-11-16 15:43 Asia/Taipei (UTC+08:00)：階段報告及處置紀錄完成；唯一外部審查摘要dualModelComplete=false、degradedFallback=false（Claude有輸出，Gemini服務端錯誤），因此不宣稱雙模型或單模型降級成功。未發現可重現Critical／High；M1部署順序與M2漏窗記入後續。進度頁28項與文件1747檔通過；不啟動P6。"
     }
   ],
   "active": [],
@@ -1940,6 +1949,30 @@ const DATA = {
       "text": "templateKey 共用入口與Shadow sink的格式接受集合仍不同；首個實際通知模組前統一固定ASCII代號規則並補雙模式測試。目前範例代號符合規則，無實機部署，屬P5-01非阻擋警告。",
       "source": "P5-01 最終獨立審查 F-W1",
       "addedAt": "2026-11-14 11:25 Asia/Taipei (UTC+08:00)"
+    },
+    {
+      "id": "P5-LATER-002",
+      "text": "舊繁中文字的錯字或用語想修正者，留3.6另核定；本階段不潤飾舊文字。",
+      "source": "05A§9 之後再說",
+      "addedAt": "2026-11-16 15:09 Asia/Taipei (UTC+08:00)"
+    },
+    {
+      "id": "P5-LATER-003",
+      "text": "FakeOrganizationService未支援而使用queryResults的查詢語法留後續；不因補假服務擴充已結案harness。",
+      "source": "05A§9 之後再說",
+      "addedAt": "2026-11-16 15:09 Asia/Taipei (UTC+08:00)"
+    },
+    {
+      "id": "P5-LATER-004",
+      "text": "P5-11 待辦格式切換有相容窗口：P7 先排空舊格式待辦，再升級 Host，最後才啟用新的 D365 步驟；以切換清單落實。",
+      "source": "P5 階段唯一外部審查 Medium M1",
+      "addedAt": "2026-11-16 15:43 Asia/Taipei (UTC+08:00)"
+    },
+    {
+      "id": "P5-LATER-005",
+      "text": "FailureSummaryWorker 讀取封閉窗口失敗時本次程序不重試該窗口；記錄為已知漏報限制，後續核定是否只在成功讀取後推進窗口。",
+      "source": "P5 階段唯一外部審查 Medium M2",
+      "addedAt": "2026-11-16 15:43 Asia/Taipei (UTC+08:00)"
     }
   ],
   "proposals": [
@@ -2115,7 +2148,7 @@ const DATA = {
       "id": "P5-PROP-001",
       "problem": "舊程式已退役（使用者 2026-11-15）：05 檔「與舊 Plugin 的實際寫入逐筆比對」與設計 16.2、第十七章的「停用舊步驟、新舊切換」都以「舊程式在 9.1 上運作」為前提",
       "evidence": "05A 修訂 2、D5-2、D5-3、D5-5、D5-17、D5-19 已改為舊行為只取 PluginHarness 的 legacy-golden 或 reading；goodshepherdback 只跑新程式影子一輪。",
-      "proposal": "3.6 把影子比對改成「離線模擬舊程式＋新程式影子模式」（D5-2 修訂 2）；舊步驟不在任何組織啟用，階段 7 不執行舊程式切換。",
+      "proposal": "3.6 把影子比對改成「離線模擬舊程式＋新程式影子模式」（D5-2 修訂 2）；並請使用者確認：正式組織現在是否還有啟用中的舊步驟，以決定階段 7 是否仍需要「停用舊步驟」與回復到舊程式的步驟。",
       "impact": "P5-03a／P5-03b 與 P5-04～P5-12 的影子比對流程；實機追蹤不可用時依 D5-19 延至階段 7 前，期間各模組以 live=deferred 收尾。",
       "status": "依 05A 修訂 2 登錄（2026-11-15）"
     },
@@ -2142,6 +2175,70 @@ const DATA = {
       "proposal": "使用者授權 Claude 代為核定：P5不實作活動Live金鑰；推播活動Live查詢前fail-closed並將真實例外交共用告警邊界，Shadow完整記錄推播意圖。不讀token、不新增待辦種類／中繼Plugin。付款fallback不在D365建收費單或信用卡／ATM訂單、不呼叫金流；reading維持舊行為且不列declaredDifferences，Shadow固定標記「未實作：P5-PROP-006」，Live拒絕，列已核定缺口而非差異0或P7補驗。Host非機密意圖架構留階段審查與3.6，P7切換前完成；P5-11核對付款分支與收費模組關係。",
       "impact": "P5-07可在其他條件通過後驗收；P5-08及P5-11等推播活動沿用；P7切換前須完成後續設計。",
       "status": "已核定（2026-11-15，使用者授權 Claude 代為核定）"
+    },
+    {
+      "id": "P5-PROP-004",
+      "problem": "90附錄C.4的protected abstract ExecuteRule及附錄B清單格式與實作不符。",
+      "evidence": "2026-11-16 15:09 Asia/Taipei (UTC+08:00)：05A§9、D5-7／D5-10及實際internal輸入型別與schemaVersion2。",
+      "proposal": "3.6改成05A§4.1與§4.4；不修改現行3.5正文。",
+      "impact": "文件契約校正，並非放寬可見性或測試。",
+      "status": "待核定"
+    },
+    {
+      "id": "P5-PROP-005",
+      "problem": "金流建單的明細合計與無明細行為需正式契約。",
+      "evidence": "2026-11-16 15:09 Asia/Taipei (UTC+08:00)：05A§9；P4-H1逐筆幣別與總額修補已於本階段前置完成且測試通過，仍應將無明細行為寫入3.6。",
+      "proposal": "由使用者核定無明細建單是否允許；明細合計檢查已修，不重做P4功能。",
+      "impact": "未核定部分不在本階段擴充。",
+      "status": "待核定"
+    },
+    {
+      "id": "P5-PROP-007",
+      "problem": "05A§9原P5-PROP-002：舊入口深度政策各不相同。",
+      "evidence": "2026-11-16 15:09 Asia/Taipei (UTC+08:00)：原ID002已被早期出席補驗歷史使用，保留不覆寫；本ID映射§9深度條目。各外殼DepthPolicy與逐入口測試已完成。",
+      "proposal": "3.6改成D5-8，不能統一套Depth>2。",
+      "impact": "純計畫修訂；出席原補驗依修訂2已不適用。",
+      "status": "待核定"
+    },
+    {
+      "id": "P5-PROP-008",
+      "problem": "05A§9原P5-PROP-003：harness net48不進.sln及Compile Include做法不符現行規則。",
+      "evidence": "2026-11-16 15:09 Asia/Taipei (UTC+08:00)：原ID003已被alias提案使用，保留不覆寫；本ID映射§9 harness條目。實作為方案內net48工具、執行期Roslyn閉包。",
+      "proposal": "3.6改成D5-13；工具時間盒已結案，不再擴充。",
+      "impact": "文件校正，不把Generated當實際黃金。",
+      "status": "待核定"
+    },
+    {
+      "id": "P5-PROP-009",
+      "problem": "追蹤管道唯一重測0筆，階段5新影子實機延後。",
+      "evidence": "2026-11-16 15:09 Asia/Taipei (UTC+08:00)：P5-06既有一次重測收尾；之後未再重試。各模組basis=reading或new、live=deferred、differences=null；停用部署verify0不是執行證據。",
+      "proposal": "由使用者核定階段7前恢復追蹤及每步驟／活動各一正常新影子情境的時程與驗收；不安排舊程式補驗。",
+      "impact": "P7切換前必須取得新程式實機證據，不能宣稱實機影子差異0。",
+      "status": "待核定"
+    },
+    {
+      "id": "P5-PROP-010",
+      "problem": "Dataverse fault安全本機診斷資訊不足。",
+      "evidence": "2026-11-16 15:09 Asia/Taipei (UTC+08:00)：部署曾0x8004501D，依核定一次性診斷處理；程式與fault-detail僅本機不提交，本階段未擴充正式工具。",
+      "proposal": "另案讓部署工具將ErrorCode、Message、InnerFault寫入本機、不提交的診斷檔，不印畫面；須設遮罩、ACL、容量／保留期與故障測試。",
+      "impact": "涉及原始fault可能含敏感資訊，須先核定安全契約。",
+      "status": "待核定"
+    },
+    {
+      "id": "P5-PROP-011",
+      "problem": "入站關鍵字功能缺口：存在意圖或Handler不代表所有舊子功能已承接。",
+      "evidence": "2026-11-16 15:09 Asia/Taipei (UTC+08:00)：P5-12-inventory逐檔23列；所有c／b/c列出缺失子功能與具名承接。包含待簽休假、課程報名與價格、裝備缺課、作業見證／牧者回應、247／RPG代碼、日誌、小組QR／網址、缺週記錄建立與領袖通知及轉傳。",
+      "proposal": "由使用者決定補做（另開工作包）、確定不再提供，或調整P7切換；不在本階段補做，不執行已退役舊程式。",
+      "impact": "影響P7能否停用仍存在的舊LineMessagePlugIn；精確檔名與功能以P5-12-inventory為準。",
+      "status": "待核定"
+    },
+    {
+      "id": "P5-PROP-012",
+      "problem": "外送訊息安全收斂需核定後續資料與冪等契約。",
+      "evidence": "2026-11-16 15:09 Asia/Taipei (UTC+08:00)：P5-12只接受from account或contact正式教會；systemuser無權威關聯、非文字與群組拒絕。失敗用取消2/5加固定SMV category/subcategory，不覆寫description或外部category；彙總沒有跨程序／重啟持久去重。",
+      "proposal": "P7前核定systemuser來源教會、非文字／群組範圍、SMV類別欄位相容與彙總是否需持久去重；Host推播架構依已核定P5-PROP-006先完成。",
+      "impact": "不能宣稱任意QuickCampaign、完整舊外送與跨重啟exactly-once已完成。",
+      "status": "待核定"
     }
   ],
   "decisions": [
