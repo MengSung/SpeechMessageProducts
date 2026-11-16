@@ -33,7 +33,10 @@ public sealed class ContactAnniversaryService
     /// <summary>依正式 contact 與其 parent account 計算並更新關懷欄位。</summary>
     /// <param name="service">平台借用的同步 SDK；呼叫端擁有其生命週期。</param>
     /// <param name="contactId">平台主要 contact 的資料庫 ID。</param>
-    public static void Execute(IOrganizationService service, Guid contactId)
+    /// <param name="clock">可省略的借用教會時鐘；測試與宿主可提供確定時間，不保存來源。</param>
+    /// <param name="kind">由活動設定選擇生日或年資；不得讓年資流程意外改生日欄位。</param>
+    public static void Execute(IOrganizationService service, Guid contactId, IChurchClock? clock = null,
+        ContactAnniversaryKind kind = ContactAnniversaryKind.All)
     {
 #if NETFRAMEWORK
         if (service is null) throw new ArgumentNullException(nameof(service));
@@ -41,6 +44,8 @@ public sealed class ContactAnniversaryService
         ArgumentNullException.ThrowIfNull(service);
 #endif
         if (contactId == Guid.Empty) throw new ArgumentException("A contact identity is required.", nameof(contactId));
+        if (kind is not (ContactAnniversaryKind.Birthday or ContactAnniversaryKind.Onboarding or ContactAnniversaryKind.All))
+            throw new ArgumentOutOfRangeException(nameof(kind));
 
         var contact = service.Retrieve("contact", contactId, new ColumnSet(
             "birthdate", "new_onboard_date", "new_next_update_onboard_date", "parentcustomerid",
@@ -57,7 +62,7 @@ public sealed class ContactAnniversaryService
             throw new InvalidOperationException("The church identity was not returned.");
         var timeZone = church.GetAttributeValue<string>("new_timezone");
         if (string.IsNullOrWhiteSpace(timeZone)) timeZone = DefaultTimeZone;
-        var today = new ChurchClock().TodayInChurch(timeZone);
+        var today = (clock ?? new ChurchClock()).TodayInChurch(timeZone);
 
         var birthday = contact.GetAttributeValue<DateTime>("birthdate");
         if (birthday == default) birthday = new DateTime(ContactAnniversaryRule.UnknownYear, 1, 1);
@@ -66,16 +71,22 @@ public sealed class ContactAnniversaryService
         var nextUpdate = contact.GetAttributeValue<DateTime>("new_next_update_onboard_date");
         if (nextUpdate == default) nextUpdate = new DateTime(ContactAnniversaryRule.UnknownYear, 1, 1);
 
-        var birthdayUpdate = ContactAnniversaryRule.CalculateBirthday(birthday, today);
-        var onboardingUpdate = ContactAnniversaryRule.CalculateOnboarding(onboarding, nextUpdate, today);
         var patch = new Entity("contact", contactId);
-        AddDateIfChanged(contact, patch, "new_next_birthdate", birthdayUpdate.NextBirthdate);
-        AddOptionIfChanged(contact, patch, "new_birthday_month", birthdayUpdate.BirthdayMonth);
-        AddIntIfChanged(contact, patch, "new_age_number", birthdayUpdate.AgeNumber);
-        AddOptionIfChanged(contact, patch, "new_age_level", birthdayUpdate.AgeLevel);
-        AddIntIfChanged(contact, patch, "new_on_board_year", onboardingUpdate.OnboardDays);
-        AddIntIfChanged(contact, patch, "new_special_leave_days", onboardingUpdate.SpecialLeaveDays);
-        AddDateIfChanged(contact, patch, "new_next_update_onboard_date", onboardingUpdate.NextOnboardUpdate);
+        if (kind is ContactAnniversaryKind.Birthday or ContactAnniversaryKind.All)
+        {
+            var birthdayUpdate = ContactAnniversaryRule.CalculateBirthday(birthday, today);
+            AddDateIfChanged(contact, patch, "new_next_birthdate", birthdayUpdate.NextBirthdate);
+            AddOptionIfChanged(contact, patch, "new_birthday_month", birthdayUpdate.BirthdayMonth);
+            AddIntIfChanged(contact, patch, "new_age_number", birthdayUpdate.AgeNumber);
+            AddOptionIfChanged(contact, patch, "new_age_level", birthdayUpdate.AgeLevel);
+        }
+        if (kind is ContactAnniversaryKind.Onboarding or ContactAnniversaryKind.All)
+        {
+            var onboardingUpdate = ContactAnniversaryRule.CalculateOnboarding(onboarding, nextUpdate, today);
+            AddIntIfChanged(contact, patch, "new_on_board_year", onboardingUpdate.OnboardDays);
+            AddIntIfChanged(contact, patch, "new_special_leave_days", onboardingUpdate.SpecialLeaveDays);
+            AddDateIfChanged(contact, patch, "new_next_update_onboard_date", onboardingUpdate.NextOnboardUpdate);
+        }
         if (patch.Attributes.Count != 0) service.Update(patch);
     }
 
@@ -105,4 +116,15 @@ public sealed class ContactAnniversaryService
         if (existing.HasValue && existing.Value == value.Value) return;
         patch[name] = value.Value;
     }
+}
+
+/// <summary>關懷活動的明確欄位範圍；兩個退役入口可共用外殼而不互相寫入欄位。</summary>
+public enum ContactAnniversaryKind
+{
+    /// <summary>只承接 HappyBirthdayWorkflow 的生日欄位。</summary>
+    Birthday,
+    /// <summary>只承接 RecursiveWorkflow 的年資欄位。</summary>
+    Onboarding,
+    /// <summary>明確要求時在同一 patch 合併兩種欄位，不作為舊流程的隱含模式。</summary>
+    All
 }

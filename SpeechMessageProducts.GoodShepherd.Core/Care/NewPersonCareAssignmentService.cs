@@ -28,7 +28,10 @@ namespace SpeechMessageProducts.GoodShepherd.Core.Care;
 public static class NewPersonCareAssignmentService
 {
     /// <summary>依 contact 的正式主要小組更新分組日期與歷程。</summary>
-    public static void Execute(IOrganizationService service, Guid contactId)
+    /// <param name="service">只在當次同步呼叫借用的 SDK，不取得其生命週期。</param>
+    /// <param name="contactId">平台主要 contact 的正式資料庫身分。</param>
+    /// <param name="clock">借用的教會時鐘；省略使用系統 UTC，不跨呼叫保留。</param>
+    public static void Execute(IOrganizationService service, Guid contactId, IChurchClock? clock = null)
     {
 #if NETFRAMEWORK
         if (service is null) throw new ArgumentNullException(nameof(service));
@@ -60,7 +63,7 @@ public static class NewPersonCareAssignmentService
         if (string.IsNullOrWhiteSpace(timeZone)) timeZone = "Asia/Taipei";
 
         var update = NewPersonCareAssignmentRule.Calculate(listName,
-            contact.GetAttributeValue<string>("new_small_group_log"), new ChurchClock().TodayInChurch(timeZone));
+            contact.GetAttributeValue<string>("new_small_group_log"), (clock ?? new ChurchClock()).TodayInChurch(timeZone));
         var patch = new Entity("contact", contactId);
         if (update.CareDate.HasValue && contact.GetAttributeValue<DateTime>("new_care_date") != update.CareDate.Value)
             patch["new_care_date"] = update.CareDate.Value;

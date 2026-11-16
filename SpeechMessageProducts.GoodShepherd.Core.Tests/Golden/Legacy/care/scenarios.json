@@ -17,25 +17,26 @@
             "parentcustomerid": {
               "ref": "church-a",
               "entity": "account"
-            }
+            },
+            "birthdate": "1990-11-17T00:00:00"
           }
         },
         {
           "alias": "church-a",
           "entity": "account",
-          "fields": {}
+          "fields": {
+            "new_timezone": "Asia/Taipei"
+          }
         }
       ],
       "trigger": {
-        "project": "HappyBirthdayWorkflowNamespace",
+        "project": "HappyBirthdayWorkflow",
         "type": "HappyBirthdayWorkflowNamespace.HappyBirthdayWorkflowPlugIn",
         "activity": true,
-        "inputs": {
-          "InputParameter": "birthday"
-        },
+        "inputs": {},
         "depth": 1
       },
-      "now": "2026-11-16T00:00:00Z",
+      "now": "2026-11-16T16:01:00Z",
       "volatile": [],
       "liveShadow": false,
       "observe": [
@@ -43,7 +44,10 @@
           "alias": "record",
           "entity": "contact",
           "fields": [
-            "parentcustomerid"
+            "new_next_birthdate",
+            "new_birthday_month",
+            "new_age_number",
+            "new_age_level"
           ]
         }
       ]
@@ -64,25 +68,26 @@
             "parentcustomerid": {
               "ref": "church-a",
               "entity": "account"
-            }
+            },
+            "birthdate": "2000-02-29T00:00:00"
           }
         },
         {
           "alias": "church-a",
           "entity": "account",
-          "fields": {}
+          "fields": {
+            "new_timezone": "Asia/Taipei"
+          }
         }
       ],
       "trigger": {
-        "project": "HappyBirthdayWorkflowNamespace",
+        "project": "HappyBirthdayWorkflow",
         "type": "HappyBirthdayWorkflowNamespace.HappyBirthdayWorkflowPlugIn",
         "activity": true,
-        "inputs": {
-          "InputParameter": "birthday-feb29"
-        },
+        "inputs": {},
         "depth": 1
       },
-      "now": "2026-11-16T00:00:00Z",
+      "now": "2026-11-16T16:01:00Z",
       "volatile": [],
       "liveShadow": false,
       "observe": [
@@ -90,13 +95,13 @@
           "alias": "record",
           "entity": "contact",
           "fields": [
-            "parentcustomerid"
+            "birthdate"
           ]
         }
       ]
     },
     {
-      "name": "new-person-create",
+      "name": "birthday-unknown",
       "church": {
         "alias": "church-a",
         "organizationName": "synthetic-care",
@@ -117,7 +122,121 @@
         {
           "alias": "church-a",
           "entity": "account",
-          "fields": {}
+          "fields": {
+            "new_timezone": "Asia/Taipei"
+          }
+        }
+      ],
+      "trigger": {
+        "project": "HappyBirthdayWorkflow",
+        "type": "HappyBirthdayWorkflowNamespace.HappyBirthdayWorkflowPlugIn",
+        "activity": true,
+        "inputs": {},
+        "depth": 1
+      },
+      "now": "2026-11-16T16:01:00Z",
+      "volatile": [],
+      "liveShadow": false,
+      "observe": [
+        {
+          "alias": "record",
+          "entity": "contact",
+          "fields": [
+            "new_birthday_month",
+            "new_age_level"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "onboarding-days",
+      "church": {
+        "alias": "church-a",
+        "organizationName": "synthetic-care",
+        "timeZone": "Asia/Taipei",
+        "culture": "zh-TW"
+      },
+      "seed": [
+        {
+          "alias": "record",
+          "entity": "contact",
+          "fields": {
+            "parentcustomerid": {
+              "ref": "church-a",
+              "entity": "account"
+            },
+            "new_onboard_date": "2024-11-17T00:00:00",
+            "new_next_update_onboard_date": "2026-11-17T00:00:00"
+          }
+        },
+        {
+          "alias": "church-a",
+          "entity": "account",
+          "fields": {
+            "new_timezone": "Asia/Taipei"
+          }
+        }
+      ],
+      "trigger": {
+        "project": "RecursiveWorkflow",
+        "type": "RecursiveWorkflowNameSpace.RecursiveWorkflowPlugIn",
+        "activity": true,
+        "inputs": {},
+        "depth": 1
+      },
+      "now": "2026-11-16T16:01:00Z",
+      "volatile": [],
+      "liveShadow": false,
+      "observe": [
+        {
+          "alias": "record",
+          "entity": "contact",
+          "fields": [
+            "new_birthday_month",
+            "new_age_level",
+            "new_on_board_year",
+            "new_special_leave_days",
+            "new_next_update_onboard_date"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "new-person-care-group",
+      "church": {
+        "alias": "church-a",
+        "organizationName": "synthetic-care",
+        "timeZone": "Asia/Taipei",
+        "culture": "zh-TW"
+      },
+      "seed": [
+        {
+          "alias": "record",
+          "entity": "contact",
+          "fields": {
+            "parentcustomerid": {
+              "ref": "church-a",
+              "entity": "account"
+            },
+            "new_cell_list_contact": {
+              "ref": "group",
+              "entity": "list"
+            }
+          }
+        },
+        {
+          "alias": "church-a",
+          "entity": "account",
+          "fields": {
+            "new_timezone": "Asia/Taipei"
+          }
+        },
+        {
+          "alias": "group",
+          "entity": "list",
+          "fields": {
+            "listname": "合成關懷小組"
+          }
         }
       ],
       "trigger": {
@@ -129,7 +248,7 @@
         },
         "depth": 1
       },
-      "now": "2026-11-16T00:00:00Z",
+      "now": "2026-11-16T16:01:00Z",
       "volatile": [],
       "liveShadow": false,
       "observe": [
@@ -137,13 +256,14 @@
           "alias": "record",
           "entity": "contact",
           "fields": [
-            "parentcustomerid"
+            "new_care_date",
+            "new_small_group_log"
           ]
         }
       ]
     },
     {
-      "name": "new-person-update",
+      "name": "new-person-cell-group",
       "church": {
         "alias": "church-a",
         "organizationName": "synthetic-care",
@@ -158,13 +278,26 @@
             "parentcustomerid": {
               "ref": "church-a",
               "entity": "account"
+            },
+            "new_cell_list_contact": {
+              "ref": "group",
+              "entity": "list"
             }
           }
         },
         {
           "alias": "church-a",
           "entity": "account",
-          "fields": {}
+          "fields": {
+            "new_timezone": "Asia/Taipei"
+          }
+        },
+        {
+          "alias": "group",
+          "entity": "list",
+          "fields": {
+            "listname": "合成細胞小組"
+          }
         }
       ],
       "trigger": {
@@ -172,11 +305,11 @@
         "type": "NewPersonCareWorkflow.NewPersonCareWorkflowClass",
         "activity": true,
         "inputs": {
-          "InputParameter": "Update"
+          "InputParameter": "Create"
         },
         "depth": 1
       },
-      "now": "2026-11-16T00:00:00Z",
+      "now": "2026-11-16T16:01:00Z",
       "volatile": [],
       "liveShadow": false,
       "observe": [
@@ -184,7 +317,8 @@
           "alias": "record",
           "entity": "contact",
           "fields": [
-            "parentcustomerid"
+            "new_assigne_group_date",
+            "new_small_group_log"
           ]
         }
       ]

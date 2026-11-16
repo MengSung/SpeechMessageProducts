@@ -16,8 +16,15 @@
  */
 using System;
 using System.Collections.Generic;
+using System.Globalization;
+using System.IO;
+using System.Linq;
+using System.Text;
 using Microsoft.Xrm.Sdk;
 using Microsoft.Xrm.Sdk.Query;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
+using SpeechMessage.Localization;
 using SpeechMessageProducts.GoodShepherd.Core.Care;
 using Xunit;
 
@@ -26,6 +33,100 @@ namespace SpeechMessageProducts.GoodShepherd.Core.Tests.Care;
 /// <summary>保護服務真正讀寫資料的契約，替身不代算任何生日、年資或分組規則。</summary>
 public sealed class CareServiceTests
 {
+    /// <summary>
+    /// 逐案執行真服務，以情境的固定 UTC 及正式教會時區核對全部 patch；
+    /// 期望來自舊原始碼閱讀，不從產品執行結果重生，非閏年例外不得留下部分更新。
+    /// </summary>
+    [Fact]
+    public void Care_Scenarios_MatchExpected()
+    {
+        var scenarios = Read("scenarios");
+        var expected = Read("expected");
+        Assert.Equal("reading", (string?)expected["basis"]);
+        var cases = (JArray)scenarios["cases"]!;
+        Assert.InRange(cases.Count, 3, 6);
+        Assert.Equal(cases.Count, ((JArray)expected["cases"]!).Count);
+        for (var index = 0; index < cases.Count; index++)
+        {
+            var scenario = cases[index];
+            var contract = expected["cases"]![index]!;
+            using var sdk = new CareSdk();
+            foreach (var seed in (JArray)scenario["seed"]!)
+            {
+                var row = (string?)seed["alias"] switch
+                {
+                    "record" => sdk.Contact,
+                    "church-a" => sdk.Church,
+                    "group" => sdk.Group,
+                    _ => throw new InvalidDataException("Unknown Care seed identity.")
+                };
+                foreach (var field in ((JObject)seed["fields"]!).Properties())
+                    row[field.Name] = Parse(field.Value, sdk);
+            }
+            var clock = new ChurchClock(new FixedClock(DateTimeOffset.Parse((string)scenario["now"]!, CultureInfo.InvariantCulture)));
+            var failure = Record.Exception(() =>
+            {
+                if ((string?)scenario["trigger"]!["project"] == "NewPersonCareWorkflow")
+                    NewPersonCareAssignmentService.Execute(sdk, sdk.Contact.Id, clock);
+                else ContactAnniversaryService.Execute(sdk, sdk.Contact.Id, clock,
+                    (string?)scenario["trigger"]!["project"] == "RecursiveWorkflow"
+                        ? ContactAnniversaryKind.Onboarding : ContactAnniversaryKind.Birthday);
+            });
+            Assert.Equal((string?)scenario["name"], (string?)contract["name"]);
+            Assert.Equal((string?)contract["exception"], failure?.GetType().Name);
+            var writes = new JArray();
+            foreach (var update in sdk.Updates)
+            {
+                var fields = new JObject();
+                foreach (var field in update.Attributes)
+                    fields[field.Key] = field.Value switch
+                    {
+                        DateTime date => date.ToString("yyyy-MM-ddTHH:mm:ss", CultureInfo.InvariantCulture),
+                        OptionSetValue option => new JValue(option.Value),
+                        _ => JToken.FromObject(field.Value)
+                    };
+                writes.Add(new JObject { ["operation"] = "Update", ["entity"] = "contact", ["alias"] = "record", ["fields"] = fields });
+            }
+            Assert.True(JToken.DeepEquals(contract["writes"], writes), "Care reading writes differ: " + (string?)scenario["name"]);
+            Assert.Empty((JArray)contract["lineCalls"]!);
+        }
+    }
+
+    /// <summary>情境僅允許本測試明列的 SDK 純值型別與正式 lookup，未知輸入拒絕。</summary>
+    private static object Parse(JToken value, CareSdk sdk)
+    {
+        if (value is JObject lookup)
+            return (string?)lookup["ref"] switch
+            {
+                "church-a" => sdk.Church.ToEntityReference(),
+                "group" => sdk.Group.ToEntityReference(),
+                _ => throw new InvalidDataException("Unknown Care lookup.")
+            };
+        if (value.Type == JTokenType.String && DateTime.TryParseExact((string)value!, "yyyy-MM-ddTHH:mm:ss",
+            CultureInfo.InvariantCulture, DateTimeStyles.None, out var date)) return date;
+        return ((JValue)value).Value ?? throw new InvalidDataException("Null Care seed.");
+    }
+
+    /// <summary>嵌入 JSON 每次獨立讀取，容量最多一 MiB，reader/stream 同步 using 關閉。</summary>
+    private static JObject Read(string kind)
+    {
+        var assembly = typeof(CareServiceTests).Assembly;
+        var name = assembly.GetManifestResourceNames().Single(x => x.EndsWith(".care." + kind + ".json", StringComparison.Ordinal));
+        using var stream = assembly.GetManifestResourceStream(name) ?? throw new InvalidDataException("Missing Care golden.");
+        if (stream.Length > 1048576) throw new InvalidDataException("Care golden exceeds capacity.");
+        using var text = new StreamReader(stream, new UTF8Encoding(false, true));
+        using var reader = new JsonTextReader(text) { DateParseHandling = DateParseHandling.None, MaxDepth = 32 };
+        var result = JObject.Load(reader, new JsonLoadSettings { DuplicatePropertyNameHandling = DuplicatePropertyNameHandling.Error });
+        if (reader.Read()) throw new InvalidDataException("Trailing Care content.");
+        return result;
+    }
+
+    /// <summary>每案不可變 UTC 來源，僅被當次 ChurchClock 借用，沒有跨案例狀態或資源。</summary>
+    private sealed class FixedClock(DateTimeOffset now) : IClock
+    {
+        /// <summary>提供情境指定的瞬間，時區轉換仍執行正式 ChurchClock。</summary>
+        public DateTimeOffset UtcNow { get; } = now;
+    }
     /// <summary>真實投影及回寫後再跑，必須零重複更新且下一次年資更新日不再前進。</summary>
     [Fact]
     public void Care_Anniversary_ServiceRerun_NoDuplicateWrite()
@@ -91,6 +192,10 @@ public sealed class CareServiceTests
     {
         private readonly Entity church = new("account", Guid.NewGuid()) { ["new_timezone"] = "Asia/Taipei" };
         private readonly Entity list = new("list", Guid.NewGuid()) { ["listname"] = "合成關懷小組" };
+        /// <summary>當案正式教會，僅供合成種子設定時區，不能跨案例共享。</summary>
+        internal Entity Church => church;
+        /// <summary>當案正式名單，僅供合成種子設定業務分類。</summary>
+        internal Entity Group => list;
         /// <summary>本案例權威 contact，僅由測試設種子與 Update 改變。</summary>
         internal Entity Contact { get; }
         /// <summary>當案成功寫入的 detached patch，Dispose 清空。</summary>
