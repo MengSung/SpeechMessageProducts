@@ -240,11 +240,11 @@ footer{margin-top:36px;color:var(--muted);font-size:12.5px;text-align:center}
  */
 const DATA = {
   "planVersion": "3.5",
-  "snapshot": "2026-11-16 20:10 Asia/Taipei (UTC+08:00)",
-  "lastUpdated": "2026-11-16T20:10:00+08:00",
+  "snapshot": "2026-11-16 23:05 Asia/Taipei (UTC+08:00)",
+  "lastUpdated": "2026-11-16T23:05:00+08:00",
   "branch": "1.0.0.11.Integration.P6.Worktree",
-  "head": "8859c698",
-  "headline": "2026-11-16 20:10 Asia/Taipei (UTC+08:00)：P6-02 分類與旗標共用已驗收；指定測試6實例、既有測試與兩DLL封裝通過。修正提交8859c698固定guard八項全通過（全方案7,158測試、Debug tracer7、編碼53、重複新增0、I18nCheck0、文件1,750、進度28）。9bf222ed首次guard圖片全行程計數1紅及根因／修正均已保留紀錄；離線包未連D365。接續P6-03；P6-04與D34仍待核定。",
+  "head": "0bb9414a",
+  "headline": "2026-11-16 23:05 Asia/Taipei (UTC+08:00)：P6-04 五項完成定義成立；程式提交 0bb9414a 的固定 guard 與紀錄收尾 §8.3 均通過。P6-01、P6-02、P6-04、P6-06 四包完成，P6-03 為唯一 active；P6-04 收尾紀錄提交與推送核對待完成。未連 D365、未送真實 LINE、未啟動階段 7。",
   "notices": [
     {
       "id": "plan-3.5-summary",
@@ -592,8 +592,8 @@ const DATA = {
       "phaseId": "階段 6",
       "level": "info",
       "title": "P6 進度摘要",
-      "lastUpdated": "2026-11-16T20:10:00+08:00",
-      "body": "2026-11-16 20:10 Asia/Taipei (UTC+08:00)：P6-02 分類與旗標共用已驗收；指定測試6實例、既有測試與兩DLL封裝通過。修正提交8859c698固定guard八項全通過（全方案7,158測試、Debug tracer7、編碼53、重複新增0、I18nCheck0、文件1,750、進度28）。9bf222ed首次guard圖片全行程計數1紅及根因／修正均已保留紀錄；離線包未連D365。接續P6-03；P6-04與D34仍待核定。",
+      "lastUpdated": "2026-11-16T23:05:00+08:00",
+      "body": "2026-11-16 23:05 Asia/Taipei (UTC+08:00)：P6-01、P6-02、P6-04、P6-06 已驗收；P6-03 為唯一 active。P6-PROP-007 已依使用者核定，只退役舊組件限定名稱解析斷言並保留 Report ABI 與資源清理契約。P6-04 DATA 語法修正後，§8.3 三項通過（編碼 56 檔、文件說明 1,749 檔、進度頁 28/28）；收尾紀錄提交與推送核對待完成。D34 已核定獨立程序方案但尚未完成當下唯讀核對；未連 D365、未送真實 LINE。",
       "steps": [
         "2026-11-16 18:40 Asia/Taipei (UTC+08:00)：完整讀取四份依據，核對分支、起點與七包 todo；建立父任務，保存四個基準數字，納入原樣 06A。",
         "2026-11-16 18:40 Asia/Taipei (UTC+08:00)：三個 P5 殘留任務依既有驗收證據封存；330 筆 C:/smv 舊工具及原始證據保留移出，C:/smv 僅留 guard。",
@@ -611,7 +611,13 @@ const DATA = {
         "2026-11-16 19:39 Asia/Taipei (UTC+08:00)：P6-01 收尾 e7f92bd82799ae0981100839ad55296f7e9f56c2 已推送；git ls-remote 與本機HEAD相同。",
         "2026-11-16 19:39 Asia/Taipei (UTC+08:00)：P6-02 開始，時間盒半天；四個指定測試紅燈執行中，未修改週報建立流程。",
         "2026-11-16 19:59 Asia/Taipei (UTC+08:00)：P6-02指定測試、原黃金與雙DLL封裝通過；9bf222ed完整guard在圖片全域配置計數1紅，未驗收。最小修正納入既有非平行collection，原114案已綠，待新提交完整guard。P6-04與D34仍待核定。",
-        "2026-11-16 20:10 Asia/Taipei (UTC+08:00)：P6-02 分類與旗標共用已驗收；指定測試6實例、既有測試與兩DLL封裝通過。修正提交8859c698固定guard八項全通過（全方案7,158測試、Debug tracer7、編碼53、重複新增0、I18nCheck0、文件1,750、進度28）。9bf222ed首次guard圖片全行程計數1紅及根因／修正均已保留紀錄；離線包未連D365。接續P6-03；P6-04與D34仍待核定。"
+        "2026-11-16 20:10 Asia/Taipei (UTC+08:00)：P6-02 分類與旗標共用已驗收；指定測試6實例、既有測試與兩DLL封裝通過。修正提交8859c698固定guard八項全通過（全方案7,158測試、Debug tracer7、編碼53、重複新增0、I18nCheck0、文件1,750、進度28）。9bf222ed首次guard圖片全行程計數1紅及根因／修正均已保留紀錄；離線包未連D365。接續P6-03；P6-04與D34仍待核定。",
+        "2026-11-16 20:51 Asia/Taipei (UTC+08:00)：P6-03 active；先保存四個相容殼、owner／專用測試與 P2-06 黃金檔 SHA-256，再依 06A 逐一暫改型別建置 ChurchReport、ChurchReport.MemberInfo.Tests、ToolUtility.Dataverse.Tests，編譯結果立即還原探針。P6-04 stash 不動，D34 未完成，不做實機推播。",
+        "2026-11-16 22:08 Asia/Taipei (UTC+08:00)：P6-04 程式提交 0bb9414a4fbe495c93adf36c6e4961595cbc834a；指定測試、同組態、六個編譯呼叫點修正及 P6-PROP-007 窄範圍退役已完成，未連 D365。",
+        "2026-11-16 22:13 Asia/Taipei (UTC+08:00)：固定 C:\\smv\\guard 對 0bb9414a 執行完整 00 §8.1 八項全過：Release 7,161、Debug tracer 7、編碼60、重複新增0、I18nCheck通過、文件1,749、進度28；完整輸出 SHA-256 D556EE4283656E66BFE083F736079FE5F13506DE44C4077DB966D93100C96E61。",
+        "2026-11-16 22:32 Asia/Taipei (UTC+08:00)：P6-04 五項完成定義成立，進度列已驗收；P6-03 保持 active。",
+        "2026-11-16 23:02 Asia/Taipei (UTC+08:00)：紀錄收尾的進度頁測試首次發現 active 陣列尾逗號造成 DATA JSON 解析失敗；只移除尾逗號，進度頁契約 28/28 通過，狀態與產品文字未改。",
+        "2026-11-16 23:05 Asia/Taipei (UTC+08:00)：DATA 修正後完整重跑 §8.3 三項均通過：文字編碼檢查 56 檔零問題、檔案說明 1,749 檔零失敗、進度頁契約 28/28。"
       ]
     }
   ],
@@ -619,14 +625,16 @@ const DATA = {
     {
       "when": "2026-11-16 19:13 Asia/Taipei (UTC+08:00)",
       "text": "核定 P6-PROP-007：只退役舊 ToolUtility 組件限定名稱解析斷言，保留 Report ABI／輸出／清理契約。",
-      "status": "you",
-      "note": "2026-11-16 19:13 Asia/Taipei (UTC+08:00)：P6-04 三個新契約已綠，但既有舊組件型別轉送斷言與 06A 移除要求互斥；未改期望、未驗收，程式已 stash 保存，依 §7 待核定。"
+      "status": "done",
+      "note": "2026-11-16 22:32 Asia/Taipei (UTC+08:00)：核定已用於 P6-04；只退役舊組件限定名稱解析斷言，其餘 Report ABI、輸出及 owner 清理契約保留。",
+      "doneAt": "2026-11-16 19:13 Asia/Taipei (UTC+08:00)"
     },
     {
       "when": "2026-11-16 19:13 Asia/Taipei (UTC+08:00)",
       "text": "核定 D34 改用獨立程序唯讀核對；原 PowerShell／SDK 探針兩次崩潰已停止。",
-      "status": "you",
-      "note": "未完成當下核對前不做頁面簽到或真實 LINE 推播，離線包繼續。"
+      "status": "done",
+      "note": "2026-11-16 22:32 Asia/Taipei (UTC+08:00)：替代方式已核定；D34 當下唯讀核對仍未完成，完成前不做頁面簽到或真實 LINE 推播。",
+      "doneAt": "2026-11-16 19:13 Asia/Taipei (UTC+08:00)"
     },
     {
       "when": "2026-11-15 03:50 Asia/Taipei (UTC+08:00)",
@@ -765,9 +773,9 @@ const DATA = {
       "id": "階段 6",
       "name": "ChurchReport 改用共用層",
       "planned": "3～4 個工作天",
-      "actual": "2026-11-16 20:10 Asia/Taipei (UTC+08:00)：P6-02 分類與旗標共用已驗收；指定測試6實例、既有測試與兩DLL封裝通過。修正提交8859c698固定guard八項全通過（全方案7,158測試、Debug tracer7、編碼53、重複新增0、I18nCheck0、文件1,750、進度28）。9bf222ed首次guard圖片全行程計數1紅及根因／修正均已保留紀錄；離線包未連D365。接續P6-03；P6-04與D34仍待核定。",
+      "actual": "2026-11-16 23:05 Asia/Taipei (UTC+08:00)：P6-01、P6-02、P6-04、P6-06 已驗收；P6-03 為唯一 active。P6-04 程式提交 0bb9414a 固定 guard 八項全過；紀錄收尾 §8.3 三項均通過。D34 的獨立程序唯讀核對已核定但尚未完成。未連 D365、未送真實 LINE、未啟動階段 7。",
       "current": true,
-      "done": 3,
+      "done": 4,
       "active": 1
     },
     {
@@ -1652,25 +1660,25 @@ const DATA = {
       "id": "P6-03",
       "phaseId": "階段 6",
       "name": "送訊移除 Obsolete 薄殼",
-      "status": "todo",
+      "status": "active",
       "deps": "P2-06、P5-12",
       "live": "無",
       "timebox": "1 天",
       "doneAt": "",
       "commit": "",
-      "note": ""
+      "note": "2026-11-16 20:51 Asia/Taipei (UTC+08:00)：開始依 06A §4.1、§4.2 及編譯探針盤點正式／測試呼叫者；保留 legacy workflow、錯誤政策、訊息內容、RetryKey 與資源 owner。P2-06 黃金檔先以原始 SHA-256 鎖定。"
     },
     {
       "id": "P6-04",
       "phaseId": "階段 6",
       "name": "AddToolUtility 舊多載移除",
-      "status": "active",
+      "status": "done",
       "deps": "—",
       "live": "無",
       "timebox": "1 天",
-      "doneAt": "",
-      "commit": "",
-      "note": "2026-11-16 19:13 Asia/Taipei (UTC+08:00)：P6-04 三個新契約已綠，但既有舊組件型別轉送斷言與 06A 移除要求互斥；未改期望、未驗收，程式已 stash 保存，依 §7 待核定。"
+      "doneAt": "2026-11-16 23:05 Asia/Taipei (UTC+08:00)",
+      "commit": "0bb9414a4fbe495c93adf36c6e4961595cbc834a",
+      "note": "2026-11-16 23:05 Asia/Taipei (UTC+08:00)：三個指定測試存在並通過；依核定僅退役舊組件限定名稱解析斷言，保留 Report ABI／optional 參數／停用輸出／owner 清理。0bb9414a 固定 guard §8.1 八項全過（Release 7,161、Debug tracer7、編碼60、重複新增0、I18nCheck通過、文件1,749、進度28）；紀錄收尾 §8.3 三項通過（編碼56、文件1,749、進度28），未連 D365。"
     },
     {
       "id": "P6-05",
@@ -1867,37 +1875,17 @@ const DATA = {
   ],
   "active": [
     {
-      "id": "P6-04",
-      "startedAt": "2026-11-16 19:04 Asia/Taipei (UTC+08:00)",
-      "timebox": "半天",
+      "id": "P6-03",
+      "startedAt": "2026-11-16 20:51 Asia/Taipei (UTC+08:00)",
+      "timebox": "1 天",
       "dod": [
-        [
-          "測試",
-          "no",
-          "新契約綠、既有轉送測試1紅；需核定窄範圍退役，不擅改期望。"
-        ],
-        [
-          "守門",
-          "no",
-          "程式提交後固定 guard 完整八項。"
-        ],
-        [
-          "覆蓋率",
-          "na",
-          "沒有新增專案。"
-        ],
-        [
-          "實機",
-          "na",
-          "本包無實機，不連 D365。"
-        ],
-        [
-          "回報與進度",
-          "no",
-          "編譯呼叫清單已記錄，待守門後完成驗收回報。"
-        ]
+        ["測試", "no", "先紅後綠完成 06A 指定十個測試名稱；目前尚未建立通知器測試。"],
+        ["守門", "no", "程式提交後固定 C:\\smv\\guard 完整 00 §8.1。"],
+        ["覆蓋率", "na", "本包不新增專案；依 06A 指定測試與既有回歸。"],
+        ["實機", "na", "不連 D365、不送真實 LINE；P2-06 使用離線黃金。"],
+        ["回報與進度", "no", "完成一頁 P6-03 回報、更新 DATA、驗收後才推送並核對遠端 SHA。"]
       ],
-      "next": "等待 P6-PROP-007 核定；七檔程式保存在 stash，待核定後依既定順序處理；等待期間接續 P6-03。"
+      "next": "先保存四個相容殼、owner／專用測試與 P2-06 黃金檔 SHA-256；再逐一暫改型別建置並還原探針。"
     }
   ],
   "gates": [
@@ -2408,8 +2396,8 @@ const DATA = {
       "problem": "2026-11-16 19:13 Asia/Taipei (UTC+08:00)：P6-04 三個新契約已綠，但既有舊組件型別轉送斷言與 06A 移除要求互斥；未改期望、未驗收，程式已 stash 保存，依 §7 待核定。",
       "evidence": "2026-11-16 19:13 Asia/Taipei (UTC+08:00)：p6-04-churchreport-green.log，Forwarded_legacy_types_preserve_identity_and_report_abi 因 ToolUtility 三型別無轉送而 TypeLoadException；另 722 案通過。",
       "proposal": "建議只退役舊組件限定名稱解析斷言，保留 Report 四參數 ABI、停用輸出及 owner 排空與全部其他測試；不改計畫正文。",
-      "impact": "P6-04 未驗收；需使用者明確核定後才變更既有期望。",
-      "status": "待核定"
+      "impact": "2026-11-16 19:13 Asia/Taipei (UTC+08:00)：使用者核定只退役舊組件限定名稱解析斷言；Report ABI、optional 參數、停用輸出與 owner 排空均保留。",
+      "status": "已核定"
     }
   ],
   "decisions": [
