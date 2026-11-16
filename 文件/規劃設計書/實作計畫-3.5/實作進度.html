@@ -240,11 +240,11 @@ footer{margin-top:36px;color:var(--muted);font-size:12.5px;text-align:center}
  */
 const DATA = {
   "planVersion": "3.5",
-  "snapshot": "2026-11-15 21:30 Asia/Taipei (UTC+08:00)",
-  "lastUpdated": "2026-11-15T21:30:54+08:00",
+  "snapshot": "2026-11-16 09:02 Asia/Taipei (UTC+08:00)",
+  "lastUpdated": "2026-11-16T09:02:38+08:00",
   "branch": "1.0.0.11.Integration.P5.Worktree",
-  "head": "8166df16",
-  "headline": "2026-11-15 21:46 Asia/Taipei (UTC+08:00)：P5-08已驗收；離線規則／外殼／CAS回歸、兩個正式net462合併DLL檢查及goodshepherdback plan／apply／verify完成；18個新步驟全停用，舊步驟／舊流程啟用皆0。live=deferred，基準reading／simulation，不宣稱實機影子差異0。階段 5 接續 P5-09。",
+  "head": "0073beb6",
+  "headline": "2026-11-16 09:02 Asia/Taipei (UTC+08:00)：P5-09 QR活動與規則已完成離線驗證、Host教會binding安全收斂、兩DLL打包及goodshepherdback全停用核對；固定八項guard待收尾提交後重跑，接續P5-10；live=deferred，不宣稱實機影子差異。",
   "notices": [
     {
       "id": "plan-3.5-summary",
@@ -511,8 +511,8 @@ const DATA = {
       "phaseId": "階段 5",
       "level": "info",
       "title": "P5 進度摘要",
-      "lastUpdated": "2026-11-15T21:30:54+08:00",
-      "body": "2026-11-15 21:46 Asia/Taipei (UTC+08:00)：P5-08已完成離線規則／外殼／CAS回歸、兩個正式net462合併DLL檢查及goodshepherdback plan／apply／verify；18個新步驟全停用，舊步驟／舊流程啟用皆0。live=deferred，基準reading／simulation，不宣稱實機影子差異0。固定guard與推送待收尾核對。",
+      "lastUpdated": "2026-11-16T09:02:38+08:00",
+      "body": "2026-11-16 08:10 Asia/Taipei (UTC+08:00)：P5-08已驗收並推送a90430dc；P5-09 QR活動與規則實作中，三入口reading盤點、六案期望及Core／Host／外殼整合進行中；live=deferred，不重試追蹤。",
       "steps": [
         "2026-11-14 08:26 Asia/Taipei (UTC+08:00)：已確認目標殘留目錄不是 Git worktree，移除後正式 P4／P5 worktree 清單不受影響。",
         "2026-11-14 08:26 Asia/Taipei (UTC+08:00)：export-metadata 唯讀結構快照建立成功；verify 因本機部署執行檔／連線前置失敗，未宣稱 goodshepherdback verify=0。",
@@ -573,7 +573,8 @@ const DATA = {
         "2026-11-15 17:24 Asia/Taipei (UTC+08:00)：P5-PROP-006已核定（使用者授權 Claude 代為核定）；P5-07依D5-12拆a／b，不受原15筆限制。WinRM／事件RPC／PowerShell Direct唯讀事件查詢均未成功，全文僅留C:/smv；第二次plan只剩Workflows一個UpdateAssembly，第二次apply=0，正進行verify及新舊全停用核對。基準reading／simulation、live=deferred，不重測追蹤；未驗收未推送。",
         "2026-11-15 18:14 Asia/Taipei (UTC+08:00)：P5-07 active，P5-PROP-006核定實作完成；固定C:/smv/guard八項全0（Release 22目標6668、Debug tracer7、進度28）。最終DLL14／8打包通過；首次apply及僅Workflows重plan後第二次apply均0x8004501D、verify=1。匯出核對Plugins14／Workflows7，16新步驟全停用、secure0、舊步驟與舊流程啟用皆0。依核定停止部署，不驗收、不推送、不啟動P5-08；reading／simulation、live=deferred、differences=null，不重試追蹤。",
         "2026-11-15 20:13 Asia/Taipei (UTC+08:00)：P5-07已驗收；Workflows8一次性診斷UpdateAssembly成功，正式verify=0、export=0、export-legacy=0；16新步驟全停用、secure0，舊步驟／舊流程啟用皆0。固定guard八項全0（Release6668、Debug tracer7、進度28）；基準reading／simulation、live=deferred，不宣稱實機影子差異0。收尾提交與推送前核對中，完成後進P5-08。",
-        "2026-11-15 21:46 Asia/Taipei (UTC+08:00)：P5-08已完成離線規則／外殼／CAS回歸、兩個正式net462合併DLL檢查及goodshepherdback plan／apply／verify；18個新步驟全停用，舊步驟／舊流程啟用皆0。live=deferred，基準reading／simulation，不宣稱實機影子差異0。固定guard與推送待收尾核對。"
+        "2026-11-15 21:46 Asia/Taipei (UTC+08:00)：P5-08已完成離線規則／外殼／CAS回歸、兩個正式net462合併DLL檢查及goodshepherdback plan／apply／verify；18個新步驟全停用，舊步驟／舊流程啟用皆0。live=deferred，基準reading／simulation，不宣稱實機影子差異0。固定guard與推送待收尾核對。",
+        "2026-11-16 08:10 Asia/Taipei (UTC+08:00)：P5-08遠端a90430dc核對一致，封存結構已git mv修正；P5-09開始，基準reading／simulation，live=deferred，不重試追蹤。"
       ]
     }
   ],
@@ -707,10 +708,10 @@ const DATA = {
       "id": "階段 5",
       "name": "Plugin／Workflow 重建（36 個 DLL → 2 個）",
       "planned": "8～12 個工作天",
-      "actual": "P5-01～P5-08已驗收；P5-08完成離線回歸、正式DLL打包檢查及goodshepherdback停用部署。live=deferred，基準reading／simulation；不宣稱實機影子差異0。",
+      "actual": "2026-11-16 09:02 Asia/Taipei (UTC+08:00)：P5-01～P5-09已完成；P5-09 reading／simulation，live=deferred、differences=null，不宣稱實機影子差異。接續P5-10。",
       "current": true,
-      "done": 8,
-      "active": 0
+      "done": 9,
+      "active": 1
     },
     {
       "id": "階段 6",
@@ -1510,31 +1511,31 @@ const DATA = {
       "timebox": "1 天",
       "doneAt": "2026-11-15 21:46 Asia/Taipei (UTC+08:00)",
       "commit": "cd1a3902",
-      "note": "2026-11-15 21:46 Asia/Taipei (UTC+08:00)：P5-08已完成離線規則／外殼／CAS回歸、兩個正式net462合併DLL檢查及goodshepherdback plan／apply／verify；18個新步驟全停用，舊步驟／舊流程啟用皆0。live=deferred，基準reading／simulation，不宣稱實機影子差異0。固定guard與推送待收尾核對。"
+      "note": "2026-11-16 08:10 Asia/Taipei (UTC+08:00)：核對P5-08已驗收推送，遠端a90430dc；固定八項guard通過、全停用部署verify=0。更正先前待推送敘述，原驗收時間不變。"
     },
     {
       "id": "P5-09",
       "phaseId": "階段 5",
       "name": "QR",
-      "status": "todo",
+      "status": "done",
       "deps": "P5-03、P2-09",
-      "live": "影子模式",
+      "live": "deferred",
       "timebox": "1 天",
-      "doneAt": "",
-      "commit": "",
-      "note": "需要圖片時建立 QrImageGenerate 待辦"
+      "doneAt": "2026-11-16 09:02 Asia/Taipei (UTC+08:00)",
+      "commit": "0073beb6",
+      "note": "2026-11-16 09:02 Asia/Taipei (UTC+08:00)：三入口reading、六案simulation／reading、Core／活動／CAS／Host整合完成；兩DLL打包ok=true，goodshepherdback plan/apply/verify=0，舊步驟／舊流程啟用皆0。新增每教會正式meeting GUID binding（最多10000、全域唯一），缺binding在SDK／產圖／檔案前拒絕；固定八項guard於收尾提交後重跑，live=deferred、differences=null，不宣稱實機影子差異。"
     },
     {
       "id": "P5-10",
       "phaseId": "階段 5",
       "name": "關懷",
-      "status": "todo",
+      "status": "active",
       "deps": "P5-03、更新回復前置",
-      "live": "影子模式",
+      "live": "deferred",
       "timebox": "1 天",
       "doneAt": "",
       "commit": "",
-      "note": "「今天」依教會時區；祝福推播固定 Retry Key"
+      "note": "2026-11-16 09:02 Asia/Taipei (UTC+08:00)：接續開工；「今天」依教會時區，祝福推播固定 Retry Key。"
     },
     {
       "id": "P5-11",
@@ -1792,7 +1793,21 @@ const DATA = {
       "note": "2026-11-14 12:54 Asia/Taipei (UTC+08:00)：8ad4dccc完整守門通過，實機3→4→3、step ID不變、免重啟；三次smoke/verify0、收尾停用及殘留0，詳wp-reports/P5-update-rollback.md。"
     }
   ],
-  "active": [],
+  "active": [
+    {
+      "id": "P5-10",
+      "startedAt": "2026-11-16 09:02 Asia/Taipei (UTC+08:00)",
+      "timebox": "1 天",
+      "dod": [
+        ["閱讀盤點與3～6案期望", "no", "接續建立reading／simulation基準"],
+        ["Core／真活動／CAS整合", "no", "尚未完成"],
+        ["兩DLL打包／停用部署／固定八項guard", "no", "完成後才推送"],
+        ["全停用部署核對", "no", "僅goodshepherdback，不啟用新舊步驟"],
+        ["一頁回報與推送核對", "no", "乾淨guard通過後才push及ls-remote"]
+      ],
+      "next": "先讀P5-10細則與舊入口，建立reading基準。"
+    }
+  ],
   "gates": [
     {
       "item": "方案建置（Release）",
