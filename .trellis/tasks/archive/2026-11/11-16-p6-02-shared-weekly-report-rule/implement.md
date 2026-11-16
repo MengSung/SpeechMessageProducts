@@ -40,6 +40,15 @@
 - `p6-02-package-workflows.log`：`9fc9bd71b5a372a255fab19e496bd0d6c33168bb54df5562262087f0d7fb68d0`
 - `p6-02-package-metadata.log`：`a0f56db6c3f7104eed02967e0dee4bc5e8a295ee7ce9011ea748dddbea60a72e`
 
+## 2026-11-16 20:06 Asia/Taipei (UTC+08:00) 驗收與固定守門
+
+- 程式提交 `9bf222edc50c598794987621d31980db46bbf190` 的第一次完整 guard 在全方案測試第 2 項失敗：圖片 renderer 案例讀取 ImageSharp 全行程未釋放配置計數，另一個預設可平行的真 PNG 發布案例在觀察期間配置了 21 個資源。原始失敗保留於 `guard-9bf222ed-full.log`，不得視作該提交已通過。
+- 修正提交 `8859c6981146b9537454e5c28d673cc3ade88e90` 僅將 renderer 計數案例加入既有 `QR image lifecycle` 非平行 collection，維持逐次繪圖、PNG／Image 確定性 Dispose、原始零增量斷言及取消後同一基線斷言。未改產品程式、未放寬期待、未使用 GC/finalizer；collection 只隔離全行程診斷觀察時段，沒有停用案例內的 A/B 併行。
+- 修正後 `LineMessagingProcessor.RichMenus.Tests` 114/114 通過；固定 guard 對修正提交八項完整通過：Release 建置 0 錯誤（既有 115 警告）、全方案 Release 測試 7,158/7,158、Debug tracer 7/7、編碼檢查 53 檔 0 問題、重複碼新增 0、I18nCheck 0、檔案說明 1,750 檔 0 失敗、進度頁 28/28。
+- guard 準備記錄 `guard-8859c698-prepare.log` SHA-256：`213ec4e16697bcfe7a51fce7d26a0ea6f6541ec82fea96b5563d8fa7ef3be1bd`；完整記錄 `guard-8859c698-full.log` SHA-256：`0c60f4cdc6b8e2acb82f9b64d13759913ddc14cca3b5f65f42d5cda796711537`。
+- 五項完成定義：指定測試與既有回歸通過；固定 guard 八項通過；無新專案，覆蓋率不適用；本包未要求實機，頁面實機集中於階段末；本一頁回報與 DATA 更新完成。頁面驗收尚未進行，不以本包離線結果代替。
+- P6-02 已於上述時間驗收；程式提交與修正提交將一併推送，並另以 `git ls-remote` 記錄確認結果。P6-04 型別轉送衝突與 D34 前置核定仍待使用者處理，未套用 P6-04 stash；接續按既定順序處理可獨立的 P6-03。
+
 ## 2026-11-16 19:58 Asia/Taipei (UTC+08:00) 完整守門失敗與最小修正
 
 9bf222ed 的 Release 建置通過，但完整方案測試出現1紅：RichMenuImageRendererTests第45行全行程配置計數預期0、實際21，因此守門停在第2項，尚未驗收、未推送。
