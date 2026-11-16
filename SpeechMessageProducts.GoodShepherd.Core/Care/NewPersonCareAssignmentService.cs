@@ -11,6 +11,8 @@
  * 名單名稱含「關懷」寫 new_care_date，否則寫 new_assigne_group_date；歷程已有名單
  * 時不再追加。讀回兩種既有日期後比較差異，所有寫入以一次 contact Update 發布；
  * 同日重跑不重複寫入相同日期。
+ * 日期欄位 metadata 為 UserLocal／DateOnly，先以教會日期分類，再轉午夜 UTC 寫入；
+ * 歷程顯示日期仍是教會當地日期，不把資料庫 UTC 日期拿來格式化。
  *
  * 使用邊界與維護：IOrganizationService 由外殼借用，本服務不 Dispose、不快取、不保存
  * 跨執行 Entity；contact、list、patch 只存在同步堆疊。缺少主要小組、錯誤 logical name、
@@ -62,13 +64,18 @@ public static class NewPersonCareAssignmentService
         var timeZone = church.GetAttributeValue<string>("new_timezone");
         if (string.IsNullOrWhiteSpace(timeZone)) timeZone = "Asia/Taipei";
 
+        var churchClock = clock ?? new ChurchClock();
         var update = NewPersonCareAssignmentRule.Calculate(listName,
-            contact.GetAttributeValue<string>("new_small_group_log"), (clock ?? new ChurchClock()).TodayInChurch(timeZone));
+            contact.GetAttributeValue<string>("new_small_group_log"), churchClock.TodayInChurch(timeZone));
         var patch = new Entity("contact", contactId);
-        if (update.CareDate.HasValue && contact.GetAttributeValue<DateTime>("new_care_date") != update.CareDate.Value)
-            patch["new_care_date"] = update.CareDate.Value;
-        if (update.AssignedGroupDate.HasValue && contact.GetAttributeValue<DateTime>("new_assigne_group_date") != update.AssignedGroupDate.Value)
-            patch["new_assigne_group_date"] = update.AssignedGroupDate.Value;
+        var careDate = update.CareDate.HasValue
+            ? churchClock.ToUtc(new LocalDateTimeOfChurch(update.CareDate.Value, timeZone)) : (DateTime?)null;
+        var groupDate = update.AssignedGroupDate.HasValue
+            ? churchClock.ToUtc(new LocalDateTimeOfChurch(update.AssignedGroupDate.Value, timeZone)) : (DateTime?)null;
+        if (careDate.HasValue && contact.GetAttributeValue<DateTime>("new_care_date") != careDate.Value)
+            patch["new_care_date"] = careDate.Value;
+        if (groupDate.HasValue && contact.GetAttributeValue<DateTime>("new_assigne_group_date") != groupDate.Value)
+            patch["new_assigne_group_date"] = groupDate.Value;
         if (update.SmallGroupLog is not null && !string.Equals(contact.GetAttributeValue<string>("new_small_group_log"), update.SmallGroupLog, StringComparison.Ordinal))
             patch["new_small_group_log"] = update.SmallGroupLog;
         if (patch.Attributes.Count != 0) service.Update(patch);

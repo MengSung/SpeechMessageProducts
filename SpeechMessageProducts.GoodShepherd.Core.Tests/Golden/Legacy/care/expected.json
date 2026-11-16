@@ -11,7 +11,7 @@
           "entity": "contact",
           "alias": "record",
           "fields": {
-            "new_next_birthdate": "2027-11-17T00:00:00",
+            "new_next_birthdate": "2027-11-16T16:00:00",
             "new_birthday_month": 100000010,
             "new_age_number": 36,
             "new_age_level": 100000003
@@ -59,7 +59,7 @@
           "fields": {
             "new_on_board_year": 730,
             "new_special_leave_days": 10,
-            "new_next_update_onboard_date": "2026-11-18T00:00:00"
+            "new_next_update_onboard_date": "2026-11-17T16:00:00"
           }
         }
       ],
@@ -76,7 +76,7 @@
           "entity": "contact",
           "alias": "record",
           "fields": {
-            "new_care_date": "2026-11-17T00:00:00",
+            "new_care_date": "2026-11-16T16:00:00",
             "new_small_group_log": "2026/11/17,合成關懷小組\r\n"
           }
         }
@@ -94,7 +94,7 @@
           "entity": "contact",
           "alias": "record",
           "fields": {
-            "new_assigne_group_date": "2026-11-17T00:00:00",
+            "new_assigne_group_date": "2026-11-16T16:00:00",
             "new_small_group_log": "2026/11/17,合成細胞小組\r\n"
           }
         }
@@ -109,42 +109,42 @@
       "case": "birthday-local-today",
       "position": "$.cases[0].writes",
       "category": 4,
-      "reason": "HappyBirthdayWorkflow/HappyBirthdayClassLibrary.cs:39-75,99-127,213-299；reading 未經舊程式實跑；以正式教會時區取代伺服器時間，最小 patch 與同日不重複寫入依 P5-10；沒有可達推播。",
+      "reason": "HappyBirthdayWorkflow/HappyBirthdayClassLibrary.cs:39-75,99-127,213-299；reading 未經舊程式實跑；以正式教會時區取代伺服器時間，最小 patch 與同日不重複寫入依 P5-10；沒有可達推播。 metadata UserLocal/DateOnly：讀取UTC後取教會日期，寫入轉回教會午夜UTC。",
       "test": "Care_Scenarios_MatchExpected"
     },
     {
       "case": "birthday-feb29",
       "position": "$.cases[1].writes",
       "category": 4,
-      "reason": "HappyBirthdayWorkflow/HappyBirthdayClassLibrary.cs:84-95；非閏年 DateTime 建構式失敗，零寫入；reading 未經舊程式實跑；以正式教會時區取代伺服器時間，最小 patch 與同日不重複寫入依 P5-10；沒有可達推播。",
+      "reason": "HappyBirthdayWorkflow/HappyBirthdayClassLibrary.cs:84-95；非閏年 DateTime 建構式失敗，零寫入；reading 未經舊程式實跑；以正式教會時區取代伺服器時間，最小 patch 與同日不重複寫入依 P5-10；沒有可達推播。 metadata UserLocal/DateOnly：讀取UTC後取教會日期，寫入轉回教會午夜UTC。",
       "test": "Care_Scenarios_MatchExpected"
     },
     {
       "case": "birthday-unknown",
       "position": "$.cases[2].writes",
       "category": 4,
-      "reason": "HappyBirthdayWorkflow/HappyBirthdayClassLibrary.cs:65-75；reading 未經舊程式實跑；以正式教會時區取代伺服器時間，最小 patch 與同日不重複寫入依 P5-10；沒有可達推播。",
+      "reason": "HappyBirthdayWorkflow/HappyBirthdayClassLibrary.cs:65-75；reading 未經舊程式實跑；以正式教會時區取代伺服器時間，最小 patch 與同日不重複寫入依 P5-10；沒有可達推播。 metadata UserLocal/DateOnly：讀取UTC後取教會日期，寫入轉回教會午夜UTC。",
       "test": "Care_Scenarios_MatchExpected"
     },
     {
       "case": "onboarding-days",
       "position": "$.cases[3].writes",
       "category": 4,
-      "reason": "RecursiveWorkflow/RecursiveWorkflowClassLibrary.cs:39-91,552-703；reading 未經舊程式實跑；只更新年資欄位，以教會當地明日排程並保持同日重跑冪等（P5-10）。",
+      "reason": "RecursiveWorkflow/RecursiveWorkflowClassLibrary.cs:39-91,552-703；reading 未經舊程式實跑；只更新年資欄位，以教會當地明日排程並保持同日重跑冪等（P5-10）。 metadata UserLocal/DateOnly：讀取UTC後取教會日期，寫入轉回教會午夜UTC。",
       "test": "Care_Scenarios_MatchExpected"
     },
     {
       "case": "new-person-care-group",
       "position": "$.cases[4].writes",
       "category": 5,
-      "reason": "NewPersonCareWorkflow/AssignGroupClassLibrary.cs:39-200；reading 未經舊程式實跑；以正式教會時區取代伺服器時間，最小 patch 與同日不重複寫入依 P5-10；沒有可達推播。",
+      "reason": "NewPersonCareWorkflow/AssignGroupClassLibrary.cs:39-200；reading 未經舊程式實跑；以正式教會時區取代伺服器時間，最小 patch 與同日不重複寫入依 P5-10；沒有可達推播。 metadata UserLocal/DateOnly：讀取UTC後取教會日期，寫入轉回教會午夜UTC。",
       "test": "Care_Scenarios_MatchExpected"
     },
     {
       "case": "new-person-cell-group",
       "position": "$.cases[5].writes",
       "category": 5,
-      "reason": "NewPersonCareWorkflow/AssignGroupClassLibrary.cs:39-200；reading 未經舊程式實跑；以正式教會時區取代伺服器時間，最小 patch 與同日不重複寫入依 P5-10；沒有可達推播。",
+      "reason": "NewPersonCareWorkflow/AssignGroupClassLibrary.cs:39-200；reading 未經舊程式實跑；以正式教會時區取代伺服器時間，最小 patch 與同日不重複寫入依 P5-10；沒有可達推播。 metadata UserLocal/DateOnly：讀取UTC後取教會日期，寫入轉回教會午夜UTC。",
       "test": "Care_Scenarios_MatchExpected"
     }
   ]

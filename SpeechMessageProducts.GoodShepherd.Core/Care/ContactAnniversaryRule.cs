@@ -18,6 +18,7 @@
  * 覆蓋跨 UTC 午夜、sentinel、閏年及年資假日級距。
  */
 using System;
+using SpeechMessageProducts.GoodShepherd.Core.Messaging;
 
 namespace SpeechMessageProducts.GoodShepherd.Core.Care;
 
@@ -205,9 +206,9 @@ public static class NewPersonCareAssignmentRule
 #endif
         var history = hasHistory ? null : (existingLog ?? string.Empty) + date.ToShortDateString() + "," + listName + Environment.NewLine;
 #if NETFRAMEWORK
-        var isCareList = listName.IndexOf("關懷", StringComparison.Ordinal) >= 0;
+        var isCareList = listName.IndexOf(WebhookText.Neutral("WeeklyReport.CareList"), StringComparison.Ordinal) >= 0;
 #else
-        var isCareList = listName.Contains("關懷", StringComparison.Ordinal);
+        var isCareList = listName.Contains(WebhookText.Neutral("WeeklyReport.CareList"), StringComparison.Ordinal);
 #endif
         return isCareList
             ? new NewPersonCareAssignmentUpdate(date, null, history)

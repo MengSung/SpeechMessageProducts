@@ -7,7 +7,7 @@
  * 證據誤寫成實機影子結果。
  *
  * 主要流程：由目前工作樹向上尋找包含方案檔的根目錄，透過共用 manifest loader
- * 與 care scenarios 讀取公開 JSON，逐欄檢查兩個活動及四個離線情境。任何活動
+ * 與 care scenarios 讀取公開 JSON，逐欄檢查兩個活動及六個離線情境。任何活動
  * 被改成 Live、填入 secure 設定、缺少 legacy 對照或改用 legacy-live 基準時，
  * 測試應決定性失敗。
  *
@@ -33,7 +33,7 @@ public sealed class CareRegistrationTests
     {
         var root = Root();
         var scenarios = ShadowScenarioFiles.Load(root, "care");
-        Assert.Equal(4, scenarios.Count);
+        Assert.Equal(6, scenarios.Count);
         Assert.All(scenarios, item =>
         {
             Assert.Equal("reading", item.Basis);

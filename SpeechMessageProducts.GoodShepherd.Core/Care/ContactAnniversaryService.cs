@@ -9,6 +9,9 @@
  * 從該正式 account 讀取 new_timezone（缺值沿既有產品預設 Asia/Taipei），用 ChurchClock
  * 取得當地日期，交給 ContactAnniversaryRule 計算生日及年資欄位，最後一次 Update。
  * 讀取包含全部受影響欄位的既有值；同日重跑只比較差異，避免反覆觸發遞迴工作流程。
+ * 日期欄位已核對 metadata 為 UserLocal／DateOnly：SDK 的 UTC（含未標 Kind 的
+ * UTC）先轉教會日期計算，patch 再轉教會午夜 UTC；不使用伺服器的本地時區。
+ * kind 明確隔開生日與年資欄位，活動預設生日，年資流程須選 Onboarding。
  * Shadow 使用外殼提供的 RecordingOrganizationService，因此查詢與 patch 都會被安全記錄，
  * 而非執行任何外部通知。
  *
@@ -62,20 +65,25 @@ public sealed class ContactAnniversaryService
             throw new InvalidOperationException("The church identity was not returned.");
         var timeZone = church.GetAttributeValue<string>("new_timezone");
         if (string.IsNullOrWhiteSpace(timeZone)) timeZone = DefaultTimeZone;
-        var today = (clock ?? new ChurchClock()).TodayInChurch(timeZone);
+        var churchClock = clock ?? new ChurchClock();
+        var today = churchClock.TodayInChurch(timeZone);
 
         var birthday = contact.GetAttributeValue<DateTime>("birthdate");
         if (birthday == default) birthday = new DateTime(ContactAnniversaryRule.UnknownYear, 1, 1);
+        birthday = ToChurchDate(birthday, churchClock, timeZone);
         var onboarding = contact.GetAttributeValue<DateTime>("new_onboard_date");
         if (onboarding == default) onboarding = new DateTime(ContactAnniversaryRule.UnknownYear, 1, 1);
+        onboarding = ToChurchDate(onboarding, churchClock, timeZone);
         var nextUpdate = contact.GetAttributeValue<DateTime>("new_next_update_onboard_date");
         if (nextUpdate == default) nextUpdate = new DateTime(ContactAnniversaryRule.UnknownYear, 1, 1);
+        nextUpdate = ToChurchDate(nextUpdate, churchClock, timeZone);
 
         var patch = new Entity("contact", contactId);
         if (kind is ContactAnniversaryKind.Birthday or ContactAnniversaryKind.All)
         {
             var birthdayUpdate = ContactAnniversaryRule.CalculateBirthday(birthday, today);
-            AddDateIfChanged(contact, patch, "new_next_birthdate", birthdayUpdate.NextBirthdate);
+            AddDateIfChanged(contact, patch, "new_next_birthdate", birthdayUpdate.NextBirthdate.HasValue
+                ? churchClock.ToUtc(new LocalDateTimeOfChurch(birthdayUpdate.NextBirthdate.Value, timeZone)) : null);
             AddOptionIfChanged(contact, patch, "new_birthday_month", birthdayUpdate.BirthdayMonth);
             AddIntIfChanged(contact, patch, "new_age_number", birthdayUpdate.AgeNumber);
             AddOptionIfChanged(contact, patch, "new_age_level", birthdayUpdate.AgeLevel);
@@ -85,9 +93,18 @@ public sealed class ContactAnniversaryService
             var onboardingUpdate = ContactAnniversaryRule.CalculateOnboarding(onboarding, nextUpdate, today);
             AddIntIfChanged(contact, patch, "new_on_board_year", onboardingUpdate.OnboardDays);
             AddIntIfChanged(contact, patch, "new_special_leave_days", onboardingUpdate.SpecialLeaveDays);
-            AddDateIfChanged(contact, patch, "new_next_update_onboard_date", onboardingUpdate.NextOnboardUpdate);
+            AddDateIfChanged(contact, patch, "new_next_update_onboard_date", onboardingUpdate.NextOnboardUpdate.HasValue
+                ? churchClock.ToUtc(new LocalDateTimeOfChurch(onboardingUpdate.NextOnboardUpdate.Value, timeZone)) : null);
         }
         if (patch.Attributes.Count != 0) service.Update(patch);
+    }
+
+    /// <summary>SDK UserLocal 值按 UTC 解讀；未知年份不轉換，Local Kind 拒絕以免引入主機時區。</summary>
+    private static DateTime ToChurchDate(DateTime value, IChurchClock clock, string zone)
+    {
+        if (value.Year == ContactAnniversaryRule.UnknownYear) return value.Date;
+        if (value.Kind == DateTimeKind.Local) throw new InvalidOperationException("SDK dates must represent UTC.");
+        return clock.ToChurchTime(DateTime.SpecifyKind(value, DateTimeKind.Utc), zone).Date;
     }
 
     /// <summary>只在日期真的不同時加入 patch，避免同日重跑再次寫入同一筆 contact。</summary>
