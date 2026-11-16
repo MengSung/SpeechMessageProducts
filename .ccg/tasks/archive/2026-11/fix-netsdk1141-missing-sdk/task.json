@@ -1,0 +1,13 @@
+{
+  "id": "fix-netsdk1141-missing-sdk",
+  "title": "修復缺少 .NET 10.0.403 導致的 NETSDK1141",
+  "status": "completed",
+  "complexity": "S",
+  "risk": "low",
+  "domain": "toolchain",
+  "currentPhase": "completed",
+  "nextAction": "環境修復與驗證完成；保留現有 .NET 10 基準及既有 P5 任務",
+  "createdAt": "2026-11-16T10:13:55.8925418+08:00",
+  "branch": "1.0.0.11.Integration.P5.Worktree",
+  "completedAt": "2026-11-16T10:20:09.7682324+08:00"
+}
