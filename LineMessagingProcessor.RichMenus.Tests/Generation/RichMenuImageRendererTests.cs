@@ -7,6 +7,8 @@
  * 並在取消與重複產圖後核對ImageSharp未Dispose配置數回到原基線。
  * 資源與隔離：單案using擁有PNG、解碼Image與取消來源，FontCollection只含固定第三方字型；
  * 不訂閱全域事件、不跑finalizer掩蓋資源錯誤、不保留圖面或context到其他案例。
+ * 全行程配置計數必須在既有非平行圖片生命週期collection觀察，避免課程發布測試
+ * 正在產生的真PNG被誤算成本案未釋放；產品與案例內部的平行行為、原斷言均不變。
  * 維護驗證：圖片不比較壓縮位元組，避免encoder細節被誤當產品契約；
  * 本檔的文字差異與白底斷言必須在移除DrawText時失敗，不能只檢查檔案存在。
  */
@@ -20,6 +22,7 @@ using Xunit;
 namespace LineMessagingProcessor.RichMenus.Tests.Generation;
 
 /// <summary>保護真正文字合成及deterministic disposal，不以替身PNG冒充renderer。</summary>
+[Collection("QR image lifecycle")]
 public sealed class RichMenuImageRendererTests
 {
     /// <summary>實際繪圖不得只回白底；不同文字須形成不同像素，回收不依賴GC。</summary>

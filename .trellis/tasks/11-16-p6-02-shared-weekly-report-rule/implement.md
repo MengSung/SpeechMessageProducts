@@ -39,3 +39,11 @@
 - `p6-02-package-plugins.log`：`a58baa5f3c417f8336b507340aa2e1b00d4dfd4aa6d8243362a62c64231b329a`
 - `p6-02-package-workflows.log`：`9fc9bd71b5a372a255fab19e496bd0d6c33168bb54df5562262087f0d7fb68d0`
 - `p6-02-package-metadata.log`：`a0f56db6c3f7104eed02967e0dee4bc5e8a295ee7ce9011ea748dddbea60a72e`
+
+## 2026-11-16 19:58 Asia/Taipei (UTC+08:00) 完整守門失敗與最小修正
+
+9bf222ed 的 Release 建置通過，但完整方案測試出現1紅：RichMenuImageRendererTests第45行全行程配置計數預期0、實際21，因此守門停在第2項，尚未驗收、未推送。
+
+調查完整renderer與三個圖片測試：本案using均在斷言前離開，單案1綠、原整組114綠；LessonQrPublicationTests的Registration_RealFactoryAndPublisher_DrainJobScope會在另一個預設collection產出93張真PNG。ImageSharp全域計數在配置時增加、釋放時減少，非本案專屬。其餘觀察全域計數的QR測試已用DisableParallelization=true的QR image lifecycle collection，本案漏掛。
+
+修正僅將本類別納入既有collection並補原因說明；不改產品、不放寬任何期望、不用GC或等待掩蓋，不關閉案例內A/B平行。原失敗證據保留，修正提交後重新完整八項；不能把原9bf222ed列為通過。
