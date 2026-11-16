@@ -14,7 +14,7 @@
  * queryResults 以一開始為一的 RetrieveMultiple 呼叫序號明確覆蓋未知查詢，兩側均複製；
  * 這是情境指定的離線答案，不宣稱該語法受支援。缺列、重複識別、容量及未知型別均拒絕。
  * 主鍵對照明列 account、contact、合成 region、appointment／task、名單／成員、週報、頻道及出席記錄；
- * 活動共用 activityid；出席主鍵由P5唯讀metadata確認為new_present_recordid。
+ * 活動共用 activityid（P5-12 唯讀 metadata 另確認 letter）；出席主鍵由P5唯讀metadata確認為new_present_recordid。
  * 其餘實體須先擴充對照，不能以名稱猜測 metadata 或特殊主鍵。
  * 驗證：FakeOrganizationServiceTests 保護分離、原子失敗、查詢、關聯、隔離與排空。
  */
@@ -285,12 +285,13 @@ internal sealed partial class FakeOrganizationService : IOrganizationService, ID
     }
 
     /// <summary>
-    /// 本離線子集的唯一主鍵對照：兩種既有活動使用 activityid，region 是案例明確定義的合成表。
+    /// 本離線子集的唯一主鍵對照：appointment／task／letter 使用 activityid；
+    /// letter 由 P5-12 goodshepherdback 唯讀 metadata 確認，region 是案例明確定義的合成表。
     /// 不查詢外部 metadata，也不保留可變對照；未知實體具名拒絕，擴充前須提供實際欄位契約與測試。
     /// </summary>
     private static string PrimaryIdAttribute(string entityName) => Name(entityName) switch
     {
-        "appointment" or "task" => "activityid",
+        "appointment" or "task" or "letter" => "activityid",
         "account" => "accountid",
         "contact" => "contactid",
         "list" => "listid",

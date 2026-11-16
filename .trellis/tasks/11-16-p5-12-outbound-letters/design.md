@@ -10,3 +10,7 @@ FailureSummary 預設停用且不註冊 timer 或 consumer；啟用後每輪獨�
 
 ## 驗證與發布
 先紅燈後產品實作，小段綠燈才提交，整包驗收前不 push。包內主會話 inline 檢查，不派實作子代理或外審；階段末一次外審。失敗彙總來源必須真正接入而非註冊 no-op。若資料模型已有缺口，如實登錄不假稱完成。
+
+## 已查證的狀態及來源契約
+
+2026-11-16 14:01 Asia/Taipei (UTC+08:00)：goodshepherdback 唯讀 metadata 確認 letter.activityid、完成1/4、取消2/5及兩個250字分類欄位。Shadow 以固定 SMV category 加字典 subcategory 區分失敗，不覆寫 description、不搶用外部既有類別。來源只接受 from account 或 from contact.parentcustomerid；systemuser 沒有正式教會關聯，拒絕而不從 to 反推。其他媒體／群組及任意行銷來源列入階段末缺口，不能宣稱全部舊功能相容。詳細逐檔表見 wp-reports/P5-12-inventory.md。
