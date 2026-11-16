@@ -136,7 +136,7 @@ public sealed class LegacyDispositionTests
             await Task.WhenAll(output, error);
         }
         Assert.Equal(0, process.ExitCode);
-        var extensions = new HashSet<string>(".cs|.cshtml|.js|.ts|.ps1|.py|.cjs|.mjs|.jsx|.tsx".Split('|'), StringComparer.OrdinalIgnoreCase);
+        var extensions = new HashSet<string>(".cs|.cshtml|.js|.ts|.ps1|.py|.cjs|.mjs|.jsx|.tsx|.razor|.html|.htm|.vb|.fs|.fsi|.sh|.bat|.cmd|.php|.java|.go|.cpp|.h|.sql|.css|.vue|.svelte".Split('|'), StringComparer.OrdinalIgnoreCase);
         var files = (await output).Split('\0', StringSplitOptions.RemoveEmptyEntries)
             .Where(x => extensions.Contains(Path.GetExtension(x))).ToArray();
         Assert.True(files.Length > 100);
