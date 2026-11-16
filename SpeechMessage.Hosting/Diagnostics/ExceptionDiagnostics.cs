@@ -4,6 +4,8 @@
  * 目的與定位：此檔真正由 SpeechMessage.Hosting 組件編譯，保留 ToolUtilityNameSpace.Diagnostics 供舊來源相容；ToolUtility 僅以型別轉送指向本唯一實作。
  * Debug／Release 共用的錯誤輸出 owner，依啟動快照獨立啟用檔案與 LINE。 雙開先完成 JSONL 落檔及 flush 再放入最多 64 筆的 LINE 佇列；LINE-only 不寫檔。
  * 不保存例外、請求、身分或驗證資料。 每個部署目錄最多保留目前檔與五份備份，單筆不超過 4 KiB；正常路徑不執行任何 I/O。
+ * P5-12 的失敗彙總另有純值白名單入口，只接受已核定教會 GUID、筆數與封閉 UTC 窗，
+ * 沿用同一 Write／flush／有界通知管線，不把動態摘要塞進 exception.Message 或 operation。
  *
  * 主要功能與流程：
  * 本檔宣告 ExceptionDiagnostics。
@@ -136,15 +138,7 @@ public sealed class ExceptionDiagnostics : IAsyncDisposable
                     HResult = exception?.HResult ?? 0,
                     Stack = StackSymbols(exception)
                 }, JsonOptions);
-                // 雙開時 flush 成功才可入列；LINE-only 明確跳過磁碟，而不是誤稱已落檔。
-                if (_outputOptions.WriteExceptionLog && !Write(record)) return false;
-                if (exception != null) _reported.Add(exception, new object());
-                if (sendLine && !_notifications.Writer.TryWrite(record))
-                {
-                    WriteStatus("LineQueueFull", incidentId);
-                    return _outputOptions.WriteExceptionLog;
-                }
-                return true;
+                return Publish(record, incidentId, sendLine, exception);
             }
             catch
             {
@@ -152,6 +146,51 @@ public sealed class ExceptionDiagnostics : IAsyncDisposable
                 return false;
             }
         }
+    }
+
+    /// <summary>
+    /// 由已驗部署來源的失敗彙總呼叫；白名單僅正式教會 ID、筆數及至多一小時 UTC 窗。
+    /// 不接受任意文字、例外本文、活動、個資或憑證；去重由排程 owner 的窗界線負責。
+    /// true 只代表落檔或入列，不代表 LINE 送達；四種輸出組合與既有 Report 完全相同。
+    /// </summary>
+    public bool ReportFailureSummary(Guid churchId, long count, DateTimeOffset windowStartUtc, DateTimeOffset windowEndUtc)
+    {
+        if (churchId == Guid.Empty || count is <= 0 or > 1000000000 ||
+            windowStartUtc.Offset != TimeSpan.Zero || windowEndUtc.Offset != TimeSpan.Zero ||
+            windowEndUtc <= windowStartUtc || windowEndUtc - windowStartUtc > TimeSpan.FromHours(1))
+            throw new ArgumentException("Failure summary requires a formal identity, bounded count and closed UTC window.");
+        lock (_gate)
+        {
+            var sendLine = _outputOptions.SendLine && !_sending.Value;
+            if (_closed || (!_outputOptions.WriteExceptionLog && !sendLine)) return false;
+            try
+            {
+                var incidentId = Guid.NewGuid().ToString("N");
+                var record = JsonSerializer.Serialize(new
+                {
+                    IncidentId = incidentId, Utc = DateTimeOffset.UtcNow, Operation = "Messaging.FailureSummary",
+                    ChurchId = churchId, Count = count, WindowStartUtc = windowStartUtc, WindowEndUtc = windowEndUtc
+                }, JsonOptions);
+                return Publish(record, incidentId, sendLine);
+            }
+            catch { Emergency("ExceptionLogWriteFailed"); return false; }
+        }
+    }
+
+    /// <summary>
+    /// 僅在 _gate 內共用發布；雙開先 flush，LINE-only 不落檔，滿載只走既有狀態後備。
+    /// 只有成功落檔後才標記 exception weak key，不會延長原例外或任何來源資料的生命。
+    /// </summary>
+    private bool Publish(string record, string incidentId, bool sendLine, Exception? exception = null)
+    {
+        if (_outputOptions.WriteExceptionLog && !Write(record)) return false;
+        if (exception != null) _reported.Add(exception, new object());
+        if (sendLine && !_notifications.Writer.TryWrite(record))
+        {
+            WriteStatus("LineQueueFull", incidentId);
+            return _outputOptions.WriteExceptionLog;
+        }
+        return true;
     }
 
     /// <summary>
