@@ -22,7 +22,8 @@
     "11-16-p6-00-startup-preflight",
     "11-16-p6-06-legacy-aspnetcore-packages",
     "11-16-p6-04-explicit-toolutility-registration",
-    "11-16-p6-01-shared-qr-content"
+    "11-16-p6-01-shared-qr-content",
+    "11-16-p6-02-shared-weekly-report-rule"
   ],
   "parent": null,
   "relatedFiles": [],

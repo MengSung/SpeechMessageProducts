@@ -10,6 +10,8 @@
  * 發布不可變結果，零分母四欄為 null，表示不得覆寫既值。旗標採外殼提供的事件 GUID。
  * CalculationPrefix 固定讀取產品 zh-TW 資源原文；與通知 accessor 共用唯讀生成資源表，
  * 此表容量僅隨版控資源增加，不含教會覆寫、scope 或任何請求資料。
+ * P6-02 將分類是否列入計算的純判斷公開共用；Evaluate 仍保留原缺分類修補及列狀態判斷，
+ * ChurchReport 取相同固定旗標，不將其依登入者即時建立流程改成整批產生。
  *
  * 使用邊界與維護：外殼須固定以 zh-TW 資源提供計算前綴，並保證每列已核對來源教會；
  * 本檔不以 GUID 形式推定授權。重複列、預算或 Int32 溢位直接拒絕，不發布部分意圖。
@@ -121,6 +123,15 @@ public static class WeeklyReportStatisticsRule
         ProductResourceTable.GetText("zh-TW", new TextKey("WeeklyReport.CalculatePrefix"));
 
     /// <summary>
+    /// 判定既有會友分類是否列入出席計算；缺值、新朋友、未入組及外教會不計，其餘原值照舊計入。
+    /// 純判斷不查資料、不回填分類、不做授權或保存狀態；呼叫端仍負責啟用狀態及缺分類的原副作用。
+    /// </summary>
+    /// <param name="classification">本次已授權讀取的 customertypecode；null 保留原缺值語意。</param>
+    /// <returns>有值且不是三個舊排除分類時為 true，不依執行緒語系或共用可變狀態。</returns>
+    public static bool IsCountedClassification(int? classification) =>
+        classification.HasValue && classification.Value is not (100000004 or 100000000 or 100000007);
+
+    /// <summary>
     /// 只在 current 以指定前綴開頭且相較 prior 改變時重算；Ordinal 比較不讀程序文化。
     /// 重複 record 即使已停用或分類排除仍拒絕，避免用過濾隱藏資料衝突。全部驗證與
     /// checked 加總成功後才回傳結果；外殼負責穩定事件 ID、授權及所有條件寫入。
@@ -170,7 +181,7 @@ public static class WeeklyReportStatisticsRule
                 if (missingContacts.Add(row.ContactId)) contacts.Add(row.ContactId);
                 continue;
             }
-            if (row.Classification is 100000004 or 100000000 or 100000007) continue;
+            if (!IsCountedClassification(row.Classification)) continue;
             count++;
             sunday = checked(sunday + (row.Sunday ?? -9999));
             group = checked(group + (row.Group ?? -9999));

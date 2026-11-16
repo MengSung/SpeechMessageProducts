@@ -5,6 +5,7 @@
  *
  * 主要功能與流程：
  * 本檔宣告 SmallGroupQrCodeUtility。
+ * - 週報計算旗標由 WeeklyReportStatisticsRule.CalculationPrefix() 取得固定 zh-TW 原文；六處消費點各留原位置，不改 D365 值或即時週報建立流程。
  * - 原有掃描者查詢與必要時加新朋友之後，才原地委派 QrScanContent；小組／週報讀寫及回傳與推播文字維持原流程。
  * - SmallGroupQrCodeUtility 的部署設定每行程一份，只保存設定、不保存 request／使用者或教會可變資料。 Development 接上主機環境檔與 secrets，正式環境不增加
  * provider；缺少測試 token 不得退回基底正式值。 保留原 static／Lazy 與基底 reload 生命週期；新增來源不監聽變更，不建立額外背景資源。
@@ -21,6 +22,7 @@
  */
 using ChurchReport.WebServiceConnector;
 using ChurchReport.Configuration;
+using SpeechMessageProducts.GoodShepherd.Core.WeeklyReports;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -196,7 +198,7 @@ namespace ChurchReport.Tools
                 // 計算週報出席人數及出席率
                 if (m_OnboardTypeInfo.StartsWith("錯誤") != true)
                 {
-                    this.m_ToolUtilityClass.SetEntityStringAttribute(ref m_WeeklyReport, "new_saved_flag", "計算出席率");
+                    this.m_ToolUtilityClass.SetEntityStringAttribute(ref m_WeeklyReport, "new_saved_flag", WeeklyReportStatisticsRule.CalculationPrefix());
                     this.m_ToolUtilityClass.UpdateEntity(ref m_WeeklyReport);
                 }
 
@@ -489,6 +491,11 @@ namespace ChurchReport.Tools
                 throw e;
             }
         }
+        /// <summary>
+        /// 在原週報與會友範圍查出出席單後簽到，仍只於原成功分支更新固定計算旗標。
+        /// 共用 accessor 只提供相同 zh-TW 值，不授權、不建立週報或移動既有副作用；
+        /// 借用 CRM 由 request scope 清理，區域集合不跨操作保存，失敗沿原例外路徑傳遞。
+        /// </summary>
         private void CreatePresentRecordOnSmallGroup()
         {
             try
@@ -515,7 +522,7 @@ namespace ChurchReport.Tools
                             #region// 計算週報主日出席人數及出席率
                             if (m_OnboardTypeInfo.StartsWith("錯誤") != true)
                             {
-                                this.m_ToolUtilityClass.SetEntityStringAttribute(ref m_WeeklyReport, "new_saved_flag", "計算出席率");
+                                this.m_ToolUtilityClass.SetEntityStringAttribute(ref m_WeeklyReport, "new_saved_flag", WeeklyReportStatisticsRule.CalculationPrefix());
                                 this.m_ToolUtilityClass.UpdateEntity(ref m_WeeklyReport);
                             }
                             #endregion

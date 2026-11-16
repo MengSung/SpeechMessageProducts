@@ -5,6 +5,7 @@
  *
  * 主要功能與流程：
  * 本檔宣告 SundayQrCodeUtility。
+ * - 週報計算旗標由 WeeklyReportStatisticsRule.CalculationPrefix() 取得固定 zh-TW 原文；六處消費點各留原位置，不改 D365 值或即時週報建立流程。
  * - 掃描者查詢後於原位置委派 QrScanContent，沿用解出的 at 分隔符控制既有兩處固定／動態分支；主日寫入與顯示文字不變。
  * - SundayQrCodeUtility 的部署設定每行程一份，只保存設定、不保存 request／使用者或教會可變資料。 Development 接上主機環境檔與 secrets，正式環境不增加 provider；
  * 缺少測試 token 不得退回基底正式值。 保留原 static／Lazy 與基底 reload 生命週期；新增來源不監聽變更，不建立額外背景資源。
@@ -20,6 +21,7 @@
  * 可沿 SpeechMessageProducts.ChurchReport/Controllers/QrCodeController.cs 追查目前工作樹中的合作／使用位置。
  */
 using ChurchReport.Configuration;
+using SpeechMessageProducts.GoodShepherd.Core.WeeklyReports;
 using System;
 using System.IO;
 using ToolUtilityNameSpace;
@@ -237,6 +239,11 @@ namespace ChurchReport.Tools
         }
         #endregion
         #region 設定簽到簽退
+        /// <summary>
+        /// 沿用原查詢、出席更新與週報鎖定順序；計算旗標只改取共用固定 zh-TW 原文，
+        /// 不改寫入值、不移動 I/O 或改成整批產生。借用 CRM 仍屬 request scope，結果不跨工具保存。
+        /// 失敗維持原例外路徑；旗標來源不新增 catch，也不將既有部分寫入誤報為整體成功。
+        /// </summary>
         public bool SigningMeetingStatistics(Entity aMeetingStatistics, String UserName, String UserId,  String OnboardType )
         {
             try
@@ -279,7 +286,7 @@ namespace ChurchReport.Tools
                                 Entity aWeeklyReportEntity = this.m_ToolUtilityClass.RetrieveEntity("new_group_present_weekly_report", aWeeklyReportId);
                                 if (aWeeklyReportEntity != null)
                                 {
-                                    this.m_ToolUtilityClass.SetEntityStringAttribute(ref aWeeklyReportEntity, "new_saved_flag", "計算出席率");
+                                    this.m_ToolUtilityClass.SetEntityStringAttribute(ref aWeeklyReportEntity, "new_saved_flag", WeeklyReportStatisticsRule.CalculationPrefix());
                                     this.m_ToolUtilityClass.UpdateEntity(ref aWeeklyReportEntity);
                                 }
                             }
@@ -825,6 +832,11 @@ namespace ChurchReport.Tools
                 throw e;
             }
         }
+        /// <summary>
+        /// 按原小組長即時建立週報與出席單後簽到，使用相同計算旗標觸發統計；
+        /// 本次只委派固定文字，不變更主鍵、日期、關聯與原建立順序，也不取得借用 CRM 的所有權。
+        /// 區域字典與記錄僅供當次流程使用，錯誤仍沿既有 catch 往外傳遞。
+        /// </summary>
         private void CreatePresentRecordOnSmallGroup()
         {
             try
@@ -886,7 +898,7 @@ namespace ChurchReport.Tools
                                         #region// 計算週報主日出席人數及出席率
                                         if (m_OnboardTypeInfo.StartsWith("錯誤") != true)
                                         {
-                                            this.m_ToolUtilityClass.SetEntityStringAttribute(ref aWeeklyReportEntity, "new_saved_flag", "計算出席率");
+                                            this.m_ToolUtilityClass.SetEntityStringAttribute(ref aWeeklyReportEntity, "new_saved_flag", WeeklyReportStatisticsRule.CalculationPrefix());
                                             this.m_ToolUtilityClass.UpdateEntity(ref aWeeklyReportEntity);
                                         }
                                         #endregion

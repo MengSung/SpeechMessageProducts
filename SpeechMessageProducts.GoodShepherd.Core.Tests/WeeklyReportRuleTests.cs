@@ -8,6 +8,8 @@
  * 零分母不寫四欄、穩定事件旗標，以及正式出席列重複時整批拒絕。通知以明確
  * UTC、IANA 時區及文化核對逐字文字、四角色順序與重試識別的分教會隔離。
  * 故障注入涵蓋空識別、超預算、重複列、整數溢位及不明日期 Kind。
+ * P6-02 另以既有合成 scenarios 的分類值保護共用分類入口與固定旗標原文；資源 reader
+ * 由該案例擁有並同步 Dispose，舊黃金期望與其他統計／通知斷言不變。
  *
  * 使用邊界與維護：測試只擁有區域陣列、純值與同步 ChurchClock；不讀真實 token、
  * LINE ID、秘密、快照資料列或網路。呼叫後修改輸入集合的斷言保護不可變發布；
@@ -16,7 +18,9 @@
  */
 using System;
 using System.Globalization;
+using System.IO;
 using System.Linq;
+using Newtonsoft.Json.Linq;
 using SpeechMessageProducts.GoodShepherd.Core.WeeklyReports;
 using Xunit;
 
@@ -25,6 +29,35 @@ namespace SpeechMessageProducts.GoodShepherd.Core.Tests;
 /// <summary>使用可重現的純值輸入驗證統計及通知；各測試不共享可變狀態或外部資源。</summary>
 public sealed class WeeklyReportRuleTests
 {
+    /// <summary>
+    /// 明確注入缺分類與三個舊排除值，必須不計；其餘值取自階段 5 嵌入合成情境而非新規則的輸出。
+    /// 讀取只屬本案例且 reader 確定關閉，不連 D365，也不將分類語法當作會友授權。
+    /// </summary>
+    [Fact]
+    public void IsCountedClassification_ExcludedAndMissingValues_NotCounted()
+    {
+        foreach (var classification in new int?[] { null, 100000004, 100000000, 100000007 })
+            Assert.False(WeeklyReportStatisticsRule.IsCountedClassification(classification));
+        var assembly = typeof(WeeklyReportRuleTests).Assembly;
+        var resource = assembly.GetManifestResourceNames().Single(name =>
+            name.EndsWith(".Golden.Legacy.weeklyreports.scenarios.json", StringComparison.Ordinal));
+        using var reader = new StreamReader(assembly.GetManifestResourceStream(resource)!);
+        var included = JObject.Parse(reader.ReadToEnd()).SelectTokens("$..customertypecode.option")
+            .Select(value => value.Value<int>()).Distinct()
+            .Where(value => value is not (100000004 or 100000000 or 100000007)).ToArray();
+        Assert.NotEmpty(included);
+        foreach (var classification in included)
+            Assert.True(WeeklyReportStatisticsRule.IsCountedClassification(classification));
+    }
+
+    /// <summary>
+    /// 固定旗標是 D365 寫入契約，不隨 UI 語系或重新命名改變；兩個測試宿主逐字核對舊原文，
+    /// 呼叫既有固定 zh-TW accessor，不讀設定、不建立操作狀態或外部資源。
+    /// </summary>
+    [Fact]
+    public void CalculationPrefix_IsLegacyFlagText() =>
+        Assert.Equal("計算出席率", WeeklyReportStatisticsRule.CalculationPrefix());
+
     /// <summary>新旗標相較 PreImage 改變才計算；分類缺值回傳補值意圖，排除列不計分母。</summary>
     [Fact]
     public void WeeklyReport_Statistics_FromPreImageDelta()
