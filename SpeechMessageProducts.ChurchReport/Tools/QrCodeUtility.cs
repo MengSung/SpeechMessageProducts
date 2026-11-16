@@ -5,6 +5,7 @@
  *
  * 主要功能與流程：
  * 本檔宣告 QrCodeUtility。
+ * - 掃描者查詢後在原解析位置委派 QrScanContent；只換內容語法，課程讀寫、欄位寫回時點及畫面／LINE 文字保持原流程。
  * - QrCodeUtility 的部署設定每行程一份，只保存設定、不保存 request／使用者或教會可變資料。 Development 接上主機環境檔與 secrets，正式環境不增加 provider；缺少測試
  * token 不得退回基底正式值。 保留原 static／Lazy 與基底 reload 生命週期；新增來源不監聽變更，不建立額外背景資源。
  * - 釋放本工具建立的 LINE client；ToolUtility 由 request scope 擁有，不在此處釋放。
@@ -144,6 +145,11 @@ namespace ChurchReport.Tools
         #endregion
 
         #region 主程式
+        /// <summary>
+        /// 先取得掃描者，再於原切字串位置委派有界內容解碼；無效內容交既有控制器處理，
+        /// 不讀取課程。有效內容維持課次與非 enroll 簽到欄位的原寫回時點及後續副作用順序。
+        /// 此實例由當次呼叫擁有，不跨使用者重用，既有 LINE client 仍由 Dispose 釋放。
+        /// </summary>
         [MethodImpl(MethodImplOptions.NoInlining | MethodImplOptions.NoOptimization)]
         public void SetupQrCodeIdString(string QrCodeIdString, string DisplayName, string UserLineId, ref string ClassName, ref string UserName, ref string ClassIndex, ref string OnboardType)
         {
@@ -163,16 +169,15 @@ namespace ChurchReport.Tools
                 m_UserName = UserName = m_ToolUtilityClass.GetEntityStringAttribute(ref m_Contact, "fullname");
                 m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, "004 : 好牧人: 資訊 => " + m_UserName);
 
-                string[] arr = QrCodeIdString.Split('_');
-                Guid aGuid = new Guid(arr[0]);
+                QrScanContent.ReadLesson(QrCodeIdString, out Guid aGuid, out string classIndex, out string onboardType);
                 m_Lesson = m_ToolUtilityClass.RetrieveEntity("new_disciple_lessons", aGuid);
                 m_ClassName = ClassName = m_ToolUtilityClass.GetEntityStringAttribute(m_Lesson, "new_name");
 
-                m_ClassIndex = arr.Length >= 2 ? arr[1] : string.Empty;
+                m_ClassIndex = classIndex;
 
                 if (!m_ClassIndex.Contains("enroll"))
                 {
-                    m_OnboardType = arr[2];
+                    m_OnboardType = onboardType;
                     m_ToolUtilityClass.TraceByLevel(TOTAL_LEVEL, LEVEL_1, "005 : 好牧人: 資訊 => " + m_OnboardType);
 
                     SigningLesson(m_Lesson, ClassName, UserName, m_Contact.Id.ToString(), m_ClassIndex, m_OnboardType);

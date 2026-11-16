@@ -6,6 +6,7 @@
 主要功能與流程：
 宣告的產品／測試target為net10.0；條件評估後的實際輸出以MSBuild為準。
 專案參考包含SpeechMessageProducts.ChurchReport.csproj、LineMessagingProcessor.Workflows.csproj、SpeechMessage.Payments.AspNetCore.csproj、SpeechMessage.Payments.Workflows.csproj、LineMessagingProcessor.RichMenus.csproj；不能新增反向相依或將主機狀態引入純核心。
+QR 解析測試以連結的既有黃金檔逐欄比較新舊解析，Roslyn 僅供離線語法樹守門，不載入網站或建立外部連線。
 
 使用邊界與維護：修改前先核對引用此檔的專案、頁面、腳本或CI步驟，保留既有參數、輸出及失敗結束碼。
 涉及寫入、外部命令或暫存資源時，依本檔實際實作的owner及清理路徑處理；說明不能取代執行前的範圍驗證。
@@ -27,6 +28,7 @@
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
     <PackageReference Include="FluentAssertions" />
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" PrivateAssets="all" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\SpeechMessageProducts.ChurchReport\SpeechMessageProducts.ChurchReport.csproj" />
@@ -34,5 +36,9 @@
     <ProjectReference Include="..\SpeechMessage.Payments.AspNetCore\SpeechMessage.Payments.AspNetCore.csproj" />
     <ProjectReference Include="..\SpeechMessage.Payments.Workflows\SpeechMessage.Payments.Workflows.csproj" />
     <ProjectReference Include="..\LineMessagingProcessor.RichMenus\LineMessagingProcessor.RichMenus.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\SpeechMessageProducts.GoodShepherd.Core.Tests\Golden\qr-content-legacy.tsv"
+          Link="Golden\qr-content-legacy.tsv" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 </Project>

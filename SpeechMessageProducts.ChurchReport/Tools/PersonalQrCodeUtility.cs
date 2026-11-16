@@ -5,6 +5,7 @@
  *
  * 主要功能與流程：
  * 本檔宣告 PersonalQrCodeUtility。
+ * - 查掃描者後於原解析位置呼叫 QrScanContent，只消費被掃描者 ID；at 優先及尾欄相容規則由共用 Codec 負責，其餘出席流程與文字不變。
  * - PersonalQrCodeUtility 的部署設定每行程一份，只保存設定、不保存 request／使用者或教會可變資料。 Development 接上主機環境檔與 secrets，正式環境不增加 provider；
  * 缺少測試 token 不得退回基底正式值。 保留原 static／Lazy 與基底 reload 生命週期；新增來源不監聽變更，不建立額外背景資源。
  * - 釋放本工具建立的 LINE client；ToolUtility 由 request scope 擁有，不在此處釋放。
@@ -131,6 +132,11 @@ namespace ChurchReport.Tools
         #endregion
 
         #region 主程式
+        /// <summary>
+        /// 查詢掃描者後才原地解析被掃描者 ID；格式錯誤由既有控制器處理，不讀取被掃描者或聚會。
+        /// 有效內容保留原聯絡人、聚會、簽到查詢與 ref 回應文字；純解析不代表身分或授權。
+        /// 操作資料只由當次工具持有，不跨使用者重用；既有 LINE client 仍由 Dispose 釋放。
+        /// </summary>
         public void SetupQrCodeIdString(String QrCodeIdString, String DisplayName, String UserLineId, ref String SundayName, ref String CategoryName, ref String UserName, ref String OnboardType)
         {
             try
@@ -144,34 +150,16 @@ namespace ChurchReport.Tools
                 m_ScannerContact = this.m_ToolUtilityClass.RetrieveContactEntityByLineUserId(UserLineId);
                 #endregion
                 #region// 取得被掃描者
-                string[] arr;
-                if (QrCodeIdString.Contains("@"))
+                Guid aGuid = QrScanContent.ReadPersonal(QrCodeIdString);
+                m_Contact = this.m_ToolUtilityClass.RetrieveEntity("contact", aGuid);
+                if ( m_Contact != null )
                 {
-                    arr = QrCodeIdString.Split('@');
+                    // 被掃描者存在系統，取得被掃描者全名
+                    m_UserName = UserName = this.m_ToolUtilityClass.GetEntityStringAttribute(ref m_Contact, "fullname");
                 }
                 else
                 {
-                    arr = QrCodeIdString.Split('_');
-                }
-                if (arr.Length > 0)
-                {
-                    Guid aGuid = new Guid(arr[0]);
-                    m_Contact = this.m_ToolUtilityClass.RetrieveEntity("contact", aGuid);
-                    if ( m_Contact != null )
-                    {
-                        // 被掃描者存在系統，取得被掃描者全名
-                        m_UserName = UserName = this.m_ToolUtilityClass.GetEntityStringAttribute(ref m_Contact, "fullname");
-                    }
-                    else
-                    {
-                        OnboardType = "錯誤 : 被掃描者不存在系統中";
-
-                        return;
-                    }
-                }
-                else
-                {
-                    OnboardType = "錯誤 : QR Code不含被掃描者ID";
+                    OnboardType = "錯誤 : 被掃描者不存在系統中";
 
                     return;
                 }

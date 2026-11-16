@@ -5,6 +5,7 @@
  *
  * 主要功能與流程：
  * 本檔宣告 SmallGroupQrCodeUtility。
+ * - 原有掃描者查詢與必要時加新朋友之後，才原地委派 QrScanContent；小組／週報讀寫及回傳與推播文字維持原流程。
  * - SmallGroupQrCodeUtility 的部署設定每行程一份，只保存設定、不保存 request／使用者或教會可變資料。 Development 接上主機環境檔與 secrets，正式環境不增加
  * provider；缺少測試 token 不得退回基底正式值。 保留原 static／Lazy 與基底 reload 生命週期；新增來源不監聽變更，不建立額外背景資源。
  * - 釋放本工具建立的 LINE client；ToolUtility 由 request scope 擁有，不在此處釋放。
@@ -141,6 +142,11 @@ namespace ChurchReport.Tools
         #endregion
 
         #region 主程式
+        /// <summary>
+        /// 保留先查掃描者、必要時加新朋友及寫回姓名的順序，之後才於原位置解析週報 ID 與簽到代碼。
+        /// 格式拒絕不讀取週報，交既有控制器處理；有效內容沿用原小組、出席、旗標與 ref 回應。
+        /// 本實例只屬當次呼叫；解析不提供授權也不建立資源，借用 CRM 不在此釋放，LINE 由 Dispose 擁有。
+        /// </summary>
         public void SetupQrCodeIdString(String QrCodeIdString, String DisplayName, String UserLineId, ref String SmallGroupName, ref String UserName, ref String OnboardType)
         {
             try
@@ -164,8 +170,7 @@ namespace ChurchReport.Tools
                 m_UserName = UserName = this.m_ToolUtilityClass.GetEntityStringAttribute(ref m_Contact, "fullname");
 
                 // 取得週報
-                string[] arr = QrCodeIdString.Split('_');
-                Guid aGuid = new Guid(arr[0]);
+                QrScanContent.ReadSmallGroup(QrCodeIdString, out Guid aGuid, out string onboardType);
                 m_WeeklyReport = this.m_ToolUtilityClass.RetrieveEntity("new_group_present_weekly_report", aGuid);
 
                 // 取得小組名稱，並且回傳給網頁去顯示
@@ -175,7 +180,7 @@ namespace ChurchReport.Tools
                 m_SmallGroupList = this.m_ToolUtilityClass.RetrieveEntity("list", this.m_ToolUtilityClass.GetEntityLookupAttribute(m_WeeklyReport, "new_list_group_present_weekly_report"));
 
                 // 設定是簽到還是簽退
-                m_OnboardType = arr[1];
+                m_OnboardType = onboardType;
 
                 #endregion
 

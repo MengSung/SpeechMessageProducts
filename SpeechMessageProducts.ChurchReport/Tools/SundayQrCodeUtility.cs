@@ -5,6 +5,7 @@
  *
  * 主要功能與流程：
  * 本檔宣告 SundayQrCodeUtility。
+ * - 掃描者查詢後於原位置委派 QrScanContent，沿用解出的 at 分隔符控制既有兩處固定／動態分支；主日寫入與顯示文字不變。
  * - SundayQrCodeUtility 的部署設定每行程一份，只保存設定、不保存 request／使用者或教會可變資料。 Development 接上主機環境檔與 secrets，正式環境不增加 provider；
  * 缺少測試 token 不得退回基底正式值。 保留原 static／Lazy 與基底 reload 生命週期；新增來源不監聽變更，不建立額外背景資源。
  * - 釋放本工具建立的 LINE client；ToolUtility 由 request scope 擁有，不在此處釋放。
@@ -50,6 +51,8 @@ namespace ChurchReport.Tools
         private int m_Disposed;
 
         private String m_QrCodeIdString = "";
+        // 僅屬本次工具的解析結果；與原內容同生命週期，不跨 request 或頻道重用。
+        private bool m_UsesAtSeparator;
         private String m_UserLineId = "";
         private String m_UserName = "";
         private String m_SundayName = "";
@@ -131,6 +134,11 @@ namespace ChurchReport.Tools
         #endregion
 
         #region 主程式
+        /// <summary>
+        /// 先查掃描者，再原地解碼聚會 ID 與欄位，保留 at 優先、屬性底線及欄位寫回順序。
+        /// 格式拒絕交既有控制器處理；成功後仍走原簽到、週報與回應流程，不以語法解析代替授權。
+        /// 工具與解析結果只屬當次呼叫，LINE client 由本實例 Dispose，不取得借用 CRM 的所有權。
+        /// </summary>
         public void SetupQrCodeIdString( String QrCodeIdString, String DisplayName, String UserLineId, ref String SundayName, ref String CategoryName, ref String UserName, ref String OnboardType)
         {
             try
@@ -155,17 +163,8 @@ namespace ChurchReport.Tools
                 #endregion
 
                 #region// 取得聚會統計
-                string[] arr;
-                if ( QrCodeIdString.Contains("@") )
-                {
-                    arr = QrCodeIdString.Split('@');
-                }
-                else
-                {
-                    arr = QrCodeIdString.Split('_');
-                }
-
-                Guid aGuid = new Guid(arr[0]);
+                QrScanContent.ReadMeeting(QrCodeIdString, out Guid aGuid, out string attribute, out string onboardType, out bool usesAtSeparator);
+                m_UsesAtSeparator = usesAtSeparator;
                 m_MeetingStatistics = this.m_ToolUtilityClass.RetrieveEntity("new_meeting_statistics", aGuid);
                 // 取得聚會統計，主日聚會名稱
                 m_SundayName = SundayName = this.m_ToolUtilityClass.GetEntityStringAttribute(ref m_MeetingStatistics, "new_name");
@@ -179,11 +178,11 @@ namespace ChurchReport.Tools
                 this.m_Sunday = this.m_ToolUtilityClass.GetEntityDateTimeAttribute(ref m_MeetingStatistics, "new_sunday_date").ToLocalTime();
 
                 #region// 取得聚會統計屬性
-                m_MeetingStatisticsAttribute = arr[1];
+                m_MeetingStatisticsAttribute = attribute;
                 #endregion
 
                 #region// 設定是簽到還是簽退
-                m_OnboardType = arr[2];
+                m_OnboardType = onboardType;
                 #endregion
 
                 #endregion
@@ -195,7 +194,7 @@ namespace ChurchReport.Tools
                 String MeetingStatisticsName = this.m_ToolUtilityClass.GetEntityStringAttribute( m_MeetingStatistics, "new_name" );
 
                 // 取得類別名稱
-                if (QrCodeIdString.Contains("@"))
+                if (usesAtSeparator)
                 {
                     m_CategoryName = CategoryName = ConvertMeetingStatisticsQrName(m_MeetingStatisticsAttribute);
                 }
@@ -315,7 +314,7 @@ namespace ChurchReport.Tools
                 // 依據掃描網址取得個人聚會與靈修記錄簽到或簽退時間的欄位屬性
                 String aPresentRecordSigningAttribute = "";
                 String aPresentRecordSigningNumberAttribute = ""; // 簽到或簽退的次數欄位屬性
-                if ( m_QrCodeIdString.Contains("@") )
+                if ( m_UsesAtSeparator )
                 {
                     // 取得固定的QR Code掃描時間欄位
                     aPresentRecordSigningAttribute = this.ConvertMeetingStatisticsToPresentRecordAttribute(this.m_MeetingStatisticsAttribute, ref aPresentRecordSigningNumberAttribute);

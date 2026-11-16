@@ -241,10 +241,10 @@ footer{margin-top:36px;color:var(--muted);font-size:12.5px;text-align:center}
 const DATA = {
   "planVersion": "3.5",
   "snapshot": "2026-11-16 19:13 Asia/Taipei (UTC+08:00)",
-  "lastUpdated": "2026-11-16T19:13:16+08:00",
+  "lastUpdated": "2026-11-16T19:25:24+08:00",
   "branch": "1.0.0.11.Integration.P6.Worktree",
-  "head": "b53139fc",
-  "headline": "2026-11-16 19:13 Asia/Taipei (UTC+08:00)：P6-06 已驗收；P6-04 待契約衝突核定，等待時接不受影響的 P6-01。 D34 仍待核定，不啟動 P7。",
+  "head": "14e81b43",
+  "headline": "2026-11-16 19:25 Asia/Taipei (UTC+08:00)：P6-01 四個指定 QR 測試 11 實例先紅後綠，正跑既有測試；P6-04 待核定、D34 不做真實簽到，不啟動 P7。",
   "notices": [
     {
       "id": "plan-3.5-summary",
@@ -759,10 +759,10 @@ const DATA = {
       "id": "階段 6",
       "name": "ChurchReport 改用共用層",
       "planned": "3～4 個工作天",
-      "actual": "2026-11-16 19:13 Asia/Taipei (UTC+08:00)：P6-06 已驗收；P6-04 待契約衝突核定，等待時接不受影響的 P6-01。",
+      "actual": "2026-11-16 19:25 Asia/Taipei (UTC+08:00)：P6-01 四個指定 QR 測試 11 實例先紅後綠，正跑既有測試；P6-04 待核定、D34 不做真實簽到，不啟動 P7。",
       "current": true,
       "done": 1,
-      "active": 1
+      "active": 2
     },
     {
       "id": "階段 7",
@@ -1622,13 +1622,13 @@ const DATA = {
       "id": "P6-01",
       "phaseId": "階段 6",
       "name": "QR 改呼叫 GoodShepherd.Core",
-      "status": "todo",
+      "status": "active",
       "deps": "P2-09、P5-09",
       "live": "頁面驗收",
       "timebox": "1 天",
       "doneAt": "",
       "commit": "",
-      "note": "掃碼解析新舊結果相同"
+      "note": "2026-11-16 19:25 Asia/Taipei (UTC+08:00)：原位置委派共用 Codec，11 實例紅綠完成；既有測試與固定 guard 尚待完成，未驗收。"
     },
     {
       "id": "P6-02",
@@ -1892,6 +1892,39 @@ const DATA = {
         ]
       ],
       "next": "等待 P6-PROP-007 核定；七檔程式保存在 stash，等待時接不受影響的 P6-01。"
+    },
+    {
+      "id": "P6-01",
+      "startedAt": "2026-11-16 19:16 Asia/Taipei (UTC+08:00)",
+      "timebox": "1 天",
+      "dod": [
+        [
+          "測試",
+          "no",
+          "指定11實例已綠，既有測試執行中。"
+        ],
+        [
+          "守門",
+          "no",
+          "程式提交後固定 guard 完整八項。"
+        ],
+        [
+          "覆蓋率",
+          "na",
+          "沒有新增專案。"
+        ],
+        [
+          "實機",
+          "na",
+          "本包離線，頁面驗收於階段末。"
+        ],
+        [
+          "回報與進度",
+          "no",
+          "待完整守門後驗收與一頁回報。"
+        ]
+      ],
+      "next": "既有測試、預提交文件／編碼檢查、程式提交及固定 guard。"
     }
   ],
   "gates": [
@@ -2529,6 +2562,11 @@ const DATA = {
     }
   ],
   "timeline": [
+    {
+      "at": "2026-11-16 19:25 Asia/Taipei (UTC+08:00)",
+      "text": "P6-01 接續：四個同名 QR 測試 11 實例紅綠完成；P6-04 保持待核定且 stash 未動。",
+      "cls": "info"
+    },
     {
       "at": "2026-11-09 18:55 Asia/Taipei (UTC+08:00)",
       "text": "P3-05五項DoD驗收：0516288d完整guard通過，Release5082另Debug7；現無active包，推送後開P3-01與P3-04。",

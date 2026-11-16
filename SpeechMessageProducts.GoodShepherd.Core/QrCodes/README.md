@@ -16,4 +16,6 @@
 - P5-09：盤點 `SundayQrCodeWorkflow`、`CalculateQrCodeScanNumberWorkflow`、`PersonalQrCodeWorkflow`，重建 `MeetingQrCodeActivity`、`MeetingScanCountActivity`、`PersonalQrCodeActivity`。
 - P6-01：ChurchReport 的四種 QR utility 改呼叫共用編碼，並以掃碼黃金測試證明相容。
 
-圖片處理器等待 P2-07 與 P2-09a；此導讀不代表已通過 P2-09b 圖片或 P6-01 掃碼接入驗收。
+ChurchReport 四種掃描工具已於 P6-01 在原解析位置透過 `QrScanContent` 委派本 Codec；
+同一份黃金檔、新舊逐欄對照、六類刻意拒絕及來源語法樹提供離線接入證據。
+本段不把離線測試當成圖片、頁面或 D365 實機驗收；實際驗收狀態以 P6-01 回報與階段頁面紀錄為準。
