@@ -6,6 +6,7 @@
  *
  * 主要功能與流程：
  * 本檔宣告 DonationPaymentManager。
+ * - P6-03 通知改由 ChurchReportLineNotifier 借用共用流程；原本文、來源代號與等待方式不變，LINE／CRM owner 不轉移。
  * - DonationPaymentManager 的部署設定每行程一份，只保存設定、不保存 request／使用者或教會可變資料。 Development 接上主機環境檔與 secrets，正式環境不增加 provider；
  * 缺少測試 token 不得退回基底正式值。 保留原 static／Lazy 與基底 reload 生命週期；新增來源不監聽變更，不建立額外背景資源。
  * - ChurchReport 奉獻付款主流程。 DonationPaymentManager 是產品層的主要名稱；舊 DonationPaymentManager 只保留在薄相容 wrapper。 實際金流流程由
@@ -147,7 +148,7 @@ namespace ChurchReport.Models
         public String LoginType { get; set; } = "網頁登入";   //登入方式
 
         private LineMessagingClient m_LineMessagingClient { get; set; }
-        private PushUtility m_PushUtility { get; set; }
+        private ChurchReportLineNotifier m_PushUtility { get; set; }
         private readonly ILineNotificationWorkflow? m_LineNotificationWorkflow;
         private readonly ILineReplyWorkflow? m_LineReplyWorkflow;
         private int m_Disposed;
@@ -191,20 +192,21 @@ namespace ChurchReport.Models
             // 初始化 LINE Messaging Client (從 appsettings.json 取得 Token)
             string channelAccessToken = GetLineChannelAccessToken();
             this.m_LineMessagingClient = new LineMessagingClient(channelAccessToken);
-            m_LineNotificationWorkflow = lineNotificationWorkflow;
+            m_LineNotificationWorkflow = lineNotificationWorkflow ?? new LineNotificationWorkflow(
+                new LineMessagingProcessor.LineMessagingProcessorClass(m_LineMessagingClient));
             m_LineReplyWorkflow = lineReplyWorkflow;
 
             // Donation/payment UI stays in ChurchReport, while LINE push delivery
-            // is centralized through PushUtility and the shared processor-backed workflow.
-            m_PushUtility = new PushUtility(m_LineMessagingClient, m_LineNotificationWorkflow);
+            // is centralized through the product notifier and the shared processor-backed workflow.
+            m_PushUtility = new ChurchReportLineNotifier(m_LineNotificationWorkflow);
 
             m_DonationPaymentCreateGatewayAdapter = donationPaymentCreateGatewayAdapter;
             m_DonationContactService = new DonationContactService(m_ToolUtilityClass);
             m_DonationBookingService = new DonationBookingService(m_ToolUtilityClass);
             m_DonationPaymentProcessor = new DonationPaymentProcessor(
                 m_LineMessagingClient,
-                m_PushUtility,
-                new ReplyUtility(m_LineMessagingClient, m_LineReplyWorkflow),
+                m_LineNotificationWorkflow,
+                m_LineReplyWorkflow,
                 m_DonationPaymentCreateGatewayAdapter);
             m_DonationKeyInDedicationService = new DonationKeyInDedicationService(
                 m_ToolUtilityClass,
@@ -716,7 +718,7 @@ namespace ChurchReport.Models
                     m_Contact,
                     aDedicationBookingToDelete,
                     OrderMaintain,
-                    m_PushUtility);
+                    m_LineNotificationWorkflow);
             }
             catch (System.Exception e)
             {

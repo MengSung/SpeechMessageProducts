@@ -273,7 +273,7 @@ public sealed class DevelopmentSafetyTests
         id!.UserSecretsId.Should().NotBeNullOrWhiteSpace();
     }
 
-    /// <summary>掃描本 worktree 的來源；既有 11 個 LINE 設定建構器與共用預設路徑均須接入覆寫，不得漏接或讀父 worktree。</summary>
+    /// <summary>掃描本 worktree 的來源；P6-03 刪除 LineUtilityClass 後剩餘 10 個 LINE 設定建構器與共用預設路徑均須接入覆寫，不得漏接或讀父 worktree。</summary>
     [Fact]
     public void SourceBuilders_AllLineConfigurationPaths_UseDevelopmentLayer()
     {
@@ -295,7 +295,7 @@ public sealed class DevelopmentSafetyTests
             count++;
             source.Should().Contain(".AddChurchReportDevelopmentOverrides(", "每個 LINE 基底檔讀取點都必須啟用相同的環境防護");
         }
-        count.Should().Be(11);
+        count.Should().Be(10);
         var library = File.ReadAllText(Path.Combine(root, "LineMessagingProcessor", "LineMessagingProcessorClass.cs"));
         library.Should().Contain("AddDevelopmentOverrides(");
         library.Should().Contain("AddEnvironmentVariables(prefix: \"LINE__\")");

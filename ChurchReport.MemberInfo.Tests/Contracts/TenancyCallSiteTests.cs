@@ -5,7 +5,7 @@
  *
  * 主要功能與流程：
  * 本檔宣告 TenancyCallSiteTests。
- * - 原九處及擴大盤點的十五處必須全部委派共用入口；P2-01 sender 搬入 Hosting 後，
+ * - 原九處及擴大盤點的十四處必須全部委派共用入口；P2-01 sender 搬入 Hosting 後，
  *   檢查真正新 owner 並確認產品 facade 不重複解析；其他來源不得藏有 token key 解析副本。
  * - 只由本測試輸出向上尋找同時擁有方案與既定主機的工作樹，不跨父工作樹掃描。
  * 測試案例入口包含 ChurchReport_AllCallSites_UseResolver、Root。
@@ -25,8 +25,8 @@ namespace ChurchReport.MemberInfo.Tests.Contracts;
 /// <summary>從正式主機與共用處理器來源驗證集中解析；只掃本工作樹，保留 Development token 安全驗證的獨立用途。</summary>
 public sealed class TenancyCallSiteTests
 {
-    /// <summary>原九處及擴大盤點的十五處必須全部委派共用入口；其他產品來源不得藏有新的 token key 解析副本。</summary>
-    [Fact(DisplayName = "全部十五處LINE解析消費者委派Tenancy")]
+    /// <summary>原九處及擴大盤點的十四處必須全部委派共用入口；其他產品來源不得藏有新的 token key 解析副本。</summary>
+    [Fact(DisplayName = "全部十四處LINE解析消費者委派Tenancy")]
     public void ChurchReport_AllCallSites_UseResolver()
     {
         var root = Root();
@@ -38,7 +38,6 @@ public sealed class TenancyCallSiteTests
             "SpeechMessageProducts.ChurchReport/Services/PaymentNotificationService.cs",
             "SpeechMessageProducts.ChurchReport/Models/DonationPaymentManager.cs",
             "SpeechMessageProducts.ChurchReport/Controllers/MemberInfoController.cs",
-            "SpeechMessageProducts.ChurchReport/Tools/LineUtilityClass.cs",
             "SpeechMessageProducts.ChurchReport/Tools/DonationFeePaymentProcessor.cs",
             "SpeechMessageProducts.ChurchReport/Tools/RecurringDonationPaymentProcessor.cs",
             "SpeechMessageProducts.ChurchReport/Tools/PersonalQrCodeUtility.cs",

@@ -5,6 +5,7 @@
  *
  * 主要功能與流程：
  * 本檔宣告 QrCodeUtility。
+ * - P6-03 通知改由 ChurchReportLineNotifier 借用共用流程；原本文、來源代號與等待方式不變，LINE／CRM owner 不轉移。
  * - 掃描者查詢後在原解析位置委派 QrScanContent；只換內容語法，課程讀寫、欄位寫回時點及畫面／LINE 文字保持原流程。
  * - QrCodeUtility 的部署設定每行程一份，只保存設定、不保存 request／使用者或教會可變資料。 Development 接上主機環境檔與 secrets，正式環境不增加 provider；缺少測試
  * token 不得退回基底正式值。 保留原 static／Lazy 與基底 reload 生命週期；新增來源不監聽變更，不建立額外背景資源。
@@ -59,7 +60,7 @@ namespace ChurchReport.Tools
         // 目前 request scope 的 CRM 工具；本工具不擁有也不釋放它。
         private readonly ToolUtilityClass m_ToolUtilityClass;
         private LineMessagingClient m_LineMessagingClient { get; set; }
-        private PushUtility m_PushUtility { get; set; }
+        private ChurchReportLineNotifier m_PushUtility { get; set; }
         private int m_Disposed;
 
         private string m_UserLineId = string.Empty;
@@ -130,7 +131,7 @@ namespace ChurchReport.Tools
             m_LineMessagingClient = new LineMessagingClient(channelAccessToken);
 
             // 初始化 Push Utility
-            m_PushUtility = new PushUtility(m_LineMessagingClient);
+            m_PushUtility = ChurchReportLineNotifier.ForClient(m_LineMessagingClient);
         }
         #endregion
 
@@ -245,7 +246,7 @@ namespace ChurchReport.Tools
                     m_OnboardTypeInfo = m_UserName + "您還沒有報名" + m_ClassName + Environment.NewLine + "所以無法簽到!";
                     // 此 legacy API 是同步 action；等待通知完成後才能 Dispose client，避免 using
                     // 提前關閉 HTTP 傳輸而遺失通知。
-                    m_PushUtility.SendMessage(m_UserLineId, m_OnboardTypeInfo).GetAwaiter().GetResult();
+                    m_PushUtility.SendTextBestEffortAsync(m_UserLineId, m_OnboardTypeInfo).GetAwaiter().GetResult();
                 }
 
                 return false;
@@ -338,7 +339,7 @@ namespace ChurchReport.Tools
 
             string notifyMessage = GetNotifyMessageString();
             // 必須等送出完成，才能讓 action 結束時的 using 正確釋放 client。
-            m_PushUtility.SendMessage(m_UserLineId, notifyMessage).GetAwaiter().GetResult();
+            m_PushUtility.SendTextBestEffortAsync(m_UserLineId, notifyMessage).GetAwaiter().GetResult();
         }
 
         private void SetStorLessonsEnrollTimeAttribute(Entity aRetrievedStorLessons, string SigningTimeAttribute)
@@ -349,7 +350,7 @@ namespace ChurchReport.Tools
 
             string notifyMessage = GetEnrollNotifyMessageString();
             // 必須等送出完成，才能讓 action 結束時的 using 正確釋放 client。
-            m_PushUtility.SendMessage(m_UserLineId, notifyMessage).GetAwaiter().GetResult();
+            m_PushUtility.SendTextBestEffortAsync(m_UserLineId, notifyMessage).GetAwaiter().GetResult();
         }
 
         public string GetStorLessonsTimeAttribute(string ClassIndex, string OnboardType)

@@ -6,6 +6,7 @@
  *
  * 主要功能與流程：
  * 本檔宣告 LineNotifyUtility。
+ * - P6-03 通知改由 ChurchReportLineNotifier 借用共用流程；原本文、來源代號與等待方式不變，LINE／CRM owner 不轉移。
  * - LineNotifyUtility 的部署設定每行程一份，只保存設定、不保存 request／使用者或教會可變資料。 Development 接上主機環境檔與 secrets，正式環境不增加 provider；缺少測試
  * token 不得退回基底正式值。 保留原 static／Lazy 與基底 reload 生命週期；新增來源不監聽變更，不建立額外背景資源。
  * - 保留既有可選 token 簽章，解析集中委派 Tenancy；部署設定由 host 擁有，不保存 request 或跨操作結果。 真正設定故障由產品共用邊界上報原例外後回空；不再輸出來源值或例外本文。
@@ -21,6 +22,7 @@
  * SpeechMessageProducts.ChurchReport/WebServiceConnector/UploadIntegrateData.Core.cs、
  * SpeechMessageProducts.ChurchReport/WebServiceConnector/WeeklyReportManager.cs 追查目前工作樹中的合作／使用位置。
  */
+using ChurchReport.Services;
 using ChurchReport.Configuration;
 using System;
 using System.Collections.Generic;
@@ -42,7 +44,8 @@ using Line.Messaging;
 using ChurchReport.Models;
 using ChurchReport.Tools;
 using Microsoft.Extensions.Configuration;
-using PushUtility = ToolUtility.PushUtility;
+using LineMessagingProcessor;
+using LineMessagingProcessor.Workflows;
 
 namespace ChurchReport.WebServiceConnector
 {
@@ -54,7 +57,7 @@ namespace ChurchReport.WebServiceConnector
         private ToolUtilityClass m_ToolUtilityClass = ToolUtilityFactory.GetInstance("DYNAMICS365-9.0");
 
         private LineMessagingClient m_LineMessagingClient { get; set; }
-        private PushUtility m_PushUtility { get; set; }
+        private ChurchReportLineNotifier m_PushUtility { get; set; }
 
         // 配置管理
         /// <summary>
@@ -80,7 +83,8 @@ namespace ChurchReport.WebServiceConnector
             string channelAccessToken = GetLineChannelAccessToken();
             this.m_LineMessagingClient = new LineMessagingClient(channelAccessToken);
 
-            m_PushUtility = new PushUtility(m_LineMessagingClient);
+            m_PushUtility = new ChurchReportLineNotifier(new LineLegacySendWorkflow(
+                new LineMessagingProcessorClass(m_LineMessagingClient)), m_ToolUtilityClass);
         }
         /// <summary>保留既有可選 token 簽章，解析集中委派 Tenancy；部署設定由 host 擁有，不保存 request 或跨操作結果。
         /// 真正設定故障由產品共用邊界上報原例外後回空；不再輸出來源值或例外本文。</summary>
@@ -100,8 +104,8 @@ namespace ChurchReport.WebServiceConnector
                 {
                     SmallGroupResult = ProcessLineMessage(LoginContact, SmallGroupResult, ref aListEntity, ref aSmallGroupData, WeeklyReportData, PauseCheckBox);
 
-                    //m_PushUtility.MultiCastTextMessageAsync(GetLineRecieverList(ref aListEntity, aSmallGroupData.LoginType), SmallGroupResult);
-                    m_PushUtility.MultiCastTextMessageAsync(GetLineRecieverList(ref LoginContact, ref aListEntity, aSmallGroupData.LoginType), SmallGroupResult);
+                    //m_PushUtility.MulticastTextAsync(GetLineRecieverList(ref aListEntity, aSmallGroupData.LoginType), SmallGroupResult);
+                    m_PushUtility.MulticastTextAsync(GetLineRecieverList(ref LoginContact, ref aListEntity, aSmallGroupData.LoginType), SmallGroupResult);
                 }
 
                 #endregion
@@ -119,7 +123,7 @@ namespace ChurchReport.WebServiceConnector
             {
                 #region 傳送LINE 訊息關於加入新人的結果給權柄
 
-                m_PushUtility.MultiCastTextMessageAsync(GetLineRecieverList(ref aListEntity, "小組長"), AddNewPersonResult);
+                m_PushUtility.MulticastTextAsync(GetLineRecieverList(ref aListEntity, "小組長"), AddNewPersonResult);
 
                 #endregion
             }
@@ -136,7 +140,7 @@ namespace ChurchReport.WebServiceConnector
             {
                 #region 傳送LINE 訊息關於加入新人的結果給權柄
 
-                m_PushUtility.MultiCastTextMessageAsync(GetLineRecieverList(ref aListEntity, LoginType), AddNewPersonResult);
+                m_PushUtility.MulticastTextAsync(GetLineRecieverList(ref aListEntity, LoginType), AddNewPersonResult);
 
                 #endregion
             }
@@ -153,7 +157,7 @@ namespace ChurchReport.WebServiceConnector
             {
                 #region 傳送LINE 訊息關於加入新人的結果給權柄
 
-                m_PushUtility.MultiCastTextMessageAsync(GetLineRecieverList(ref aListEntity, "小組長"), Result);
+                m_PushUtility.MulticastTextAsync(GetLineRecieverList(ref aListEntity, "小組長"), Result);
 
                 #endregion
             }
@@ -185,7 +189,7 @@ namespace ChurchReport.WebServiceConnector
 
                 TotalNumber += TotalMemberNumber + Environment.NewLine;
 
-                m_PushUtility.MultiCastTextMessageAsync(GetLineRecieverList(ref aListEntity, "小組長"), GroupName + TotalNumber + MemberList);
+                m_PushUtility.MulticastTextAsync(GetLineRecieverList(ref aListEntity, "小組長"), GroupName + TotalNumber + MemberList);
 
                 #endregion
             }
@@ -216,7 +220,7 @@ namespace ChurchReport.WebServiceConnector
 
                 TotalNumber += TotalMemberNumber + Environment.NewLine;
 
-                m_PushUtility.MultiCastTextMessageAsync(GetLineRecieverList(ref aListEntity, LoginType), GroupName + TotalNumber + MemberList);
+                m_PushUtility.MulticastTextAsync(GetLineRecieverList(ref aListEntity, LoginType), GroupName + TotalNumber + MemberList);
 
                 #endregion
             }
@@ -451,9 +455,9 @@ namespace ChurchReport.WebServiceConnector
 
                 WeeklyReportContent = GroupName + Environment.NewLine + "回報內容: " + Environment.NewLine + WeeklyReportContent + Environment.NewLine;
 
-                //m_PushUtility.SendMessage(MENGSUNG_LINE_ID, SmallGroupResult);
+                //m_PushUtility.SendTextBestEffortAsync(MENGSUNG_LINE_ID, SmallGroupResult);
 
-                m_PushUtility.MultiCastTextMessageAsync(GetLineRecieverList(ref aListEntity, "小組長"), WeeklyReportContent);
+                m_PushUtility.MulticastTextAsync(GetLineRecieverList(ref aListEntity, "小組長"), WeeklyReportContent);
 
                 #endregion
             }

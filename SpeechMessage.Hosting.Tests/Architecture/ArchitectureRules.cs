@@ -458,14 +458,12 @@ internal static class ArchitectureRules
     private static bool IsOrganizationCode(string value) => value is "Jesus" or "JesusBack" or "Sunny" or "SunnyBack" or "Ymllc";
 
     /// <summary>
-    /// 遷移相容例外：Tenancy 暫保留既有缺省組織；舊 ChurchReport facade 暫保留正式／back
-    /// 別名。只限下面兩個精確檔案，移除舊入口／完成 P2-06 後須刪除對應例外，不可擴為產品豁免。
+    /// 遷移相容例外只保留 Tenancy 的既有缺省組織；P6-03 已刪 ChurchReport 舊送訊殼及其例外。
+    /// 只限下列精確檔案，不可擴為產品豁免。
     /// </summary>
     private static bool IsAllowlistedOrganizationLiteral(string project, string path, string value) =>
-        (project == "SpeechMessage.Tenancy" &&
-         path == "SpeechMessage.Tenancy/ConfigurationLineChannelResolver.cs" && value == "Jesus") ||
-        (project == "SpeechMessageProducts.ChurchReport" &&
-         path == "SpeechMessageProducts.ChurchReport/Tools/LineUtilityClass.cs" && value is "Jesus" or "JesusBack");
+        project == "SpeechMessage.Tenancy" &&
+        path == "SpeechMessage.Tenancy/ConfigurationLineChannelResolver.cs" && value == "Jesus";
 
     /// <summary>完整組件家族比對，不以 PaymentsPretender 或 DrawingHelper 取得或觸發另一組件的權限。</summary>
     private static bool IsAssemblyFamily(string name, string family) =>

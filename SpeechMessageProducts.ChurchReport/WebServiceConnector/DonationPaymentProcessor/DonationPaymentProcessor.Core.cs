@@ -6,13 +6,14 @@
  *
  * 主要功能與流程：
  * 本檔宣告 DonationPaymentProcessor。
+ * - P6-03 通知改由 ChurchReportLineNotifier 借用共用流程；原本文、來源代號與等待方式不變，LINE／CRM owner 不轉移。
  * - DonationPaymentProcessor.Core 的部署設定每行程一份，只保存設定、不保存 request／使用者或教會可變資料。 Development 接上主機環境檔與 secrets，正式環境不增加
  * provider；缺少測試 token 不得退回基底正式值。 保留原 static／Lazy 與基底 reload 生命週期；新增來源不監聽變更，不建立額外背景資源。
  * - 保留舊有單一 adapter 建構式的編譯相容簽章，但不再提供無 scope 的執行路徑。 現行付款流程使用下方帶有 LINE 物件的四參數建構式；此簽章只供測試替身以
  * System.Runtime.CompilerServices.RuntimeHelpers.GetUninitializedObject(Type) 建立物件時讓衍生類別通過 C# base constructor 檢查。
  * 若實際執行此建構式，表示 呼叫端仍依賴已移除的 legacy 生命週期，必須明確改用受管理的付款建構流程。
  * - 相容性建構函式（用於現有 LINE Bot 整合）。 仍然收 LINE 相關物件，是因為 ChurchReport 的奉獻通知流程屬於產品層； 這些依賴不會被搬入可重用金流核心。
- * - 內部共用建構函式，讓相容 wrapper 可用舊 adapter 轉接到同一條實作路徑。
+ * - 共用建構函式借用公開通知流程並建立產品內部通知器；回覆參數保留既有注入位置但不再建立未使用的回覆殼。
  * 主要操作入口包含 InitializeShopNumber、GetLineChannelAccessToken、ResolvePaymentOrganization。
  *
  * 使用邊界與維護：
@@ -81,8 +82,7 @@ namespace ChurchReport.WebServiceConnector
 
         // LINE Bot 服務
         private readonly LineMessagingClient m_LineMessagingClient;
-        private readonly PushUtility m_PushUtility;
-        private readonly ReplyUtility m_ReplyUtility;
+        private readonly ChurchReportLineNotifier m_PushUtility;
 
         // CRM 與金流服務。
         // 這裡只依賴 ChurchReport 產品層的中性 adapter 介面；
@@ -119,8 +119,8 @@ namespace ChurchReport.WebServiceConnector
         /// </summary>
         public DonationPaymentProcessor(
             LineMessagingClient aLineMessagingClient,
-            PushUtility aPushUtility,
-            ReplyUtility aReplyUtility,
+            ILineNotificationWorkflow aPushUtility,
+            ILineReplyWorkflow? aReplyUtility,
             DonationPaymentCreateGatewayAdapter donationPaymentCreateGatewayAdapter)
             : this(
                   aLineMessagingClient,
@@ -131,12 +131,12 @@ namespace ChurchReport.WebServiceConnector
         }
 
         /// <summary>
-        /// 內部共用建構函式，讓相容 wrapper 可用舊 adapter 轉接到同一條實作路徑。
+        /// 共用建構函式借用公開通知流程並建立產品內部通知器；回覆參數保留既有注入位置但不再建立未使用的回覆殼。
         /// </summary>
         public DonationPaymentProcessor(
             LineMessagingClient aLineMessagingClient,
-            PushUtility aPushUtility,
-            ReplyUtility aReplyUtility,
+            ILineNotificationWorkflow aPushUtility,
+            ILineReplyWorkflow? aReplyUtility,
             IDonationPaymentCreateGatewayAdapter donationPaymentCreateGatewayAdapter)
         {
             // 初始化環境設定
@@ -146,8 +146,7 @@ namespace ChurchReport.WebServiceConnector
 
             // 使用注入的 LINE Bot 服務
             m_LineMessagingClient = aLineMessagingClient ?? throw new ArgumentNullException(nameof(aLineMessagingClient));
-            m_PushUtility = aPushUtility ?? throw new ArgumentNullException(nameof(aPushUtility));
-            m_ReplyUtility = aReplyUtility ?? throw new ArgumentNullException(nameof(aReplyUtility));
+            m_PushUtility = new ChurchReportLineNotifier(aPushUtility ?? throw new ArgumentNullException(nameof(aPushUtility)));
 
             // 初始化 CRM 工具
             m_ToolUtilityClass = ToolUtilityFactory.GetInstance("DYNAMICS365-9.0");
@@ -232,8 +231,8 @@ namespace ChurchReport.WebServiceConnector
         /// <summary>OptionSet 服務</summary>
         protected OptionSetMetadataService OptionSetService => _optionSetMetadataService;
 
-        /// <summary>LINE 推播工具</summary>
-        protected PushUtility PushUtility => m_PushUtility;
+        /// <summary>只供本 partial 付款流程借用的產品通知器；不取得 SDK 所有權，等待與錯誤政策維持原樣。</summary>
+        private ChurchReportLineNotifier PushUtility => m_PushUtility;
 
         #endregion
 

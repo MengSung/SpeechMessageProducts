@@ -6,6 +6,7 @@
  *
  * 主要功能與流程：
  * 本檔宣告 RecurringDonationPaymentProcessor。
+ * - P6-03 通知改由 ChurchReportLineNotifier 借用共用流程；原本文、來源代號與等待方式不變，LINE／CRM owner 不轉移。
  * - RecurringDonationPaymentProcessor 的部署設定每行程一份，只保存設定、不保存 request／使用者或教會可變資料。 Development 接上主機環境檔與 secrets，
  * 正式環境不增加 provider；缺少測試 token 不得退回基底正式值。 保留原 static／Lazy 與基底 reload 生命週期；新增來源不監聽變更，不建立額外背景資源。
  * - 建立定期奉獻付款處理器。ToolUtility 由目前 request scope 提供， 本型別只在該 scope 內使用，不擁有、不釋放注入的 scoped 服務。
@@ -19,6 +20,7 @@
  * 可沿 SpeechMessageProducts.ChurchReport/Payments/DonationPaymentProductWorkflowDispatcher.cs、
  * SpeechMessageProducts.ChurchReport/Payments/DonationPaymentReturnWorkflow.cs 追查目前工作樹中的合作／使用位置。
  */
+using ChurchReport.Services;
 using ChurchReport.WebServiceConnector;
 using Line.Messaging;
 using LineMessagingProcessor.Workflows;
@@ -64,9 +66,7 @@ namespace ChurchReport.Tools
 
         private LineMessagingClient m_LineMessagingClient { get; }
 
-        private PushUtility m_PushUtility { get; }
-
-        private ReplyUtility m_ReplyUtility { get; }
+        private ChurchReportLineNotifier m_PushUtility { get; }
 
         // 由目前 request scope 提供；本 operation 不擁有也不釋放此服務。
         private readonly ToolUtilityClass m_ToolUtilityClass;
@@ -96,11 +96,9 @@ namespace ChurchReport.Tools
 
             // Recurring donation flow stays in ChurchReport; LINE push/reply delivery
             // is delegated to workflow-backed helper classes.
-            m_PushUtility = new PushUtility(m_LineMessagingClient, lineNotificationWorkflow);
-            m_ReplyUtility = new ReplyUtility(
-                m_LineMessagingClient,
-                new LineMessagingProcessor.LineMessagingProcessorClass(m_LineMessagingClient),
-                lineReplyWorkflow);
+            m_PushUtility = lineNotificationWorkflow is null
+                ? ChurchReportLineNotifier.ForClient(m_LineMessagingClient)
+                : new ChurchReportLineNotifier(lineNotificationWorkflow);
 
             m_ToolUtilityClass = toolUtilityProvider.GetToolUtility();
             if (m_ToolUtilityClass == null)
@@ -340,7 +338,7 @@ namespace ChurchReport.Tools
                         #region 信用卡會回傳2次，一次是RETURN_URL、一次是BACKEND_URL，為免收費單紀錄信用卡兩次，所以如果這裡已經有信用卡訂單編號，就不再處理了
 
                         // LINE 通知付款人
-                        this.m_PushUtility.SendMessage(UserLineId, "信用卡付款結果成功!" + Environment.NewLine + Description);
+                        this.m_PushUtility.SendTextBestEffortAsync(UserLineId, "信用卡付款結果成功!" + Environment.NewLine + Description);
 
                         #endregion
                     }
@@ -374,7 +372,7 @@ namespace ChurchReport.Tools
                     this.m_ToolUtilityClass.UpdateEntity(aDedicationBookingEntity);
 
                     // LINE 通知付款人
-                    this.m_PushUtility.SendMessage(UserLineId, "信用卡付款結果失敗!" + Environment.NewLine + Description);
+                    this.m_PushUtility.SendTextBestEffortAsync(UserLineId, "信用卡付款結果失敗!" + Environment.NewLine + Description);
 
                     // 設定 ViewBag 並返回美觀的錯誤頁面
                     ViewBag.IsSuccess = false;
@@ -395,7 +393,7 @@ namespace ChurchReport.Tools
                 System.Diagnostics.Trace.WriteLine($"StackTrace: {e.StackTrace}");
 
                 // 發送錯誤通知但不中斷執行
-                try { m_PushUtility.SendMessage(MENGSUNG_LINE_ID, ErrorString); } catch { }
+                try { m_PushUtility.SendTextBestEffortAsync(MENGSUNG_LINE_ID, ErrorString); } catch { }
 
                 // 返回錯誤內容而不是拋出例外
                 return new ContentResult

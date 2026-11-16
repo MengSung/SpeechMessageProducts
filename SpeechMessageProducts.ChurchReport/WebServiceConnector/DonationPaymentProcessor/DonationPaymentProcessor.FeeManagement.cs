@@ -6,6 +6,7 @@
  *
  * 主要功能與流程：
  * 本檔宣告 DonationPaymentProcessor。
+ * - P6-03 通知改由 ChurchReportLineNotifier 借用共用流程；原本文、來源代號與等待方式不變，LINE／CRM owner 不轉移。
  * - 依明細逐張建立收費單；所有收費單 Id 會一起放進金流 Param1（第一張是 primary）。
  * - 將同一金流訂單資訊寫入群組內每張收費單，確保 callback 可依鍵找齊。
  * - 鍵入奉獻專用的會友查詢。 同一奉獻編號可能掛在大量會友上，原本整批撈回所有欄位再在記憶體比對姓名， 曾造成上傳卡住近百秒；改為奉獻編號＋姓名直接在 CRM 端雙條件過濾， 同編號不同姓名也能即時找到正確會友。
@@ -352,7 +353,7 @@ namespace ChurchReport.WebServiceConnector
         /// 兩者仍然有相同的 LINE 發送規則：
         /// 1. 優先使用 CRM 主要欄位 <c>new_lineid</c>。
         /// 2. 若主要欄位空白，改用綁定流程保存的備援欄位 <c>new_lineid_backup</c>。
-        /// 3. 這是付款/奉獻確認通知，失敗不應被靜默吞掉；必須走 <see cref="PushUtility.SendReliableMessageAsync"/>
+        /// 3. 這是付款/奉獻確認通知，失敗不應被靜默吞掉；必須走 <see cref="PushUtility.SendReliableTextAsync"/>
         ///    讓共用 LINE workflow 保留 retry key 與錯誤語意。
         ///
         /// 注意：CRM 查詢、奉獻文案、是否允許主流程繼續，都是 ChurchReport 的產品規則；
@@ -410,7 +411,7 @@ namespace ChurchReport.WebServiceConnector
                 }
                 else
                 {
-                    // 重要：SendReliableMessageAsync 會把 provider rejection / validation failure 往外丟；
+                    // 重要：SendReliableTextAsync 會把 provider rejection / validation failure 往外丟；
                     // await sendTask 可以確保非超時錯誤會進入 catch，而不是只因 Task.WhenAny 完成就誤判成功。
                     await sendTask;
                     System.Diagnostics.Trace.WriteLine(
@@ -429,7 +430,7 @@ namespace ChurchReport.WebServiceConnector
 
         protected virtual async Task SendDedicationNotificationLineAsync(string lineUserId, string message, string retryKey)
         {
-            await PushUtility.SendReliableMessageAsync(lineUserId, message, retryKey);
+            await PushUtility.SendReliableTextAsync(lineUserId, message, retryKey);
         }
 
         private static string BuildDedicationLineNotificationResult(string message)

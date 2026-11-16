@@ -23,7 +23,8 @@
     "11-16-p6-06-legacy-aspnetcore-packages",
     "11-16-p6-04-explicit-toolutility-registration",
     "11-16-p6-01-shared-qr-content",
-    "11-16-p6-02-shared-weekly-report-rule"
+    "11-16-p6-02-shared-weekly-report-rule",
+    "11-16-11-16-p6-03-remove-send-shells"
   ],
   "parent": null,
   "relatedFiles": [],

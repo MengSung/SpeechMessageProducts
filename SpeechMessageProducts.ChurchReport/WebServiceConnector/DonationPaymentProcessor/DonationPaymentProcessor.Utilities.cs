@@ -5,6 +5,7 @@
  *
  * 主要功能與流程：
  * 本檔宣告 DonationPaymentProcessor。
+ * - P6-03 通知改由 ChurchReportLineNotifier 借用共用流程；原本文、來源代號與等待方式不變，LINE／CRM owner 不轉移。
  * - 財務中文大寫數字字元表。唯讀靜態資料不含 request 或使用者狀態， 可安全由所有 processor 共用，避免每次金額轉換重複配置陣列。
  * - 根據 DonationPaymentFormModel 取得連絡人
  * 主要操作入口包含 GetContact、GetContactByDedicationNumber、GetContactByNameAndMobile、GetContactByNameOnly、
@@ -164,7 +165,7 @@ namespace ChurchReport.WebServiceConnector
                     var fullName = ToolUtility.GetEntityStringAttribute(ref aContact, "fullname");
                     var gratitudeMessage = BuildGratitudeMessage(fullName, DonationPaymentFormModel);
 
-                    await PushUtility.SendMessage(lineId, gratitudeMessage);
+                    await PushUtility.SendTextBestEffortAsync(lineId, gratitudeMessage);
                 }
             }
             catch (Exception ex)

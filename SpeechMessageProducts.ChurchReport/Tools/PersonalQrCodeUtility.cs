@@ -5,6 +5,7 @@
  *
  * 主要功能與流程：
  * 本檔宣告 PersonalQrCodeUtility。
+ * - P6-03 通知改由 ChurchReportLineNotifier 借用共用流程；原本文、來源代號與等待方式不變，LINE／CRM owner 不轉移。
  * - 週報計算旗標由 WeeklyReportStatisticsRule.CalculationPrefix() 取得固定 zh-TW 原文；六處消費點各留原位置，不改 D365 值或即時週報建立流程。
  * - 查掃描者後於原解析位置呼叫 QrScanContent，只消費被掃描者 ID；at 優先及尾欄相容規則由共用 Codec 負責，其餘出席流程與文字不變。
  * - PersonalQrCodeUtility 的部署設定每行程一份，只保存設定、不保存 request／使用者或教會可變資料。 Development 接上主機環境檔與 secrets，正式環境不增加 provider；
@@ -20,6 +21,7 @@
  * 變更介面、資料格式、取消或清理順序時，須一併核對下列合作檔案及對應測試，不能只改目前檔案。
  * 可沿 SpeechMessageProducts.ChurchReport/Controllers/QrCodeController.cs 追查目前工作樹中的合作／使用位置。
  */
+using ChurchReport.Services;
 using ChurchReport.Configuration;
 using SpeechMessageProducts.GoodShepherd.Core.WeeklyReports;
 using System;
@@ -50,7 +52,7 @@ namespace ChurchReport.Tools
         private readonly ToolUtilityClass m_ToolUtilityClass;
         private LineMessagingClient m_LineMessagingClient { get; set; }
 
-        private PushUtility m_PushUtility { get; set; }
+        private ChurchReportLineNotifier m_PushUtility { get; set; }
         private int m_Disposed;
 
         private String m_QrCodeIdString = "";
@@ -119,7 +121,7 @@ namespace ChurchReport.Tools
             this.m_LineMessagingClient = new LineMessagingClient(channelAccessToken);
 
             // 初始化 Push Utility
-            m_PushUtility = new PushUtility(m_LineMessagingClient);
+            m_PushUtility = ChurchReportLineNotifier.ForClient(m_LineMessagingClient);
         }
         #endregion
 
@@ -374,7 +376,7 @@ namespace ChurchReport.Tools
                     this.m_NotifyLineFlag = true;
                     // 送出 LINE 訊息
                     String NotifyMessage = GetNotifyMessageString();
-                    //m_PushUtility.SendMessage(m_UserLineId, NotifyMessage);
+                    //m_PushUtility.SendTextBestEffortAsync(m_UserLineId, NotifyMessage);
                 }
             }
             catch (System.Exception Exception)

@@ -1,26 +1,22 @@
 /*
  * 檔案整體說明
  *
- * 目的與定位：P2-06 搬移前的主方案送訊特性基線，以實際四個相容類別與假 HTTP handler
- * 捕捉 URL、遮罩標頭及完整本文，不呼叫真實 LINE、CRM 或主機檔案圖片。此基線不是
- * 舊方案每個方法都已移植的證明；產品-only／外部未用 demo／SDK 差異逐項列研究清單。
- * 主要功能與流程：列舉明確納管的公開方法與多載，合成 SDK 訊息／事件，呼叫實際方法，
- * 與唯讀黃金逐位元比較。隨機貼圖先驗證範圍及 Content-Length 正確，僅遮罩 ID 與其衍生長度。
- * 使用邊界與維護：每案例獨佔無 cookie 的假 handler、SDK client、區域 CRM 替身及 menu
- * cache/state；只保存合成遮罩文字，HTTP 回應及圖片由案例 finally 排空與 Dispose。
- * ToolUtility 舊建構式會觸發程序 Factory；基線階段曾只注入已知欄位而未讀 credential，
- * 收斂後改用公開借用資源建構式，不修改 Factory static，也不宣稱測過舊建構式。
- * 內容故障案例斷言 SDK response 在解碼失敗後釋放；原 HEAD RichMenu 方法以圖片接縫
- * 補錄成功 wire 及未釋放圖片紅燈，最終 using 修復。沒有網路或實機驗收。
+ * 目的與定位：P6-03 以產品通知器重播仍使用的 P2-06 HTTP 契約，原始兩份黃金
+ * 檔永遠唯讀；每案不是明列重播，就是明列舊入口與編譯盤點確認的退役理由。
+ * 主要功能與流程：先鎖原檔 SHA-256，再以真 SDK 與假 HTTP／CRM 比對 URL、遮罩
+ * 標頭、UTF-8 本文與 RetryKey 的完整位元組；另保留共用 legacy 雙頻道與媒體清理案例。
+ * 使用邊界與維護：全為離線合成資料，沒有 LINE、D365 或秘密存取。每案 owns 有限
+ * HTTP client、SDK、工具與下載回應，全部 await 後逆序 Dispose；捕捉只存遮罩後文字，
+ * Dispose 清空集合。退役清單與重播集合必須互斥且聯集精確等於黃金案名，不能用
+ * 自動收納剩餘案例掩飾遺漏；媒體故障與尚存共用流程的專用測試由共用測試專案負責。
  */
 using System.Net;
 using System.Reflection;
+using System.Security.Cryptography;
 using System.Text;
-using ChurchReport.Tools;
+using ChurchReport.Services;
 using Line.Messaging;
-using Line.Messaging.Webhooks;
 using LineMessagingProcessor;
-using LineMessagingProcessor.RichMenus;
 using LineMessagingProcessor.Workflows;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Xrm.Sdk;
@@ -31,217 +27,176 @@ using SixLabors.ImageSharp.PixelFormats;
 using ToolUtilityNameSpace;
 using ToolUtilityNameSpace.Diagnostics;
 using Xunit;
-using ProductPush = ChurchReport.Tools.PushUtility;
-using ProductReply = ChurchReport.Tools.ReplyUtility;
-using ProductLine = ChurchReport.Tools.LineUtilityClass;
-using LegacyPush = ToolUtility.PushUtility;
 
 namespace ChurchReport.MemberInfo.Tests.LineSharedWorkflow;
 
-/// <summary>
-/// 保護現有入口逐一送出的真實 SDK 協定，不讓重構把 multicast、split push、reply 或 menu
-/// 誤當成相同路徑；假的 HTTP 及 CRM 都由本案例 owns，基線檔永遠只讀、不在測試自動更新。
-/// </summary>
+/// <summary>以不可改寫的原始黃金與明列清冊，保護產品保留的四種送訊入口及共用隔離契約。</summary>
 public sealed class P206SendUtilityGoldenTests
 {
     private const string UserId = "U11111111111111111111111111111111";
     private const string OtherUserId = "U22222222222222222222222222222222";
+    private const string MainGolden = "P206-pre-migration.http.golden";
+    private const string SourceGolden = "P206-source-replay.http.golden";
 
-    /// <summary>明確列出既有送訊方法；同名多載各自列舉，新增公開方法不會自動取得黃金豁免。</summary>
-    public static IEnumerable<object[]> Cases()
+    /// <summary>重播入口逐筆明列，不依舊型別反射自動豁免；只傳合成輸入。</summary>
+    public static IEnumerable<object[]> KeptCases()
     {
-        var types = new[] { ("push", typeof(ProductPush)), ("reply", typeof(ProductReply)),
-            ("line", typeof(ProductLine)), ("tool", typeof(LegacyPush)) };
-        foreach (var (owner, type) in types)
-        {
-            foreach (var method in type.GetMethods(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly)
-                         .Where(IsMessageMethod).OrderBy(MethodKey, StringComparer.Ordinal))
-            {
-                yield return new object[] { owner, MethodKey(method), "default" };
-                if (method.Name == "EchoAsyncProcessor")
-                {
-                    yield return new object[] { owner, MethodKey(method), "group" };
-                    yield return new object[] { owner, MethodKey(method), "room" };
-                }
-            }
-        }
+        yield return new object[] { MainGolden, "push.SendMessage(String,String).default" };
+        yield return new object[] { MainGolden, "push.SendMessage(String,List-1).default" };
+        yield return new object[] { MainGolden, "push.SendReliableMessageAsync(String,String,String).default" };
+        yield return new object[] { MainGolden, "tool.MultiCastTextMessageAsync(IList-1,String).default" };
+        yield return new object[] { SourceGolden, "group-push" };
+        yield return new object[] { SourceGolden, "multicast-duplicates" };
     }
 
-    /// <summary>
-    /// 用合成輸入呼叫原公開方法並精確比較遮罩後的 wire golden。注入的 menu cache 命中，
-    /// 避免產品固定磁碟圖檔；仍經真實 assignment workflow 與 SDK link/unlink HTTP。
-    /// </summary>
-    /// <param name="owner">四個實際類別來源。</param>
-    /// <param name="methodKey">含參數型別的公開多載唯一鍵。</param>
-    /// <param name="variant">回音的 user/group/room 分支。</param>
+    // 每筆理由保留原入口；此陣列不從黃金檔推導，新增或少列都會使集合契約失敗。
+    private static readonly (string File, string Key, string Reason)[] RetiredCases =
+    {
+        ("P206-pre-migration.http.golden", "line.AddRichMenuMessage(String).default", "ChurchReport.Tools.LineUtilityClass.AddRichMenuMessage(String).default: 9b7ac0a0 沒有正式呼叫者，隨相容殼刪除"),
+        ("P206-pre-migration.http.golden", "line.DeleteRichMenuMessage(String).default", "ChurchReport.Tools.LineUtilityClass.DeleteRichMenuMessage(String).default: 9b7ac0a0 沒有正式呼叫者，隨相容殼刪除"),
+        ("P206-pre-migration.http.golden", "line.MultiCastTextMessageAsync(IList-1,String).default", "ChurchReport.Tools.LineUtilityClass.MultiCastTextMessageAsync(IList-1,String).default: 9b7ac0a0 沒有正式呼叫者，隨相容殼刪除"),
+        ("P206-pre-migration.http.golden", "line.PostSerializedConfirm(String,String,String,List-1).default", "ChurchReport.Tools.LineUtilityClass.PostSerializedConfirm(String,String,String,List-1).default: 9b7ac0a0 沒有正式呼叫者，隨相容殼刪除"),
+        ("P206-pre-migration.http.golden", "line.PostSerializedFlex(String,FlexMessage).default", "ChurchReport.Tools.LineUtilityClass.PostSerializedFlex(String,FlexMessage).default: 9b7ac0a0 沒有正式呼叫者，隨相容殼刪除"),
+        ("P206-pre-migration.http.golden", "line.PostSerializedImageMap(String,String,String,Int32,Int32,List-1).default", "ChurchReport.Tools.LineUtilityClass.PostSerializedImageMap(String,String,String,Int32,Int32,List-1).default: 9b7ac0a0 沒有正式呼叫者，隨相容殼刪除"),
+        ("P206-pre-migration.http.golden", "line.PostSerializedTemplate(Entity,String,String,String,String,String,List-1).default", "ChurchReport.Tools.LineUtilityClass.PostSerializedTemplate(Entity,String,String,String,String,String,List-1).default: 9b7ac0a0 沒有正式呼叫者，隨相容殼刪除"),
+        ("P206-pre-migration.http.golden", "line.PostSerializedTemplate(String,String,String,String,String,List-1).default", "ChurchReport.Tools.LineUtilityClass.PostSerializedTemplate(String,String,String,String,String,List-1).default: 9b7ac0a0 沒有正式呼叫者，隨相容殼刪除"),
+        ("P206-pre-migration.http.golden", "line.ReplyImage(String,String,String).default", "ChurchReport.Tools.LineUtilityClass.ReplyImage(String,String,String).default: 9b7ac0a0 沒有正式呼叫者，隨相容殼刪除"),
+        ("P206-pre-migration.http.golden", "line.ReplyMessage(String,List-1).default", "ChurchReport.Tools.LineUtilityClass.ReplyMessage(String,List-1).default: 9b7ac0a0 沒有正式呼叫者，隨相容殼刪除"),
+        ("P206-pre-migration.http.golden", "line.ReplyTextMessage(String,String).default", "ChurchReport.Tools.LineUtilityClass.ReplyTextMessage(String,String).default: 9b7ac0a0 沒有正式呼叫者，隨相容殼刪除"),
+        ("P206-pre-migration.http.golden", "line.SendAudeo(String,String,Int64).default", "ChurchReport.Tools.LineUtilityClass.SendAudeo(String,String,Int64).default: 9b7ac0a0 沒有正式呼叫者，隨相容殼刪除"),
+        ("P206-pre-migration.http.golden", "line.SendImage(String,String,String).default", "ChurchReport.Tools.LineUtilityClass.SendImage(String,String,String).default: 9b7ac0a0 沒有正式呼叫者，隨相容殼刪除"),
+        ("P206-pre-migration.http.golden", "line.SendLocation(String,String,String,Decimal,Decimal).default", "ChurchReport.Tools.LineUtilityClass.SendLocation(String,String,String,Decimal,Decimal).default: 9b7ac0a0 沒有正式呼叫者，隨相容殼刪除"),
+        ("P206-pre-migration.http.golden", "line.SendMessage(String,List-1).default", "ChurchReport.Tools.LineUtilityClass.SendMessage(String,List-1).default: 9b7ac0a0 沒有正式呼叫者，隨相容殼刪除"),
+        ("P206-pre-migration.http.golden", "line.SendMessage(String,String).default", "ChurchReport.Tools.LineUtilityClass.SendMessage(String,String).default: 9b7ac0a0 沒有正式呼叫者，隨相容殼刪除"),
+        ("P206-pre-migration.http.golden", "line.SendMessageAsync(String,String).default", "ChurchReport.Tools.LineUtilityClass.SendMessageAsync(String,String).default: 9b7ac0a0 沒有正式呼叫者，隨相容殼刪除"),
+        ("P206-pre-migration.http.golden", "line.SendSticker(String,Int32,Int32).default", "ChurchReport.Tools.LineUtilityClass.SendSticker(String,Int32,Int32).default: 9b7ac0a0 沒有正式呼叫者，隨相容殼刪除"),
+        ("P206-pre-migration.http.golden", "line.SendVideo(String,String,String).default", "ChurchReport.Tools.LineUtilityClass.SendVideo(String,String,String).default: 9b7ac0a0 沒有正式呼叫者，隨相容殼刪除"),
+        ("P206-pre-migration.http.golden", "push.AddRichMenuMessage(String).default", "ChurchReport.Tools.PushUtility.AddRichMenuMessage(String).default: 9b7ac0a0 沒有正式呼叫者，隨相容殼刪除"),
+        ("P206-pre-migration.http.golden", "push.CarouselMessage(String).default", "ChurchReport.Tools.PushUtility.CarouselMessage(String).default: 9b7ac0a0 沒有正式呼叫者，隨相容殼刪除"),
+        ("P206-pre-migration.http.golden", "push.ChurchCarouselMessage(String).default", "ChurchReport.Tools.PushUtility.ChurchCarouselMessage(String).default: 9b7ac0a0 沒有正式呼叫者，隨相容殼刪除"),
+        ("P206-pre-migration.http.golden", "push.ConfirmMessage(String).default", "ChurchReport.Tools.PushUtility.ConfirmMessage(String).default: 9b7ac0a0 沒有正式呼叫者，隨相容殼刪除"),
+        ("P206-pre-migration.http.golden", "push.DeleteRichMenuMessage(String).default", "ChurchReport.Tools.PushUtility.DeleteRichMenuMessage(String).default: 9b7ac0a0 沒有正式呼叫者，隨相容殼刪除"),
+        ("P206-pre-migration.http.golden", "push.PostSerializedConfirm(String,String,String,List-1).default", "ChurchReport.Tools.PushUtility.PostSerializedConfirm(String,String,String,List-1).default: 9b7ac0a0 沒有正式呼叫者，隨相容殼刪除"),
+        ("P206-pre-migration.http.golden", "push.PostSerializedImageMap(String,String,String,Int32,Int32,List-1).default", "ChurchReport.Tools.PushUtility.PostSerializedImageMap(String,String,String,Int32,Int32,List-1).default: 9b7ac0a0 沒有正式呼叫者，隨相容殼刪除"),
+        ("P206-pre-migration.http.golden", "push.PostSerializedTemplate(String,String,String,String,String,List-1).default", "ChurchReport.Tools.PushUtility.PostSerializedTemplate(String,String,String,String,String,List-1).default: 9b7ac0a0 沒有正式呼叫者，隨相容殼刪除"),
+        ("P206-pre-migration.http.golden", "push.SendAudeo(String,String,Int64).default", "ChurchReport.Tools.PushUtility.SendAudeo(String,String,Int64).default: 9b7ac0a0 沒有正式呼叫者，隨相容殼刪除"),
+        ("P206-pre-migration.http.golden", "push.SendImage(String,String,String).default", "ChurchReport.Tools.PushUtility.SendImage(String,String,String).default: 9b7ac0a0 沒有正式呼叫者，隨相容殼刪除"),
+        ("P206-pre-migration.http.golden", "push.SendLocation(String,String,String,Decimal,Decimal).default", "ChurchReport.Tools.PushUtility.SendLocation(String,String,String,Decimal,Decimal).default: 9b7ac0a0 沒有正式呼叫者，隨相容殼刪除"),
+        ("P206-pre-migration.http.golden", "push.SendMessageOrThrowAsync(String,String).default", "ChurchReport.Tools.PushUtility.SendMessageOrThrowAsync(String,String).default: 9b7ac0a0 沒有正式呼叫者，隨相容殼刪除"),
+        ("P206-pre-migration.http.golden", "push.SendMessagesOrThrowAsync(String,IReadOnlyList-1).default", "ChurchReport.Tools.PushUtility.SendMessagesOrThrowAsync(String,IReadOnlyList-1).default: 9b7ac0a0 沒有正式呼叫者，隨相容殼刪除"),
+        ("P206-pre-migration.http.golden", "push.SendSticker(String,Int32,Int32).default", "ChurchReport.Tools.PushUtility.SendSticker(String,Int32,Int32).default: 9b7ac0a0 沒有正式呼叫者，隨相容殼刪除"),
+        ("P206-pre-migration.http.golden", "push.SendVideo(String,String,String).default", "ChurchReport.Tools.PushUtility.SendVideo(String,String,String).default: 9b7ac0a0 沒有正式呼叫者，隨相容殼刪除"),
+        ("P206-pre-migration.http.golden", "reply.EchoAsync(String,String).default", "ChurchReport.Tools.ReplyUtility.EchoAsync(String,String).default: 9b7ac0a0 沒有正式呼叫者，隨相容殼刪除"),
+        ("P206-pre-migration.http.golden", "reply.EchoAsyncProcessor(MessageEvent).default", "ChurchReport.Tools.ReplyUtility.EchoAsyncProcessor(MessageEvent).default: 9b7ac0a0 沒有正式呼叫者，隨相容殼刪除"),
+        ("P206-pre-migration.http.golden", "reply.EchoAsyncProcessor(MessageEvent).group", "ChurchReport.Tools.ReplyUtility.EchoAsyncProcessor(MessageEvent).group: 9b7ac0a0 沒有正式呼叫者，隨相容殼刪除"),
+        ("P206-pre-migration.http.golden", "reply.EchoAsyncProcessor(MessageEvent).room", "ChurchReport.Tools.ReplyUtility.EchoAsyncProcessor(MessageEvent).room: 9b7ac0a0 沒有正式呼叫者，隨相容殼刪除"),
+        ("P206-pre-migration.http.golden", "reply.EchoImageAsync(String,String,String).default", "ChurchReport.Tools.ReplyUtility.EchoImageAsync(String,String,String).default: 9b7ac0a0 沒有正式呼叫者，隨相容殼刪除"),
+        ("P206-pre-migration.http.golden", "reply.PostSerializedConfirm(String,String,String,List-1).default", "ChurchReport.Tools.ReplyUtility.PostSerializedConfirm(String,String,String,List-1).default: 9b7ac0a0 沒有正式呼叫者，隨相容殼刪除"),
+        ("P206-pre-migration.http.golden", "reply.PostSerializedImageMap(String,String,String,Int32,Int32,List-1).default", "ChurchReport.Tools.ReplyUtility.PostSerializedImageMap(String,String,String,Int32,Int32,List-1).default: 9b7ac0a0 沒有正式呼叫者，隨相容殼刪除"),
+        ("P206-pre-migration.http.golden", "reply.ReplyMessage(String,List-1).default", "ChurchReport.Tools.ReplyUtility.ReplyMessage(String,List-1).default: 9b7ac0a0 沒有正式呼叫者，隨相容殼刪除"),
+        ("P206-pre-migration.http.golden", "reply.ReplyMessageAsync(String,String).default", "ChurchReport.Tools.ReplyUtility.ReplyMessageAsync(String,String).default: 9b7ac0a0 沒有正式呼叫者，隨相容殼刪除"),
+        ("P206-pre-migration.http.golden", "reply.ReplyRandomStickerAsync(String).default", "ChurchReport.Tools.ReplyUtility.ReplyRandomStickerAsync(String).default: 9b7ac0a0 沒有正式呼叫者，隨相容殼刪除"),
+        ("P206-pre-migration.http.golden", "reply.UploadMediaContentAsync(String,String,String,String).default", "ChurchReport.Tools.ReplyUtility.UploadMediaContentAsync(String,String,String,String).default: 9b7ac0a0 沒有正式呼叫者，隨相容殼刪除"),
+        ("P206-pre-migration.http.golden", "tool.CarouselMessage(String).default", "ToolUtility.PushUtility.CarouselMessage(String).default: 9b7ac0a0 沒有正式呼叫者，隨相容殼刪除"),
+        ("P206-pre-migration.http.golden", "tool.CarouselMessageAsync(String).default", "ToolUtility.PushUtility.CarouselMessageAsync(String).default: 9b7ac0a0 沒有正式呼叫者，隨相容殼刪除"),
+        ("P206-pre-migration.http.golden", "tool.ChurchCarouselMessage(String).default", "ToolUtility.PushUtility.ChurchCarouselMessage(String).default: 9b7ac0a0 沒有正式呼叫者，隨相容殼刪除"),
+        ("P206-pre-migration.http.golden", "tool.ChurchCarouselMessageAsync(String).default", "ToolUtility.PushUtility.ChurchCarouselMessageAsync(String).default: 9b7ac0a0 沒有正式呼叫者，隨相容殼刪除"),
+        ("P206-pre-migration.http.golden", "tool.ConfirmMessage(String).default", "ToolUtility.PushUtility.ConfirmMessage(String).default: 9b7ac0a0 沒有正式呼叫者，隨相容殼刪除"),
+        ("P206-pre-migration.http.golden", "tool.ConfirmMessageAsync(String).default", "ToolUtility.PushUtility.ConfirmMessageAsync(String).default: 9b7ac0a0 沒有正式呼叫者，隨相容殼刪除"),
+        ("P206-pre-migration.http.golden", "tool.DeleteRichMenuMessage(String).default", "ToolUtility.PushUtility.DeleteRichMenuMessage(String).default: 9b7ac0a0 沒有正式呼叫者，隨相容殼刪除"),
+        ("P206-pre-migration.http.golden", "tool.PostSerializedConfirm(String,String,String,List-1).default", "ToolUtility.PushUtility.PostSerializedConfirm(String,String,String,List-1).default: 9b7ac0a0 沒有正式呼叫者，隨相容殼刪除"),
+        ("P206-pre-migration.http.golden", "tool.PostSerializedImageMap(String,String,String,Int32,Int32,List-1).default", "ToolUtility.PushUtility.PostSerializedImageMap(String,String,String,Int32,Int32,List-1).default: 9b7ac0a0 沒有正式呼叫者，隨相容殼刪除"),
+        ("P206-pre-migration.http.golden", "tool.PostSerializedTemplate(String,String,String,String,String,List-1).default", "ToolUtility.PushUtility.PostSerializedTemplate(String,String,String,String,String,List-1).default: 9b7ac0a0 沒有正式呼叫者，隨相容殼刪除"),
+        ("P206-pre-migration.http.golden", "tool.SendAudeo(String,String,Int64).default", "ToolUtility.PushUtility.SendAudeo(String,String,Int64).default: 9b7ac0a0 沒有正式呼叫者，隨相容殼刪除"),
+        ("P206-pre-migration.http.golden", "tool.SendImage(String,String,String).default", "ToolUtility.PushUtility.SendImage(String,String,String).default: 9b7ac0a0 沒有正式呼叫者，隨相容殼刪除"),
+        ("P206-pre-migration.http.golden", "tool.SendLocation(String,String,String,Decimal,Decimal).default", "ToolUtility.PushUtility.SendLocation(String,String,String,Decimal,Decimal).default: 9b7ac0a0 沒有正式呼叫者，隨相容殼刪除"),
+        ("P206-pre-migration.http.golden", "tool.SendMessage(String,List-1).default", "ToolUtility.PushUtility.SendMessage(String,List-1).default: 9b7ac0a0 沒有正式呼叫者，隨相容殼刪除"),
+        ("P206-pre-migration.http.golden", "tool.SendMessage(String,String).default", "ToolUtility.PushUtility.SendMessage(String,String).default: 9b7ac0a0 沒有正式呼叫者，隨相容殼刪除"),
+        ("P206-pre-migration.http.golden", "tool.SendSticker(String,Int32,Int32).default", "ToolUtility.PushUtility.SendSticker(String,Int32,Int32).default: 9b7ac0a0 沒有正式呼叫者，隨相容殼刪除"),
+        ("P206-pre-migration.http.golden", "tool.SendVideo(String,String,String).default", "ToolUtility.PushUtility.SendVideo(String,String,String).default: 9b7ac0a0 沒有正式呼叫者，隨相容殼刪除"),
+        ("P206-pre-migration.http.golden", "tool.AddRichMenuMessage(String).default", "ToolUtility.PushUtility.AddRichMenuMessage(String).default: 9b7ac0a0 沒有正式呼叫者，隨相容殼刪除"),
+        ("P206-source-replay.http.golden", "reply-buttons", "ChurchReport.Tools.ReplyUtility.ReplyMessage (Buttons): 9b7ac0a0 沒有正式呼叫者，隨相容殼刪除"),
+        ("P206-source-replay.http.golden", "reply-sender", "ChurchReport.Tools.ReplyUtility.ReplyMessage (Sender): 9b7ac0a0 沒有正式呼叫者，隨相容殼刪除"),
+        ("P206-source-replay.http.golden", "menu-add", "ToolUtility.PushUtility.AddRichMenuMessage: 9b7ac0a0 沒有正式呼叫者，隨相容殼刪除"),
+    };
+
+    /// <summary>原始檔 bytes 與開工 SHA 相等，任何換行、案例或本文改寫都失敗。</summary>
+    [Fact]
+    public void P206Golden_File_Sha256Unchanged()
+    {
+        Assert.Equal("efd0704ea3817c84a7190bf0354d9a23dd0ebcc8bda477784a0b34a7d03fa2ff",
+            Convert.ToHexStringLower(SHA256.HashData(File.ReadAllBytes(GoldenPath(MainGolden)))));
+        Assert.Equal("8c07187be54f850ad2ad919b1cf0a556a18507c83a03a31431fec3b2ef54bc4c",
+            Convert.ToHexStringLower(SHA256.HashData(File.ReadAllBytes(GoldenPath(SourceGolden)))));
+    }
+
+    /// <summary>真 SDK 經新通知器產生協定，保留標頭遮罩與原檔 CRLF，再與案例原始 bytes 比對。</summary>
+    /// <param name="file">唯讀黃金檔名。</param>
+    /// <param name="key">明列保留案例的穩定鍵。</param>
     [Theory]
-    [MemberData(nameof(Cases))]
-    public async Task PublicMethod_SyntheticHandler_MatchesPreMigrationGolden(string owner, string methodKey, string variant)
-    {
-        using var handler = new RecordingHandler("token-synthetic-" + owner);
-        using var http = new HttpClient(handler) { Timeout = TimeSpan.FromSeconds(5) };
-        using var sdk = new LineMessagingClient(http, "token-synthetic-" + owner);
-        using var tracer = new NullToolUtilityTracer();
-        var crm = DispatchProxy.Create<IOrganizationService, EmptyCrm>();
-        using var tool = new ToolUtilityClass(crm, tracer, new ConfigurationBuilder().Build());
-        var cache = new InMemoryLineRichMenuIdCache();
-        cache.Set("legacy-auth", "richmenu-fixed");
-        var assignment = new LineRichMenuAssignmentWorkflow(
-            new LineMessagingProcessorRichMenuAdapter(new LineMessagingProcessorClass(sdk)),
-            cache, new InMemoryRichMenuStateStore());
-        using var line = new TestLine(tool, sdk, assignment);
-        object utility = owner switch
-        {
-            "push" => new ProductPush(sdk, null, assignment),
-            "reply" => new ProductReply(sdk),
-            "line" => line,
-            "tool" => CreateLegacyPush(sdk, tool),
-            _ => throw new InvalidOperationException("Unknown fixture owner.")
-        };
-        var method = utility.GetType().GetMethods().Single(m => MethodKey(m) == methodKey);
-        var arguments = method.GetParameters().Select(p => Argument(p, variant)).ToArray();
-        var result = method.Invoke(utility, arguments);
-        if (result is Task operation) await operation;
-        var transcript = handler.Transcript(method.Name == "ReplyRandomStickerAsync");
-        var caseKey = owner + "." + methodKey + "." + variant;
-        Assert.Equal(ReadGolden(caseKey), transcript);
-    }
-
-    /// <summary>
-    /// 注入非法圖片使 Image.FromStream 在取得 SDK stream 後失敗；斷言原例外保留且 response
-    /// 在方法結束已 Dispose。finally 只為紅燈舊版清掉替身資源，避免測試自己重現洩漏後仍留存。
-    /// </summary>
-    [Fact]
-    public async Task EchoImageAsync_DecodeFailure_ReleasesOwnedResponse()
-    {
-        using var handler = new RecordingHandler("synthetic", invalidImage: true);
-        using var http = new HttpClient(handler) { Timeout = TimeSpan.FromSeconds(5) };
-        using var sdk = new LineMessagingClient(http, "synthetic");
-        var utility = new ProductReply(sdk);
-        var exception = await Record.ExceptionAsync(() => utility.EchoImageAsync("reply-fixed", "message-fixed", "unused"));
-        Assert.NotNull(exception);
-        Assert.Single(handler.Media);
-        Assert.True(handler.Media[0].Released, "下載 response 必須在解碼失敗後由唯一 owner 確定性釋放。");
-    }
-
-    /// <summary>正常圖片故障點之外也必須釋放下載 response；無 blob owner，成功仍不新增回覆。</summary>
-    [Fact]
-    public async Task EchoImageAsync_Success_ReleasesOwnedResponse()
+    [MemberData(nameof(KeptCases))]
+    public async Task P206Golden_KeptCases_ReplayedThroughNewEntry_ByteIdentical(string file, string key)
     {
         using var handler = new RecordingHandler("synthetic");
         using var http = new HttpClient(handler) { Timeout = TimeSpan.FromSeconds(5) };
         using var sdk = new LineMessagingClient(http, "synthetic");
-        await new ProductReply(sdk).EchoImageAsync("reply-fixed", "message-fixed", "unused");
-        Assert.True(Assert.Single(handler.Media).Released);
-        Assert.Equal(ReadGolden("reply.EchoImageAsync(String,String,String).default"), handler.Transcript(false));
-    }
-
-    /// <summary>
-    /// CRM-only 公開方法逐一呼叫，合成 contact／party 使用伺服器 Guid，不作正式授權替身。
-    /// 斷言原組裝結果及精確 NO HTTP；不復活外部舊方案的純 CRM 功能。
-    /// </summary>
-    /// <param name="method">主方案保留的 CRM-only 方法名。</param>
-    [Theory]
-    [InlineData("SetupActionList")]
-    [InlineData("ConvertActionType")]
-    [InlineData("GetLineSender")]
-    [InlineData("GetLineIdAndContactFullNameOfSender")]
-    [InlineData("GetContactPartyFullName")]
-    public void ProductCrmMethod_SyntheticRecord_DoesNotSendHttp(string method)
-    {
-        using var handler = new RecordingHandler("synthetic");
-        using var http = new HttpClient(handler) { Timeout = TimeSpan.FromSeconds(5) };
-        using var sdk = new LineMessagingClient(http, "synthetic");
         using var tracer = new NullToolUtilityTracer();
-        using var tool = new ToolUtilityClass(DispatchProxy.Create<IOrganizationService, EmptyCrm>(), tracer, new ConfigurationBuilder().Build());
-        using var line = new ProductLine(tool, sdk, null);
-        var id = Guid.Parse("55555555-5555-5555-5555-555555555555");
-        var party = new Entity("activityparty") { ["partyid"] = new EntityReference("contact", id) { Name = "合成顯示名" } };
-        var letter = new Entity("letter")
+        using var tool = new ToolUtilityClass(DispatchProxy.Create<IOrganizationService, EmptyCrm>(), tracer,
+            new ConfigurationBuilder().Build());
+        var notifier = ChurchReportLineNotifier.ForClient(sdk);
+        switch (key)
         {
-            ["from"] = new EntityCollection(new List<Entity> { party }),
-            ["new_displayed_lineid"] = "display-fixed", ["new_linereplytoken"] = "reply-fixed",
-            ["new_template_label_1"] = "按鈕", ["new_action_category_1"] = new OptionSetValue(100000001),
-            ["new_template_text_1"] = "本文", ["new_template_uri_1"] = "https://example.test/action"
-        };
-        var displayed = ""; var lineId = ""; var token = ""; var name = "";
-        switch (method)
-        {
-            case "SetupActionList":
-                var template = new TemplateMessageClass { template = new TemplateClass { actions = new List<ActionClass>() } };
-                line.SetupActionList(letter, ref template);
-                Assert.Equal("message", Assert.Single(template.template.actions).type);
+            case "push.SendMessage(String,String).default":
+                await notifier.SendTextBestEffortAsync(UserId, "合成訊息");
                 break;
-            case "ConvertActionType": Assert.Equal("message", line.ConvertActionType(letter, "new_action_category_1")); break;
-            case "GetLineSender": Assert.Equal(id, line.GetLineSender(letter).Id); break;
-            case "GetLineIdAndContactFullNameOfSender":
-                line.GetLineIdAndContactFullNameOfSender(letter, ref displayed, ref lineId, ref token, ref name);
-                Assert.Equal(("display-fixed", UserId, "reply-fixed", "合成顯示名"), (displayed, lineId, token, name));
+            case "push.SendMessage(String,List-1).default":
+                await notifier.SendMessagesBestEffortAsync(UserId,
+                    new ISendMessage[] { new TextMessage("合成訊息"), new StickerMessage("1", "5") });
                 break;
-            case "GetContactPartyFullName":
-                Assert.Equal("合成顯示名", line.GetContactPartyFullName(party, ref lineId));
-                Assert.Equal(UserId, lineId);
+            case "push.SendReliableMessageAsync(String,String,String).default":
+                await notifier.SendReliableTextAsync(UserId, "合成訊息", "33333333-3333-3333-3333-333333333333");
                 break;
+            case "group-push":
+                await notifier.SendMessagesBestEffortAsync("Cgroup-fixed",
+                    new ISendMessage[] { new TextMessage("合成訊息"), new AudioMessage("https://example.test/audio", 1000) });
+                break;
+            case "tool.MultiCastTextMessageAsync(IList-1,String).default":
+            case "multicast-duplicates":
+                notifier = new ChurchReportLineNotifier(new LineLegacySendWorkflow(new LineMessagingProcessorClass(sdk)), tool);
+                await notifier.MulticastTextAsync(key == "multicast-duplicates"
+                    ? new[] { UserId, OtherUserId, UserId } : new[] { UserId, OtherUserId }, "合成訊息");
+                break;
+            default: throw new InvalidOperationException("Unlisted replay case.");
         }
-        Assert.Equal("NO HTTP\n", handler.Transcript(false));
+        var original = ReadGoldenBytes(file, key);
+        var actual = Encoding.UTF8.GetBytes(handler.Transcript(false).Replace("\n", "\r\n", StringComparison.Ordinal));
+        Assert.Equal(original, actual);
     }
 
-    /// <summary>四個舊類都應標明階段6移除；避免新呼叫端把相容殼當正式授權入口。</summary>
+    /// <summary>兩份黃金的 72 案必須精確分成 6 重播與 66 退役，逐案有入口與理由，零交集、零遺漏。</summary>
     [Fact]
-    public void CompatibilityShells_AreObsolete()
+    public void P206Golden_EveryCase_IsEitherReplayedOrRetiredWithReason()
     {
-        foreach (var type in new[] { typeof(LegacyPush), typeof(ProductPush), typeof(ProductReply), typeof(ProductLine) })
-            Assert.NotNull(type.GetCustomAttribute<ObsoleteAttribute>());
-    }
-
-    /// <summary>
-    /// 重播最完整舊來源的直接 SDK 操作作為補充基線，並與新委派及唯讀黃金三方比較。
-    /// 來源重播不是舊組件實機；保護 group、多播重複收件、Sender、Buttons 及原 RichMenu
-    /// 四步成功路徑。圖片只由固定有限位元組建構，兩條路都斷言 using 釋放。
-    /// </summary>
-    /// <param name="capability">研究對照的明確保留能力。</param>
-    [Theory]
-    [InlineData("group-push")]
-    [InlineData("multicast-duplicates")]
-    [InlineData("reply-buttons")]
-    [InlineData("reply-sender")]
-    [InlineData("menu-add")]
-    public async Task LegacyCapability_DirectSdkReplayAndDelegation_MatchGolden(string capability)
-    {
-        var baseline = await RunCapabilityAsync(capability, directSdk: true);
-        var actual = await RunCapabilityAsync(capability, directSdk: false);
-        Assert.Equal(baseline, actual);
-        Assert.Equal(ReadGolden(capability, "P206-source-replay.http.golden"), actual);
-    }
-
-    /// <summary>
-    /// 注入上傳／來源故障，驗證 upload 失敗後不得 link/notify，已開啟圖片必定釋放；
-    /// 不把原例外改成 NotSupported，不加入產品未核定 rollback，亦不讀主機固定圖檔。
-    /// </summary>
-    /// <param name="sourceFailure">true 在開啟來源時失敗，false 在 upload handler 失敗。</param>
-    [Theory]
-    [InlineData(true)]
-    [InlineData(false)]
-    public async Task LegacyMenu_SourceOrUploadFailure_PreservesFailureAndReleases(bool sourceFailure)
-    {
-        var failure = new IOException("synthetic failure");
-        using var handler = new RecordingHandler("synthetic", uploadFailure: sourceFailure ? null : failure);
-        using var http = new HttpClient(handler) { Timeout = TimeSpan.FromSeconds(5) };
-        using var sdk = new LineMessagingClient(http, "synthetic");
-        using var tracer = new NullToolUtilityTracer();
-        using var tool = new ToolUtilityClass(DispatchProxy.Create<IOrganizationService, EmptyCrm>(), tracer, new ConfigurationBuilder().Build());
-        var image = new TrackingStream(MenuImage());
-        try
+        var replayed = KeptCases().Select(row => ((string)row[0], (string)row[1])).ToArray();
+        var retired = RetiredCases.Select(row => (row.File, row.Key)).ToArray();
+        Assert.Equal(6, replayed.Length);
+        Assert.Equal(66, retired.Length);
+        Assert.Equal(replayed.Length, replayed.Distinct().Count());
+        Assert.Equal(retired.Length, retired.Distinct().Count());
+        Assert.Empty(replayed.Intersect(retired));
+        Assert.All(RetiredCases, row =>
         {
-            var utility = new LegacyPush(sdk, tool, () => sourceFailure ? throw failure : image);
-            Assert.Same(failure, await Record.ExceptionAsync(() => utility.AddRichMenuMessage(UserId)));
-            Assert.Equal(!sourceFailure, image.Released);
-            var transcript = handler.Transcript(false);
-            Assert.Contains("POST https://api.line.me/v2/bot/richmenu", transcript);
-            Assert.DoesNotContain("/user/", transcript);
-            Assert.DoesNotContain("/message/push", transcript);
+            Assert.Contains("9b7ac0a0 沒有正式呼叫者，隨相容殼刪除", row.Reason);
+            Assert.Contains("Utility", row.Reason);
+        });
+        foreach (var file in new[] { MainGolden, SourceGolden })
+        {
+            var keys = File.ReadAllLines(GoldenPath(file)).Where(line => line.StartsWith("@@ ", StringComparison.Ordinal))
+                .Select(line => line[3..]).ToArray();
+            Assert.Equal(keys.Length, keys.Distinct(StringComparer.Ordinal).Count());
+            Assert.Equal(keys.Order(StringComparer.Ordinal), replayed.Concat(retired).Where(row => row.Item1 == file)
+                .Select(row => row.Item2).Order(StringComparer.Ordinal));
         }
-        finally { image.Dispose(); }
     }
 
     /// <summary>
@@ -278,160 +233,24 @@ public sealed class P206SendUtilityGoldenTests
         Assert.All(a.Media.Concat(b.Media), media => Assert.True(media.Released));
     }
 
-    /// <summary>固定微型 PNG 位元組是唯一圖片輸入；不依賴 GDI 編碼版本、磁碟或真實產品內容。</summary>
-    private static byte[] MenuImage() => Convert.FromBase64String(
-        "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+aWQAAAABJRU5ErkJggg==");
 
-    /// <summary>複製主方案原選單定義用於來源重播；由測試明確鎖定，不呼叫被測的模型產生器。</summary>
-    private static RichMenu BaselineMenu() => new()
-    {
-        Size = ImagemapSize.RichMenuLong, Selected = false, Name = "nice richmenu", ChatBarText = "touch me",
-        Areas = new List<ActionArea> { new() { Bounds = new ImagemapArea(0, 0, 2500, 1686),
-            Action = new PostbackTemplateAction("ButtonA", "Menu A", "Menu A") } }
-    };
-
-    /// <summary>每次 owns 獨立 SDK／假 CRM／handler；原直接呼叫與新入口不共用可變 payload 或憑證。</summary>
-    private static async Task<string> RunCapabilityAsync(string capability, bool directSdk)
-    {
-        using var handler = new RecordingHandler("synthetic");
-        using var http = new HttpClient(handler) { Timeout = TimeSpan.FromSeconds(5) };
-        using var sdk = new LineMessagingClient(http, "synthetic");
-        using var tracer = new NullToolUtilityTracer();
-        using var tool = new ToolUtilityClass(DispatchProxy.Create<IOrganizationService, EmptyCrm>(), tracer, new ConfigurationBuilder().Build());
-        var image = new TrackingStream(MenuImage());
-        try
-        {
-            var legacy = new LegacyPush(sdk, tool, () => image);
-            var messages = new List<ISendMessage> { new TextMessage("合成訊息"), new AudioMessage("https://example.test/audio", 1000) };
-            switch (capability)
-            {
-                case "group-push":
-                    if (directSdk) await sdk.PushMessageAsync("Cgroup-fixed", messages);
-                    else await legacy.SendMessage("Cgroup-fixed", messages);
-                    break;
-                case "multicast-duplicates":
-                    var recipients = new[] { UserId, OtherUserId, UserId };
-                    if (directSdk) await sdk.MultiCastMessageAsync(recipients, new[] { new TextMessage("合成訊息") });
-                    else await legacy.MultiCastTextMessageAsync(recipients, "合成訊息");
-                    break;
-                case "reply-buttons":
-                    var buttons = new List<ISendMessage> { new TemplateMessage("替代文字", new ButtonsTemplate(
-                        "本文", "標題", "https://example.test/thumb", new[] { new MessageTemplateAction("是", "同意") })) };
-                    if (directSdk) await sdk.ReplyMessageAsync("reply-fixed", buttons);
-                    else await new ProductReply(sdk).ReplyMessage("reply-fixed", buttons);
-                    break;
-                case "reply-sender":
-                    var sender = new List<ISendMessage> { new TextMessage("合成訊息") { Sender = new Sender("品牌", "https://example.test/icon") } };
-                    if (directSdk) await sdk.ReplyMessageAsync("reply-fixed", sender);
-                    else await new ProductReply(sdk).ReplyMessage("reply-fixed", sender);
-                    break;
-                case "menu-add":
-                    if (directSdk)
-                    {
-                        var id = await sdk.CreateRichMenuAsync(BaselineMenu());
-                        using (image) await sdk.UploadRichMenuPngImageAsync(image, id);
-                        await sdk.LinkRichMenuToUserAsync(UserId, id);
-                        await sdk.PushMessageAsync(UserId, new ISendMessage[] { new TextMessage("Rich menu added"), new StickerMessage("1", "5") });
-                    }
-                    else Assert.Equal("成功", await legacy.AddRichMenuMessage(UserId));
-                    Assert.True(image.Released);
-                    break;
-                default: throw new InvalidOperationException("Unknown capability fixture.");
-            }
-            return handler.Transcript(false);
-        }
-        finally { image.Dispose(); }
-    }
-
-    /// <summary>限制反射列舉在本包的送訊／下載範圍；CRM、設定及 Dispose 不假稱 HTTP。</summary>
-    private static bool IsMessageMethod(MethodInfo method) =>
-        method.Name.StartsWith("Send", StringComparison.Ordinal) ||
-        method.Name.StartsWith("Reply", StringComparison.Ordinal) ||
-        method.Name.StartsWith("PostSerialized", StringComparison.Ordinal) ||
-        method.Name.StartsWith("Echo", StringComparison.Ordinal) ||
-        method.Name is "MultiCastTextMessageAsync" or "AddRichMenuMessage" or "DeleteRichMenuMessage" or
-            "UploadMediaContentAsync" or "ConfirmMessage" or "CarouselMessage" or "ChurchCarouselMessage" or
-            "ConfirmMessageAsync" or "CarouselMessageAsync" or "ChurchCarouselMessageAsync";
-
-    /// <summary>完整型別名形成同名多載鍵，不使用列號或顯示文字當身分。</summary>
-    private static string MethodKey(MethodInfo method) => method.Name + "(" +
-        string.Join(",", method.GetParameters().Select(p => p.ParameterType.Name.Replace("`", "-", StringComparison.Ordinal))) + ")";
-
-    /// <summary>每次建立新的合成訊息與集合，避免測試的可變 SDK 模型跨案例共享。</summary>
-    private static object Argument(ParameterInfo parameter, string variant)
-    {
-        if (parameter.ParameterType == typeof(string))
-        {
-            return parameter.Name!.ToLowerInvariant() switch
-            {
-                "userid" => UserId,
-                "replytoken" => "reply-fixed",
-                "retrykey" => "33333333-3333-3333-3333-333333333333",
-                "messageid" => "message-fixed",
-                "originalcontenurl" => "https://example.test/original",
-                "previewimageurl" => "https://example.test/preview",
-                "thumbnailimageurl" => "https://example.test/thumb",
-                "imageurl" => "https://example.test/imagemap",
-                "alttext" => "替代文字",
-                "title" => "標題",
-                "address" => "合成地址",
-                "blobdirectoryname" or "blobname" => "unused",
-                _ => "合成訊息"
-            };
-        }
-        if (parameter.ParameterType == typeof(int)) return parameter.Name is "BaseWidth" or "Basehight" ? 1040 : 1;
-        if (parameter.ParameterType == typeof(long)) return 1000L;
-        if (parameter.ParameterType == typeof(decimal)) return 25.0m;
-        if (parameter.ParameterType == typeof(Entity)) return new Entity("letter", Guid.Parse("44444444-4444-4444-4444-444444444444"));
-        if (parameter.ParameterType == typeof(FlexMessage)) return FlexMessage.CreateBubbleMessage("替代文字");
-        if (parameter.ParameterType == typeof(MessageEvent))
-        {
-            var kind = variant switch { "group" => EventSourceType.Group, "room" => EventSourceType.Room, _ => EventSourceType.User };
-            var source = new WebhookEventSource(kind, variant == "default" ? UserId : variant + "-fixed", UserId);
-            return new MessageEvent(source, 0, new TextEventMessage("message-fixed", "合成訊息"), "reply-fixed");
-        }
-        if (parameter.ParameterType == typeof(List<ITemplateAction>))
-            return new List<ITemplateAction> { new MessageTemplateAction("是", "同意"), new MessageTemplateAction("否", "拒絕") };
-        if (parameter.ParameterType == typeof(List<IImagemapAction>))
-            return new List<IImagemapAction> { new MessageImagemapAction(new ImagemapArea(0, 0, 100, 100), "點擊") };
-        if (parameter.ParameterType == typeof(IList<string>)) return new List<string> { UserId, OtherUserId };
-        if (parameter.ParameterType == typeof(List<ISendMessage>) || parameter.ParameterType == typeof(IReadOnlyList<ISendMessage>))
-            return new List<ISendMessage> { new TextMessage("合成訊息"), new StickerMessage("1", "5") };
-        throw new InvalidOperationException("Fixture argument missing: " + parameter.ParameterType.Name);
-    }
-
-    /// <summary>
-    /// 改用收斂後的公開借用資源建構式；fake CRM 與 SDK 均由該案例擁有，
-    /// 不碰程序 Factory 或 private credential；原始基線在產品搬移前已封存。
-    /// </summary>
-    private static LegacyPush CreateLegacyPush(LineMessagingClient sdk, ToolUtilityClass tool)
-    {
-        return new LegacyPush(sdk, tool, () => new MemoryStream(MenuImage(), writable: false));
-    }
-
-    /// <summary>由方案檔定位本 clone 的唯讀 fixture，不使用個人電腦的固定路徑。</summary>
-    private static string RepositoryRoot()
+    /// <summary>從方案根目錄定位唯讀黃金，不使用固定個人路徑或寫入測試資料。</summary>
+    private static string GoldenPath(string file)
     {
         for (var directory = new DirectoryInfo(AppContext.BaseDirectory); directory != null; directory = directory.Parent)
-            if (File.Exists(Path.Combine(directory.FullName, "SpeechMessageProducts.sln"))) return directory.FullName;
+            if (File.Exists(Path.Combine(directory.FullName, "SpeechMessageProducts.sln")))
+                return Path.Combine(directory.FullName, "ChurchReport.MemberInfo.Tests", "LineSharedWorkflow", "Golden", file);
         throw new InvalidOperationException("Fixture repository root not found.");
     }
 
-    /// <summary>只取唯一 case 區段；缺失／重複鍵立即失敗，不用最後一筆覆蓋掩飾問題。</summary>
-    private static string ReadGolden(string key, string fileName = "P206-pre-migration.http.golden")
+    /// <summary>只切出唯一原始區段，不正規化黃金 bytes；UTF-8 往返無損，重複或缺鍵立即失敗。</summary>
+    private static byte[] ReadGoldenBytes(string file, string key)
     {
-        var path = Path.Combine(RepositoryRoot(), "ChurchReport.MemberInfo.Tests", "LineSharedWorkflow", "Golden", fileName);
-        var sections = File.ReadAllText(path).Replace("\r\n", "\n", StringComparison.Ordinal).Split("@@ ", StringSplitOptions.RemoveEmptyEntries);
-        var section = Assert.Single(sections.Where(s => s.StartsWith(key + "\n", StringComparison.Ordinal)));
-        return section[(key.Length + 1)..];
-    }
-
-    /// <summary>只暴露既有受保護注入路徑；不建立 CRM client、不修改產品型別或 token owner。</summary>
-    private sealed class TestLine : ProductLine
-    {
-        /// <summary>借用案例 SDK／工具；本例 Dispose 只關閉自身，不會提前關閉借來的資源。</summary>
-        public TestLine(ToolUtilityClass tool, LineMessagingClient sdk, ILineRichMenuAssignmentWorkflow assignment)
-            : base(tool, sdk, null, null, null, assignment, (_, _, _) => { }) { }
+        var sections = File.ReadAllText(GoldenPath(file), new UTF8Encoding(false, true))
+            .Split("@@ ", StringSplitOptions.RemoveEmptyEntries);
+        var marker = key + "\r\n";
+        var section = Assert.Single(sections.Where(part => part.StartsWith(marker, StringComparison.Ordinal)));
+        return Encoding.UTF8.GetBytes(section[marker.Length..]);
     }
 
     /// <summary>合成 CRM 回傳固定 contact 或空統計查詢；任何寫入或未預期操作失敗，不連線且無外部資源。</summary>
@@ -444,19 +263,6 @@ public sealed class P206SendUtilityGoldenTests
             nameof(IOrganizationService.Retrieve) => new Entity("contact", (Guid)args![1]!) { ["new_lineid"] = UserId },
             _ => throw new InvalidOperationException("Unexpected synthetic CRM operation.")
         };
-    }
-
-    /// <summary>有限長度圖片的唯一 using owner；僅有釋放旗標，不保存產品或 request 狀態。</summary>
-    private sealed class TrackingStream(byte[] bytes) : MemoryStream(bytes, writable: false)
-    {
-        /// <summary>不依賴 GC 的確定性釋放觀察。</summary>
-        internal bool Released { get; private set; }
-        /// <summary>釋放後保留旗標供斷言，其餘交基底回收；測試 finally 可安全重複呼叫。</summary>
-        protected override void Dispose(bool disposing)
-        {
-            if (disposing) Released = true;
-            base.Dispose(disposing);
-        }
     }
 
     /// <summary>追蹤內容owner只記錄釋放旗標，不保存 request 或憑證；handler finally 回收紅燈遺漏。</summary>

@@ -7,6 +7,7 @@
  *
  * 主要功能與流程：
  * 本檔宣告 DonationBookingService。
+ * - P6-03 通知改由 ChurchReportLineNotifier 借用共用流程；原本文、來源代號與等待方式不變，LINE／CRM owner 不轉移。
  * - 從 CRM 查出指定奉獻者的認獻單，並填入奉獻付款表單模型。 DonationPaymentManager 只需要知道「要載入認獻清單」；new_dedication_booking 的欄位名稱、 金額轉字串、
  * 日期轉本地時間、OptionSet 轉顯示文字等細節都集中在這裡。
  * - 中止一筆認獻單對應的定期定額授權，並把結果寫回 CRM 與 LINE。 orderMaintainer 由 manager 傳入，是為了把舊金流維護入口留在既有邊界； 本服務只負責 ChurchReport 產品流程，
@@ -25,6 +26,7 @@ using System.Threading.Tasks;
 using ChurchReport.Models;
 using ChurchReport.Payments;
 using ChurchReport.Tools;
+using LineMessagingProcessor.Workflows;
 using Microsoft.Xrm.Sdk;
 using ToolUtilityNameSpace;
 
@@ -110,7 +112,7 @@ namespace ChurchReport.Services
             Entity contact,
             DedicationBooking booking,
             Func<string, string, Task<OrderMaintain>> orderMaintainer,
-            PushUtility pushUtility)
+            ILineNotificationWorkflow pushUtility)
         {
             ArgumentNullException.ThrowIfNull(model);
             ArgumentNullException.ThrowIfNull(contact);
@@ -142,7 +144,7 @@ namespace ChurchReport.Services
                 _utility.GetEntityStringAttribute(ref bookingToDelete, "new_explain") + Environment.NewLine + resultMessage);
             _utility.UpdateEntity(ref bookingToDelete);
 
-            SendBookingResultMessage(contact, resultMessage, pushUtility);
+            SendBookingResultMessage(contact, resultMessage, new ChurchReportLineNotifier(pushUtility));
 
             return maintainDescription;
         }
@@ -185,12 +187,13 @@ namespace ChurchReport.Services
                 "--------------------------------------" + Environment.NewLine;
         }
 
-        private void SendBookingResultMessage(Entity contact, string resultMessage, PushUtility pushUtility)
+        /// <summary>借用當次通知器送出既有認獻結果；保留原不等待方式，不新增傳輸或資源 owner。</summary>
+        private void SendBookingResultMessage(Entity contact, string resultMessage, ChurchReportLineNotifier pushUtility)
         {
             string contactLineId = _utility.GetEntityStringAttribute(contact, "new_lineid");
             if (contactLineId != string.Empty)
             {
-                pushUtility.SendMessage(contactLineId, resultMessage);
+                pushUtility.SendTextBestEffortAsync(contactLineId, resultMessage);
             }
         }
     }

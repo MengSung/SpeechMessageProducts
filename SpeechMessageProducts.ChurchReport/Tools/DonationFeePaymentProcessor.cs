@@ -9,6 +9,7 @@
  *
  * 主要功能與流程：
  * 本檔宣告 DonationFeePaymentProcessor。
+ * - P6-03 通知改由 ChurchReportLineNotifier 借用共用流程；原本文、來源代號與等待方式不變，LINE／CRM owner 不轉移。
  * - DonationFeePaymentProcessor 的部署設定每行程一份，只保存設定、不保存 request／使用者或教會可變資料。 Development 接上主機環境檔與 secrets，正式環境不增加
  * provider；缺少測試 token 不得退回基底正式值。 保留原 static／Lazy 與基底 reload 生命週期；新增來源不監聽變更，不建立額外背景資源。
  * - 預設建構函數，使用 Factory 模式獲取 ToolUtilityClass 實例 這條路徑主要服務舊程式碼：某些舊流程會直接 new DonationFeePaymentProcessor() ， 沒有透過
@@ -28,6 +29,7 @@
  * 可沿 SpeechMessageProducts.ChurchReport/Payments/DonationPaymentProductWorkflowDispatcher.cs、
  * SpeechMessageProducts.ChurchReport/Payments/DonationPaymentReturnWorkflow.cs 追查目前工作樹中的合作／使用位置。
  */
+using ChurchReport.Services;
 using ChurchReport.WebServiceConnector;
 using Line.Messaging;
 using LineMessagingProcessor.Workflows;
@@ -91,11 +93,8 @@ namespace ChurchReport.Tools
         // LINE Messaging SDK 的 client，底層會使用 Channel Access Token 呼叫 LINE API。
         private LineMessagingClient m_LineMessagingClient { get; }
 
-        // PushUtility 負責主動推播訊息給使用者；付款完成通知就是使用這條路徑。
-        private PushUtility m_PushUtility { get; }
-
-        // ReplyUtility 是舊流程留下的回覆工具；目前此類別主要使用 PushUtility。
-        private ReplyUtility m_ReplyUtility { get; }
+        // 產品通知器 負責主動推播訊息給使用者；付款完成通知就是使用這條路徑。
+        private ChurchReportLineNotifier m_PushUtility { get; }
 
         // ToolUtilityClass 是 ChurchReport 存取 Dynamics CRM 的主要工具。
         // 這個類別內所有 RetrieveEntity、SetEntityStringAttribute、UpdateEntity 等 CRM 操作都透過它完成。
@@ -125,14 +124,12 @@ namespace ChurchReport.Tools
         public DonationFeePaymentProcessor()
         {
             // 從 appsettings.json 讀取 LINE Channel Access Token。
-            // PushUtility 需要這個 token 才能把付款結果推播給奉獻者或課程報名者。
+            // 產品通知器 需要這個 token 才能把付款結果推播給奉獻者或課程報名者。
             var channelAccessToken = GetLineChannelAccessToken();
             this.m_LineMessagingClient = new LineMessagingClient(channelAccessToken);
 
-            // PushUtility：主動推播付款成功/失敗訊息。
-            // ReplyUtility：保留給舊 LINE callback/回覆流程使用。
-            m_PushUtility = new PushUtility(m_LineMessagingClient);
-            m_ReplyUtility = new ReplyUtility(m_LineMessagingClient);
+            // 產品通知器：主動推播付款成功/失敗訊息。
+            m_PushUtility = ChurchReportLineNotifier.ForClient(m_LineMessagingClient);
 
             // 使用 Factory 模式取得 ToolUtilityClass 單例。
             // "DYNAMICS365-9.0" 是舊 ChurchReport 專案既有的 CRM 連線識別。
@@ -173,11 +170,9 @@ namespace ChurchReport.Tools
             var channelAccessToken = GetLineChannelAccessToken();
             this.m_LineMessagingClient = new LineMessagingClient(channelAccessToken);
 
-            m_PushUtility = new PushUtility(m_LineMessagingClient, lineNotificationWorkflow);
-            m_ReplyUtility = new ReplyUtility(
-                m_LineMessagingClient,
-                new LineMessagingProcessor.LineMessagingProcessorClass(m_LineMessagingClient),
-                lineReplyWorkflow);
+            m_PushUtility = lineNotificationWorkflow is null
+                ? ChurchReportLineNotifier.ForClient(m_LineMessagingClient)
+                : new ChurchReportLineNotifier(lineNotificationWorkflow);
 
             m_ToolUtilityClass = toolUtilityProvider.GetToolUtility();
             m_PostPaymentWorkflow = CreateNoOpPostPaymentWorkflow();
@@ -415,7 +410,7 @@ namespace ChurchReport.Tools
                 // 取得付款人姓名，用在 CRM 描述、LINE 通知與結果頁。
                 String aFullName = this.m_ToolUtilityClass.GetEntityStringAttribute(aContact, "fullname");
 
-                // 取得付款人的 LINE ID。此流程使用 PushUtility 主動推播，因此沒有 LINE ID 就無法發送通知。
+                // 取得付款人的 LINE ID。此流程使用產品通知器 主動推播，因此沒有 LINE ID 就無法發送通知。
                 String UserLineId = this.m_ToolUtilityClass.GetEntityStringAttribute(aContact, "new_lineid");
 
                 // 將 minor units 轉成使用者可讀的金額字串。
@@ -668,7 +663,7 @@ namespace ChurchReport.Tools
                             if (aDiscipleLessonsId == Guid.Empty)
                             {
                                 // 一般奉獻或非課程付款：直接推播成功訊息。
-                                this.m_PushUtility.SendMessage(UserLineId, successMessage);
+                                this.m_PushUtility.SendTextBestEffortAsync(UserLineId, successMessage);
                             }
                             else
                             {
@@ -695,7 +690,7 @@ namespace ChurchReport.Tools
                                     }
                                 }
 
-                                this.m_PushUtility.SendMessage(UserLineId, successMessage);
+                                this.m_PushUtility.SendTextBestEffortAsync(UserLineId, successMessage);
                             }
                             #endregion
                         }
@@ -775,7 +770,7 @@ namespace ChurchReport.Tools
                         "  請聯繫教會辦公室" + Environment.NewLine +
                         "═══════════════════════" + Environment.NewLine;
 
-                    this.m_PushUtility.SendMessage(UserLineId, failureMessage);
+                    this.m_PushUtility.SendTextBestEffortAsync(UserLineId, failureMessage);
 
                     // 設定 ViewBag 並返回錯誤結果頁。
                     // ErrorDetails 放完整 Description，便於使用者或客服看到訂單、狀態與時間。

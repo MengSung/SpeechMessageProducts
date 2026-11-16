@@ -6,6 +6,7 @@
  *
  * 主要功能與流程：
  * 本檔宣告 DonationPaymentProcessor。
+ * - P6-03 通知改由 ChurchReportLineNotifier 借用共用流程；原本文、來源代號與等待方式不變，LINE／CRM owner 不轉移。
  * - 把同一次付款建立的所有收費單 Id 編成永豐 Param1（格式見 DonationFeeIdList）。 付款完成時 callback 依這份清單逐張把收費單標記已付款，實收金額＝各自的應收金額。
  * 主要操作入口包含 EncodeProviderFeeIds、ProcessCreditCardPayment、ProcessRecurringPayment、ProcessMobilePayment、
  * ProcessLinePayPayment、ProcessAtmPayment、ProcessAtm、ProcessAtmGroup；其餘入口見下方成員契約。
@@ -471,7 +472,7 @@ namespace ChurchReport.WebServiceConnector
 
         protected virtual async Task SendAtmPaymentInstructionsAsync(string lineId, string lineMessage, string retryKey)
         {
-            await PushUtility.SendReliableMessageAsync(lineId, lineMessage, retryKey);
+            await PushUtility.SendReliableTextAsync(lineId, lineMessage, retryKey);
         }
 
         private static string BuildLineNotificationDisplayResult(string status, string message, bool isSuccess)
