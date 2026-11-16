@@ -7,7 +7,9 @@
  *
  * 主要功能與流程：生日計算依呼叫端傳入的教會當地日期決定下一次生日年份，保留
  * 年份 1000 的未知 sentinel、月份選項、年齡及年齡級距；到職計算依舊程式實際分支
- * 的天數與 1 日下一次更新日產生 patch。二月二十九日若目標年份不是閏年，保留舊
+ * 的天數與 1 日下一次更新日產生 patch；依 P5-10 同日冪等契約，已排定未來日期
+ * 保持不變，過期或未知日期排定為教會明日，避免每次重跑再向後推一天。
+ * 二月二十九日若目標年份不是閏年，保留舊
  * DateTime 建構式的失敗語意，不以未核定的日期折返規則偷偷改變基準。
  *
  * 使用邊界與維護：所有輸入都是當次不可變值，輸出是新的不可變結果；沒有 cache、
@@ -71,7 +73,10 @@ public static class ContactAnniversaryRule
         return new ContactCareUpdate(next, 100000000 + birthdate.Month - 1, age, AgeLevel(age), null, null, null);
     }
 
-    /// <summary>依教會當地日期重現舊到職欄位寫入；未知到職日不產生 patch。</summary>
+    /// <summary>
+    /// 依教會當地日期計算到職欄位；未知日期不更新。下一次日期最多在當日首次排程時
+    /// 推進至明日，已排定的未來日期保持不變，落實 P5-10 核定的同日重跑不重複寫入。
+    /// </summary>
     public static ContactCareUpdate CalculateOnboarding(DateTime onboardDate, DateTime? nextUpdate, DateTime churchToday)
     {
         var today = DateOnly(churchToday);
@@ -79,8 +84,8 @@ public static class ContactAnniversaryRule
             return new ContactCareUpdate(null, null, null, null, null, null, null);
 
         var days = checked((today - DateOnly(onboardDate)).Days);
-        var next = nextUpdate.HasValue && nextUpdate.Value.Year != UnknownYear
-            ? DateOnly(nextUpdate.Value).AddDays(1)
+        var next = nextUpdate.HasValue && nextUpdate.Value.Year != UnknownYear && DateOnly(nextUpdate.Value) > today
+            ? DateOnly(nextUpdate.Value)
             : today.AddDays(1);
         return new ContactCareUpdate(null, null, null, null, days, LeaveDays(days), next);
     }

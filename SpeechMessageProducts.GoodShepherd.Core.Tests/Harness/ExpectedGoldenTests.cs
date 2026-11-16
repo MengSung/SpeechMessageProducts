@@ -294,7 +294,7 @@ public sealed class ExpectedGoldenTests
         if (isNew)
         {
             Require(names.Count is >= 3 and <= 6 && cases.Count == names.Count, "CaseCountMismatch");
-            Require(!((JArray)expected["declaredDifferences"]!).Any(), "NewDeclarationsNotEmpty");
+            Require(((JArray)expected["declaredDifferences"]!).Count == 0, "NewDeclarationsNotEmpty");
             return;
         }
         var seenDeclarations = new HashSet<string>(StringComparer.Ordinal);

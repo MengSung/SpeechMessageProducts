@@ -8,6 +8,7 @@
  * 主要流程：以平台主要 contact ID 讀取必要欄位，再由 parentcustomerid 指向 account；
  * 從該正式 account 讀取 new_timezone（缺值沿既有產品預設 Asia/Taipei），用 ChurchClock
  * 取得當地日期，交給 ContactAnniversaryRule 計算生日及年資欄位，最後一次 Update。
+ * 讀取包含全部受影響欄位的既有值；同日重跑只比較差異，避免反覆觸發遞迴工作流程。
  * Shadow 使用外殼提供的 RecordingOrganizationService，因此查詢與 patch 都會被安全記錄，
  * 而非執行任何外部通知。
  *
@@ -42,14 +43,18 @@ public sealed class ContactAnniversaryService
         if (contactId == Guid.Empty) throw new ArgumentException("A contact identity is required.", nameof(contactId));
 
         var contact = service.Retrieve("contact", contactId, new ColumnSet(
-            "birthdate", "new_onboard_date", "new_next_update_onboard_date", "parentcustomerid"));
-        if (contact is null || contact.Id != contactId) throw new InvalidOperationException("The contact identity was not returned.");
+            "birthdate", "new_onboard_date", "new_next_update_onboard_date", "parentcustomerid",
+            "new_next_birthdate", "new_birthday_month", "new_age_number", "new_age_level",
+            "new_on_board_year", "new_special_leave_days"));
+        if (contact is null || contact.Id != contactId || !string.Equals(contact.LogicalName, "contact", StringComparison.Ordinal))
+            throw new InvalidOperationException("The contact identity was not returned.");
         var parent = contact.GetAttributeValue<EntityReference>("parentcustomerid");
         if (parent is null || parent.Id == Guid.Empty || !string.Equals(parent.LogicalName, "account", StringComparison.Ordinal))
             throw new InvalidOperationException("The contact must belong to an account church.");
 
         var church = service.Retrieve("account", parent.Id, new ColumnSet("new_timezone"));
-        if (church is null || church.Id != parent.Id) throw new InvalidOperationException("The church identity was not returned.");
+        if (church is null || church.Id != parent.Id || !string.Equals(church.LogicalName, "account", StringComparison.Ordinal))
+            throw new InvalidOperationException("The church identity was not returned.");
         var timeZone = church.GetAttributeValue<string>("new_timezone");
         if (string.IsNullOrWhiteSpace(timeZone)) timeZone = DefaultTimeZone;
         var today = new ChurchClock().TodayInChurch(timeZone);
@@ -101,4 +106,3 @@ public sealed class ContactAnniversaryService
         patch[name] = value.Value;
     }
 }
-

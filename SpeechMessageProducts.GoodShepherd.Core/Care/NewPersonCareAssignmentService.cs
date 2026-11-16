@@ -9,7 +9,8 @@
  * 主要流程：讀取 contact 的 new_cell_list_contact 與 new_small_group_log，驗證 lookup
  * 指向 list 後讀取 listname，再以教會授權時區取得當地日期，呼叫純值規則建立 patch。
  * 名單名稱含「關懷」寫 new_care_date，否則寫 new_assigne_group_date；歷程已有名單
- * 時不再追加。所有寫入以一次 contact Update 發布。
+ * 時不再追加。讀回兩種既有日期後比較差異，所有寫入以一次 contact Update 發布；
+ * 同日重跑不重複寫入相同日期。
  *
  * 使用邊界與維護：IOrganizationService 由外殼借用，本服務不 Dispose、不快取、不保存
  * 跨執行 Entity；contact、list、patch 只存在同步堆疊。缺少主要小組、錯誤 logical name、
@@ -35,14 +36,17 @@ public static class NewPersonCareAssignmentService
         ArgumentNullException.ThrowIfNull(service);
 #endif
         if (contactId == Guid.Empty) throw new ArgumentException("A contact identity is required.", nameof(contactId));
-        var contact = service.Retrieve("contact", contactId, new ColumnSet("new_cell_list_contact", "new_small_group_log", "parentcustomerid"));
-        if (contact is null || contact.Id != contactId) throw new InvalidOperationException("The contact identity was not returned.");
+        var contact = service.Retrieve("contact", contactId, new ColumnSet("new_cell_list_contact", "new_small_group_log", "parentcustomerid",
+            "new_care_date", "new_assigne_group_date"));
+        if (contact is null || contact.Id != contactId || !string.Equals(contact.LogicalName, "contact", StringComparison.Ordinal))
+            throw new InvalidOperationException("The contact identity was not returned.");
         var listReference = contact.GetAttributeValue<EntityReference>("new_cell_list_contact");
         if (listReference is null || listReference.Id == Guid.Empty || !string.Equals(listReference.LogicalName, "list", StringComparison.Ordinal))
             return;
 
         var list = service.Retrieve("list", listReference.Id, new ColumnSet("listname"));
-        if (list is null || list.Id != listReference.Id) throw new InvalidOperationException("The list identity was not returned.");
+        if (list is null || list.Id != listReference.Id || !string.Equals(list.LogicalName, "list", StringComparison.Ordinal))
+            throw new InvalidOperationException("The list identity was not returned.");
         var listName = list.GetAttributeValue<string>("listname") ?? string.Empty;
         if (listName.Length == 0) return;
 
@@ -50,7 +54,8 @@ public static class NewPersonCareAssignmentService
         if (parent is null || parent.Id == Guid.Empty || !string.Equals(parent.LogicalName, "account", StringComparison.Ordinal))
             throw new InvalidOperationException("The contact must belong to an account church.");
         var church = service.Retrieve("account", parent.Id, new ColumnSet("new_timezone"));
-        if (church is null || church.Id != parent.Id) throw new InvalidOperationException("The church identity was not returned.");
+        if (church is null || church.Id != parent.Id || !string.Equals(church.LogicalName, "account", StringComparison.Ordinal))
+            throw new InvalidOperationException("The church identity was not returned.");
         var timeZone = church.GetAttributeValue<string>("new_timezone");
         if (string.IsNullOrWhiteSpace(timeZone)) timeZone = "Asia/Taipei";
 
