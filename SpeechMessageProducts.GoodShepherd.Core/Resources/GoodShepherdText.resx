@@ -3,7 +3,7 @@
 檔案整體說明
 
 目的與定位：GoodShepherd 產品文字的中性資源來源，供 tools/I18nCheck 驗證並產生
-同模組的固定 C# 資料表；包含 Golden 路由詞彙、回覆模板、P5-05 舊週報及P5-07設備階名。
+同模組的固定 C# 資料表；包含 Golden 路由詞彙、回覆模板、P5-05 舊週報、P5-07設備階名及 P5-12 外送失敗原因。
 
 主要功能與流程：ResourceCatalog 以 XML 安全讀取本檔及同名語系檔，驗證穩定鍵、
 翻譯參數及資源預算，再由 ResourceGenerator 產生 GoodShepherdText.g.cs。
@@ -359,4 +359,7 @@ ID (查詢您的LINE ID)
   <data name="Fees.PayWay.P6" xml:space="preserve"><value>銀行轉帳</value></data>
   <data name="Fees.PayWay.P7" xml:space="preserve"><value>行動支付</value></data>
   <data name="Fees.PayWay.P8" xml:space="preserve"><value>銀聯卡</value></data>
+  <data name="Messaging.Failure.NotBound" xml:space="preserve"><value>未綁定 LINE</value></data>
+  <data name="Messaging.Failure.ChurchMismatch" xml:space="preserve"><value>收件者教會不符</value></data>
+  <data name="Messaging.Failure.Blocked" xml:space="preserve"><value>已封鎖或無法接收</value></data>
 </root>

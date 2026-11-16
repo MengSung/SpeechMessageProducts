@@ -3,10 +3,10 @@
 檔案整體說明
 
 目的與定位：GoodShepherd 產品已核定英文關鍵字資源，供 I18nCheck 與正式 Keyword catalog
-建立英文會友輸入的固定 alias；只包含 P3-07 允許的六個既有英文命令。
+建立英文會友輸入的固定 alias，並提供 P5-12 三項外送失敗原因的英文顯示文字。
 
 主要功能與流程：本檔由資源驗證器與中性 GoodShepherdText.resx 配對讀取，缺少的英文
-Keyword key 由系統表回退到中性文字，但本檔明確宣告的六個 key 才能作為英文來源 alias。
+Keyword key 由系統表回退到中性文字，但本檔明確宣告的六個 Keyword key 才能作為英文來源 alias；Messaging.Failure 僅作活動失敗顯示，不參與路由。
 產生的 GoodShepherdText.g.cs 由 I18nCheck 重生，不能手改。
 
 使用邊界與維護：本檔只保存固定編譯資源，不含 request、使用者、教會、憑證、I/O 或
@@ -23,4 +23,7 @@ Keyword key 由系統表回退到中性文字，但本檔明確宣告的六個 k
   <data name="Keyword.Rpg" xml:space="preserve"><value>RPG</value></data>
   <data name="Keyword.QueryUserId" xml:space="preserve"><value>ID</value></data>
   <data name="Keyword.NotifyLink" xml:space="preserve"><value>Notify</value></data>
+  <data name="Messaging.Failure.NotBound" xml:space="preserve"><value>LINE is not linked</value></data>
+  <data name="Messaging.Failure.ChurchMismatch" xml:space="preserve"><value>Recipient church does not match</value></data>
+  <data name="Messaging.Failure.Blocked" xml:space="preserve"><value>Blocked or unable to receive</value></data>
 </root>

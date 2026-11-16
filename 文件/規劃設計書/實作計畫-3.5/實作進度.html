@@ -241,10 +241,10 @@ footer{margin-top:36px;color:var(--muted);font-size:12.5px;text-align:center}
 const DATA = {
   "planVersion": "3.5",
   "snapshot": "2026-11-16 13:37 Asia/Taipei (UTC+08:00)",
-  "lastUpdated": "2026-11-16T13:37:31+08:00",
+  "lastUpdated": "2026-11-16T13:45:45+08:00",
   "branch": "1.0.0.11.Integration.P5.Worktree",
-  "head": "952a7c43",
-  "headline": "2026-11-16 13:37 Asia/Taipei (UTC+08:00)：P5-11收費已驗收；每日待辦、通知Shadow及CAS完成，兩DLL打包／全停用部署verify=0、乾淨固定八項guard全過。紀錄收尾後推送核對，接P5-12；live=deferred、differences=null。",
+  "head": "6391e845",
+  "headline": "2026-11-16 13:45 Asia/Taipei (UTC+08:00)：P5-11 已驗收並推送6391e845；P5-12訊息外送開始盤點／紅綠測試，a單人推播與狀態、b快速行銷與失敗彙總；時間盒兩天。live=deferred、differences=null。",
   "notices": [
     {
       "id": "plan-3.5-summary",
@@ -511,8 +511,8 @@ const DATA = {
       "phaseId": "階段 5",
       "level": "info",
       "title": "P5 進度摘要",
-      "lastUpdated": "2026-11-16T13:37:31+08:00",
-      "body": "2026-11-16 13:37 Asia/Taipei (UTC+08:00)：P5-01～P5-11已驗收；P5-11每日撥款待辦與繳費通知外殼完成，固定guard全方案7043測試通過，兩DLL打包／停用部署verify=0；待紀錄收尾推送核對後直接P5-12。reading／simulation、live=deferred、differences=null；不重測追蹤、不執行舊程式。",
+      "lastUpdated": "2026-11-16T13:45:45+08:00",
+      "body": "2026-11-16 13:45 Asia/Taipei (UTC+08:00)：P5-11 已驗收並推送6391e845；P5-12訊息外送開始盤點／紅綠測試，a單人推播與狀態、b快速行銷與失敗彙總；時間盒兩天。live=deferred、differences=null。",
       "steps": [
         "2026-11-14 08:26 Asia/Taipei (UTC+08:00)：已確認目標殘留目錄不是 Git worktree，移除後正式 P4／P5 worktree 清單不受影響。",
         "2026-11-14 08:26 Asia/Taipei (UTC+08:00)：export-metadata 唯讀結構快照建立成功；verify 因本機部署執行檔／連線前置失敗，未宣稱 goodshepherdback verify=0。",
@@ -710,10 +710,10 @@ const DATA = {
       "id": "階段 5",
       "name": "Plugin／Workflow 重建（36 個 DLL → 2 個）",
       "planned": "8～12 個工作天",
-      "actual": "2026-11-16 13:37 Asia/Taipei (UTC+08:00)：P5-11收費已驗收，乾淨固定guard八項全過；goodshepherdback 20新步驟停用、舊啟用皆0。紀錄提交後推送核對，接P5-12；reading／simulation、live=deferred、differences=null。",
+      "actual": "2026-11-16 13:45 Asia/Taipei (UTC+08:00)：P5-11 已驗收並推送6391e845；P5-12訊息外送開始盤點／紅綠測試，a單人推播與狀態、b快速行銷與失敗彙總；時間盒兩天。live=deferred、differences=null。",
       "current": true,
       "done": 11,
-      "active": 0
+      "active": 1
     },
     {
       "id": "階段 6",
@@ -1555,13 +1555,13 @@ const DATA = {
       "id": "P5-12",
       "phaseId": "階段 5",
       "name": "訊息與群發（風險最高）",
-      "status": "todo",
+      "status": "active",
       "deps": "P5-03、P2-05、P2-06",
       "live": "影子模式",
       "timebox": "2 天",
       "doneAt": "",
       "commit": "",
-      "note": "每次只送 1 人；不得 multicast／broadcast"
+      "note": "2026-11-16 13:45 Asia/Taipei (UTC+08:00)：P5-12啟動，先盤點舊入口與資料欄位，接a單人外送／回寫及b獨立群發／失敗彙總；預計兩天內驗收，live=deferred。"
     },
     {
       "id": "P5-13",
@@ -1795,7 +1795,41 @@ const DATA = {
       "note": "2026-11-14 12:54 Asia/Taipei (UTC+08:00)：8ad4dccc完整守門通過，實機3→4→3、step ID不變、免重啟；三次smoke/verify0、收尾停用及殘留0，詳wp-reports/P5-update-rollback.md。"
     }
   ],
-  "active": [],
+  "active": [
+    {
+      "id": "P5-12",
+      "startedAt": "2026-11-16 13:45 Asia/Taipei (UTC+08:00)",
+      "timebox": "2 天",
+      "dod": [
+        [
+          "舊來源與正式欄位盤點",
+          "no",
+          "只讀、不搬秘密"
+        ],
+        [
+          "單人外送與狀態回寫",
+          "no",
+          "先紅綠再小步提交"
+        ],
+        [
+          "快速行銷與失敗彙總",
+          "no",
+          "每活動單人、每輪獨立scope"
+        ],
+        [
+          "打包／全停用部署／固定guard",
+          "no",
+          "整包驗收後才推送"
+        ],
+        [
+          "一頁報告／封存／推送核對",
+          "no",
+          "驗收與乾淨guard通過後才push"
+        ]
+      ],
+      "next": "先查證來源教會與狀態欄位，實作單人外送規則"
+    }
+  ],
   "gates": [
     {
       "item": "方案建置（Release）",
