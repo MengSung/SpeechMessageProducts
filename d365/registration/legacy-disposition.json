@@ -343,7 +343,7 @@
           "type": "PresentRecordLinePlugIn.PresentRecordLinePlugIn"
         }
       ],
-      "reason": "對照現行註冊legacy的assembly／type；基準reading／simulation，live=deferred，不代表實機相容完成。 部署組件名為PresentRecordLinePlugInDatabase；reading，P7-02補驗。"
+      "reason": "對照現行註冊legacy的assembly／type；基準reading／simulation，live=deferred，不代表實機相容完成。 部署組件名為PresentRecordLinePlugInDatabase；reading為最終舊基準，不補跑退役程式；僅新程式影子live=deferred留階段7前處理。"
     },
     {
       "project": "QrCodeWorkflow",
