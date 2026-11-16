@@ -7,7 +7,8 @@
  *
  * 主要功能與流程：先讀取最小關聯欄位取得正式教會 ID，再由 FeeAllotRecords 完整
  * 驗證收費單、會友、教會、付款欄位與 row version；若付款日位於教會今日之後，
- * 依 P4-03 修正不建立待辦。否則用 AllotTaskIdentity 建立 feeId/queryDate payload，
+ * 依 P4-03 修正不建立待辦；其餘仍經既有 ResolveWindow 核對日期窗，再用
+ * AllotTaskIdentity 建立 feeId/queryDate payload，
  * 交給 OutboundTaskWriter 的資料庫替代鍵原子建立或讀回。
  *
  * 使用邊界與維護：SDK 與 store 只由呼叫端／本方法當次借用；不保存 Entity、教會、
@@ -60,6 +61,8 @@ public static class FeeAllotTaskService
         {
             return null;
         }
+        var window = AllotReconciliationRule.ResolveWindow(record.Snapshot.PayDate, churchToday);
+        if (window.FromDate > window.ToDate) return null;
 
         var sourceId = AllotTaskIdentity.SourceId(feeId, churchToday);
         using var store = new D365OutboundEnqueueStore(sdk);

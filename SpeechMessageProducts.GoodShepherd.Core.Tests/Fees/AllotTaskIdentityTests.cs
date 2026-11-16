@@ -7,6 +7,8 @@
  *
  * 主要功能與流程：建立固定 fee 與教會曆日，呼叫 sourceId／payload 純規則，再以
  * 確定性斷言驗證同日、跨日、格式及錯誤輸入，不建立任何 SDK 或外部資源。
+ * 固定 GUID 向量由獨立 Python hashlib 依既有 typed-length framing 計算，
+ * 兩宿主皆核對同一常數，避免只比較同函式兩次呼叫而漏掉序列化／目標差異。
  *
  * 主要保護契約：同一 fee 同一教會日重送得到相同 GUID；跨日得到不同 GUID；queryDate
  * 必須是無時區的有效曆日，payload 必須精確含 feeId 與 yyyyMMdd。錯誤輸入必須在 SDK
@@ -32,6 +34,8 @@ public sealed class AllotTaskIdentityTests
     public void SameFeeSameDay_IsIdempotent_AndNextDayDiffers()
     {
         var day = new DateTime(2026, 11, 13, 0, 0, 0, DateTimeKind.Unspecified);
+        Assert.Equal(Guid.Parse("e5bcf9f9-e677-4152-8b20-94dce10c14e7"),
+            AllotTaskIdentity.SourceId(FeeId, day));
         Assert.Equal(AllotTaskIdentity.SourceId(FeeId, day), AllotTaskIdentity.SourceId(FeeId, day));
         Assert.NotEqual(AllotTaskIdentity.SourceId(FeeId, day), AllotTaskIdentity.SourceId(FeeId, day.AddDays(1)));
     }
