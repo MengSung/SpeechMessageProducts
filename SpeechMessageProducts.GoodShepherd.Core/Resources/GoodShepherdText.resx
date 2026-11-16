@@ -331,4 +331,32 @@ ID (查詢您的LINE ID)
   <data name="Appointments.Signing.AbundanceImageParameter" xml:space="preserve"><value>豐富教會</value></data>
   <data name="Appointments.Signing.AltText" xml:space="preserve"><value>有一個簽核的動作等待您的決定....</value></data>
   <data name="Appointments.Signing.ActionPrefix" xml:space="preserve"><value>訊息類別=簽核&amp;動作=</value></data>
+  <data name="Fees.Notify.Template" xml:space="preserve"><value>敬收 {member} 奉獻&#13;&#10;日期 : {date}&#13;&#10;類別 : {category}  {others}&#13;&#10;付款方式: {payway}&#13;&#10;金額 : {amount}</value></data>
+  <data name="Fees.Category.C0" xml:space="preserve"><value>月定獻金</value></data>
+  <data name="Fees.Category.C1" xml:space="preserve"><value>節期獻金</value></data>
+  <data name="Fees.Category.C2" xml:space="preserve"><value>感恩獻金</value></data>
+  <data name="Fees.Category.C3" xml:space="preserve"><value>對內獻金</value></data>
+  <data name="Fees.Category.C4" xml:space="preserve"><value>對外獻金</value></data>
+  <data name="Fees.Category.C5" xml:space="preserve"><value>慈善獻金</value></data>
+  <data name="Fees.Category.C6" xml:space="preserve"><value>建築獻金</value></data>
+  <data name="Fees.Category.C7" xml:space="preserve"><value>宣教獻金(聖餐)</value></data>
+  <data name="Fees.Category.C8" xml:space="preserve"><value>特別獻金</value></data>
+  <data name="Fees.Category.C9" xml:space="preserve"><value>獎學獻金</value></data>
+  <data name="Fees.Category.C10" xml:space="preserve"><value>禮拜獻金</value></data>
+  <data name="Fees.Category.C11" xml:space="preserve"><value>利息收入</value></data>
+  <data name="Fees.Category.C12" xml:space="preserve"><value>其他收入</value></data>
+  <data name="Fees.Category.C13" xml:space="preserve"><value>借入款</value></data>
+  <data name="Fees.Category.C14" xml:space="preserve"><value>補助款</value></data>
+  <data name="Fees.Category.C15" xml:space="preserve"><value>專帳其他收入(利息)</value></data>
+  <data name="Fees.Category.C16" xml:space="preserve"><value>建堂認獻</value></data>
+  <data name="Fees.Category.C17" xml:space="preserve"><value>學青牧區</value></data>
+  <data name="Fees.PayWay.P0" xml:space="preserve"><value>現金</value></data>
+  <data name="Fees.PayWay.P1" xml:space="preserve"><value>信用卡</value></data>
+  <data name="Fees.PayWay.P2" xml:space="preserve"><value>ATM轉帳</value></data>
+  <data name="Fees.PayWay.P3" xml:space="preserve"><value>超商付款</value></data>
+  <data name="Fees.PayWay.P4" xml:space="preserve"><value>未知</value></data>
+  <data name="Fees.PayWay.P5" xml:space="preserve"><value>LinePay</value></data>
+  <data name="Fees.PayWay.P6" xml:space="preserve"><value>銀行轉帳</value></data>
+  <data name="Fees.PayWay.P7" xml:space="preserve"><value>行動支付</value></data>
+  <data name="Fees.PayWay.P8" xml:space="preserve"><value>銀聯卡</value></data>
 </root>

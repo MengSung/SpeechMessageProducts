@@ -5,9 +5,9 @@
  * Live 在查詢任何收件者或 token 前 fail-closed；Shadow 才讀取 fee 的正式會友
  * lookup 並記錄有界通知意圖，避免把未完成的 Host 推播架構誤當成已實作。
  *
- * 主要功能與流程：活動只接受 new_fee 的 ExecuteWorkflow／Create／Update 來源；
+ * 主要功能與流程：活動只接受 new_fee 的 ExecuteWorkflow 來源；舊 Create／Update 無業務效果。
  * Live 立即以固定錯誤拒絕，不建立 client、不讀 token、不查收件者。Shadow 沿
- * fee→contact 正式 lookup 取得目標，使用 feeId 作 Retry Key 並寫入安全固定雜湊，
+ * fee→contact 正式 lookup 取得目標，使用 feeId 作 Retry Key 並寫入實際訊息安全雜湊，
  * 由 ActivityShellBase 在 finally 輸出並 Dispose recorder。
  *
  * 使用邊界與維護：活動實例不保存 context、SDK、Entity、Session、credential、
@@ -16,7 +16,7 @@
  */
 using System;
 using System.Activities;
-using System.Security.Cryptography;
+using System.Threading;
 using Microsoft.Xrm.Sdk;
 using Microsoft.Xrm.Sdk.Workflow;
 using SpeechMessage.Dynamics.Plugins.Infrastructure;
@@ -28,9 +28,8 @@ namespace SpeechMessage.Dynamics.Workflows.Fees;
 /// <summary>繳費通知外殼；Live 依核定缺口拒絕，Shadow 記錄安全意圖。</summary>
 public sealed class FeeNotifyActivity : ActivityShellBase
 {
-    private const string TemplateKey = "Fees.FeeNotify";
-
     /// <summary>保留舊活動輸入名稱；不作為資料授權或訊息內容。</summary>
+    [RequiredArgument]
     [Input("InputParameter")]
     public InArgument<string> InputParameter { get; set; } = new();
 
@@ -42,27 +41,18 @@ public sealed class FeeNotifyActivity : ActivityShellBase
     internal override void ExecuteRule(ActivityInput input, PluginServices services)
     {
         if (input.PrimaryEntityName != "new_fee"
-            || input.MessageName is not ("ExecuteWorkflow" or "Create" or "Update"))
+            || input.MessageName != "ExecuteWorkflow")
             return;
         if (!services.IsShadow)
             throw new InvalidPluginExecutionException(
                 "P5-PROP-006: Fee notification Live delivery is not implemented.");
 
-        var contactId = FeeAllotTaskService.ResolveContactId(services.Organization, input.PrimaryEntityId);
-        services.ShadowPush!.Record(contactId, TemplateKey, RetryKey(input.PrimaryEntityId), 1, ContentSha256());
+        PluginServices.Wait(FeeNotificationService.RecordAsync(services.Organization,
+            RetryKey(input.PrimaryEntityId), input.OrganizationId, services.ShadowPush!, CancellationToken.None));
     }
 
     /// <summary>通知重試鍵固定使用伺服器提供的收費單正式 ID，不以會友或活動實例取代。</summary>
     internal static Guid RetryKey(Guid feeId) =>
         feeId == Guid.Empty ? throw new ArgumentException("A fee identity is required.", nameof(feeId)) : feeId;
 
-    /// <summary>
-    /// 以舊通知範本識別建立不含訊息原文的摘要；Shadow 只保存摘要，不保存 token、LINE ID 或個資。
-    /// </summary>
-    internal static string ContentSha256()
-    {
-        using var hash = SHA256.Create();
-        return BitConverter.ToString(hash.ComputeHash(
-            System.Text.Encoding.UTF8.GetBytes(TemplateKey))).Replace("-", string.Empty).ToLowerInvariant();
-    }
 }
