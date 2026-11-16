@@ -11,6 +11,8 @@
  * - P5-02 僅 PluginHarness 的 net48 節點取得目標例外；其他工具與相似名稱仍檢查 ProductTarget。
  * - P2-05共用核心向Localization取字合法，反向仍拒絕；雙目標專案不能指向只有 net10 的產品，即使當次建置選到 net10 也不豁免整體雙目標契約。
  * - Extensions、ASP.NET 與 Dataverse 直接套件不得進入共用雙目標；以各套件正反例保護辨識。
+ * - P6-06 以合成圖注入九個舊 ASP.NET Core 套件，保護直接及還原相依的拒絕，
+ *   並以真實 ChurchReport 的 Debug／Release 評估確認不再使用這些套件；不啟動網站或外部連線。
  * - ToolUtility.Core 的 Dataverse 例外只限 net10 SDK 型別來源，不能擴大為 net462 或任意 Extensions 豁免。
  * - 沙箱只引用可提供 net462 的雙目標產品；net48 宿主不等於合格部署產品。
  * - R2 以公開型別宣告檢查主機／Plugin 邊界；R3 以精確來源檔白名單保護相容
@@ -44,6 +46,47 @@ public sealed class ArchitectureRuleTests
     /// <summary>固定清冊欄位順序，唯讀 schema 不含來源值或任何跨案例可變狀態。</summary>
     private static readonly IReadOnlyList<string> InventoryFields =
         Array.AsReadOnly(new[] { "rule", "project", "target", "configuration", "source", "symbol" });
+
+    /// <summary>
+    /// 將已由共用框架提供的舊套件逐一注入主機的直接參考與還原相依，
+    /// 決定性斷言均回報相同套件的 LegacyAspNetCorePackage，避免傳遞相依繞過守門。
+    /// 合成圖只含當次案例純值，不載入組件、不持有連線或跨案例可變資源。
+    /// </summary>
+    /// <param name="package">06A 明列、必須拒絕的精確套件 ID。</param>
+    [Theory]
+    [InlineData("Microsoft.AspNetCore")]
+    [InlineData("Microsoft.AspNetCore.Authentication.Cookies")]
+    [InlineData("Microsoft.AspNetCore.Mvc")]
+    [InlineData("Microsoft.AspNetCore.Routing")]
+    [InlineData("Microsoft.AspNetCore.Server.IIS")]
+    [InlineData("Microsoft.AspNetCore.Server.IISIntegration")]
+    [InlineData("Microsoft.AspNetCore.Server.Kestrel")]
+    [InlineData("Microsoft.AspNetCore.Session")]
+    [InlineData("Microsoft.AspNetCore.StaticFiles")]
+    public void SyntheticHost_AspNetCore2xPackage_IsReported(string package)
+    {
+        var host = Product("SpeechMessageProducts.ChurchReport", "net10.0", "net10.0");
+        Assert.Contains(ArchitectureRules.Validate(Graph(host with { Packages = new[] { package } })),
+            item => item.Rule == "LegacyAspNetCorePackage" && item.Dependency == package);
+        Assert.Contains(ArchitectureRules.Validate(Graph(host with { RestoredDependencies = new[] { package } })),
+            item => item.Rule == "LegacyAspNetCorePackage" && item.Dependency == package);
+    }
+
+    /// <summary>
+    /// 以實際方案評估 ChurchReport 的直接及已還原套件，保護兩個組態都不重新帶入舊框架套件。
+    /// 讀取器擁有有界 MSBuild 子程序及來源快照並於完成後釋放；本測試不讀秘密、不連 D365。
+    /// </summary>
+    /// <param name="configuration">分別評估 Debug 與 Release，不以單一組態代替。</param>
+    [Theory]
+    [InlineData("Debug")]
+    [InlineData("Release")]
+    public void ChurchReport_ResolvedPackages_ExcludeAspNetCore2xPackageIds(string configuration)
+    {
+        var projects = ArchitectureProjectReader.ReadSolution(configuration);
+        Assert.Contains(projects, project => project.Name == "SpeechMessageProducts.ChurchReport");
+        Assert.DoesNotContain(ArchitectureRules.Validate(projects),
+            item => item.Project == "SpeechMessageProducts.ChurchReport" && item.Rule == "LegacyAspNetCorePackage");
+    }
 
     /// <summary>雙目標專案不能指向只有 net10 的產品，即使當次建置選到 net10 也不豁免整體雙目標契約。</summary>
     [Fact]

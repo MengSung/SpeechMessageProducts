@@ -240,11 +240,11 @@ footer{margin-top:36px;color:var(--muted);font-size:12.5px;text-align:center}
  */
 const DATA = {
   "planVersion": "3.5",
-  "snapshot": "2026-11-16 18:44 Asia/Taipei (UTC+08:00)",
-  "lastUpdated": "2026-11-16T18:44:20+08:00",
+  "snapshot": "2026-11-16 18:52 Asia/Taipei (UTC+08:00)",
+  "lastUpdated": "2026-11-16T18:52:17+08:00",
   "branch": "1.0.0.11.Integration.P6.Worktree",
-  "head": "9b7ac0a0",
-  "headline": "2026-11-16 18:44 Asia/Taipei (UTC+08:00)：P6-00 開工切換完成；七包仍待驗收，接 P6-06。D34 連續失敗已停止並待替代方式核定，不影響離線包；不啟動 P7。",
+  "head": "1ebc563e",
+  "headline": "2026-11-16 18:52 Asia/Taipei (UTC+08:00)：P6-06 舊套件防回歸先紅後綠中；D34 待核定，不做實機簽到，不啟動 P7。",
   "notices": [
     {
       "id": "plan-3.5-summary",
@@ -592,14 +592,15 @@ const DATA = {
       "phaseId": "階段 6",
       "level": "info",
       "title": "P6 進度摘要",
-      "lastUpdated": "2026-11-16T18:44:20+08:00",
-      "body": "2026-11-16 18:44 Asia/Taipei (UTC+08:00)：P6-00 開工切換完成；七包仍待驗收，接 P6-06。D34 連續失敗已停止並待替代方式核定，不影響離線包；不啟動 P7。",
+      "lastUpdated": "2026-11-16T18:52:17+08:00",
+      "body": "2026-11-16 18:52 Asia/Taipei (UTC+08:00)：P6-06 舊套件防回歸先紅後綠中；D34 待核定，不做實機簽到，不啟動 P7。",
       "steps": [
         "2026-11-16 18:40 Asia/Taipei (UTC+08:00)：完整讀取四份依據，核對分支、起點與七包 todo；建立父任務，保存四個基準數字，納入原樣 06A。",
         "2026-11-16 18:40 Asia/Taipei (UTC+08:00)：三個 P5 殘留任務依既有驗收證據封存；330 筆 C:/smv 舊工具及原始證據保留移出，C:/smv 僅留 guard。",
         "2026-11-16 18:40 Asia/Taipei (UTC+08:00)：goodshepherdback verify=0、新步驟 22 個皆停用、舊步驟及舊流程啟用 0；Development 首頁 HTTP 200，Node／Edge／repo 外 playwright-core 可用。",
         "2026-11-16 18:40 Asia/Taipei (UTC+08:00)：D34 PowerShell／SDK 唯讀探針兩次程序崩潰，已停止重試並請使用者核定改用獨立程序；尚未完成 D34 當下核對，不做頁面簽到或真實推播。離線包繼續。",
-        "2026-11-16 18:44 Asia/Taipei (UTC+08:00)：AGENTS、DATA、原樣 06A、父任務與前置清單完成；輕量三項通過（編碼 19、文件 1747、進度頁 28），本包不推送。D34 未完成，如實登錄。"
+        "2026-11-16 18:44 Asia/Taipei (UTC+08:00)：AGENTS、DATA、原樣 06A、父任務與前置清單完成；輕量三項通過（編碼 19、文件 1747、進度頁 28），本包不推送。D34 未完成，如實登錄。",
+        "2026-11-16 18:52 Asia/Taipei (UTC+08:00)：九個套件反例已紅燈；規則與真實兩組態評估驗證中，未驗收。"
       ]
     }
   ],
@@ -741,10 +742,10 @@ const DATA = {
       "id": "階段 6",
       "name": "ChurchReport 改用共用層",
       "planned": "3～4 個工作天",
-      "actual": "2026-11-16 18:44 Asia/Taipei (UTC+08:00)：P6-00 完成；七包尚未驗收，下一包 P6-06。",
+      "actual": "2026-11-16 18:52 Asia/Taipei (UTC+08:00)：九個套件反例已紅燈；規則與真實兩組態評估驗證中，未驗收。",
       "current": true,
       "done": 0,
-      "active": 0
+      "active": 1
     },
     {
       "id": "階段 7",
@@ -1664,13 +1665,13 @@ const DATA = {
       "id": "P6-06",
       "phaseId": "階段 6",
       "name": "AspNetCore 2.2.x 舊套件評估",
-      "status": "todo",
+      "status": "active",
       "deps": "—",
       "live": "無",
       "timebox": "1 天",
       "doneAt": "",
       "commit": "",
-      "note": ""
+      "note": "2026-11-16 18:52 Asia/Taipei (UTC+08:00)：九個套件反例已紅燈；規則與真實兩組態評估驗證中，未驗收。"
     },
     {
       "id": "P6-07",
@@ -1841,7 +1842,41 @@ const DATA = {
       "note": "2026-11-16 18:40 Asia/Taipei (UTC+08:00)：依 06A §6A 四情境前後比對；D34 未確認前不執行簽到，D6-15 退路如實揭露。"
     }
   ],
-  "active": [],
+  "active": [
+    {
+      "id": "P6-06",
+      "startedAt": "2026-11-16 18:49 Asia/Taipei (UTC+08:00)",
+      "timebox": "2 小時",
+      "dod": [
+        [
+          "測試",
+          "no",
+          "九個反例已紅；真實組態測試驗證中。"
+        ],
+        [
+          "守門",
+          "no",
+          "程式提交後固定 guard 完整八項。"
+        ],
+        [
+          "覆蓋率",
+          "na",
+          "本包沒有新增專案。"
+        ],
+        [
+          "實機",
+          "na",
+          "本包不明列實機，不連 D365。"
+        ],
+        [
+          "回報與進度",
+          "no",
+          "一頁回報與驗收時間待守門後補齊。"
+        ]
+      ],
+      "next": "先確認架構測試與建置，再提交及固定 guard。"
+    }
+  ],
   "gates": [
     {
       "item": "方案建置（Release）",
@@ -2009,7 +2044,7 @@ const DATA = {
     },
     {
       "id": "P6-LATER-001",
-      "text": "2026-11-16 18:40 Asia/Taipei (UTC+08:00)：Microsoft.AspNet.WebApi.Client 是否仍需要，P6-06 只記使用次數、不移除套件。",
+      "text": "2026-11-16 18:52 Asia/Taipei (UTC+08:00)：WebApi.Client API 只查不改：ReadAsAsync 0 處、PostAsJsonAsync 0 處、PutAsJsonAsync 0 處、System.Net.Http.Formatting 0 處、MediaTypeFormatter 0 處。目前仍保留套件，是否移除留後續核定。",
       "source": "06A §9",
       "addedAt": "2026-11-16 18:40 Asia/Taipei (UTC+08:00)"
     },

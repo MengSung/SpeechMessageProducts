@@ -7,6 +7,8 @@
  * 本檔宣告 ArchitectureProject、ArchitectureViolation、ArchitectureRules。
  * - 黃金資料與部署工具各以精確名稱分類；產品不得參考工具，工具不得直接參考沙箱，未知名稱仍拒絕。
  * - 所有非測試節點都檢查目標框架，僅精確 PluginHarness 的 net48 具有額外相容例外。
+ * - P6-06 對所有專案的直接／已還原相依拒絕九個舊 ASP.NET Core 套件，
+ *   精確識別套件而非拒絕全部 AspNetCore 前綴，保留目前合法的 NewtonsoftJson 整合套件。
  * - 驗證完整評估圖；呼叫端擁有輸入，結果只含固定的架構診斷。
  * - 檢查 NuGet 已選出的 Framework 相依，而不是只相信 csproj 宣告能提供 net462。
  * - 部署端 Plugin 與 Workflow 都受同一個 v4.6.2 沙箱契約約束。
@@ -82,6 +84,23 @@ internal sealed record ArchitectureViolation(string Rule, string Project, string
 /// <summary>純函式 R2／R3／R4／R9 規則；每次驗證獨立建立結果，不保存跨測試或跨目標的可變靜態圖。</summary>
 internal static class ArchitectureRules
 {
+    /// <summary>
+    /// 共用框架已提供的九個舊套件 ID；唯讀固定清單不含租戶、使用者或當次評估狀態，
+    /// 由 Validate 同時比對直接參考及還原相依，套件身分以 NuGet 的不分大小寫語意判定。
+    /// </summary>
+    private static readonly IReadOnlyList<string> LegacyAspNetCorePackages = Array.AsReadOnly(new[]
+    {
+        "Microsoft.AspNetCore",
+        "Microsoft.AspNetCore.Authentication.Cookies",
+        "Microsoft.AspNetCore.Mvc",
+        "Microsoft.AspNetCore.Routing",
+        "Microsoft.AspNetCore.Server.IIS",
+        "Microsoft.AspNetCore.Server.IISIntegration",
+        "Microsoft.AspNetCore.Server.Kestrel",
+        "Microsoft.AspNetCore.Session",
+        "Microsoft.AspNetCore.StaticFiles"
+    });
+
     /// <summary>驗證完整評估圖；呼叫端擁有輸入，結果只含固定的架構診斷。</summary>
     /// <param name="projects">每目標的獨立節點。</param><returns>違規清單。</returns>
     internal static IReadOnlyList<ArchitectureViolation> Validate(IReadOnlyList<ArchitectureProject> projects)
@@ -92,6 +111,17 @@ internal static class ArchitectureRules
             .ToDictionary(group => group.Key, group => group.First(), StringComparer.Ordinal);
         foreach (var project in projects)
         {
+            // 套件禁用規則適用於任何專案，必須先於測試宿主的產品架構豁免。
+            // 同一套件可能同時出現在直接及還原清單，僅產生一筆診斷，不保留來源圖。
+            foreach (var package in project.Packages.Concat(project.RestoredDependencies)
+                .Distinct(StringComparer.OrdinalIgnoreCase))
+            {
+                if (LegacyAspNetCorePackages.Contains(package, StringComparer.OrdinalIgnoreCase))
+                {
+                    Add("LegacyAspNetCorePackage", package);
+                }
+            }
+
             if (project.IsTest)
             {
                 continue;

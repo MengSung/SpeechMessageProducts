@@ -6,7 +6,7 @@
   "risk": "high",
   "domain": "backend",
   "currentPhase": "implementation",
-  "nextAction": "2026-11-16 18:44 Asia/Taipei (UTC+08:00)：P6-00 收尾後執行 P6-06，依 06A 固定順序；D34 待使用者核定，不做頁面簽到或 LINE 實測。",
+  "nextAction": "2026-11-16 18:52 Asia/Taipei (UTC+08:00)：執行 P6-06，九個合成套件反例已紅燈；待綠燈後提交與完整 guard。D34 待核定。",
   "createdAt": "2026-11-16T18:40:57+08:00",
   "branch": "1.0.0.11.Integration.P6.Worktree"
 }

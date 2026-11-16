@@ -19,7 +19,8 @@
   "pr_url": null,
   "subtasks": [],
   "children": [
-    "11-16-p6-00-startup-preflight"
+    "11-16-p6-00-startup-preflight",
+    "11-16-p6-06-legacy-aspnetcore-packages"
   ],
   "parent": null,
   "relatedFiles": [],
