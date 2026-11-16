@@ -664,6 +664,42 @@
       "steps": [],
       "activities": [
         {
+          "module": "care",
+          "type": "SpeechMessage.Dynamics.Workflows.Care.NewPersonCareActivity",
+          "displayName": "NewPersonCareActivity",
+          "legacy": [
+            {
+              "assembly": "NewPersonCareWorkflow",
+              "type": "NewPersonCareWorkflow.NewPersonCareWorkflowClass"
+            }
+          ],
+          "shadowReport": {
+            "file": "",
+            "differences": null,
+            "basis": "reading"
+          }
+        },
+        {
+          "module": "care",
+          "type": "SpeechMessage.Dynamics.Workflows.Care.ContactAnniversaryActivity",
+          "displayName": "ContactAnniversaryActivity",
+          "legacy": [
+            {
+              "assembly": "HappyBirthdayWorkflow",
+              "type": "HappyBirthdayWorkflowNamespace.HappyBirthdayWorkflowPlugIn"
+            },
+            {
+              "assembly": "RecursiveWorkflow",
+              "type": "RecursiveWorkflowNameSpace.RecursiveWorkflowPlugIn"
+            }
+          ],
+          "shadowReport": {
+            "file": "",
+            "differences": null,
+            "basis": "reading"
+          }
+        },
+        {
           "module": "weeklyreports",
           "type": "SpeechMessage.Dynamics.Workflows.WeeklyReports.WeeklyReportGenerationActivity",
           "displayName": "WeeklyReportWorkflow",
