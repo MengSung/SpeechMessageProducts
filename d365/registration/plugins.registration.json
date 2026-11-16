@@ -707,6 +707,78 @@
           "enabledByOrganization": {
             "goodshepherdback": false
           }
+        },
+        {
+          "type": "SpeechMessage.Dynamics.Plugins.Messaging.OutboundLetterPlugin",
+          "message": "Create",
+          "entity": "letter",
+          "stage": "PostOperation",
+          "mode": "Asynchronous",
+          "rank": 40,
+          "filteringAttributes": [],
+          "images": [],
+          "module": "messaging",
+          "unsecureConfig": "{\"mode\":\"Shadow\"}",
+          "secureConfig": "",
+          "enabledByOrganization": {
+            "goodshepherdback": false
+          },
+          "legacy": [
+            {
+              "assembly": "AbundanceLineMessagePlugInDatabase",
+              "type": "LineMessagePlugIn.LineMessagePlugIn",
+              "stepId": "2f2d14be-df0d-f011-8143-00155d006608"
+            },
+            {
+              "assembly": "AbundanceLineMessagePlugIn",
+              "type": "LineMessagePlugIn.LineMessagePlugIn",
+              "stepId": "d64df5cc-ad5c-e811-80d5-00155d006913"
+            }
+          ],
+          "shadowReport": {
+            "file": ".trellis/tasks/archive/2026-11/11-16-p5-12-outbound-letters/wp-reports/P5-12-report.md",
+            "differences": null,
+            "basis": "reading"
+          }
+        },
+        {
+          "type": "SpeechMessage.Dynamics.Plugins.Messaging.OutboundLetterPlugin",
+          "message": "Update",
+          "entity": "letter",
+          "stage": "PostOperation",
+          "mode": "Asynchronous",
+          "rank": 40,
+          "filteringAttributes": [
+            "directioncode",
+            "description",
+            "from",
+            "to",
+            "new_message_category"
+          ],
+          "images": [],
+          "module": "messaging",
+          "unsecureConfig": "{\"mode\":\"Shadow\"}",
+          "secureConfig": "",
+          "enabledByOrganization": {
+            "goodshepherdback": false
+          },
+          "legacy": [
+            {
+              "assembly": "AbundanceLineMessagePlugInDatabase",
+              "type": "LineMessagePlugIn.LineMessagePlugIn",
+              "stepId": "2b949ec7-df0d-f011-8143-00155d006608"
+            },
+            {
+              "assembly": "AbundanceLineMessagePlugIn",
+              "type": "LineMessagePlugIn.LineMessagePlugIn",
+              "stepId": "bb0d4ee5-ad5c-e811-80d5-00155d006913"
+            }
+          ],
+          "shadowReport": {
+            "file": ".trellis/tasks/archive/2026-11/11-16-p5-12-outbound-letters/wp-reports/P5-12-report.md",
+            "differences": null,
+            "basis": "reading"
+          }
         }
       ]
     },

@@ -98,14 +98,14 @@
       "exception": null
     },
     {
-      "name": "update-depth-stop",
+      "name": "outbound-empty-text",
       "entrypoint": "LineMessagePlugIn.LineMessagePlugIn",
       "writes": [],
       "lineCalls": [],
       "outputs": {
         "ReadingSource": "LineMessagePlugInClass.cs:261-285,996-1045,1099-1158,3732-3755; LineMessagePlugIn.cs:29,72-76"
       },
-      "exception": null
+      "exception": "ArgumentException"
     },
     {
       "name": "first-read-failure",
@@ -153,6 +153,13 @@
       "category": 1,
       "reason": "LineMessagePlugIn.cs:72-76 舊外殼吞錯；新外殼保留原始例外實例，不能假完成或印出敏感訊息。",
       "test": "Messaging_UnexpectedError_Rethrown"
+    },
+    {
+      "case": "outbound-empty-text",
+      "position": "$.cases[4].exception",
+      "category": 5,
+      "reason": "LineMessagePlugInClass.cs:1099-1158 舊入口未限制空白文字；新規則拒絕空字串，不發出無效LINE內容。",
+      "test": "Messaging_Scenarios_MatchExpected"
     }
   ]
 }

@@ -196,6 +196,70 @@ public sealed class OutboundLetterRuleTests
         Assert.Equal(0, f.Calls);
     }
 
+    /// <summary>兩目標讀同份六案閱讀期望，真正規則的分類與重試摘要須吻合；不測平台深度政策。</summary>
+    [Fact]
+    public async Task Messaging_Scenarios_MatchExpected()
+    {
+        var assembly = typeof(OutboundLetterRuleTests).Assembly;
+        using var scenariosStream = assembly.GetManifestResourceStream("SpeechMessageProducts.GoodShepherd.Core.Tests.Golden.Legacy.messaging.scenarios.json")!;
+        using var expectedStream = assembly.GetManifestResourceStream("SpeechMessageProducts.GoodShepherd.Core.Tests.Golden.Legacy.messaging.expected.json")!;
+        using var scenariosReader = new StreamReader(scenariosStream);
+        using var expectedReader = new StreamReader(expectedStream);
+        var scenarios = JObject.Parse(scenariosReader.ReadToEnd());
+        var expected = JObject.Parse(expectedReader.ReadToEnd());
+        Assert.Equal("reading", (string?)expected["basis"]);
+        Assert.Equal(6, ((JArray)scenarios["cases"]!).Count);
+        for (var index = 0; index < 6; index++)
+        {
+            var scenario = scenarios["cases"]![index]!;
+            var result = expected["cases"]![index]!;
+            Assert.Equal((string?)scenario["name"], (string?)result["name"]);
+            var seed = scenario["seed"]!.Children<JObject>().ToArray();
+            var letter = seed.Single(x => (string?)x["alias"] == "letter")["fields"]!;
+            var member = seed.Single(x => (string?)x["alias"] == "member")["fields"]!;
+            using var f = new Fixture { Bound = member["new_lineid"]!.Type != JTokenType.Null,
+                OtherChurch = (string?)member["parentcustomerid"]!["ref"] != "church" };
+            var original = new InvalidOperationException("synthetic");
+            if ((string?)scenario["fault"] == "first-read") f.ReadFailure = original;
+            OutboundLetterResult? actual = null;
+            var sink = new Sink();
+            var failure = await Record.ExceptionAsync(async () => actual = await f.Rule.RecordAsync(
+                (bool)letter["directioncode"]!, f, f.Context, f.ActivityId, f.ContactId,
+                (string)letter["description"]!, sink, CancellationToken.None));
+            Assert.Equal((string?)result["exception"], failure?.GetType().Name);
+            if ((string?)scenario["fault"] == "first-read") Assert.Same(original, failure);
+            if (failure is null)
+            {
+                Assert.NotNull(actual);
+                var writes = (JArray)result["writes"]!;
+                if (!(bool)letter["directioncode"]!) Assert.Equal(OutboundLetterStatus.Ignored, actual!.Status);
+                else if (writes[0]!["fields"]!["statecode"]!.Value<int>() == 1)
+                    Assert.Equal(OutboundLetterStatus.IntentRecorded, actual!.Status);
+                else
+                {
+                    Assert.Equal(OutboundLetterStatus.Failed, actual!.Status);
+                    Assert.Equal(((string)writes[0]!["fields"]!["category"]!).Substring(4), actual.FailureKey);
+                }
+            }
+            Assert.Equal(((JArray)result["lineCalls"]!).Count, sink.Count);
+            if (sink.Count != 0) Assert.Equal(f.ActivityId, sink.RetryKey);
+            Assert.Equal(0, f.Calls);
+        }
+    }
+
+    /// <summary>同一正式活動兩次影子呼叫保留同鍵，沒有 HTTP 或另造每次隨機鍵。</summary>
+    [Fact]
+    public async Task Messaging_RetryKey_IsStableForSameEvent()
+    {
+        using var f = new Fixture();
+        var first = new Sink(); var second = new Sink();
+        await f.Rule.RecordAsync(true, f, f.Context, f.ActivityId, f.ContactId, "synthetic", first, CancellationToken.None);
+        await f.Rule.RecordAsync(true, f, f.Context, f.ActivityId, f.ContactId, "synthetic", second, CancellationToken.None);
+        Assert.Equal(f.ActivityId, first.RetryKey);
+        Assert.Equal(first.RetryKey, second.RetryKey);
+        Assert.Equal(0, f.Calls);
+    }
+
     /// <summary>掃描本模組的實際產品來源，禁止新增群送端點；共用 SDK 的其他功能不在此範圍。</summary>
     [Fact]
     public void Source_NoMulticastOrBroadcast()

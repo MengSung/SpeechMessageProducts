@@ -115,7 +115,7 @@ internal static class MessagingGoldenRunner
             Exception? error = null;
             try { f.Run(); } catch (Exception failure) { error = failure; }
             Require(error?.GetType().Name == (string?)result["exception"], "exception type");
-            if (error is not null) Require(ReferenceEquals(error, original), "exception identity");
+            if ((string?)scenario["fault"] == "first-read") Require(ReferenceEquals(error, original), "exception identity");
             Require(f.Sdk.WriteRecords.Count == 0, "zero real writes");
             var operations = f.Trace.Entries.Where(x => x.StartsWith("SMV-SHADOW|1|", StringComparison.Ordinal))
                 .Select(x => JObject.Parse(x.Substring("SMV-SHADOW|1|".Length))).ToArray();

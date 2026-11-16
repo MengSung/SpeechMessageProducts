@@ -1,4 +1,4 @@
-# P5-12 舊入口盤點（進行中）
+# P5-12 舊入口盤點
 
 2026-11-16 14:01 Asia/Taipei (UTC+08:00)：已逐檔讀取本機退役來源的方法與分支，不執行舊 DLL、不抄寫 token、LINE ID、個資或機密。本表不代表功能全部完成或實機驗收。
 
@@ -6,6 +6,7 @@
 
 - `LineMessagePlugIn.cs:29`：Depth>2 且非 Create 才返回；72–76 外層吞錯，新版必須重拋。
 - `LineMessagePlugInClass.cs:264` 是外送方向；996 分派單人／群發／全部，1099 遍歷 to party，3732 解析 send type。新版只接受一活動一 Contact，其他形式不得靜默截成第一人。
+- export-legacy 確認 letter Create／Update 皆 PostOperation、同步、rank1、無篩選；AbundanceLineMessagePlugIn 及 AbundanceLineMessagePlugInDatabase 的四步皆停用，無可對應的純 LineMessagePlugIn 步驟。新入口依05A改非同步；Update僅方向／內容／from／to／媒體篩選，不讓狀態回寫自行重觸發。
 - 舊程式宣告 letterid，不照抄；goodshepherdback 唯讀 metadata 確認真正主鍵為 activityid。
 - metadata 確認完成 state/status=1/4，取消=2/5，沒有 Failed 狀態；category／subcategory 均250字。原始證據只在本機 `artifacts/p5-12-letter-metadata.log`，不提交。
 - 不新增欄位、不改自由文字 description：category 使用 `SMV:Messaging.Completed` 或 `SMV:Messaging.Failure.{NotBound,ChurchMismatch,Blocked}`，subcategory 放字典原因。只有固定失敗類別加取消才算本模組失敗；不能把任何人工取消當 LINE 失敗。若類別欄位已被其他功能使用，先拒絕而非覆寫。
@@ -47,4 +48,4 @@
 
 所有 c、b/c 列的缺失子功能逐項交使用者核定；本包不補做入站。尤其課程／價格／裝備、待簽休假、247／RPG代碼、作業見證／牧者回應、日誌、收件人轉傳、小組QR／網址、缺週記錄建立與領袖通知，不能因為有關鍵字或固定回覆就算已遷移。這些會影響 P7 停用舊 LineMessagePlugIn。
 
-後續仍需 reading 六案、CAS、Hosting 彙總、註冊／打包／全停用部署及固定 guard；本表是盤點，不是驗收報告。
+reading 六案、CAS 與 Hosting 彙總已完成局部驗證；尚待兩DLL打包、全停用部署與固定 guard。本表是盤點，不是驗收報告。

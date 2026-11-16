@@ -248,7 +248,7 @@
       "observe": []
     },
     {
-      "name": "update-depth-stop",
+      "name": "outbound-empty-text",
       "church": {
         "alias": "church",
         "organizationName": "synthetic-messaging",
@@ -261,7 +261,7 @@
           "entity": "letter",
           "fields": {
             "directioncode": true,
-            "description": "synthetic raw text",
+            "description": "",
             "statecode": {
               "option": 0
             },
@@ -300,8 +300,8 @@
       "trigger": {
         "project": "LineMessagePlugIn",
         "type": "LineMessagePlugIn.LineMessagePlugIn",
-        "message": "Update",
-        "depth": 3
+        "message": "Create",
+        "depth": 1
       },
       "fault": null,
       "now": "2026-11-16T00:00:00Z",

@@ -95,6 +95,28 @@ public sealed class OutboundLetterShellTests
         Assert.Empty(f.Sdk.WriteRecords);
     }
 
+    /// <summary>跨教會真外殼不記推播，且明確記錄 ChurchMismatch 原因、零真寫入。</summary>
+    [Fact]
+    public void Messaging_RecipientOtherChurch_NoPush()
+    {
+        using var f = new Fixture(otherChurch: true);
+        f.Run();
+        Assert.DoesNotContain(f.Trace.Entries, x => x.Contains("\"operation\":\"Push\""));
+        Assert.Equal("SMV:Messaging.Failure.ChurchMismatch", (string?)f.Patch()["category"]);
+        Assert.Empty(f.Sdk.WriteRecords);
+    }
+
+    /// <summary>未綁定真外殼正常完成影子失敗候選，不丟傳輸重試例外或記推播。</summary>
+    [Fact]
+    public void Messaging_NotBound_NoPushNoThrow()
+    {
+        using var f = new Fixture(bound: false);
+        f.Run();
+        Assert.DoesNotContain(f.Trace.Entries, x => x.Contains("\"operation\":\"Push\""));
+        Assert.Equal("SMV:Messaging.Failure.NotBound", (string?)f.Patch()["category"]);
+        Assert.Empty(f.Sdk.WriteRecords);
+    }
+
     /// <summary>既有非本模組類別不能被搶用，須在收件者及頻道讀取前停止且零意圖。</summary>
     [Fact]
     public void Messaging_ExistingCategory_NotOverwritten()
