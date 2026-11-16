@@ -3,8 +3,16 @@
   "projects": [
     {
       "project": "Line.Messaging/Line.Messaging.csproj",
-      "count": 3,
+      "count": 2,
       "files": [
+        {
+          "path": "Line.Messaging/BorrowedStreamContent.cs",
+          "count": 0
+        },
+        {
+          "path": "Line.Messaging/ChannelHttpTransport.cs",
+          "count": 0
+        },
         {
           "path": "Line.Messaging/ContentStream.cs",
           "count": 0
@@ -51,7 +59,7 @@
         },
         {
           "path": "Line.Messaging/Liff/LiffClient.cs",
-          "count": 1
+          "count": 0
         },
         {
           "path": "Line.Messaging/Liff/View.cs",
@@ -135,6 +143,10 @@
         },
         {
           "path": "Line.Messaging/LineSchemeUrl.cs",
+          "count": 0
+        },
+        {
+          "path": "Line.Messaging/LineSignature.cs",
           "count": 0
         },
         {
@@ -314,6 +326,10 @@
           "count": 0
         },
         {
+          "path": "Line.Messaging/Messages/Flex/Style/Background.cs",
+          "count": 0
+        },
+        {
           "path": "Line.Messaging/Messages/Flex/Style/BoxStyle.cs",
           "count": 0
         },
@@ -406,6 +422,10 @@
           "count": 0
         },
         {
+          "path": "Line.Messaging/Messages/Sender/Sender.cs",
+          "count": 0
+        },
+        {
           "path": "Line.Messaging/Messages/StickerMessage.cs",
           "count": 0
         },
@@ -491,6 +511,10 @@
         },
         {
           "path": "Line.Messaging/Webhooks/ContentProviderType.cs",
+          "count": 0
+        },
+        {
+          "path": "Line.Messaging/Webhooks/DeliveryContext.cs",
           "count": 0
         },
         {
@@ -638,6 +662,126 @@
         {
           "path": "LineMessagingProcessor.AspNetCore/LineMessagingProcessorServiceCollectionExtensions.cs",
           "count": 0
+        },
+        {
+          "path": "LineMessagingProcessor.AspNetCore/Webhooks/Deduplication/SqlWebhookCleanupService.cs",
+          "count": 0
+        },
+        {
+          "path": "LineMessagingProcessor.AspNetCore/Webhooks/Deduplication/SqlWebhookEventDeduplicator.cs",
+          "count": 0
+        },
+        {
+          "path": "LineMessagingProcessor.AspNetCore/Webhooks/Deduplication/SqlWebhookRegistration.cs",
+          "count": 0
+        },
+        {
+          "path": "LineMessagingProcessor.AspNetCore/Webhooks/Deduplication/SqlWebhookSession.cs",
+          "count": 0
+        },
+        {
+          "path": "LineMessagingProcessor.AspNetCore/Webhooks/Deduplication/SqlWebhookSettings.cs",
+          "count": 0
+        },
+        {
+          "path": "LineMessagingProcessor.AspNetCore/Webhooks/Dispatch/WebhookAudioHandler.cs",
+          "count": 0
+        },
+        {
+          "path": "LineMessagingProcessor.AspNetCore/Webhooks/Dispatch/WebhookDispatcher.cs",
+          "count": 0
+        },
+        {
+          "path": "LineMessagingProcessor.AspNetCore/Webhooks/Dispatch/WebhookHttpAdapter.cs",
+          "count": 0
+        },
+        {
+          "path": "LineMessagingProcessor.AspNetCore/Webhooks/Dispatch/WebhookLetterRecorder.cs",
+          "count": 0
+        },
+        {
+          "path": "LineMessagingProcessor.AspNetCore/Webhooks/Dispatch/WebhookReplySender.cs",
+          "count": 0
+        },
+        {
+          "path": "LineMessagingProcessor.AspNetCore/Webhooks/Dispatch/WebhookScopeResolver.cs",
+          "count": 0
+        },
+        {
+          "path": "LineMessagingProcessor.AspNetCore/Webhooks/IWebhookEventDeduplicator.cs",
+          "count": 0
+        },
+        {
+          "path": "LineMessagingProcessor.AspNetCore/Webhooks/IWebhookEventQueue.cs",
+          "count": 0
+        },
+        {
+          "path": "LineMessagingProcessor.AspNetCore/Webhooks/IWebhookSignatureVerifier.cs",
+          "count": 0
+        },
+        {
+          "path": "LineMessagingProcessor.AspNetCore/Webhooks/MeetingPersonalQrD365Store.cs",
+          "count": 0
+        },
+        {
+          "path": "LineMessagingProcessor.AspNetCore/Webhooks/MeetingPersonalQrRegistration.cs",
+          "count": 0
+        },
+        {
+          "path": "LineMessagingProcessor.AspNetCore/Webhooks/Queue/BoundedWebhookEventQueue.cs",
+          "count": 0
+        },
+        {
+          "path": "LineMessagingProcessor.AspNetCore/Webhooks/Queue/IWebhookEnvelopeHandler.cs",
+          "count": 0
+        },
+        {
+          "path": "LineMessagingProcessor.AspNetCore/Webhooks/Queue/WebhookEventCancellation.cs",
+          "count": 0
+        },
+        {
+          "path": "LineMessagingProcessor.AspNetCore/Webhooks/Queue/WebhookQueueOptions.cs",
+          "count": 0
+        },
+        {
+          "path": "LineMessagingProcessor.AspNetCore/Webhooks/Queue/WebhookQueueServiceCollectionExtensions.cs",
+          "count": 0
+        },
+        {
+          "path": "LineMessagingProcessor.AspNetCore/Webhooks/Signatures/LineWebhookSignatureVerifier.cs",
+          "count": 0
+        },
+        {
+          "path": "LineMessagingProcessor.AspNetCore/Webhooks/Signatures/WebhookSignatureRegistration.cs",
+          "count": 0
+        },
+        {
+          "path": "LineMessagingProcessor.AspNetCore/Webhooks/Signatures/WebhookSignatureStartupValidation.cs",
+          "count": 0
+        },
+        {
+          "path": "LineMessagingProcessor.AspNetCore/Webhooks/WebhookDeduplicationRegistration.cs",
+          "count": 0
+        },
+        {
+          "path": "LineMessagingProcessor.AspNetCore/Webhooks/WebhookDispatchRegistration.cs",
+          "count": 0
+        },
+        {
+          "path": "LineMessagingProcessor.AspNetCore/Webhooks/WebhookEnvelope.cs",
+          "count": 0
+        },
+        {
+          "path": "LineMessagingProcessor.AspNetCore/Webhooks/WebhookOptions.cs",
+          "count": 0
+        },
+        {
+          "path": "LineMessagingProcessor.AspNetCore/Webhooks/WebhookQueueRegistration.cs",
+          "count": 0
+        },
+        {
+          "path": "LineMessagingProcessor.AspNetCore/Webhooks/WebhookServiceRegistration.cs",
+          "count": 0
         }
       ]
     },
@@ -654,6 +798,10 @@
           "count": 0
         },
         {
+          "path": "LineMessagingProcessor.Core/LinePushClient.Member.cs",
+          "count": 0
+        },
+        {
           "path": "LineMessagingProcessor.Core/LinePushClient.cs",
           "count": 0
         },
@@ -667,6 +815,30 @@
         },
         {
           "path": "LineMessagingProcessor.Core/LinePushResult.cs",
+          "count": 0
+        },
+        {
+          "path": "LineMessagingProcessor.Core/MemberMessaging.cs",
+          "count": 0
+        },
+        {
+          "path": "LineMessagingProcessor.Core/RichMenuAlias.cs",
+          "count": 0
+        },
+        {
+          "path": "LineMessagingProcessor.Core/Security/ChannelTokenProtectionException.cs",
+          "count": 0
+        },
+        {
+          "path": "LineMessagingProcessor.Core/Security/ChannelTokenProtector.cs",
+          "count": 0
+        },
+        {
+          "path": "LineMessagingProcessor.Core/Templates/FlexTemplateEngine.cs",
+          "count": 0
+        },
+        {
+          "path": "LineMessagingProcessor.Core/Templates/SenderNameFactory.cs",
           "count": 0
         }
       ]
@@ -804,6 +976,42 @@
           "count": 0
         },
         {
+          "path": "LineMessagingProcessor.RichMenus/QrImages/LessonQrBundleHandler.cs",
+          "count": 0
+        },
+        {
+          "path": "LineMessagingProcessor.RichMenus/QrImages/LessonQrBundleHostFactory.cs",
+          "count": 0
+        },
+        {
+          "path": "LineMessagingProcessor.RichMenus/QrImages/LessonQrBundlePlan.cs",
+          "count": 0
+        },
+        {
+          "path": "LineMessagingProcessor.RichMenus/QrImages/LessonQrBundlePublicationService.cs",
+          "count": 0
+        },
+        {
+          "path": "LineMessagingProcessor.RichMenus/QrImages/LessonQrPublicationRegistration.cs",
+          "count": 0
+        },
+        {
+          "path": "LineMessagingProcessor.RichMenus/QrImages/MeetingPersonalQrPlan.cs",
+          "count": 0
+        },
+        {
+          "path": "LineMessagingProcessor.RichMenus/QrImages/MeetingPersonalQrPublicationService.cs",
+          "count": 0
+        },
+        {
+          "path": "LineMessagingProcessor.RichMenus/QrImages/MeetingPersonalQrRegistration.cs",
+          "count": 0
+        },
+        {
+          "path": "LineMessagingProcessor.RichMenus/QrImages/QrImageGenerateHandler.cs",
+          "count": 0
+        },
+        {
           "path": "LineMessagingProcessor.RichMenus/RichMenuActionFactory.cs",
           "count": 0
         },
@@ -825,6 +1033,14 @@
         },
         {
           "path": "LineMessagingProcessor.RichMenus/RichMenuExpirationSweepWorkflow.cs",
+          "count": 0
+        },
+        {
+          "path": "LineMessagingProcessor.RichMenus/RichMenuGenerateHandler.cs",
+          "count": 0
+        },
+        {
+          "path": "LineMessagingProcessor.RichMenus/RichMenuImageRenderer.cs",
           "count": 0
         },
         {
@@ -851,6 +1067,10 @@
         },
         {
           "path": "LineMessagingProcessor.Workflows/ILineReplyWorkflow.cs",
+          "count": 0
+        },
+        {
+          "path": "LineMessagingProcessor.Workflows/LegacyTypeForwarders.cs",
           "count": 0
         },
         {
@@ -927,6 +1147,14 @@
       "project": "LineMessagingProcessor/LineMessagingProcessor.csproj",
       "count": 9,
       "files": [
+        {
+          "path": "LineMessagingProcessor/Legacy/LineLegacySendWorkflow.cs",
+          "count": 0
+        },
+        {
+          "path": "LineMessagingProcessor/LineMessagingProcessorClass.LegacySend.cs",
+          "count": 0
+        },
         {
           "path": "LineMessagingProcessor/LineMessagingProcessorClass.cs",
           "count": 9
@@ -1161,27 +1389,67 @@
     },
     {
       "project": "SpeechMessage.Dynamics.Deployment/SpeechMessage.Dynamics.Deployment.csproj",
-      "count": 91,
+      "count": 83,
       "files": [
+        {
+          "path": "SpeechMessage.Dynamics.Deployment/ActivityProbe.cs",
+          "count": 0
+        },
         {
           "path": "SpeechMessage.Dynamics.Deployment/AssemblyCatalog.cs",
           "count": 8
+        },
+        {
+          "path": "SpeechMessage.Dynamics.Deployment/Channels/ChannelProvisioningCli.cs",
+          "count": 0
+        },
+        {
+          "path": "SpeechMessage.Dynamics.Deployment/Channels/ChannelProvisioningService.cs",
+          "count": 0
+        },
+        {
+          "path": "SpeechMessage.Dynamics.Deployment/Channels/ChannelSecretInput.cs",
+          "count": 0
         },
         {
           "path": "SpeechMessage.Dynamics.Deployment/Contracts.cs",
           "count": 0
         },
         {
+          "path": "SpeechMessage.Dynamics.Deployment/DeploymentCli.Document.cs",
+          "count": 0
+        },
+        {
+          "path": "SpeechMessage.Dynamics.Deployment/DeploymentCli.Shadow.cs",
+          "count": 0
+        },
+        {
           "path": "SpeechMessage.Dynamics.Deployment/DeploymentCli.cs",
-          "count": 6
+          "count": 4
         },
         {
           "path": "SpeechMessage.Dynamics.Deployment/DeploymentConfiguration.cs",
           "count": 0
         },
         {
+          "path": "SpeechMessage.Dynamics.Deployment/DeploymentEngine.Registration.cs",
+          "count": 0
+        },
+        {
+          "path": "SpeechMessage.Dynamics.Deployment/DeploymentEngine.Switch.cs",
+          "count": 0
+        },
+        {
           "path": "SpeechMessage.Dynamics.Deployment/DeploymentEngine.cs",
-          "count": 67
+          "count": 63
+        },
+        {
+          "path": "SpeechMessage.Dynamics.Deployment/DocumentDeploymentEngine.cs",
+          "count": 0
+        },
+        {
+          "path": "SpeechMessage.Dynamics.Deployment/LegacyRegistrationExporter.cs",
+          "count": 0
         },
         {
           "path": "SpeechMessage.Dynamics.Deployment/OrganizationWriteLock.cs",
@@ -1193,7 +1461,107 @@
         },
         {
           "path": "SpeechMessage.Dynamics.Deployment/RegistrationManifestLoader.cs",
-          "count": 3
+          "count": 1
+        },
+        {
+          "path": "SpeechMessage.Dynamics.Deployment/Schema/SchemaAcceptanceProbe.cs",
+          "count": 0
+        },
+        {
+          "path": "SpeechMessage.Dynamics.Deployment/Schema/SchemaDefinition.cs",
+          "count": 0
+        },
+        {
+          "path": "SpeechMessage.Dynamics.Deployment/Schema/SchemaDeploymentCli.cs",
+          "count": 0
+        },
+        {
+          "path": "SpeechMessage.Dynamics.Deployment/Schema/SchemaDeploymentEngine.cs",
+          "count": 0
+        },
+        {
+          "path": "SpeechMessage.Dynamics.Deployment/Schema/SchemaFiles.cs",
+          "count": 0
+        },
+        {
+          "path": "SpeechMessage.Dynamics.Deployment/Schema/SchemaMetadata.cs",
+          "count": 0
+        },
+        {
+          "path": "SpeechMessage.Dynamics.Deployment/Schema/SchemaPlan.cs",
+          "count": 0
+        },
+        {
+          "path": "SpeechMessage.Dynamics.Deployment/Schema/SchemaPlanner.cs",
+          "count": 0
+        },
+        {
+          "path": "SpeechMessage.Dynamics.Deployment/Schema/SchemaSnapshot.cs",
+          "count": 0
+        },
+        {
+          "path": "SpeechMessage.Dynamics.Deployment/Shadow/LegacyTokenInventory.cs",
+          "count": 0
+        },
+        {
+          "path": "SpeechMessage.Dynamics.Deployment/Shadow/ShadowComparer.cs",
+          "count": 0
+        },
+        {
+          "path": "SpeechMessage.Dynamics.Deployment/Shadow/ShadowExternalObserver.cs",
+          "count": 0
+        },
+        {
+          "path": "SpeechMessage.Dynamics.Deployment/Shadow/ShadowProjection.cs",
+          "count": 0
+        },
+        {
+          "path": "SpeechMessage.Dynamics.Deployment/Shadow/ShadowReportWriter.cs",
+          "count": 0
+        },
+        {
+          "path": "SpeechMessage.Dynamics.Deployment/Shadow/ShadowScenarioFiles.cs",
+          "count": 0
+        },
+        {
+          "path": "SpeechMessage.Dynamics.Deployment/Shadow/ShadowScenarioRunner.cs",
+          "count": 0
+        },
+        {
+          "path": "SpeechMessage.Dynamics.Deployment/Shadow/ShadowSdkMetadata.cs",
+          "count": 0
+        },
+        {
+          "path": "SpeechMessage.Dynamics.Deployment/Shadow/ShadowSdkProjection.cs",
+          "count": 0
+        },
+        {
+          "path": "SpeechMessage.Dynamics.Deployment/Shadow/ShadowSdkRuntime.cs",
+          "count": 0
+        },
+        {
+          "path": "SpeechMessage.Dynamics.Deployment/Shadow/ShadowSdkScenarioFactory.cs",
+          "count": 0
+        },
+        {
+          "path": "SpeechMessage.Dynamics.Deployment/Shadow/ShadowSdkValues.cs",
+          "count": 0
+        },
+        {
+          "path": "SpeechMessage.Dynamics.Deployment/Shadow/ShadowTestIdentity.cs",
+          "count": 0
+        },
+        {
+          "path": "SpeechMessage.Dynamics.Deployment/Shadow/ShadowTraceParser.cs",
+          "count": 0
+        },
+        {
+          "path": "SpeechMessage.Dynamics.Deployment/UiSolutionArchive.cs",
+          "count": 0
+        },
+        {
+          "path": "SpeechMessage.Dynamics.Deployment/UiSolutionDeployment.cs",
+          "count": 0
         },
         {
           "path": "SpeechMessage.Dynamics.Deployment/UserSecretsOrganizationConnector.cs",
@@ -1206,7 +1574,149 @@
       "count": 0,
       "files": [
         {
+          "path": "SpeechMessage.Dynamics.Plugins/Appointments/AppointmentPlugin.cs",
+          "count": 0
+        },
+        {
+          "path": "SpeechMessage.Dynamics.Plugins/Attendance/PresentRecordPlugin.cs",
+          "count": 0
+        },
+        {
           "path": "SpeechMessage.Dynamics.Plugins/Diagnostics/DiagnosticsPingPlugin.cs",
+          "count": 0
+        },
+        {
+          "path": "SpeechMessage.Dynamics.Plugins/Fees/FeeAllotPlugin.cs",
+          "count": 0
+        },
+        {
+          "path": "SpeechMessage.Dynamics.Plugins/Infrastructure/DepthPolicy.cs",
+          "count": 0
+        },
+        {
+          "path": "SpeechMessage.Dynamics.Plugins/Infrastructure/PluginInput.cs",
+          "count": 0
+        },
+        {
+          "path": "SpeechMessage.Dynamics.Plugins/Infrastructure/PluginServices.cs",
+          "count": 0
+        },
+        {
+          "path": "SpeechMessage.Dynamics.Plugins/Infrastructure/PluginShellBase.cs",
+          "count": 0
+        },
+        {
+          "path": "SpeechMessage.Dynamics.Plugins/Infrastructure/RecordingOrganizationService.cs",
+          "count": 0
+        },
+        {
+          "path": "SpeechMessage.Dynamics.Plugins/Infrastructure/ShadowPushRecorder.cs",
+          "count": 0
+        },
+        {
+          "path": "SpeechMessage.Dynamics.Plugins/Infrastructure/ShadowRecordWriter.cs",
+          "count": 0
+        },
+        {
+          "path": "SpeechMessage.Dynamics.Plugins/Infrastructure/StepConfiguration.cs",
+          "count": 0
+        },
+        {
+          "path": "SpeechMessage.Dynamics.Plugins/Lessons/LessonLinkPlugin.cs",
+          "count": 0
+        },
+        {
+          "path": "SpeechMessage.Dynamics.Plugins/Lessons/LessonProgressionPlugin.cs",
+          "count": 0
+        },
+        {
+          "path": "SpeechMessage.Dynamics.Plugins/Lessons/StorLessonSigningPlugin.cs",
+          "count": 0
+        },
+        {
+          "path": "SpeechMessage.Dynamics.Plugins/Localization/ChurchLocaleChangedPlugin.cs",
+          "count": 0
+        },
+        {
+          "path": "SpeechMessage.Dynamics.Plugins/Localization/LocalizedTextChangedPlugin.cs",
+          "count": 0
+        },
+        {
+          "path": "SpeechMessage.Dynamics.Plugins/Localization/MemberLanguageChangedPlugin.cs",
+          "count": 0
+        },
+        {
+          "path": "SpeechMessage.Dynamics.Plugins/Messaging/OutboundLetterPlugin.cs",
+          "count": 0
+        },
+        {
+          "path": "SpeechMessage.Dynamics.Plugins/WeeklyReports/WeeklyReportNotificationPlugin.cs",
+          "count": 0
+        },
+        {
+          "path": "SpeechMessage.Dynamics.Plugins/WeeklyReports/WeeklyReportStatisticsPlugin.cs",
+          "count": 0
+        }
+      ]
+    },
+    {
+      "project": "SpeechMessage.Dynamics.Workflows/SpeechMessage.Dynamics.Workflows.csproj",
+      "count": 0,
+      "files": [
+        {
+          "path": "SpeechMessage.Dynamics.Workflows/Appointments/AppointmentSigningActivity.cs",
+          "count": 0
+        },
+        {
+          "path": "SpeechMessage.Dynamics.Workflows/Care/ContactAnniversaryActivity.cs",
+          "count": 0
+        },
+        {
+          "path": "SpeechMessage.Dynamics.Workflows/Care/NewPersonCareActivity.cs",
+          "count": 0
+        },
+        {
+          "path": "SpeechMessage.Dynamics.Workflows/Fees/FeeAllotActivity.cs",
+          "count": 0
+        },
+        {
+          "path": "SpeechMessage.Dynamics.Workflows/Fees/FeeNotifyActivity.cs",
+          "count": 0
+        },
+        {
+          "path": "SpeechMessage.Dynamics.Workflows/Infrastructure/ActivityInput.cs",
+          "count": 0
+        },
+        {
+          "path": "SpeechMessage.Dynamics.Workflows/Infrastructure/ActivityShellBase.cs",
+          "count": 0
+        },
+        {
+          "path": "SpeechMessage.Dynamics.Workflows/Lessons/EquipmentStatusActivity.cs",
+          "count": 0
+        },
+        {
+          "path": "SpeechMessage.Dynamics.Workflows/Lessons/LessonQrCodeActivity.cs",
+          "count": 0
+        },
+        {
+          "path": "SpeechMessage.Dynamics.Workflows/Lessons/StorLessonSigningActivity.cs",
+          "count": 0
+        },
+        {
+          "path": "SpeechMessage.Dynamics.Workflows/QrCodes/MeetingQrCodeActivity.cs",
+          "count": 0
+        },
+        {
+          "path": "SpeechMessage.Dynamics.Workflows/QrCodes/MeetingScanCountActivity.cs",
+          "count": 0
+        },
+        {
+          "path": "SpeechMessage.Dynamics.Workflows/QrCodes/PersonalQrCodeActivity.cs",
+          "count": 0
+        },
+        {
+          "path": "SpeechMessage.Dynamics.Workflows/WeeklyReports/WeeklyReportGenerationActivity.cs",
           "count": 0
         }
       ]
@@ -1236,6 +1746,22 @@
           "count": 0
         },
         {
+          "path": "SpeechMessage.Hosting/Localization/TextChangePollingService.cs",
+          "count": 0
+        },
+        {
+          "path": "SpeechMessage.Hosting/Logging/ExceptionLoggerProvider.cs",
+          "count": 0
+        },
+        {
+          "path": "SpeechMessage.Hosting/Messaging/FailureSummaryWorker.cs",
+          "count": 0
+        },
+        {
+          "path": "SpeechMessage.Hosting/Outbound/OutboundTaskWorker.cs",
+          "count": 0
+        },
+        {
           "path": "SpeechMessage.Hosting/SpeechMessageHostingServiceCollectionExtensions.cs",
           "count": 0
         },
@@ -1250,7 +1776,39 @@
       "count": 0,
       "files": [
         {
+          "path": "SpeechMessage.Localization/ChurchTextOverrideSnapshot.cs",
+          "count": 0
+        },
+        {
+          "path": "SpeechMessage.Localization/ChurchTextOverrideValidator.cs",
+          "count": 0
+        },
+        {
+          "path": "SpeechMessage.Localization/IChurchTextOverrideSource.cs",
+          "count": 0
+        },
+        {
           "path": "SpeechMessage.Localization/ISystemTextCatalog.cs",
+          "count": 0
+        },
+        {
+          "path": "SpeechMessage.Localization/KeywordCatalog.cs",
+          "count": 0
+        },
+        {
+          "path": "SpeechMessage.Localization/MemberCultureResolver.cs",
+          "count": 0
+        },
+        {
+          "path": "SpeechMessage.Localization/Money.cs",
+          "count": 0
+        },
+        {
+          "path": "SpeechMessage.Localization/MoneyFormatter.cs",
+          "count": 0
+        },
+        {
+          "path": "SpeechMessage.Localization/NamedTextFormatter.cs",
           "count": 0
         },
         {
@@ -1262,7 +1820,35 @@
           "count": 0
         },
         {
+          "path": "SpeechMessage.Localization/TextCatalog.cs",
+          "count": 0
+        },
+        {
+          "path": "SpeechMessage.Localization/TextContext.cs",
+          "count": 0
+        },
+        {
           "path": "SpeechMessage.Localization/TextKey.cs",
+          "count": 0
+        },
+        {
+          "path": "SpeechMessage.Localization/Time/ChurchClock.cs",
+          "count": 0
+        },
+        {
+          "path": "SpeechMessage.Localization/Time/ChurchDate.cs",
+          "count": 0
+        },
+        {
+          "path": "SpeechMessage.Localization/Time/GlobalizationModeGuard.cs",
+          "count": 0
+        },
+        {
+          "path": "SpeechMessage.Localization/Time/IClock.cs",
+          "count": 0
+        },
+        {
+          "path": "SpeechMessage.Localization/Time/LocalDateTimeOfChurch.cs",
           "count": 0
         }
       ]
@@ -1272,7 +1858,19 @@
       "count": 0,
       "files": [
         {
+          "path": "SpeechMessage.Payments.AspNetCore/Callbacks/PaymentCallbackEndpoints.cs",
+          "count": 0
+        },
+        {
+          "path": "SpeechMessage.Payments.AspNetCore/Callbacks/PaymentCallbackProcessor.cs",
+          "count": 0
+        },
+        {
           "path": "SpeechMessage.Payments.AspNetCore/DependencyInjection/PaymentAspNetCoreServiceCollectionExtensions.cs",
+          "count": 0
+        },
+        {
+          "path": "SpeechMessage.Payments.AspNetCore/Outbound/PaymentOutboundRegistration.cs",
           "count": 0
         },
         {
@@ -1293,6 +1891,14 @@
       "project": "SpeechMessage.Payments.Workflows/SpeechMessage.Payments.Workflows.csproj",
       "count": 0,
       "files": [
+        {
+          "path": "SpeechMessage.Payments.Workflows/Allot/AllotQueryHandler.cs",
+          "count": 0
+        },
+        {
+          "path": "SpeechMessage.Payments.Workflows/Callbacks/IPaymentCallbackOrderLookup.cs",
+          "count": 0
+        },
         {
           "path": "SpeechMessage.Payments.Workflows/PaymentLineItemDraft.cs",
           "count": 0
@@ -1335,6 +1941,14 @@
       "project": "SpeechMessage.Payments/SpeechMessage.Payments.csproj",
       "count": 10,
       "files": [
+        {
+          "path": "SpeechMessage.Payments/Abstractions/IPaymentAllotGateway.cs",
+          "count": 0
+        },
+        {
+          "path": "SpeechMessage.Payments/Abstractions/IPaymentAllotProvider.cs",
+          "count": 0
+        },
         {
           "path": "SpeechMessage.Payments/Abstractions/IPaymentGateway.cs",
           "count": 0
@@ -1381,6 +1995,22 @@
         },
         {
           "path": "SpeechMessage.Payments/Models/PaymentAckKind.cs",
+          "count": 0
+        },
+        {
+          "path": "SpeechMessage.Payments/Models/PaymentAllotBatch.cs",
+          "count": 0
+        },
+        {
+          "path": "SpeechMessage.Payments/Models/PaymentAllotItem.cs",
+          "count": 0
+        },
+        {
+          "path": "SpeechMessage.Payments/Models/PaymentAllotQueryRequest.cs",
+          "count": 0
+        },
+        {
+          "path": "SpeechMessage.Payments/Models/PaymentAllotQueryResult.cs",
           "count": 0
         },
         {
@@ -1530,8 +2160,42 @@
       ]
     },
     {
+      "project": "SpeechMessage.Tenancy/SpeechMessage.Tenancy.csproj",
+      "count": 0,
+      "files": [
+        {
+          "path": "SpeechMessage.Tenancy/ChurchTextOverrideCache.cs",
+          "count": 0
+        },
+        {
+          "path": "SpeechMessage.Tenancy/ConfigurationLineChannelResolver.cs",
+          "count": 0
+        },
+        {
+          "path": "SpeechMessage.Tenancy/OverrideServiceCollectionExtensions.cs",
+          "count": 0
+        },
+        {
+          "path": "SpeechMessage.Tenancy/TenancyModels.cs",
+          "count": 0
+        },
+        {
+          "path": "SpeechMessage.Tenancy/TenancyServiceCollectionExtensions.cs",
+          "count": 0
+        },
+        {
+          "path": "SpeechMessage.Tenancy/WebhookChannels/ConfigurationWebhookChannelSecretResolver.cs",
+          "count": 0
+        },
+        {
+          "path": "SpeechMessage.Tenancy/WebhookChannels/IWebhookChannelSecretResolver.cs",
+          "count": 0
+        }
+      ]
+    },
+    {
       "project": "SpeechMessageProducts.ChurchReport/SpeechMessageProducts.ChurchReport.csproj",
-      "count": 3677,
+      "count": 3583,
       "files": [
         {
           "path": "SpeechMessageProducts.ChurchReport/Configuration/ChurchReportDevelopmentConfiguration.cs",
@@ -1651,7 +2315,7 @@
         },
         {
           "path": "SpeechMessageProducts.ChurchReport/Controllers/PersonalController.ImageUpload.cs",
-          "count": 8
+          "count": 6
         },
         {
           "path": "SpeechMessageProducts.ChurchReport/Controllers/PersonalController.cs",
@@ -1786,7 +2450,7 @@
           "count": 22
         },
         {
-          "path": "SpeechMessageProducts.ChurchReport/Logging/ExceptionLoggerProvider.cs",
+          "path": "SpeechMessageProducts.ChurchReport/Logging/ExceptionLoggerProvider.Forwarder.cs",
           "count": 0
         },
         {
@@ -2218,6 +2882,14 @@
           "count": 1
         },
         {
+          "path": "SpeechMessageProducts.ChurchReport/Services/ChurchReportLineChannelAccess.cs",
+          "count": 0
+        },
+        {
+          "path": "SpeechMessageProducts.ChurchReport/Services/ChurchReportLineNotifier.cs",
+          "count": 1
+        },
+        {
           "path": "SpeechMessageProducts.ChurchReport/Services/Contact/IContactService.cs",
           "count": 0
         },
@@ -2307,6 +2979,14 @@
         },
         {
           "path": "SpeechMessageProducts.ChurchReport/Services/IChurchReportLineBindingNotificationService.cs",
+          "count": 0
+        },
+        {
+          "path": "SpeechMessageProducts.ChurchReport/Services/Images/ImageInputText.cs",
+          "count": 0
+        },
+        {
+          "path": "SpeechMessageProducts.ChurchReport/Services/Images/ImageInputValidator.cs",
           "count": 0
         },
         {
@@ -2458,28 +3138,20 @@
           "count": 19
         },
         {
-          "path": "SpeechMessageProducts.ChurchReport/Tools/LineUtilityClass.cs",
-          "count": 15
-        },
-        {
           "path": "SpeechMessageProducts.ChurchReport/Tools/PersonalQrCodeUtility.cs",
-          "count": 53
-        },
-        {
-          "path": "SpeechMessageProducts.ChurchReport/Tools/PushUtility.cs",
-          "count": 23
+          "count": 50
         },
         {
           "path": "SpeechMessageProducts.ChurchReport/Tools/QrCodeUtility.cs",
           "count": 50
         },
         {
-          "path": "SpeechMessageProducts.ChurchReport/Tools/RecurringDonationPaymentProcessor.cs",
-          "count": 111
+          "path": "SpeechMessageProducts.ChurchReport/Tools/QrScanContent.cs",
+          "count": 0
         },
         {
-          "path": "SpeechMessageProducts.ChurchReport/Tools/ReplyUtility.cs",
-          "count": 2
+          "path": "SpeechMessageProducts.ChurchReport/Tools/RecurringDonationPaymentProcessor.cs",
+          "count": 111
         },
         {
           "path": "SpeechMessageProducts.ChurchReport/Tools/ServiceRequest.cs",
@@ -2487,11 +3159,11 @@
         },
         {
           "path": "SpeechMessageProducts.ChurchReport/Tools/SmallGroupQrCodeUtility.cs",
-          "count": 25
+          "count": 23
         },
         {
           "path": "SpeechMessageProducts.ChurchReport/Tools/SundayQrCodeUtility.cs",
-          "count": 51
+          "count": 49
         },
         {
           "path": "SpeechMessageProducts.ChurchReport/Tools/WeeklyReportProcessor.cs",
@@ -2567,11 +3239,11 @@
         },
         {
           "path": "SpeechMessageProducts.ChurchReport/Views/Dedication/DedicationFeeView.cshtml",
-          "count": 6
+          "count": 3
         },
         {
           "path": "SpeechMessageProducts.ChurchReport/Views/Dedication/DedicationFeeViewWeb.cshtml",
-          "count": 7
+          "count": 4
         },
         {
           "path": "SpeechMessageProducts.ChurchReport/Views/Dedication/DonationPaymentView.cshtml",
@@ -2579,19 +3251,19 @@
         },
         {
           "path": "SpeechMessageProducts.ChurchReport/Views/Dedication/KeyInDedicationFeeView.cshtml",
-          "count": 4
+          "count": 2
         },
         {
           "path": "SpeechMessageProducts.ChurchReport/Views/Dedication/KeyInDedicationFeeViewWeb.cshtml",
-          "count": 5
+          "count": 3
         },
         {
           "path": "SpeechMessageProducts.ChurchReport/Views/DedicationAudit/DedicationFeeAuditViewLine.cshtml",
-          "count": 8
+          "count": 3
         },
         {
           "path": "SpeechMessageProducts.ChurchReport/Views/DedicationAudit/DedicationFeeAuditViewWeb.cshtml",
-          "count": 7
+          "count": 4
         },
         {
           "path": "SpeechMessageProducts.ChurchReport/Views/Equipment/EquipmentContactView.cshtml",
@@ -2607,7 +3279,7 @@
         },
         {
           "path": "SpeechMessageProducts.ChurchReport/Views/FeeManagement/Fee.cshtml",
-          "count": 8
+          "count": 1
         },
         {
           "path": "SpeechMessageProducts.ChurchReport/Views/FeeManagement/LessonList.cshtml",
@@ -2615,7 +3287,7 @@
         },
         {
           "path": "SpeechMessageProducts.ChurchReport/Views/FeeManagement/Present.cshtml",
-          "count": 13
+          "count": 2
         },
         {
           "path": "SpeechMessageProducts.ChurchReport/Views/Home/BindingResultView.cshtml",
@@ -2651,7 +3323,7 @@
         },
         {
           "path": "SpeechMessageProducts.ChurchReport/Views/Home/FeeView.cshtml",
-          "count": 12
+          "count": 2
         },
         {
           "path": "SpeechMessageProducts.ChurchReport/Views/Home/HappyGroup.cshtml",
@@ -3020,17 +3692,531 @@
       ]
     },
     {
-      "project": "ToolUtility/ToolUtility.csproj",
-      "count": 188,
+      "project": "SpeechMessageProducts.GoodShepherd.Core/SpeechMessageProducts.GoodShepherd.Core.csproj",
+      "count": 0,
       "files": [
         {
-          "path": "ToolUtility/ActivityOperations/ActivityService.cs",
+          "path": "SpeechMessageProducts.GoodShepherd.Core/Appointments/AppointmentSigningMessageFactory.cs",
           "count": 0
         },
         {
-          "path": "ToolUtility/ActivityOperations/IActivityService.cs",
+          "path": "SpeechMessageProducts.GoodShepherd.Core/Appointments/AppointmentSigningRule.cs",
           "count": 0
         },
+        {
+          "path": "SpeechMessageProducts.GoodShepherd.Core/Appointments/WebhookPostbackHandler.cs",
+          "count": 0
+        },
+        {
+          "path": "SpeechMessageProducts.GoodShepherd.Core/Attendance/PresentRecordNotificationRule.cs",
+          "count": 0
+        },
+        {
+          "path": "SpeechMessageProducts.GoodShepherd.Core/Attendance/WebhookAttendanceHandler.cs",
+          "count": 0
+        },
+        {
+          "path": "SpeechMessageProducts.GoodShepherd.Core/Attendance/WebhookCourseAttendanceHandler.cs",
+          "count": 0
+        },
+        {
+          "path": "SpeechMessageProducts.GoodShepherd.Core/Attendance/WebhookStaffMeetingHandler.cs",
+          "count": 0
+        },
+        {
+          "path": "SpeechMessageProducts.GoodShepherd.Core/Care/ContactAnniversaryRule.cs",
+          "count": 0
+        },
+        {
+          "path": "SpeechMessageProducts.GoodShepherd.Core/Care/ContactAnniversaryService.cs",
+          "count": 0
+        },
+        {
+          "path": "SpeechMessageProducts.GoodShepherd.Core/Care/NewPersonCareAssignmentService.cs",
+          "count": 0
+        },
+        {
+          "path": "SpeechMessageProducts.GoodShepherd.Core/Care/NewPersonPresentRecordService.cs",
+          "count": 0
+        },
+        {
+          "path": "SpeechMessageProducts.GoodShepherd.Core/Fees/AllotReconciliationRule.cs",
+          "count": 0
+        },
+        {
+          "path": "SpeechMessageProducts.GoodShepherd.Core/Fees/AllotTaskIdentity.cs",
+          "count": 0
+        },
+        {
+          "path": "SpeechMessageProducts.GoodShepherd.Core/Fees/ChurchPaymentProfile.cs",
+          "count": 0
+        },
+        {
+          "path": "SpeechMessageProducts.GoodShepherd.Core/Fees/FeeAllotRecords.cs",
+          "count": 0
+        },
+        {
+          "path": "SpeechMessageProducts.GoodShepherd.Core/Fees/FeeAllotTaskService.cs",
+          "count": 0
+        },
+        {
+          "path": "SpeechMessageProducts.GoodShepherd.Core/Fees/FeeNotificationRule.cs",
+          "count": 0
+        },
+        {
+          "path": "SpeechMessageProducts.GoodShepherd.Core/Fees/FeeNotificationService.cs",
+          "count": 0
+        },
+        {
+          "path": "SpeechMessageProducts.GoodShepherd.Core/Lessons/LessonEquipmentRule.cs",
+          "count": 0
+        },
+        {
+          "path": "SpeechMessageProducts.GoodShepherd.Core/Lessons/LessonEquipmentService.cs",
+          "count": 0
+        },
+        {
+          "path": "SpeechMessageProducts.GoodShepherd.Core/Lessons/LessonLinkRule.cs",
+          "count": 0
+        },
+        {
+          "path": "SpeechMessageProducts.GoodShepherd.Core/Lessons/LessonLinkService.cs",
+          "count": 0
+        },
+        {
+          "path": "SpeechMessageProducts.GoodShepherd.Core/Lessons/LessonProgressionEvaluation.cs",
+          "count": 0
+        },
+        {
+          "path": "SpeechMessageProducts.GoodShepherd.Core/Lessons/LessonProgressionRecords.cs",
+          "count": 0
+        },
+        {
+          "path": "SpeechMessageProducts.GoodShepherd.Core/Lessons/LessonProgressionRollCardProjection.cs",
+          "count": 0
+        },
+        {
+          "path": "SpeechMessageProducts.GoodShepherd.Core/Lessons/LessonProgressionRule.cs",
+          "count": 0
+        },
+        {
+          "path": "SpeechMessageProducts.GoodShepherd.Core/Lessons/LessonProgressionStageReport.cs",
+          "count": 0
+        },
+        {
+          "path": "SpeechMessageProducts.GoodShepherd.Core/Lessons/LessonSigningDispatch.cs",
+          "count": 0
+        },
+        {
+          "path": "SpeechMessageProducts.GoodShepherd.Core/Lessons/LessonSigningMessageFactory.cs",
+          "count": 0
+        },
+        {
+          "path": "SpeechMessageProducts.GoodShepherd.Core/Lessons/LessonText.cs",
+          "count": 0
+        },
+        {
+          "path": "SpeechMessageProducts.GoodShepherd.Core/Localization/LocaleChangeRules.cs",
+          "count": 0
+        },
+        {
+          "path": "SpeechMessageProducts.GoodShepherd.Core/Members/WebhookMembershipHandler.cs",
+          "count": 0
+        },
+        {
+          "path": "SpeechMessageProducts.GoodShepherd.Core/Messaging/GoodShepherdKeywordCatalog.cs",
+          "count": 0
+        },
+        {
+          "path": "SpeechMessageProducts.GoodShepherd.Core/Messaging/GoodShepherdTextCatalog.cs",
+          "count": 0
+        },
+        {
+          "path": "SpeechMessageProducts.GoodShepherd.Core/Messaging/OutboundLetterRecords.cs",
+          "count": 0
+        },
+        {
+          "path": "SpeechMessageProducts.GoodShepherd.Core/Messaging/OutboundLetterRule.cs",
+          "count": 0
+        },
+        {
+          "path": "SpeechMessageProducts.GoodShepherd.Core/Messaging/TransitionalIntentResolver.cs",
+          "count": 0
+        },
+        {
+          "path": "SpeechMessageProducts.GoodShepherd.Core/Messaging/WebhookBusinessResult.cs",
+          "count": 0
+        },
+        {
+          "path": "SpeechMessageProducts.GoodShepherd.Core/Messaging/WebhookRecordOperations.cs",
+          "count": 0
+        },
+        {
+          "path": "SpeechMessageProducts.GoodShepherd.Core/Messaging/WebhookTextHandler.cs",
+          "count": 0
+        },
+        {
+          "path": "SpeechMessageProducts.GoodShepherd.Core/Notifications/IShadowPushSink.cs",
+          "count": 0
+        },
+        {
+          "path": "SpeechMessageProducts.GoodShepherd.Core/Notifications/MemberNotificationService.cs",
+          "count": 0
+        },
+        {
+          "path": "SpeechMessageProducts.GoodShepherd.Core/Notifications/MemberRichMenuService.cs",
+          "count": 0
+        },
+        {
+          "path": "SpeechMessageProducts.GoodShepherd.Core/Outbound/OutboundTaskWriter.cs",
+          "count": 0
+        },
+        {
+          "path": "SpeechMessageProducts.GoodShepherd.Core/QrCodes/MeetingScanCountService.cs",
+          "count": 0
+        },
+        {
+          "path": "SpeechMessageProducts.GoodShepherd.Core/QrCodes/QrCodeContentCodec.cs",
+          "count": 0
+        },
+        {
+          "path": "SpeechMessageProducts.GoodShepherd.Core/QrCodes/QrImageTaskRule.cs",
+          "count": 0
+        },
+        {
+          "path": "SpeechMessageProducts.GoodShepherd.Core/QrCodes/QrImageTaskService.cs",
+          "count": 0
+        },
+        {
+          "path": "SpeechMessageProducts.GoodShepherd.Core/Rules/BusinessRuleException.cs",
+          "count": 0
+        },
+        {
+          "path": "SpeechMessageProducts.GoodShepherd.Core/Rules/DeterministicGuid.cs",
+          "count": 0
+        },
+        {
+          "path": "SpeechMessageProducts.GoodShepherd.Core/WeeklyReports/WeeklyReportGenerationRule.cs",
+          "count": 0
+        },
+        {
+          "path": "SpeechMessageProducts.GoodShepherd.Core/WeeklyReports/WeeklyReportGenerationService.cs",
+          "count": 0
+        },
+        {
+          "path": "SpeechMessageProducts.GoodShepherd.Core/WeeklyReports/WeeklyReportNotificationRule.cs",
+          "count": 0
+        },
+        {
+          "path": "SpeechMessageProducts.GoodShepherd.Core/WeeklyReports/WeeklyReportStatisticsRule.cs",
+          "count": 0
+        }
+      ]
+    },
+    {
+      "project": "SpeechMessageProducts.LineWebhook/SpeechMessageProducts.LineWebhook.csproj",
+      "count": 0,
+      "files": [
+        {
+          "path": "SpeechMessageProducts.LineWebhook/FailureSummaryRegistration.cs",
+          "count": 0
+        },
+        {
+          "path": "SpeechMessageProducts.LineWebhook/LineWebhookEndpoints.cs",
+          "count": 0
+        },
+        {
+          "path": "SpeechMessageProducts.LineWebhook/LineWebhookRegistration.cs",
+          "count": 0
+        },
+        {
+          "path": "SpeechMessageProducts.LineWebhook/Program.cs",
+          "count": 0
+        }
+      ]
+    },
+    {
+      "project": "ToolUtility.Core/ToolUtility.Core.csproj",
+      "count": 0,
+      "files": [
+        {
+          "path": "ToolUtility.Core/ActivityOperations/ActivityService.cs",
+          "count": 0
+        },
+        {
+          "path": "ToolUtility.Core/ActivityOperations/IActivityService.cs",
+          "count": 0
+        },
+        {
+          "path": "ToolUtility.Core/AppointmentOperations/AppointmentService.cs",
+          "count": 0
+        },
+        {
+          "path": "ToolUtility.Core/AppointmentOperations/IAppointmentService.cs",
+          "count": 0
+        },
+        {
+          "path": "ToolUtility.Core/AttachmentOperations/AttachmentService.cs",
+          "count": 0
+        },
+        {
+          "path": "ToolUtility.Core/AttachmentOperations/AttachmentTransferLimits.cs",
+          "count": 0
+        },
+        {
+          "path": "ToolUtility.Core/AttachmentOperations/IAttachmentService.cs",
+          "count": 0
+        },
+        {
+          "path": "ToolUtility.Core/AttributeOperations/AttributeServiceComposite.cs",
+          "count": 0
+        },
+        {
+          "path": "ToolUtility.Core/AttributeOperations/BoolAttributeService.cs",
+          "count": 0
+        },
+        {
+          "path": "ToolUtility.Core/AttributeOperations/DateTimeAttributeService.cs",
+          "count": 0
+        },
+        {
+          "path": "ToolUtility.Core/AttributeOperations/DoubleAttributeService.cs",
+          "count": 0
+        },
+        {
+          "path": "ToolUtility.Core/AttributeOperations/EntityAttributeUtilityService.cs",
+          "count": 0
+        },
+        {
+          "path": "ToolUtility.Core/AttributeOperations/FloatAttributeService.cs",
+          "count": 0
+        },
+        {
+          "path": "ToolUtility.Core/AttributeOperations/IAttributeService.cs",
+          "count": 0
+        },
+        {
+          "path": "ToolUtility.Core/AttributeOperations/IAttributeValueService.cs",
+          "count": 0
+        },
+        {
+          "path": "ToolUtility.Core/AttributeOperations/IntAttributeService.cs",
+          "count": 0
+        },
+        {
+          "path": "ToolUtility.Core/AttributeOperations/LookupAttributeService.cs",
+          "count": 0
+        },
+        {
+          "path": "ToolUtility.Core/AttributeOperations/MoneyAttributeService.cs",
+          "count": 0
+        },
+        {
+          "path": "ToolUtility.Core/AttributeOperations/OptionSetAttributeService.cs",
+          "count": 0
+        },
+        {
+          "path": "ToolUtility.Core/AttributeOperations/StringAttributeService.cs",
+          "count": 0
+        },
+        {
+          "path": "ToolUtility.Core/CollectionOperations/CollectionQueryService.cs",
+          "count": 0
+        },
+        {
+          "path": "ToolUtility.Core/CollectionOperations/ICollectionQueryService.cs",
+          "count": 0
+        },
+        {
+          "path": "ToolUtility.Core/Constants/CrmEntityColumns.cs",
+          "count": 0
+        },
+        {
+          "path": "ToolUtility.Core/ContactOperations/ContactDataService.cs",
+          "count": 0
+        },
+        {
+          "path": "ToolUtility.Core/ContactOperations/IContactService.cs",
+          "count": 0
+        },
+        {
+          "path": "ToolUtility.Core/Core/IToolUtilityCore.cs",
+          "count": 0
+        },
+        {
+          "path": "ToolUtility.Core/DataOperations/SdkDataQuery.cs",
+          "count": 0
+        },
+        {
+          "path": "ToolUtility.Core/EntityOperations/EntityAttributeHandler.cs",
+          "count": 0
+        },
+        {
+          "path": "ToolUtility.Core/EntityOperations/EntityCrudService.cs",
+          "count": 0
+        },
+        {
+          "path": "ToolUtility.Core/EntityOperations/EntityOptimizedQueryService.cs",
+          "count": 0
+        },
+        {
+          "path": "ToolUtility.Core/EntityOperations/EntityQueryService.cs",
+          "count": 0
+        },
+        {
+          "path": "ToolUtility.Core/EntityOperations/EntityRepository.cs",
+          "count": 0
+        },
+        {
+          "path": "ToolUtility.Core/EntityOperations/IEntityCrudService.cs",
+          "count": 0
+        },
+        {
+          "path": "ToolUtility.Core/EntityOperations/IEntityQueryService.cs",
+          "count": 0
+        },
+        {
+          "path": "ToolUtility.Core/Extensions/CrmAsyncExtensions.cs",
+          "count": 0
+        },
+        {
+          "path": "ToolUtility.Core/Extensions/OrganizationServiceExtensions.cs",
+          "count": 0
+        },
+        {
+          "path": "ToolUtility.Core/FeeOperations/FeeService.cs",
+          "count": 0
+        },
+        {
+          "path": "ToolUtility.Core/FeeOperations/IFeeService.cs",
+          "count": 0
+        },
+        {
+          "path": "ToolUtility.Core/Interfaces/IEntityAttributeUtilityService.cs",
+          "count": 0
+        },
+        {
+          "path": "ToolUtility.Core/Interfaces/IOwnerManagementService.cs",
+          "count": 0
+        },
+        {
+          "path": "ToolUtility.Core/LessonsOperations/ILessonsService.cs",
+          "count": 0
+        },
+        {
+          "path": "ToolUtility.Core/LessonsOperations/LessonsService.cs",
+          "count": 0
+        },
+        {
+          "path": "ToolUtility.Core/LineRecipients/LineRecipientQueries.cs",
+          "count": 0
+        },
+        {
+          "path": "ToolUtility.Core/ListOperations/IListService.cs",
+          "count": 0
+        },
+        {
+          "path": "ToolUtility.Core/ListOperations/IMarketingListService.cs",
+          "count": 0
+        },
+        {
+          "path": "ToolUtility.Core/ListOperations/ListMembershipOperations.cs",
+          "count": 0
+        },
+        {
+          "path": "ToolUtility.Core/ListOperations/ListService.cs",
+          "count": 0
+        },
+        {
+          "path": "ToolUtility.Core/ListOperations/MarketingListService.cs",
+          "count": 0
+        },
+        {
+          "path": "ToolUtility.Core/Localization/D365ChurchTextOverrideSource.cs",
+          "count": 0
+        },
+        {
+          "path": "ToolUtility.Core/MeetingStatisticsOperations/IMeetingStatisticsService.cs",
+          "count": 0
+        },
+        {
+          "path": "ToolUtility.Core/MeetingStatisticsOperations/MeetingStatisticsService.cs",
+          "count": 0
+        },
+        {
+          "path": "ToolUtility.Core/Outbound/D365OutboundEnqueueStore.cs",
+          "count": 0
+        },
+        {
+          "path": "ToolUtility.Core/Outbound/D365OutboundTaskStore.cs",
+          "count": 0
+        },
+        {
+          "path": "ToolUtility.Core/Outbound/OutboundTaskCommand.cs",
+          "count": 0
+        },
+        {
+          "path": "ToolUtility.Core/Outbound/OutboundTaskRecord.cs",
+          "count": 0
+        },
+        {
+          "path": "ToolUtility.Core/OwnerOperations/OwnerManagementService.cs",
+          "count": 0
+        },
+        {
+          "path": "ToolUtility.Core/QueryOperations/ComplexQueryDataService.cs",
+          "count": 0
+        },
+        {
+          "path": "ToolUtility.Core/QueryOperations/FetchXmlQueryService.cs",
+          "count": 0
+        },
+        {
+          "path": "ToolUtility.Core/QueryOperations/IComplexQueryService.cs",
+          "count": 0
+        },
+        {
+          "path": "ToolUtility.Core/QueryOperations/ICrmQueryExecutor.cs",
+          "count": 0
+        },
+        {
+          "path": "ToolUtility.Core/QueryOperations/IFetchXmlQueryService.cs",
+          "count": 0
+        },
+        {
+          "path": "ToolUtility.Core/QueryOperations/IPresentRecordQueryService.cs",
+          "count": 0
+        },
+        {
+          "path": "ToolUtility.Core/QueryOperations/IQueryService.cs",
+          "count": 0
+        },
+        {
+          "path": "ToolUtility.Core/QueryOperations/IRelationshipQueryService.cs",
+          "count": 0
+        },
+        {
+          "path": "ToolUtility.Core/QueryOperations/PresentRecordQueryService.cs",
+          "count": 0
+        },
+        {
+          "path": "ToolUtility.Core/QueryOperations/QueryService.cs",
+          "count": 0
+        },
+        {
+          "path": "ToolUtility.Core/QueryOperations/RelationshipQueryService.cs",
+          "count": 0
+        },
+        {
+          "path": "ToolUtility.Core/TimeOperations/IClock.cs",
+          "count": 0
+        }
+      ]
+    },
+    {
+      "project": "ToolUtility/ToolUtility.csproj",
+      "count": 67,
+      "files": [
         {
           "path": "ToolUtility/Adapters/DataverseServiceClientAdapter.cs",
           "count": 0
@@ -3040,83 +4226,11 @@
           "count": 0
         },
         {
-          "path": "ToolUtility/AppointmentOperations/AppointmentService.cs",
-          "count": 0
-        },
-        {
-          "path": "ToolUtility/AppointmentOperations/IAppointmentService.cs",
-          "count": 0
-        },
-        {
-          "path": "ToolUtility/AttachmentOperations/AttachmentService.cs",
-          "count": 0
-        },
-        {
-          "path": "ToolUtility/AttachmentOperations/IAttachmentService.cs",
-          "count": 0
-        },
-        {
-          "path": "ToolUtility/AttributeOperations/AttributeServiceComposite.cs",
-          "count": 0
-        },
-        {
-          "path": "ToolUtility/AttributeOperations/BoolAttributeService.cs",
-          "count": 0
-        },
-        {
-          "path": "ToolUtility/AttributeOperations/DateTimeAttributeService.cs",
-          "count": 0
-        },
-        {
-          "path": "ToolUtility/AttributeOperations/DoubleAttributeService.cs",
-          "count": 0
-        },
-        {
-          "path": "ToolUtility/AttributeOperations/EntityAttributeUtilityService.cs",
-          "count": 0
-        },
-        {
-          "path": "ToolUtility/AttributeOperations/FloatAttributeService.cs",
-          "count": 0
-        },
-        {
-          "path": "ToolUtility/AttributeOperations/IAttributeService.cs",
-          "count": 0
-        },
-        {
-          "path": "ToolUtility/AttributeOperations/IntAttributeService.cs",
-          "count": 0
-        },
-        {
-          "path": "ToolUtility/AttributeOperations/LookupAttributeService.cs",
-          "count": 0
-        },
-        {
-          "path": "ToolUtility/AttributeOperations/MoneyAttributeService.cs",
-          "count": 0
-        },
-        {
-          "path": "ToolUtility/AttributeOperations/OptionSetAttributeService.cs",
-          "count": 0
-        },
-        {
-          "path": "ToolUtility/AttributeOperations/StringAttributeService.cs",
-          "count": 0
-        },
-        {
           "path": "ToolUtility/Caching/CrmCacheService.cs",
           "count": 0
         },
         {
           "path": "ToolUtility/Caching/ICrmCacheService.cs",
-          "count": 0
-        },
-        {
-          "path": "ToolUtility/CollectionOperations/CollectionQueryService.cs",
-          "count": 0
-        },
-        {
-          "path": "ToolUtility/CollectionOperations/ICollectionQueryService.cs",
           "count": 0
         },
         {
@@ -3132,19 +4246,7 @@
           "count": 0
         },
         {
-          "path": "ToolUtility/Constants/CrmEntityColumns.cs",
-          "count": 0
-        },
-        {
           "path": "ToolUtility/ContactOperations/ContactService.cs",
-          "count": 15
-        },
-        {
-          "path": "ToolUtility/ContactOperations/IContactService.cs",
-          "count": 0
-        },
-        {
-          "path": "ToolUtility/Core/IToolUtilityCore.cs",
           "count": 0
         },
         {
@@ -3236,10 +4338,6 @@
           "count": 5
         },
         {
-          "path": "ToolUtility/Diagnostics/ExceptionTypeForwards.cs",
-          "count": 0
-        },
-        {
           "path": "ToolUtility/Diagnostics/FileToolUtilityTracer.cs",
           "count": 0
         },
@@ -3260,42 +4358,6 @@
           "count": 9
         },
         {
-          "path": "ToolUtility/EntityOperations/EntityAttributeHandler.cs",
-          "count": 2
-        },
-        {
-          "path": "ToolUtility/EntityOperations/EntityCrudService.cs",
-          "count": 0
-        },
-        {
-          "path": "ToolUtility/EntityOperations/EntityOptimizedQueryService.cs",
-          "count": 0
-        },
-        {
-          "path": "ToolUtility/EntityOperations/EntityQueryService.cs",
-          "count": 0
-        },
-        {
-          "path": "ToolUtility/EntityOperations/EntityRepository.cs",
-          "count": 13
-        },
-        {
-          "path": "ToolUtility/EntityOperations/IEntityCrudService.cs",
-          "count": 0
-        },
-        {
-          "path": "ToolUtility/EntityOperations/IEntityQueryService.cs",
-          "count": 0
-        },
-        {
-          "path": "ToolUtility/Extensions/CrmAsyncExtensions.cs",
-          "count": 0
-        },
-        {
-          "path": "ToolUtility/Extensions/OrganizationServiceExtensions.cs",
-          "count": 0
-        },
-        {
           "path": "ToolUtility/Factories/CrmClientFactory.cs",
           "count": 0
         },
@@ -3304,43 +4366,7 @@
           "count": 7
         },
         {
-          "path": "ToolUtility/FeeOperations/FeeService.cs",
-          "count": 0
-        },
-        {
-          "path": "ToolUtility/FeeOperations/IFeeService.cs",
-          "count": 0
-        },
-        {
           "path": "ToolUtility/Interfaces/ICrmClient.cs",
-          "count": 0
-        },
-        {
-          "path": "ToolUtility/Interfaces/IEntityAttributeUtilityService.cs",
-          "count": 0
-        },
-        {
-          "path": "ToolUtility/Interfaces/IFetchXmlQueryService.cs",
-          "count": 0
-        },
-        {
-          "path": "ToolUtility/Interfaces/IOwnerManagementService.cs",
-          "count": 0
-        },
-        {
-          "path": "ToolUtility/Interfaces/IPresentRecordQueryService.cs",
-          "count": 0
-        },
-        {
-          "path": "ToolUtility/Interfaces/IRelationshipQueryService.cs",
-          "count": 0
-        },
-        {
-          "path": "ToolUtility/LessonsOperations/ILessonsService.cs",
-          "count": 0
-        },
-        {
-          "path": "ToolUtility/LessonsOperations/LessonsService.cs",
           "count": 0
         },
         {
@@ -3352,56 +4378,20 @@
           "count": 0
         },
         {
-          "path": "ToolUtility/ListOperations/IListService.cs",
+          "path": "ToolUtility/Localization/DataverseChurchTextOverrideServiceFactory.cs",
           "count": 0
         },
         {
-          "path": "ToolUtility/ListOperations/ListService.cs",
-          "count": 3
-        },
-        {
-          "path": "ToolUtility/ListOperations/MarketingListService.cs",
-          "count": 15
-        },
-        {
-          "path": "ToolUtility/MeetingStatisticsOperations/IMeetingStatisticsService.cs",
+          "path": "ToolUtility/Localization/DataverseTextChangeSource.cs",
           "count": 0
         },
         {
-          "path": "ToolUtility/MeetingStatisticsOperations/MeetingStatisticsService.cs",
+          "path": "ToolUtility/Outbound/D365OutboundWorkStoreAdapter.cs",
           "count": 0
-        },
-        {
-          "path": "ToolUtility/OwnerOperations/OwnerManagementService.cs",
-          "count": 0
-        },
-        {
-          "path": "ToolUtility/PushUtility.cs",
-          "count": 37
         },
         {
           "path": "ToolUtility/QueryOperations/ComplexQueryService.cs",
           "count": 0
-        },
-        {
-          "path": "ToolUtility/QueryOperations/FetchXmlQueryService.cs",
-          "count": 9
-        },
-        {
-          "path": "ToolUtility/QueryOperations/IComplexQueryService.cs",
-          "count": 0
-        },
-        {
-          "path": "ToolUtility/QueryOperations/PresentRecordQueryService.cs",
-          "count": 8
-        },
-        {
-          "path": "ToolUtility/QueryOperations/QueryService.cs",
-          "count": 13
-        },
-        {
-          "path": "ToolUtility/QueryOperations/RelationshipQueryService.cs",
-          "count": 6
         },
         {
           "path": "ToolUtility/ToolUtilityClass.cs",
@@ -3466,12 +4456,126 @@
       ]
     },
     {
+      "project": "build/Line.Messaging.PluginSubset/Line.Messaging.PluginSubset.csproj",
+      "count": 0,
+      "files": []
+    },
+    {
+      "project": "build/ToolUtility.Core.PluginSubset/ToolUtility.Core.PluginSubset.csproj",
+      "count": 0,
+      "files": []
+    },
+    {
       "project": "tools/LegacyGolden/LegacyGolden.csproj",
       "count": 1,
       "files": [
         {
+          "path": "tools/LegacyGolden/GoldenGenerator.cs",
+          "count": 0
+        },
+        {
+          "path": "tools/LegacyGolden/GoldenOutput.cs",
+          "count": 0
+        },
+        {
+          "path": "tools/LegacyGolden/LegacyCompiler.cs",
+          "count": 0
+        },
+        {
+          "path": "tools/LegacyGolden/LegacySourceReader.cs",
+          "count": 0
+        },
+        {
+          "path": "tools/LegacyGolden/PluginHarness/AtomicJsonWriter.cs",
+          "count": 0
+        },
+        {
+          "path": "tools/LegacyGolden/PluginHarness/BackgroundWork.cs",
+          "count": 0
+        },
+        {
+          "path": "tools/LegacyGolden/PluginHarness/Classification.cs",
+          "count": 0
+        },
+        {
           "path": "tools/LegacyGolden/PluginHarness/CompileMatrix.cs",
           "count": 1
+        },
+        {
+          "path": "tools/LegacyGolden/PluginHarness/GoldenWriter.cs",
+          "count": 0
+        },
+        {
+          "path": "tools/LegacyGolden/PluginHarness/HarnessEngine.cs",
+          "count": 0
+        },
+        {
+          "path": "tools/LegacyGolden/PluginHarness/LegacyProjectCompiler.cs",
+          "count": 0
+        },
+        {
+          "path": "tools/LegacyGolden/PluginHarness/LegacyRestTransport.cs",
+          "count": 0
+        },
+        {
+          "path": "tools/LegacyGolden/PluginHarness/Models.cs",
+          "count": 0
+        },
+        {
+          "path": "tools/LegacyGolden/PluginHarness/OutputSecretScan.cs",
+          "count": 0
+        },
+        {
+          "path": "tools/LegacyGolden/PluginHarness/Program.cs",
+          "count": 0
+        },
+        {
+          "path": "tools/LegacyGolden/PluginHarness/ReachableSourceSubset.cs",
+          "count": 0
+        },
+        {
+          "path": "tools/LegacyGolden/PluginHarness/ScenarioRunner.cs",
+          "count": 0
+        },
+        {
+          "path": "tools/LegacyGolden/PluginHarness/ScratchBoundedStream.cs",
+          "count": 0
+        },
+        {
+          "path": "tools/LegacyGolden/PluginHarness/ScratchDiagnostics.cs",
+          "count": 0
+        },
+        {
+          "path": "tools/LegacyGolden/PluginHarness/SourceReader.cs",
+          "count": 0
+        },
+        {
+          "path": "tools/LegacyGolden/PluginHarness/TransportInterception.cs",
+          "count": 0
+        },
+        {
+          "path": "tools/LegacyGolden/PluginHarness/TransportRewriter.cs",
+          "count": 0
+        },
+        {
+          "path": "tools/LegacyGolden/Program.cs",
+          "count": 0
+        },
+        {
+          "path": "tools/LegacyGolden/ReplyCatalog.cs",
+          "count": 0
+        },
+        {
+          "path": "tools/LegacyGolden/RuleCatalog.cs",
+          "count": 0
+        },
+        {
+          "path": "tools/LegacyGolden/SourceDocument.cs",
+          "count": 0
+        },
+        {
+          "path": "tools/LegacyGolden/SyntheticEvents.cs",
+          "count": 0
         }
       ]
     },
@@ -3480,8 +4584,76 @@
       "count": 1,
       "files": [
         {
+          "path": "tools/LegacyGolden/PluginHarness/AtomicJsonWriter.cs",
+          "count": 0
+        },
+        {
+          "path": "tools/LegacyGolden/PluginHarness/BackgroundWork.cs",
+          "count": 0
+        },
+        {
+          "path": "tools/LegacyGolden/PluginHarness/Classification.cs",
+          "count": 0
+        },
+        {
           "path": "tools/LegacyGolden/PluginHarness/CompileMatrix.cs",
           "count": 1
+        },
+        {
+          "path": "tools/LegacyGolden/PluginHarness/GoldenWriter.cs",
+          "count": 0
+        },
+        {
+          "path": "tools/LegacyGolden/PluginHarness/HarnessEngine.cs",
+          "count": 0
+        },
+        {
+          "path": "tools/LegacyGolden/PluginHarness/LegacyProjectCompiler.cs",
+          "count": 0
+        },
+        {
+          "path": "tools/LegacyGolden/PluginHarness/LegacyRestTransport.cs",
+          "count": 0
+        },
+        {
+          "path": "tools/LegacyGolden/PluginHarness/Models.cs",
+          "count": 0
+        },
+        {
+          "path": "tools/LegacyGolden/PluginHarness/OutputSecretScan.cs",
+          "count": 0
+        },
+        {
+          "path": "tools/LegacyGolden/PluginHarness/Program.cs",
+          "count": 0
+        },
+        {
+          "path": "tools/LegacyGolden/PluginHarness/ReachableSourceSubset.cs",
+          "count": 0
+        },
+        {
+          "path": "tools/LegacyGolden/PluginHarness/ScenarioRunner.cs",
+          "count": 0
+        },
+        {
+          "path": "tools/LegacyGolden/PluginHarness/ScratchBoundedStream.cs",
+          "count": 0
+        },
+        {
+          "path": "tools/LegacyGolden/PluginHarness/ScratchDiagnostics.cs",
+          "count": 0
+        },
+        {
+          "path": "tools/LegacyGolden/PluginHarness/SourceReader.cs",
+          "count": 0
+        },
+        {
+          "path": "tools/LegacyGolden/PluginHarness/TransportInterception.cs",
+          "count": 0
+        },
+        {
+          "path": "tools/LegacyGolden/PluginHarness/TransportRewriter.cs",
+          "count": 0
         }
       ]
     }

@@ -92,3 +92,7 @@ SundayQrCodeUtility.cs:230仍有一行已註解的計算旗標呼叫，不屬可
 SHA-256 `fea67dbec4a6b32497cd93b48d2d875c56320031dbb20b8bdcfe8aadb0a7f8bb`。
 既有差異歸屬以 `git diff --name-only 9b7ac0a0` 核對。
 待P6-03核定並驗收後，按06A正式寫入基準、verify、提交與完整guard；本頁不是完成證明。
+
+## P6-03驗收後的正式核對
+
+2026-11-17 07:49 Asia/Taipei (UTC+08:00)：scan-after-p6-03逐檔與原scan一致；正式scan --write-baseline已執行，31筆計數變化皆與上表一致，唯一增加為核定統計文字搬移。產生器另同步386個零計數來源項目的新增／移除，沒有增加字串。verify回0；未修改任何產品程式或顯示文字。下一步提交與固定guard，尚未驗收。

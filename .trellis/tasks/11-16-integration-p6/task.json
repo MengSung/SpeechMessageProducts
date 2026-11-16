@@ -24,7 +24,8 @@
     "11-16-p6-04-explicit-toolutility-registration",
     "11-16-p6-01-shared-qr-content",
     "11-16-p6-02-shared-weekly-report-rule",
-    "11-16-11-16-p6-03-remove-send-shells"
+    "11-16-11-16-p6-03-remove-send-shells",
+    "11-17-p6-05-cjk-ratchet"
   ],
   "parent": null,
   "relatedFiles": [],
