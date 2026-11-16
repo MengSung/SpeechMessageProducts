@@ -7,6 +7,7 @@
  * 本檔宣告 Startup。
  * - 目前啟用的主題名稱（藍色、橘色、綠色、粉紅色、晨霧紫、月光藍、皇家紫金、勃根地金、陽光黃、珊瑚橘、行道靛紫）。
  * - 配置服務的方法。此方法由運行時呼叫，用於將服務添加到依賴注入容器中。 包括 HTTP 客戶端、快取、CRM 連接池、健康檢查、MVC 配置、身份驗證等服務的註冊。
+ * - ToolUtility 明確借用原 host 的 Configuration 與固定 ChurchReport 產品鍵；不另建設定、容器或連線，維持 request scope 及既有 pool owner。
  * - 配置 HTTP 請求管道的方法。此方法由運行時呼叫，用於設定中間件管道。 包括異常處理、健康檢查、靜態檔案、Session、身份驗證和路由配置。
  * 主要操作入口包含 ResolveThemeName、MapThemeCssClass、ConfigureServices、Configure。
  *
@@ -462,7 +463,8 @@ namespace ChurchReport
             // AddToolUtility 在 ToolUtility 組件內以明確 factory 建立 ToolUtilityClass，
             // 使其取得同一 request 的 IOrganizationService 租約；不得在此跨組件以
             // Activator 解析 internal legacy 建構式，也不得把 scoped Provider 捕獲為 Singleton。
-            services.AddToolUtility();
+            // Configuration 與 host 容器中的 IConfiguration 為同一實例；明確產品值維持原入口的連線隔離鍵。
+            services.AddToolUtility(Configuration, "ChurchReport");
 
 #if DEBUG
             // CRM 計時必須在組合根的唯一 IOrganizationService 入口完成。這個 descriptor 是

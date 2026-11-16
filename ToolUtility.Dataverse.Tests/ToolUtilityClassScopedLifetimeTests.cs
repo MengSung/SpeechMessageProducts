@@ -5,6 +5,7 @@
  *
  * 主要功能與流程：
  * 本檔宣告 ToolUtilityClassScopedLifetimeTests。
+ * - 服務圖以同一合成組態與明確 ChurchReport 產品註冊；不另建組態或容器，request／背景 scope 的原所有權與釋放順序不變。
  * - 保護 DI 建構不得建立 legacy Dataverse 連線的契約。 故障注入為嚴格的 ICrmConnectionService 替身；若建構式錯誤呼叫 CreateOnPremiseClient，替身會立即失敗，
  * 並由 Never 斷言確認呼叫數為零。
  * - 保護注入連線不由 ToolUtilityClass 釋放的契約。 故障注入為可計數的 IDisposable 組織服務；直接 Dispose ToolUtilityClass 後， 決定性斷言是注入服務的
@@ -123,7 +124,8 @@ public sealed class ToolUtilityClassScopedLifetimeTests
     {
         var organizationServices = new List<Mock<IOrganizationService>>();
         var services = new ServiceCollection();
-        services.AddSingleton<IConfiguration>(CreateConfiguration());
+        var configuration = CreateConfiguration();
+        services.AddSingleton<IConfiguration>(configuration);
         services.AddSingleton<IToolUtilityTracer>(CreateTracer());
         services.AddScoped<IOrganizationService>(_ =>
         {
@@ -132,7 +134,7 @@ public sealed class ToolUtilityClassScopedLifetimeTests
             organizationServices.Add(service);
             return service.Object;
         });
-        services.AddToolUtility();
+        services.AddToolUtility(configuration, "ChurchReport");
 
         using var provider = services.BuildServiceProvider(new ServiceProviderOptions
         {
@@ -166,15 +168,16 @@ public sealed class ToolUtilityClassScopedLifetimeTests
 
     /// <summary>
     /// 建立只供測試使用的服務容器，明確開啟 scope 驗證以捕捉 captive dependency。
-    /// 每個 scope 的組織服務皆為測試替身，絕不建立網路連線。
+    /// 每個 scope 的組織服務皆為測試替身，絕不建立網路連線；容器與明確 ChurchReport 註冊借用同一份組態。
     /// </summary>
     private static ServiceProvider BuildServiceProvider()
     {
         var services = new ServiceCollection();
-        services.AddSingleton<IConfiguration>(CreateConfiguration());
+        var configuration = CreateConfiguration();
+        services.AddSingleton<IConfiguration>(configuration);
         services.AddSingleton<IToolUtilityTracer>(CreateTracer());
         services.AddScoped<IOrganizationService>(_ => new Mock<IOrganizationService>().Object);
-        services.AddToolUtility();
+        services.AddToolUtility(configuration, "ChurchReport");
 
         return services.BuildServiceProvider(new ServiceProviderOptions
         {

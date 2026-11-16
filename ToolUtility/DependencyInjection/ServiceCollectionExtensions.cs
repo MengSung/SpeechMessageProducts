@@ -10,7 +10,8 @@
  * 結束時由 DI 確定性釋放。
  * - 以明確的產品與組態註冊資料服務，讓實際 DataverseConnectionKey 包含正確產品。 組態只活至 host 容器結束，不保存 HttpContext、Session 或個別使用者值。
  * 同一容器的衝突產品／組態會在任何新增註冊前拒絕，避免第一份 singleton 靜默勝出。
- * - 共用新舊 API 的唯一註冊流程，不建立隱藏容器或捕獲 scoped service。 null 組態只供無參數相容入口，所有需組態的 factory 透過同一解析函式取得來源。
+ * - 只接受明確產品與非 null 組態的唯一註冊流程，不建立隱藏容器或捕獲 scoped service；
+ *   所有 factory 借用同一 host 組態，容器關閉時仍依原有 manager／pool／scope 順序釋放資源。
  * - 保存首次註冊的受信任邊界，供後續註冊比對，不讀取或複製機密內容。
  * 主要操作入口包含 AddToolUtility、RegisterServices、ResolveEnvironmentName。
  *
@@ -36,20 +37,6 @@ namespace ToolUtilityNameSpace.DependencyInjection
     public static class ServiceCollectionExtensions
     {
         /// <summary>
-        /// 註冊 ToolUtility 服務到 DI 容器
-        /// ToolUtilityClass 與其 Provider 都使用 Scoped 生命週期；每個 request
-        /// 取得自己的 Dataverse 連線租約，request 結束時由 DI 確定性釋放。
-        /// </summary>
-        /// <param name="services">服務集合</param>
-        /// <returns>服務集合</returns>
-        [Obsolete("請改用 AddToolUtility(configuration, product) 明確指定產品；此相容多載預定於階段 6 移除。")]
-        public static IServiceCollection AddToolUtility(this IServiceCollection services)
-        {
-            // 舊 API 沒有組態參數，延至解析時才從原容器取得組態；不可為取得設定另建 ServiceProvider。
-            return RegisterServices(services, null, "ChurchReport");
-        }
-
-        /// <summary>
         /// 以明確的產品與組態註冊資料服務，讓實際 DataverseConnectionKey 包含正確產品。
         /// 組態只活至 host 容器結束，不保存 HttpContext、Session 或個別使用者值。
         /// 同一容器的衝突產品／組態會在任何新增註冊前拒絕，避免第一份 singleton 靜默勝出。
@@ -66,9 +53,13 @@ namespace ToolUtilityNameSpace.DependencyInjection
         }
 
         /// <summary>
-        /// 共用新舊 API 的唯一註冊流程，不建立隱藏容器或捕獲 scoped service。
-        /// null 組態只供無參數相容入口，所有需組態的 factory 透過同一解析函式取得來源。
+        /// 明確產品 API 的唯一註冊流程；組態已由入口驗證非 null，所有 factory 只借用同一實例，
+        /// 不再從解析時的容器另取設定。服務與資源生命週期不變，不建立隱藏容器或捕獲 scoped service。
         /// </summary>
+        /// <param name="services">主機擁有、尚未建置且非並行修改的服務集合。</param>
+        /// <param name="configuration">入口已驗證的原始 host 組態，僅持有至容器結束，不取得 Dispose 所有權。</param>
+        /// <param name="product">完整隔離鍵使用的固定產品識別；衝突時在新增任何 descriptor 前拒絕。</param>
+        /// <returns>完成註冊或相同註冊冪等重入時的原服務集合。</returns>
         private static IServiceCollection RegisterServices(
             IServiceCollection services, IConfiguration configuration, string product)
         {
@@ -89,11 +80,7 @@ namespace ToolUtilityNameSpace.DependencyInjection
             }
 
             services.AddSingleton(new ProductRegistration(product, configuration));
-            if (configuration != null) services.TryAddSingleton<IConfiguration>(configuration);
-
-            // 此委派只捕獲 host 組態，不保存 provider；每個 factory 仍在原容器依原生命週期執行。
-            IConfiguration ResolveConfiguration(IServiceProvider provider) =>
-                configuration ?? provider.GetRequiredService<IConfiguration>();
+            services.TryAddSingleton<IConfiguration>(configuration);
 
             // Manager 與 pool 都是程序級資源擁有者；它們只能依賴 Singleton，
             // 絕不捕獲 request-scoped service。TryAdd 讓測試或其他產品可先提供
@@ -116,7 +103,7 @@ namespace ToolUtilityNameSpace.DependencyInjection
             services.TryAddSingleton<DataversePoolOptions>(sp =>
             {
                 var options = new DataversePoolOptions();
-                ResolveConfiguration(sp)
+                configuration
                     .GetSection("Dataverse:Pool")
                     .Bind(options);
                 options.Validate();
@@ -124,12 +111,11 @@ namespace ToolUtilityNameSpace.DependencyInjection
             });
             services.TryAddSingleton<DataverseConnectionManager>(sp =>
             {
-                var effectiveConfiguration = ResolveConfiguration(sp);
                 return new DataverseConnectionManager(
                     sp.GetRequiredService<ICrmConnectionService>(),
-                    effectiveConfiguration,
+                    configuration,
                     product,
-                    ResolveEnvironmentName(effectiveConfiguration),
+                    ResolveEnvironmentName(configuration),
                     sp.GetRequiredService<DataversePoolOptions>());
             });
             services.TryAddSingleton<IDataverseConnectionManager>(sp =>
@@ -145,7 +131,7 @@ namespace ToolUtilityNameSpace.DependencyInjection
             services.AddScoped<ToolUtilityClass>(sp => new ToolUtilityClass(
                 sp.GetRequiredService<IOrganizationService>(),
                 sp.GetRequiredService<IToolUtilityTracer>(),
-                ResolveConfiguration(sp)));
+                configuration));
             services.AddScoped<IToolUtilityProvider, ToolUtilityProvider>();
             return services;
         }
@@ -166,7 +152,7 @@ namespace ToolUtilityNameSpace.DependencyInjection
             /// <summary>唯一的 host 產品識別，不由 request 改寫。</summary>
             internal string Product { get; }
 
-            /// <summary>原 host 組態；null 表示延用既有 DI 解析，不代表缺少連線驗證。</summary>
+            /// <summary>入口驗證非 null 的原 host 組態；只借用同一物件供註冊衝突比對，不複製憑證或建立替代組態。</summary>
             internal IConfiguration Configuration { get; }
         }
 

@@ -6,7 +6,9 @@
  * 主要功能與流程：
  * 本檔宣告 ProductRegistrationTests。
  * - 兩個產品使用相同合成組織／身分時，實際租約仍進入不同 Product 鍵。 若 factory 仍寫死 ChurchReport，本案必失敗；釋放後租約／等待者歸零，容器再關閉 client。
- * - 原本無參數的公開 overload 必須保留 ChurchReport 鍵與 DI 組態讀取， 不能在註冊期間另建容器或連線，亦不能讓未解析服務逃過容器關閉。
+ * - 保留原舊多載案例名稱但改用明確註冊，仍須維持 ChurchReport 鍵與原容器組態，
+ *   不能在註冊期間另建容器或連線，亦不能讓未解析服務逃過容器關閉。
+ * - P6-04 驗證明確 ChurchReport 註冊維持相同隔離鍵與組態實例，並拒絕留下無參數入口或三個已退役的例外型別轉送。
  * - 同一容器先後註冊不同產品必須拒絕，不能讓 TryAddSingleton 靜默沿用第一個產品。 失敗前後服務描述數相等，避免部分註冊污染現有組合根。
  * - 完全相同組態與產品的重複註冊必須冪等，不能建立第二份 singleton owner 或 scoped provider。
  * 測試案例入口包含 AddToolUtility_ProductParameter_PartitionsConnectionKey、AddToolUtility_LegacyOverload_UsesChurchReport、
@@ -40,6 +42,60 @@ namespace ToolUtility.Tests.DependencyInjection
     /// </summary>
     public sealed class ProductRegistrationTests
     {
+        /// <summary>
+        /// 以產品組合根的同一份合成組態註冊 ChurchReport，取得真實 manager 的池鍵，
+        /// 保護移除舊入口後產品識別不變且不另建組態。租約先歸還、容器再確定性關閉合成 client；
+        /// 本案不建立網路、不保存 request 或跨使用者狀態。
+        /// </summary>
+        [Fact]
+        public void AddToolUtility_ExplicitChurchReport_ConnectionKeyHasChurchReportProduct()
+        {
+            var client = Client();
+            var configuration = Configuration();
+            var services = Services(client);
+            services.AddSingleton<IConfiguration>(configuration);
+            services.AddToolUtility(configuration, "ChurchReport");
+            using (var provider = services.BuildServiceProvider())
+            {
+                Assert.Same(configuration, provider.GetRequiredService<IConfiguration>());
+                var manager = provider.GetRequiredService<IDataverseConnectionManager>();
+                using (manager.Acquire())
+                {
+                    Assert.Equal("ChurchReport", ActualKey(manager).Product);
+                }
+                Assert.Equal(0, manager.GetMetrics().Leased);
+            }
+            client.As<IDisposable>().Verify(service => service.Dispose(), Times.Once);
+        }
+
+        /// <summary>
+        /// 直接檢查公開 API 形狀，禁止只收服務集合的舊多載留下來讓未來呼叫者略過產品與組態邊界。
+        /// 反射只讀 ToolUtility metadata，不建立 DI 容器或其他資源。
+        /// </summary>
+        [Fact]
+        public void AddToolUtility_ParameterlessOverload_NoLongerExists()
+        {
+            Assert.DoesNotContain(typeof(ServiceCollectionExtensions).GetMethods(BindingFlags.Public | BindingFlags.Static),
+                method => method.Name == "AddToolUtility" && method.GetParameters().Length == 1);
+        }
+
+        /// <summary>
+        /// 透過 CLR 實際轉送型別表檢查三個已退役相容入口，避免 TypeForwardedTo 的偽自訂屬性
+        /// 未出現在一般屬性反射時產生假綠燈。只讀組件中繼資料，不建立 diagnostics owner 或通知資源。
+        /// </summary>
+        [Fact]
+        public void ToolUtilityAssembly_HasNoExceptionTypeForwarders()
+        {
+            var retired = new[]
+            {
+                "ToolUtilityNameSpace.Diagnostics.ExceptionDiagnostics",
+                "ToolUtilityNameSpace.Diagnostics.ExceptionOutputOptions",
+                "ToolUtilityNameSpace.Diagnostics.ExceptionReporting"
+            };
+            Assert.DoesNotContain(typeof(ServiceCollectionExtensions).Assembly.GetForwardedTypes(),
+                type => retired.Contains(type.FullName, StringComparer.Ordinal));
+        }
+
         /// <summary>
         /// 兩個產品使用相同合成組織／身分時，實際租約仍進入不同 Product 鍵。
         /// 若 factory 仍寫死 ChurchReport，本案必失敗；釋放後租約／等待者歸零，容器再關閉 client。
@@ -83,16 +139,17 @@ namespace ToolUtility.Tests.DependencyInjection
         }
 
         /// <summary>
-        /// 原本無參數的公開 overload 必須保留 ChurchReport 鍵與 DI 組態讀取，
-        /// 不能在註冊期間另建容器或連線，亦不能讓未解析服務逃過容器關閉。
+        /// 保留舊入口回歸案例名稱，改由明確產品多載證明 ChurchReport 鍵與原組態不變。
+        /// 不能在註冊期間另建容器或連線，亦不能讓未解析服務逃過容器關閉；合成 client 仍由容器唯一釋放。
         /// </summary>
         [Fact]
         public void AddToolUtility_LegacyOverload_UsesChurchReport()
         {
             var client = Client();
             var services = Services(client);
-            services.AddSingleton<IConfiguration>(Configuration());
-            services.AddToolUtility();
+            var configuration = Configuration();
+            services.AddSingleton<IConfiguration>(configuration);
+            services.AddToolUtility(configuration, "ChurchReport");
             using (var provider = services.BuildServiceProvider())
             {
                 var manager = provider.GetRequiredService<IDataverseConnectionManager>();

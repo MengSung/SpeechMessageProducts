@@ -9,6 +9,8 @@
  * ChurchReport.Startup 建立 Debug 計時裝飾器，再由 Factory 單例呼叫 IOrganizationService.Execute(OrganizationRequest)；決定性斷言是目前
  * ChurchReport.Diagnostics.Profiling.RequestProfiler 的摘要含有 crm{n=1, 。這可防止 Factory 持有的 ambient 代理繞過 DI decorator，讓
  * JSONL 有 CRM 操作但同一 request 的 [Perf] 永遠為零。
+ * - P6-04 在同一 Startup 組裝案例斷言其 Configuration 與容器 IConfiguration 為同一物件，
+ *   保護明確註冊不會換用另一份產品設定；不增加主機或外部連線。
  * - 保護 Factory 單例不捕獲 request scope、也不在背景操作遺漏 scope 釋放的契約。 故障注入為可計數的 scope factory 和不連線網路的 CRM service；決定性斷言依序是： 有
  * request 時不自建 scope、無 request 時建立且釋放一個短命 scope、以及連續一百個 不同 request scope 操作後 pool 的已建立 client 數維持熱身基線且 lease 歸零。
  * - 保護背景工作即使繼承 request 的 ExecutionContext，也只能使用明確指定的背景 scope。 故障注入建立兩個彼此獨立的服務提供者：request 服務回傳第一個識別碼，背景服務回傳 第二個識別碼。
@@ -87,6 +89,8 @@ public sealed class ToolUtilityFactoryAmbientGatewayTests
 
         try
         {
+            Assert.Same(configuration, startup.Configuration);
+            Assert.Same(startup.Configuration, provider.GetRequiredService<IConfiguration>());
             using var requestScope = provider.CreateScope();
             var context = new DefaultHttpContext
             {
@@ -136,7 +140,7 @@ public sealed class ToolUtilityFactoryAmbientGatewayTests
         services.AddSingleton<IConfiguration>(configuration);
         services.AddSingleton<IToolUtilityTracer>(new Mock<IToolUtilityTracer>(MockBehavior.Loose).Object);
         services.AddSingleton(CreateConnectionService(createdServices));
-        services.AddToolUtility();
+        services.AddToolUtility(configuration, "ChurchReport");
 
         using var provider = services.BuildServiceProvider(new ServiceProviderOptions
         {

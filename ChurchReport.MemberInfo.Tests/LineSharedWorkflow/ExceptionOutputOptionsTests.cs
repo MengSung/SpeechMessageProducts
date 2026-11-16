@@ -8,9 +8,11 @@
  * - 經 JSON 組態解析後輸出僅限所選目的地；雙開 sender 必須看得到相同紀錄且同例外不重複。
  * - 缺省維持兩者開啟；無效布林拒絕啟動，不把錯字解釋為靜默關閉。
  * - 只開 LINE 時 sender 故障與關機剩餘佇列只用固定 stderr，不能意外建立 Exception.log。
+ * - 驗證 Hosting 的 Report 四參數 ABI、optional 參數及停用輸出行為，不再要求舊 ToolUtility 組件名稱解析。
  * 測試案例入口包含 Selected_outputs_are_independent_and_both_write_before_sending、
  * Missing_options_default_on_and_invalid_boolean_is_rejected、
- * Line_only_failure_or_undrained_queue_never_creates_log。
+ * Line_only_failure_or_undrained_queue_never_creates_log、
+ * ReportAbi_retains_optional_diagnostics_signature_without_legacy_forwarders。
  *
  * 使用邊界與維護：
  * 以本檔實際安排的輸入、替身及斷言判定契約；測試名稱只說明案例，不能代替執行結果。
@@ -26,19 +28,12 @@ namespace ChurchReport.MemberInfo.Tests.LineSharedWorkflow;
 public sealed class ExceptionOutputOptionsTests
 {
     /// <summary>
-    /// 既有部署可能仍帶有ToolUtility組件限定型別名稱，搬移後須由CLR解析成Hosting唯一型別。
-    /// 以原四參數Report ABI實際呼叫停用輸出的owner，保護位置參數及預設值相容；await using
+    /// 以Hosting組件中的四參數Report ABI實際呼叫停用輸出的owner，保護位置參數及預設值相容；await using
     /// 排空合成owner，不建立檔案或HTTP連線，不把此測試當作LINE實收驗收。
     /// </summary>
     [Fact]
-    public async Task Forwarded_legacy_types_preserve_identity_and_report_abi()
+    public async Task ReportAbi_retains_optional_diagnostics_signature_without_legacy_forwarders()
     {
-        foreach (var type in new[] { typeof(ExceptionDiagnostics), typeof(ExceptionOutputOptions), typeof(ExceptionReporting) })
-        {
-            var legacy = Type.GetType(type.FullName + ", ToolUtility", throwOnError: true);
-            Assert.Same(type, legacy);
-            Assert.Equal("SpeechMessage.Hosting", legacy!.Assembly.GetName().Name);
-        }
         var report = typeof(ExceptionDiagnostics).GetMethod("Report",
             [typeof(Exception), typeof(string), typeof(CancellationToken), typeof(bool)]);
         Assert.NotNull(report);

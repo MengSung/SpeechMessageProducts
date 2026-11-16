@@ -6,6 +6,7 @@
  *
  * 主要功能與流程：
  * 本檔宣告 RunCServiceGraphTests。
+ * - 組合根以同一份合成組態與明確 ChurchReport 產品註冊；容器仍是 manager／pool 唯一 owner，不改變 request scope 或租約歸還時點。
  * - 驗證服務圖在 ValidateScopes 與 ValidateOnBuild 同時開啟時可建立，且五個池參數皆由組態繫結。 故障注入為假的連線服務；決定性斷言是所有新服務可解析且組態值逐一相等。
  * - 驗證三個並行 request scope 各執行十次操作後租約歸零，且 keyed pool 不會超過 MaxN。 故障注入為可計數的假的服務；決定性斷言是 scope 結束後 Leased=0、Idle
  * 不超過上限且只有一個子池。
@@ -187,6 +188,14 @@ public sealed class RunCServiceGraphTests
         Assert.IsType<GatewayOrganizationService>(utility.m_Crm2011OrganizationService);
     }
 
+    /// <summary>
+    /// 建立離線服務圖候選，以同一份合成組態註冊容器與 ChurchReport 組合根；
+    /// 呼叫端建置並 Dispose 容器，所提供連線替身不執行網路，manager／pool 的生命週期仍由容器管理。
+    /// </summary>
+    /// <param name="connectionService">案例提供的合成 client factory；不使用真實憑證。</param>
+    /// <param name="minSize">有界池的最小合成 client 數。</param>
+    /// <param name="maxN">有界池的最大同時租約容量。</param>
+    /// <returns>尚未建置、由當次案例獨占的服務集合。</returns>
     private static ServiceCollection CreateServices(
         ICrmConnectionService connectionService,
         int minSize = 2,
@@ -211,7 +220,7 @@ public sealed class RunCServiceGraphTests
         services.AddSingleton<IConfiguration>(configuration);
         services.AddSingleton<IToolUtilityTracer>(new Mock<IToolUtilityTracer>(MockBehavior.Loose).Object);
         services.AddSingleton(connectionService);
-        services.AddToolUtility();
+        services.AddToolUtility(configuration, "ChurchReport");
         return services;
     }
 
