@@ -122,3 +122,5 @@ P6-05收尾67ac88da4f075ec4c7c526d99651b08dd1d9d2f6已推送並ls-remote一致�
 2026-11-17 08:19 Asia/Taipei (UTC+08:00)：P6-07a四合成規則4/4綠；實際R2待辦Debug187／Release175。Tools10檔14型別與BaseChurchController2個private protected已完成雙組態建置、ChurchReport643/644與Dataverse79/81、黃金比對。下一批WebServiceConnector；清冊依計畫於a段末更新，未驗收不推送。
 
 2026-11-17 08:23 Asia/Taipei (UTC+08:00)：WebServiceConnector 25檔、14不同型別（含partial宣告）完成internal。編譯CS0051指出DonationKeyInDedicationService的公開建構式引用已內部化processor；該服務本身在未輪到的待辦中，依固定規則提前internal，不改簽章。兩組態建置、ChurchReport643/644與Dataverse79/81全過，四份黃金位元組相同；尚未驗收，不推送。 下一批Payments。
+
+2026-11-17 08:25 Asia/Taipei (UTC+08:00)：Payments5檔8個頂層型別改internal，沒有額外編譯牽連。雙組態建置、ChurchReport643/644與Dataverse79/81全通過，四份路由／序列化黃金逐位元組相同；只改可見性與文件，未改公開控制器成員、訊息或D365值。本包未驗收不推送，下一批Services。

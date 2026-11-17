@@ -16,6 +16,7 @@
  * 變更介面、資料格式、取消或清理順序時，須一併核對下列合作檔案及對應測試，不能只改目前檔案。
  * 可沿 SpeechMessageProducts.ChurchReport/Payments/ChurchReportPaymentContextBuilder.cs、
  * SpeechMessageProducts.ChurchReport/Startup.cs 追查目前工作樹中的合作／使用位置。
+ * P6-07公開邊界：ChurchReportPaymentPayerNotifier、ChurchReportPaymentRecordUpdater、ChurchReportPaymentWorkflowContextKeys改為產品內部宣告；外部輸出與既有資源清理契約不變。
  */
 using System;
 using System.Threading;
@@ -34,6 +35,7 @@ namespace ChurchReport.Payments;
 /// 共用 workflow project 不知道 CRM entity、ToolUtility、LINE 聯絡人等型別，
 /// 因此由 ChurchReport 在自己的 product layer 定義 context item contract。
 /// </summary>
+/// <remarks>P6-07限於本產品內部使用；既有資料形狀、呼叫順序與資源所有權不變，不作為跨組件API。</remarks>
 public static class ChurchReportPaymentWorkflowContextKeys
 {
     public const string ToolUtility = nameof(ToolUtility);
@@ -48,6 +50,7 @@ public static class ChurchReportPaymentWorkflowContextKeys
 /// ChurchReport 的付款紀錄更新 handler。
 /// 它實作共用 <see cref="IPaymentRecordUpdater"/>，但具體仍呼叫 ChurchReport 的 CRM service。
 /// </summary>
+/// <remarks>P6-07限於本產品內部使用；既有資料形狀、呼叫順序與資源所有權不變，不作為跨組件API。</remarks>
 public sealed class ChurchReportPaymentRecordUpdater : IPaymentRecordUpdater
 {
     private readonly PaymentCrmService _crmService;
@@ -74,6 +77,7 @@ public sealed class ChurchReportPaymentRecordUpdater : IPaymentRecordUpdater
 /// 它實作共用 <see cref="IPaymentPayerNotifier"/>，但 LINE 訊息內容、收費單分類與聯絡人欄位
 /// 仍全部留在 ChurchReport product layer。
 /// </summary>
+/// <remarks>P6-07限於本產品內部使用；既有資料形狀、呼叫順序與資源所有權不變，不作為跨組件API。</remarks>
 public sealed class ChurchReportPaymentPayerNotifier : IPaymentPayerNotifier
 {
     private readonly PaymentNotificationService _notificationService;

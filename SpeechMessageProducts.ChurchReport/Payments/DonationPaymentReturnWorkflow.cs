@@ -14,6 +14,7 @@
  * 變更介面、資料格式、取消或清理順序時，須一併核對下列合作檔案及對應測試，不能只改目前檔案。
  * 可沿 SpeechMessageProducts.ChurchReport/Controllers/PaymentReturnController.cs、
  * SpeechMessageProducts.ChurchReport/Startup.cs 追查目前工作樹中的合作／使用位置。
+ * P6-07公開邊界：DonationPaymentReturnWorkflow改為產品內部宣告；外部輸出與既有資源清理契約不變。
  */
 using System;
 using System.Collections.Generic;
@@ -57,6 +58,7 @@ public interface IDonationPaymentReturnWorkflow
 /// workflow 會把結果派送到真正的 ChurchReport 產品 processor。
 /// 如果沒有提供 dispatcher，workflow 會回傳一個基本付款結果頁，這主要用於測試或保底顯示。
 /// </summary>
+/// <remarks>P6-07限於本產品內部使用；既有資料形狀、呼叫順序與資源所有權不變，不作為跨組件API。</remarks>
 public sealed class DonationPaymentReturnWorkflow : IDonationPaymentReturnWorkflow
 {
     private const string PaymentResultViewName = "~/Views/PaymentReturn/PaymentResult.cshtml";

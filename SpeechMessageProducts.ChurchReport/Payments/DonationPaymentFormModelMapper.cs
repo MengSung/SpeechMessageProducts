@@ -17,6 +17,7 @@
  * 使用邊界與維護：
  * 本檔的前置條件、錯誤及資源責任以各型別／成員契約為準；此導讀不把呼叫參數視為授權，也不擴張被借入依賴的所有權。
  * 變更介面、資料格式、取消或清理順序時，須一併核對下列合作檔案及對應測試，不能只改目前檔案。
+ * P6-07公開邊界：DonationPaymentFormModelMapper改為產品內部宣告；外部輸出與既有資源清理契約不變。
  */
 using System;
 using System.Collections.Generic;
@@ -42,6 +43,7 @@ namespace ChurchReport.Payments;
 /// 這個類別只做純資料轉換，不呼叫外部服務、不讀 appsettings、不存資料庫。
 /// 這樣測試容易，責任也清楚。
 /// </summary>
+/// <remarks>P6-07限於本產品內部使用；既有資料形狀、呼叫順序與資源所有權不變，不作為跨組件API。</remarks>
 public sealed class DonationPaymentFormModelMapper
 {
     /// <summary>

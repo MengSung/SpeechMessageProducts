@@ -15,6 +15,7 @@
  * 變更介面、資料格式、取消或清理順序時，須一併核對下列合作檔案及對應測試，不能只改目前檔案。
  * 可沿 SpeechMessageProducts.ChurchReport/Payments/DonationPaymentReturnWorkflow.cs、
  * SpeechMessageProducts.ChurchReport/Startup.cs 追查目前工作樹中的合作／使用位置。
+ * P6-07公開邊界：DonationPaymentProductWorkflowDispatcher、IDonationPaymentProductWorkflowDispatcher改為產品內部宣告；外部輸出與既有資源清理契約不變。
  */
 using System;
 using ChurchReport.Tools;
@@ -36,6 +37,7 @@ namespace ChurchReport.Payments;
 /// - 它不應被移到 SpeechMessage.Payments，因為通用金流核心不應知道 ChurchReport 的業務流程。
 /// - 它使用 DonationPayment 命名，因為這是 ChurchReport 奉獻付款流程，不是單一 provider 協定。
 /// </summary>
+/// <remarks>P6-07限於本產品內部使用；既有資料形狀、呼叫順序與資源所有權不變，不作為跨組件API。</remarks>
 public interface IDonationPaymentProductWorkflowDispatcher
 {
     IActionResult HandleFeeReturn(
@@ -60,6 +62,7 @@ public interface IDonationPaymentProductWorkflowDispatcher
 /// ViewBag 設定等細節全部塞進自己。這樣未來新增其他產品流程時，只要新增清楚的分支或 processor，
 /// 不會讓 callback controller 直接長出大量 ChurchReport 業務邏輯。
 /// </summary>
+/// <remarks>P6-07限於本產品內部使用；既有資料形狀、呼叫順序與資源所有權不變，不作為跨組件API。</remarks>
 public sealed class DonationPaymentProductWorkflowDispatcher : IDonationPaymentProductWorkflowDispatcher
 {
     private readonly IToolUtilityProvider _toolUtilityProvider;
