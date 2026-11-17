@@ -287,3 +287,32 @@ secure候選GUID在Create前記錄，送達後throw亦精確清孤兒；清looku
 來源／server／正式ID不符拒絕回復；只碰本次log列出的項目。固定資源在Switching/SwitchText.resx，沿既有產生器與SystemTextTable.FromRows。
 指定測試在SwitchTargetTests、SwitchPlanTests、WorkflowRepointerTests、SwitchExecutorTests；
 另以SwitchSnapshotReaderTests與SwitchCliTests驗真SDK讀取及離線完整循環，均不能當作實機證據。
+
+## P7-01c Live檢查、計數觀察與空欄預設值
+
+新型別在Live/，主CLI共同ProductionGuard後嚴格分流。live-check只test，與switch/shadow共用同組織寫鎖；
+不自行改步驟狀態。manifest/catalog handle持有全命令。每輪seed前與trigger前驗D34唯一測試綁定、
+全部Channel token解密後皆為測試token；key finally清零。用量查詢沿LineMessagingProcessor.Core的
+net10 LineChannelUsageReader，固定端點、15秒、4096 bytes、每request認證、cookie/redirect關閉。
+Deployment不得直接使用HttpClient，R9規則不變。共用reader獨占HTTP owner，不跨Channel存token。
+
+Live獨立runner復用Shadow SDK的seed/CRUD/metadata/投影/compare/cleanup，不使用Shadow runner切換行為。
+同步SDK返回即完成，不依賴trace；非同步按step/target/時間查作業，最多60秒。讀回expected先按同輪Initial套用。
+待辦只按測試教會+時間候選，再以payload精確owned GUID確認；Processing不刪並保留父列。
+期望待辦沿相同metadata與安全投影驗完整明列欄位；${alias}或${alias:N}只解析明確同輪GUID，不任意運算。
+代送若有Push期望必等Completed；其他待辦核內容後清理。故障、取消皆None清理／驗殘留／Dispose，原錯誤與清理錯誤聚合。
+
+固定情境來源支援既有Golden/Legacy/<module>、課程四folder及驗收/P7情境/<module>，共同strict reader；
+舊Shadow入口範圍及期望完全不變。Live活動以record別名對owned列執行手動複本，原流程停用且不動；
+自動create/delete/update全關，精準改指，混合未移植活動或未核參數拒絕，不能執行舊程式。
+活動樣板無法安全製作依07A降dormant；不可把編譯或合成SDK成功當成Live證據。
+
+observe包唯讀SDK，純type/count報告，不輸出記錄值；trace unavailable為null/無資料，權限不足可降無資料，
+其他SDK故障不吞。新活動type納入trace例外範圍，改指流程納入失敗作業；待辦按type/state及最舊Pending分鐘。
+church-defaults只處理account.new_linechannelid正式lookup，四欄各只補空白，原非預設值亦保留；
+plan含server/fingerprint/內部hash，apply另驗完整檔SHA且同buffer嚴格解析；鎖內重讀，官方RowVersion必填，
+不能降無條件Update；寫前原子flush備份，失敗反序回復且版本核對，備份只本機。CLI驗正式metadata可寫及容量。
+固定繁中資源LiveText.resx由原產生器輸出，不擴共用24鍵或提高CJK基準。
+
+十三指定方法位於LiveCheckRunnerTests、ObservationReaderTests、ChurchDefaultsTests；LiveCliTests、LiveSdkRoundTests、
+LiveActivityProbeTests補真接線與故障所有權，LineChannelUsageReaderTests驗A/B/A、容量、取消及dispose。全部是離線證據。

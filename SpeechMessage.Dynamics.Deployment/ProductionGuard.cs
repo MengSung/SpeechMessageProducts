@@ -71,7 +71,7 @@ internal static class ProductionGuard
     /// <summary>所有已知寫入列在同一處；後續新增命令須明確加入，不能用「非唯讀」猜測未知命令。</summary>
     internal static bool IsWrite(string[] args) => args.Length > 0 &&
         (args[0] is "apply" or "rollback" or "switch" or "smoke" or "shadow" or "ui-import" or
-            "protect-token" or "assign-channel" or "complete-created-audit" ||
+            "protect-token" or "assign-channel" or "complete-created-audit" or "live-check" ||
             args[0] == "church-defaults" && args.Contains("--apply", StringComparer.Ordinal));
     /// <summary>同步只讀確認一行，最多256字元加CRLF；caller須提供有界reader，不建立無法回收的讀取Task。</summary>
     private static void Confirm(string name, TextReader? input, CancellationToken ct)

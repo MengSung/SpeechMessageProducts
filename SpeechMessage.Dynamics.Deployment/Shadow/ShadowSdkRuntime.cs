@@ -84,10 +84,14 @@ internal sealed record ShadowSdkScenario(IReadOnlyList<ShadowSdkSeed> Seeds, Sha
     public IReadOnlyList<ShadowExternalScope> ExternalScopes { get; init; } = Array.Empty<ShadowExternalScope>();
     /// <summary>只有固定盤點明列externalWrites時才為true；缺盤點不可當作零變動證據。</summary>
     public bool ExternalInventoryReviewed { get; init; }
+    /// <summary>Live 專用待辦核定欄位模板；只在本輪配置正式 GUID 後轉換，不改既有 Shadow expected。</summary>
+    public IReadOnlyList<LiveTaskExpectation> LiveTasks { get; init; } = Array.Empty<LiveTaskExpectation>();
+    /// <summary>只含已完整驗證的 metadata，不含SDK或秘密；供本輪唯一 expected 轉換使用。</summary>
+    public ShadowSdkMetadata? LiveMetadata { get; init; }
 }
 
 /// <summary>測試組織的命令區域 runtime；所有資源均由同步 Run 與 round owner 限定。</summary>
-internal sealed class ShadowSdkRuntime : IShadowScenarioRuntime
+internal sealed partial class ShadowSdkRuntime : IShadowScenarioRuntime
 {
     private readonly IOrganizationService service;
     private readonly Guid organizationId;
@@ -142,7 +146,7 @@ internal sealed class ShadowSdkRuntime : IShadowScenarioRuntime
     private static InvalidDataException InvalidRuntime() => new("Shadow SDK runtime safety precondition failed.");
 
     /// <summary>一輪 seed 與查詢 owner；預先配置 ID 並在送出 Create 前登錄，涵蓋回應不明的失敗。</summary>
-    private sealed class Round : IShadowScenarioRound
+    private sealed partial class Round : IShadowScenarioRound
     {
         private readonly ShadowSdkRuntime runtime;
         private readonly ShadowObservation[] observations;
@@ -316,6 +320,11 @@ internal sealed class ShadowSdkRuntime : IShadowScenarioRuntime
             EnsureActive();
             if (seedStarted || cleanupStarted) throw InvalidRuntime();
             seedStarted = true;
+            if (liveRound)
+            {
+                var now = runtime.clock.GetUtcNow().UtcDateTime;
+                liveStarted = new DateTime(now.Ticks - now.Ticks % TimeSpan.TicksPerSecond, DateTimeKind.Utc).AddSeconds(-2);
+            }
             externalObserver?.Capture(cancellationToken);
             foreach (var item in records)
             {
@@ -380,10 +389,12 @@ internal sealed class ShadowSdkRuntime : IShadowScenarioRuntime
             cancellationToken.ThrowIfCancellationRequested();
             triggerAttempted = true;
             triggerStarted = runtime.clock.GetUtcNow().UtcDateTime;
+            if (liveRound) triggerStarted = new DateTime(triggerStarted.Ticks - triggerStarted.Ticks % TimeSpan.TicksPerSecond, DateTimeKind.Utc).AddSeconds(-2);
             var target = records.Single(item => item.Alias == trigger.TargetAlias).Record;
             var patch = RecordingOrganizationService.CloneEntity(trigger.Fields, allowAliases: false);
             patch.Id = target.Id;
-            if (trigger.Message == "Update")
+            if (liveActivity is not null) liveActivity.Trigger(target, cancellationToken);
+            else if (trigger.Message == "Update")
             {
                 if (synchronousSteps.Count == 0) runtime.service.Update(patch);
                 else ExecuteTrigger(new UpdateRequest { Target = patch });
@@ -409,6 +420,12 @@ internal sealed class ShadowSdkRuntime : IShadowScenarioRuntime
             EnsureActive();
             if (!legacy || cleanupStarted) throw InvalidRuntime();
             Poll(maximumWait, () => CompletedOperations() is not null, cancellationToken);
+            return ReadObserved(cancellationToken);
+        }
+
+        /// <summary>影子舊輪與新 Live 輪共用唯一讀回投影，不複製正規化或查詢配對實作。</summary>
+        private ShadowSnapshot ReadObserved(CancellationToken cancellationToken)
+        {
             var rows = new List<ShadowRow>();
             foreach (var observation in observations)
             {
@@ -565,6 +582,11 @@ internal sealed class ShadowSdkRuntime : IShadowScenarioRuntime
             synchronousSteps.Clear();
             externalObserver?.Dispose();
             externalChanges = null;
+            liveTasks.Clear();
+            liveDefinition = null;
+            liveActivity = null;
+            liveExpectedTasks = Array.Empty<LiveTaskExpectation>();
+            liveMetadata = null;
         }
 
         /// <summary>預先登錄已知 ID，確保「伺服器建立但回應失敗」仍能以該 ID 查回清理。</summary>
@@ -686,7 +708,7 @@ internal sealed class ShadowSdkRuntime : IShadowScenarioRuntime
         }
 
         /// <summary>只查本次 target、逐一指定 step 及 trigger 開始時間；每個 step 恰好一個完成作業。</summary>
-        private Entity[]? CompletedOperations()
+        private Entity[]? CompletedOperations(bool live = false)
         {
             if (!triggered) throw InvalidRuntime();
             var target = records.Single(item => item.Alias == trigger.TargetAlias).Record;
@@ -695,7 +717,7 @@ internal sealed class ShadowSdkRuntime : IShadowScenarioRuntime
             {
                 if (synchronousSteps.TryGetValue(step, out var type))
                 {
-                    if (ReadSynchronousTrace(step, type, includeMessage: false).Length == 0) return null;
+                    if (!live && ReadSynchronousTrace(step, type, includeMessage: false).Length == 0) return null;
                     continue;
                 }
                 var query = new QueryExpression("asyncoperation")

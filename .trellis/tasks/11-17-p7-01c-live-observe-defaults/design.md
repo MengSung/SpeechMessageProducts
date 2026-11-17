@@ -1,0 +1,29 @@
+# P7-01c 技術設計
+
+沿07A名稱，新型別置SpeechMessage.Dynamics.Deployment/Live/：LiveCheckRunner、ObservationReader、ChurchDefaults。
+主CLI的ProductionGuard先行，live-check限test；observe允production且唯讀；church-defaults寫入在共同名稱確認後持同組織鎖。
+所有讀取有界分頁、穩定正式ID驗證，完整候選後發布。輸出只筆數、type／欄位名、摘要，不含記錄內容／秘密。
+
+LiveCheckRunner使用單次owner保存trace原值與步驟原狀，步驟狀態只讀必須Live／enabled；有效dormant略過報未檢查。
+D34每輪當場核對；預先記測試Channel用量，唯一seed owner登錄每個attempted GUID，trigger後最多60秒等對應作業。
+復用ShadowSdkMetadata、ShadowSdkProjection、ShadowExternalObserver、ShadowProjection／ShadowComparer，不自行重寫投影與正規化。
+既有ShadowSdkScenarioFactory只支援空shared seed、CRUD且拒活動與outputs；需新增明確Live能力接縫，不能放寬原Shadow入口或修改舊測試期望。
+原ShadowSdkRuntime.Round有完整owned記錄清冊及related查詢，ObserveLegacy只允legacy模式；抽共用觀察入口供Live新輪，不能把Live偽裝legacy或啟用舊步驟。
+活動以原流程複本建SMV-TEST手動流程、WorkflowRepointer精準換新活動與核定mode/參數；ProbeProcessOwner停用後刪除，原流程絕不啟用。
+真送只測試Channel／測試帳號；代送工作者由P7Live組合先啟動，本工具不開IIS／Node。QR／撥款只驗待辦內容後刪除。
+任何故障／取消先還原trace、清本輪資料／待辦／流程並驗殘留，再Dispose本地；回復None token，原失敗與cleanup失敗聚合。
+
+ObservationReader查兩個新組件type／step，since必UTC；系統作業失敗／等待依type、trace例外（不可用明示無資料）、待辦type/state counts及最舊等待分鐘、改指流程失敗、即時D7-7。
+
+ChurchDefaults只處理account.new_linechannelid非空且正式lookup，四欄new_defaultlanguage／new_enabledlanguages／new_timezone／new_countrycode各自空白才補zh-TW／zh-TW／Asia/Taipei／TW。
+只讀plan只列正式ID與欄位名、來源／server／目前指紋及SHA，apply同buffer核檔SHA、鎖內重讀，已有值一律不覆蓋；故障精確還原本次已嘗試欄位，不寫其他欄位。
+
+秘密從既有DeploymentConfiguration/UserSecrets及每命令lease取得；不建立跨命令mutable cache或背景工作。顯示文案沿Switching固定資源／既有產生器模式，不修改共用24鍵表。
+
+盤點更正：四欄的第四欄依正式schema為new_countrycode，不是new_region。既有activity情境普遍liveShadow=false，現階段不能宣稱任何活動實機通過；P7-02須製作可執行正常案例，做不出來依07A降dormant並提案，不用假綠。
+
+實作核對：Live另允固定驗收/P7情境/<module>，沿同一strict reader；舊Shadow入口不放寬。
+活動僅接受輸入已核對的無參數樣板，非空參數需後續演練製作對應安全樣板，否則依07A降dormant。
+待辦expected支援唯一Create項目，明確${alias}/${alias:N}替換當輪GUID，沿metadata及recorder投影，不自寫正規化。
+用量HTTP依R9置既有LineMessagingProcessor.Core/net10 LineChannelUsageReader，部署只借用窄能力；7案驗有界及A/B/A。
+新增LiveText.resx保持部署文案獨立；CultureCompleteness由產生器重生。defaults RowVersion必填，官方衝突fault不回復未寫入的該筆。

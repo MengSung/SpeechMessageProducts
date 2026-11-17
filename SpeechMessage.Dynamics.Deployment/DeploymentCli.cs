@@ -153,6 +153,9 @@ internal static partial class DeploymentCli
             return Channels.ChannelProvisioningCli.Run(args, target, connector, output, report,
                 secretInput, artifactRoot, secretReader, writeLockTimeout, cancellationToken);
 
+        if (args[0] is "live-check" or "observe" or "church-defaults")
+            return RunLiveCommands(args, target, catalog, connector, output, report, artifactRoot, secretReader, writeLockTimeout, cancellationToken);
+
         // P1結構命令不需要Plugin DLL；只在明確--schema或export-metadata時進新路由，舊P0語法與安全邊界保留。
         if (args[0] == "export-metadata" || Array.IndexOf(args, "--schema") >= 0)
             return Schema.SchemaDeploymentCli.Run(args, target, catalog, connector, output, report, artifactRoot, writeLockTimeout, cancellationToken);
@@ -645,6 +648,9 @@ internal static partial class DeploymentCli
         output.WriteLine("          switch verify checks secure presence only; secret values are never compared or rotated.");
         output.WriteLine("          switch --org goodshepherdback --module <module> --to enabled|off");
         output.WriteLine("          shadow --org goodshepherdback --module <module> --scenario-root <fixed-module-golden-directory>");
+        output.WriteLine("          live-check --org <test-name> --module <module> --scenario-root <fixed-golden-directory>");
+        output.WriteLine("          observe --org <name> --since <UTC-time-Z>");
+        output.WriteLine("          church-defaults --org <name> [--apply --plan <file> --plan-sha256 <sha256>]");
         output.WriteLine("          ui-export --org <test-name> | ui-import --org <name> --from <archive>");
         output.WriteLine("          export-legacy --org <name> (read-only; test stops on enabled legacy, production reports counts)");
         output.WriteLine("          switch --to legacy is retained for history and refused under revision 2; legacy code is never executed.");

@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+檔案整體說明
+目的與定位：P7 Live檢查、觀察與defaults摘要的固定繁中資源單一來源，與共用系統鍵分開。
+主要流程：既有I18n產生器輸出LiveTextData，消費端沿SystemTextTable讀取，不自建語系選擇。
+資源與隔離：僅固定標題及狀態說明，不含組織名稱、資料、秘密或執行期物件，無需Dispose。
+驗證方式：generate一致性、資源verify及CLI輸出測試；不得手動修改產生檔或提高棘輪。
+-->
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <data name="Deployment.Live.Trace" xml:space="preserve"><value>追蹤例外：</value></data>
+  <data name="Deployment.Live.Unavailable" xml:space="preserve"><value>無資料</value></data>
+  <data name="Deployment.Live.Failed" xml:space="preserve"><value>失敗筆數：</value></data>
+  <data name="Deployment.Live.Waiting" xml:space="preserve"><value>等待筆數：</value></data>
+  <data name="Deployment.Live.TaskState" xml:space="preserve"><value>待辦狀態：</value></data>
+  <data name="Deployment.Live.TaskCount" xml:space="preserve"><value>待辦筆數：</value></data>
+  <data name="Deployment.Live.WorkflowFailures" xml:space="preserve"><value>流程失敗筆數：</value></data>
+  <data name="Deployment.Live.MutualExclusion" xml:space="preserve"><value>新舊互斥檢查：</value></data>
+  <data name="Deployment.Live.OldestWaiting" xml:space="preserve"><value>最舊待辦等待分鐘：</value></data>
+  <data name="Deployment.Live.Defaults" xml:space="preserve"><value>教會預設值待補筆數：</value></data>
+  <data name="Deployment.Live.Differences" xml:space="preserve"><value>差異數：</value></data>
+  <data name="Deployment.Live.Pushes" xml:space="preserve"><value>推播則數：</value></data>
+  <data name="Deployment.Live.Tasks" xml:space="preserve"><value>本輪待辦證據：</value></data>
+  <data name="Deployment.Live.Pass" xml:space="preserve"><value>通過</value></data>
+  <data name="Deployment.Live.Difference" xml:space="preserve"><value>有差異</value></data>
+  <data name="Deployment.Live.NotChecked" xml:space="preserve"><value>未檢查</value></data>
+  <data name="Deployment.Live.AcceptanceFolder" xml:space="preserve"><value>驗收</value></data>
+  <data name="Deployment.Live.ScenarioFolder" xml:space="preserve"><value>P7情境</value></data>
+</root>

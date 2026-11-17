@@ -61,11 +61,21 @@ internal static class ShadowScenarioFiles
     public static IReadOnlyList<ShadowFileCase> Load(string repositoryRoot, string module)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(repositoryRoot);
-        if (module is not ("diagnostics" or "localization" or "weeklyreports" or "attendance" or
+        return LoadFolder(repositoryRoot, module, false, false);
+    }
+
+    /// <summary>Live 接線允許既有課程四個固定子模組，不放寬原 Shadow 公開入口。</summary>
+    internal static IReadOnlyList<ShadowFileCase> LoadLive(string repositoryRoot, string folder, bool acceptance = false) => LoadFolder(repositoryRoot, folder, true, acceptance);
+
+    /// <summary>兩入口共用嚴格格式與固定來源，只擴充已存在的四個課程資料夾。</summary>
+    private static System.Collections.ObjectModel.ReadOnlyCollection<ShadowFileCase> LoadFolder(string repositoryRoot, string module, bool liveFolders, bool acceptance)
+    {
+        if (liveFolders && module is "lessonsequipment" or "lessonslink" or "lessonsprogression" or "lessonssigning") { }
+        else if (module is not ("diagnostics" or "localization" or "weeklyreports" or "attendance" or
             "lessons" or "appointments" or "qrcodes" or "care" or "fees" or "messaging")) throw Invalid();
         var directory = Path.GetFullPath(repositoryRoot);
         RejectLink(directory);
-        foreach (var segment in new[] { "SpeechMessageProducts.GoodShepherd.Core.Tests", "Golden", "Legacy", module })
+        foreach (var segment in acceptance ? new[] { Live.LiveText.Get("AcceptanceFolder"), Live.LiveText.Get("ScenarioFolder"), module } : new[] { "SpeechMessageProducts.GoodShepherd.Core.Tests", "Golden", "Legacy", module })
         {
             directory = Path.Combine(directory, segment);
             RejectLink(directory);

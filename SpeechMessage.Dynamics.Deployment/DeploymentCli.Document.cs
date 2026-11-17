@@ -132,8 +132,17 @@ internal static partial class DeploymentCli
     /// </summary>
     private static void WriteDocumentFile(string directory, string name, string content)
     {
-        if (name is not ("plan.json" or "plan.md" or "backup.json" or "switch-plan.json" or "switch-plan.md" or "legacy-before.json"))
+        if (name is not ("plan.json" or "plan.md" or "backup.json" or "switch-plan.json" or "switch-plan.md" or "legacy-before.json" or "church-defaults-plan.json" or "church-defaults-plan.md" or "observe.json" or "observe.md" or "live-check.json"))
             throw new InvalidDataException("Document name is invalid.");
+        WriteDocumentContent(directory, name, content);
+    }
+
+    /// <summary>已核定名稱的共用原子發布；Live 日期檔名由 caller 產生，仍拒路徑片段及 links。</summary>
+    private static void WriteDocumentContent(string directory, string name, string content)
+    {
+        if (string.IsNullOrWhiteSpace(name) || name.Length > 128 || Path.GetFileName(name) != name ||
+            name.IndexOfAny(Path.GetInvalidFileNameChars()) >= 0) throw new InvalidDataException("Document name is invalid.");
+        Schema.SchemaDeploymentCli.EnsureNoLinks(Path.Combine(directory, name));
         var text = content.Replace("\r\n", "\n", StringComparison.Ordinal).TrimEnd('\n')
             .Replace("\n", "\r\n", StringComparison.Ordinal) + "\r\n";
         var bytes = Encoding.UTF8.GetBytes(text);

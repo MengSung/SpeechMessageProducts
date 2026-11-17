@@ -67,6 +67,34 @@ internal static class ShadowSdkScenarioFactory
     internal static ShadowSdkPreparedScenario Prepare(ShadowFileCase file, ShadowSdkMetadata metadata,
         ShadowVerifiedIdentity identity, ShadowSdkBinding binding)
     {
+        return PrepareCore(file, metadata, identity, binding);
+    }
+
+    /// <summary>Live 活動沿相同 seed／expected 驗證；記錄別名明訂 record，真正 trigger 由測試流程能力擁有。</summary>
+    internal static ShadowSdkPreparedScenario PrepareLive(ShadowFileCase file, ShadowSdkMetadata metadata,
+        ShadowVerifiedIdentity identity, ShadowSdkBinding binding)
+    {
+        var tasks = file.ExpectedWrites.EnumerateArray().Where(row => Text(row, "entity") == "new_outboundtask").ToArray();
+        if (tasks.Length > 1 || tasks.Any(row => Text(row, "operation") != "Create")) throw Invalid();
+        var writes = JsonSerializer.SerializeToElement(file.ExpectedWrites.EnumerateArray().Where(row => Text(row, "entity") != "new_outboundtask").ToArray());
+        var liveFile = file with { ExpectedWrites = writes };
+        if (file.IsActivity)
+        {
+            var target = file.Seed.EnumerateArray().Single(row => Text(row, "alias") == "record");
+            var trigger = JsonSerializer.SerializeToElement(new { target = "record", entity = Text(target, "entity"), message = "Update", fields = new { } });
+            liveFile = liveFile with { IsActivity = false, Trigger = trigger };
+        }
+        var prepared = PrepareCore(liveFile, metadata, identity, binding);
+        return prepared with { Source = prepared.Source with {
+            LiveTasks = Array.AsReadOnly(tasks.Select(row => new LiveTaskExpectation(Text(row, "alias"), row.GetProperty("fields").Clone())).ToArray()),
+            LiveMetadata = metadata } };
+
+    }
+
+    /// <summary>唯一轉換核心；活動 adapter 不讓活動輸入成為未驗證 SDK 欄位。</summary>
+    private static ShadowSdkPreparedScenario PrepareCore(ShadowFileCase file, ShadowSdkMetadata metadata,
+        ShadowVerifiedIdentity identity, ShadowSdkBinding binding)
+    {
         ArgumentNullException.ThrowIfNull(file);
         ArgumentNullException.ThrowIfNull(metadata);
         ArgumentNullException.ThrowIfNull(identity);
