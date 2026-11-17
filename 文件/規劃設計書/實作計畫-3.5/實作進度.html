@@ -240,11 +240,11 @@ footer{margin-top:36px;color:var(--muted);font-size:12.5px;text-align:center}
  */
 const DATA = {
   "planVersion": "3.5",
-  "snapshot": "2026-11-17 11:04 Asia/Taipei (UTC+08:00)",
-  "lastUpdated": "2026-11-17T11:04:13+08:00",
-  "branch": "1.0.0.11.Integration.P6.Worktree",
-  "head": "f67e025754e1ef7633a3582b16a32805e155dc3f",
-  "headline": "2026-11-17 11:04 Asia/Taipei (UTC+08:00)：階段6完成並停止，P6-01～07七包done，頁面四情境差異0、五組截圖像素差異0；測試LINE每輪2則、DPAPI備份／原樣還原已驗證、七實體殘留0。唯一ClaudeOnly階段審查Critical0／High0；必要生命週期缺陷已修，4案紅→綠。最末程式f67e0257固定guard八項全過：Release7071（22組件，不含另列Debug tracer7）、編碼268、文件1753、進度28、重複新增0、I18nCheck0。R2空且嚴格，D6-15未用；父任務封存收尾後推送核對，禁止啟動P7。",
+  "snapshot": "2026-11-17 12:46 Asia/Taipei (UTC+08:00)",
+  "lastUpdated": "2026-11-17T12:46:21+08:00",
+  "branch": "1.0.0.11.Integration.P7.Worktree",
+  "head": "f06d7596",
+  "headline": "2026-11-17 12:43 Asia/Taipei (UTC+08:00)：階段7開工，P7-00唯讀基準verify=0；依07A固定順序完成測試組織演練與階段審查後停止，全程不連正式組織。",
   "notices": [
     {
       "id": "plan-3.5-summary",
@@ -647,6 +647,20 @@ const DATA = {
         "2026-11-17 10:52 Asia/Taipei (UTC+08:00)：唯一階段審查ClaudeOnly完成，Critical0／High0；外部指出3處工具失敗清理缺陷，依AGENTS永久生命週期規則修正並四案舊紅→新綠；Host spawn error同步有界處理。只改驗收工具，不改產品，最末程式提交待固定guard。頁面／LINE／還原證據不重播。",
         "2026-11-17 11:04 Asia/Taipei (UTC+08:00)：階段6完成並停止，P6-01～07七包done，頁面四情境差異0、五組截圖像素差異0；測試LINE每輪2則、DPAPI備份／原樣還原已驗證、七實體殘留0。唯一ClaudeOnly階段審查Critical0／High0；必要生命週期缺陷已修，4案紅→綠。最末程式f67e0257固定guard八項全過：Release7071（22組件，不含另列Debug tracer7）、編碼268、文件1753、進度28、重複新增0、I18nCheck0。R2空且嚴格，D6-15未用；父任務封存收尾後推送核對，禁止啟動P7。"
       ]
+    },
+    {
+      "id": "phase-7-summary",
+      "phaseId": "階段 7",
+      "level": "info",
+      "title": "P7 進度摘要",
+      "body": "2026-11-17 12:43 Asia/Taipei (UTC+08:00)：階段7開工，P7-00唯讀基準verify=0；依07A固定順序完成測試組織演練與階段審查後停止，全程不連正式組織。",
+      "lastUpdated": "2026-11-17T12:46:21+08:00",
+      "steps": [
+        "2026-11-17 12:43 Asia/Taipei (UTC+08:00)：起點f06d7596；Release7071與Deployment769取自P6最末守門，未重跑基準。",
+        "2026-11-17 12:43 Asia/Taipei (UTC+08:00)：D34通過、22新步驟停用、舊步驟/流程啟用0、待辦0、追蹤1；未寫入D365。",
+        "2026-11-17 12:43 Asia/Taipei (UTC+08:00)：父任務與前置缺項清單已建立；P7-01/02尚未開工，未推送。",
+        "2026-11-17 12:46 Asia/Taipei (UTC+08:00)：P7-00驗收，編碼19檔/文件1753檔無失敗、進度28通過；前置A權限等待，依07A先接B離線。"
+      ]
     }
   ],
   "userActions": [
@@ -816,7 +830,10 @@ const DATA = {
       "id": "階段 7",
       "name": "D365 9.1 切換（逐組織）",
       "planned": "每組織 1 天＋觀察 1 週",
-      "actual": ""
+      "actual": "2026-11-17 12:43 Asia/Taipei (UTC+08:00)：P7-00開工切換與前置缺項檢查中。",
+      "current": true,
+      "done": 0,
+      "active": 0
     },
     {
       "id": "階段 8",
@@ -1936,6 +1953,69 @@ const DATA = {
       "doneAt": "2026-11-17 11:04 Asia/Taipei (UTC+08:00)",
       "commit": "f67e025754e1ef7633a3582b16a32805e155dc3f",
       "note": "2026-11-17 11:04 Asia/Taipei (UTC+08:00)：階段6完成並停止，P6-01～07七包done，頁面四情境差異0、五組截圖像素差異0；測試LINE每輪2則、DPAPI備份／原樣還原已驗證、七實體殘留0。唯一ClaudeOnly階段審查Critical0／High0；必要生命週期缺陷已修，4案紅→綠。最末程式f67e0257固定guard八項全過：Release7071（22組件，不含另列Debug tracer7）、編碼268、文件1753、進度28、重複新增0、I18nCheck0。R2空且嚴格，D6-15未用；父任務封存收尾後推送核對，禁止啟動P7。"
+    },
+    {
+      "id": "P7-00",
+      "phaseId": "階段 7",
+      "name": "P7-00（07A固定單元）",
+      "status": "done",
+      "note": "2026-11-17 12:46 Asia/Taipei (UTC+08:00)：開工切換驗收；verify=0、D34通過、22新步驟停用、舊啟用0、待辦0；輕量三檢查通過，本提交不推送。"
+    },
+    {
+      "id": "切換前置 A",
+      "phaseId": "階段 7",
+      "name": "切換前置 A（07A固定單元）",
+      "status": "todo",
+      "note": "2026-11-17 12:43 Asia/Taipei (UTC+08:00)：依序執行，尚未開工。"
+    },
+    {
+      "id": "切換前置 B",
+      "phaseId": "階段 7",
+      "name": "切換前置 B（07A固定單元）",
+      "status": "todo",
+      "note": "2026-11-17 12:43 Asia/Taipei (UTC+08:00)：依序執行，尚未開工。"
+    },
+    {
+      "id": "切換前置 C",
+      "phaseId": "階段 7",
+      "name": "切換前置 C（07A固定單元）",
+      "status": "todo",
+      "note": "2026-11-17 12:43 Asia/Taipei (UTC+08:00)：依序執行，尚未開工。"
+    },
+    {
+      "id": "P7-01a",
+      "phaseId": "階段 7",
+      "name": "P7-01a（07A固定單元）",
+      "status": "todo",
+      "note": "2026-11-17 12:43 Asia/Taipei (UTC+08:00)：依序執行，尚未開工。"
+    },
+    {
+      "id": "P7-01b",
+      "phaseId": "階段 7",
+      "name": "P7-01b（07A固定單元）",
+      "status": "todo",
+      "note": "2026-11-17 12:43 Asia/Taipei (UTC+08:00)：依序執行，尚未開工。"
+    },
+    {
+      "id": "P7-01c",
+      "phaseId": "階段 7",
+      "name": "P7-01c（07A固定單元）",
+      "status": "todo",
+      "note": "2026-11-17 12:43 Asia/Taipei (UTC+08:00)：依序執行，尚未開工。"
+    },
+    {
+      "id": "P7-02a",
+      "phaseId": "階段 7",
+      "name": "P7-02a（07A固定單元）",
+      "status": "todo",
+      "note": "2026-11-17 12:43 Asia/Taipei (UTC+08:00)：依序執行，尚未開工。"
+    },
+    {
+      "id": "P7-02b",
+      "phaseId": "階段 7",
+      "name": "P7-02b（07A固定單元）",
+      "status": "todo",
+      "note": "2026-11-17 12:43 Asia/Taipei (UTC+08:00)：依序執行，尚未開工。"
     }
   ],
   "active": [],
@@ -2139,6 +2219,36 @@ const DATA = {
       "source": "唯一Claude階段審查L3",
       "text": "2026-11-17 10:52 Asia/Taipei (UTC+08:00)：未來若LineMessagingProcessorClass改成IDisposable，重新確認ChurchReportLineNotifier.ForClient的借用所有權；本次processor不持有新增資源，不為假設性變更擴大P6。",
       "addedAt": "2026-11-17T10:52:39+08:00"
+    },
+    {
+      "id": "P7-LATER-001",
+      "text": "2026-11-17 12:43 Asia/Taipei (UTC+08:00)：正式環境LineWebhook入站網址改指，先決定P5-PROP-011，由使用者處理。",
+      "source": "07A §9",
+      "addedAt": "2026-11-17T12:43:48+08:00"
+    },
+    {
+      "id": "P7-LATER-002",
+      "text": "2026-11-17 12:43 Asia/Taipei (UTC+08:00)：主機只記錄不發送模式；本階段以工作者開關取代。",
+      "source": "07A §9",
+      "addedAt": "2026-11-17T12:43:48+08:00"
+    },
+    {
+      "id": "P7-LATER-003",
+      "text": "2026-11-17 12:43 Asia/Taipei (UTC+08:00)：observe每週自動彙整一頁。",
+      "source": "07A §9",
+      "addedAt": "2026-11-17T12:43:48+08:00"
+    },
+    {
+      "id": "P7-LATER-004",
+      "text": "2026-11-17 12:43 Asia/Taipei (UTC+08:00)：FailureSummaryWorker漏報限制沿用P5-LATER-005。",
+      "source": "07A §9",
+      "addedAt": "2026-11-17T12:43:48+08:00"
+    },
+    {
+      "id": "P7-LATER-005",
+      "text": "2026-11-17 12:43 Asia/Taipei (UTC+08:00)：演練發現的舊錯字與用語另記，不擴大本階段。",
+      "source": "07A §9",
+      "addedAt": "2026-11-17T12:43:48+08:00"
     }
   ],
   "proposals": [
@@ -2477,6 +2587,54 @@ const DATA = {
       "proposal": "依本會話使用者明確核定，先以DPAPI將Host原始User Secrets備份repo外；程序從Deployment User Secrets讀測試token直接寫入指定Host User Secrets，finally原樣還原並比對；隨機登入帳密仍只存記憶體。不改產品或安全守門。3.6更新此執行方式。",
       "impact": "僅影響06A D6-20的實機操作來源；不改產品、共用安全守門或任何計畫正文。",
       "status": "已核定並完成；待寫入3.6（2026-11-17）"
+    },
+    {
+      "id": "P7-PROP-001",
+      "problem": "2026-11-17 12:43 Asia/Taipei (UTC+08:00)：產生宮格待辦未接主機，教會代碼不符alias規則；相關兩步驟預設dormant。",
+      "evidence": "07A §2、§9；依各單元追加實測摘要。",
+      "proposal": "先決定P5-PROP-003，再另核定主機接線。",
+      "impact": "階段7切換及後續3.6。",
+      "status": "待核定；本目標依07A預設繼續"
+    },
+    {
+      "id": "P7-PROP-002",
+      "problem": "2026-11-17 12:43 Asia/Taipei (UTC+08:00)：追蹤管線前置A待恢復；無法恢復時以Live實機證據驗收。",
+      "evidence": "07A §2、§9；依各單元追加實測摘要。",
+      "proposal": "依D7-5退路執行，結果於前置A補記。",
+      "impact": "階段7切換及後續3.6。",
+      "status": "待核定；本目標依07A預設繼續"
+    },
+    {
+      "id": "P7-PROP-003",
+      "problem": "2026-11-17 12:43 Asia/Taipei (UTC+08:00)：流程改指與表單僅試SDK，不採瀏覽器自動化。",
+      "evidence": "07A §2、§9；依各單元追加實測摘要。",
+      "proposal": "3.6改成SDK做不到即列人工步驟。",
+      "impact": "階段7切換及後續3.6。",
+      "status": "待核定；本目標依07A預設繼續"
+    },
+    {
+      "id": "P7-PROP-004",
+      "problem": "2026-11-17 12:43 Asia/Taipei (UTC+08:00)：舊組件移除不在本目標，尚無工具與演練。",
+      "evidence": "07A §2、§9；依各單元追加實測摘要。",
+      "proposal": "第一個正式組織觀察期滿前另行核定。",
+      "impact": "階段7切換及後續3.6。",
+      "status": "待核定；本目標依07A預設繼續"
+    },
+    {
+      "id": "P7-PROP-005",
+      "problem": "2026-11-17 12:43 Asia/Taipei (UTC+08:00)：附錄指令/清單/第四類待辦與A4文字需同步新實作。",
+      "evidence": "07A §2、§9；依各單元追加實測摘要。",
+      "proposal": "3.6一次修正；表單SDK結果亦登錄本筆。",
+      "impact": "階段7切換及後續3.6。",
+      "status": "待核定；本目標依07A預設繼續"
+    },
+    {
+      "id": "P7-PROP-006",
+      "problem": "2026-11-17 12:43 Asia/Taipei (UTC+08:00)：重複效果或Live差異/測試流程不可行者需改dormant。",
+      "evidence": "07A §2、§9；依各單元追加實測摘要。",
+      "proposal": "逐項由使用者決定產品唯一寫入者或共用防重複方式。",
+      "impact": "階段7切換及後續3.6。",
+      "status": "待核定；本目標依07A預設繼續"
     }
   ],
   "decisions": [

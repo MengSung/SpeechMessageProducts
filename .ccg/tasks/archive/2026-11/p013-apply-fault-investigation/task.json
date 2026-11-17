@@ -1,12 +1,12 @@
 {
   "id": "p013-apply-fault-investigation",
   "title": "P0-13 調查 apply 的 Dataverse FaultException",
-  "status": "in_progress",
+  "status": "completed",
   "complexity": "M",
   "risk": "low",
   "domain": "backend",
-  "currentPhase": "analysis",
-  "nextAction": "使用者已核定先離線試做 net462；交由 p013-net462-offline-spike 記錄，產品預設與原 DLL 仍為 net48，不部署；驗證器具體條件與 P0-13 實機仍待確認",
+  "currentPhase": "completed",
+  "nextAction": "已由D21正式採用net462與P0-13實機驗收取代；P7-00清理歷史殘留。",
   "createdAt": "2026-11-04",
   "branch": "1.0.0.11.Integration.P0",
   "constraints": [
@@ -64,5 +64,7 @@
     "checked": "清單差異僅 goodshepherdback false→true；其餘為已驗證的診斷任務／文件與審查紀錄，產品程式未變更；保留歷史",
     "cleanup": "完成驗收收尾後，以新提交保存清單 false，之後再確認此檔 git status 無輸出"
   },
-  "offlineSpikeAuthorization": "使用者 2026-11-04 同意先離線試做 .NET 4.6.2 相容版本；未核定正式採用或部署"
+  "offlineSpikeAuthorization": "使用者 2026-11-04 同意先離線試做 .NET 4.6.2 相容版本；未核定正式採用或部署",
+  "completedAt": "2026-11-17T12:43:48+08:00",
+  "closureNote": "2026-11-17 12:43 Asia/Taipei (UTC+08:00)：歷史constraints僅適用原調查，不是目前授權；結論見00 D21及封存P0驗收。"
 }

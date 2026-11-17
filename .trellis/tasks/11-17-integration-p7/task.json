@@ -1,0 +1,28 @@
+{
+  "id": "integration-p7",
+  "name": "integration-p7",
+  "title": "階段7 測試組織切換演練與階段審查",
+  "description": "依核定07A執行；goodshepherdback演練及階段審查後停止，不連正式組織。",
+  "status": "in_progress",
+  "dev_type": null,
+  "scope": null,
+  "package": null,
+  "priority": "P2",
+  "creator": "Codex",
+  "assignee": "Codex",
+  "createdAt": "2026-11-17",
+  "completedAt": null,
+  "branch": "1.0.0.11.Integration.P7.Worktree",
+  "base_branch": "1.0.0.11.Integration.P7.Worktree",
+  "worktree_path": null,
+  "commit": null,
+  "pr_url": null,
+  "subtasks": [],
+  "children": [
+    "11-17-p7-00-startup-preflight"
+  ],
+  "parent": null,
+  "relatedFiles": [],
+  "notes": "",
+  "meta": {}
+}
