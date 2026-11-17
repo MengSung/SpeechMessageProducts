@@ -15,10 +15,13 @@
  * SpeechMessageProducts.ChurchReport/Services/MemberInfo/MemberInfoAccessResolver.cs、
  * SpeechMessageProducts.ChurchReport/Services/MemberInfo/MemberInfoScopeGuard.cs、
  * SpeechMessageProducts.ChurchReport/Views/MemberInfo/MemberInfoGrid.cshtml 追查目前工作樹中的合作／使用位置。
+ * P6-07公開邊界：MemberInfoAccess改為產品內部宣告；外部輸出與既有資源清理契約不變。
  */
 namespace ChurchReport.Services.MemberInfo
 {
-    public static class MemberInfoAccess
+    /// <summary>集中宣告「全教會」與「牧養名單」兩種會友存取範圍的穩定代號，供resolver、scope guard及控制器一致比較；常數本身不證明任何使用者擁有該權限。
+    /// P6-07將本宣告限於主機內部；仍由既有呼叫端組裝及消費，不變更資料形狀、流程或資源owner。</summary>
+    internal static class MemberInfoAccess
     {
         public const string Church = "全教會";
         public const string ShepherdList = "牧養名單";

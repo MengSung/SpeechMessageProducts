@@ -13,12 +13,15 @@
  * 可沿 SpeechMessageProducts.ChurchReport/Controllers/BaseChurchController.cs、
  * SpeechMessageProducts.ChurchReport/Controllers/MemberInfoController.cs、
  * SpeechMessageProducts.ChurchReport/ViewComponents/MemberInfoNavViewComponent.cs 追查目前工作樹中的合作／使用位置。
+ * P6-07公開邊界：MemberInfoAccessResolver改為產品內部宣告；外部輸出與既有資源清理契約不變。
  */
 using System;
 
 namespace ChurchReport.Services.MemberInfo
 {
-    public static class MemberInfoAccessResolver
+    /// <summary>將伺服器取得的教會職稱與登入類型解析為全教會或牧養名單範圍；牧師傳道／牧養主任等角色優先，無符合條件者不授權，避免畫面參數自行升級存取。
+    /// P6-07將本宣告限於主機內部；仍由既有呼叫端組裝及消費，不變更資料形狀、流程或資源owner。</summary>
+    internal static class MemberInfoAccessResolver
     {
         public static string Resolve(string churchJobTitle, string loginType)
         {

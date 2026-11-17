@@ -12,10 +12,13 @@
  * 變更介面、資料格式、取消或清理順序時，須一併核對下列合作檔案及對應測試，不能只改目前檔案。
  * 可沿 SpeechMessageProducts.ChurchReport/Controllers/MemberInfoController.cs、
  * SpeechMessageProducts.ChurchReport/Controllers/PersonalController.ImageUpload.cs 追查目前工作樹中的合作／使用位置。
+ * P6-07公開邊界：ContactAvatarUrl改為產品內部宣告；外部輸出與既有資源清理契約不變。
  */
 namespace ChurchReport.Services.ContactAvatar
 {
-    public static class ContactAvatarUrl
+    /// <summary>集中檢查聯絡人頭像網址是否為可使用的HTTP／HTTPS位址，供畫面選擇遠端照片或預設頭像；網址正常化不是身分驗證，也不在此下載或快取圖片。
+    /// P6-07將本宣告限於主機內部；仍由既有呼叫端組裝及消費，不變更資料形狀、流程或資源owner。</summary>
+    internal static class ContactAvatarUrl
     {
         public const string LinePictureUrlAttribute = "new_line_picture_url";
 

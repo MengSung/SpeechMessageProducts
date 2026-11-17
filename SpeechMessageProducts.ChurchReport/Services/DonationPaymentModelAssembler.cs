@@ -17,6 +17,7 @@
  * 變更介面、資料格式、取消或清理順序時，須一併核對下列合作檔案及對應測試，不能只改目前檔案。
  * 可沿 SpeechMessageProducts.ChurchReport/Models/DonationPaymentManager.cs、
  * SpeechMessageProducts.ChurchReport/Services/Donation/DonationNavigationAccessResolver.cs 追查目前工作樹中的合作／使用位置。
+ * P6-07公開邊界：DonationPaymentModelAssembler改為產品內部宣告；外部輸出與既有資源清理契約不變。
  */
 using System;
 using System.Collections.Generic;
@@ -38,7 +39,8 @@ namespace ChurchReport.Services
     ///
     /// 因此 DonationPaymentManager 只保留公開方法與目前 contact 狀態；詳細表單欄位填值集中在此處。
     /// </summary>
-    public sealed class DonationPaymentModelAssembler
+    /// <remarks>P6-07限於本產品內部使用；既有資料形狀、呼叫順序與資源所有權不變，不作為跨組件API。</remarks>
+    internal sealed class DonationPaymentModelAssembler
     {
         private readonly ToolUtilityClass _utility;
         private readonly DonationBookingService _bookingService;

@@ -17,6 +17,7 @@
  * SpeechMessageProducts.ChurchReport/Views/Dedication/DonationPaymentView.cshtml、
  * SpeechMessageProducts.ChurchReport/WebServiceConnector/DonationPaymentProcessor/DonationPaymentProcessor.FeeManagement.cs
  * 追查目前工作樹中的合作／使用位置。
+ * P6-07公開邊界：DonationLineItemNormalizer改為產品內部宣告；外部輸出與既有資源清理契約不變。
  */
 using System;
 using System.Collections.Generic;
@@ -30,7 +31,8 @@ namespace ChurchReport.Services
     /// 它只做裁切、移除完全空白列及舊欄位回退，不負責判斷金額上限、
     /// 類別是否存在或付款方式限制；那些規則由 SubmissionService 統一處理。
     /// </summary>
-    public static class DonationLineItemNormalizer
+    /// <remarks>P6-07限於本產品內部使用；既有資料形狀、呼叫順序與資源所有權不變，不作為跨組件API。</remarks>
+    internal static class DonationLineItemNormalizer
     {
         /// <summary>
         /// 一次奉獻最多幾個類別。每個類別建立一張收費單，所有收費單 Id 都要放進永豐 Param1（X(255)），

@@ -16,6 +16,7 @@
  * 變更介面、資料格式、取消或清理順序時，須一併核對下列合作檔案及對應測試，不能只改目前檔案。
  * 可沿 SpeechMessageProducts.ChurchReport/Models/DonationPaymentManager.cs、
  * SpeechMessageProducts.ChurchReport/Services/DonationPaymentModelAssembler.cs 追查目前工作樹中的合作／使用位置。
+ * P6-07公開邊界：DonationPaymentFormBuilder改為產品內部宣告；外部輸出與既有資源清理契約不變。
  */
 using System;
 using System.Globalization;
@@ -29,7 +30,8 @@ namespace ChurchReport.Services
     /// 它不屬於 <c>SpeechMessage.Payments.AspNetCore</c>，因為「節期獻金、特別奉獻」
     /// 是 ChurchReport 的產品語言，未來建設公司維修、協會會員或發票收款系統不應被迫引用。
     /// </summary>
-    public sealed class DonationPaymentFormBuilder
+    /// <remarks>P6-07限於本產品內部使用；既有資料形狀、呼叫順序與資源所有權不變，不作為跨組件API。</remarks>
+    internal sealed class DonationPaymentFormBuilder
     {
         /// <summary>
         /// 解析 CRM task 內用來設定特別奉獻項目的字串。

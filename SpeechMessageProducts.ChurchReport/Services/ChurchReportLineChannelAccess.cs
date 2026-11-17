@@ -17,6 +17,7 @@
  * SpeechMessageProducts.ChurchReport/Services/PaymentNotificationService.cs、
  * SpeechMessageProducts.ChurchReport/Tools/DonationFeePaymentProcessor.cs、
  * SpeechMessageProducts.ChurchReport/Tools/PersonalQrCodeUtility.cs 追查目前工作樹中的合作／使用位置。
+ * P6-07公開邊界：ChurchReportLineChannelAccess改為產品內部宣告；外部輸出與既有資源清理契約不變。
  */
 using System;
 using Microsoft.Extensions.Configuration;
@@ -25,6 +26,7 @@ using SpeechMessage.Tenancy;
 namespace ChurchReport.Services;
 
 /// <summary>ChurchReport 舊靜態設定入口的失敗邊界；不建立 client、不快取 token、不保留 HttpContext，所有解析委派 Tenancy。</summary>
+/// <remarks>P6-07限於本產品內部使用；既有資料形狀、呼叫順序與資源所有權不變，不作為跨組件API。</remarks>
 public static class ChurchReportLineChannelAccess
 {
     /// <summary>舊 Lazy 設定的建構也屬失敗邊界；只在本次呼叫執行 factory，不保存 delegate、設定或例外。</summary>

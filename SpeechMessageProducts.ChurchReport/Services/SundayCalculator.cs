@@ -20,6 +20,7 @@
  * SpeechMessageProducts.ChurchReport/Services/WeeklyScheduleSettings.cs、
  * SpeechMessageProducts.ChurchReport/Tools/PersonalQrCodeUtility.cs、
  * SpeechMessageProducts.ChurchReport/Tools/WeeklyReportProcessor.cs 追查目前工作樹中的合作／使用位置。
+ * P6-07公開邊界：SundayCalculator改為產品內部宣告；外部輸出與既有資源清理契約不變。
  */
 using System;
 
@@ -29,7 +30,8 @@ namespace ChurchReport.Services
     /// 集中式主日日期計算服務。
     /// 主日永遠固定是星期日，但所屬週次必須依據設定的每週第一日來判定。
     /// </summary>
-    public static class SundayCalculator
+    /// <remarks>P6-07限於本產品內部使用；既有資料形狀、呼叫順序與資源所有權不變，不作為跨組件API。</remarks>
+    internal static class SundayCalculator
     {
         /// <summary>
         /// 將中文星期名稱解析成 <see cref="DayOfWeek"/>。

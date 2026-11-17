@@ -11,13 +11,16 @@
  * 本檔的前置條件、錯誤及資源責任以各型別／成員契約為準；此導讀不把呼叫參數視為授權，也不擴張被借入依賴的所有權。
  * 變更介面、資料格式、取消或清理順序時，須一併核對下列合作檔案及對應測試，不能只改目前檔案。
  * 可沿 SpeechMessageProducts.ChurchReport/Controllers/MemberInfoController.cs 追查目前工作樹中的合作／使用位置。
+ * P6-07公開邊界：MemberInfoScopeGuard改為產品內部宣告；外部輸出與既有資源清理契約不變。
  */
 using System;
 using System.Collections.Generic;
 
 namespace ChurchReport.Services.MemberInfo
 {
-    public static class MemberInfoScopeGuard
+    /// <summary>在已解析的權限範圍內檢查請求的會友或名單ID是否可見，拒絕空ID、未知權限及不在可見集合內的請求；它是第二道範圍檢查，不能以caller自己提供的可見集合當權威。
+    /// P6-07將本宣告限於主機內部；仍由既有呼叫端組裝及消費，不變更資料形狀、流程或資源owner。</summary>
+    internal static class MemberInfoScopeGuard
     {
         public static bool IsContactAllowed(
             string access,

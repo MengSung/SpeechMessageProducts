@@ -20,6 +20,7 @@
  * 變更介面、資料格式、取消或清理順序時，須一併核對下列合作檔案及對應測試，不能只改目前檔案。
  * 可沿 SpeechMessageProducts.ChurchReport/Models/DonationPaymentManager.cs、
  * SpeechMessageProducts.ChurchReport/Services/DonationPaymentModelAssembler.cs 追查目前工作樹中的合作／使用位置。
+ * P6-07公開邊界：DonationBookingService改為產品內部宣告；外部輸出與既有資源清理契約不變。
  */
 using System;
 using System.Threading.Tasks;
@@ -42,7 +43,8 @@ namespace ChurchReport.Services
     /// 注意：這裡雖然會呼叫舊相容的 OrderMaintain，但它仍然是 ChurchReport 既有產品流程。
     /// 通用金流核心不應知道「認獻單」、「奉獻者 fullname」或 ChurchReport 的 LINE 通知格式。
     /// </summary>
-    public sealed class DonationBookingService
+    /// <remarks>P6-07限於本產品內部使用；既有資料形狀、呼叫順序與資源所有權不變，不作為跨組件API。</remarks>
+    internal sealed class DonationBookingService
     {
         private readonly ToolUtilityClass _utility;
 

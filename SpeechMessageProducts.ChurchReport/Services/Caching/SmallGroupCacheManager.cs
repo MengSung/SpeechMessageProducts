@@ -13,6 +13,7 @@
  * 變更介面、資料格式、取消或清理順序時，須一併核對下列合作檔案及對應測試，不能只改目前檔案。
  * 可沿 SpeechMessageProducts.ChurchReport/Controllers/SmallGroupController/SmallGroupController.Cache.cs、
  * SpeechMessageProducts.ChurchReport/Startup.cs 追查目前工作樹中的合作／使用位置。
+ * P6-07公開邊界：SmallGroupCacheManager改為產品內部宣告；外部輸出與既有資源清理契約不變。
  */
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
@@ -26,7 +27,8 @@ namespace ChurchReport.Services.Caching
     /// 提供小組相關資料的快取管理功能
     /// 使用 IMemoryCache 進行快取儲存
     /// </summary>
-    public class SmallGroupCacheManager : ISmallGroupCacheManager
+    /// <remarks>P6-07限於本產品內部使用；既有資料形狀、呼叫順序與資源所有權不變，不作為跨組件API。</remarks>
+    internal class SmallGroupCacheManager : ISmallGroupCacheManager
     {
         #region 常數定義
 

@@ -21,6 +21,7 @@
  * SpeechMessageProducts.ChurchReport/Controllers/NewPersonController.cs、
  * SpeechMessageProducts.ChurchReport/Controllers/PersonalController.ImageUpload.cs、
  * SpeechMessageProducts.ChurchReport/Models/DonationPaymentManager.cs 追查目前工作樹中的合作／使用位置。
+ * P6-07公開邊界：ChurchReportLineAdminNotificationService改為產品內部宣告；外部輸出與既有資源清理契約不變。
  */
 
 using System;
@@ -34,6 +35,7 @@ namespace ChurchReport.Services;
 /// 舊文字參數可能含憑證、姓名或完整例外，因此不讀取、不留存、不傳送，改以編譯期 caller 定位。
 /// 新增程式應直接傳 Exception 至 ExceptionReporting.Report，以保留型別與 stack 符號。
 /// </summary>
+/// <remarks>P6-07限於本產品內部使用；既有資料形狀、呼叫順序與資源所有權不變，不作為跨組件API。</remarks>
 public static class ChurchReportLineAdminNotificationService
 {
     /// <summary>既有產品管理者接收者；僅用作受信任部署預設值，不接受 request 覆寫。</summary>

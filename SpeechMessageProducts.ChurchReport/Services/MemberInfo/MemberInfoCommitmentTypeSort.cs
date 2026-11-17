@@ -16,6 +16,7 @@
  * 變更介面、資料格式、取消或清理順序時，須一併核對下列合作檔案及對應測試，不能只改目前檔案。
  * 可沿 SpeechMessageProducts.ChurchReport/Controllers/MemberInfoController.cs、
  * SpeechMessageProducts.ChurchReport/Services/MemberInfo/MemberInfoTreeSearchBuilder.cs 追查目前工作樹中的合作／使用位置。
+ * P6-07公開邊界：MemberInfoCommitmentTypeSegment、MemberInfoCommitmentTypeSegmentKind、MemberInfoCommitmentTypeSlice、MemberInfoCommitmentTypeSort改為產品內部宣告；外部輸出與既有資源清理契約不變。
  */
 using ChurchReport.ViewModels.MemberInfoTree;
 using System;
@@ -28,7 +29,8 @@ namespace ChurchReport.Services.MemberInfo
     /// 遠端分頁使用的委身類型區段：已設定選項、metadata 未知舊值、真正空白。
     /// Unknown 與 Empty 不會因使用者切換反向排序而跑到已設定選項之前。
     /// </summary>
-    public enum MemberInfoCommitmentTypeSegmentKind
+    /// <remarks>P6-07限於本產品內部使用；既有資料形狀、呼叫順序與資源所有權不變，不作為跨組件API。</remarks>
+    internal enum MemberInfoCommitmentTypeSegmentKind
     {
         Configured,
         Unknown,
@@ -38,7 +40,8 @@ namespace ChurchReport.Services.MemberInfo
     /// <summary>
     /// 全域排序中的一個連續區段；Configured 才會有 OptionSet Value。
     /// </summary>
-    public readonly record struct MemberInfoCommitmentTypeSegment(
+    /// <remarks>P6-07限於本產品內部使用；既有資料形狀、呼叫順序與資源所有權不變，不作為跨組件API。</remarks>
+    internal readonly record struct MemberInfoCommitmentTypeSegment(
         MemberInfoCommitmentTypeSegmentKind Kind,
         int? Value,
         int Count);
@@ -46,7 +49,8 @@ namespace ChurchReport.Services.MemberInfo
     /// <summary>
     /// 某一頁與區段的交集，Skip／Take 均以該區段自身為基準。
     /// </summary>
-    public readonly record struct MemberInfoCommitmentTypeSlice(
+    /// <remarks>P6-07限於本產品內部使用；既有資料形狀、呼叫順序與資源所有權不變，不作為跨組件API。</remarks>
+    internal readonly record struct MemberInfoCommitmentTypeSlice(
         MemberInfoCommitmentTypeSegmentKind Kind,
         int? Value,
         int Skip,
@@ -55,7 +59,8 @@ namespace ChurchReport.Services.MemberInfo
     /// <summary>
     /// 三種會友表格共用的 metadata rank 排序及分段頁面規則。
     /// </summary>
-    public static class MemberInfoCommitmentTypeSort
+    /// <remarks>P6-07限於本產品內部使用；既有資料形狀、呼叫順序與資源所有權不變，不作為跨組件API。</remarks>
+    internal static class MemberInfoCommitmentTypeSort
     {
         public const string Selector = "MembershipStatusOrder";
 

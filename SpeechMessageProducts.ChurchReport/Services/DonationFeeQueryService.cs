@@ -19,6 +19,7 @@
  * SpeechMessageProducts.ChurchReport/Services/DonationBookingService.cs、
  * SpeechMessageProducts.ChurchReport/Services/DonationDedicationFeeFormService.cs、
  * SpeechMessageProducts.ChurchReport/Services/DonationKeyInDedicationService.cs 追查目前工作樹中的合作／使用位置。
+ * P6-07公開邊界：DonationFeeQueryService改為產品內部宣告；外部輸出與既有資源清理契約不變。
  */
 using System;
 using System.Collections.Generic;
@@ -36,7 +37,8 @@ namespace ChurchReport.Services
     /// 因此必須留在 ChurchReport。通用金流專案只知道付款結果，不應該知道奉獻收費單欄位、
     /// OptionSet 值或奉獻類別顯示邏輯。
     /// </summary>
-    public sealed class DonationFeeQueryService
+    /// <remarks>P6-07限於本產品內部使用；既有資料形狀、呼叫順序與資源所有權不變，不作為跨組件API。</remarks>
+    internal sealed class DonationFeeQueryService
     {
         private readonly ToolUtilityClass _utility;
 

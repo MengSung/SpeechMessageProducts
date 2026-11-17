@@ -20,6 +20,7 @@
  * SpeechMessageProducts.ChurchReport/Services/Contact/Impl/ContactService.cs、
  * SpeechMessageProducts.ChurchReport/Services/DonationPaymentModelAssembler.cs、
  * SpeechMessageProducts.ChurchReport/Tools/QrCodeUtility.cs 追查目前工作樹中的合作／使用位置。
+ * P6-07公開邊界：OptionSetMetadataService改為產品內部宣告；外部輸出與既有資源清理契約不變。
  */
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
@@ -38,7 +39,8 @@ namespace ChurchReport.Services
     /// OptionSet Metadata 服務
     /// 負責從 Dynamics 365 動態取得 OptionSet 的完整清單並提供快取機制
     /// </summary>
-    public class OptionSetMetadataService
+    /// <remarks>P6-07限於本產品內部使用；既有資料形狀、呼叫順序與資源所有權不變，不作為跨組件API。</remarks>
+    internal class OptionSetMetadataService
     {
         private readonly IOrganizationService _organizationService;
         private readonly ILogger<OptionSetMetadataService> _logger;

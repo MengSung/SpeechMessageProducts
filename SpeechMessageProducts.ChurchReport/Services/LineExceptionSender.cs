@@ -13,7 +13,8 @@ Dispose 均直接委派。部署設定優先、舊管理者後備與原五秒逾
 facade。實際 request／response／client 清理由 Hosting 負責；本檔不保存 IConfiguration、
 Session、request、token 或跨教會狀態，不紀錄自身失敗，也不啟動背景工作。
 變更須同時驗證 Hosting sender 測試與 ChurchReport 集中 token 解析契約。
-*/
+* P6-07公開邊界：LineExceptionSender改為產品內部宣告；外部輸出與既有資源清理契約不變。
+ */
 using System;
 using System.Threading;
 using System.Threading.Tasks;
@@ -25,6 +26,7 @@ namespace ChurchReport.Services;
 /// 舊產品 sender 的薄 facade；只提供 ChurchReport 核定的管理者後備值並委派共用實作，
 /// 不重複任何憑證解析、HTTP 傳輸或通知生命週期。
 /// </summary>
+/// <remarks>P6-07限於本產品內部使用；既有資料形狀、呼叫順序與資源所有權不變，不作為跨組件API。</remarks>
 public sealed class LineExceptionSender : IDisposable
 {
     /// <summary>本 facade 唯一擁有的共用 sender，其 client 不與其他產品或使用者共用。</summary>

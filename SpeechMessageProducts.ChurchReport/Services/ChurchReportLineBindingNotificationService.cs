@@ -19,6 +19,7 @@
  * 本檔的前置條件、錯誤及資源責任以各型別／成員契約為準；此導讀不把呼叫參數視為授權，也不擴張被借入依賴的所有權。
  * 變更介面、資料格式、取消或清理順序時，須一併核對下列合作檔案及對應測試，不能只改目前檔案。
  * 可沿 SpeechMessageProducts.ChurchReport/Startup.cs 追查目前工作樹中的合作／使用位置。
+ * P6-07公開邊界：ChurchReportLineBindingNotificationService、ChurchReportLineProfileProvider、IChurchReportLineProfileProvider改為產品內部宣告；外部輸出與既有資源清理契約不變。
  */
 using Line.Messaging;
 using LineMessagingProcessor;
@@ -38,6 +39,7 @@ using LineUserProfile = Line.Messaging.UserProfile;
 /// 這個介面留在 ChurchReport，是因為「綁定流程需要哪些 profile 欄位」
 /// 屬於產品流程需求；實際 LINE API 呼叫則交給共用 processor 封裝。
 /// </summary>
+/// <remarks>P6-07限於本產品內部使用；既有資料形狀、呼叫順序與資源所有權不變，不作為跨組件API。</remarks>
 public interface IChurchReportLineProfileProvider
 {
     /// <summary>
@@ -52,6 +54,7 @@ public interface IChurchReportLineProfileProvider
 /// ChurchReport 的預設 LINE profile provider。
 /// 它只是一層薄 adapter，負責把 ChurchReport 服務介面接到已抽離的 LineMessagingProcessor。
 /// </summary>
+/// <remarks>P6-07限於本產品內部使用；既有資料形狀、呼叫順序與資源所有權不變，不作為跨組件API。</remarks>
 public sealed class ChurchReportLineProfileProvider : IChurchReportLineProfileProvider
 {
     private readonly LineMessagingProcessorClass _lineMessagingProcessor;
@@ -84,6 +87,7 @@ public sealed class ChurchReportLineProfileProvider : IChurchReportLineProfilePr
 /// 注意：這裡保留 ChurchReport 專用網址與文案，因為未來產品會有自己的綁定頁、
 /// 會員資料來源與顯示文字；共用 LINE 專案不應該引用這些產品相依。
 /// </summary>
+/// <remarks>P6-07限於本產品內部使用；既有資料形狀、呼叫順序與資源所有權不變，不作為跨組件API。</remarks>
 public sealed class ChurchReportLineBindingNotificationService : IChurchReportLineBindingNotificationService
 {
     private const string BindingViewBaseUrl = "https://tpehoc.speechmessage.com.tw:200/Home/LineBindingView/";

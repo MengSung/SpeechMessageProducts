@@ -14,6 +14,7 @@
  * 可沿 SpeechMessageProducts.ChurchReport/Extensions/ListManagerCacheExtensions.cs、
  * SpeechMessageProducts.ChurchReport/Services/Caching/CacheService.cs、
  * SpeechMessageProducts.ChurchReport/Startup.cs 追查目前工作樹中的合作／使用位置。
+ * P6-07公開邊界：CacheStatistics、ICacheService改為產品內部宣告；外部輸出與既有資源清理契約不變。
  */
 using System;
 using System.Collections.Generic;
@@ -26,7 +27,8 @@ namespace ChurchReport.Services.Caching
     /// 快取服務介面
     /// Phase 2.2: 提供統一的快取操作介面
     /// </summary>
-    public interface ICacheService
+    /// <remarks>P6-07限於本產品內部使用；既有資料形狀、呼叫順序與資源所有權不變，不作為跨組件API。</remarks>
+    internal interface ICacheService
     {
         #region 同步方法
 
@@ -123,7 +125,8 @@ namespace ChurchReport.Services.Caching
     /// <summary>
     /// 快取統計資訊
     /// </summary>
-    public class CacheStatistics
+    /// <remarks>P6-07限於本產品內部使用；既有資料形狀、呼叫順序與資源所有權不變，不作為跨組件API。</remarks>
+    internal class CacheStatistics
     {
         /// <summary>快取項目數量</summary>
         public int ItemCount { get; set; }

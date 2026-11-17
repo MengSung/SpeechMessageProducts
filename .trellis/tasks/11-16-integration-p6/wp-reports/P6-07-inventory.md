@@ -39,3 +39,5 @@ Tools：逐檔完整讀取並以Roslyn只替換頂層宣告public token，10檔1
 按計畫搜尋ChurchReport自行維護的.cs來源：GetExportedTypes、.IsPublic、IsVisible、BindingFlags.Public均0處，沒有依賴公開型別的產品反射清單需要修改。這不取代實際Razor與序列化驗證。
 
 2026-11-17 08:25 Asia/Taipei (UTC+08:00)：Payments5檔8個頂層型別改internal，沒有額外編譯牽連。雙組態建置、ChurchReport643/644與Dataverse79/81全通過，四份路由／序列化黃金逐位元組相同；只改可見性與文件，未改公開控制器成員、訊息或D365值。本包未驗收不推送，下一批Services。
+
+2026-11-17 08:29 Asia/Taipei (UTC+08:00)：Services52檔71個頂層型別完成internal，另DonationKeyInDedicationService已在前批提前處理；CacheKeys.Expiration是巢狀型別，保留修飾詞，隨容器internal不再對外可見。編譯CS0051指出ThemeViewDataFilter與ListManagerCacheExtensions的公開簽章用到ThemeSettings／ICacheService，兩者均屬待辦，依固定處理提前internal；同檔CachedListManagerData亦原在待辦中。雙組態建置、ChurchReport643/644及Dataverse79/81全過，四黃金位元組相同。

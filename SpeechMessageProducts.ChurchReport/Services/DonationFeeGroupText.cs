@@ -14,6 +14,7 @@
  * 可沿 SpeechMessageProducts.ChurchReport/Tools/DonationFeePaymentProcessor.cs、
  * SpeechMessageProducts.ChurchReport/WebServiceConnector/DonationPaymentProcessor/DonationPaymentProcessor.PaymentProcessing.cs
  * 追查目前工作樹中的合作／使用位置。
+ * P6-07公開邊界：DonationFeeGroupText改為產品內部宣告；外部輸出與既有資源清理契約不變。
  */
 using System;
 using System.Collections.Generic;
@@ -24,7 +25,8 @@ using SpeechMessage.Payments.Models;
 namespace ChurchReport.Services
 {
     /// <summary>同一筆奉獻付款群組的可重用、無副作用文字組裝器。</summary>
-    public static class DonationFeeGroupText
+    /// <remarks>P6-07限於本產品內部使用；既有資料形狀、呼叫順序與資源所有權不變，不作為跨組件API。</remarks>
+    internal static class DonationFeeGroupText
     {
         public const int ProviderProductNameMaxLength = 60;
 

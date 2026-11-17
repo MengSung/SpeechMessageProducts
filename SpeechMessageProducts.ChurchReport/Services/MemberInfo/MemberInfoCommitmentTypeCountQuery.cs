@@ -15,6 +15,7 @@
  * 本檔的前置條件、錯誤及資源責任以各型別／成員契約為準；此導讀不把呼叫參數視為授權，也不擴張被借入依賴的所有權。
  * 變更介面、資料格式、取消或清理順序時，須一併核對下列合作檔案及對應測試，不能只改目前檔案。
  * 可沿 SpeechMessageProducts.ChurchReport/Controllers/MemberInfoController.cs 追查目前工作樹中的合作／使用位置。
+ * P6-07公開邊界：MemberInfoCommitmentTypeCountQuery改為產品內部宣告；外部輸出與既有資源清理契約不變。
  */
 using Microsoft.Xrm.Sdk;
 using System;
@@ -29,7 +30,8 @@ namespace ChurchReport.Services.MemberInfo
     /// customertypecode group-by 計數查詢。所有使用者條件都保留在既有 XML 節點中，
     /// 本類別只做結構化 DOM 變更，不拼接任何輸入文字。
     /// </summary>
-    public static class MemberInfoCommitmentTypeCountQuery
+    /// <remarks>P6-07限於本產品內部使用；既有資料形狀、呼叫順序與資源所有權不變，不作為跨組件API。</remarks>
+    internal static class MemberInfoCommitmentTypeCountQuery
     {
         public const string ValueAlias = "commitmenttype";
         public const string CountAlias = "rowcount";

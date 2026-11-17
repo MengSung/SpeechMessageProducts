@@ -12,6 +12,7 @@
  * 變更介面、資料格式、取消或清理順序時，須一併核對下列合作檔案及對應測試，不能只改目前檔案。
  * 可沿 SpeechMessageProducts.ChurchReport/Controllers/MemberInfoController.cs、
  * SpeechMessageProducts.ChurchReport/Controllers/PersonalController.ImageUpload.cs 追查目前工作樹中的合作／使用位置。
+ * P6-07公開邊界：DefaultAvatarSvg改為產品內部宣告；外部輸出與既有資源清理契約不變。
  */
 namespace ChurchReport.Services.ContactAvatar
 {
@@ -20,7 +21,8 @@ namespace ChurchReport.Services.ContactAvatar
     /// Dynamics can store gendercode as the standard 1/2 values, while this project
     /// also writes 200000/200001 from GalleryViewModel.
     /// </summary>
-    public static class DefaultAvatarSvg
+    /// <remarks>P6-07限於本產品內部使用；既有資料形狀、呼叫順序與資源所有權不變，不作為跨組件API。</remarks>
+    internal static class DefaultAvatarSvg
     {
         /// <summary>Returns male, female, or neutral SVG based on CRM contact.gendercode.</summary>
         public static string ForGender(int? genderCode)

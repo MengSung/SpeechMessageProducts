@@ -18,6 +18,7 @@
  * 可沿 SpeechMessageProducts.ChurchReport/Controllers/PerformanceController.cs、
  * SpeechMessageProducts.ChurchReport/Middleware/SessionMonitoringMiddleware.cs、
  * SpeechMessageProducts.ChurchReport/Startup.cs 追查目前工作樹中的合作／使用位置。
+ * P6-07公開邊界：SessionMonitorService、SessionRecord改為產品內部宣告；外部輸出與既有資源清理契約不變。
  */
 #if DEBUG
 using System;
@@ -73,7 +74,8 @@ namespace ChurchReport.Services.Monitoring
     /// 兩個 timer 的唯一 owner 是此服務：它們只在 <see cref="StartAsync"/> 後建立，並在停止或釋放時停用、
     /// Dispose 並等待正在執行的 callback 排空，避免背景回呼將 singleton 或 Session 記錄延長到 Host 之外。
     /// </remarks>
-    public class SessionMonitorService : ISessionMonitorService, IHostedService, IDisposable
+    /// <remarks>P6-07限於本產品內部使用；既有資料形狀、呼叫順序與資源所有權不變，不作為跨組件API。</remarks>
+    internal class SessionMonitorService : ISessionMonitorService, IHostedService, IDisposable
     {
         /// <summary>程序級監控索引可保留的最大 Session 筆數。</summary>
         /// <remarks>此值限制 DEBUG 診斷資源，不是授權或連線容量；達到上限時只會遺失最舊的統計樣本。</remarks>
@@ -469,7 +471,8 @@ namespace ChurchReport.Services.Monitoring
     /// 此類只保存 opaque Session ID、建立時間、最後活動時間與數量；不保存任何 Session 值、身份、權杖、
     /// tenant 或使用者資料。可變數值一律以 Interlocked 操作，讓讀寫同步且不需要把 request 熱路徑序列化。
     /// </remarks>
-    public class SessionRecord
+    /// <remarks>P6-07限於本產品內部使用；既有資料形狀、呼叫順序與資源所有權不變，不作為跨組件API。</remarks>
+    internal class SessionRecord
     {
         private long _lastActivityUtcTicks;
         private long _requestCount;

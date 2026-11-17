@@ -21,6 +21,7 @@
  * 變更介面、資料格式、取消或清理順序時，須一併核對下列合作檔案及對應測試，不能只改目前檔案。
  * 可沿 SpeechMessageProducts.ChurchReport/Models/DonationPaymentManager.cs、
  * SpeechMessageProducts.ChurchReport/Services/DonationLoginContactService.cs 追查目前工作樹中的合作／使用位置。
+ * P6-07公開邊界：DonationContactService改為產品內部宣告；外部輸出與既有資源清理契約不變。
  */
 using System;
 using ChurchReport.ViewModel;
@@ -40,7 +41,8 @@ namespace ChurchReport.Services
     /// DonationPaymentManager 只負責協調流程；真正建立、篩選、補齊奉獻者 contact 的細節集中在這裡，
     /// 讓未來閱讀或修改 CRM contact 規則時，不需要在大型付款協調器裡搜尋。
     /// </summary>
-    public sealed class DonationContactService
+    /// <remarks>P6-07限於本產品內部使用；既有資料形狀、呼叫順序與資源所有權不變，不作為跨組件API。</remarks>
+    internal sealed class DonationContactService
     {
         private readonly ToolUtilityClass _utility;
 

@@ -15,6 +15,7 @@
  * SpeechMessageProducts.ChurchReport/Models/ListSmallGroupWeeklyReport.cs、
  * SpeechMessageProducts.ChurchReport/Startup.cs、SpeechMessageProducts.ChurchReport/Tools/PersonalQrCodeUtility.cs、
  * SpeechMessageProducts.ChurchReport/Tools/WeeklyReportProcessor.cs 追查目前工作樹中的合作／使用位置。
+ * P6-07公開邊界：WeeklyScheduleProvider、WeeklyScheduleSettings改為產品內部宣告；外部輸出與既有資源清理契約不變。
  */
 using System;
 
@@ -25,7 +26,8 @@ namespace ChurchReport.Services
     /// 對應 appsettings.json 的 WeeklySchedule 區段，
     /// 用來描述系統判定「每週第一日」的規則。
     /// </summary>
-    public record WeeklyScheduleSettings
+    /// <remarks>P6-07限於本產品內部使用；既有資料形狀、呼叫順序與資源所有權不變，不作為跨組件API。</remarks>
+    internal record WeeklyScheduleSettings
     {
         /// <summary>
         /// 每週第一日的中文名稱。
@@ -46,7 +48,8 @@ namespace ChurchReport.Services
     /// <summary>
     /// 提供舊有非 DI 類別統一讀取每週第一日設定的入口。
     /// </summary>
-    public static class WeeklyScheduleProvider
+    /// <remarks>P6-07限於本產品內部使用；既有資料形狀、呼叫順序與資源所有權不變，不作為跨組件API。</remarks>
+    internal static class WeeklyScheduleProvider
     {
         private static DayOfWeek _firstDayOfWeek = DayOfWeek.Monday;
 

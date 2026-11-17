@@ -19,6 +19,7 @@
  * SpeechMessageProducts.ChurchReport/WebServiceConnector/DonationPaymentProcessor/DonationPaymentProcessor.FeeManagement.cs、
  * SpeechMessageProducts.ChurchReport/WebServiceConnector/DonationPaymentProcessor/DonationPaymentProcessor.PaymentProcessing.cs
  * 追查目前工作樹中的合作／使用位置。
+ * P6-07公開邊界：DonationFeeIdList、DonationFeeParamMember改為產品內部宣告；外部輸出與既有資源清理契約不變。
  */
 using System;
 using System.Collections.Generic;
@@ -26,10 +27,12 @@ using System.Collections.Generic;
 namespace ChurchReport.Services
 {
     /// <summary>callback 過濾收費單時使用的最小快照；只有 Id、會友 Id 與信用卡訂單編號，不含姓名或金額。</summary>
-    public sealed record DonationFeeParamMember(Guid FeeId, Guid ContactId, string CardOrderNo);
+    /// <remarks>P6-07限於本產品內部使用；既有資料形狀、呼叫順序與資源所有權不變，不作為跨組件API。</remarks>
+    internal sealed record DonationFeeParamMember(Guid FeeId, Guid ContactId, string CardOrderNo);
 
     /// <summary>永豐訂單 Param1「收費單 Id 清單」的編碼、解析與過濾規則。</summary>
-    public static class DonationFeeIdList
+    /// <remarks>P6-07限於本產品內部使用；既有資料形狀、呼叫順序與資源所有權不變，不作為跨組件API。</remarks>
+    internal static class DonationFeeIdList
     {
         /// <summary>永豐規格 Param1 最大長度 X(255)。</summary>
         public const int ProviderParamMaxLength = 255;

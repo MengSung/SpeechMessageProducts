@@ -14,10 +14,13 @@
  * 可沿 SpeechMessageProducts.ChurchReport/Controllers/MemberInfoController.cs、
  * SpeechMessageProducts.ChurchReport/Services/MemberInfo/DistrictTreeBuilder.cs、
  * SpeechMessageProducts.ChurchReport/Services/MemberInfo/MemberInfoTreeSearchBuilder.cs 追查目前工作樹中的合作／使用位置。
+ * P6-07公開邊界：GroupMembershipRow、SmallGroupDescriptor改為產品內部宣告；外部輸出與既有資源清理契約不變。
  */
 namespace ChurchReport.Services.MemberInfo
 {
-    public class SmallGroupDescriptor
+    /// <summary>定義會友樹組裝的輸入契約，將小組描述與群組成員關聯列分開，避免樹組裝依賴完整CRM物件；輸入必須先由呼叫端完成範圍驗證。
+    /// P6-07將本宣告限於主機內部；仍由既有呼叫端組裝及消費，不變更資料形狀、流程或資源owner。</summary>
+    internal class SmallGroupDescriptor
     {
         public string ListId { get; set; } = string.Empty;
         public string GroupName { get; set; } = string.Empty;
@@ -29,7 +32,9 @@ namespace ChurchReport.Services.MemberInfo
         public string GroupPlace { get; set; } = string.Empty;
     }
 
-    public class GroupMembershipRow
+    /// <summary>定義會友樹組裝的輸入契約，將小組描述與群組成員關聯列分開，避免樹組裝依賴完整CRM物件；輸入必須先由呼叫端完成範圍驗證。
+    /// P6-07將本宣告限於主機內部；仍由既有呼叫端組裝及消費，不變更資料形狀、流程或資源owner。</summary>
+    internal class GroupMembershipRow
     {
         public string ListId { get; set; } = string.Empty;
         public string ContactId { get; set; } = string.Empty;

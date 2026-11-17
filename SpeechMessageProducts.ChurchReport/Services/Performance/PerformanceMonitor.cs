@@ -16,6 +16,7 @@
  * SpeechMessageProducts.ChurchReport/Controllers/PerformanceController.cs、
  * SpeechMessageProducts.ChurchReport/Middleware/PerformanceMonitoringMiddleware.cs、
  * SpeechMessageProducts.ChurchReport/Startup.cs 追查目前工作樹中的合作／使用位置。
+ * P6-07公開邊界：PerformanceMonitor改為產品內部宣告；外部輸出與既有資源清理契約不變。
  */
 using System;
 using System.Collections.Generic;
@@ -59,7 +60,8 @@ namespace ChurchReport.Services.Performance
     /// 效能監控服務實作
     /// ?? 僅在 DEBUG 編譯模式下啟用
     /// </summary>
-    public class PerformanceMonitor : IPerformanceMonitor
+    /// <remarks>P6-07限於本產品內部使用；既有資料形狀、呼叫順序與資源所有權不變，不作為跨組件API。</remarks>
+    internal class PerformanceMonitor : IPerformanceMonitor
     {
         private readonly ILogger<PerformanceMonitor> _logger;
         private readonly Dictionary<string, List<double>> _metrics = new();
