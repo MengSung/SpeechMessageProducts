@@ -31,7 +31,7 @@
 - [x] P6-05：依逐檔清單下修字串基準，顯示文字不改；I18nCheck verify 回零。
 - [x] P6-07a：六個指定測試、可見性改動前提交兩份黃金檔、Razor 探針、
   Roslyn 分類與四資料夾分批處理；Debug／Release 建置與兩測試專案通過。
-- [ ] P6-07b：其餘資料夾、兩個指定嚴格測試、清冊清零與公開型別統計；
+- [x] P6-07b：其餘資料夾、兩個指定嚴格測試、清冊清零與公開型別統計；
   黃金檔位元組不變，規格同步。
 - [ ] 頁面驗收：依 06A §6A 四情境前後比對、測試資料零殘留；
   D6-15 有用到時記明退路與提案；腳本提交後完整 guard。
@@ -158,3 +158,5 @@ P6-05收尾67ac88da4f075ec4c7c526d99651b08dd1d9d2f6已推送並ls-remote一致�
 2026-11-17 09:20 Asia/Taipei (UTC+08:00)：P6-07b SessionAttribute.cs 已完成雙組態建置、ChurchReport644/643及Dataverse81/79與原黃金比對；提交4b8fa3f1。仍未整包驗收，不推送。
 
 2026-11-17 09:31 Asia/Taipei (UTC+08:00)：P6-07b依序完成11批75個待辦頂層型別內部化，雙組態產品建置與ChurchReport644/643、Dataverse81/79皆通過；Startup.Caching無待改。最終來源掃描Debug／Release全規則0違規，R2清冊141→0且resolved；公開表面129／119（原清冊口徑128／118），例外0。四黃金SHA不變。Hosting嚴格模式全測執行中，未完整guard、未驗收、不推送。Logging首輪Release遭SourceLink檔鎖，原證據保留；單節點同碼重試通過。
+
+2026-11-17 09:50 Asia/Taipei (UTC+08:00)：P6-07a／b皆驗收，七包done。b程式提交615cdffc固定guard八項全過，Release7071（22組件，不含另列Debug tracer7），編碼255、文件1747、進度28、重複groups0/new0、I18nCheck0。清冊141→0且resolved、嚴格模式；公開型別Debug129／Release119、明列例外0、四黃金SHA不變。待頁面驗收與唯一階段審查，不啟動P7。

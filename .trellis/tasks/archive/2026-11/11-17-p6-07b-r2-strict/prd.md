@@ -8,5 +8,5 @@
 - [x] R2_ChurchReport_PublicTypes_AreOnlyEntryControllerOrSignatureRequired（Debug／Release、先紅後綠）。
 - [x] 清冊空、resolved；原Solution_EvaluatedGraphAndSource_MatchContractsAndUnresolvedInventory保名改嚴格模式。
 - [x] 公開表面統計與四類數量、例外理由、2個protected收窄成員；同步R2規格。
-- [ ] 全方案Debug／Release建置、Hosting／ChurchReport／Dataverse測試，最後程式提交完整guard。
-- [ ] 一頁回報與DATA、五項定義、驗收封存推送核對；頁面與唯一階段審查另接，不啟動P7。
+- [x] 全方案Debug／Release建置、Hosting／ChurchReport／Dataverse測試，最後程式提交完整guard。
+- [x] 一頁回報與DATA、五項定義、驗收封存推送核對；頁面與唯一階段審查另接，不啟動P7。
