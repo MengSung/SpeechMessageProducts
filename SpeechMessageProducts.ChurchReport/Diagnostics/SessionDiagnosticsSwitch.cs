@@ -13,6 +13,7 @@
  * 變更介面、資料格式、取消或清理順序時，須一併核對下列合作檔案及對應測試，不能只改目前檔案。
  * 可沿 SpeechMessageProducts.ChurchReport/Models/InMemoryDataContextSmallGroup.cs、
  * SpeechMessageProducts.ChurchReport/Startup.cs 追查目前工作樹中的合作／使用位置。
+ * P6-07公開邊界：SessionDiagnosticsSwitch改為產品內部宣告；外部輸出與既有資源清理契約不變。
  */
 #if DEBUG
 namespace ChurchReport.Diagnostics
@@ -38,7 +39,8 @@ namespace ChurchReport.Diagnostics
     /// 釋放任何資源，因為它不擁有 listener、stream、timer、task 或 cancellation registration。
     /// </para>
     /// </remarks>
-    public static class SessionDiagnosticsSwitch
+    /// <remarks>P6-07限於本產品內部使用；既有資料形狀、呼叫順序與資源所有權不變，不作為跨組件API。</remarks>
+    internal static class SessionDiagnosticsSwitch
     {
         /// <summary>
         /// 取得或設定是否允許逐步 Session 診斷輸出；預設停用以避免量測污染與敏感資料留存。

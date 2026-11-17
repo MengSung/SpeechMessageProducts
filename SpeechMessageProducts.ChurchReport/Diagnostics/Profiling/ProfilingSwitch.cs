@@ -18,6 +18,7 @@
  * SpeechMessageProducts.ChurchReport/Diagnostics/Profiling/StartupProfiler.cs、
  * SpeechMessageProducts.ChurchReport/Filters/PerfTimingActionFilter.cs、
  * SpeechMessageProducts.ChurchReport/Middleware/PerfProfilingMiddleware.cs 追查目前工作樹中的合作／使用位置。
+ * P6-07公開邊界：ProfilingSwitch改為產品內部宣告；外部輸出與既有資源清理契約不變。
  */
 #if DEBUG
 namespace ChurchReport.Diagnostics.Profiling
@@ -27,7 +28,8 @@ namespace ChurchReport.Diagnostics.Profiling
     /// 即使正式機誤以 Debug 部署，未開統一 DiagnosticsTrace 設定就不剖析；
     /// Release 編譯則由 Program 建立 disabled options，部署設定無法繞過。
     /// </summary>
-    public static class ProfilingSwitch
+    /// <remarks>P6-07限於本產品內部使用；既有資料形狀、呼叫順序與資源所有權不變，不作為跨組件API。</remarks>
+    internal static class ProfilingSwitch
     {
         /// <summary>
         /// 取得或設定目前程序是否允許建立 request/CRM 效能剖析事件。Startup 只會從已通過

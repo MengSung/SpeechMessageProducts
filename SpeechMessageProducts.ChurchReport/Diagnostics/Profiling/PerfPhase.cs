@@ -14,6 +14,7 @@
  * SpeechMessageProducts.ChurchReport/Controllers/EquipmentController.cs、
  * SpeechMessageProducts.ChurchReport/Controllers/FeeManagementController.cs、
  * SpeechMessageProducts.ChurchReport/Controllers/PersonalController.cs 追查目前工作樹中的合作／使用位置。
+ * P6-07公開邊界：PerfPhase、PerfScope改為產品內部宣告；外部輸出與既有資源清理契約不變。
  */
 using System;
 using Microsoft.AspNetCore.Http;
@@ -27,7 +28,9 @@ namespace ChurchReport.Diagnostics.Profiling
     /// Debug  : delegates to RequestProfiler.MeasurePhase (still gated by ProfilingSwitch).
     /// Usage is always a using block: using (PerfPhase.Measure(HttpContext, "Name")) { ... }
     /// </summary>
-    public static class PerfPhase
+    /// <remarks>P6-07限於本產品內部使用；既有資料形狀、呼叫順序與資源所有權不變，不作為跨組件API。</remarks>
+    /// <remarks>P6-07限於本產品內部使用；既有資料形狀、呼叫順序與資源所有權不變，不作為跨組件API。</remarks>
+    internal static class PerfPhase
     {
         public static PerfScope Measure(HttpContext context, string name)
         {
@@ -40,7 +43,9 @@ namespace ChurchReport.Diagnostics.Profiling
     }
 
     /// <summary>Phase-timing scope. Release: empty-shell struct (zero allocation, Dispose elided).</summary>
-    public readonly struct PerfScope : IDisposable
+    /// <remarks>P6-07限於本產品內部使用；既有資料形狀、呼叫順序與資源所有權不變，不作為跨組件API。</remarks>
+    /// <remarks>P6-07限於本產品內部使用；既有資料形狀、呼叫順序與資源所有權不變，不作為跨組件API。</remarks>
+    internal readonly struct PerfScope : IDisposable
     {
 #if DEBUG
         private readonly IDisposable _inner;

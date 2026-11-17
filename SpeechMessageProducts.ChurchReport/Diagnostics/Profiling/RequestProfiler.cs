@@ -20,6 +20,7 @@
  * SpeechMessageProducts.ChurchReport/Diagnostics/Profiling/TimedOrganizationService.cs、
  * SpeechMessageProducts.ChurchReport/Filters/PerfTimingActionFilter.cs、
  * SpeechMessageProducts.ChurchReport/Middleware/PerfProfilingMiddleware.cs 追查目前工作樹中的合作／使用位置。
+ * P6-07公開邊界：RequestProfiler改為產品內部宣告；外部輸出與既有資源清理契約不變。
  */
 #if DEBUG
 using System.Collections.Generic;
@@ -34,7 +35,8 @@ namespace ChurchReport.Diagnostics.Profiling
     /// 單一請求計時容器。只放 HttpContext.Items，請求結束即回收。
     /// 只記數字 + entity 邏輯名 + 操作名。CRM 時間以 ticks 累計避免 &lt;1ms 捨入低報。
     /// </summary>
-    public sealed class RequestProfiler
+    /// <remarks>P6-07限於本產品內部使用；既有資料形狀、呼叫順序與資源所有權不變，不作為跨組件API。</remarks>
+    internal sealed class RequestProfiler
     {
         public const string ItemsKey = "__PerfProfiler";
         public const string RouteTemplateItemsKey = "__PerfRouteTemplate";
