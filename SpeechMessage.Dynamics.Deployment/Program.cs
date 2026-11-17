@@ -8,7 +8,7 @@
  * 本檔宣告 Program。
  * - 建立唯一 User Secrets 組態與 Ctrl+C 取消來源，執行一個命令後先解除事件訂閱， 再 Dispose 取消來源與組態。初始化失敗只輸出固定訊息及例外型別，不輸出原始訊息。
  * - Channel命令在語法及key通過後才建立ChannelSecretInput讀重新導向stdin，
- *   最多三十秒／16KiB，不互動回顯秘密、不建立可遺留的背景讀取。原命令不建立此owner。
+ *   最多三十秒／16KiB，不互動回顯秘密、不建立可遺留的背景讀取。正式寫入的確認行與後續Channel秘密共用同一個30秒owner，先驗catalog／旗標才開啟。
  * - 為單次命令掛載共用檔案診斷 owner，明確停用 LINE，並在命令完成時解除全域註冊後 drain／Dispose owner。日誌目錄由程序組合根提供，不接受命令列、組態或 request 決定。
  * - 組態尚未建立診斷 owner 時，只輸出固定初始化狀態與型別名稱。
  * - 以固定 stderr 代碼處理輸出 writer 失敗，不展開原始例外或組態內容。
@@ -132,15 +132,16 @@ internal static class Program
                 logDirectory,
                 outputOptions: new ExceptionOutputOptions(writeExceptionLog: true, sendLine: false));
             registration = ExceptionReporting.Attach(diagnostics);
-            return DeploymentCli.RunWithInput(
+            var catalog = OrganizationCatalog.LoadDefault();
+            return DeploymentCli.RunWithCatalog(
                 args,
+                catalog,
                 connector,
                 output,
                 exception => ExceptionReporting.Report(exception, "SpeechMessage.Dynamics.Deployment"),
                 secretInput,
                 artifactRoot,
-                secretReader: name => configuration[
-                    "Deployment:Organizations:goodshepherdback:" + name] ?? string.Empty,
+                secretReader: name => ReadOrganizationSecret(configuration, catalog, args, name),
                 cancellationToken: cancellationToken);
         }
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
@@ -184,6 +185,15 @@ internal static class Program
                 }
             }
         }
+    }
+
+    /// <summary>只有CLI關卡通過後才呼叫的按組織秘密讀取；不cache、不掃其他profile、不輸出值。</summary>
+    internal static string ReadOrganizationSecret(IConfiguration configuration, OrganizationCatalog catalog, string[] args, string name)
+    {
+        var index = Array.IndexOf(args, "--org");
+        if (index < 0 || index + 1 == args.Length || Array.LastIndexOf(args, "--org") != index) throw new InvalidDataException("Organization secret scope is invalid.");
+        var organization = catalog.Get(args[index + 1]);
+        return configuration["Deployment:Organizations:" + organization.Name + ":" + name] ?? string.Empty;
     }
 
     /// <summary>組態尚未建立診斷 owner 時，只輸出固定初始化狀態與型別名稱。</summary>

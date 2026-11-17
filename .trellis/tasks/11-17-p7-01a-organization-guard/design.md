@@ -1,0 +1,13 @@
+# P7-01a 設計
+
+唯一依據07A §4.1、§5 P7-01a；只改部署工具與其離線測試、伴隨說明及spec，不提前實作P7-01b切換狀態機。
+OrganizationCatalog為命令局部不可變catalog，從repo固定organizations.json嚴格讀取（未知／重複鍵、非法kind／state、重複name/host拒絕），唯一test為核定測試組織。資料包含tierOverrides，保留後續b使用；不保存credential或SDK。實際repo檔只有goodshepherdback一筆。
+ProductionGuard在任何connector呼叫之前處理--production：production缺旗標拒絕、test有旗標拒絕；production禁止smoke/shadow/module switch/live-check/ui-export。讀取操作可帶旗標不需要名稱確認；寫入必須透過既有ChannelSecretInput同步有界stdin，最多256字元／30秒、Ordinal完全相等，沒有Task.Run／留存的背景讀取。
+組織與artifacts／snapshots／secret prefix使用catalog canonical name。連線從每組織User Secrets讀取host/path核對與本次credential，獨占client/lease，不cache、pool或跨組織保存mutable狀態。server組織名稱及plan OrganizationId在讀入計畫與實際SDK回應交叉核對，不把CLI名稱當server身分。
+CLI在分流schema/channel前統一guard，保留舊測試呼叫簽章；可用命令局部授權上下文／明確參數向分流傳遞catalog，不引入static ambient mutable context。各路由仍自行嚴格parser拒未知參數，移除旗標只能在已驗證guard後。
+DeploymentEngine/DocumentEngine/SchemaMetadata/SchemaPlanner/ShadowRunner等低層改顯式catalog或組織描述，不以名稱存在取代授權；既有測試允許固定repo catalog，不繞過production guard。RegistrationManifestLoader的enabledByOrganization規則保持只接受測試鍵，未啟用組織默認false。
+export-legacy在test保留舊啟用即停止行為；production只輸出counts及狀態，不停止以便產生後續switch plan。UI export仍test-only；ui-import可production，所有真連線仍不在此單元執行。
+失敗在連線前為2，caller取消130；真正SDK故障保留原Exception至共用診斷，不輸出秘密。沿用現有寫鎖、using先釋放SDK再鎖；User Secrets只按組織鍵讀，不掃描或複製秘密。
+
+## 17:46分析裁定
+自癒入口ClaudeOnly完成；模型提出Program秘密前綴風險納入必要測試，沒有實際新程式缺陷。既有位置參數相容採保留原簽章委派新明確上下文方法，不在CancellationToken之前插入可選參數而破壞位置繫結。測試名稱大小寫沿原OrdinalIgnoreCase識別、轉catalog canonical name；正式確認仍Ordinal精確比對。30秒共用stdin總時限沿既有owner，不再詢問。Schema現有ValidatePlan會重算含OrganizationId的快照hash，須先讀全內容驗證模型「從不核對」說法，不能盲加冗餘檢查；registration計畫server識別依07A完整安全意圖實作，不以模型建議取代依據。

@@ -163,3 +163,7 @@ caller key不變、handle/GC基線）及真會員通知有效/壞MAC兩路CAS。
 額外1424 bytes/call，約0.30–0.42微秒；受限域十次卸載、handle增量0，並非長期soak。
 FIPS=True環境未測，不宣稱認證或所有runtime可用；目標環境未通過時保持部署阻擋，
 不得以停用政策或授權產品FullTrust繞過。
+
+## P7-01a 多組織命令邊界
+上述goodshepherdback指令仍相容。現在--org由OrganizationCatalog與共同ProductionGuard先核定，正式加--production並在stdin第一行輸入精確組織名；protect-token後接原兩行秘密，同一reader共30秒／16KiB。
+TokenKey讀Deployment:Organizations:<canonical-name>:TokenKey，不能回落測試鍵或其他profile。命令租約與寫鎖依同canonical組織分區，正式連線先核serverUniqueName，不快取key/client；原加密及精確Upsert斷言不變。

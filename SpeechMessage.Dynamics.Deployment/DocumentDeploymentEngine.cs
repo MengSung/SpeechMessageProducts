@@ -45,14 +45,16 @@ internal sealed record DocumentAssemblyBackup(string AssemblyName, string Path, 
 /// <summary>一次命令生命週期的同步編排器；呼叫端負責寫入鎖及 SDK 租約釋放。</summary>
 internal sealed class DocumentDeploymentEngine
 {
+    private readonly OrganizationCatalog catalog;
     private readonly IOrganizationService service;
     private readonly string directory;
     private readonly TimeProvider clock;
     private readonly Func<string, string> secret;
 
     /// <summary>借用命令服務、輸出根、時鐘及按需秘密來源，不接管其生命週期。</summary>
-    public DocumentDeploymentEngine(IOrganizationService service, string directory, TimeProvider clock, Func<string, string> secret)
+    public DocumentDeploymentEngine(IOrganizationService service, string directory, TimeProvider clock, Func<string, string> secret, OrganizationCatalog? catalog = null)
     {
+        this.catalog = catalog ?? OrganizationCatalog.LoadDefault();
         ArgumentNullException.ThrowIfNull(service);
         ArgumentException.ThrowIfNullOrWhiteSpace(directory);
         ArgumentNullException.ThrowIfNull(clock);
@@ -263,11 +265,12 @@ internal sealed class DocumentDeploymentEngine
     /// 每映像小於十六 MiB，與 AssemblyCatalog 相同；字串與型別集合只保留本操作的獨立副本。
     /// PE／簽章結構仍由 AssemblyCatalog 負責，這裡另核對實際 bytes 摘要防止 DTO 內容被替換。
     /// </summary>
-    private static Source Prepare(RegistrationDocument document, IReadOnlyList<AssemblyImage> images, string organization)
+    private Source Prepare(RegistrationDocument document, IReadOnlyList<AssemblyImage> images, string organization)
     {
         ArgumentNullException.ThrowIfNull(document);
         ArgumentNullException.ThrowIfNull(images);
-        if (organization != "goodshepherdback" || document.SchemaVersion != 2 ||
+        _ = catalog.Get(organization);
+        if (document.SchemaVersion != 2 ||
             document.Assemblies is null || document.Assemblies.Count is < 1 or > 2 ||
             images.Count != document.Assemblies.Count) throw InvalidDocument();
         var names = new HashSet<string>(StringComparer.Ordinal);
@@ -378,7 +381,7 @@ internal sealed class DocumentDeploymentEngine
     }
 
     /// <summary>原單組件引擎按需建立；不取得借入 SDK 的 Dispose 責任。</summary>
-    private DeploymentEngine Engine(string output) => new(service, output, clock, secret);
+    private DeploymentEngine Engine(string output) => new(service, output, clock, secret, catalog);
 
     /// <summary>以純 DTO 序列化作完整性摘要；只有範本／安全 metadata，不輸入解析後秘密。</summary>
     private static string Hash<T>(T value) => Convert.ToHexString(SHA256.HashData(JsonSerializer.SerializeToUtf8Bytes(value)));

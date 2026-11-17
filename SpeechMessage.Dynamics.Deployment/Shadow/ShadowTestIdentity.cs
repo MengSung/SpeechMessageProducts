@@ -27,6 +27,8 @@ internal sealed record ShadowVerifiedIdentity(Guid OrganizationId, Guid ChurchId
 /// <summary>唯讀核對組織及測試綁定，不以顯示名稱、檔案別名或呼叫端 GUID 建立授權。</summary>
 internal static class ShadowTestIdentity
 {
+    /// <summary>核定的唯一測試組織名稱；catalog與測試身分關卡共用，不允許清單擴充test種類。</summary>
+    internal const string AllowedOrganization = "goodshepherdback";
     /// <summary>
     /// 發現唯一權威測試身分；供明確設定流程使用，不會自行變更 Secrets 或業務資料。
     /// 必須同時證明 D34 範圍只有一列，且精確 TestLineUserId 查詢找到同一 contact。
@@ -41,7 +43,7 @@ internal static class ShadowTestIdentity
         cancellationToken.ThrowIfCancellationRequested();
         var organization = (response as RetrieveCurrentOrganizationResponse)?.Detail;
         if (organization is null || organization.OrganizationId == Guid.Empty ||
-            !string.Equals(organization.UniqueName, "goodshepherdback", StringComparison.OrdinalIgnoreCase))
+            !string.Equals(organization.UniqueName, AllowedOrganization, StringComparison.OrdinalIgnoreCase))
             throw Invalid();
         var scope = new QueryExpression("contact") { ColumnSet = new ColumnSet(false), TopCount = 2 };
         scope.Criteria.AddCondition("new_lineid", ConditionOperator.NotNull);

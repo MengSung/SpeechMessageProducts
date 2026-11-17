@@ -52,7 +52,7 @@ internal sealed partial class DeploymentEngine
         RegistrationDocument document, string organization, string module,
         Func<LegacyRegistrationSnapshot> readLegacy)
     {
-        ValidateOrganization(organization);
+        ValidateTestOrganization(organization);
         foreach (var assembly in document.Assemblies) RegistrationManifestLoader.Validate(assembly);
         var legacy = readLegacy();
         if (legacy.EnabledStepCount != 0 || legacy.EnabledWorkflowCount != 0) throw InvalidSwitch();
@@ -86,7 +86,7 @@ internal sealed partial class DeploymentEngine
         Func<LegacyRegistrationSnapshot> readLegacy, LegacyRoundContext? context = null,
         Action? legacyBody = null, CancellationToken cancellationToken = default)
     {
-        ValidateOrganization(organization);
+        ValidateTestOrganization(organization);
         ArgumentNullException.ThrowIfNull(document);
         ArgumentNullException.ThrowIfNull(readLegacy);
         cancellationToken.ThrowIfCancellationRequested();

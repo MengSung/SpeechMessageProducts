@@ -47,7 +47,7 @@ internal static class SchemaAcceptanceProbe
             if (Read(candidate) is not null) throw new InvalidDataException("Acceptance candidate identity already exists.");
         _ = SchemaFiles.WriteNew(directory, "acceptance-ownership.json", new
         {
-            Organization = "goodshepherdback", Marker = marker, AccountId = account.Id,
+            Organization = Shadow.ShadowTestIdentity.AllowedOrganization, Marker = marker, AccountId = account.Id,
             FirstTextId = first.Id, DuplicateTextId = duplicate.Id, CultureControlTextId = cultureControl.Id
         });
         Exception? failure = null;

@@ -32,19 +32,23 @@ namespace SpeechMessage.Dynamics.Deployment.Schema;
 /// <summary>只讀結構投影器；所有資料先在本次候選完成且驗證正式ID，才發布純值snapshot。借用單命令SDK，不接管或保留連線。</summary>
 internal static class SchemaMetadata
 {
+    /// <summary>保留舊測試專用讀取入口，從核定catalog取唯一test描述，沒有跨命令SDK或snapshot快取。</summary>
+    internal static SchemaSnapshot Read(IOrganizationService service, CancellationToken cancellationToken, bool retrieveAsIfPublished = true) =>
+        Read(service, OrganizationCatalog.LoadDefault().TestOrganization, cancellationToken, retrieveAsIfPublished);
     /// <summary>一次只讀完整metadata與註冊定義；SDK同步I/O前後驗caller取消，不建立未觀測Task或提前歸還正在入場的client。</summary>
     /// <param name="service">由命令lease擁有且有transport timeout的獨占服務。</param>
+    /// <param name="target">共同入口核定的組織，server uniqueName必須一致，不能僅要求也在catalog內。</param>
     /// <param name="cancellationToken">命令owner取消訊號。</param>
     /// <param name="retrieveAsIfPublished">true盤點含未發布候選；false核對已發布結構，避免apply順便發布其他變更或把未發布當完成。</param>
     /// <returns>最多4096實體／100000欄、各註冊metadata集合50000列的純值完整快照；業務Core的5000限制不變。</returns>
-    internal static SchemaSnapshot Read(IOrganizationService service, CancellationToken cancellationToken, bool retrieveAsIfPublished = true)
+    internal static SchemaSnapshot Read(IOrganizationService service, OrganizationDefinition target, CancellationToken cancellationToken, bool retrieveAsIfPublished = true)
     {
         ArgumentNullException.ThrowIfNull(service);
         cancellationToken.ThrowIfCancellationRequested();
         var current = Execute<RetrieveCurrentOrganizationResponse>(service,
             new RetrieveCurrentOrganizationRequest { AccessType = EndpointAccessType.Default }, cancellationToken).Detail;
         if (current is null || current.OrganizationId == Guid.Empty
-            || !string.Equals(current.UniqueName, "goodshepherdback", StringComparison.OrdinalIgnoreCase)
+            || !string.Equals(current.UniqueName, target.Name, StringComparison.OrdinalIgnoreCase)
             || !Version.TryParse(current.OrganizationVersion, out _))
             throw new InvalidDataException("Organization metadata does not match the authorized deployment.");
         var organization = service.Retrieve("organization", current.OrganizationId, new ColumnSet("languagecode"));

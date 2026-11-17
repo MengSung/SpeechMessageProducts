@@ -44,7 +44,7 @@ namespace SpeechMessage.Dynamics.Deployment;
 /// </summary>
 internal sealed partial class DeploymentEngine
 {
-    private const string AllowedOrganization = "goodshepherdback";
+    private readonly OrganizationCatalog catalog;
     private const string AssemblyLogicalName = "pluginassembly";
     private const string TypeLogicalName = "plugintype";
     private const string StepLogicalName = "sdkmessageprocessingstep";
@@ -74,10 +74,12 @@ internal sealed partial class DeploymentEngine
     /// <param name="directory">受信任的本機 plan／export 輸出根。</param>
     /// <param name="clock">UTC 與 smoke timeout 使用的可控時鐘。</param>
     /// <param name="secret">依佔位名稱取得 User Secrets 值的委派。</param>
+    /// <param name="catalog">命令核定白名單；省略僅載入repo清單，不允許任意組織。</param>
     /// <exception cref="ArgumentNullException">必要依賴為 null。</exception>
     /// <exception cref="ArgumentException">輸出目錄為空白。</exception>
-    public DeploymentEngine(IOrganizationService service, string directory, TimeProvider clock, Func<string, string> secret)
+    public DeploymentEngine(IOrganizationService service, string directory, TimeProvider clock, Func<string, string> secret, OrganizationCatalog? catalog = null)
     {
+        this.catalog = catalog ?? OrganizationCatalog.LoadDefault();
         this.service = service ?? throw new ArgumentNullException(nameof(service));
         ArgumentException.ThrowIfNullOrWhiteSpace(directory);
         this.directory = Path.GetFullPath(directory);
@@ -91,7 +93,7 @@ internal sealed partial class DeploymentEngine
     /// </summary>
     /// <param name="manifest">經過格式與佔位驗證的註冊清單。</param>
     /// <param name="image">已以 MetadataReader 驗證的 Plugin 組件內容。</param>
-    /// <param name="organization">目前唯一允許的開發測試組織。</param>
+    /// <param name="organization">命令catalog核定的組織；正式旗標及確認仍由共同CLI入口負責。</param>
     /// <returns>雜湊固定且僅含非敏感資訊的人工審核計畫。</returns>
     /// <exception cref="ArgumentNullException">清單或組件為 null。</exception>
     /// <exception cref="InvalidDataException">清單不符合 P0 範圍或既有組件身份衝突。</exception>
@@ -103,7 +105,7 @@ internal sealed partial class DeploymentEngine
         ValidateManifest(manifest, image);
         ValidateRegistrationAttributes(manifest);
 
-        var inspection = Inspect(manifest, image);
+        var inspection = Inspect(manifest, image, organization);
         var placeholders = manifest.Steps
             .SelectMany(step => ExtractSecretNames(step.UnsecureConfig).Concat(ExtractSecretNames(step.SecureConfig)))
             .Distinct(StringComparer.Ordinal)
@@ -205,7 +207,7 @@ internal sealed partial class DeploymentEngine
             throw new InvalidDataException("Plan 的來源清單或組件已變更。");
         }
 
-        var inspection = Inspect(manifest, image);
+        var inspection = Inspect(manifest, image, plan.Organization);
         if (!string.Equals(plan.Fingerprint, inspection.Fingerprint, StringComparison.Ordinal))
         {
             throw new InvalidDataException("組織現況已改變，必須重新產生 plan。");
@@ -235,7 +237,7 @@ internal sealed partial class DeploymentEngine
                     ReconcileImages(operation.Key, manifest);
                     break;
                 case "CreateStep":
-                    CreateStep(operation.Key, manifest);
+                    CreateStep(operation.Key, manifest, plan.Organization);
                     break;
                 case "UpdateStepConfiguration":
                     UpdateStepConfiguration(operation.Key, manifest);
@@ -255,7 +257,7 @@ internal sealed partial class DeploymentEngine
     /// 將受管理組件、Plugin 型別及步驟安全匯出到指定本機路徑。secure 設定只記錄有無，
     /// unsecure 設定只進指紋雜湊；原始 userId 與 token 不會序列化。
     /// </summary>
-    /// <param name="organization">唯一核准的測試組織名稱。</param>
+    /// <param name="organization">catalog核定的canonical組織名稱。</param>
     /// <param name="path">輸出 JSON 檔案路徑。</param>
     /// <param name="assemblyName">核定組件簡名，預設維持既有 Plugin 匯出範圍。</param>
     /// <returns>完成原子寫入後的絕對路徑。</returns>
@@ -438,7 +440,7 @@ internal sealed partial class DeploymentEngine
     }
 
     /// <summary>只查受管理組件與清單中的穩定步驟身份，建立操作候選；不解析秘密、不寫入資料，完成後才發布計畫。</summary>
-    private Inspection Inspect(RegistrationManifest manifest, AssemblyImage image)
+    private Inspection Inspect(RegistrationManifest manifest, AssemblyImage image, string organization)
     {
         var assembly = FindAssembly(manifest.AssemblyName);
         var operations = new List<DeploymentOperation>();
@@ -509,7 +511,7 @@ internal sealed partial class DeploymentEngine
                 operations.Add(new DeploymentOperation("UpdateStepConfiguration", StepKey(step)));
             }
 
-            var shouldEnable = IsEnabled(step, AllowedOrganization);
+            var shouldEnable = IsEnabled(step, organization);
             if ((ReadOption(existingStep, "statecode") == 0) != shouldEnable)
             {
                 operations.Add(new DeploymentOperation("UpdateStepState", StepKey(step)));
@@ -581,7 +583,7 @@ internal sealed partial class DeploymentEngine
     /// 固定兩項同步請求只借用本命令 SDK 租約，不建立背景工作或跨命令狀態；
     /// 秘密僅在寫入框架解析，交易失敗沿既有路徑清除事先建立的 secure 設定。
     /// </summary>
-    private void CreateStep(string stepKey, RegistrationManifest manifest)
+    private void CreateStep(string stepKey, RegistrationManifest manifest, string organization)
     {
         var registration = FindStepRegistration(manifest, stepKey);
         var assembly = FindAssembly(manifest.AssemblyName) ?? throw new InvalidDataException("Plan 所需組件不存在。");
@@ -608,7 +610,7 @@ internal sealed partial class DeploymentEngine
 
         try
         {
-            var enabled = IsEnabled(registration, AllowedOrganization);
+            var enabled = IsEnabled(registration, organization);
             var step = new Entity(StepLogicalName)
             {
                 ["name"] = StepDisplayName(registration),
@@ -1483,13 +1485,13 @@ internal sealed partial class DeploymentEngine
     private static bool IsEnabled(StepRegistration step, string organization) =>
         step.EnabledByOrganization.TryGetValue(organization, out var enabled) && enabled;
 
-    /// <summary>所有核心入口再驗唯一開發組織，防止繞過 CLI 後跨組織使用。</summary>
-    private static void ValidateOrganization(string organization)
+    /// <summary>所有核心入口再驗本命令白名單；不以呼叫端字串擴權，正式操作確認仍由CLI負責。</summary>
+    private void ValidateOrganization(string organization) => _ = catalog.Get(organization);
+
+    /// <summary>舊模組切換／影子入口只允許catalog的test種類；一般部署的白名單檢查不能擴張此權限。</summary>
+    internal void ValidateTestOrganization(string organization)
     {
-        if (!string.Equals(organization, AllowedOrganization, StringComparison.OrdinalIgnoreCase))
-        {
-            throw new InvalidDataException("目標組織未列入 P0 唯一白名單。");
-        }
+        if (catalog.Get(organization).Kind != "test") throw new InvalidDataException("This operation requires a test organization.");
     }
 
     /// <summary>同公鑰及主次版本且為 Sandbox／Database 才容許更新；避免同名不同身份被覆寫。</summary>

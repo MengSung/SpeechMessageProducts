@@ -41,12 +41,12 @@ internal static partial class DeploymentCli
     /// </summary>
     private static int RunDocument(ParsedCommand command, RegistrationDocument document, string repositoryRoot,
         string organizationRoot, string operationRoot, IOrganizationService service, TextWriter output,
-        Func<string, string>? secretReader)
+        Func<string, string>? secretReader, OrganizationCatalog catalog)
     {
         var images = document.Assemblies.Select(manifest => AssemblyCatalog.Read(
             Path.Combine(repositoryRoot, "artifacts", "plugins", manifest.AssemblyName + ".dll"), manifest)).ToArray();
         var engine = new DocumentDeploymentEngine(service, organizationRoot, TimeProvider.System,
-            name => ResolveRequiredSecret(command.Organization, name, secretReader));
+            name => ResolveRequiredSecret(command.Organization, name, secretReader), catalog);
         switch (command.Name)
         {
             case "plan":

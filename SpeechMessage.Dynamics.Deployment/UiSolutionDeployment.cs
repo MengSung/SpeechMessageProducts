@@ -3,7 +3,7 @@
 目的與定位：P5-03b UI 解決方案命令的 SDK 邊界，將 `ExportSolution`、`ImportSolution` 與發布要求接到既有單一組織 lease。
 主要功能與流程：匯出時只要求固定未受管理的 SpeechMessageUi，交由 UiSolutionArchive 驗證與 D26 篩選後，以暫存目錄完整寫出 XML／資源；匯入時先從核定組織 artifacts 內讀取 ZIP、驗證完整候選，再一次送出匯入與發布。
 信任邊界與資源擁有權：service 只借用 DeploymentCli 的單次 OrganizationLease，不保存或重用；輸入檔案、ZIP bytes、暫存目錄及輸出檔案皆由單次命令擁有，失敗會刪除本次建立的暫存物，不碰其他組織或任意路徑。
-適用範圍與驗證：只允許 goodshepherdback、固定方案名稱及固定 repository／organization artifacts 邊界；本檔的 SDK request 契約由離線假服務測試驗證，未宣稱已執行實機 UI 匯出入。
+適用範圍與驗證：匯出只允許共同入口核定的test種類，匯入允許已通過正式旗標與名稱確認的白名單組織；固定方案及repository／organization artifacts邊界；本檔的 SDK request 契約由離線假服務測試驗證，未宣稱已執行實機 UI 匯出入。
 */
 using System;
 using System.Collections.Generic;

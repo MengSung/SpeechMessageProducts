@@ -22,16 +22,24 @@ namespace SpeechMessage.Dynamics.Deployment.Schema;
 /// <summary>不含SDK或I/O的完整結構規劃；先檢查全部衝突再回傳候選，絕不產生Update/Delete來修補既有組織。</summary>
 internal static class SchemaPlanner
 {
+    /// <summary>保留舊純planner簽章；只使用repo核定catalog，不以任意snapshot名稱擴權。</summary>
+    internal static SchemaPlan Create(SchemaDefinition definition, SchemaSnapshot snapshot, DateTimeOffset createdUtc) =>
+        Create(definition, snapshot, createdUtc, OrganizationCatalog.LoadDefault());
+    /// <summary>舊驗證入口以同一repo白名單重算，不改歷史hash格式。</summary>
+    internal static void ValidatePlan(SchemaPlan plan, SchemaDefinition definition, SchemaSnapshot snapshot) =>
+        ValidatePlan(plan, definition, snapshot, OrganizationCatalog.LoadDefault());
+
     /// <summary>將已授權組織snapshot與正式schema作完整比較，產生依賴順序穩定的純新增計畫。</summary>
     /// <param name="definition">已完整驗證的SSOT定義。</param><param name="snapshot">本次server完整投影，不得代以其他組織。</param>
     /// <param name="createdUtc">Host提供明確UTC時刻，純函式不讀取系統時鐘。</param>
+    /// <param name="catalog">命令區域完整驗證的核定組織清單，不含secret。</param>
     /// <returns>只含新增／加入solution及pending key的完整候選。</returns>
-    internal static SchemaPlan Create(SchemaDefinition definition, SchemaSnapshot snapshot, DateTimeOffset createdUtc)
+    internal static SchemaPlan Create(SchemaDefinition definition, SchemaSnapshot snapshot, DateTimeOffset createdUtc, OrganizationCatalog catalog)
     {
         SchemaFiles.Validate(definition);
         ArgumentNullException.ThrowIfNull(snapshot);
+        _ = catalog.Get(snapshot.Organization);
         if (createdUtc.Offset != TimeSpan.Zero || snapshot.OrganizationId == Guid.Empty
-            || !string.Equals(snapshot.Organization, "goodshepherdback", StringComparison.OrdinalIgnoreCase)
             || snapshot.LanguageCode <= 0 || snapshot.Entities.Count > 4096)
             throw new InvalidDataException("Schema plan scope or UTC time is invalid.");
         var operations = new List<SchemaOperation>();
@@ -117,13 +125,13 @@ internal static class SchemaPlanner
     }
 
     /// <summary>apply在備份／寫入之前重新讀server並重算完整預期計畫，拒絕任何欄位、操作、scope或hash漂移。</summary>
-    internal static void ValidatePlan(SchemaPlan plan, SchemaDefinition definition, SchemaSnapshot snapshot)
+    internal static void ValidatePlan(SchemaPlan plan, SchemaDefinition definition, SchemaSnapshot snapshot, OrganizationCatalog catalog)
     {
         ArgumentNullException.ThrowIfNull(plan);
         if (plan.SchemaVersion != 1 || plan.Operations is null || plan.PendingKeys is null || plan.Operations.Count > 20_000
             || plan.Sha256 != SchemaFiles.HashValue(plan with { Sha256 = "" }))
             throw new InvalidDataException("Schema plan integrity validation failed.");
-        var expected = Create(definition, snapshot, plan.CreatedUtc);
+        var expected = Create(definition, snapshot, plan.CreatedUtc, catalog);
         if (plan.Sha256 != expected.Sha256) throw new InvalidDataException("Schema plan no longer matches the definition or organization metadata.");
     }
 

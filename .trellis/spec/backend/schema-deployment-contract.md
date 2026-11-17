@@ -166,3 +166,8 @@ Schema_MissingOptionValue_PlansAddOptionValue、Schema_AddOptionValue_TwiceIdemp
 
 ### 7. 錯誤與正確
 錯誤：選項完全相等才接受，或重建欄位改既有label。正確：保留server集合，逐個缺值產受審操作，安全約束與已發布驗收維持。
+
+## P7-01a catalog傳遞
+上述固定測試指令保留。正式白名單以--org <name> --production操作，寫入先精確stdin名稱確認；catalog/target從共同入口顯式傳到SchemaDeploymentEngine/Metadata/Planner，不使用ambient static。
+Metadata核server uniqueName等於指定target，planner再查白名單；apply沿完整原hash重算，OrganizationId漂移仍拒絕。路徑為artifacts/d365/<canonical-name>與d365/snapshots/<canonical-name>。
+smoke仍由共同關卡禁止production，原probe test身分不擴張。舊方法簽章委派repo唯一test描述，不能把任意server名稱當授權。全程SDK借用至同步I/O排空，由命令lease釋放。

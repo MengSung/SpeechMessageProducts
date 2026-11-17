@@ -2,7 +2,7 @@
  * 檔案整體說明
  *
  * 目的與定位：本檔承接DeploymentCli明確--schema與export-metadata命令，提供不依賴Plugin DLL的P1結構操作路由。
- * 主要功能：嚴格解析plan/apply/verify/export-metadata，以及受限smoke／complete-created-audit；唯一--org/--schema/--plan/--before組合，只有goodshepherdback可進connector。
+ * 主要功能：嚴格解析plan/apply/verify/export-metadata，以及受限smoke／complete-created-audit；唯一--org/--schema/--plan/--before組合，只有共同ProductionGuard核定的組織可進connector，正式寫入須旗標與名稱確認。
  * 輸入與流程：schema限定本repo d365/schema，plan限定該組織artifacts；先核對路徑祖先link/junction、讀strict JSON，再由既有connector取得一次lease。
  * apply沿用既有OrganizationWriteLock，持有期間重新盤點／驗plan／保存before／新增；唯讀匯出寫到d365/snapshots/組織的唯一操作目錄。
  * smoke與新Lookup稽核補正同持寫鎖；前者先確認已發布結構與Active key、建立及清理自身合成列，後者須原始plan/before且不允許通用metadata更新。
@@ -25,13 +25,14 @@ internal static class SchemaDeploymentCli
 {
     /// <summary>執行一個結構指令；全部輸入／白名單／路徑先驗，寫入命令取得同組織鎖，lease在終端report前已歸還。</summary>
     /// <param name="args">Host命令列，不回顯未知內容。</param><param name="connector">既有合法User Secrets connector。</param>
+    /// <param name="target">共同入口已授權的canonical組織。</param><param name="catalog">本命令核定的不可變白名單。</param>
     /// <param name="output">Host擁有的安全摘要writer。</param><param name="report">真Exception共用入口，不可捕捉request。</param>
     /// <param name="artifactRoot">Host固定根，只有離線測試注入替代。</param><param name="writeLockTimeout">同組織寫鎖等待上限。</param>
     /// <param name="cancellationToken">命令owner取消。</param><returns>0成功、1差異／故障、2拒絕、3key建置未完成、130caller取消。</returns>
-    internal static int Run(string[] args, IOrganizationConnector connector, TextWriter output, Action<Exception> report,
+    internal static int Run(string[] args, OrganizationDefinition target, OrganizationCatalog catalog, IOrganizationConnector connector, TextWriter output, Action<Exception> report,
         string? artifactRoot, TimeSpan? writeLockTimeout, CancellationToken cancellationToken)
     {
-        if (!Parse(args, out var command, out var schemaPath, out var planPath, out var beforePath))
+        if (!Parse(args, target.Name, out var command, out var schemaPath, out var planPath, out var beforePath))
         {
             output.WriteLine("Schema command arguments are invalid or not allowlisted.");
             return 2;
@@ -41,7 +42,7 @@ internal static class SchemaDeploymentCli
             cancellationToken.ThrowIfCancellationRequested();
             var root = DeploymentCli.FindRepositoryRoot();
             var artifacts = Path.GetFullPath(artifactRoot ?? Path.Combine(root, "artifacts", "d365"));
-            var organizationArtifacts = Path.Combine(artifacts, "goodshepherdback");
+            var organizationArtifacts = Path.Combine(artifacts, target.Name);
             if (schemaPath is not null && !DeploymentCli.IsContainedPath(Path.Combine(root, "d365", "schema"), schemaPath, out schemaPath)
                 || planPath is not null && !DeploymentCli.IsContainedPath(organizationArtifacts, planPath, out planPath)
                 || beforePath is not null && !DeploymentCli.IsContainedPath(organizationArtifacts, beforePath, out beforePath))
@@ -65,12 +66,13 @@ internal static class SchemaDeploymentCli
             }
             using var writeLock = command is "apply" or "smoke" or "complete-created-audit"
                 ? OrganizationWriteLock.Acquire(organizationArtifacts, writeLockTimeout ?? TimeSpan.FromMinutes(5), cancellationToken) : null;
-            using var lease = connector.Connect("goodshepherdback");
+            using var lease = connector.Connect(target.Name);
+            ProductionGuard.VerifyServer(lease.Service, target, cancellationToken);
             var destination = command == "export-metadata"
-                ? Path.Combine(root, "d365", "snapshots", "goodshepherdback") : organizationArtifacts;
+                ? Path.Combine(root, "d365", "snapshots", target.Name) : organizationArtifacts;
             EnsureNoLinks(destination);
             var operationRoot = DeploymentCli.CreateOperationDirectory(destination);
-            var engine = new SchemaDeploymentEngine(lease.Service, operationRoot, TimeProvider.System);
+            var engine = new SchemaDeploymentEngine(lease.Service, operationRoot, TimeProvider.System, target, catalog);
             if (command == "export-metadata")
             {
                 _ = engine.Export(cancellationToken);
@@ -122,7 +124,7 @@ internal static class SchemaDeploymentCli
     }
 
     /// <summary>只接受唯一組織與明確命令／選項組合，任何重複、秘密選項或未辨識欄位皆在連線前拒絕。</summary>
-    private static bool Parse(string[] args, out string command, out string? schema, out string? plan, out string? before)
+    private static bool Parse(string[] args, string expectedOrganization, out string command, out string? schema, out string? plan, out string? before)
     {
         command = args[0]; schema = null; plan = null; before = null;
         if (command is not ("plan" or "apply" or "verify" or "export-metadata" or "smoke" or "complete-created-audit")) return false;
@@ -139,7 +141,7 @@ internal static class SchemaDeploymentCli
             else if (option == "--plan") plan = value;
             else before = value;
         }
-        if (!string.Equals(organization, "goodshepherdback", StringComparison.OrdinalIgnoreCase)) return false;
+        if (!string.Equals(organization, expectedOrganization, StringComparison.Ordinal)) return false;
         return command switch
         {
             "export-metadata" => seen.Count == 1 && schema is null && plan is null && before is null,

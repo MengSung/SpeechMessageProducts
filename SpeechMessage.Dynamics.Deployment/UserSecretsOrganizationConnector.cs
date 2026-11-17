@@ -1,7 +1,7 @@
 /*
  * 檔案整體說明
  *
- * 目的與定位：從 User Secrets 為單一命令建立 goodshepherdback 地端連線。連線直接使用 ToolUtility 的 CreateOnPremiseClient，不經共用池；credential
+ * 目的與定位：從 User Secrets 為單一命令建立 白名單組織的獨占地端連線。連線直接使用 ToolUtility 的 CreateOnPremiseClient，不經共用池；credential
  * 只在 Connect 的呼叫框架內短暫存在， 回傳租約是唯一 owner，命令結束必定 Dispose 並解除服務參考。
  *
  * 主要功能與流程：
@@ -9,7 +9,7 @@
  * - 保留 provider 供單次連線讀取，不複製或快取任何解析後的帳密。
  * - 建立可測的地端 client 邊界。正式入口仍委派至 ToolUtility；測試注入記憶體服務， 不建立網路連線且不保存組織以外的狀態。
  * - 驗證組織白名單、端點與必要 secrets 後建立獨占地端服務租約。
- * - 只接受唯一開發測試組織的 HTTPS Organization.svc 固定主機與路徑。
+ * - 只接受清單核定組織的 HTTPS Organization.svc 主機與固定路徑。
  * 主要操作入口包含 Connect、IsAllowedEndpoint。
  *
  * 使用邊界與維護：
@@ -17,7 +17,7 @@
  * 變更介面、資料格式、取消或清理順序時，須一併核對下列合作檔案及對應測試，不能只改目前檔案。
  */
 using System;
-using System.Linq;
+using System.IO;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Xrm.Sdk;
 using ToolUtilityNameSpace.ConnectionOperations;
@@ -25,14 +25,13 @@ using ToolUtilityNameSpace.ConnectionOperations;
 namespace SpeechMessage.Dynamics.Deployment;
 
 /// <summary>
-/// 從 User Secrets 為單一命令建立 goodshepherdback 地端連線。連線直接使用 ToolUtility
+/// 從 User Secrets 為單一命令建立 白名單組織的獨占地端連線。連線直接使用 ToolUtility
 /// 的 CreateOnPremiseClient，不經共用池；credential 只在 Connect 的呼叫框架內短暫存在，
 /// 回傳租約是唯一 owner，命令結束必定 Dispose 並解除服務參考。
 /// </summary>
 internal sealed class UserSecretsOrganizationConnector : IOrganizationConnector
 {
-    private const string AllowedOrganization = "goodshepherdback";
-    private const string AllowedHost = "goodshepherdback.speechmessage.com.tw";
+    private readonly OrganizationCatalog catalog;
     private const string AllowedPath = "/XRMServices/2011/Organization.svc";
     private readonly IConfiguration configuration;
     private readonly Func<string, string, string, IOrganizationService> createClient;
@@ -56,19 +55,20 @@ internal sealed class UserSecretsOrganizationConnector : IOrganizationConnector
     public UserSecretsOrganizationConnector(
         IConfiguration configuration,
         Func<string, string, string, IOrganizationService> createClient)
+        : this(configuration, createClient, OrganizationCatalog.LoadDefault()) { }
+
+    /// <summary>命令區域catalog與工廠借入；只保存provider，所有帳密逐次Connect讀取，舊AllowedOrganizations不能擴權。</summary>
+    internal UserSecretsOrganizationConnector(IConfiguration configuration,
+        Func<string, string, string, IOrganizationService> createClient, OrganizationCatalog catalog)
     {
         this.configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
         this.createClient = createClient ?? throw new ArgumentNullException(nameof(createClient));
-        var configuredOrganizations = configuration
-            .GetSection("Deployment:AllowedOrganizations")
-            .GetChildren()
-            .Select(child => child.Value)
-            .Where(value => !string.IsNullOrWhiteSpace(value))
-            .ToArray();
-        if (configuredOrganizations.Any(value =>
-                !string.Equals(value, AllowedOrganization, StringComparison.OrdinalIgnoreCase)))
+        this.catalog = catalog ?? throw new ArgumentNullException(nameof(catalog));
+        foreach (var child in configuration.GetSection("Deployment:AllowedOrganizations").GetChildren())
         {
-            throw new InvalidOperationException("P0-12 目前只允許 goodshepherdback，其他組織需由後續階段核准。");
+            if (string.IsNullOrWhiteSpace(child.Value)) continue;
+            try { _ = catalog.Get(child.Value); }
+            catch (InvalidDataException) { throw new InvalidOperationException("Configured organization is not allowlisted."); }
         }
     }
 
@@ -78,18 +78,16 @@ internal sealed class UserSecretsOrganizationConnector : IOrganizationConnector
     /// <exception cref="InvalidOperationException">組織、服務網址或 User Secrets 設定不符合 P0 限制。</exception>
     public OrganizationLease Connect(string organization)
     {
-        if (!string.Equals(organization, AllowedOrganization, StringComparison.OrdinalIgnoreCase))
-        {
-            throw new InvalidOperationException("目標組織未列入 P0 唯一白名單。");
-        }
-
-        var prefix = "Deployment:Organizations:" + AllowedOrganization + ":";
+        OrganizationDefinition target;
+        try { target = catalog.Get(organization); }
+        catch (InvalidDataException) { throw new InvalidOperationException("Target organization is not allowlisted."); }
+        var prefix = "Deployment:Organizations:" + target.Name + ":";
         var organizationUrl = configuration[prefix + "OrganizationUrl"];
         var username = configuration[prefix + "Username"];
         var password = configuration[prefix + "Password"];
-        if (!IsAllowedEndpoint(organizationUrl))
+        if (!IsAllowedEndpoint(organizationUrl, target.Host))
         {
-            throw new InvalidOperationException("部署 User Secrets 的 OrganizationUrl 不符合 goodshepherdback 固定端點。");
+            throw new InvalidOperationException("OrganizationUrl does not match the allowlisted endpoint.");
         }
 
         if (string.IsNullOrWhiteSpace(username))
@@ -112,14 +110,15 @@ internal sealed class UserSecretsOrganizationConnector : IOrganizationConnector
         return new OrganizationLease(client, disposable.Dispose);
     }
 
-    /// <summary>只接受唯一開發測試組織的 HTTPS Organization.svc 固定主機與路徑。</summary>
+    /// <summary>只接受清單核定組織的 HTTPS Organization.svc 主機與固定路徑。</summary>
     /// <param name="value">User Secrets 中的服務 URL，不寫入錯誤訊息。</param>
-    /// <returns>URL 完全符合 P0 固定端點時為 true。</returns>
-    private static bool IsAllowedEndpoint(string? value)
+    /// <param name="host">catalog核定的純主機名稱，不來自User Secrets或命令列覆寫。</param>
+    /// <returns>URL 完全符合核定端點時為 true。</returns>
+    private static bool IsAllowedEndpoint(string? value, string host)
     {
         return Uri.TryCreate(value, UriKind.Absolute, out var uri) &&
             string.Equals(uri.Scheme, Uri.UriSchemeHttps, StringComparison.OrdinalIgnoreCase) &&
-            string.Equals(uri.IdnHost, AllowedHost, StringComparison.OrdinalIgnoreCase) &&
+            string.Equals(uri.IdnHost, host, StringComparison.OrdinalIgnoreCase) &&
             string.Equals(uri.AbsolutePath, AllowedPath, StringComparison.OrdinalIgnoreCase) &&
             uri.IsDefaultPort &&
             string.IsNullOrEmpty(uri.Query) &&

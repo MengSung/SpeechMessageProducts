@@ -255,3 +255,14 @@ ManifestLiveTests的四指定方法以合法控制組再注入故障，防止未
 正例：步驟live含tokenKey=false、空evidence表示未驗收；基本例：dormant理由P7-PROP-006加說明。
 錯例：為保住舊fixture而讓程式內候選免驗live，或把活動tokenKey=false靜默忽略。
 正確：LoadDocument與Validate均驗完整候選；只補測試輸入，原故障/斷言與清理不變。
+
+## P7-01a 組織catalog與正式關卡（2026-11-17）
+以上P0～P5單組織敘述是歷史契約；現在Deployment組織唯一來源為d365/registration/organizations.json。
+OrganizationCatalog嚴格有界解析、未知／重複欄位、重複名稱／主機、非法kind/state與決定拒絕；唯一test仍為goodshepherdback，repo現只此一筆。
+ProductionGuard位於所有Channel/Schema/一般分流之前；production所有命令須--production，test禁止該旗標。
+正式寫入先由既有ChannelSecretInput讀一行canonical名稱、Ordinal相等、最多256字元及30秒總deadline；與Channel兩行秘密共用reader，無Task.Run或背景讀取。
+正式禁止smoke/shadow/module switch/live-check/ui-export；export-legacy在production只報啟用counts，test保留啟用即回1。所有命令原parser仍拒未知選項。
+SDK連線每命令獨占lease，secret鍵按canonical名稱讀取；URL必須核定host、HTTPS預設埠及固定Organization.svc，production先RetrieveCurrentOrganization核正式ID/UniqueName。
+所有資料與catalog只屬命令，不建立ambient mutable授權或全域credential；內部engine亦查白名單，影子/module switch再要求test種類。
+十三指定方法在OrganizationsTests；另驗Program鍵前綴、四分流零連線、正式Channel同reader與schema匯出成功、server名稱錯配租約清理。
+Schema plan原hash已包含server OrganizationId，合成同名不同ID仍拒絕，不改歷史hash格式；此為離線證據，P7-01不連任何D365。

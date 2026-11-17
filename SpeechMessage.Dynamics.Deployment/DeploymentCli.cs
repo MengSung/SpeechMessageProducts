@@ -4,7 +4,7 @@
  * 目的與定位：本檔是部署工具的共同命令入口，讓P0 Plugin註冊與P1結構操作共用既有connector、
  * 組織白名單、固定artifacts邊界、寫鎖及終端例外回報；P2 Channel命令在清單路由前分流。
  *
- * 主要功能與流程：先解析命令／選項、拒絕非goodshepherdback與外部plan/export路徑；
+ * 主要功能與流程：先由catalog／ProductionGuard核定組織、旗標與正式寫入確認，再嚴格解析命令及檔案路徑；
  * 明確--schema或export-metadata轉交SchemaDeploymentCli，該路徑不需Plugin DLL。
  * export-legacy 以有界唯讀查詢匯出安全 metadata 並回報啟用筆數，不需要清單或 DLL；
  * shadow 使用同一寫鎖及租約，固定情境來源先驗證，再交影子 partial 核對實機身分、
@@ -46,7 +46,6 @@ namespace SpeechMessage.Dynamics.Deployment;
 /// </summary>
 internal static partial class DeploymentCli
 {
-    private const string AllowedOrganization = "goodshepherdback";
     private const string OrganizationOption = "--org";
     private const string PlanOption = "--plan";
     private const string FromOption = "--from";
@@ -77,6 +76,29 @@ internal static partial class DeploymentCli
         CancellationToken cancellationToken = default) =>
         RunWithInput(args, connector, output, report, null, artifactRoot, secretReader, writeLockTimeout, cancellationToken);
 
+    /// <summary>注入純值catalog的單一關卡，位於所有分流前；只有正式寫入才開啟一次30秒stdin owner。</summary>
+    internal static int RunWithCatalog(string[] args, OrganizationCatalog catalog, IOrganizationConnector connector,
+        TextWriter output, Action<Exception> report, TextReader? secretInput, string? artifactRoot = null,
+        Func<string, string>? secretReader = null, TimeSpan? writeLockTimeout = null, CancellationToken cancellationToken = default)
+    {
+        if (args.Length == 0 || args.Length == 1 && args[0] is "--help" or "-h") { WriteUsage(output); return 0; }
+        Channels.ChannelSecretInput? ownedInput = null;
+        try
+        {
+            var selected = ProductionGuard.Inspect(args, catalog, cancellationToken);
+            if (selected.Organization.Kind == "production" && ProductionGuard.IsWrite(args) && secretInput is null)
+                ownedInput = Channels.ChannelSecretInput.Open(cancellationToken);
+            var input = secretInput ?? ownedInput;
+            var authorization = ProductionGuard.Authorize(args, catalog, input, cancellationToken);
+            return RunAuthorized(authorization.Arguments, authorization.Organization, catalog, connector, output, report,
+                input, artifactRoot, secretReader, writeLockTimeout, cancellationToken);
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested) { output.WriteLine("Command cancelled."); return 130; }
+        catch (Exception exception) when (exception is InvalidDataException or InvalidOperationException or TimeoutException)
+        { output.WriteLine("Organization authorization rejected."); return 2; }
+        finally { ownedInput?.Dispose(); }
+    }
+
     /// <summary>
     /// 借入秘密輸入的命令入口。原八參數入口保留唯一 Run 簽章並委派此處；取消訊號保持最後一個參數，
     /// 不為新 Channel 指令改變既有呼叫的參數繫結。reader 的生命週期由程序組合根持有。
@@ -92,7 +114,17 @@ internal static partial class DeploymentCli
     /// <param name="cancellationToken">呼叫端取消訊號，保持參數列末端。</param>
     /// <returns>成功 0、拒絕 2、故障 1、正常取消 130。</returns>
     internal static int RunWithInput(
+        string[] args, IOrganizationConnector connector, TextWriter output, Action<Exception> report,
+        TextReader? secretInput, string? artifactRoot = null, Func<string, string>? secretReader = null,
+        TimeSpan? writeLockTimeout = null, CancellationToken cancellationToken = default) =>
+        RunWithCatalog(args, OrganizationCatalog.LoadDefault(), connector, output, report, secretInput,
+            artifactRoot, secretReader, writeLockTimeout, cancellationToken);
+
+    /// <summary>只處理共同關卡已核定的參數，各分流仍嚴格驗自身選項；SDK租約先於寫鎖關閉。</summary>
+    private static int RunAuthorized(
         string[] args,
+        OrganizationDefinition target,
+        OrganizationCatalog catalog,
         IOrganizationConnector connector,
         TextWriter output,
         Action<Exception> report,
@@ -115,22 +147,16 @@ internal static partial class DeploymentCli
 
         // 新命令先交專屬 parser；不能把 --schema 等未知參數誤導向其他部署路由。
         if (args[0] is "protect-token" or "assign-channel")
-            return Channels.ChannelProvisioningCli.Run(args, connector, output, report,
+            return Channels.ChannelProvisioningCli.Run(args, target, connector, output, report,
                 secretInput, artifactRoot, secretReader, writeLockTimeout, cancellationToken);
 
         // P1結構命令不需要Plugin DLL；只在明確--schema或export-metadata時進新路由，舊P0語法與安全邊界保留。
         if (args[0] == "export-metadata" || Array.IndexOf(args, "--schema") >= 0)
-            return Schema.SchemaDeploymentCli.Run(args, connector, output, report, artifactRoot, writeLockTimeout, cancellationToken);
+            return Schema.SchemaDeploymentCli.Run(args, target, catalog, connector, output, report, artifactRoot, writeLockTimeout, cancellationToken);
 
         if (!TryParse(args, out var command))
         {
             output.WriteLine("Arguments are invalid or not supported.");
-            return 2;
-        }
-
-        if (!string.Equals(command.Organization, AllowedOrganization, StringComparison.OrdinalIgnoreCase))
-        {
-            output.WriteLine("Target organization is not in the P0 allowlist.");
             return 2;
         }
 
@@ -143,7 +169,7 @@ internal static partial class DeploymentCli
         var repositoryRoot = FindRepositoryRoot();
         var effectiveArtifactRoot = Path.GetFullPath(artifactRoot ??
             Path.Combine(repositoryRoot, "artifacts", "d365"));
-        var organizationArtifactRoot = Path.GetFullPath(Path.Combine(effectiveArtifactRoot, AllowedOrganization));
+        var organizationArtifactRoot = Path.GetFullPath(Path.Combine(effectiveArtifactRoot, target.Name));
         try
         {
             IReadOnlyList<Shadow.ShadowFileCase>? shadowCases = null;
@@ -178,6 +204,7 @@ internal static partial class DeploymentCli
                 : null;
             cancellationToken.ThrowIfCancellationRequested();
             using var lease = connector.Connect(command.Organization);
+            ProductionGuard.VerifyServer(lease.Service, target, cancellationToken);
             if (command.Name == "ui-export")
             {
                 UiSolutionDeployment.Export(lease.Service, repositoryRoot, cancellationToken);
@@ -191,7 +218,7 @@ internal static partial class DeploymentCli
                 return 0;
             }
             if (command.Name == "export-legacy")
-                return ExportLegacy(lease.Service, organizationArtifactRoot, output, cancellationToken);
+                return ExportLegacy(lease.Service, organizationArtifactRoot, output, target.Kind == "production", cancellationToken);
             var operationRoot = CreateOperationDirectory(organizationArtifactRoot);
             if (command.Name == "shadow" || legacyOnly)
                 return RunShadow(command, shadowCases!, repositoryRoot, operationRoot,
@@ -200,7 +227,7 @@ internal static partial class DeploymentCli
             {
                 var document = RegistrationManifestLoader.LoadDocument(repositoryRoot);
                 var switchEngine = new DeploymentEngine(lease.Service, operationRoot, TimeProvider.System,
-                    name => ResolveRequiredSecret(command.Organization, name, secretReader));
+                    name => ResolveRequiredSecret(command.Organization, name, secretReader), catalog);
                 switchEngine.SwitchModule(document, command.Organization, command.Module!, command.Target!,
                     () => LegacyRegistrationExporter.Export(lease.Service, cancellationToken: cancellationToken),
                     cancellationToken: cancellationToken);
@@ -210,12 +237,12 @@ internal static partial class DeploymentCli
             var registration = RegistrationManifestLoader.LoadDocument(repositoryRoot);
             if (registration.Assemblies.Count > 1 && command.Name != "smoke")
                 return RunDocument(command, registration, repositoryRoot, organizationArtifactRoot,
-                    operationRoot, lease.Service, output, secretReader);
+                    operationRoot, lease.Service, output, secretReader, catalog);
             // smoke 的核心只處理固定診斷情境，不消費清單中的組件，也不讀 DLL。
             var manifest = registration.Assemblies[0];
             var assemblyPath = Path.Combine(repositoryRoot, "artifacts", "plugins", manifest.AssemblyName + ".dll");
             var engine = new DeploymentEngine(lease.Service, operationRoot, TimeProvider.System,
-                name => ResolveRequiredSecret(command.Organization, name, secretReader));
+                name => ResolveRequiredSecret(command.Organization, name, secretReader), catalog);
 
             switch (command.Name)
             {
@@ -302,9 +329,10 @@ internal static partial class DeploymentCli
     /// <param name="service">本命令 lease 借出的 SDK，生命週期由外層 using 管理。</param>
     /// <param name="organizationRoot">已核定組織的 artifacts 目錄。</param>
     /// <param name="output">呼叫端擁有的摘要 writer，不輸出名稱、XAML 或設定。</param>
+    /// <param name="production">正式唯讀盤點列出啟用數但不停止；測試保留舊停止契約。</param>
     /// <param name="cancellationToken">呼叫端取消，在 SDK 查詢及發布前檢查。</param>
     /// <returns>零表示無啟用舊註冊；一表示必須停止回報。</returns>
-    private static int ExportLegacy(IOrganizationService service, string organizationRoot, TextWriter output,
+    private static int ExportLegacy(IOrganizationService service, string organizationRoot, TextWriter output, bool production,
         CancellationToken cancellationToken)
     {
         var snapshot = LegacyRegistrationExporter.Export(service, cancellationToken: cancellationToken);
@@ -330,8 +358,8 @@ internal static partial class DeploymentCli
         output.WriteLine("Enabled legacy steps: " + snapshot.EnabledStepCount.ToString(CultureInfo.InvariantCulture));
         output.WriteLine("Enabled legacy workflows: " + snapshot.EnabledWorkflowCount.ToString(CultureInfo.InvariantCulture));
         var enabled = snapshot.EnabledStepCount != 0 || snapshot.EnabledWorkflowCount != 0;
-        output.WriteLine(enabled ? "Enabled legacy registrations found. Stop and report before continuing." : "Legacy metadata export created.");
-        return enabled ? 1 : 0;
+        output.WriteLine(enabled && !production ? "Enabled legacy registrations found. Stop and report before continuing." : "Legacy metadata export created.");
+        return enabled && !production ? 1 : 0;
     }
 
     /// <summary>
@@ -532,7 +560,7 @@ internal static partial class DeploymentCli
     }
 
     /// <summary>只在 apply 寫入設定時解析 placeholder；錯誤不包含要求的 secret 名稱或值。</summary>
-    /// <param name="organization">經白名單固定為 goodshepherdback 的組織別名。</param>
+    /// <param name="organization">經catalog核定且已通過ProductionGuard的canonical組織別名。</param>
     /// <param name="name">清單佔位符名稱。</param>
     /// <param name="secretReader">由目前程序組態提供的 User Secrets 讀取委派。</param>
     /// <returns>存在的 User Secrets 值。</returns>
@@ -587,18 +615,21 @@ internal static partial class DeploymentCli
     /// <param name="output">命令摘要 writer。</param>
     private static void WriteUsage(TextWriter output)
     {
+        output.WriteLine("Organizations: d365/registration/organizations.json; production requires --production for every command.");
+        output.WriteLine("Production writes require the exact canonical organization name on the first stdin line (256 characters, 30 seconds total).");
+        output.WriteLine("Production forbids smoke, shadow, switch --module, live-check and ui-export; Channel secret lines follow confirmation.");
         output.WriteLine("Commands: plan --org <name> | apply --org <name> --plan <file> | verify --org <name>");
         output.WriteLine("          switch --org goodshepherdback --module <module> --to enabled|off");
         output.WriteLine("          shadow --org goodshepherdback --module <module> --scenario-root <fixed-module-golden-directory>");
-        output.WriteLine("          ui-export --org goodshepherdback | ui-import --org goodshepherdback --from <archive>");
-        output.WriteLine("          export-legacy --org goodshepherdback (read-only; stops if legacy registrations are enabled)");
+        output.WriteLine("          ui-export --org <test-name> | ui-import --org <name> --from <archive>");
+        output.WriteLine("          export-legacy --org <name> (read-only; test stops on enabled legacy, production reports counts)");
         output.WriteLine("          switch --to legacy is retained for history and refused under revision 2; legacy code is never executed.");
         output.WriteLine("          export --org <name> | rollback --org <name> --from <file>");
         output.WriteLine("          smoke --org <name> --scenario <p0-ping-trace|p0-ping-push>");
         output.WriteLine("          export-metadata --org <name> | plan/verify --org <name> --schema <file>");
         output.WriteLine("          apply --org <name> --schema <file> --plan <file>");
-        output.WriteLine("          protect-token --org goodshepherdback --channel-id <id> (two secret lines from stdin)");
-        output.WriteLine("          assign-channel --org goodshepherdback --channel-id <id> --account <guid>");
+        output.WriteLine("          protect-token --org <name> --channel-id <id> (two secret lines from stdin)");
+        output.WriteLine("          assign-channel --org <name> --channel-id <id> --account <guid>");
     }
 
     /// <summary>只包含已驗證的命令名稱與參數；不保留其他命令列文字。</summary>

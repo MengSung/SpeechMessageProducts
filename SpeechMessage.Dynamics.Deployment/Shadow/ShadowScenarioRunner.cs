@@ -135,7 +135,8 @@ internal sealed class ShadowScenarioRunner
         bool legacyOnly, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(scenarios);
-        if (organization != "goodshepherdback" || scenarios.Count is < 1 or > 6 ||
+        engine.ValidateTestOrganization(organization);
+        if (scenarios.Count is < 1 or > 6 ||
             document.Assemblies is null || document.Assemblies.Count is < 1 or > 2)
             throw InvalidScenario();
         foreach (var assembly in document.Assemblies)

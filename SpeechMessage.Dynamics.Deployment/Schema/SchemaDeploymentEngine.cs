@@ -30,12 +30,20 @@ namespace SpeechMessage.Dynamics.Deployment.Schema;
 /// <summary>單命令借用SDK的只新增引擎；不持有跨命令資料、client所有權或機密，所有檔案在操作內flush/close，原錯誤往共用終端傳遞。</summary>
 internal sealed class SchemaDeploymentEngine
 {
+    private readonly OrganizationDefinition target;
+    private readonly OrganizationCatalog catalog;
     private readonly IOrganizationService service;
     private readonly string directory;
     private readonly TimeProvider clock;
     /// <summary>使用既有命令lease與固定輸出根，不自建client或服務容器；caller必須先取得同組織寫鎖與合法授權。</summary>
     internal SchemaDeploymentEngine(IOrganizationService service, string directory, TimeProvider clock)
+        : this(service, directory, clock, OrganizationCatalog.LoadDefault().TestOrganization, OrganizationCatalog.LoadDefault()) { }
+    /// <summary>正式及測試命令共同使用顯式核定目標與catalog；不以server回傳名稱自行改目標，SDK仍由外層租約唯一擁有。</summary>
+    internal SchemaDeploymentEngine(IOrganizationService service, string directory, TimeProvider clock, OrganizationDefinition target, OrganizationCatalog catalog)
     {
+        this.catalog = catalog;
+        this.target = catalog.Get(target.Name);
+
         this.service = service ?? throw new ArgumentNullException(nameof(service));
         this.directory = Path.GetFullPath(directory);
         this.clock = clock ?? throw new ArgumentNullException(nameof(clock));
@@ -43,20 +51,20 @@ internal sealed class SchemaDeploymentEngine
 
     /// <summary>完整只讀server後交純planner，不讀Plugin DLL或業務資料；冷失敗向上保留原Exception。</summary>
     internal SchemaPlan Plan(SchemaDefinition definition, CancellationToken cancellationToken) =>
-        SchemaPlanner.Create(definition, SchemaMetadata.Read(service, cancellationToken), clock.GetUtcNow());
+        SchemaPlanner.Create(definition, SchemaMetadata.Read(service, target, cancellationToken), clock.GetUtcNow(), catalog);
 
     /// <summary>驗收只能比對已發布結構；未發布候選即使完整也不能供實際應用使用，故必須與plan的盤點模式分開。只讀且沿用本命令SDK租約。</summary>
     /// <param name="definition">正式唯一結構清單。</param><param name="cancellationToken">命令owner取消，已入場同步SDK必須返回後才能釋放。</param>
     /// <returns>已發布metadata的完整差異及未Active索引鍵；呼叫端依兩者判定結果，不隱式發布或寫入。</returns>
     internal SchemaPlan Verify(SchemaDefinition definition, CancellationToken cancellationToken) =>
-        SchemaPlanner.Create(definition, SchemaMetadata.Read(service, cancellationToken, retrieveAsIfPublished: false), clock.GetUtcNow());
+        SchemaPlanner.Create(definition, SchemaMetadata.Read(service, target, cancellationToken, retrieveAsIfPublished: false), clock.GetUtcNow(), catalog);
 
     /// <summary>用原始受審plan與完整before證明欄位於本輪新增後，只完成新Lookup稽核；其他既有衝突仍須停止，不能拿本入口作通用修改。</summary>
     internal SchemaPlan CompleteCreatedAudits(SchemaPlan original, SchemaSnapshot before, SchemaDefinition definition, CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
-        SchemaPlanner.ValidatePlan(original, definition, before);
-        var current = SchemaMetadata.Read(service, cancellationToken);
+        SchemaPlanner.ValidatePlan(original, definition, before, catalog);
+        var current = SchemaMetadata.Read(service, target, cancellationToken);
         if (current.OrganizationId != before.OrganizationId) throw new InvalidDataException("Creation evidence belongs to another server organization.");
         var targets = new List<(string Entity, string Field, Guid Id)>();
         var correctedEntities = current.Entities.Select(entity =>
@@ -77,10 +85,10 @@ internal sealed class SchemaDeploymentEngine
             return entity with { Fields = Array.AsReadOnly(fields) };
         }).ToArray();
         // 先證明唯一差異就是這些新查閱稽核；其他型別、安全、長度、元件缺漏或key失敗仍由同一planner完整拒絕。
-        var candidate = SchemaPlanner.Create(definition, current with { Entities = Array.AsReadOnly(correctedEntities) }, clock.GetUtcNow());
+        var candidate = SchemaPlanner.Create(definition, current with { Entities = Array.AsReadOnly(correctedEntities) }, clock.GetUtcNow(), catalog);
         if (candidate.Operations.Count != 0 || targets.Count > 8) throw new InvalidDataException("Creation completion has unrelated differences or exceeds its bounded scope.");
         if (targets.Count == 0) return candidate;
-        var published = SchemaMetadata.Read(service, cancellationToken, retrieveAsIfPublished: false);
+        var published = SchemaMetadata.Read(service, target, cancellationToken, retrieveAsIfPublished: false);
         foreach (var entity in current.Entities.Where(entity => targets.Any(target => target.Entity == entity.LogicalName)))
             if (SchemaFiles.HashValue(published.Entities.SingleOrDefault(item => item.Id == entity.Id)) != SchemaFiles.HashValue(entity))
                 throw new InvalidDataException("Unpublished changes prevent narrowly scoped audit completion.");
@@ -94,16 +102,16 @@ internal sealed class SchemaDeploymentEngine
         foreach (var target in targets) EnableCreatedLookupAudit(target.Entity, target.Field, target.Id, definition.Solution, cancellationToken);
         var xml = new XElement("importexportxml", new XElement("entities", targets.Select(target => target.Entity).Distinct(StringComparer.Ordinal).Order(StringComparer.Ordinal).Select(name => new XElement("entity", name))));
         _ = Execute<PublishXmlResponse>(new PublishXmlRequest { ParameterXml = xml.ToString(SaveOptions.DisableFormatting) }, cancellationToken);
-        var after = SchemaMetadata.Read(service, cancellationToken, retrieveAsIfPublished: false);
+        var after = SchemaMetadata.Read(service, target, cancellationToken, retrieveAsIfPublished: false);
         _ = SchemaFiles.WriteNew(directory, "after-audit-completion.json", after);
-        var result = SchemaPlanner.Create(definition, after, clock.GetUtcNow());
+        var result = SchemaPlanner.Create(definition, after, clock.GetUtcNow(), catalog);
         if (result.Operations.Count != 0) throw new InvalidDataException("Created lookup audit completion left metadata differences.");
         return result;
     }
 
     /// <summary>只輸出完整metadata候選，以CreateNew防覆寫，不把此結構snapshot冒稱組織資料庫備份。</summary>
     internal string Export(CancellationToken cancellationToken) =>
-        SchemaFiles.WriteNew(directory, "metadata.json", SchemaMetadata.Read(service, cancellationToken));
+        SchemaFiles.WriteNew(directory, "metadata.json", SchemaMetadata.Read(service, target, cancellationToken));
 
     /// <summary>先即時重驗全部plan、將before snapshot成功flush，才依序新增；中途失敗保留證據，不自動刪除或回復既有元件。</summary>
     /// <param name="plan">已審核plan，不能以呼叫此方法取代環境隔離/備份授權。</param><param name="definition">本次SSOT。</param>
@@ -111,14 +119,14 @@ internal sealed class SchemaDeploymentEngine
     /// <returns>寫後重新讀取的計畫；pending key仍須verify，不表示索引已Active。</returns>
     internal SchemaPlan Apply(SchemaPlan plan, SchemaDefinition definition, CancellationToken cancellationToken)
     {
-        var before = SchemaMetadata.Read(service, cancellationToken);
-        SchemaPlanner.ValidatePlan(plan, definition, before);
+        var before = SchemaMetadata.Read(service, target, cancellationToken);
+        SchemaPlanner.ValidatePlan(plan, definition, before, catalog);
         var publishing = plan.Operations.Where(operation => operation.Kind is "CreateEntity" or "CreateAttribute" or "CreateLookup" or "CreateKey" or "AddOptionValue")
             .Select(operation => operation.Entity).ToHashSet(StringComparer.Ordinal);
         if (publishing.Count != 0)
         {
             // PublishXml以表為粒度，先拒絕本次涉及既有表的未發布結構差異；不可順便發布未審核修改。
-            var published = SchemaMetadata.Read(service, cancellationToken, retrieveAsIfPublished: false);
+            var published = SchemaMetadata.Read(service, target, cancellationToken, retrieveAsIfPublished: false);
             foreach (var entity in before.Entities.Where(entity => publishing.Contains(entity.LogicalName)))
             {
                 var old = published.Entities.SingleOrDefault(item => item.Id == entity.Id);
@@ -250,8 +258,8 @@ internal sealed class SchemaDeploymentEngine
             var xml = new XElement("importexportxml", new XElement("entities", changedEntities.Select(name => new XElement("entity", name))));
             _ = Execute<PublishXmlResponse>(new PublishXmlRequest { ParameterXml = xml.ToString(SaveOptions.DisableFormatting) }, cancellationToken);
         }
-        var after = SchemaMetadata.Read(service, cancellationToken, retrieveAsIfPublished: false);
-        var remaining = SchemaPlanner.Create(definition, after, clock.GetUtcNow());
+        var after = SchemaMetadata.Read(service, target, cancellationToken, retrieveAsIfPublished: false);
+        var remaining = SchemaPlanner.Create(definition, after, clock.GetUtcNow(), catalog);
         _ = SchemaFiles.WriteNew(directory, "after-metadata.json", after);
         if (remaining.Operations.Count != 0) throw new InvalidOperationException("Schema apply completed with missing metadata components.");
         return remaining;

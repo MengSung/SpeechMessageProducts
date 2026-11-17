@@ -23,7 +23,8 @@
     "11-17-p7-pre-b-switch-tier",
     "11-17-p7-pre-a-trace",
     "11-17-p7-pre-ca-member-relay",
-    "11-17-p7-pre-cb-relay-host"
+    "11-17-p7-pre-cb-relay-host",
+    "11-17-p7-01a-organization-guard"
   ],
   "parent": null,
   "relatedFiles": [],

@@ -2,7 +2,7 @@
  * 檔案整體說明
  *
  * 目的與定位：P2-03 Channel 憑證寫入與教會指派的終端邊界；由 DeploymentCli 明確分流，
- * 不需要 Plugin DLL。只接受 goodshepherdback、公開 Channel ID 及必要 account GUID。
+ * 不需要 Plugin DLL。只接受共同ProductionGuard核定的組織、公開Channel ID及必要account GUID；正式確認與秘密共用單一有界stdin。
  * 主要功能與流程：先驗選項及 caller 取消，protect-token 再讀 User Secrets 的 TokenKey
  * 和恰好兩行有界 stdin，完成加密及欄位容量驗證後，才取得組織寫鎖與唯一 SDK lease。
  * assign-channel 不讀秘密。真正寫入委派無狀態服務，成功只輸出固定文字，不建立密文 artifact。
@@ -33,6 +33,7 @@ internal static class ChannelProvisioningCli
 
     /// <summary>共用部署邊界，先驗輸入、加密，再取得唯一鎖與租約；失敗時完整歸還後上報。</summary>
     /// <param name="args">未信任的命令列，只允許固定選項，拒絕秘密參數。</param>
+    /// <param name="target">共同入口已驗白名單、旗標及名稱確認的命令區域描述。</param>
     /// <param name="connector">Host 擁有的合法 User Secrets 連線來源。</param>
     /// <param name="output">借入的固定摘要輸出，不回顯輸入或例外訊息。</param>
     /// <param name="report">原始例外的共用告警入口，不可保存秘密。</param>
@@ -42,11 +43,11 @@ internal static class ChannelProvisioningCli
     /// <param name="lockTimeout">同組織寫鎖等待上限。</param>
     /// <param name="cancellationToken">呼叫端取消，保持最後參數。</param>
     /// <returns>0成功、2參數拒絕、1故障、130正常取消。</returns>
-    internal static int Run(string[] args, IOrganizationConnector connector, TextWriter output,
+    internal static int Run(string[] args, OrganizationDefinition target, IOrganizationConnector connector, TextWriter output,
         Action<Exception> report, TextReader? input, string? artifactRoot,
         Func<string, string>? secretReader, TimeSpan? lockTimeout, CancellationToken cancellationToken)
     {
-        if (!TryParse(args, out var channelId, out var accountId))
+        if (!TryParse(args, target.Name, out var channelId, out var accountId))
         {
             output.WriteLine("Channel command arguments are invalid or not allowlisted.");
             return 2;
@@ -61,9 +62,9 @@ internal static class ChannelProvisioningCli
 
             var artifacts = Path.GetFullPath(artifactRoot ??
                 Path.Combine(DeploymentCli.FindRepositoryRoot(), "artifacts", "d365"));
-            var organizationRoot = Path.Combine(artifacts, "goodshepherdback");
+            var organizationRoot = Path.Combine(artifacts, target.Name);
             Schema.SchemaDeploymentCli.EnsureNoLinks(organizationRoot);
-            ExecuteWrite(connector, organizationRoot, lockTimeout, channelId, accountId,
+            ExecuteWrite(connector, target, organizationRoot, lockTimeout, channelId, accountId,
                 tokenEnvelope, secretEnvelope, cancellationToken);
             output.WriteLine("Channel command completed.");
             return 0;
@@ -84,6 +85,7 @@ internal static class ChannelProvisioningCli
 
     /// <summary>唯一鎖／租約 owner；完整嘗試清理，保留SDK與清理原物件，不讓finally覆蓋主故障。</summary>
     /// <param name="connector">Host借入的合法連線來源。</param>
+    /// <param name="target">已核定的組織描述，不以URL或目錄反推。</param>
     /// <param name="organizationRoot">已驗證非link的固定組織鎖根。</param>
     /// <param name="lockTimeout">鎖等待上限，null為五分鐘。</param>
     /// <param name="channelId">已驗公開數字ID。</param>
@@ -91,7 +93,7 @@ internal static class ChannelProvisioningCli
     /// <param name="tokenEnvelope">protect密文，assign為null。</param>
     /// <param name="secretEnvelope">protect密文，assign為null。</param>
     /// <param name="cancellationToken">呼叫端取消；已入場同步SDK先drain。</param>
-    private static void ExecuteWrite(IOrganizationConnector connector, string organizationRoot,
+    private static void ExecuteWrite(IOrganizationConnector connector, OrganizationDefinition target, string organizationRoot,
         TimeSpan? lockTimeout, string channelId, Guid accountId, string? tokenEnvelope,
         string? secretEnvelope, CancellationToken cancellationToken)
     {
@@ -103,7 +105,8 @@ internal static class ChannelProvisioningCli
             writeLock = OrganizationWriteLock.Acquire(
                 organizationRoot, lockTimeout ?? TimeSpan.FromMinutes(5), cancellationToken);
             cancellationToken.ThrowIfCancellationRequested();
-            lease = connector.Connect("goodshepherdback");
+            lease = connector.Connect(target.Name);
+            ProductionGuard.VerifyServer(lease.Service, target, cancellationToken);
             if (tokenEnvelope is not null)
                 ChannelProvisioningService.Protect(lease.Service, channelId, tokenEnvelope, secretEnvelope!, cancellationToken);
             else
@@ -129,10 +132,11 @@ internal static class ChannelProvisioningCli
 
     /// <summary>嚴格固定選項、白名單及公開識別驗證，過程不讀 stdin、秘密或 SDK。</summary>
     /// <param name="args">原始參數，未知或重複選項立即拒絕。</param>
+    /// <param name="expectedOrganization">共同入口核定的canonical名稱，parser不得改用另一組織。</param>
     /// <param name="channelId">成功時唯一的公開數字識別。</param>
     /// <param name="accountId">assign 的非空正式 ID；protect 保持空值。</param>
     /// <returns>所有選項與命令相容才為 true。</returns>
-    private static bool TryParse(string[] args, out string channelId, out Guid accountId)
+    private static bool TryParse(string[] args, string expectedOrganization, out string channelId, out Guid accountId)
     {
         channelId = "";
         accountId = Guid.Empty;
@@ -154,7 +158,7 @@ internal static class ChannelProvisioningCli
                 case "--account": account = value; break;
             }
         }
-        if (!string.Equals(organization, "goodshepherdback", StringComparison.OrdinalIgnoreCase) ||
+        if (!string.Equals(organization, expectedOrganization, StringComparison.Ordinal) ||
             channelId.Length is < 1 or > 20)
             return false;
         foreach (var character in channelId)

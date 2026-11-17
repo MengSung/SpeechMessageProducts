@@ -119,7 +119,7 @@ internal static class RegistrationManifestLoader
                     (step.Message == "Delete" && image.Type == "PostImage") ||
                     (image.Type == "PostImage" && step.Stage != "PostOperation")) throw InvalidManifest();
             }
-            if (step.EnabledByOrganization.Keys.Any(organization => organization != "goodshepherdback")) throw InvalidManifest();
+            if (step.EnabledByOrganization.Keys.Any(organization => organization != Shadow.ShadowTestIdentity.AllowedOrganization)) throw InvalidManifest();
             ValidateReport(step.ShadowReport);
             if (step.Module == "diagnostics")
             {

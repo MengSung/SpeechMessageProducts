@@ -1,0 +1,12 @@
+{
+  "schemaVersion": 1,
+  "organizations": [
+    {
+      "name": "goodshepherdback",
+      "kind": "test",
+      "host": "goodshepherdback.speechmessage.com.tw",
+      "switchState": "off",
+      "tierOverrides": []
+    }
+  ]
+}
