@@ -1,30 +1,18 @@
-# C-b 本機實作與唯讀準備紀錄
+# 前置C-b驗收回報
 
-2026-11-17 15:48 Asia/Taipei (UTC+08:00)：C-b尚未驗收，沒有執行schema apply、DLL apply或Live推播，不啟動P7-01。
+2026-11-17 17:41 Asia/Taipei (UTC+08:00)：已完成主機代送工作者與實機一次；C-a／C-b均已驗收，P7-01尚未開工。
+程式提交：b62904b0、d8d4fb4f、c7aa48f1、952780bd。各自在固定C:\smv\guard完整八項通過；最新Release7144/Debug7，文件1766檔0失敗、進度28綠。
+八指定離線方法同名存在：六個RelayWorker／RelayHandler位於MemberNotifyRelayRegistrationTests；全旗標唯一consumer於AllOutboundWorkersTests；未承接來源分級於ManifestOutboundServiceTests。AspNetCore119、LineWebhook125、Deployment789通過。
+新增第四類獨立worker，缺省關閉、嚴格bool、只查MemberNotifyRelay；singleton僅scope factory，各操作／每筆handler獨立scope，key共用讀取並finally清零；真HTTP狀態與transport重試，不保留前次教會SDK或資料。停止排空後才關scope及設定。
+實機：D34通過；只新增100000003選項，schema apply及獨立verify0；兩DLL只UpdateAssembly、registration verify0。採繳費通知，一筆SMV-TEST收費單，沒有真付款。
+首次Live完成／用量+1但清理GUID轉型失敗，不算通過；先備份兩列再精確清理，離線回歸紅綠修正後第二次Live通過，120秒無競爭consumer、60秒內Completed、attempts0、用量+1及零殘留。兩輪共測試推播2則，IIS／Node未修改。
+最終獨立唯讀：待辦0、D34通過、trace1、smoke task0；診斷trace1依前置A留R9先備份後清理。新步驟全停、舊步驟／流程沒有啟用，沒有測試流程。
+分析：單模型（使用者指定ClaudeOnly），無Critical/High；此為單元分析，階段外審仍留最後一次。M1組織UniqueName對應TokenKey鍵名留手冊。
+差異：D7-24以外未改舊測試期望；未新增csproj、NoWarn或放寬檢查。P5-PROP-006推播完成，付款分支仍待3.6。
 
-## 本機結果
-八個指定離線方法均存在：六個在MemberNotifyRelayRegistrationTests（含理論／transient／百筆scope共12案）、
-全開關唯一worker在AllOutboundWorkersTests、未承接來源分級在ManifestOutboundServiceTests。
-AspNetCore完整119、LineWebhook完整124通過；P7Live只列出Live_Relay_PushesOnceToTestContact一案，沒有在一般測試執行。
-D7-24以外沒有改舊測試期望；只在既有runsettings加排除P7Live，PaymentsLive排除保持。
-
-b62904b0固定guard八項已全過，Release7142、Debug7；原始full.log SHA256=
-6d787ee8977d16b4f0f61d9a75d03fdbd6a8c8c379341ef30867d69a6ae1e915。
-d8d4fb4f只修實機前安全盤點的CLR型別擷取、明設SDK15秒transport及Dispose故障清理順序，另有紅綠回歸；固定guard八項全過（15:53結束），Release7143/Debug7；原始log SHA256=34a18399f276e38ea57e0c1973e0e6ad25175a6e49e1b8b50d3135c25de6d6a5。
-
-## 唯讀實機準備
-D34：測試綁定1／其他0；Channel測試1／其他0；待辦0、追蹤1、P7診斷trace保留1供R9、smoke tasks0。
-schema-plan只有一個AddOptionValue（new_outboundtask.new_type=100000003 MemberNotifyRelay），沒有其他結構操作。
-檔案：artifacts/d365/goodshepherdback/20261117-073312-4352625-05e71765dd814530b4251207c6af6516/schema-plan.json。
-plan內hash=9855df3bbe47f0794efb65b169a8f0ab470fdaffcb06425c0e25d8c227cc5de1。
-registration-plan恰兩個UpdateAssembly（兩DLL）、沒有step操作或secret placeholders；未apply。
-檔案：artifacts/d365/goodshepherdback/20261117-073712-7261203-10d187ba279e4dc98e4bd9a8ce94b6c8/plan.json。
-plan內hash=2072d9e0d5248a6f3f006ca03d95ef2b00c631e67e5957235094b39d88b36c9f。
-
-## ClaudeOnly與續跑
-兩次自癒無可用輸出，probe明示5小時用量限額，17:10重設，runner quotaBlocked=false；沒有假稱完成。
-使用者已選先做本機工作、17:10後補ClaudeOnly。本機等待程序session47006於17:11自動呼叫同一自癒入口，只做分析、沒有排程實機寫入。
-接點：等待d8d4fb4f guard結果與ClaudeOnly分析；處理真發現後依序schema apply/verify0、DLL apply/verify0、
-明確P7Live（先2分鐘無競爭consumer、60秒完成、用量+1）、停止精確清理，再C-b驗收。
-
-2026-11-17 15:55 Asia/Taipei (UTC+08:00)：續跑verify=1（未部署DLL差異）；D34唯讀再次通過，待辦0/trace1/診斷trace1保留，無寫入。尚未C-b驗收。
+本機原始證據與SHA256（不納版控）：
+- guard-952780bd-full.log：7e3b8c5fc4586f9df608406e4cdfa2d4b373530dbaac9754a4ecc08d813d8ec3
+- pre-cb-relay-live-retry.log：e148d3e446efc78113f28e6ee78116cd7b5c6dd5d292d97e557a3a688c79b82b
+- pre-cb-live-recovery.log：665c06c952519dd251d0b914dcfcde194cb8087dc46d22488d2819e8b674707c
+- pre-cb-final-readonly.log：0327bb6554abbfad5e07ef8a81d2224c73a46f311986ac18aa96a5490c8cca8d
+- evidence/操作紀錄-20261117-1717.md：4e195e01938970ac45fbdba394909cd645cf5ae63d5177bf613e65c2cde00bc6
