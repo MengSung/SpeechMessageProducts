@@ -14,6 +14,7 @@
  * 使用邊界與維護：
  * 本檔的前置條件、錯誤及資源責任以各型別／成員契約為準；此導讀不把呼叫參數視為授權，也不擴張被借入依賴的所有權。
  * 變更介面、資料格式、取消或清理順序時，須一併核對下列合作檔案及對應測試，不能只改目前檔案。
+ * P6-07公開邊界：DownloadIntegrateData改為產品內部宣告；外部輸出與既有資源清理契約不變。
  */
 using System;
 using System.Collections.Generic;
@@ -33,7 +34,8 @@ namespace ChurchReport.WebServiceConnector
     /// 整合資料下載服務 - 主類別（協調者）
     /// 遵循 Linus 代碼原則：保持主類別精簡，委派工作給專門的 partial 類別
     /// </summary>
-    public partial class DownloadIntegrateData
+    /// <remarks>P6-07限於本產品內部使用；既有資料形狀、呼叫順序與資源所有權不變，不作為跨組件API。</remarks>
+    internal partial class DownloadIntegrateData
     {
         #region 欄位與常數
 

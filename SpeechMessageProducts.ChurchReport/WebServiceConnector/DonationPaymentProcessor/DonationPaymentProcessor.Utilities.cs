@@ -20,6 +20,7 @@
  * SpeechMessageProducts.ChurchReport/WebServiceConnector/DonationPaymentProcessor/DonationPaymentProcessor.Core.cs、
  * SpeechMessageProducts.ChurchReport/WebServiceConnector/DonationPaymentProcessor/DonationPaymentProcessor.DedicationBooking.cs
  * 追查目前工作樹中的合作／使用位置。
+ * P6-07公開邊界：DonationPaymentProcessor改為產品內部宣告；外部輸出與既有資源清理契約不變。
  */
 using ChurchReport.Models;
 using Microsoft.Xrm.Sdk;
@@ -43,7 +44,8 @@ namespace ChurchReport.WebServiceConnector
     /// - 單一職責：每個方法專注於單一功能
     /// - DRY：避免重複程式碼
     /// </summary>
-    public partial class DonationPaymentProcessor
+    /// <remarks>P6-07限於本產品內部使用；既有資料形狀、呼叫順序與資源所有權不變，不作為跨組件API。</remarks>
+    internal partial class DonationPaymentProcessor
     {
         /// <summary>
         /// 財務中文大寫數字字元表。唯讀靜態資料不含 request 或使用者狀態，

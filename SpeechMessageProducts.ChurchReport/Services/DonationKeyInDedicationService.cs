@@ -16,6 +16,7 @@
  * 本檔的前置條件、錯誤及資源責任以各型別／成員契約為準；此導讀不把呼叫參數視為授權，也不擴張被借入依賴的所有權。
  * 變更介面、資料格式、取消或清理順序時，須一併核對下列合作檔案及對應測試，不能只改目前檔案。
  * 可沿 SpeechMessageProducts.ChurchReport/Models/DonationPaymentManager.cs 追查目前工作樹中的合作／使用位置。
+ * P6-07公開邊界：DonationKeyInDedicationService改為產品內部宣告；外部輸出與既有資源清理契約不變。
  */
 using System;
 using System.Linq;
@@ -37,7 +38,8 @@ namespace ChurchReport.Services
     /// 或 SpeechMessage.Payments.AspNetCore。未來其他產品若也需要「人工補單」流程，應在各自
     /// 產品實作自己的查詢與回應格式，只共用中立的付款核心。
     /// </summary>
-    public sealed class DonationKeyInDedicationService
+    /// <remarks>P6-07限於本產品內部使用；既有資料形狀、呼叫順序與資源所有權不變，不作為跨組件API。</remarks>
+    internal sealed class DonationKeyInDedicationService
     {
         private readonly ToolUtilityClass _utility;
         private readonly DonationPaymentFormModel _formModel;

@@ -15,6 +15,7 @@
  * 可沿 SpeechMessageProducts.ChurchReport/Models/PersonalInfomationModel.cs、
  * SpeechMessageProducts.ChurchReport/Startup.cs、
  * SpeechMessageProducts.ChurchReport/WebServiceConnector/NewPerson.cs 追查目前工作樹中的合作／使用位置。
+ * P6-07公開邊界：PersonalInfomatioManager改為產品內部宣告；外部輸出與既有資源清理契約不變。
  */
 using System;
 using System.Collections.Generic;
@@ -41,7 +42,9 @@ using Newtonsoft.Json.Linq;
 
 namespace ChurchReport.WebServiceConnector
 {
-    public class PersonalInfomatioManager
+    /// <summary>處理個人聯絡人建立、ViewModel載入／更新及出席狀態判讀，連接舊畫面模型與CRM服務；呼叫端必須限制目前登入者可操作的聯絡人，不能以表單ID自行選擇其他人。
+    /// P6-07將本宣告限於主機內部；仍由既有呼叫端組裝及消費，不變更資料形狀、流程或資源owner。</summary>
+    internal class PersonalInfomatioManager
     {
         #region 資料區
         #region 參數資料

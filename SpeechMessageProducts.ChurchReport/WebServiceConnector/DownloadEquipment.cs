@@ -12,6 +12,7 @@
  * 本檔的前置條件、錯誤及資源責任以各型別／成員契約為準；此導讀不把呼叫參數視為授權，也不擴張被借入依賴的所有權。
  * 變更介面、資料格式、取消或清理順序時，須一併核對下列合作檔案及對應測試，不能只改目前檔案。
  * 可沿 SpeechMessageProducts.ChurchReport/Models/EquipmentDataManager.cs 追查目前工作樹中的合作／使用位置。
+ * P6-07公開邊界：DownloadEquipment改為產品內部宣告；外部輸出與既有資源清理契約不變。
  */
 using System;
 using System.Collections.Generic;
@@ -36,7 +37,9 @@ using System.Text.RegularExpressions;
 
 namespace ChurchReport.WebServiceConnector
 {
-    public class DownloadEquipment
+    /// <summary>依區長／小組長可見名單載入學員裝備與上課資訊，組成裝備樹模型；登入範圍、名單ID與學員ID在下載結果中必須保持對齊，不能依課名或姓名拼接其他範圍資料。
+    /// P6-07將本宣告限於主機內部；仍由既有呼叫端組裝及消費，不變更資料形狀、流程或資源owner。</summary>
+    internal class DownloadEquipment
     {
         #region 資料區
         // 透過 Factory 取得 ToolUtilityClass 單一實例

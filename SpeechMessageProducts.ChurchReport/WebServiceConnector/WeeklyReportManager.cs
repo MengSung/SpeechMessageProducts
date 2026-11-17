@@ -13,6 +13,7 @@
  * 變更介面、資料格式、取消或清理順序時，須一併核對下列合作檔案及對應測試，不能只改目前檔案。
  * 可沿 SpeechMessageProducts.ChurchReport/Models/WeeklyReportData.cs、SpeechMessageProducts.ChurchReport/Startup.cs
  * 追查目前工作樹中的合作／使用位置。
+ * P6-07公開邊界：WeeklyReportManager改為產品內部宣告；外部輸出與既有資源清理契約不變。
  */
 using ChurchReport.Models.CrmTransmitModule;
 using System;
@@ -38,7 +39,9 @@ using ToolUtilityNameSpace.Constants;
 
 namespace ChurchReport.WebServiceConnector
 {
-    public class WeeklyReportManager
+    /// <summary>提供指定小組與日期的週報下載及上傳邊界，讓WeeklyReportData不直接處理CRM細節；主日、名單與週報ID應在同一操作中保持一致，失敗不能被視為完整成功。
+    /// P6-07將本宣告限於主機內部；仍由既有呼叫端組裝及消費，不變更資料形狀、流程或資源owner。</summary>
+    internal class WeeklyReportManager
     {
         #region 資料區
         #region 參數資料

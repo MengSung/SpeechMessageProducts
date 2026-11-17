@@ -17,6 +17,7 @@
  * SpeechMessageProducts.ChurchReport/Models/ListManagementDataManager.cs、
  * SpeechMessageProducts.ChurchReport/Models/NewPersonModel.cs、SpeechMessageProducts.ChurchReport/Startup.cs
  * 追查目前工作樹中的合作／使用位置。
+ * P6-07公開邊界：NewPerson改為產品內部宣告；外部輸出與既有資源清理契約不變。
  */
 using System;
 using System.Collections.Generic;
@@ -41,7 +42,9 @@ using System.Text.RegularExpressions;
 
 namespace ChurchReport.WebServiceConnector
 {
-    public class NewPerson
+    /// <summary>承接新人建立、既有聯絡人搜尋、小組指派及跟進／關懷結案等CRM操作，將表單資料轉為產品服務呼叫；相同手機只可作搜尋條件，不能直接合併不同正式ID的聯絡人。
+    /// P6-07將本宣告限於主機內部；仍由既有呼叫端組裝及消費，不變更資料形狀、流程或資源owner。</summary>
+    internal class NewPerson
     {
         #region 資料區
         #region 參數資料

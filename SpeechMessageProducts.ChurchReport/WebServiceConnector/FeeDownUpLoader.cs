@@ -12,6 +12,7 @@
  * 本檔的前置條件、錯誤及資源責任以各型別／成員契約為準；此導讀不把呼叫參數視為授權，也不擴張被借入依賴的所有權。
  * 變更介面、資料格式、取消或清理順序時，須一併核對下列合作檔案及對應測試，不能只改目前檔案。
  * 可沿 SpeechMessageProducts.ChurchReport/Models/FeeList.cs 追查目前工作樹中的合作／使用位置。
+ * P6-07公開邊界：FeeDownUpLoader改為產品內部宣告；外部輸出與既有資源清理契約不變。
  */
 using System;
 using System.Collections.Generic;
@@ -37,7 +38,9 @@ using System.Text.RegularExpressions;
 
 namespace ChurchReport.WebServiceConnector
 {
-    public class FeeDownUpLoader
+    /// <summary>協調課程、學員上課、收費及逐堂點名資料的下載與回寫，將CRM欄位映射為課程繳費畫面清單；正式ID及每筆金額須保持對齊，畫面暫存異動不代表資料庫已提交。
+    /// P6-07將本宣告限於主機內部；仍由既有呼叫端組裝及消費，不變更資料形狀、流程或資源owner。</summary>
+    internal class FeeDownUpLoader
     {
         #region 資料區
         #region 參數資料

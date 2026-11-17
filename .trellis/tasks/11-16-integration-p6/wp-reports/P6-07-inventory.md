@@ -31,3 +31,9 @@
 
 Tools：逐檔完整讀取並以Roslyn只替換頂層宣告public token，10檔14型別；巢狀與成員不動，新增對應檔首與型別說明。Debug／Release建置均通過；ChurchReport Release643、Debug644（含兩黃金測試），Dataverse Release79、Debug81，均全綠；兩種組態黃金原始位元組相同，未啟用產生開關。這些為批次測試數，不是完整guard總數。
 本機證據p6-07-rules-red.log、p6-07-rules-green.log、p6-07-source-inventory-initial.log、r2-initial-*.json、p6-07-Tools-*.log與p6-07-Tools-visibility.json；尚未驗收或推送本包。
+
+## 2026-11-17 08:23 Asia/Taipei (UTC+08:00) WebServiceConnector批次
+
+2026-11-17 08:23 Asia/Taipei (UTC+08:00)：WebServiceConnector 25檔、14不同型別（含partial宣告）完成internal。編譯CS0051指出DonationKeyInDedicationService的公開建構式引用已內部化processor；該服務本身在未輪到的待辦中，依固定規則提前internal，不改簽章。兩組態建置、ChurchReport643/644與Dataverse79/81全過，四份黃金位元組相同；尚未驗收，不推送。
+
+按計畫搜尋ChurchReport自行維護的.cs來源：GetExportedTypes、.IsPublic、IsVisible、BindingFlags.Public均0處，沒有依賴公開型別的產品反射清單需要修改。這不取代實際Razor與序列化驗證。

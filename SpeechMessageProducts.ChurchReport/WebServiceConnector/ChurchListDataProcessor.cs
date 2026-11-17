@@ -18,6 +18,7 @@
  * 可沿 SpeechMessageProducts.ChurchReport/Controllers/HomeController.cs、
  * SpeechMessageProducts.ChurchReport/Models/ListManagementDataManager.cs、
  * SpeechMessageProducts.ChurchReport/Startup.cs 追查目前工作樹中的合作／使用位置。
+ * P6-07公開邊界：ChurchListDataProcessor改為產品內部宣告；外部輸出與既有資源清理契約不變。
  */
 using System;
 using System.Collections.Generic;
@@ -47,7 +48,8 @@ namespace ChurchReport.WebServiceConnector
     /// ✅ Phase 3.2: 教會名單資料處理器 - 加入快取支援
     /// 高頻查詢類別，使用快取減少 CRM 查詢次數
     /// </summary>
-    public class ChurchListDataProcessor
+    /// <remarks>P6-07限於本產品內部使用；既有資料形狀、呼叫順序與資源所有權不變，不作為跨組件API。</remarks>
+    internal class ChurchListDataProcessor
     {
         #region 資料區
         // 透過 Factory 取得 ToolUtilityClass 單一實例

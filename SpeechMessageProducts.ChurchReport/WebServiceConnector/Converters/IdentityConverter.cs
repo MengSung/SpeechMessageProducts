@@ -13,6 +13,7 @@
  * 變更介面、資料格式、取消或清理順序時，須一併核對下列合作檔案及對應測試，不能只改目前檔案。
  * 可沿 SpeechMessageProducts.ChurchReport/WebServiceConnector/DownloadIntegrateData.Core.cs、
  * SpeechMessageProducts.ChurchReport/WebServiceConnector/DownloadIntegrateData.FollowUp.cs 追查目前工作樹中的合作／使用位置。
+ * P6-07公開邊界：IdentityConverter改為產品內部宣告；外部輸出與既有資源清理契約不變。
  */
 using System;
 using Microsoft.Extensions.Caching.Memory;
@@ -24,7 +25,8 @@ namespace ChurchReport.WebServiceConnector.Converters
     /// 委身類型相關的數值與文字轉換器
     /// 遵循 Linus 代碼原則：單一職責、小型函數
     /// </summary>
-    public class IdentityConverter
+    /// <remarks>P6-07限於本產品內部使用；既有資料形狀、呼叫順序與資源所有權不變，不作為跨組件API。</remarks>
+    internal class IdentityConverter
     {
         private readonly IOrganizationService _organizationService;
         private readonly IMemoryCache _cache;

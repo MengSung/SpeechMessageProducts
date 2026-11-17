@@ -21,6 +21,7 @@
  * SpeechMessageProducts.ChurchReport/WebServiceConnector/PersonalInfomatioManager.cs、
  * SpeechMessageProducts.ChurchReport/WebServiceConnector/UploadIntegrateData.Core.cs、
  * SpeechMessageProducts.ChurchReport/WebServiceConnector/WeeklyReportManager.cs 追查目前工作樹中的合作／使用位置。
+ * P6-07公開邊界：LineNotifyUtility改為產品內部宣告；外部輸出與既有資源清理契約不變。
  */
 using ChurchReport.Services;
 using ChurchReport.Configuration;
@@ -49,7 +50,9 @@ using LineMessagingProcessor.Workflows;
 
 namespace ChurchReport.WebServiceConnector
 {
-    public class LineNotifyUtility
+    /// <summary>本檔承接以下操作邊界：LineNotifyUtility 的部署設定每行程一份，只保存設定、不保存 request／使用者或教會可變資料。 Development 接上主機環境檔與 secrets，。
+    /// P6-07將本宣告限於主機內部；仍由既有呼叫端組裝及消費，不變更資料形狀、流程或資源owner。</summary>
+    internal class LineNotifyUtility
     {
         #region 資料區
         #region 參數資料

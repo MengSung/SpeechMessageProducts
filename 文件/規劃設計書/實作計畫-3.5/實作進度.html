@@ -240,11 +240,11 @@ footer{margin-top:36px;color:var(--muted);font-size:12.5px;text-align:center}
  */
 const DATA = {
   "planVersion": "3.5",
-  "snapshot": "2026-11-17 08:07 Asia/Taipei (UTC+08:00)",
-  "lastUpdated": "2026-11-17T08:07:11+08:00",
+  "snapshot": "2026-11-17 08:23 Asia/Taipei (UTC+08:00)",
+  "lastUpdated": "2026-11-17T08:23:22+08:00",
   "branch": "1.0.0.11.Integration.P6.Worktree",
-  "head": "78d410e7",
-  "headline": "2026-11-17 08:07 Asia/Taipei (UTC+08:00)：六包已驗收且推送；P6-07a已鎖黃金78d410e7及完成Razor探針，尚未正式改可見性。下一步四個語意合成測試與批次internal；頁面與階段審查未做，不啟動P7。",
+  "head": "ba23b7fc",
+  "headline": "2026-11-17 08:23 Asia/Taipei (UTC+08:00)：P6-07a進行中，Tools與WebServiceConnector批次雙組態建置／測試與黃金比對通過；下一批Payments→Services。六包仍已驗收，P6-07未驗收，頁面／階段審查未做。",
   "notices": [
     {
       "id": "plan-3.5-summary",
@@ -592,8 +592,8 @@ const DATA = {
       "phaseId": "階段 6",
       "level": "info",
       "title": "P6 進度摘要",
-      "lastUpdated": "2026-11-17T08:07:11+08:00",
-      "body": "2026-11-17 08:07 Asia/Taipei (UTC+08:00)：六包已驗收且推送；P6-07a已鎖黃金78d410e7及完成Razor探針，尚未正式改可見性。下一步四個語意合成測試與批次internal；頁面與階段審查未做，不啟動P7。",
+      "lastUpdated": "2026-11-17T08:23:22+08:00",
+      "body": "2026-11-17 08:23 Asia/Taipei (UTC+08:00)：P6-07a進行中，Tools與WebServiceConnector批次雙組態建置／測試與黃金比對通過；下一批Payments→Services。六包仍已驗收，P6-07未驗收，頁面／階段審查未做。",
       "steps": [
         "2026-11-16 18:40 Asia/Taipei (UTC+08:00)：完整讀取四份依據，核對分支、起點與七包 todo；建立父任務，保存四個基準數字，納入原樣 06A。",
         "2026-11-16 18:40 Asia/Taipei (UTC+08:00)：三個 P5 殘留任務依既有驗收證據封存；330 筆 C:/smv 舊工具及原始證據保留移出，C:/smv 僅留 guard。",
@@ -625,7 +625,8 @@ const DATA = {
         "2026-11-17 07:48 Asia/Taipei (UTC+08:00)：P6-03已驗收推送並核對005f030afd50bda06287feffbd96a9a3fba3f058；本包提交後scan與原清單逐檔一致，待正式更新基準與verify。",
         "2026-11-17 07:58 Asia/Taipei (UTC+08:00)：基準3677→3583（減94，P6淨減46、既有落差48）；31筆計數差異、唯一統計搬移增加已核對；8鍵18檔無剩餘固定值命中。11239fb5完整固定guard八項通過，Release7062不含另列Debug tracer7、編碼95、重複新增0、I18nCheck0、文件1743、進度28。回報P6-05.md，收尾後推送核對。",
         "2026-11-17 07:59 Asia/Taipei (UTC+08:00)：P6-05已驗收推送，遠端67ac88da4f075ec4c7c526d99651b08dd1d9d2f6一致。P6-07a先鎖路由／序列化黃金，尚未修改可見性；a、b皆驗收才done。",
-        "2026-11-17 08:07 Asia/Taipei (UTC+08:00)：a段進行中；78d410e7在改可見性前獨立鎖住兩種組態路由／序列化黃金。Razor隔離探針通過，所有暫改已逐位元組還原，不加第五類；尚未實作四類規則或正式internal批次。"
+        "2026-11-17 08:07 Asia/Taipei (UTC+08:00)：a段進行中；78d410e7在改可見性前獨立鎖住兩種組態路由／序列化黃金。Razor隔離探針通過，所有暫改已逐位元組還原，不加第五類；尚未實作四類規則或正式internal批次。",
+        "2026-11-17 08:23 Asia/Taipei (UTC+08:00)：WebServiceConnector 25檔、14不同型別（含partial宣告）完成internal。編譯CS0051指出DonationKeyInDedicationService的公開建構式引用已內部化processor；該服務本身在未輪到的待辦中，依固定規則提前internal，不改簽章。兩組態建置、ChurchReport643/644與Dataverse79/81全過，四份黃金位元組相同；尚未驗收，不推送。"
       ]
     }
   ],
@@ -1922,7 +1923,7 @@ const DATA = {
           "a、b各有證據與回報，兩段皆驗收才done。"
         ]
       ],
-      "next": "四個合成架構測試先紅後綠，Roslyn四類及例外，輸出r2-todo；探針已還原，先正常建置。"
+      "next": "Payments→Services，a段末更新實際清冊、固定guard後才驗收。"
     }
   ],
   "gates": [
