@@ -266,3 +266,24 @@ SDK連線每命令獨占lease，secret鍵按canonical名稱讀取；URL必須核
 所有資料與catalog只屬命令，不建立ambient mutable授權或全域credential；內部engine亦查白名單，影子/module switch再要求test種類。
 十三指定方法在OrganizationsTests；另驗Program鍵前綴、四分流零連線、正式Channel同reader與schema匯出成功、server名稱錯配租約清理。
 Schema plan原hash已包含server OrganizationId，合成同名不同ID仍拒絕，不改歷史hash格式；此為離線證據，P7-01不連任何D365。
+
+## P7-01b 計畫切換與回復（2026-11-17）
+新型別在Switching/。plan --switch-to off|shadow|live為唯讀；switch --plan --plan-sha256要求完整檔SHA，
+同一buffer嚴格解析。共同ProductionGuard／路徑／寫鎖先行；鎖內重讀WhoAmI ID、全部metadata指紋、來源及兩DLL。
+manifest/catalog的唯讀handle持有整個命令，兩DLL每次重新PE檢查；未部署、hash差異或註冊缺漏先拒絕。
+SwitchTarget為唯一五列表，型別override > 模組override > manifest；diagnostics不參與。
+原註冊plan/apply與diagnostics-only verify沿舊0/1/3契約；P7非診斷verify依catalog.switchState，
+verify --plan依目標，僅核secure有無並明示不比秘密，不宣稱金鑰正確／輪替或實機推播通過。
+正式Live所有有效live項目須pass證據。新舊同模組互斥：原況衝突即拒絕；KeepLegacy啟用列會阻擋同模組啟新。
+舊step依正式ID/type/assembly對照；dormant或未對應列KeepLegacy。流程含dormant／未移植活動（含
+JoinMainSmallGroupList.JoinMainSmallGroupListPlugIn）整個不動，即使草稿也列KeepLegacy。
+流程超1MiB／暫停列Manual；原export-legacy維持超限拒絕，只在switch專用盤點保守列候選。
+WorkflowRepointer由ActivityProbe抽共用，支援帶版本qualified name與CLR節點、assembly大小寫；
+DTD／外部資源／深度>128拒絕，不以全文Replace。rollback用log原字串而非重序列化結果。
+SDK前先完整export與legacy export，再write-ahead flush attempted；完成後再flush completed。
+secure候選GUID在Create前記錄，送達後throw亦精確清孤兒；清lookup後只刪無引用secure列，不讀值。
+故障與取消反序回復所有attempted，讀寫回復使用None token；原失敗保留，cleanup失敗Aggregate回報。
+本機switch-log有界128MiB、strict JSON／hash、原子flush替換；不進版控，原XAML總量16MiB。
+來源／server／正式ID不符拒絕回復；只碰本次log列出的項目。固定資源沿SharedText與既有產生器。
+指定測試在SwitchTargetTests、SwitchPlanTests、WorkflowRepointerTests、SwitchExecutorTests；
+另以SwitchSnapshotReaderTests與SwitchCliTests驗真SDK讀取及離線完整循環，均不能當作實機證據。

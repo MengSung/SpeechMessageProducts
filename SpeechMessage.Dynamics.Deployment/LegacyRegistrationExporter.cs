@@ -34,7 +34,16 @@ internal static class LegacyRegistrationExporter
     /// <param name="maximumPages">每次查詢分頁上限，最多一千頁。</param>
     /// <returns>不含 Entity、設定內容及 XAML 的獨立唯讀快照。</returns>
     public static LegacyRegistrationSnapshot Export(IOrganizationService service, int pageSize = 500, int maximumRows = 10000,
-        int maximumPages = 100, CancellationToken cancellationToken = default)
+        int maximumPages = 100, CancellationToken cancellationToken = default) =>
+        ExportCore(service, pageSize, maximumRows, maximumPages, false, cancellationToken);
+
+    /// <summary>切換專用盤點保留超限流程為保守候選供Manual；原export入口仍嚴格拒絕超1MiB，不更改舊契約。</summary>
+    internal static LegacyRegistrationSnapshot ExportForSwitch(IOrganizationService service, CancellationToken cancellationToken) =>
+        ExportCore(service, 500, 10000, 100, true, cancellationToken);
+
+    /// <summary>共用唯讀盤點實作，僅切換模式將超限XAML列為全部活動可能相依，不解析或改寫該定義。</summary>
+    private static LegacyRegistrationSnapshot ExportCore(IOrganizationService service, int pageSize, int maximumRows,
+        int maximumPages, bool manualOversize, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(service);
         if (pageSize is < 1 or > 500 || maximumRows is < 1 or > 100000 || maximumPages is < 1 or > 1000)
@@ -97,7 +106,9 @@ internal static class LegacyRegistrationExporter
                 if (string.IsNullOrWhiteSpace(xml)) continue;
                 remainingXmlCharacters -= xml.Length;
                 if (remainingXmlCharacters < 0) throw new InvalidDataException("Workflow XML budget exceeded.");
-                var references = ActivityReferences(xml, activities, assemblyMap, cancellationToken);
+                var references = manualOversize && System.Text.Encoding.UTF8.GetByteCount(xml) > 1024 * 1024
+                    ? activities.Select(activity => activity.Id).OrderBy(id => id).ToArray()
+                    : ActivityReferences(xml, activities, assemblyMap, cancellationToken);
                 if (references.Length == 0) continue;
                 var state = Number(row, "statecode");
                 if (state is < 0 or > 2) throw InvalidMetadata();
@@ -205,7 +216,7 @@ internal static class LegacyRegistrationExporter
     }
 
     /// <summary>單次匯出專用的分頁 owner，只保留借入 SDK 與有界計數；沒有 static 狀態或釋放 client 的權限。</summary>
-    private sealed class MetadataReader(IOrganizationService service, int pageSize, int maximumRows, int maximumPages, CancellationToken cancellationToken)
+    internal sealed class MetadataReader(IOrganizationService service, int pageSize, int maximumRows, int maximumPages, CancellationToken cancellationToken)
     {
         /// <summary>所有表格累計筆數，包含被排除的候選，避免惡意來源繞過總量上限。</summary>
         private int rowCount;

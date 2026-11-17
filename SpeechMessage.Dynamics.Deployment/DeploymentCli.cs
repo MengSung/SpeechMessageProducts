@@ -13,7 +13,9 @@
  * 舊plan/apply/verify/export/rollback/smoke則載入固定registration manifest及必要Plugin PE，
  * 單組件委派DeploymentEngine；多組件由 partial 的文件路由完整交給DocumentDeploymentEngine，
  * 使用組織共用備份根及已 flush 的固定名稱索引，保留原P0公開語法與設定佔位安全驗證。
- * verify有metadata差異回1，只有秘密佔位尚未比對時回3，不因零操作假稱秘密或推播已驗證。
+ * 舊註冊verify有metadata差異回1，只有秘密佔位尚未比對時回3，不因零操作假稱秘密或推播已驗證。
+ * P7非診斷清單的verify依catalog.switchState或plan目標比對狀態與secure有無，明確說明不比秘密；
+ * plan --switch-to與switch --plan走Switching分部，switch-log回復使用原字串與uncancelled清理。
  * smoke 將本次操作的 output.WriteLine 借給核心，只發布已驗證的唯一 PluginFileVersion 行；
  * 版本缺失或格式歧義回失敗，不輸出原始 trace，也不在靜態欄位保留版本或 writer。
  *
@@ -32,6 +34,7 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
+using System.Linq;
 using System.ServiceModel;
 using System.Text.Json;
 using System.Threading;
@@ -223,6 +226,11 @@ internal static partial class DeploymentCli
             if (command.Name == "shadow" || legacyOnly)
                 return RunShadow(command, shadowCases!, repositoryRoot, operationRoot,
                     lease.Service, output, secretReader, cancellationToken, legacyOnly);
+            if (command.SwitchTargetState is not null || command.PlanSha256 is not null ||
+                command.Name == "verify" && (command.InputPath is not null || RegistrationManifestLoader.LoadDocument(repositoryRoot).Assemblies.Any(assembly => assembly.Steps.Any(step => step.Module != "diagnostics"))) ||
+                command.Name == "rollback" && Path.GetFileName(command.InputPath) == "switch-log.json")
+                return RunSwitchPlan(command, target, catalog, repositoryRoot, organizationArtifactRoot,
+                    operationRoot, lease.Service, output, secretReader, cancellationToken);
             if (command.Name == "switch")
             {
                 var document = RegistrationManifestLoader.LoadDocument(repositoryRoot);
@@ -443,11 +451,13 @@ internal static partial class DeploymentCli
         string? module = null;
         string? target = null;
         string? scenarioRoot = null;
+        string? switchTargetState = null;
+        string? planSha256 = null;
         var seen = new System.Collections.Generic.HashSet<string>(StringComparer.Ordinal);
         for (var index = 1; index < args.Length; index++)
         {
             var option = args[index];
-            if (option is not ("--org" or "--plan" or "--from" or "--scenario" or "--module" or "--to" or "--scenario-root") ||
+            if (option is not ("--org" or "--plan" or "--from" or "--scenario" or "--module" or "--to" or "--scenario-root" or "--switch-to" or "--plan-sha256") ||
                 !seen.Add(option) ||
                 index + 1 >= args.Length ||
                 string.IsNullOrWhiteSpace(args[index + 1]) ||
@@ -474,20 +484,30 @@ internal static partial class DeploymentCli
                 case "--module": module = value; break;
                 case "--to": target = value; break;
                 case "--scenario-root": scenarioRoot = value; break;
+                case "--switch-to": switchTargetState = value; break;
+                case "--plan-sha256": planSha256 = value; break;
             }
         }
 
         if (name is not ("switch" or "shadow") && module is not null ||
             name != "switch" && target is not null ||
             name != "shadow" && scenarioRoot is not null) return false;
+        if (switchTargetState is not null && (name != "plan" || switchTargetState is not ("off" or "shadow" or "live")) ||
+            planSha256 is not null && (name != "switch" || planSha256.Length != 64 || !planSha256.All(char.IsAsciiHexDigit))) return false;
         var valid = name switch
         {
-            "plan" or "verify" or "export" or "export-legacy" or "ui-export" => organization is not null && inputPath is null && scenario is null,
+            "plan" => organization is not null && scenario is null && inputPath is null &&
+                (seen.Count == 1 || switchTargetState is not null && HasExactlyTwoOptions(seen, OrganizationOption, "--switch-to")),
+            "verify" => organization is not null && scenario is null &&
+                (seen.Count == 1 || inputPath is not null && HasExactlyTwoOptions(seen, OrganizationOption, PlanOption)),
+            "export" or "export-legacy" or "ui-export" => organization is not null && inputPath is null && scenario is null && seen.Count == 1,
             "ui-import" => organization is not null && HasExactlyTwoOptions(seen, OrganizationOption, FromOption) && inputPath is not null && scenario is null,
             "apply" => organization is not null && HasExactlyTwoOptions(seen, OrganizationOption, PlanOption) && inputPath is not null && scenario is null,
             "rollback" => organization is not null && HasExactlyTwoOptions(seen, OrganizationOption, FromOption) && inputPath is not null && scenario is null,
-            "switch" => organization is not null && module is not null && target is "enabled" or "legacy" or "off" &&
-                seen.Count == 3 && seen.Contains(OrganizationOption) && seen.Contains("--module") && seen.Contains("--to"),
+            "switch" => organization is not null &&
+                (module is not null && target is "enabled" or "legacy" or "off" &&
+                    seen.Count == 3 && seen.Contains(OrganizationOption) && seen.Contains("--module") && seen.Contains("--to") ||
+                 inputPath is not null && planSha256 is not null && seen.Count == 3 && seen.Contains(OrganizationOption) && seen.Contains(PlanOption) && seen.Contains("--plan-sha256")),
             "shadow" => organization is not null && module is not null && scenarioRoot is not null &&
                 seen.Count == 3 && seen.Contains(OrganizationOption) && seen.Contains("--module") && seen.Contains("--scenario-root"),
             "smoke" => organization is not null && HasExactlyTwoOptions(seen, OrganizationOption, ScenarioOption) && scenario is not null && inputPath is null,
@@ -498,7 +518,7 @@ internal static partial class DeploymentCli
             return false;
         }
 
-        command = new ParsedCommand(name, organization!, inputPath, scenario) { Module = module, Target = target, ScenarioRoot = scenarioRoot };
+        command = new ParsedCommand(name, organization!, inputPath, scenario) { Module = module, Target = target, ScenarioRoot = scenarioRoot, SwitchTargetState = switchTargetState, PlanSha256 = planSha256 };
         return true;
     }
 
@@ -619,6 +639,10 @@ internal static partial class DeploymentCli
         output.WriteLine("Production writes require the exact canonical organization name on the first stdin line (256 characters, 30 seconds total).");
         output.WriteLine("Production forbids smoke, shadow, switch --module, live-check and ui-export; Channel secret lines follow confirmation.");
         output.WriteLine("Commands: plan --org <name> | apply --org <name> --plan <file> | verify --org <name>");
+        output.WriteLine("          plan --org <name> --switch-to off|shadow|live");
+        output.WriteLine("          switch --org <name> --plan <switch-plan.json> --plan-sha256 <sha256>");
+        output.WriteLine("          verify --org <name> --plan <switch-plan.json> | rollback --org <name> --from <switch-log.json>");
+        output.WriteLine("          switch verify checks secure presence only; secret values are never compared or rotated.");
         output.WriteLine("          switch --org goodshepherdback --module <module> --to enabled|off");
         output.WriteLine("          shadow --org goodshepherdback --module <module> --scenario-root <fixed-module-golden-directory>");
         output.WriteLine("          ui-export --org <test-name> | ui-import --org <name> --from <archive>");
@@ -641,5 +665,9 @@ internal static partial class DeploymentCli
         public string? Target { get; init; }
         /// <summary>固定模組黃金目錄的候選路徑，不授權外部檔案來源。</summary>
         public string? ScenarioRoot { get; init; }
+        /// <summary>組織層級plan目標，只允off/shadow/live，不與舊module參數混用。</summary>
+        public string? SwitchTargetState { get; init; }
+        /// <summary>使用者核定的完整檔案SHA，執行前與同一讀取buffer核對。</summary>
+        public string? PlanSha256 { get; init; }
     }
 }

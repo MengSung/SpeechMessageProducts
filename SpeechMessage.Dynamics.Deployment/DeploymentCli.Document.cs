@@ -132,7 +132,7 @@ internal static partial class DeploymentCli
     /// </summary>
     private static void WriteDocumentFile(string directory, string name, string content)
     {
-        if (name is not ("plan.json" or "plan.md" or "backup.json"))
+        if (name is not ("plan.json" or "plan.md" or "backup.json" or "switch-plan.json" or "switch-plan.md" or "legacy-before.json"))
             throw new InvalidDataException("Document name is invalid.");
         var text = content.Replace("\r\n", "\n", StringComparison.Ordinal).TrimEnd('\n')
             .Replace("\n", "\r\n", StringComparison.Ordinal) + "\r\n";
