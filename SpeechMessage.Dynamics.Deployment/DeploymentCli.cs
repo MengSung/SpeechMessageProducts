@@ -7,7 +7,7 @@
  * 主要功能與流程：先由catalog／ProductionGuard核定組織、旗標與正式寫入確認，再嚴格解析命令及檔案路徑；
  * 明確--schema或export-metadata轉交SchemaDeploymentCli，該路徑不需Plugin DLL。
  * export-legacy 以有界唯讀查詢匯出安全 metadata 並回報啟用筆數，不需要清單或 DLL；
- * shadow 使用同一寫鎖及租約，固定情境來源先驗證，再交影子 partial 核對實機身分、
+ * shadow 使用同一寫鎖及租約，只接受固定 Golden/Legacy 或 P7驗收情境路徑；strict reader先驗完整來源，再交影子 partial 核對實機身分、
  * 已部署映像與步驟，完成新程式影子執行、清理及安全報告。修訂 2 起 legacy switch
  * 僅保留解析與歷史程式，公開入口一律拒絕，不在任何組織執行舊程式。
  * 舊plan/apply/verify/export/rollback/smoke則載入固定registration manifest及必要Plugin PE，
@@ -189,7 +189,10 @@ internal static partial class DeploymentCli
                     output.WriteLine("Scenario root must be the fixed module golden directory.");
                     return 2;
                 }
-                shadowCases = Shadow.ShadowScenarioFiles.Load(repositoryRoot, command.Module!);
+                var acceptanceRoot = Path.GetFullPath(Path.Combine(repositoryRoot, Live.LiveText.Get("AcceptanceFolder"), Live.LiveText.Get("ScenarioFolder"), command.Module!));
+                shadowCases = string.Equals(Path.GetFullPath(scenarioRoot), acceptanceRoot, OperatingSystem.IsWindows() ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal)
+                    ? Shadow.ShadowScenarioFiles.LoadLive(repositoryRoot, command.Module!, true)
+                    : Shadow.ShadowScenarioFiles.Load(repositoryRoot, command.Module!);
             }
             if (command.InputPath is not null)
             {

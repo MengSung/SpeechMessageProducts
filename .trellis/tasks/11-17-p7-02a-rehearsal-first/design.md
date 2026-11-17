@@ -1,0 +1,10 @@
+# 技術操作設計
+
+沿部署CLI與既有UserSecrets連線／本機寫鎖／export與switch-log；所有原證據留artifacts本機，repo只摘要與SHA。
+R0用既有D34唯讀程序及verify，另外完整清冊SMV-TEST資料／流程，記待辦0與trace1基準。
+R1、R2沿現有CLI；R3打包版本只升FileVersion，確認plan只更新DLL／允許metadata，不重建步驟。
+R4用既有Shadow runner且trace=2於try/finally還原1，逐模組。受審合成正常情境標liveShadow，期望不改舊測試值。
+既有Golden不適合真SDK時先依資料契約製作明確驗收案例，無法安全涵蓋者記實際限制及提案，不能假綠。
+R5a、R5b每次plan前重讀來源及現況，逐行核KeepLegacy／Manual；未移植JoinMainSmallGroupList整流程不動。
+Live演練override只OutboundLetterPlugin、StorLessonSigningActivity，decidedBy演練；改catalog後提交並guard。
+組織未改前先有確切回復紀錄，實機失敗保留原例外與cleanup證據；Secrets不輸出、不進命令列或repo。

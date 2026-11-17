@@ -1,0 +1,99 @@
+{
+  "module": "appointments",
+  "cases": [
+    {
+      "name": "plugin-empty-parameter",
+      "church": {
+        "alias": "church-a",
+        "organizationName": "synthetic-golden",
+        "timeZone": "Asia/Taipei",
+        "culture": "zh-TW"
+      },
+      "seed": [
+        {
+          "alias": "record",
+          "entity": "appointment",
+          "fields": {
+            "new_signing_contact": {
+              "ref": "signer",
+              "entity": "contact",
+              "name": "下一位簽核者"
+            },
+            "new_applier_appointment": {
+              "ref": "applicant",
+              "entity": "contact"
+            },
+            "new_signing_content": "不額外推播",
+            "new_meeting_kind": {
+              "option": 4
+            }
+          }
+        },
+        {
+          "alias": "applicant",
+          "entity": "contact",
+          "fields": {
+            "fullname": "申請人",
+            "parentcustomerid": {
+              "ref": "church-a",
+              "entity": "account"
+            },
+            "new_special_leave_days": 7
+          }
+        },
+        {
+          "alias": "signer",
+          "entity": "contact",
+          "fields": {
+            "fullname": "下一位簽核者",
+            "parentcustomerid": {
+              "ref": "church-a",
+              "entity": "account"
+            },
+            "new_lineid": {
+              "line": "signer"
+            },
+            "new_preferredlanguage": "zh-TW"
+          }
+        },
+        {
+          "alias": "church-a",
+          "entity": "account",
+          "fields": {}
+        },
+        {
+          "alias": "channel",
+          "entity": "new_linechannel",
+          "fields": {}
+        },
+        {
+          "alias": "p7-test-contact",
+          "entity": "contact",
+          "fields": {}
+        }
+      ],
+      "trigger": {
+        "project": "AppointmentPlugIn",
+        "type": "AppointmentPlugIn.AppointmentPlugIn",
+        "message": "Create",
+        "entity": "appointment",
+        "target": "record",
+        "fields": {},
+        "depth": 1
+      },
+      "queryResults": {},
+      "now": "2026-11-15T04:00:00Z",
+      "volatile": [],
+      "liveShadow": true,
+      "observe": [
+        {
+          "alias": "record",
+          "entity": "appointment",
+          "fields": [
+            "new_signing_content"
+          ]
+        }
+      ]
+    }
+  ]
+}

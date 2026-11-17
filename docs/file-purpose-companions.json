@@ -77,5 +77,13 @@
   "ChurchReport.MemberInfo.Tests/Golden/r2-serialization-shape.json": "P6-07可見性調整前由實際ChurchReport組件反射與Newtonsoft／System.Text.Json預設契約解析器取得的固定屬性名稱黃金；只記完整型別名稱與屬性名稱，不記可見性、物件值、個資或秘密。Release與Debug各自保存；正常測試唯讀逐位元組比對，只有明確本機產生開關可寫，不得在可見性調整後重生掩蓋差異。",
   "ChurchReport.MemberInfo.Tests/Golden/r2-serialization-shape.debug.json": "P6-07可見性調整前由實際ChurchReport組件反射與Newtonsoft／System.Text.Json預設契約解析器取得的固定屬性名稱黃金；只記完整型別名稱與屬性名稱，不記可見性、物件值、個資或秘密。Release與Debug各自保存；正常測試唯讀逐位元組比對，只有明確本機產生開關可寫，不得在可見性調整後重生掩蓋差異。",
   "SpeechMessage.Hosting.Tests/Architecture/r2-churchreport-exceptions.json": "P6-07 ChurchReport只能在測試或頁面驗收重現internal存取失敗後登錄的精確公開型別例外。每筆symbol、reason與evidence必填且身分唯一；預期空陣列，不能放大成名稱模式或整個產品豁免。架構掃描只讀本工作樹清單，缺檔與非法條目拒絕，不保存任何真實資料或秘密。",
-  "d365/registration/organizations.json": "階段7部署組織白名單唯一來源，schemaVersion1記錄核定名稱、test或production種類、允許HTTPS主機、應有switchState及逐筆tierOverrides；本階段只有goodshepherdback，不得寫入真實正式組織或秘密。CLI在連線前以ProductionGuard核旗標、受限命令與正式寫入名稱確認，catalog不等於使用者已核定正式操作。"
+  "d365/registration/organizations.json": "階段7部署組織白名單唯一來源，schemaVersion1記錄核定名稱、test或production種類、允許HTTPS主機、應有switchState及逐筆tierOverrides；本階段只有goodshepherdback，不得寫入真實正式組織或秘密。CLI在連線前以ProductionGuard核旗標、受限命令與正式寫入名稱確認，catalog不等於使用者已核定正式操作。",
+  "文件/規劃設計書/實作計畫-3.5/驗收/P7情境/localization/scenarios.json": "P7測試組織文字覆寫Create/Update/Delete的合成正常情境與明確期望；共享教會／測試會友只借用且空欄位，所有實際寫入只指向本輪owned教會與文字列，欄位時間僅依核定volatile比存在性。供同一Shadow及Live SDK核心驗證及清理，不修改既有Golden期望、不執行舊程式；原始實機結果只留artifacts，這些資料本身不是Live證據。",
+  "文件/規劃設計書/實作計畫-3.5/驗收/P7情境/localization/expected.json": "P7測試組織文字覆寫Create/Update/Delete的合成正常情境與明確期望；共享教會／測試會友只借用且空欄位，所有實際寫入只指向本輪owned教會與文字列，欄位時間僅依核定volatile比存在性。供同一Shadow及Live SDK核心驗證及清理，不修改既有Golden期望、不執行舊程式；原始實機結果只留artifacts，這些資料本身不是Live證據。",
+  "文件/規劃設計書/實作計畫-3.5/驗收/P7情境/appointments/scenarios.json": "P7預約Plugin的合成閱讀情境，固定Create appointment及空參數分支；申請人、簽核者與來源資料皆為合成seed，只有情境明列空白的教會及測試聯絡人供權威驗證借用。由Shadow/Live共用strict reader解析，不執行舊流程、不推播；情境檔不是實機證據。",
+  "文件/規劃設計書/實作計畫-3.5/驗收/P7情境/appointments/expected.json": "P7預約Plugin空參數閱讀情境的合成結果摘要，列明legacy entrypoint、輸出結果及無資料寫入／推播期望；reader再依Deployment manifest將入口對應新版正式step。原始Golden保持不變，這份期望不宣稱已完成Shadow或Live實機比較。",
+  "文件/規劃設計書/實作計畫-3.5/驗收/P7情境/attendance/scenarios.json": "P7出席代禱回應不變的合成閱讀情境，使用不同alias的兩位同名合成會友與兩筆正式不同身分的記錄，驗證identity不因顯示名稱相同而合併；共享教會及測試聯絡人保持空欄位。只供固定Shadow/Live reader及本輪owned資料清理，不推播亦非實機證據。",
+  "文件/規劃設計書/實作計畫-3.5/驗收/P7情境/attendance/expected.json": "P7出席代禱回應不變的合成期望摘要，明列舊Plugin入口、預期未變欄位與空寫入／推播結果；比較以各筆alias與正式資料列身分為準，不按同名去重。只供離線解析與後續實機比較，不修改既有Golden。",
+  "文件/規劃設計書/實作計畫-3.5/驗收/P7情境/weeklyreports/scenarios.json": "P7週報通知回應未變的合成閱讀情境，以固定Update、new_group_present_weekly_report及明列映像為入口；seed只含合成會友、名單、週報和空白共享列。兩個正式step雖共用事件與實體，情境entrypoint必須精確指向通知Plugin。無推播、不執行舊程式，不能當作實機證據。",
+  "文件/規劃設計書/實作計畫-3.5/驗收/P7情境/weeklyreports/expected.json": "P7週報通知回應未變的合成閱讀期望，entrypoint明確指定新版WeeklyReportNotificationPlugin，輸出摘要不含寫入或推播；runner依entrypoint及正式Step.Type消歧同Update/entity的兩個step，並以新版型別執行影子輪。保留舊Golden不變，離線期望不是Live證據。"
 }

@@ -25,7 +25,7 @@ namespace SpeechMessage.Dynamics.Deployment.Live
         /// <summary>每列依序為鍵及各語系文字；缺翻譯為 null，鍵依 Ordinal 排序。</summary>
         internal static readonly string?[][] Rows =
         {
-            new string?[] { "Deployment.Live.AcceptanceFolder", "驗收", null, "［驗收ǂ］" },
+            new string?[] { "Deployment.Live.AcceptanceFolder", "文件/規劃設計書/實作計畫-3.5/驗收", null, "［文件/規劃設計書/實作計畫-3.5/驗收ǂǂǂǂǂǂǂǂ］" },
             new string?[] { "Deployment.Live.Defaults", "教會預設值待補筆數：", null, "［教會預設值待補筆數：ǂǂǂǂ］" },
             new string?[] { "Deployment.Live.Difference", "有差異", null, "［有差異ǂǂ］" },
             new string?[] { "Deployment.Live.Differences", "差異數：", null, "［差異數：ǂǂ］" },

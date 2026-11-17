@@ -30,6 +30,20 @@ namespace SpeechMessage.Dynamics.Deployment;
 /// <summary>共用主命令的授權、連線及終端錯誤生命週期，不另起可繞過鎖的入口。</summary>
 internal static partial class DeploymentCli
 {
+    /// <summary>
+    /// 以情境 entrypoint 將同 message/entity 的正式步驟消歧：new 基準必須指向新版型別；
+    /// reading／legacy-golden 可由R4複本明列新版型別，或以清單內正式Legacy型別映射回新版步驟。
+    /// 回傳候選仍由呼叫端要求唯一；每輪綁定與執行型別使用 step.Type，絕不依賴清單排列順序。
+    /// </summary>
+    internal static bool MatchesShadowEntrypoint(StepRegistration step, ShadowFileCase file) =>
+        file.Basis switch
+        {
+            "new" => step.Type == file.Entrypoint,
+            "reading" or "legacy-golden" => step.Type == file.Entrypoint ||
+                step.Legacy.Any(reference => reference.Type == file.Entrypoint),
+            _ => false
+        };
+
     /// <summary>只允許 repo 內該模組固定 Golden 目錄，完整核對祖先 reparse point，不接受任意外部 JSON。</summary>
     private static bool IsShadowScenarioRoot(string repositoryRoot, string module, string candidate)
     {
@@ -37,9 +51,12 @@ internal static partial class DeploymentCli
             "lessons" or "appointments" or "qrcodes" or "care" or "fees" or "messaging")) return false;
         var expected = Path.GetFullPath(Path.Combine(repositoryRoot,
             "SpeechMessageProducts.GoodShepherd.Core.Tests", "Golden", "Legacy", module));
+        var acceptance = Path.GetFullPath(Path.Combine(repositoryRoot, Live.LiveText.Get("AcceptanceFolder"), Live.LiveText.Get("ScenarioFolder"), module));
         return IsContainedPath(repositoryRoot, candidate, out var full) &&
-            string.Equals(Path.TrimEndingDirectorySeparator(expected), Path.TrimEndingDirectorySeparator(full),
-                OperatingSystem.IsWindows() ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal);
+            (string.Equals(Path.TrimEndingDirectorySeparator(expected), Path.TrimEndingDirectorySeparator(full),
+                OperatingSystem.IsWindows() ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal) ||
+             string.Equals(Path.TrimEndingDirectorySeparator(acceptance), Path.TrimEndingDirectorySeparator(full),
+                OperatingSystem.IsWindows() ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal));
     }
 
     /// <summary>
@@ -95,11 +112,10 @@ internal static partial class DeploymentCli
         {
             cancellationToken.ThrowIfCancellationRequested();
             var matching = steps.Where(item => item.Step.Message == file.Trigger.GetProperty("message").GetString() &&
-                item.Step.Entity == file.Trigger.GetProperty("entity").GetString()).ToArray();
+                item.Step.Entity == file.Trigger.GetProperty("entity").GetString() &&
+                MatchesShadowEntrypoint(item.Step, file)).ToArray();
             if (matching.Length != 1) throw InvalidShadowCommand();
             var step = matching[0];
-            if (file.Basis == "new" ? file.Entrypoint != step.Step.Type :
-                !step.Step.Legacy.Any(reference => reference.Type == file.Entrypoint)) throw InvalidShadowCommand();
             var churchAlias = file.Church.GetProperty("alias").GetString()!;
             var contacts = file.Seed.EnumerateArray().Where(row =>
                 row.GetProperty("entity").GetString() == "contact" &&
