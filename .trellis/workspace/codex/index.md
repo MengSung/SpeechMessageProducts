@@ -8,8 +8,8 @@
 
 <!-- @@@auto:current-status -->
 - **Active File**: `journal-1.md`
-- **Total Sessions**: 28
-- **Last Active**: 2026-11-16
+- **Total Sessions**: 29
+- **Last Active**: 2026-11-17
 <!-- @@@/auto:current-status -->
 
 ---
@@ -19,7 +19,7 @@
 <!-- @@@auto:active-documents -->
 | File | Lines | Status |
 |------|-------|--------|
-| `journal-1.md` | ~1046 | Active |
+| `journal-1.md` | ~1081 | Active |
 <!-- @@@/auto:active-documents -->
 
 ---
@@ -29,6 +29,7 @@
 <!-- @@@auto:session-history -->
 | # | Date | Title | Commits | Branch |
 |---|------|-------|---------|--------|
+| 29 | 2026-11-17 | 完成P6 ChurchReport共用層與頁面審查驗收 | `615cdffc`, `3ea8a133`, `f67e0257` | `1.0.0.11.Integration.P6.Worktree` |
 | 28 | 2026-11-16 | 階段5審查與收尾交付 | `67ede211`, `ef84f9f4`, `69f44825` | `1.0.0.11.Integration.P5.Worktree` |
 | 27 | 2026-11-14 | P5-01 外殼與影子記錄驗收 | `fee2e909` | `1.0.0.11.Integration.P5.Worktree` |
 | 26 | 2026-11-10 | P3-07 關鍵字路由驗收 | `b67dbf0a6dc81e948bee6ba583ab54451347a7f2` | `p3/P3-07` |

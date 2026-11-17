@@ -3,7 +3,7 @@
   "name": "integration-p6",
   "title": "階段 6 ChurchReport 改用共用層",
   "description": "依 06A 固定順序完成七包、頁面驗收與一次階段審查；起點 9b7ac0a0，完成後停止，不啟動 P7。",
-  "status": "in_progress",
+  "status": "completed",
   "dev_type": null,
   "scope": null,
   "package": null,
@@ -11,11 +11,11 @@
   "creator": "Codex",
   "assignee": "Codex",
   "createdAt": "2026-11-16",
-  "completedAt": null,
+  "completedAt": "2026-11-17",
   "branch": null,
   "base_branch": "1.0.0.11.Integration.P6.Worktree",
   "worktree_path": null,
-  "commit": null,
+  "commit": "f67e025754e1ef7633a3582b16a32805e155dc3f",
   "pr_url": null,
   "subtasks": [],
   "children": [
@@ -32,6 +32,6 @@
   ],
   "parent": null,
   "relatedFiles": [],
-  "notes": "",
+  "notes": "2026-11-17 11:04 Asia/Taipei (UTC+08:00)：階段6完成並停止，P6-01～07七包done，頁面四情境差異0、五組截圖像素差異0；測試LINE每輪2則、DPAPI備份／原樣還原已驗證、七實體殘留0。唯一ClaudeOnly階段審查Critical0／High0；必要生命週期缺陷已修，4案紅→綠。最末程式f67e0257固定guard八項全過：Release7071（22組件，不含另列Debug tracer7）、編碼268、文件1753、進度28、重複新增0、I18nCheck0。R2空且嚴格，D6-15未用；父任務封存收尾後推送核對，禁止啟動P7。",
   "meta": {}
 }

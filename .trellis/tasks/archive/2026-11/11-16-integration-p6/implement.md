@@ -35,7 +35,7 @@
   黃金檔位元組不變，規格同步。
 - [x] 頁面驗收：依 06A §6A 四情境前後比對、測試資料零殘留；
   D6-15 有用到時記明退路與提案；腳本提交後完整 guard。
-- [ ] 階段審查：自癒 reviewer 僅一次，修 Critical／High；七包 done、
+- [x] 階段審查：自癒 reviewer 僅一次，修 Critical／High；七包 done、
   四份證據、最末程式提交完整 guard、一頁總回報、封存、推送核對後停止。
 
 ## 每包固定命令與提交界線
@@ -168,3 +168,5 @@ P6-05收尾67ac88da4f075ec4c7c526d99651b08dd1d9d2f6已推送並ls-remote一致�
 2026-11-17 10:44 Asia/Taipei (UTC+08:00)：頁面驗收收尾e23c12b1已推送且ls-remote一致。唯一一次階段審查以Start-CcgDualModelRun自癒入口ClaudeOnly執行中（使用者已取消強制雙模型）；沒有啟動Gemini，尚無審查結論。七包與頁面皆驗收，等待Critical／High核對及階段封存，不啟P7。
 
 2026-11-17 10:52 Asia/Taipei (UTC+08:00)：唯一階段審查ClaudeOnly完成，Critical0／High0；外部指出3處工具失敗清理缺陷，依AGENTS永久生命週期規則修正並四案舊紅→新綠；Host spawn error同步有界處理。只改驗收工具，不改產品，最末程式提交待固定guard。頁面／LINE／還原證據不重播。
+
+2026-11-17 11:04 Asia/Taipei (UTC+08:00)：階段6完成並停止，P6-01～07七包done，頁面四情境差異0、五組截圖像素差異0；測試LINE每輪2則、DPAPI備份／原樣還原已驗證、七實體殘留0。唯一ClaudeOnly階段審查Critical0／High0；必要生命週期缺陷已修，4案紅→綠。最末程式f67e0257固定guard八項全過：Release7071（22組件，不含另列Debug tracer7）、編碼268、文件1753、進度28、重複新增0、I18nCheck0。R2空且嚴格，D6-15未用；父任務封存收尾後推送核對，禁止啟動P7。
