@@ -13,7 +13,7 @@
 - [x] 切換前置 C-b
 - [x] P7-01a
 - [x] P7-01b
-- [ ] P7-01c
+- [x] P7-01c
 - [ ] P7-02a
 - [ ] P7-02b
 - [ ] 階段審查與 §6A 收尾
@@ -45,3 +45,5 @@ D34 已實測通過；待辦 0、追蹤原值 1；22 新步驟全部停用、舊
 2026-11-17 18:37 Asia/Taipei (UTC+08:00)：P7-01a驗收紀錄3e291416（程式5f61b890）；固定guard完整八項全過，Release7176／Debug7；推送ab2a4422並核遠端SHA一致。
 
 2026-11-17 20:39 Asia/Taipei (UTC+08:00)：P7-01b驗收提交57ab3f62，固定guard完整八項通過，Release7219／Debug7；Deployment864、Architecture89。21指定方法及未移植KeepLegacy測試通過；回復與CLI循環離線通過。收尾後接P7-01c，每段驗收同步此清單。四個舊任務目錄有實際evidence檔案，保留。
+
+2026-11-17 21:53 Asia/Taipei (UTC+08:00)：P7-01c驗收提交073cd5ef，固定guard完整八項通過，Release7262／Debug7；Deployment900、Architecture89；十三指定方法展開17案全過。a/b/c全驗收，整包P7-01完成。接P7-02a，前置A追蹤可用，R4必做。
