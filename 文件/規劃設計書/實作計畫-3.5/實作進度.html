@@ -240,11 +240,11 @@ footer{margin-top:36px;color:var(--muted);font-size:12.5px;text-align:center}
  */
 const DATA = {
   "planVersion": "3.5",
-  "snapshot": "2026-11-17 07:58 Asia/Taipei (UTC+08:00)",
-  "lastUpdated": "2026-11-17T07:58:19+08:00",
+  "snapshot": "2026-11-17 07:59 Asia/Taipei (UTC+08:00)",
+  "lastUpdated": "2026-11-17T07:59:57+08:00",
   "branch": "1.0.0.11.Integration.P6.Worktree",
-  "head": "11239fb5",
-  "headline": "2026-11-17 07:58 Asia/Taipei (UTC+08:00)：P6-01～P6-06六包已驗收；P6-05基準3677→3583且完整guard通過。剩P6-07a/b、頁面驗收與一次階段審查，未啟動P7。",
+  "head": "67ac88da",
+  "headline": "2026-11-17 07:59 Asia/Taipei (UTC+08:00)：六包已驗收且推送核對；P6-07a啟動，先鎖黃金，未改可見性。尚待a/b、頁面驗收與一次審查，不啟動P7。",
   "notices": [
     {
       "id": "plan-3.5-summary",
@@ -592,8 +592,8 @@ const DATA = {
       "phaseId": "階段 6",
       "level": "info",
       "title": "P6 進度摘要",
-      "lastUpdated": "2026-11-17T07:58:19+08:00",
-      "body": "2026-11-17 07:58 Asia/Taipei (UTC+08:00)：P6-01～P6-06六包已驗收；P6-05基準3677→3583且完整guard通過。剩P6-07a/b、頁面驗收與一次階段審查，未啟動P7。",
+      "lastUpdated": "2026-11-17T07:59:57+08:00",
+      "body": "2026-11-17 07:59 Asia/Taipei (UTC+08:00)：六包已驗收且推送核對；P6-07a啟動，先鎖黃金，未改可見性。尚待a/b、頁面驗收與一次審查，不啟動P7。",
       "steps": [
         "2026-11-16 18:40 Asia/Taipei (UTC+08:00)：完整讀取四份依據，核對分支、起點與七包 todo；建立父任務，保存四個基準數字，納入原樣 06A。",
         "2026-11-16 18:40 Asia/Taipei (UTC+08:00)：三個 P5 殘留任務依既有驗收證據封存；330 筆 C:/smv 舊工具及原始證據保留移出，C:/smv 僅留 guard。",
@@ -623,7 +623,8 @@ const DATA = {
         "2026-11-17 07:30 Asia/Taipei (UTC+08:00)：納入06A修訂1核定；D6-21新增指定誤用測試先紅（空多播清單誤用未丟例外）。P6-04 stash 280ab07fd620f02deb3c12dc669480026539ebe7的7個變更檔與0bb9414a逐檔零差異，依SHA定位後僅drop該筆；P3三筆stash完整保留。",
         "2026-11-17 07:46 Asia/Taipei (UTC+08:00)：十一個指定名稱17實例全過；72黃金案6重播66退役、SHA不變；依D6-19清冊11→10及來源15→14，其他斷言不改。451c7d47完整guard八項通過，Release7062（不含另列Debug tracer7）、編碼89、文件1743、進度28、重複新增0；首輪MSB4166失敗保留，單節點重跑範圍不變。回報P6-03-status.md；收尾後推送核對。",
         "2026-11-17 07:48 Asia/Taipei (UTC+08:00)：P6-03已驗收推送並核對005f030afd50bda06287feffbd96a9a3fba3f058；本包提交後scan與原清單逐檔一致，待正式更新基準與verify。",
-        "2026-11-17 07:58 Asia/Taipei (UTC+08:00)：基準3677→3583（減94，P6淨減46、既有落差48）；31筆計數差異、唯一統計搬移增加已核對；8鍵18檔無剩餘固定值命中。11239fb5完整固定guard八項通過，Release7062不含另列Debug tracer7、編碼95、重複新增0、I18nCheck0、文件1743、進度28。回報P6-05.md，收尾後推送核對。"
+        "2026-11-17 07:58 Asia/Taipei (UTC+08:00)：基準3677→3583（減94，P6淨減46、既有落差48）；31筆計數差異、唯一統計搬移增加已核對；8鍵18檔無剩餘固定值命中。11239fb5完整固定guard八項通過，Release7062不含另列Debug tracer7、編碼95、重複新增0、I18nCheck0、文件1743、進度28。回報P6-05.md，收尾後推送核對。",
+        "2026-11-17 07:59 Asia/Taipei (UTC+08:00)：P6-05已驗收推送，遠端67ac88da4f075ec4c7c526d99651b08dd1d9d2f6一致。P6-07a先鎖路由／序列化黃金，尚未修改可見性；a、b皆驗收才done。"
       ]
     }
   ],
@@ -786,10 +787,10 @@ const DATA = {
       "id": "階段 6",
       "name": "ChurchReport 改用共用層",
       "planned": "3～4 個工作天",
-      "actual": "2026-11-17 07:58 Asia/Taipei (UTC+08:00)：P6-01～P6-06六包已驗收；P6-05基準3677→3583且完整guard通過。剩P6-07a/b、頁面驗收與一次階段審查，未啟動P7。",
+      "actual": "2026-11-17 07:59 Asia/Taipei (UTC+08:00)：六包已驗收且推送核對；P6-07a啟動，先鎖黃金，未改可見性。尚待a/b、頁面驗收與一次審查，不啟動P7。",
       "current": true,
       "done": 6,
-      "active": 0
+      "active": 1
     },
     {
       "id": "階段 7",
@@ -1722,13 +1723,14 @@ const DATA = {
       "id": "P6-07",
       "phaseId": "階段 6",
       "name": "R2 清冊清零（D28，從 P2-01 移出）",
-      "status": "todo",
+      "status": "active",
       "deps": "P6-01～P6-06",
       "live": "無",
       "timebox": "2 天",
       "doneAt": "",
       "commit": "",
-      "note": "清冊為空、R2 架構測試改嚴格"
+      "note": "2026-11-17 07:59 Asia/Taipei (UTC+08:00)：P6-05已驗收推送，遠端67ac88da4f075ec4c7c526d99651b08dd1d9d2f6一致。P6-07a先鎖路由／序列化黃金，尚未修改可見性；a、b皆驗收才done。",
+      "startedAt": "2026-11-17 07:59 Asia/Taipei (UTC+08:00)"
     },
     {
       "id": "P7-01",
@@ -1887,7 +1889,41 @@ const DATA = {
       "note": "2026-11-17 02:43 Asia/Taipei (UTC+08:00)：D34當下唯讀核對已通過、writes=0；仍須依06A §6A完成四情境前後比對，登入與Host測試LINE設定尚未完成，D6-15退路如實揭露。"
     }
   ],
-  "active": [],
+  "active": [
+    {
+      "id": "P6-07",
+      "startedAt": "2026-11-17 07:59 Asia/Taipei (UTC+08:00)",
+      "timebox": "a、b各1天",
+      "dod": [
+        [
+          "測試",
+          "no",
+          "先完成兩份黃金與四個語意規則測試。"
+        ],
+        [
+          "守門",
+          "no",
+          "本包提交後完整固定guard。"
+        ],
+        [
+          "覆蓋率",
+          "na",
+          "未新增專案。"
+        ],
+        [
+          "實機",
+          "no",
+          "階段末另做四情境頁面前後對照。"
+        ],
+        [
+          "回報與進度",
+          "no",
+          "a、b各有證據與回報，兩段皆驗收才done。"
+        ]
+      ],
+      "next": "先紅燈、雙組態產生路由與序列化黃金並單獨提交，才做Razor探針。"
+    }
+  ],
   "gates": [
     {
       "item": "方案建置（Release）",

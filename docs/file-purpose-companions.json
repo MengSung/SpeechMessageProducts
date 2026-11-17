@@ -73,5 +73,7 @@
   "SpeechMessageProducts.GoodShepherd.Core.Tests/Golden/Legacy/fees/expected.json": "P5-11 收費 reading 基準的人工閱讀舊來源附行號的期望值，含完整合成通知文字、安全摘要、例外與核定差異；未經舊程式實跑，不能稱 legacy-golden 或實機差異零，不得由被測輸出重生。",
   "SpeechMessageProducts.GoodShepherd.Core.Tests/Golden/Legacy/messaging/scenarios.json": "保存P5-12六個外送閱讀情境，僅合成letter與正式來源別名，涵蓋方向、未綁定、教會錯配、深度及來源失敗；由真外殼與CAS共用，不執行舊DLL或實機推播。",
   "SpeechMessageProducts.GoodShepherd.Core.Tests/Golden/Legacy/messaging/expected.json": "保存P5-12人工閱讀期望與逐案差異宣告，basis=reading，列出舊來源行號、字典原因及影子完成候選；沒有偽造legacy.json，不得當成實機零差異或送達證據。",
-  "d365/registration/legacy-disposition.json": "P5-13核定36個舊專案的唯一去向清冊；project為原第一層目錄、projectFile保留異名，ported列新target與真registration legacy的assembly/type複合身分，library僅列能力拆入的共用專案，不移植列具體原因。另列零來源方案殼排除與兩個暫緩項；只讀契約不執行舊DLL、不改D365，reading不是實機相容驗收。"
+  "d365/registration/legacy-disposition.json": "P5-13核定36個舊專案的唯一去向清冊；project為原第一層目錄、projectFile保留異名，ported列新target與真registration legacy的assembly/type複合身分，library僅列能力拆入的共用專案，不移植列具體原因。另列零來源方案殼排除與兩個暫緩項；只讀契約不執行舊DLL、不改D365，reading不是實機相容驗收。",
+  "ChurchReport.MemberInfo.Tests/Golden/r2-serialization-shape.json": "P6-07可見性調整前由實際ChurchReport組件反射與Newtonsoft／System.Text.Json預設契約解析器取得的固定屬性名稱黃金；只記完整型別名稱與屬性名稱，不記可見性、物件值、個資或秘密。Release與Debug各自保存；正常測試唯讀逐位元組比對，只有明確本機產生開關可寫，不得在可見性調整後重生掩蓋差異。",
+  "ChurchReport.MemberInfo.Tests/Golden/r2-serialization-shape.debug.json": "P6-07可見性調整前由實際ChurchReport組件反射與Newtonsoft／System.Text.Json預設契約解析器取得的固定屬性名稱黃金；只記完整型別名稱與屬性名稱，不記可見性、物件值、個資或秘密。Release與Debug各自保存；正常測試唯讀逐位元組比對，只有明確本機產生開關可寫，不得在可見性調整後重生掩蓋差異。"
 }

@@ -1,0 +1,12 @@
+{
+  "id": "p6-07a-r2-surface",
+  "title": "P6-07a R2公開邊界與四資料夾",
+  "status": "in_progress",
+  "complexity": "L",
+  "risk": "high",
+  "domain": "backend",
+  "currentPhase": "implementation",
+  "nextAction": "先兩份黃金測試紅燈，雙組態產生比對並獨立提交，尚不修改可見性",
+  "createdAt": "2026-11-17T07:59:57+08:00",
+  "branch": "1.0.0.11.Integration.P6.Worktree"
+}

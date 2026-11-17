@@ -1,0 +1,10 @@
+# P6-07a 設計
+
+黃金以實際ChurchReport組件反射取控制器路由與兩個預設序列化器的屬性名稱，
+只讀metadata、不實例化產品模型、不啟動Host或外部連線。Release為標準檔，Debug另存.debug檔。
+正常模式只逐位元組比較；SPEECHMESSAGE_R2_WRITE_GOLDEN=1只在本機產生，guard與CI不設。
+
+架構規則以Roslyn完整基底鏈認框架入口、控制器／ViewComponent與公開簽章閉包，
+例外必須reason與evidence，LineWebhook規則不變。metadata與compilation由單次掃描持有並清理。
+Razor只有探針重現存取錯誤才依計畫新增由@model／@inject辨識的第五類，不維護人工允許大清單。
+每批以編譯錯誤判斷必要public型別，保留MVC public成員與資料形狀，非必要型別改internal。

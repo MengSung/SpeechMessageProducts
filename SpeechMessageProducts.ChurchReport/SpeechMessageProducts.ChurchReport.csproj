@@ -134,6 +134,8 @@
   <ItemGroup>
     <InternalsVisibleTo Include="ToolUtility.Dataverse.Tests" />
     <InternalsVisibleTo Include="ChurchReport.MemberInfo.Tests" />
+    <!-- P6-07 內部服務的離線Moq代理需要此友元，不擴大產品公開表面。 -->
+    <InternalsVisibleTo Include="DynamicProxyGenAssembly2" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Views\Dedication\" />
