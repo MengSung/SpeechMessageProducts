@@ -43,3 +43,5 @@ Tools：逐檔完整讀取並以Roslyn只替換頂層宣告public token，10檔1
 2026-11-17 08:29 Asia/Taipei (UTC+08:00)：Services52檔71個頂層型別完成internal，另DonationKeyInDedicationService已在前批提前處理；CacheKeys.Expiration是巢狀型別，保留修飾詞，隨容器internal不再對外可見。編譯CS0051指出ThemeViewDataFilter與ListManagerCacheExtensions的公開簽章用到ThemeSettings／ICacheService，兩者均屬待辦，依固定處理提前internal；同檔CachedListManagerData亦原在待辦中。雙組態建置、ChurchReport643/644及Dataverse79/81全過，四黃金位元組相同。
 
 2026-11-17 08:40 Asia/Taipei (UTC+08:00)：a段末掃描曾得到Debug89／Release80，抓到編輯工具在file-scoped宣告的同位置「插註解」覆蓋了「public→internal」替換，14個宣告未完成；前述批次數字是候選數，並非全部實際可見性已變。已修正同位置編輯合併與每次寫前的Roslyn宣告後置條件，依原序補Tools1、Payments7、Services6個型別，共9檔，只有public→internal token改動。三批重新執行雙組態建置、ChurchReport643/644、Dataverse79/81與黃金比對。Services第一次Dataverse Release有既有trace租期排序1紅，原78綠1紅證據保留；同碼重試79全綠、Debug81全綠，沒有改測試或pool程式、沒有降低斷言。
+
+2026-11-17 08:44 Asia/Taipei (UTC+08:00)：a段最終來源掃描Debug75、Release66，共141筆／75不同型別；四個已處理資料夾R2均0，沒有其他規則違規。清冊608→141僅刪467筆，完整身分皆原清冊子集；其中246筆由四類分類不再違規、221筆由實際內部化不再公開（Debug112／Release109，含1個巢狀型別隨容器不再公開）。仍unresolved，不能當階段完成。
