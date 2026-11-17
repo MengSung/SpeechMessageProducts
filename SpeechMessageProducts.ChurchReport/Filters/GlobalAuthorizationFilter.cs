@@ -20,6 +20,7 @@
  * 變更介面、資料格式、取消或清理順序時，須一併核對下列合作檔案及對應測試，不能只改目前檔案。
  * 可沿 SpeechMessageProducts.ChurchReport/Controllers/BaseChurchController.cs、
  * SpeechMessageProducts.ChurchReport/Startup.cs 追查目前工作樹中的合作／使用位置。
+ * P6-07公開邊界：GlobalAuthorizationFilter改為產品內部宣告；外部輸出與既有資源清理契約不變。
  */
 using System;
 using System.Linq;
@@ -35,7 +36,11 @@ using Microsoft.Extensions.Configuration;
 
 namespace ChurchReport.Filters
 {
-    public sealed class GlobalAuthorizationFilter : IAsyncAuthorizationFilter
+    /// <summary>本檔整合下列相關契約：AllowAnonymousResult：✅ 效能：每個 Action 的 [AllowAnonymous] 判定結果快取。 原本每個請求都對 MethodInfo 與。
+    /// P6-07將本宣告限於主機內部；仍由既有呼叫端組裝及消費，不變更資料形狀、流程或資源owner。</summary>
+    /// <summary>本檔整合下列相關契約：AllowAnonymousResult：✅ 效能：每個 Action 的 [AllowAnonymous] 判定結果快取。 原本每個請求都對 MethodInfo 與。
+    /// P6-07將本宣告限於主機內部；仍由既有呼叫端組裝及消費，不變更資料形狀、流程或資源owner。</summary>
+    internal sealed class GlobalAuthorizationFilter : IAsyncAuthorizationFilter
     {
         /// <summary>
         /// ✅ 效能：每個 Action 的 [AllowAnonymous] 判定結果快取。
