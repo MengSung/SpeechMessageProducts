@@ -8,6 +8,7 @@
  * 正式ID與測試marker落ignored ownership檔，失敗亦先停止worker排空再依精確ID清理及核零。
  * 資源與隔離：fixture擁有控制SDK、DI容器、設定根、HTTP client與key；每筆worker使用新scope SDK，
  * 金鑰只從User Secrets進記憶體，finally清零且不輸出任何憑證或回應本文；查詢有界，未知值拒絕。
+ * 主機設定由fixture持有至worker停止及DI scope釋放之後，例外退出不能提前關閉在用設定。
  * 驗證證據只輸出筆數、狀態、用量差與零殘留；實機執行需明確Category篩選，離線不冒稱成功。
  */
 using System.Net.Http.Headers;
@@ -65,6 +66,7 @@ public sealed class RelayLiveAcceptanceTests(ITestOutputHelper output)
         private Guid? task;
         private readonly string marker = "SMV-TEST-P7-Relay-" + Guid.NewGuid().ToString("N");
         private ServiceProvider? provider; private OutboundTaskWorker? worker;
+        private IConfigurationRoot? hostConfiguration;
         private readonly HttpClient http = new(new HttpClientHandler { UseCookies = false, AllowAutoRedirect = false }) { Timeout = TimeSpan.FromSeconds(15) };
         private readonly string root;
         private bool feeAttempted;
@@ -108,7 +110,8 @@ public sealed class RelayLiveAcceptanceTests(ITestOutputHelper output)
                 }
                 var before = await UsageAsync();
                 var values = new Dictionary<string, string?> { ["Messaging:NotifyRelay:Enabled"] = "true", [Prefix + "TokenKey"] = Required("TokenKey") };
-                using var hostConfig = (ConfigurationRoot)new ConfigurationBuilder().AddInMemoryCollection(values).Build();
+                hostConfiguration = new ConfigurationBuilder().AddInMemoryCollection(values).Build();
+                var hostConfig = hostConfiguration;
                 var services = new ServiceCollection(); services.AddSingleton<IConfiguration>(hostConfig); services.AddLogging();
                 services.AddScoped<IOrganizationService>(_ => OpenSdk()); services.AddSingleton<IWebhookEventDeduplicator>(new NoDedupe()); services.AddSingleton<IWebhookEventQueue>(new NoQueue());
                 services.AddLineWebhook(hostConfig); provider = services.BuildServiceProvider(validateScopes: true);
@@ -188,6 +191,8 @@ public sealed class RelayLiveAcceptanceTests(ITestOutputHelper output)
         {
             if (worker is not null) { await worker.StopAsync(CancellationToken.None); worker = null; }
             if (provider is not null) { await provider.DisposeAsync(); provider = null; }
+            // 設定是worker與scoped handler的借用依賴；只有停止及scope釋放成功後才能關閉。
+            if (hostConfiguration is not null) { ((IDisposable)hostConfiguration).Dispose(); hostConfiguration = null; }
             if (feeAttempted && !task.HasValue)
             {
                 // Create回應中斷時按寫前已保存的完整事件鍵回查，不能因未取得回傳ID遺留待辦。
