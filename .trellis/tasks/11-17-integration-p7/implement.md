@@ -10,9 +10,9 @@
 - [x] 切換前置 A
 - [x] 切換前置 B
 - [x] 切換前置 C-a
-- [ ] 切換前置 C-b
-- [ ] P7-01a
-- [ ] P7-01b
+- [x] 切換前置 C-b
+- [x] P7-01a
+- [x] P7-01b
 - [ ] P7-01c
 - [ ] P7-02a
 - [ ] P7-02b
@@ -39,3 +39,9 @@ D34 已實測通過；待辦 0、追蹤原值 1；22 新步驟全部停用、舊
 2026-11-17 13:20 Asia/Taipei (UTC+08:00)：C-a研究查明AppointmentPlugin的Create/Update沿舊空參數，NotifyAsync Contains不成立即返回；B盤點兩列效果文字已更正，分級不變。原產品/期望值不修改；活動正常路徑與Plugin有明確分派差異，後續Relay對照須選有效route或對應期望檔。
 
 2026-11-17 13:55 Asia/Taipei (UTC+08:00)：C-a驗收9370d014，完整guard八項全過；Release7128、Debug7。兩DLL打包build18通過但未部署，接C-b。
+
+2026-11-17 17:41 Asia/Taipei (UTC+08:00)：前置C-b驗收紀錄5398acef（程式952780bd）；固定guard完整八項全過，Release7144／Debug7；Live代送一次通過、殘留0。
+
+2026-11-17 18:37 Asia/Taipei (UTC+08:00)：P7-01a驗收紀錄3e291416（程式5f61b890）；固定guard完整八項全過，Release7176／Debug7；推送ab2a4422並核遠端SHA一致。
+
+2026-11-17 20:39 Asia/Taipei (UTC+08:00)：P7-01b驗收提交57ab3f62，固定guard完整八項通過，Release7219／Debug7；Deployment864、Architecture89。21指定方法及未移植KeepLegacy測試通過；回復與CLI循環離線通過。收尾後接P7-01c，每段驗收同步此清單。四個舊任務目錄有實際evidence檔案，保留。
