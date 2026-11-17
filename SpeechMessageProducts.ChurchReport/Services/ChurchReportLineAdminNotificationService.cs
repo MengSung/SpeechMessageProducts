@@ -36,7 +36,7 @@ namespace ChurchReport.Services;
 /// 新增程式應直接傳 Exception 至 ExceptionReporting.Report，以保留型別與 stack 符號。
 /// </summary>
 /// <remarks>P6-07限於本產品內部使用；既有資料形狀、呼叫順序與資源所有權不變，不作為跨組件API。</remarks>
-public static class ChurchReportLineAdminNotificationService
+internal static class ChurchReportLineAdminNotificationService
 {
     /// <summary>既有產品管理者接收者；僅用作受信任部署預設值，不接受 request 覆寫。</summary>
     public const string DefaultAdminLineUserId = "U7638e4ed509708a3573ba6d69970583d";

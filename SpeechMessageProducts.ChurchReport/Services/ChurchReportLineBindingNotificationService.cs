@@ -40,7 +40,7 @@ using LineUserProfile = Line.Messaging.UserProfile;
 /// 屬於產品流程需求；實際 LINE API 呼叫則交給共用 processor 封裝。
 /// </summary>
 /// <remarks>P6-07限於本產品內部使用；既有資料形狀、呼叫順序與資源所有權不變，不作為跨組件API。</remarks>
-public interface IChurchReportLineProfileProvider
+internal interface IChurchReportLineProfileProvider
 {
     /// <summary>
     /// 依 LINE user id 取得 LINE 使用者 profile。
@@ -55,7 +55,7 @@ public interface IChurchReportLineProfileProvider
 /// 它只是一層薄 adapter，負責把 ChurchReport 服務介面接到已抽離的 LineMessagingProcessor。
 /// </summary>
 /// <remarks>P6-07限於本產品內部使用；既有資料形狀、呼叫順序與資源所有權不變，不作為跨組件API。</remarks>
-public sealed class ChurchReportLineProfileProvider : IChurchReportLineProfileProvider
+internal sealed class ChurchReportLineProfileProvider : IChurchReportLineProfileProvider
 {
     private readonly LineMessagingProcessorClass _lineMessagingProcessor;
 
@@ -88,7 +88,7 @@ public sealed class ChurchReportLineProfileProvider : IChurchReportLineProfilePr
 /// 會員資料來源與顯示文字；共用 LINE 專案不應該引用這些產品相依。
 /// </summary>
 /// <remarks>P6-07限於本產品內部使用；既有資料形狀、呼叫順序與資源所有權不變，不作為跨組件API。</remarks>
-public sealed class ChurchReportLineBindingNotificationService : IChurchReportLineBindingNotificationService
+internal sealed class ChurchReportLineBindingNotificationService : IChurchReportLineBindingNotificationService
 {
     private const string BindingViewBaseUrl = "https://tpehoc.speechmessage.com.tw:200/Home/LineBindingView/";
     private const string BindingPromptPrefix = "請點擊以下網址進行牧養系統與Line的註冊:";

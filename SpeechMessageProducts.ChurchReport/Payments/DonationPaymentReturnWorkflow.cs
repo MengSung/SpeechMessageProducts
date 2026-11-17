@@ -59,7 +59,7 @@ public interface IDonationPaymentReturnWorkflow
 /// 如果沒有提供 dispatcher，workflow 會回傳一個基本付款結果頁，這主要用於測試或保底顯示。
 /// </summary>
 /// <remarks>P6-07限於本產品內部使用；既有資料形狀、呼叫順序與資源所有權不變，不作為跨組件API。</remarks>
-public sealed class DonationPaymentReturnWorkflow : IDonationPaymentReturnWorkflow
+internal sealed class DonationPaymentReturnWorkflow : IDonationPaymentReturnWorkflow
 {
     private const string PaymentResultViewName = "~/Views/PaymentReturn/PaymentResult.cshtml";
 

@@ -44,7 +44,7 @@ namespace ChurchReport.Payments;
 /// 這樣測試容易，責任也清楚。
 /// </summary>
 /// <remarks>P6-07限於本產品內部使用；既有資料形狀、呼叫順序與資源所有權不變，不作為跨組件API。</remarks>
-public sealed class DonationPaymentFormModelMapper
+internal sealed class DonationPaymentFormModelMapper
 {
     /// <summary>
     /// 將 ChurchReport 表單模型映射成中性付款訂單草稿。

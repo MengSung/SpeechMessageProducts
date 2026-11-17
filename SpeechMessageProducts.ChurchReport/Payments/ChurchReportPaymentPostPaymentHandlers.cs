@@ -36,7 +36,7 @@ namespace ChurchReport.Payments;
 /// 因此由 ChurchReport 在自己的 product layer 定義 context item contract。
 /// </summary>
 /// <remarks>P6-07限於本產品內部使用；既有資料形狀、呼叫順序與資源所有權不變，不作為跨組件API。</remarks>
-public static class ChurchReportPaymentWorkflowContextKeys
+internal static class ChurchReportPaymentWorkflowContextKeys
 {
     public const string ToolUtility = nameof(ToolUtility);
     public const string FeeEntity = nameof(FeeEntity);
@@ -51,7 +51,7 @@ public static class ChurchReportPaymentWorkflowContextKeys
 /// 它實作共用 <see cref="IPaymentRecordUpdater"/>，但具體仍呼叫 ChurchReport 的 CRM service。
 /// </summary>
 /// <remarks>P6-07限於本產品內部使用；既有資料形狀、呼叫順序與資源所有權不變，不作為跨組件API。</remarks>
-public sealed class ChurchReportPaymentRecordUpdater : IPaymentRecordUpdater
+internal sealed class ChurchReportPaymentRecordUpdater : IPaymentRecordUpdater
 {
     private readonly PaymentCrmService _crmService;
 
@@ -78,7 +78,7 @@ public sealed class ChurchReportPaymentRecordUpdater : IPaymentRecordUpdater
 /// 仍全部留在 ChurchReport product layer。
 /// </summary>
 /// <remarks>P6-07限於本產品內部使用；既有資料形狀、呼叫順序與資源所有權不變，不作為跨組件API。</remarks>
-public sealed class ChurchReportPaymentPayerNotifier : IPaymentPayerNotifier
+internal sealed class ChurchReportPaymentPayerNotifier : IPaymentPayerNotifier
 {
     private readonly PaymentNotificationService _notificationService;
     private readonly ILogger<ChurchReportPaymentPayerNotifier> _logger;

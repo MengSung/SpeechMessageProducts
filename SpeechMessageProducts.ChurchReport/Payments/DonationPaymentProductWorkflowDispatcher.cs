@@ -38,7 +38,7 @@ namespace ChurchReport.Payments;
 /// - 它使用 DonationPayment 命名，因為這是 ChurchReport 奉獻付款流程，不是單一 provider 協定。
 /// </summary>
 /// <remarks>P6-07限於本產品內部使用；既有資料形狀、呼叫順序與資源所有權不變，不作為跨組件API。</remarks>
-public interface IDonationPaymentProductWorkflowDispatcher
+internal interface IDonationPaymentProductWorkflowDispatcher
 {
     IActionResult HandleFeeReturn(
         string shopNo,
@@ -63,7 +63,7 @@ public interface IDonationPaymentProductWorkflowDispatcher
 /// 不會讓 callback controller 直接長出大量 ChurchReport 業務邏輯。
 /// </summary>
 /// <remarks>P6-07限於本產品內部使用；既有資料形狀、呼叫順序與資源所有權不變，不作為跨組件API。</remarks>
-public sealed class DonationPaymentProductWorkflowDispatcher : IDonationPaymentProductWorkflowDispatcher
+internal sealed class DonationPaymentProductWorkflowDispatcher : IDonationPaymentProductWorkflowDispatcher
 {
     private readonly IToolUtilityProvider _toolUtilityProvider;
     private readonly ILineNotificationWorkflow _lineNotificationWorkflow;

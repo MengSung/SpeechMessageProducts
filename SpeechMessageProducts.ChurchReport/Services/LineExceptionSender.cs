@@ -27,7 +27,7 @@ namespace ChurchReport.Services;
 /// 不重複任何憑證解析、HTTP 傳輸或通知生命週期。
 /// </summary>
 /// <remarks>P6-07限於本產品內部使用；既有資料形狀、呼叫順序與資源所有權不變，不作為跨組件API。</remarks>
-public sealed class LineExceptionSender : IDisposable
+internal sealed class LineExceptionSender : IDisposable
 {
     /// <summary>本 facade 唯一擁有的共用 sender，其 client 不與其他產品或使用者共用。</summary>
     private readonly SpeechMessage.Hosting.LineExceptionSender sender;

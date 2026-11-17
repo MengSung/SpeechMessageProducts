@@ -34,7 +34,7 @@ namespace ChurchReport.Tools;
 /// 按鈕文字或認證用途；因此這份 catalog 留在 ChurchReport 產品層。
 /// </summary>
 /// <remarks>P6-07限於本產品內部使用；既有資料形狀、呼叫順序與資源所有權不變，不作為跨組件API。</remarks>
-public sealed class ChurchReportLegacyRichMenuCatalog : ILineRichMenuCatalog
+internal sealed class ChurchReportLegacyRichMenuCatalog : ILineRichMenuCatalog
 {
     /// <summary>
     /// 共用 RichMenu 工作流用來代表既有認證選單的產品層 menu key。
