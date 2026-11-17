@@ -240,11 +240,11 @@ footer{margin-top:36px;color:var(--muted);font-size:12.5px;text-align:center}
  */
 const DATA = {
   "planVersion": "3.5",
-  "snapshot": "2026-11-17 12:46 Asia/Taipei (UTC+08:00)",
-  "lastUpdated": "2026-11-17T12:46:21+08:00",
+  "snapshot": "2026-11-17 12:53 Asia/Taipei (UTC+08:00)",
+  "lastUpdated": "2026-11-17T12:53:49+08:00",
   "branch": "1.0.0.11.Integration.P7.Worktree",
   "head": "f06d7596",
-  "headline": "2026-11-17 12:43 Asia/Taipei (UTC+08:00)：階段7開工，P7-00唯讀基準verify=0；依07A固定順序完成測試組織演練與階段審查後停止，全程不連正式組織。",
+  "headline": "2026-11-17 12:53 Asia/Taipei (UTC+08:00)：P7-00與前置A已驗收；追蹤恢復，診斷smoke=0、PluginFileVersion1.0.0.17，收尾verify=0、trace1，接續離線前置B；不連正式組織。",
   "notices": [
     {
       "id": "plan-3.5-summary",
@@ -653,13 +653,14 @@ const DATA = {
       "phaseId": "階段 7",
       "level": "info",
       "title": "P7 進度摘要",
-      "body": "2026-11-17 12:43 Asia/Taipei (UTC+08:00)：階段7開工，P7-00唯讀基準verify=0；依07A固定順序完成測試組織演練與階段審查後停止，全程不連正式組織。",
-      "lastUpdated": "2026-11-17T12:46:21+08:00",
+      "body": "2026-11-17 12:53 Asia/Taipei (UTC+08:00)：P7-00與前置A已驗收；追蹤恢復，診斷smoke=0、PluginFileVersion1.0.0.17，收尾verify=0、trace1，接續離線前置B；不連正式組織。",
+      "lastUpdated": "2026-11-17T12:53:49+08:00",
       "steps": [
         "2026-11-17 12:43 Asia/Taipei (UTC+08:00)：起點f06d7596；Release7071與Deployment769取自P6最末守門，未重跑基準。",
         "2026-11-17 12:43 Asia/Taipei (UTC+08:00)：D34通過、22新步驟停用、舊步驟/流程啟用0、待辦0、追蹤1；未寫入D365。",
         "2026-11-17 12:43 Asia/Taipei (UTC+08:00)：父任務與前置缺項清單已建立；P7-01/02尚未開工，未推送。",
-        "2026-11-17 12:46 Asia/Taipei (UTC+08:00)：P7-00驗收，編碼19檔/文件1753檔無失敗、進度28通過；前置A權限等待，依07A先接B離線。"
+        "2026-11-17 12:46 Asia/Taipei (UTC+08:00)：P7-00驗收，編碼19檔/文件1753檔無失敗、進度28通過；前置A權限等待，依07A先接B離線。",
+        "2026-11-17 12:53 Asia/Taipei (UTC+08:00)：前置A追蹤可用；唯一smoke通過、off/verify=0、trace1。1筆診斷trace留至R9備份清理；使用者指定本階段ClaudeOnly。"
       ]
     }
   ],
@@ -1965,8 +1966,8 @@ const DATA = {
       "id": "切換前置 A",
       "phaseId": "階段 7",
       "name": "切換前置 A（07A固定單元）",
-      "status": "todo",
-      "note": "2026-11-17 12:43 Asia/Taipei (UTC+08:00)：依序執行，尚未開工。"
+      "status": "done",
+      "note": "2026-11-17 12:53 Asia/Taipei (UTC+08:00)：使用者重啟後唯一smoke=0，FileVersion1.0.0.17；diagnostics停用、trace還原1、verify=0、task0。"
     },
     {
       "id": "切換前置 B",
@@ -2599,10 +2600,10 @@ const DATA = {
     {
       "id": "P7-PROP-002",
       "problem": "2026-11-17 12:43 Asia/Taipei (UTC+08:00)：追蹤管線前置A待恢復；無法恢復時以Live實機證據驗收。",
-      "evidence": "07A §2、§9；依各單元追加實測摘要。",
+      "evidence": "2026-11-17 12:53 Asia/Taipei (UTC+08:00)：前置A smoke=0，FileVersion1.0.0.17；後續照07A做影子比對。",
       "proposal": "依D7-5退路執行，結果於前置A補記。",
       "impact": "階段7切換及後續3.6。",
-      "status": "待核定；本目標依07A預設繼續"
+      "status": "本階段未採退路：追蹤已恢復"
     },
     {
       "id": "P7-PROP-003",

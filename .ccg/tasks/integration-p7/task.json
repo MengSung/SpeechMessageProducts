@@ -6,7 +6,7 @@
   "risk": "high",
   "domain": "backend",
   "currentPhase": "implementation",
-  "nextAction": "P7-00前置清單與輕量檢查；固定順序，不連正式組織。",
+  "nextAction": "前置A追蹤恢復已完成；接前置B離線分級盤點。單模型（使用者指定 ClaudeOnly）。",
   "createdAt": "2026-11-17T12:43:48+08:00",
   "branch": "1.0.0.11.Integration.P7.Worktree"
 }

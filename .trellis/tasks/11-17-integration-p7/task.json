@@ -19,7 +19,9 @@
   "pr_url": null,
   "subtasks": [],
   "children": [
-    "11-17-p7-00-startup-preflight"
+    "11-17-p7-00-startup-preflight",
+    "11-17-p7-pre-b-switch-tier",
+    "11-17-p7-pre-a-trace"
   ],
   "parent": null,
   "relatedFiles": [],

@@ -67,3 +67,7 @@ Invoke-Command -VMName 'D365-9.1' -Credential (Import-Clixml "$env:USERPROFILE\.
 - `artifacts/p7/verify-baseline-matched.log`：`ca0262dcc68601a726404ba0bc102910c4b70a1fdcf432a80b1a447fb2e3a4dd`。
 - `artifacts/p7/preflight-probe.log`：`26469178186e62d625b0bb774d69520c2bc02fb2730e409ef04977577f98af24`。
 - `artifacts/p7/export-legacy-baseline.log`：`1ffbca26621578c53fdc988b9b7485c10e3db6b2965ea42f0cc176561da24dca`。
+
+## 2026-11-17 12:53 Asia/Taipei (UTC+08:00) 更新
+
+使用者已回報重啟服務；依序單次診斷成功，PluginFileVersion=1.0.0.17、smoke=0、off=0、trace restore=1、verify=0。前置A權限等待解除，不需再次重啟。只啟用新diagnostics，沒有舊程式執行或LINE推播。使用者已明確指定本階段ClaudeOnly，後續外部分析/階段審查使用自癒入口-ClaudeOnly，標「單模型（使用者指定 ClaudeOnly）」，不再重試Gemini。
