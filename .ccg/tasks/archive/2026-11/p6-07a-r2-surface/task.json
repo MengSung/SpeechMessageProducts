@@ -1,12 +1,12 @@
 {
   "id": "p6-07a-r2-surface",
   "title": "P6-07a R2公開邊界與四資料夾",
-  "status": "in_progress",
+  "status": "completed",
   "complexity": "L",
   "risk": "high",
   "domain": "backend",
-  "currentPhase": "implementation",
-  "nextAction": "四資料夾已完成雙組態批次驗證；擷取a段末實際R2清冊，只減不增，完整固定guard後驗收a段；不得先標P6-07 done。",
+  "currentPhase": "completed",
+  "nextAction": "a段已驗收，封存收尾並推送核對後接b段；P6-07整包仍active。",
   "createdAt": "2026-11-17T07:59:57+08:00",
   "branch": "1.0.0.11.Integration.P6.Worktree"
 }

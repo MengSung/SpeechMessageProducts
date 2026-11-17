@@ -240,11 +240,11 @@ footer{margin-top:36px;color:var(--muted);font-size:12.5px;text-align:center}
  */
 const DATA = {
   "planVersion": "3.5",
-  "snapshot": "2026-11-17 08:44 Asia/Taipei (UTC+08:00)",
-  "lastUpdated": "2026-11-17T08:44:16+08:00",
+  "snapshot": "2026-11-17 08:56 Asia/Taipei (UTC+08:00)",
+  "lastUpdated": "2026-11-17T08:56:12+08:00",
   "branch": "1.0.0.11.Integration.P6.Worktree",
-  "head": "bb54fdac",
-  "headline": "2026-11-17 08:44 Asia/Taipei (UTC+08:00)：P6-07a四資料夾已實際完成，R2清冊608→141（Debug75／Release66），四資料夾違規0；待提交後完整固定guard，尚未驗收a段或推送。六包已驗收，P6-07仍active。",
+  "head": "3e7a9339",
+  "headline": "2026-11-17 08:56 Asia/Taipei (UTC+08:00)：P6-07a五項定義成立且驗收；3e7a9339固定guard完整八項通過，Release7068不含另列Debug tracer7、編碼195、文件1747、進度28、重複新增0、I18nCheck0。R2清冊608→141，四資料夾違規0，四黃金不變；回報P6-07a.md。整包仍active，b段、頁面與唯一階段審查未完成。",
   "notices": [
     {
       "id": "plan-3.5-summary",
@@ -592,8 +592,8 @@ const DATA = {
       "phaseId": "階段 6",
       "level": "info",
       "title": "P6 進度摘要",
-      "lastUpdated": "2026-11-17T08:44:16+08:00",
-      "body": "2026-11-17 08:44 Asia/Taipei (UTC+08:00)：P6-07a四資料夾已實際完成，R2清冊608→141（Debug75／Release66），四資料夾違規0；待提交後完整固定guard，尚未驗收a段或推送。六包已驗收，P6-07仍active。",
+      "lastUpdated": "2026-11-17T08:56:12+08:00",
+      "body": "2026-11-17 08:56 Asia/Taipei (UTC+08:00)：P6-07a五項定義成立且驗收；3e7a9339固定guard完整八項通過，Release7068不含另列Debug tracer7、編碼195、文件1747、進度28、重複新增0、I18nCheck0。R2清冊608→141，四資料夾違規0，四黃金不變；回報P6-07a.md。整包仍active，b段、頁面與唯一階段審查未完成。",
       "steps": [
         "2026-11-16 18:40 Asia/Taipei (UTC+08:00)：完整讀取四份依據，核對分支、起點與七包 todo；建立父任務，保存四個基準數字，納入原樣 06A。",
         "2026-11-16 18:40 Asia/Taipei (UTC+08:00)：三個 P5 殘留任務依既有驗收證據封存；330 筆 C:/smv 舊工具及原始證據保留移出，C:/smv 僅留 guard。",
@@ -630,7 +630,8 @@ const DATA = {
         "2026-11-17 08:25 Asia/Taipei (UTC+08:00)：Payments5檔8個頂層型別改internal，沒有額外編譯牽連。雙組態建置、ChurchReport643/644與Dataverse79/81全通過，四份路由／序列化黃金逐位元組相同；只改可見性與文件，未改公開控制器成員、訊息或D365值。本包未驗收不推送，下一批Services。",
         "2026-11-17 08:29 Asia/Taipei (UTC+08:00)：Services52檔71個頂層型別完成internal，另DonationKeyInDedicationService已在前批提前處理；CacheKeys.Expiration是巢狀型別，保留修飾詞，隨容器internal不再對外可見。編譯CS0051指出ThemeViewDataFilter與ListManagerCacheExtensions的公開簽章用到ThemeSettings／ICacheService，兩者均屬待辦，依固定處理提前internal；同檔CachedListManagerData亦原在待辦中。雙組態建置、ChurchReport643/644及Dataverse79/81全過，四黃金位元組相同。",
         "2026-11-17 08:40 Asia/Taipei (UTC+08:00)：a段末掃描曾得到Debug89／Release80，抓到編輯工具在file-scoped宣告的同位置「插註解」覆蓋了「public→internal」替換，14個宣告未完成；前述批次數字是候選數，並非全部實際可見性已變。已修正同位置編輯合併與每次寫前的Roslyn宣告後置條件，依原序補Tools1、Payments7、Services6個型別，共9檔，只有public→internal token改動。三批重新執行雙組態建置、ChurchReport643/644、Dataverse79/81與黃金比對。Services第一次Dataverse Release有既有trace租期排序1紅，原78綠1紅證據保留；同碼重試79全綠、Debug81全綠，沒有改測試或pool程式、沒有降低斷言。",
-        "2026-11-17 08:44 Asia/Taipei (UTC+08:00)：a段最終來源掃描Debug75、Release66，共141筆／75不同型別；四個已處理資料夾R2均0，沒有其他規則違規。清冊608→141僅刪467筆，完整身分皆原清冊子集；其中246筆由四類分類不再違規、221筆由實際內部化不再公開（Debug112／Release109，含1個巢狀型別隨容器不再公開）。仍unresolved，不能當階段完成。"
+        "2026-11-17 08:44 Asia/Taipei (UTC+08:00)：a段最終來源掃描Debug75、Release66，共141筆／75不同型別；四個已處理資料夾R2均0，沒有其他規則違規。清冊608→141僅刪467筆，完整身分皆原清冊子集；其中246筆由四類分類不再違規、221筆由實際內部化不再公開（Debug112／Release109，含1個巢狀型別隨容器不再公開）。仍unresolved，不能當階段完成。",
+        "2026-11-17 08:56 Asia/Taipei (UTC+08:00)：P6-07a五項定義成立且驗收；3e7a9339固定guard完整八項通過，Release7068不含另列Debug tracer7、編碼195、文件1747、進度28、重複新增0、I18nCheck0。R2清冊608→141，四資料夾違規0，四黃金不變；回報P6-07a.md。整包仍active，b段、頁面與唯一階段審查未完成。"
       ]
     }
   ],
@@ -1893,6 +1894,15 @@ const DATA = {
       "name": "階段 6 頁面驗收",
       "status": "todo",
       "note": "2026-11-17 02:43 Asia/Taipei (UTC+08:00)：D34當下唯讀核對已通過、writes=0；仍須依06A §6A完成四情境前後比對，登入與Host測試LINE設定尚未完成，D6-15退路如實揭露。"
+    },
+    {
+      "id": "M-P6-07A",
+      "phaseId": "階段 6",
+      "name": "P6-07a四類規則與四資料夾驗收",
+      "status": "done",
+      "note": "2026-11-17 08:56 Asia/Taipei (UTC+08:00)：P6-07a五項定義成立且驗收；3e7a9339固定guard完整八項通過，Release7068不含另列Debug tracer7、編碼195、文件1747、進度28、重複新增0、I18nCheck0。R2清冊608→141，四資料夾違規0，四黃金不變；回報P6-07a.md。整包仍active，b段、頁面與唯一階段審查未完成。",
+      "commit": "3e7a9339254bfb0beb3bd0d8746282e5e3c2ab26",
+      "doneAt": "2026-11-17 08:56 Asia/Taipei (UTC+08:00)"
     }
   ],
   "active": [
@@ -1927,45 +1937,45 @@ const DATA = {
           "a、b各有證據與回報，兩段皆驗收才done。"
         ]
       ],
-      "next": "本a段清冊提交後完整固定guard八項，通過才驗收a段並推送，再處理b段剩餘141筆。"
+      "next": "a段封存收尾並推送核對，接P6-07b其餘資料夾與嚴格模式清零。"
     }
   ],
   "gates": [
     {
       "item": "方案建置（Release）",
       "result": "ok",
-      "at": "2026-11-17 07:58 Asia/Taipei (UTC+08:00)",
-      "note": "P6-05 11239fb5完整固定guard八項通過；Release7062，不含另列Debug tracer7；編碼95、文件1743、進度28、重複新增0、I18nCheck0。證據guard-11239fb5-full.log SHA-256 f3797ca8ba5ad2e2b970cf50b34793da64efebb392e52cd5d91b92d2536f6f6c。"
+      "at": "2026-11-17 08:56 Asia/Taipei (UTC+08:00)",
+      "note": "P6-07a 3e7a9339完整guard八項通過；Release7068不含另列Debug tracer7；編碼195、文件1747、進度28、重複新增0、I18nCheck0；SHA-256 3203dd5201912d829349ae36fcb20f769c08c0fe820171d04025ac2d138871ed。仍有141筆R2留b段，不能視為階段完成。"
     },
     {
       "item": "全方案測試",
       "result": "ok",
-      "at": "2026-11-17 07:58 Asia/Taipei (UTC+08:00)",
-      "note": "P6-05 11239fb5完整固定guard八項通過；Release7062，不含另列Debug tracer7；編碼95、文件1743、進度28、重複新增0、I18nCheck0。證據guard-11239fb5-full.log SHA-256 f3797ca8ba5ad2e2b970cf50b34793da64efebb392e52cd5d91b92d2536f6f6c。"
+      "at": "2026-11-17 08:56 Asia/Taipei (UTC+08:00)",
+      "note": "P6-07a 3e7a9339完整guard八項通過；Release7068不含另列Debug tracer7；編碼195、文件1747、進度28、重複新增0、I18nCheck0；SHA-256 3203dd5201912d829349ae36fcb20f769c08c0fe820171d04025ac2d138871ed。仍有141筆R2留b段，不能視為階段完成。"
     },
     {
       "item": "檔案說明檢查",
       "result": "ok",
-      "at": "2026-11-17 07:58 Asia/Taipei (UTC+08:00)",
-      "note": "P6-05 11239fb5完整固定guard八項通過；Release7062，不含另列Debug tracer7；編碼95、文件1743、進度28、重複新增0、I18nCheck0。證據guard-11239fb5-full.log SHA-256 f3797ca8ba5ad2e2b970cf50b34793da64efebb392e52cd5d91b92d2536f6f6c。"
+      "at": "2026-11-17 08:56 Asia/Taipei (UTC+08:00)",
+      "note": "P6-07a 3e7a9339完整guard八項通過；Release7068不含另列Debug tracer7；編碼195、文件1747、進度28、重複新增0、I18nCheck0；SHA-256 3203dd5201912d829349ae36fcb20f769c08c0fe820171d04025ac2d138871ed。仍有141筆R2留b段，不能視為階段完成。"
     },
     {
       "item": "文字編碼（P6 範圍）",
       "result": "ok",
-      "at": "2026-11-17 07:58 Asia/Taipei (UTC+08:00)",
-      "note": "P6-05 11239fb5完整固定guard八項通過；Release7062，不含另列Debug tracer7；編碼95、文件1743、進度28、重複新增0、I18nCheck0。證據guard-11239fb5-full.log SHA-256 f3797ca8ba5ad2e2b970cf50b34793da64efebb392e52cd5d91b92d2536f6f6c。"
+      "at": "2026-11-17 08:56 Asia/Taipei (UTC+08:00)",
+      "note": "P6-07a 3e7a9339完整guard八項通過；Release7068不含另列Debug tracer7；編碼195、文件1747、進度28、重複新增0、I18nCheck0；SHA-256 3203dd5201912d829349ae36fcb20f769c08c0fe820171d04025ac2d138871ed。仍有141筆R2留b段，不能視為階段完成。"
     },
     {
       "item": "重複程式掃描",
       "result": "ok",
-      "at": "2026-11-17 07:58 Asia/Taipei (UTC+08:00)",
-      "note": "P6-05 11239fb5完整固定guard八項通過；Release7062，不含另列Debug tracer7；編碼95、文件1743、進度28、重複新增0、I18nCheck0。證據guard-11239fb5-full.log SHA-256 f3797ca8ba5ad2e2b970cf50b34793da64efebb392e52cd5d91b92d2536f6f6c。"
+      "at": "2026-11-17 08:56 Asia/Taipei (UTC+08:00)",
+      "note": "P6-07a 3e7a9339完整guard八項通過；Release7068不含另列Debug tracer7；編碼195、文件1747、進度28、重複新增0、I18nCheck0；SHA-256 3203dd5201912d829349ae36fcb20f769c08c0fe820171d04025ac2d138871ed。仍有141筆R2留b段，不能視為階段完成。"
     },
     {
       "item": "I18nCheck verify",
       "result": "ok",
-      "at": "2026-11-17 07:58 Asia/Taipei (UTC+08:00)",
-      "note": "P6-05 11239fb5完整固定guard八項通過；Release7062，不含另列Debug tracer7；編碼95、文件1743、進度28、重複新增0、I18nCheck0。證據guard-11239fb5-full.log SHA-256 f3797ca8ba5ad2e2b970cf50b34793da64efebb392e52cd5d91b92d2536f6f6c。"
+      "at": "2026-11-17 08:56 Asia/Taipei (UTC+08:00)",
+      "note": "P6-07a 3e7a9339完整guard八項通過；Release7068不含另列Debug tracer7；編碼195、文件1747、進度28、重複新增0、I18nCheck0；SHA-256 3203dd5201912d829349ae36fcb20f769c08c0fe820171d04025ac2d138871ed。仍有141筆R2留b段，不能視為階段完成。"
     },
     {
       "item": "雲端 CI（GitHub）",
