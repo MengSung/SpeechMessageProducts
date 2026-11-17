@@ -13,12 +13,17 @@
  * 模型含巢狀集合或敏感欄位時，呼叫端須維持目前登入／操作的所有權；顯示文字不能取代正式資料庫ID。
  * 修改繫結欄位、預設值或複製路徑時，須同步核對序列化、表單、快照及上傳映射，避免局部更新污染其他讀者。
  * 可沿 SpeechMessageProducts.ChurchReport/Controllers/MemberInfoController.cs 追查目前工作樹中的合作／使用位置。
+ * P6-07公開邊界：ContactPresentRecordRow、MemberInfoStorLessonRow改為產品內部宣告；外部輸出與既有資源清理契約不變。
  */
 using System;
 
 namespace ChurchReport.ViewModels
 {
-    public class ContactPresentRecordRow
+    /// <summary>定義會友彈窗中聚會記錄與上課記錄兩種列形狀，分別保留出席／上課正式ID及顯示欄位；記錄依所屬會友隔離，不能把不同會友的集合共用為快取值。
+    /// P6-07將本宣告限於主機內部；仍由既有呼叫端組裝及消費，不變更資料形狀、流程或資源owner。</summary>
+    /// <summary>定義會友彈窗中聚會記錄與上課記錄兩種列形狀，分別保留出席／上課正式ID及顯示欄位；記錄依所屬會友隔離，不能把不同會友的集合共用為快取值。
+    /// P6-07將本宣告限於主機內部；仍由既有呼叫端組裝及消費，不變更資料形狀、流程或資源owner。</summary>
+    internal class ContactPresentRecordRow
     {
         public string PresentRecordId { get; set; }
         public string FullName { get; set; }
@@ -28,7 +33,11 @@ namespace ChurchReport.ViewModels
         public string PrayItem { get; set; }
     }
 
-    public class MemberInfoStorLessonRow
+    /// <summary>定義會友彈窗中聚會記錄與上課記錄兩種列形狀，分別保留出席／上課正式ID及顯示欄位；記錄依所屬會友隔離，不能把不同會友的集合共用為快取值。
+    /// P6-07將本宣告限於主機內部；仍由既有呼叫端組裝及消費，不變更資料形狀、流程或資源owner。</summary>
+    /// <summary>定義會友彈窗中聚會記錄與上課記錄兩種列形狀，分別保留出席／上課正式ID及顯示欄位；記錄依所屬會友隔離，不能把不同會友的集合共用為快取值。
+    /// P6-07將本宣告限於主機內部；仍由既有呼叫端組裝及消費，不變更資料形狀、流程或資源owner。</summary>
+    internal class MemberInfoStorLessonRow
     {
         public string StorLessonsEntityId { get; set; }
         public string DiscipleLessonsName { get; set; }

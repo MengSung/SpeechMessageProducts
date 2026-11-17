@@ -17,6 +17,7 @@
  * SpeechMessageProducts.ChurchReport/Controllers/AuthenticationController/AuthenticationController.LineLoginOAuth.cs、
  * SpeechMessageProducts.ChurchReport/Controllers/AuthenticationController/AuthenticationController.Login.cs
  * 追查目前工作樹中的合作／使用位置。
+ * P6-07公開邊界：RegisterViewModel改為產品內部宣告；外部輸出與既有資源清理契約不變。
  */
 using Microsoft.Xrm.Sdk;
 using System;
@@ -37,7 +38,11 @@ namespace ChurchReport.ViewModel
         public string Address { get; set; } = "";   // 地址
         public string NationId { get; set; } = ""; // 身分證字號
     }
-    public class RegisterViewModel
+    /// <summary>提供舊登入、註冊與LINE綁定畫面的模型及聯絡人資料映射，含圖片、基本資料與選項轉換；同檔多個模型有不同敏感欄位，公開回應不可直接序列化整個登入候選。
+    /// P6-07將本宣告限於主機內部；仍由既有呼叫端組裝及消費，不變更資料形狀、流程或資源owner。</summary>
+    /// <summary>提供舊登入、註冊與LINE綁定畫面的模型及聯絡人資料映射，含圖片、基本資料與選項轉換；同檔多個模型有不同敏感欄位，公開回應不可直接序列化整個登入候選。
+    /// P6-07將本宣告限於主機內部；仍由既有呼叫端組裝及消費，不變更資料形狀、流程或資源owner。</summary>
+    internal class RegisterViewModel
     {
         public IEnumerable<string> Images { get; set; }
         public string FullName { get; set; }

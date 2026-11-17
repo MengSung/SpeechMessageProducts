@@ -14,13 +14,18 @@
  * 修改繫結欄位、預設值或複製路徑時，須同步核對序列化、表單、快照及上傳映射，避免局部更新污染其他讀者。
  * 可沿 SpeechMessageProducts.ChurchReport/Controllers/MemberInfoController.cs、
  * SpeechMessageProducts.ChurchReport/Views/MemberInfo/_MemberDetailPopup.cshtml 追查目前工作樹中的合作／使用位置。
+ * P6-07公開邊界：MemberInfoDetailViewModel、OptionItem、RelationGoalItem改為產品內部宣告；外部輸出與既有資源清理契約不變。
  */
 using System;
 using System.Collections.Generic;
 
 namespace ChurchReport.ViewModels
 {
-    public class MemberInfoDetailViewModel
+    /// <summary>定義會友詳細彈窗的基本資料、唯讀性別／生日、選項與關係目標形狀，供控制器映射及Razor繫結；顯示資料增加不代表更新端點可以接受相同欄位。
+    /// P6-07將本宣告限於主機內部；仍由既有呼叫端組裝及消費，不變更資料形狀、流程或資源owner。</summary>
+    /// <summary>定義會友詳細彈窗的基本資料、唯讀性別／生日、選項與關係目標形狀，供控制器映射及Razor繫結；顯示資料增加不代表更新端點可以接受相同欄位。
+    /// P6-07將本宣告限於主機內部；仍由既有呼叫端組裝及消費，不變更資料形狀、流程或資源owner。</summary>
+    internal class MemberInfoDetailViewModel
     {
         public string ContactId { get; set; }
         public string FullName { get; set; }
@@ -43,13 +48,19 @@ namespace ChurchReport.ViewModels
     }
 
     /// <summary>OptionSet 單一選項：以整數值送回後台，顯示文字給使用者看。</summary>
-    public class OptionItem
+    /// <remarks>P6-07限於本產品內部使用；既有資料形狀、呼叫順序與資源所有權不變，不作為跨組件API。</remarks>
+    /// <remarks>P6-07限於本產品內部使用；既有資料形狀、呼叫順序與資源所有權不變，不作為跨組件API。</remarks>
+    internal class OptionItem
     {
         public int Value { get; set; }
         public string Text { get; set; }
     }
 
-    public class RelationGoalItem
+    /// <summary>定義會友詳細彈窗的基本資料、唯讀性別／生日、選項與關係目標形狀，供控制器映射及Razor繫結；顯示資料增加不代表更新端點可以接受相同欄位。
+    /// P6-07將本宣告限於主機內部；仍由既有呼叫端組裝及消費，不變更資料形狀、流程或資源owner。</summary>
+    /// <summary>定義會友詳細彈窗的基本資料、唯讀性別／生日、選項與關係目標形狀，供控制器映射及Razor繫結；顯示資料增加不代表更新端點可以接受相同欄位。
+    /// P6-07將本宣告限於主機內部；仍由既有呼叫端組裝及消費，不變更資料形狀、流程或資源owner。</summary>
+    internal class RelationGoalItem
     {
         public string Role { get; set; }
         public string TargetName { get; set; }

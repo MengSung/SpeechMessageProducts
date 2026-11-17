@@ -23,13 +23,18 @@
  * SpeechMessageProducts.ChurchReport/Services/MemberInfo/DistrictTreeBuilder.cs、
  * SpeechMessageProducts.ChurchReport/Services/MemberInfo/MemberInfoCommitmentTypeSort.cs、
  * SpeechMessageProducts.ChurchReport/Services/MemberInfo/MemberInfoTreeSearchBuilder.cs 追查目前工作樹中的合作／使用位置。
+ * P6-07公開邊界：DistrictNodeViewModel、DistrictTreeViewModel、GroupMemberRowViewModel、GroupNodeViewModel、MemberInfoTreeSearchResultViewModel、UngroupedNodeViewModel改為產品內部宣告；外部輸出與既有資源清理契約不變。
  */
 using System;
 using System.Collections.Generic;
 
 namespace ChurchReport.ViewModels.MemberInfoTree
 {
-    public class GroupNodeViewModel
+    /// <summary>本檔整合下列相關契約：GroupMemberRowViewModel：小組、未分組與樹搜尋共用的成員列契約。BirthDate 保留 nullable，讓前端能區分有效日期與未設定； Gender、。
+    /// P6-07將本宣告限於主機內部；仍由既有呼叫端組裝及消費，不變更資料形狀、流程或資源owner。</summary>
+    /// <summary>本檔整合下列相關契約：GroupMemberRowViewModel：小組、未分組與樹搜尋共用的成員列契約。BirthDate 保留 nullable，讓前端能區分有效日期與未設定； Gender、。
+    /// P6-07將本宣告限於主機內部；仍由既有呼叫端組裝及消費，不變更資料形狀、流程或資源owner。</summary>
+    internal class GroupNodeViewModel
     {
         public string ListId { get; set; } = string.Empty;
         public string GroupName { get; set; } = string.Empty;
@@ -39,7 +44,11 @@ namespace ChurchReport.ViewModels.MemberInfoTree
         public int MemberCount { get; set; }
     }
 
-    public class DistrictNodeViewModel
+    /// <summary>本檔整合下列相關契約：GroupMemberRowViewModel：小組、未分組與樹搜尋共用的成員列契約。BirthDate 保留 nullable，讓前端能區分有效日期與未設定； Gender、。
+    /// P6-07將本宣告限於主機內部；仍由既有呼叫端組裝及消費，不變更資料形狀、流程或資源owner。</summary>
+    /// <summary>本檔整合下列相關契約：GroupMemberRowViewModel：小組、未分組與樹搜尋共用的成員列契約。BirthDate 保留 nullable，讓前端能區分有效日期與未設定； Gender、。
+    /// P6-07將本宣告限於主機內部；仍由既有呼叫端組裝及消費，不變更資料形狀、流程或資源owner。</summary>
+    internal class DistrictNodeViewModel
     {
         public string RaceLeaderKey { get; set; } = string.Empty;
         public string AreaName { get; set; } = string.Empty;
@@ -49,12 +58,20 @@ namespace ChurchReport.ViewModels.MemberInfoTree
         public List<GroupNodeViewModel> Groups { get; set; } = new List<GroupNodeViewModel>();
     }
 
-    public class UngroupedNodeViewModel
+    /// <summary>本檔整合下列相關契約：GroupMemberRowViewModel：小組、未分組與樹搜尋共用的成員列契約。BirthDate 保留 nullable，讓前端能區分有效日期與未設定； Gender、。
+    /// P6-07將本宣告限於主機內部；仍由既有呼叫端組裝及消費，不變更資料形狀、流程或資源owner。</summary>
+    /// <summary>本檔整合下列相關契約：GroupMemberRowViewModel：小組、未分組與樹搜尋共用的成員列契約。BirthDate 保留 nullable，讓前端能區分有效日期與未設定； Gender、。
+    /// P6-07將本宣告限於主機內部；仍由既有呼叫端組裝及消費，不變更資料形狀、流程或資源owner。</summary>
+    internal class UngroupedNodeViewModel
     {
         public int MemberCount { get; set; }
     }
 
-    public class DistrictTreeViewModel
+    /// <summary>本檔整合下列相關契約：GroupMemberRowViewModel：小組、未分組與樹搜尋共用的成員列契約。BirthDate 保留 nullable，讓前端能區分有效日期與未設定； Gender、。
+    /// P6-07將本宣告限於主機內部；仍由既有呼叫端組裝及消費，不變更資料形狀、流程或資源owner。</summary>
+    /// <summary>本檔整合下列相關契約：GroupMemberRowViewModel：小組、未分組與樹搜尋共用的成員列契約。BirthDate 保留 nullable，讓前端能區分有效日期與未設定； Gender、。
+    /// P6-07將本宣告限於主機內部；仍由既有呼叫端組裝及消費，不變更資料形狀、流程或資源owner。</summary>
+    internal class DistrictTreeViewModel
     {
         public List<DistrictNodeViewModel> Districts { get; set; } = new List<DistrictNodeViewModel>();
         public UngroupedNodeViewModel? Ungrouped { get; set; }
@@ -65,7 +82,9 @@ namespace ChurchReport.ViewModels.MemberInfoTree
     /// 小組、未分組與樹搜尋共用的成員列契約。BirthDate 保留 nullable，讓前端能區分有效日期與未設定；
     /// Gender、SpiritualIdentity、MembershipStatus 均為 OptionSet 顯示文字，而非可直接回寫 CRM 的整數值。
     /// </summary>
-    public class GroupMemberRowViewModel
+    /// <remarks>P6-07限於本產品內部使用；既有資料形狀、呼叫順序與資源所有權不變，不作為跨組件API。</remarks>
+    /// <remarks>P6-07限於本產品內部使用；既有資料形狀、呼叫順序與資源所有權不變，不作為跨組件API。</remarks>
+    internal class GroupMemberRowViewModel
     {
         public string ContactId { get; set; } = string.Empty;
         public string FullName { get; set; } = string.Empty;
@@ -94,7 +113,9 @@ namespace ChurchReport.ViewModels.MemberInfoTree
     /// MatchingListIds 與 HasUngrouped 保留為相容欄位及節點命中 metadata；現行前端主要使用 Rows
     /// 直接替換搜尋結果表格，不需按每個命中節點再發請求。Rows 必須由 allowed ids 過濾並去重。
     /// </summary>
-    public class MemberInfoTreeSearchResultViewModel
+    /// <remarks>P6-07限於本產品內部使用；既有資料形狀、呼叫順序與資源所有權不變，不作為跨組件API。</remarks>
+    /// <remarks>P6-07限於本產品內部使用；既有資料形狀、呼叫順序與資源所有權不變，不作為跨組件API。</remarks>
+    internal class MemberInfoTreeSearchResultViewModel
     {
         public List<string> MatchingListIds { get; set; } = new List<string>();
         public bool HasUngrouped { get; set; }
