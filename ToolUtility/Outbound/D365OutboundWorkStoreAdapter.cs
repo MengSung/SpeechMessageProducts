@@ -144,6 +144,7 @@ public sealed class D365OutboundWorkStoreAdapter : IOutboundWorkStore, IDisposab
         CoreOutbound.OutboundTaskType.RichMenuGenerate => OutboundWorkType.RichMenuGenerate,
         CoreOutbound.OutboundTaskType.QrImageGenerate => OutboundWorkType.QrImageGenerate,
         CoreOutbound.OutboundTaskType.AllotQuery => OutboundWorkType.AllotQuery,
+        CoreOutbound.OutboundTaskType.MemberNotifyRelay => OutboundWorkType.MemberNotifyRelay,
         _ => throw new ArgumentOutOfRangeException(nameof(value))
     };
 
@@ -153,6 +154,7 @@ public sealed class D365OutboundWorkStoreAdapter : IOutboundWorkStore, IDisposab
         OutboundWorkType.RichMenuGenerate => CoreOutbound.OutboundTaskType.RichMenuGenerate,
         OutboundWorkType.QrImageGenerate => CoreOutbound.OutboundTaskType.QrImageGenerate,
         OutboundWorkType.AllotQuery => CoreOutbound.OutboundTaskType.AllotQuery,
+        OutboundWorkType.MemberNotifyRelay => CoreOutbound.OutboundTaskType.MemberNotifyRelay,
         _ => throw new ArgumentOutOfRangeException(nameof(value))
     };
 

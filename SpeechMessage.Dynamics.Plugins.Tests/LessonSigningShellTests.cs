@@ -4,7 +4,7 @@
  * 分派、正式學員與組長身分、跨教會拒絕，以及安全影子意圖的完整發布。
  * 主要功能與流程：每案建立獨立 SDK、平台 context、學員與不同 ID 的組長，透過
  * WorkflowInvoker 求值真活動引數，或執行 Plugin。以影子 contactId 判定實際收件者，
- * 注入付款分支需單筆核定缺口標記、Live必須拒絕且零讀寫；跨教會必須零通知，只讀本工作樹固定 reading 基準，不連 D365 或 LINE。
+ * 注入付款分支需單筆核定缺口標記；Live普通通知只入列，付款拒絕且零讀寫；跨教會必須零通知，只讀本工作樹固定 reading 基準，不連 D365 或 LINE。
  * 使用邊界與維護：fixture 唯一擁有合成列、mock 與追蹤，同步呼叫返回後 Dispose
  * 清空所有集合及捕捉參照。參數不提供教會授權，來源列仍依平台使用者服務重讀；
  * 不保存 Session、credential、背景 Task 或 timer。這些測試不是實機送達證據。
@@ -196,7 +196,7 @@ public sealed class LessonSigningShellTests
         }
     }
 
-    /// <summary>正常簽核與付款Live均在查詢前明確拒絕，真例外經共用活動失敗邊界保留並留下安全型別供彙總告警。</summary>
+    /// <summary>正常簽核Live只入列，付款仍在查詢前明確拒絕，真例外經共用活動失敗邊界保留並留下安全型別供彙總告警。</summary>
     /// <param name="message">固定平台訊息，不涉及真D365。</param>
     /// <param name="parameter">涵蓋正常簽核與舊付款fallback的合成分派字串。</param>
     [Theory]
@@ -206,6 +206,11 @@ public sealed class LessonSigningShellTests
     [InlineData("ExecuteWorkflow", "付款")]
     public void Lessons_Signing_WorkflowLiveWithoutKey_RejectsBeforeReads(string message, string parameter)
     {
+        if (parameter != "付款")
+        {
+            RelayShellTests.RunActivity(1, "Live", message, parameter);
+            return;
+        }
         using var fixture = new Fixture();
         var failure = Assert.ThrowsAny<Exception>(() => fixture.Workflow(new SigningActivity(), message, parameter, mode: "Live"));
         var actual = Assert.IsType<InvalidPluginExecutionException>(failure.GetBaseException());

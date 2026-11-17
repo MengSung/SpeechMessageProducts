@@ -3,7 +3,7 @@
  *
  * 目的與定位：定義 P2 對外待辦入列的雙目標純值邊界，供 GoodShepherd Writer 與
  * D365 store 共用，不引用 Hosting，也不建立連線、快取或背景工作。
- * 主要功能與流程：以已授權教會、來源事件及三種固定工作類型建立不可變命令；
+ * 主要功能與流程：以已授權教會、來源事件及四種固定工作類型建立不可變命令；
  * payload 在建構時完整複製、驗證及正規序列化，拒絕文字、巢狀物件與超量內容。
  * 同教會／類型／來源事件形成穩定資料庫替代鍵，不以顯示名稱或臨時 draft key 防重。
  * 使用邊界與維護：教會 ID 的格式驗證不是授權；呼叫端須先授權固定組織、產品與
@@ -18,7 +18,7 @@ using System.Threading;
 
 namespace ToolUtilityNameSpace.Outbound;
 
-/// <summary>只允許計畫核定的三種對外待辦；數值對應 Dataverse A.4 選項，不可任意加入推播工作。</summary>
+/// <summary>只允許計畫核定的四種對外待辦；數值對應 Dataverse A.4 選項，不可任意加入推播工作。</summary>
 public enum OutboundTaskType
 {
     /// <summary>由 net10 處理器產生指定教會的宮格圖片與設定。</summary>
@@ -26,7 +26,9 @@ public enum OutboundTaskType
     /// <summary>由 net10 處理器以共用編碼器產生 QR 圖片。</summary>
     QrImageGenerate = 100000001,
     /// <summary>由測試／正式金流部署設定決定端點的撥款查詢，不代表授權真實交易。</summary>
-    AllotQuery = 100000002
+    AllotQuery = 100000002,
+    /// <summary>由主機以原有規則重讀來源並推播；待辦僅攜帶識別碼與分派數字。</summary>
+    MemberNotifyRelay = 100000003
 }
 
 /// <summary>保存單次入列所需的純值，建構時凍結 payload，避免 caller mutation 改變已核對的事件。</summary>
@@ -36,7 +38,7 @@ public sealed class OutboundTaskCommand
     /// 驗證已授權範圍的必要識別並建立穩定替代鍵；僅接受 GUID 與明確整數／十進位
     /// 型別，拒絕自由文字與複合物件。失敗發生在任何 SDK 寫入之前。
     /// </summary>
-    /// <param name="type">三種核定的待辦類型。</param>
+    /// <param name="type">四種核定的待辦類型。</param>
     /// <param name="churchId">伺服器已授權且存在的教會資料庫 ID。</param>
     /// <param name="contactId">選填且已驗證屬於該教會的會友 ID。</param>
     /// <param name="sourceId">權威業務事件或記錄的穩定 ID，不可每次 retry 重新產生。</param>
@@ -44,7 +46,7 @@ public sealed class OutboundTaskCommand
     public OutboundTaskCommand(OutboundTaskType type, Guid churchId, Guid? contactId,
         Guid sourceId, IReadOnlyDictionary<string, object> payload)
     {
-        if (type is not (OutboundTaskType.RichMenuGenerate or OutboundTaskType.QrImageGenerate or OutboundTaskType.AllotQuery))
+        if (type is not (OutboundTaskType.RichMenuGenerate or OutboundTaskType.QrImageGenerate or OutboundTaskType.AllotQuery or OutboundTaskType.MemberNotifyRelay))
             throw new ArgumentOutOfRangeException(nameof(type), "Unsupported outbound task type.");
         if (churchId == Guid.Empty) throw new ArgumentException("A database church identity is required.", nameof(churchId));
         if (sourceId == Guid.Empty) throw new ArgumentException("A stable source identity is required.", nameof(sourceId));

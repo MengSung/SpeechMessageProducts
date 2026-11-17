@@ -7,11 +7,11 @@
  *
  * 主要功能與流程：活動只在本次 CodeActivityContext 求值引數，驗證可省略的
  * appointment 參照與平台主記錄相符，再把純值交共用規則。Shadow 才記錄通知
- * 意圖；Live 依 P5-PROP-006 在任何安全金鑰查詢前固定拒絕。活動實例不保存
+ * 意圖；Live只入列識別碼及分派數字，Host重讀來源並推播。活動不讀key。活動實例不保存
  * context、SDK、Entity、token、Session、cache 或背景工作。
  *
  * 維護與驗證：離線 WorkflowInvoker／CAS 測試檢查引數相容、A/B/A 隔離、Shadow
- * 影子記錄與 Live fail-closed；不宣稱活動流程已在 D365 實機送達。
+ * 影子記錄與Live入列；不宣稱活動流程已在 D365 實機送達。
  */
 using System;
 using System.Activities;
@@ -22,6 +22,7 @@ using Microsoft.Xrm.Sdk.Workflow;
 using SpeechMessage.Dynamics.Plugins.Infrastructure;
 using SpeechMessage.Dynamics.Workflows.Infrastructure;
 using SpeechMessageProducts.GoodShepherd.Core.Appointments;
+using SpeechMessageProducts.GoodShepherd.Core.Notifications;
 
 namespace SpeechMessage.Dynamics.Workflows.Appointments;
 
@@ -42,18 +43,24 @@ public sealed class AppointmentSigningActivity : ActivityShellBase
     [Output("OutputResult")]
     public OutArgument<int> OutputResult { get; set; } = new();
 
-    /// <summary>Live 在任何 secure key 查詢前拒絕；Shadow 才使用當次 recorder。</summary>
+    /// <summary>Live只入列且不讀key、不建立傳輸；Shadow沿當次recorder。</summary>
     internal override void ExecuteWithArguments(CodeActivityContext context, ActivityInput input, PluginServices services)
     {
         if (input.PrimaryEntityName != "appointment" ||
             input.MessageName is not ("ExecuteWorkflow" or "Create" or "Update")) return;
-        if (!services.IsShadow)
-            throw new InvalidPluginExecutionException("P5-PROP-006: Appointment signing activity Live notifications are not implemented.");
         var parameter = InputParameter.Get(context);
         var target = InputAppointment.Get(context);
         if (target is not null && (target.LogicalName != "appointment" ||
             target.Id == Guid.Empty || target.Id != input.PrimaryEntityId || target.KeyAttributes.Count != 0))
             throw new InvalidPluginExecutionException("Appointment signing activity source is invalid.");
+        if (!services.IsShadow)
+        {
+            if (AppointmentSigningRule.TryRoute(input.MessageName, parameter, out var route))
+                MemberNotifyRelay.Enqueue(services.Organization, MemberNotifyRelayKind.AppointmentSigning, input.PrimaryEntityId,
+                    input.MessageName == "ExecuteWorkflow" ? 1 : input.MessageName == "Create" ? 2 : 3, route,
+                    input.OperationId != Guid.Empty ? input.OperationId : input.CorrelationId);
+            return;
+        }
         PluginServices.Wait(AppointmentSigningRule.NotifyAsync(services.Organization, new LinePushClient(),
             input.PrimaryEntityId, input.OrganizationId, input.MessageName, parameter,
             services.ShadowPush!, null, CancellationToken.None));

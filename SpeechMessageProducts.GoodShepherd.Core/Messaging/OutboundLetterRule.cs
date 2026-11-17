@@ -83,6 +83,23 @@ public sealed class OutboundLetterRule
             tokenKey, ct));
     }
 
+    /// <summary>Host代送與原Live共用通知準備；只在重試分類使用Relay的typed例外，不改既有SendAsync的例外契約。</summary>
+    public Task<OutboundLetterResult> SendRelayAsync(ILineRecipientSource source, TextContext context,
+        Guid activityId, Guid contactId, string content, byte[] tokenKey, CancellationToken ct)
+    {
+        Validate(activityId, contactId, content, ct);
+        return ClassifyRelayAsync(notifications.NotifyComposedAsync(source, context, contactId, activityId,
+            "Messaging.OutboundLetter", _ => new ISendMessage[] { new TextMessage(string.Empty) { Text = content } }, tokenKey, ct));
+    }
+
+    /// <summary>消費原傳輸結果；429／5xx／傳輸故障保留在typed例外，永久失敗仍沿既有字典原因。</summary>
+    private static async Task<OutboundLetterResult> ClassifyRelayAsync(Task<LinePushResult> pending)
+    {
+        var result = await pending.ConfigureAwait(false);
+        MemberNotifyRelay.ThrowIfRetryable(result);
+        return await ClassifyAsync(Task.FromResult(result)).ConfigureAwait(false);
+    }
+
     /// <summary>
     /// Shadow 入口與 Host 使用相同收件者檢查及內容，僅把有界摘要交給當次 sink。
     /// 不解密、不觸網，回 IntentRecorded 而非 Completed；caller 必須等待再 Dispose。

@@ -2,7 +2,7 @@
  * 檔案整體說明
  *
  * 目的與定位：提供 GoodShepherd 領域的雙目標待辦入列入口，僅處理宮格、QR 圖片、
- * 撥款查詢三種工作；Plugin 與 net10 主機共用，不引入 Hosting 或另一份送訊實作。
+ * 撥款查詢及MemberNotifyRelay四種工作；Plugin 與 net10 主機共用，不引入 Hosting 或另一份送訊實作。
  * 主要功能與流程：接收伺服器已授權的教會與來源記錄，建立凍結純值命令，再委派
  * 共用儲存邊界原子建立或讀回正式資料庫 ID。先驗 payload 再 I/O，重送不重設既有列。
  * 使用邊界與維護：Writer 只借入固定授權範圍的 store，不接管其連線所有權；
@@ -28,7 +28,7 @@ public sealed class OutboundTaskWriter
         this.store = store ?? throw new ArgumentNullException(nameof(store));
 
     /// <summary>先驗證並凍結 payload，再入列；相同來源記錄的重送維持同一穩定鍵。</summary>
-    /// <param name="type">只允許三種對外待辦。</param>
+    /// <param name="type">只允許四種對外待辦；代送payload仍僅識別碼與數字。</param>
     /// <param name="churchId">伺服器核准的教會資料庫 ID，不是 caller 路由授權。</param>
     /// <param name="contactId">選填且由伺服器核對教會歸屬的會友 ID。</param>
     /// <param name="sourceId">來源事件的正式 ID；retry 不得換新值。</param>

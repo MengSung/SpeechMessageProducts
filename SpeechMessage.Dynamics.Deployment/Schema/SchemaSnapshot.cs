@@ -7,6 +7,7 @@
  * 輸出刻意不含業務記錄、secure/unsecure configuration、SDK Entity／EntityReference、連線、憑證或request。
  * 隔離與生命週期：所有record只隨本次命令存活；集合由投影器完成後封裝，消費者不得原地填入尚未讀完的內容。
  * 不變條件：每個正式ID及其所屬集合的邏輯身份須唯一；nullable政策代表server未提供，不能轉成符合false。
+ * choice另保留全域政策，未知不可默認局部新增；舊快照null省略保持hash。
  * Active以外的key狀態必須保留，不能靠零新增操作把pending或failed說成驗收成功。
  * Solution根政策只存官方值與Guid；未知保持null且省略JSON，維持既有before的指紋，不能把缺值默認為包含子元件。
  * 維護驗證：擴充快照時同步投影、hash／漂移檢查、輸出保密與mutation／弱參照回收測試；metadata快照不等同資料庫備份。
@@ -58,7 +59,12 @@ internal sealed record SchemaEntityState(Guid Id, string LogicalName, string Pri
 /// <param name="Targets">lookup目標。</param><param name="Behavior">日期行為。</param><param name="Format">日期格式。</param>
 /// <param name="Options">正式選項數值，與顯示名無關。</param><param name="Managed">受管理標記。</param><param name="Audit">欄位稽核政策，不能只啟用entity而漏掉實際欄位。</param>
 internal sealed record SchemaFieldState(Guid Id, string LogicalName, string Type, int? MaxLength, string Required,
-    bool? Secured, IReadOnlyList<string> Targets, string Behavior, string Format, IReadOnlyList<int> Options, bool? Managed, bool? Audit = null);
+    bool? Secured, IReadOnlyList<string> Targets, string Behavior, string Format, IReadOnlyList<int> Options, bool? Managed, bool? Audit = null)
+{
+    /// <summary>choice是否全域；只有明確false的局部選項才允許AddOptionValue。未知為null並省略，保留舊快照hash。</summary>
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public bool? ChoiceIsGlobal { get; init; }
+}
 
 /// <summary>正式alternate key與建置狀態；Active以外不能verify為成功。</summary>
 /// <param name="Id">metadata ID。</param><param name="LogicalName">正式key身份。</param>

@@ -59,25 +59,21 @@ public static class AppointmentSigningRule
         Guid appointmentId, Guid organizationId, string message, string? parameter,
         IShadowPushSink? shadowSink, byte[]? key, CancellationToken ct)
     {
-#if NETFRAMEWORK
-        if (organization is null) throw new ArgumentNullException(nameof(organization));
-        if (push is null) throw new ArgumentNullException(nameof(push));
-#else
-        ArgumentNullException.ThrowIfNull(organization);
-        ArgumentNullException.ThrowIfNull(push);
-#endif
-        if (appointmentId == Guid.Empty || organizationId == Guid.Empty)
-            throw new InvalidPluginExecutionException("Appointment signing identity is invalid.");
-        if ((shadowSink is null) == (key is null) || (key is not null && key.Length != 64))
-            throw new InvalidPluginExecutionException("Appointment signing secure mode is unavailable.");
-        if (parameter is null || parameter.Length > 2000)
-            throw new InvalidPluginExecutionException("Appointment signing parameter is invalid.");
-        if (message is not ("ExecuteWorkflow" or "Create" or "Update"))
-            throw new InvalidPluginExecutionException("Appointment signing message is unsupported.");
-        ct.ThrowIfCancellationRequested();
+        ValidateInputs(organization, push, appointmentId, organizationId, shadowSink, key, ct);
+        if (!TryRoute(message, parameter, out var route)) return;
+        var result = await NotifyRouteAsync(organization, push, appointmentId, organizationId, route, shadowSink, key, null, ct).ConfigureAwait(false);
+        if (result is null) return;
+        if (result.TransportException is { } transport) System.Runtime.ExceptionServices.ExceptionDispatchInfo.Capture(transport).Throw();
+        if (!result.Success && result.Reason is not ("NotBound" or "ChurchMismatch" or "ShadowRecorded"))
+            throw new InvalidPluginExecutionException("Appointment signing notification failed.");
+    }
 
-        var keyword = message == "ExecuteWorkflow" ? SigningText.Get("Appointments.Signing.WorkflowParameter") : message == "Create" ? SigningText.Get("Lessons.Signing.CreateParameter") : SigningText.Get("Lessons.Signing.UpdateParameter");
-        if (!Contains(parameter, keyword)) return;
+    /// <summary>已解析分派的共用入口；重讀來源後先驗expectedChurch再查頻道及解密。回傳真傳輸結果，由呼叫邊界決定重試；key只借用至await排空。</summary>
+    public static async Task<LinePushResult?> NotifyRouteAsync(IOrganizationService organization, ILineMemberPushClient push, Guid appointmentId,
+        Guid organizationId, int route, IShadowPushSink? shadowSink, byte[]? key, Guid? expectedChurch, CancellationToken ct)
+    {
+        ValidateInputs(organization, push, appointmentId, organizationId, shadowSink, key, ct);
+        if (route is < 1 or > 3) throw new ArgumentOutOfRangeException(nameof(route));
         var appointment = organization.Retrieve(Appointment, appointmentId, new ColumnSet(
             "new_signing_contact", "new_signing_content", "new_meeting_kind", "new_applier_appointment"));
         ValidateRow(appointment, Appointment, appointmentId);
@@ -87,10 +83,11 @@ public static class AppointmentSigningRule
             "fullname", "parentcustomerid", "new_special_leave_days"));
         ValidateRow(applicant, Contact, applicantId);
         var church = Lookup(applicant, "parentcustomerid", "account");
+        if (expectedChurch.HasValue && church != expectedChurch.Value) return null;
         using var source = new LineRecipientQueries(organization);
         var recipient = source.ReadMember(signer, ct);
         // 來源 scope 必須先於 Channel／摘要查詢成立，不能用 signer 自己的教會反向授權。
-        if (LinePushClient.ValidateRecipient(recipient, church) is not null) return;
+        if (LinePushClient.ValidateRecipient(recipient, church) is { } rejected) return rejected;
         var subject = Option(appointment, "new_meeting_kind") switch
         {
             6 => SigningText.Get("Appointments.Signing.LeaveSubject"),
@@ -116,17 +113,32 @@ public static class AppointmentSigningRule
         IReadOnlyList<ISendMessage> Compose(TextContext _) =>
             new ISendMessage[] { AppointmentSigningMessageFactory.Create(
                 new AppointmentSigningMessageInput(appointmentId, signer, subject, content,
-                    OptionalText(applicant, "fullname", string.Empty), signerName, Image(parameter))) };
+                    OptionalText(applicant, "fullname", string.Empty), signerName, Image(route))) };
         var retryKey = DeterministicGuid.Create("appointments.signing", appointmentId, signer);
         var result = shadowSink is not null
             ? await notifications.NotifyComposedAsync(source, context, signer, retryKey,
                 "Appointments.Signing", Compose, shadowSink, ct).ConfigureAwait(false)
             : await notifications.NotifyComposedAsync(source, context, signer, retryKey,
                 "Appointments.Signing", Compose, key!, ct).ConfigureAwait(false);
-        if (result.TransportException is { } transport)
-            System.Runtime.ExceptionServices.ExceptionDispatchInfo.Capture(transport).Throw();
-        if (!result.Success && result.Reason is not ("NotBound" or "ChurchMismatch" or "ShadowRecorded"))
-            throw new InvalidPluginExecutionException("Appointment signing notification failed.");
+        return result;
+    }
+
+    /// <summary>保留原入口在分派前的依賴、正式身分、互斥模式及取消驗證；不讀SDK、不保存任何狀態。</summary>
+    private static void ValidateInputs(IOrganizationService organization, ILineMemberPushClient push, Guid appointmentId,
+        Guid organizationId, IShadowPushSink? shadowSink, byte[]? key, CancellationToken ct)
+    {
+#if NETFRAMEWORK
+        if (organization is null) throw new ArgumentNullException(nameof(organization));
+        if (push is null) throw new ArgumentNullException(nameof(push));
+#else
+        ArgumentNullException.ThrowIfNull(organization);
+        ArgumentNullException.ThrowIfNull(push);
+#endif
+        if (appointmentId == Guid.Empty || organizationId == Guid.Empty)
+            throw new InvalidPluginExecutionException("Appointment signing identity is invalid.");
+        if ((shadowSink is null) == (key is null) || (key is not null && key.Length != 64))
+            throw new InvalidPluginExecutionException("Appointment signing secure mode is unavailable.");
+        ct.ThrowIfCancellationRequested();
     }
 
     /// <summary>
@@ -194,11 +206,24 @@ public static class AppointmentSigningRule
         return report.ToString();
     }
 
+    /// <summary>只將原Contains關卡及圖片優先序轉為數字，不把流程文字放進待辦；未匹配不查SDK也不入列。</summary>
+    public static bool TryRoute(string message, string? parameter, out int route)
+    {
+        route = 0;
+        if (parameter is null || parameter.Length > 2000) throw new InvalidPluginExecutionException("Appointment signing parameter is invalid.");
+        if (message is not ("ExecuteWorkflow" or "Create" or "Update")) throw new InvalidPluginExecutionException("Appointment signing message is unsupported.");
+        var keyword = message == "ExecuteWorkflow" ? SigningText.Get("Appointments.Signing.WorkflowParameter") : message == "Create" ? SigningText.Get("Lessons.Signing.CreateParameter") : SigningText.Get("Lessons.Signing.UpdateParameter");
+        if (!Contains(parameter, keyword)) return false;
+        route = Contains(parameter, SigningText.Get("Appointments.Signing.TpeImageParameter")) ? 2 :
+            Contains(parameter, SigningText.Get("Appointments.Signing.AbundanceImageParameter")) ? 3 : 1;
+        return true;
+    }
+
     /// <summary>活動沿舊參數的圖片選擇，字串只分派樣式，不提供授權或組織 scope。</summary>
-    private static string Image(string parameter) =>
-        Contains(parameter, SigningText.Get("Appointments.Signing.TpeImageParameter"))
+    private static string Image(int route) =>
+        route == 2
             ? "https://od.lk/s/ODdfNTg5ODc5OF8/2017_06_sermon_6-18.jpg"
-            : Contains(parameter, SigningText.Get("Appointments.Signing.AbundanceImageParameter"))
+            : route == 3
                 ? "https://web.opendrive.com/api/v1/download/file.json/ODdfMTc5OTg5NTNf?inline=1" : ImageUrl;
 
     /// <summary>在雙目標使用 ordinal 分派，不能讓執行環境文化改變舊關鍵字語意。</summary>

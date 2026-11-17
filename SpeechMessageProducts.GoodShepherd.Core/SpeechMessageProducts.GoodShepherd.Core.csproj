@@ -44,6 +44,8 @@ GoodShepherd.Core.Tests 兩目標建置及 P2/P5 工作包。Resources\GoodSheph
   <ItemGroup Condition="'$(TargetFramework)' == 'net462'">
     <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" PrivateAssets="all" />
     <PackageReference Include="Microsoft.CrmSdk.CoreAssemblies" PrivateAssets="all" />
+    <!-- 代送typed傳輸例外僅使用Framework型別，不建立HTTP連線。 -->
+    <Reference Include="System.Net.Http" />
     <PackageReference Include="System.Text.Json" PrivateAssets="all" />
   </ItemGroup>
   <!-- 與 ToolUtility.Core 相同的條件 SDK 型別參考；不建立 ServiceClient 或引入主機 I/O。 -->

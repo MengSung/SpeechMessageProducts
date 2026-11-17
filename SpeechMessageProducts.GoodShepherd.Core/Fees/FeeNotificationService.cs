@@ -1,11 +1,11 @@
 /*
  * 檔案整體說明
- * 目的與定位：P5-11 繳費通知的 Shadow 組合服務，專供核定 P5-PROP-006 尚未提供
- * Host 推播的期間使用。只記實際訊息摘要，不能當成已送達或提供 Live fallback。
+ * 目的與定位：繳費通知的Shadow及Host代送共用組合，兩模式使用相同收件者與組字。
+ * Shadow只記摘要、絕不讀token；Live由Host借入key，重驗來源教會後才推播。
  * 主要流程：以正式 fee→contact→account 決定來源教會，交 MemberNotificationService
  * 重讀收件者並驗綁定／歸屬，再讀來源教會語系、名稱與正式頻道關聯；使用共用入口
- * 組字、server sender 及安全摘要。頻道查詢完全不投影 token 或加密 token。
- * 使用邊界與維護：SDK 只借用當次平台服務；token-free source 為呼叫區域 owner，
+ * 組字、server sender 及安全摘要。Shadow頻道查詢完全不投影token；Live沿共用LineRecipientQueries讀加密封包。
+ * 使用邊界與維護：SDK 只借用當次平台服務；收件source為呼叫區域owner，只有Live讀加密封包，
  * await 排空後 Dispose 清 SDK 參照。訊息、context、姓名只留至本次通知結束，
  * 無 static 個資、Session、快取、Timer、queue 或脫離呼叫的工作。任何真失敗原樣
  * 交回外殼共用例外邊界；未綁定／跨教會正常拒絕且不記推播。離線與 CAS 測試
@@ -25,27 +25,52 @@ using ToolUtilityNameSpace.LineRecipients;
 
 namespace SpeechMessageProducts.GoodShepherd.Core.Fees;
 
-/// <summary>不具 token 或網路能力的收費影子通知；所有資料只活於單一同步準備與排空。</summary>
+/// <summary>收費通知的Shadow與Host共用規則；所有資料只活於單一同步準備與排空。</summary>
 public static class FeeNotificationService
 {
     /// <summary>
     /// 從平台來源讀取一次收費通知，使用正式 feeId 原樣作重試鍵。
-    /// 不提供 Live 多載；外殼必須在查詢前拒絕未核定的 Live 路徑。
+    /// Shadow不解密或推播；活動Live只入列，實際推播由NotifyRouteAsync負責。
     /// </summary>
     /// <param name="sdk">平台授權服務，只借用，不 Dispose。</param>
     /// <param name="feeId">來源 new_fee 正式主鍵。</param>
     /// <param name="organizationId">平台組織主鍵，用於完整文字 scope。</param>
     /// <param name="sink">外殼當次擁有且有界的影子 sink。</param>
     /// <param name="ct">呼叫端取消；同步 SDK 前後檢查，不宣稱可中止已進入的呼叫。</param>
-    public static async Task RecordAsync(IOrganizationService sdk, Guid feeId, Guid organizationId,
+    public static Task RecordAsync(IOrganizationService sdk, Guid feeId, Guid organizationId,
         IShadowPushSink sink, CancellationToken ct)
+    {
+#if NETFRAMEWORK
+        if (sdk is null) throw new ArgumentNullException(nameof(sdk));
+        if (sink is null) throw new ArgumentNullException(nameof(sink));
+#else
+        ArgumentNullException.ThrowIfNull(sdk);
+        ArgumentNullException.ThrowIfNull(sink);
+#endif
+        return NotifyCoreAsync(sdk, new NoDelivery(), feeId, organizationId, sink, null, null, ct);
+    }
+
+    /// <summary>已解析route的Live入口；route固定0，來源教會重驗後才讀頻道並以feeId推播。回傳原傳輸結果，key由Host擁有及清零。</summary>
+    public static Task<LinePushResult?> NotifyRouteAsync(IOrganizationService sdk, ILineMemberPushClient push, Guid feeId,
+        Guid organizationId, int route, Guid expectedChurch, byte[] key, CancellationToken ct)
+    {
+#if NETFRAMEWORK
+        if (route != 0) throw new ArgumentOutOfRangeException(nameof(route));
+#else
+        ArgumentOutOfRangeException.ThrowIfNotEqual(route, 0);
+#endif
+        if (key is null || key.Length != 64) throw new ArgumentException("A token key is required.", nameof(key));
+        return NotifyCoreAsync(sdk, push, feeId, organizationId, null, key, expectedChurch, ct);
+    }
+
+    /// <summary>兩模式共用收件者、組字及重試鍵；當次source在傳輸排空後釋放，來源不符不讀token。</summary>
+    private static async Task<LinePushResult?> NotifyCoreAsync(IOrganizationService sdk, ILineMemberPushClient push, Guid feeId,
+        Guid organizationId, IShadowPushSink? sink, byte[]? key, Guid? expectedChurch, CancellationToken ct)
     {
 #if NET10_0_OR_GREATER
         ArgumentNullException.ThrowIfNull(sdk);
-        ArgumentNullException.ThrowIfNull(sink);
 #else
         if (sdk is null) throw new ArgumentNullException(nameof(sdk));
-        if (sink is null) throw new ArgumentNullException(nameof(sink));
 #endif
         if (feeId == Guid.Empty || organizationId == Guid.Empty)
             throw new ArgumentException("A fee and organization identity are required.");
@@ -54,12 +79,13 @@ public static class FeeNotificationService
         var contactId = Lookup(fee, "new_contact_new_fee", "contact");
         var contact = Read(sdk, "contact", contactId, ct, "parentcustomerid", "fullname");
         var churchId = Lookup(contact, "parentcustomerid", "account");
-        using var source = new TokenFreeSource(sdk);
+        if (expectedChurch.HasValue && churchId != expectedChurch.Value) return null;
+        using var source = new NotificationSource(sdk, key is not null);
         var catalog = new GoodShepherdTextCatalog(new NoOverrides());
-        var notifications = new MemberNotificationService(new NoDelivery(),
+        var notifications = new MemberNotificationService(push,
             new MemberCultureResolver(new LocalizationOptions()), catalog);
         var scope = new TextContext(churchId, "zh-TW", "zh-TW", organizationId.ToString("D"), "GoodShepherd");
-        await notifications.NotifyComposedAsync(source, scope, contactId, feeId, "Fees.FeeNotify", context =>
+        System.Collections.Generic.IReadOnlyList<ISendMessage> Compose(TextContext context)
         {
             // 姓名、金額與日期只在共用入口已重驗收件者後才解讀／組成訊息。
             if (!fee.Attributes.TryGetValue("new_pay_date", out var date) || date is not DateTime raw)
@@ -72,7 +98,10 @@ public static class FeeNotificationService
                 timeZone, Option(fee, "new_category"), Option(fee, "new_pay_way"),
                 Text(fee, "new_others", "", 2000), amount.Value);
             return new ISendMessage[] { new TextMessage(string.Empty) { Text = text } };
-        }, sink, ct).ConfigureAwait(false);
+        }
+        return sink is not null
+            ? await notifications.NotifyComposedAsync(source, scope, contactId, feeId, "Fees.FeeNotify", Compose, sink, ct).ConfigureAwait(false)
+            : await notifications.NotifyComposedAsync(source, scope, contactId, feeId, "Fees.FeeNotify", Compose, key!, ct).ConfigureAwait(false);
     }
 
     /// <summary>讀取最小欄位並核對回應正式身分；不讓其他列或替代鍵混入本次候選。</summary>
@@ -104,8 +133,8 @@ public static class FeeNotificationService
         value is OptionSetValue option ? option.Value :
         throw new InvalidOperationException("Fee notification option is invalid.");
 
-    /// <summary>單次 token-free 收件來源；唯一 owner 在通知排空後清借用參照。</summary>
-    private sealed class TokenFreeSource(IOrganizationService sdk) : ILineRecipientSource, IDisposable
+    /// <summary>單次收件來源；Shadow不讀token，Live沿共用adapter讀加密封包，唯一owner在await排空後清參照。</summary>
+    private sealed class NotificationSource(IOrganizationService sdk, bool live) : ILineRecipientSource, IDisposable
     {
         private IOrganizationService? service = sdk;
         /// <summary>只屬本次來源教會的不可變時區；Dispose 清除，不能跨次套用。</summary>
@@ -118,7 +147,7 @@ public static class FeeNotificationService
             return query.ReadMember(id, ct);
         }
 
-        /// <summary>只讀語系、名稱、時區與頻道身分；加密 token 欄位完全不讀。</summary>
+        /// <summary>兩模式共用語系與時區；Shadow不讀加密token，Live才借用共用adapter。</summary>
         public ChurchChannelRecord ReadChannel(Guid id, CancellationToken ct)
         {
             var service = GetService();
@@ -133,12 +162,17 @@ public static class FeeNotificationService
             TimeZone = string.IsNullOrWhiteSpace(timeZone) ? "Asia/Taipei" : timeZone;
             var defaultCulture = Text(row, "new_defaultlanguage", "zh-TW", 128);
             var locales = new ChurchLocaleSettings(string.IsNullOrWhiteSpace(defaultCulture) ? "zh-TW" : defaultCulture, enabled);
+            if (live)
+            {
+                using var query = new LineRecipientQueries(service);
+                return query.ReadChannel(id, ct);
+            }
             return new ChurchChannelRecord(id, channelId, channelId, Text(row, "name", "", 160), "", locales);
         }
 
         /// <summary>清理後一律拒絕新入口，避免把上次來源服務借給後續通知。</summary>
         private IOrganizationService GetService() =>
-            service ?? throw new ObjectDisposedException(nameof(TokenFreeSource));
+            service ?? throw new ObjectDisposedException(nameof(NotificationSource));
 
         /// <summary>本次同步準備已排空，清除 SDK 與教會設定，不 Dispose 平台服務。</summary>
         public void Dispose() { service = null; TimeZone = null; }

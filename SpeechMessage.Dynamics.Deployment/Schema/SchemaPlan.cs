@@ -3,6 +3,7 @@
  *
  * 目的與定位：本檔定義可保存與審閱的結構新增計畫；它承接純planner結果，讓apply重新核對同一組織與同一schema。
  * 主要功能：SchemaPlan保存版本、server組織及publisher正式ID、UTC時刻、schema hash、metadata fingerprint、完整有序操作、pending key及plan hash。
+ * SchemaOperation亦含AddOptionValue的正式值／新label，null省略保持舊證據hash。
  * SchemaOperation只接受產品規劃的新增／納入元件動詞，包含正式表名、欄位或key名；新元件ID必須等SDK建立後取得，不可捏造。
  * 輸入輸出與依賴：SchemaPlanner建立並計算hash，SchemaFiles嚴格讀寫，SchemaDeploymentEngine在每次apply前重新讀server並驗整份計畫。
  * 安全與生命週期：計畫只有結構身份，不含資料列、token、密碼或SDK；每份由命令獨佔，不保存在跨使用者static或request狀態。
@@ -17,7 +18,15 @@ namespace SpeechMessage.Dynamics.Deployment.Schema;
 /// <summary>僅含結構身份的新增操作；資料庫ID在已存在時固定，新元件ID只能由SDK回應／重新讀取metadata取得。</summary>
 /// <param name="Kind">固定白名單動詞。</param><param name="Entity">固定目標表。</param><param name="Name">正式欄位或key名稱。</param>
 /// <param name="Id">既有metadata ID，新元件為空直到SDK建立。</param>
-internal sealed record SchemaOperation(string Kind, string Entity, string Name, Guid Id);
+internal sealed record SchemaOperation(string Kind, string Entity, string Name, Guid Id)
+{
+    /// <summary>只在AddOptionValue存在的正式選項數值；null於舊操作省略以保留歷史hash。</summary>
+    [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
+    public int? OptionValue { get; init; }
+    /// <summary>新增選項的核定顯示名；不讀寫既有標籤，null不改舊操作canonical JSON。</summary>
+    [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
+    public string? OptionLabel { get; init; }
+}
 
 /// <summary>人工可審核的完整結構計畫；不含SDK、欄位值、帳密或其他組織權限，不能取代Host的寫入授權。</summary>
 internal sealed record SchemaPlan

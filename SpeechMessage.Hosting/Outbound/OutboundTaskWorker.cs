@@ -33,7 +33,7 @@ using ToolUtilityNameSpace.Diagnostics;
 
 namespace SpeechMessage.Hosting.Outbound;
 
-/// <summary>Hosting-facing 的三種核定對外待辦類型；數值與 D365 A.4 保持一致。</summary>
+/// <summary>Hosting-facing 的四種核定對外待辦類型；數值與 D365 A.4 保持一致。</summary>
 public enum OutboundWorkType
 {
     /// <summary>產生指定教會的 Rich Menu 圖片與設定。</summary>
@@ -41,7 +41,9 @@ public enum OutboundWorkType
     /// <summary>產生 QR 圖片。</summary>
     QrImageGenerate = 100000001,
     /// <summary>執行受測試／正式組態約束的撥款查詢。</summary>
-    AllotQuery = 100000002
+    AllotQuery = 100000002,
+    /// <summary>由主機以原有規則重讀來源並推播；待辦僅攜帶識別碼與分派數字。</summary>
+    MemberNotifyRelay = 100000003
 }
 
 /// <summary>Hosting-facing 的對外待辦狀態；不使用 Dataverse 平台 statuscode。</summary>
@@ -85,7 +87,7 @@ public sealed record OutboundWorkItem
             !ulong.TryParse(rowVersion, NumberStyles.None, CultureInfo.InvariantCulture, out var version) ||
             version == 0)
             throw new ArgumentException("Outbound work row version is invalid.", nameof(rowVersion));
-        if (type is not (OutboundWorkType.RichMenuGenerate or OutboundWorkType.QrImageGenerate or OutboundWorkType.AllotQuery))
+        if (type is not (OutboundWorkType.RichMenuGenerate or OutboundWorkType.QrImageGenerate or OutboundWorkType.AllotQuery or OutboundWorkType.MemberNotifyRelay))
             throw new ArgumentOutOfRangeException(nameof(type));
         if (status is not (OutboundWorkStatus.Pending or OutboundWorkStatus.Processing or
             OutboundWorkStatus.Completed or OutboundWorkStatus.Failed))

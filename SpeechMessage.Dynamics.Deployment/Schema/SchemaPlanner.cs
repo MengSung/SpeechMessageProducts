@@ -3,6 +3,7 @@
  *
  * 目的與定位：本檔是無I/O的結構差異與完整性核心，依正式SchemaDefinition的ActivePhase及一份完整server快照建立只新增計畫。
  * 主要功能：核對唯一組織、solution未受管理、publisher前綴、既有新表ownership/audit/concurrency，以及目前作用階段內欄位與索引的完整功能約束。
+ * 局部choice只補缺值，server多餘選項保留、既有標籤不改；其他型別與安全約束仍逐項核對。
  * 所有衝突先停止整份候選；不得產生Update/Delete、改欄位型別、關閉安全或用新欄位掩蓋既有衝突。
  * 流程與輸出：新增依publisher→solution→所有表→一般欄→lookup→key排序，最後列需要加入solution的正式元件；獨立列出尚未Active的key。
  * 元件包含只承認精確正式ID的顯式列，或同表根明確Include Subcomponents；未知與外殼不得掩蓋缺漏，功能約束仍完整核對。
@@ -74,7 +75,17 @@ internal static class SchemaPlanner
                     if (existing is not null || field.LogicalName != expected.PrimaryName)
                         operations.Add(new SchemaOperation(field.Type == "lookup" ? "CreateLookup" : "CreateAttribute", expected.LogicalName, field.LogicalName, Guid.Empty));
                 }
-                else if (!Matches(field, actual, expected.IsNew && expected.Audit)) Conflict(expected.LogicalName + "." + field.LogicalName);
+                else
+                {
+                    if (!Matches(field, actual, expected.IsNew && expected.Audit)) Conflict(expected.LogicalName + "." + field.LogicalName);
+                    if (field.Type == "choice")
+                        foreach (var option in field.Options.Where(option => !actual.Options.Contains(option.Value)))
+                        {
+                            if (actual.ChoiceIsGlobal != false) Conflict(expected.LogicalName + "." + field.LogicalName + " choice scope");
+                            operations.Add(new SchemaOperation("AddOptionValue", expected.LogicalName, field.LogicalName, actual.Id)
+                            { OptionValue = option.Value, OptionLabel = option.Label });
+                        }
+                }
                 if (actual is null || !includesChildren && !components.Contains((2, actual.Id)))
                     includes.Add(new SchemaOperation("IncludeAttribute", expected.LogicalName, field.LogicalName, actual?.Id ?? Guid.Empty));
             }
@@ -124,13 +135,13 @@ internal static class SchemaPlanner
         && (expected.MaxLength == 0 || actual.MaxLength == expected.MaxLength)
         && (expected.Type != "lookup" || actual.Targets.Count == 1 && actual.Targets[0] == expected.Target)
         && (expected.Type != "datetime" || actual.Behavior == expected.Behavior && actual.Format == expected.Format)
-        && (expected.Type != "choice" || actual.Options.SequenceEqual(expected.Options.Select(option => option.Value).Order()));
+;
 
     /// <summary>固定operation依賴表；未知動詞拒絕，不能透過plan注入任意SDK操作。</summary>
     private static int Order(string kind) => kind switch
     {
         "CreatePublisher" => 0, "CreateSolution" => 1, "CreateEntity" => 2,
-        "CreateAttribute" => 3, "CreateLookup" => 4, "CreateKey" => 5,
+        "CreateAttribute" => 3, "CreateLookup" => 4, "CreateKey" => 5, "AddOptionValue" => 6,
         _ => throw new InvalidDataException("Unsupported schema operation.")
     };
     /// <summary>只輸出已驗證的schema身份，不帶SDK原始訊息、欄位本文或使用者資料；呼叫端必須停止整次寫入。</summary>

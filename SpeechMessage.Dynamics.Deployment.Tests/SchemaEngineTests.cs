@@ -3,6 +3,7 @@
  *
  * 目的與定位：本檔把真SchemaDeploymentEngine／SchemaMetadata／SchemaPlanner接到嚴格合成SDK資料庫，驗完整新增與重讀流程。
  * 主要契約：每次寫入前before snapshot必須完整flush且檔案已關閉；只新增metadata，不Update/Delete既有資料，原account ID保持不變。
+ * AddOptionValue只接受第四正式值及核定label，供新測試驗兩次冪等及既有label不變。
  * 具體斷言：四key、四日期及兩加密欄的SDK參數精確；定向publish一次，第二輪重新plan/apply完全零寫入且元件齊全。
  * 故障注入：plan竄改、舊證據同名、SDK原故障與未發布結構差異；失敗不覆寫before、不還原checkpoint、不刪既有元件。
  * 生命週期：Fixture擁有唯一Guid暫存目錄與合成Store；產品借用SDK，所有stream關閉後fixture才刪目錄。沒有真連線、credential或LINE。
@@ -322,6 +323,17 @@ public sealed class SchemaEngineTests
                 Assert.Equal(field.MetadataId, audit.Attribute.MetadataId);
                 BeforeWrite();field.IsAuditEnabled = new BooleanManagedProperty(true);AuditUpdates++;
                 return new UpdateAttributeResponse();
+            }
+            if (request is InsertOptionValueRequest addOption)
+            {
+                BeforeWrite(); Assert.Equal("SpeechMessageCore", addOption.SolutionUniqueName);
+                Assert.Equal("new_outboundtask", addOption.EntityLogicalName); Assert.Equal("new_type", addOption.AttributeLogicalName);
+                Assert.Equal(100000003, addOption.Value); Assert.Equal("MemberNotifyRelay", Assert.Single(addOption.Label.LocalizedLabels).Label);
+                Assert.Equal(1028, Assert.Single(addOption.Label.LocalizedLabels).LanguageCode);
+                var field = (PicklistAttributeMetadata)Entities.Single(e => e.LogicalName == addOption.EntityLogicalName).Attributes.Single(f => f.LogicalName == addOption.AttributeLogicalName);
+                Assert.DoesNotContain(field.OptionSet.Options, option => option.Value == addOption.Value);
+                field.OptionSet.Options.Add(new OptionMetadata(addOption.Label, addOption.Value));
+                return new InsertOptionValueResponse { Results = { ["NewOptionValue"] = addOption.Value!.Value } };
             }
             if (request is CreateEntityKeyRequest createKey)
             {

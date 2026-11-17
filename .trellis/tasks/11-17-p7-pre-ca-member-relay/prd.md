@@ -1,0 +1,34 @@
+# 前置C-a 主機代送離線規則與外殼
+
+依07A §4.5與§5前置C-a；起點f06d7596、P7分支。前置B已驗收推送2ec38487（含盤點更正），本段全離線，時間盒1天。
+
+## 核定需求
+第四類待辦MemberNotifyRelay=100000003，只含kind/recordId/message/route四欄識別碼或數字；來源教會依既有規則，不由收件者反推。
+三活動與外送Plugin的Live只入列，付款分支保持查詢前拒絕，Shadow完全保持原行為；主機執行沿同一份規則。
+新增Schema AddOptionValue，只補缺選項，不刪多餘或改既有標籤。不能新增csproj、連D365/LINE或改未核定測試期望。
+
+## 指定同名測試
+- OutboundTask_MemberNotifyRelay_TypeAccepted
+- OutboundTask_UnknownType_StillRejected
+- OutboundTask_RelayPayload_RejectsText
+- Relay_Enqueue_SameInstanceTwice_OneTask
+- Relay_Enqueue_DifferentInstance_TwoTasks
+- Relay_Enqueue_ChurchFromSourceRecord_NotFromRecipient
+- Relay_Execute_UnknownKindOrExtraField_FailsClosed
+- Relay_Execute_RecordOtherChurch_NoPushNoDecrypt
+- Relay_Execute_AppointmentSigning_SameMessageAsPluginLive
+- Relay_Execute_LessonSigning_SameMessageAsPluginLive
+- Relay_Execute_FeeNotify_RetryKeyIsFeeId
+- Relay_Execute_OutboundLetter_RetryKeyIsActivityId_StatusWrittenBack
+- Relay_Execute_Retryable429_Throws
+- Relay_Execute_InterleavedChurches_NoStateShared
+- Activity_Live_EnqueuesRelay_NoTokenNoPush
+- LessonSigningActivity_Live_PaymentBranch_FailsClosed
+- OutboundLetterPlugin_Live_EnqueuesRelay_NoTokenNoPush
+- Relay_PartialTrust_EnqueueChainWorks
+- Schema_MissingOptionValue_PlansAddOptionValue
+- Schema_AddOptionValue_TwiceIdempotent
+- Schema_ExtraOptionOnServer_NotRemoved
+
+## 完成條件
+上述測試同名存在並通過，雙目標都過；四指定測試專案全綠、全方案綠；兩DLL打包與Test-PluginAssembly通過、記大小。Notifications README與修改檔繁中說明同步；程式提交固定guard完整00 §8.1；一頁回報/進度完成後驗收推送。

@@ -1,7 +1,7 @@
 /*
  * 檔案整體說明
  * 目的與定位：P5-12 外送 letter 的 Shadow 資料 adapter，從正式活動解出單人收件者、
- * 寄件者所屬教會及自由文字，委派 OutboundLetterRule 記錄完整意圖；不是 Live 實作。
+ * 寄件者所屬教會及自由文字，委派 OutboundLetterRule 記錄完整意圖；亦供Host Live代送；Live使用同一組字規則與狀態patch。
  * 主要流程：先讀 directioncode，入站或已終止活動不繼續；外送缺狀態即拒絕，不把
  * 未知狀態推定 Open。外送只接受一個 contact
  * 收件 party 與一個 account／contact 寄件 party。教會由寄件者 account 或正式 contact
@@ -10,8 +10,8 @@
  * 候選。經唯讀 metadata 確認主鍵 activityid、state/status 完成1/4、取消2/5，以及
  * category／subcategory 各250字；以固定 SMV 類別識別本模組失敗、subcategory 存字典
  * 原因，不覆蓋原 description。既有非本模組 category／subcategory 先拒絕、不搶用。
- * 資源與隔離：sdk 必須是外殼當次 recording service；此入口的 Update 只能記意圖。
- * token-free source 只查頻道身分，不投影加密 token；只借用平台 SDK，在 await 排空
+ * 資源與隔離：Shadow借用recording SDK且Update只記意圖；Host Live借用當筆已授權SDK。
+ * Shadow只查頻道身分；Live沿LineRecipientQueries讀加密token，source在await排空
  * 後 Dispose 清除參照。文字、Entity、教會設定只留本次；無 Session、快取、Timer
  * 或背景工作。缺權威來源、多收件者、媒體型別等未承接範圍明確拒絕，不冒稱相容。
  */
@@ -28,7 +28,7 @@ using ToolUtilityNameSpace.LineRecipients;
 
 namespace SpeechMessageProducts.GoodShepherd.Core.Messaging;
 
-/// <summary>只供外殼 Shadow recorder 使用的資料組合；不暴露可直接啟用的 Live adapter。</summary>
+/// <summary>外殼Shadow及Host單筆Live共用資料組合；來源教會必須獨立核對。</summary>
 public static class OutboundLetterRecords
 {
     /// <summary>
@@ -40,15 +40,31 @@ public static class OutboundLetterRecords
     /// <param name="organizationId">平台已驗組織身分，不能由來源記錄或 request 代入。</param>
     /// <param name="sink">同次外殼的有界摘要 sink。</param>
     /// <param name="ct">caller 取消；同步 SDK 前後檢查，transport 期限由平台掌握。</param>
-    public static async Task RecordAsync(IOrganizationService sdk, Guid activityId, Guid organizationId,
+    public static Task RecordAsync(IOrganizationService sdk, Guid activityId, Guid organizationId,
         IShadowPushSink sink, CancellationToken ct)
+    {
+#if NETFRAMEWORK
+        if (sdk is null) throw new ArgumentNullException(nameof(sdk));
+        if (sink is null) throw new ArgumentNullException(nameof(sink));
+#else
+        ArgumentNullException.ThrowIfNull(sdk);
+        ArgumentNullException.ThrowIfNull(sink);
+#endif
+        return ProcessAsync(sdk, activityId, organizationId, sink, null, null, null, ct);
+    }
+
+    /// <summary>Host單筆代送；來源重驗後才解密，沿既有規則組字及回寫，retryable錯誤不回寫終止狀態。</summary>
+    public static Task SendAsync(IOrganizationService sdk, ILineMemberPushClient push, Guid activityId, Guid organizationId,
+        Guid expectedChurch, byte[] key, CancellationToken ct) => ProcessAsync(sdk, activityId, organizationId, null, push, key, expectedChurch, ct);
+
+    /// <summary>共用正式活動讀取、來源教會推導與狀態patch；所有借用物件僅存活本次await。</summary>
+    private static async Task ProcessAsync(IOrganizationService sdk, Guid activityId, Guid organizationId,
+        IShadowPushSink? sink, ILineMemberPushClient? push, byte[]? key, Guid? expectedChurch, CancellationToken ct)
     {
 #if NET10_0_OR_GREATER
         ArgumentNullException.ThrowIfNull(sdk);
-        ArgumentNullException.ThrowIfNull(sink);
 #else
         if (sdk is null) throw new ArgumentNullException(nameof(sdk));
-        if (sink is null) throw new ArgumentNullException(nameof(sink));
 #endif
         if (activityId == Guid.Empty || organizationId == Guid.Empty)
             throw new ArgumentException("A formal letter and organization identity are required.");
@@ -79,15 +95,18 @@ public static class OutboundLetterRecords
         }
         else throw new InvalidOperationException("The sender has no proven source church relationship.");
 
-        using var source = new ShadowSource(sdk);
+        if (expectedChurch.HasValue && churchId != expectedChurch.Value) return;
+        using var source = new NotificationSource(sdk, key is not null);
         var catalog = new GoodShepherdTextCatalog(new NoOverrides());
-        var notifications = new MemberNotificationService(new NoDelivery(),
+        var notifications = new MemberNotificationService(push ?? new NoDelivery(),
             new MemberCultureResolver(new LocalizationOptions()), catalog);
         var context = new TextContext(churchId, "zh-TW", "zh-TW", organizationId.ToString("D"), "GoodShepherd");
-        var outcome = await new OutboundLetterRule(notifications).RecordAsync(true, source, context, activityId,
-            recipient.Id, row.GetAttributeValue<string>("description") ?? "", sink, ct).ConfigureAwait(false);
+        var rule = new OutboundLetterRule(notifications);
+        var outcome = sink is not null
+            ? await rule.RecordAsync(true, source, context, activityId, recipient.Id, row.GetAttributeValue<string>("description") ?? "", sink, ct).ConfigureAwait(false)
+            : await rule.SendRelayAsync(source, context, activityId, recipient.Id, row.GetAttributeValue<string>("description") ?? "", key!, ct).ConfigureAwait(false);
         var patch = new Entity("letter", activityId);
-        if (outcome.Status == OutboundLetterStatus.IntentRecorded)
+        if (outcome.Status is OutboundLetterStatus.IntentRecorded or OutboundLetterStatus.Completed)
         {
             // 這是「若供應商接受」的完整寫入意圖，外殼只會把它寫入 recording SDK。
             patch["statecode"] = new OptionSetValue(1); patch["statuscode"] = new OptionSetValue(4);
@@ -129,8 +148,8 @@ public static class OutboundLetterRecords
         return value;
     }
 
-    /// <summary>單次 token-free 來源；只能查目前正式 channel 身分，完全不讀憑證欄位。</summary>
-    private sealed class ShadowSource(IOrganizationService sdk) : ILineRecipientSource, IDisposable
+    /// <summary>單次來源；Shadow只查正式頻道身分，Live才沿共用adapter讀加密token。</summary>
+    private sealed class NotificationSource(IOrganizationService sdk, bool live) : ILineRecipientSource, IDisposable
     {
         private IOrganizationService? service = sdk;
         /// <summary>來源教會的顯示文化快照，只活至本次 await 排空，用於拒絕原因。</summary>
@@ -141,7 +160,7 @@ public static class OutboundLetterRecords
             using var query = new LineRecipientQueries(GetService());
             return query.ReadMember(id, ct);
         }
-        /// <summary>不讀 token；語系及頻道均從正式來源 account 指派核對。</summary>
+        /// <summary>語系及頻道從正式來源account指派核對；Shadow不讀token，Live才借用共用adapter。</summary>
         public ChurchChannelRecord ReadChannel(Guid id, CancellationToken ct)
         {
             var current = GetService();
@@ -156,11 +175,16 @@ public static class OutboundLetterRecords
             var enabled = names.Split(',');
             if (enabled.Length > 64) throw new InvalidOperationException("Church culture count exceeds the budget.");
             for (var index = 0; index < enabled.Length; index++) enabled[index] = enabled[index].Trim();
+            if (live)
+            {
+                using var query = new LineRecipientQueries(current);
+                return query.ReadChannel(id, ct);
+            }
             return new ChurchChannelRecord(id, channel, channel, row.GetAttributeValue<string>("name") ?? "",
                 "", new ChurchLocaleSettings(Culture, enabled));
         }
         /// <summary>清理後拒絕新操作，避免使用前一活動借用的 SDK。</summary>
-        private IOrganizationService GetService() => service ?? throw new ObjectDisposedException(nameof(ShadowSource));
+        private IOrganizationService GetService() => service ?? throw new ObjectDisposedException(nameof(NotificationSource));
         /// <summary>唯一 owner 等待規則完成後清除借用參照，不 Dispose 平台 SDK。</summary>
         public void Dispose() { service = null; Culture = null; }
     }

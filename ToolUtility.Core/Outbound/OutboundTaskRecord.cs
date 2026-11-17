@@ -37,7 +37,7 @@ public sealed class OutboundTaskRecord
     /// <param name="rowVersion">資料庫正整數版本，供每次寫入 IfRowVersionMatches。</param>
     /// <param name="churchId">從已授權組織讀回的 account ID。</param>
     /// <param name="contactId">選填 contact ID；處理器仍須驗證與教會關係。</param>
-    /// <param name="type">三種核定工作類型之一。</param>
+    /// <param name="type">四種核定工作類型之一。</param>
     /// <param name="payloadJson">最多四千字元的原始 JSON，執行前還要通過型別白名單。</param>
     /// <param name="idempotencyKey">包含教會、類型及來源 ID 的穩定鍵。</param>
     /// <param name="status">A.4 自訂狀態。</param>
@@ -53,7 +53,7 @@ public sealed class OutboundTaskRecord
         if (string.IsNullOrEmpty(rowVersion) || rowVersion.Length > 20
             || !ulong.TryParse(rowVersion, NumberStyles.None, CultureInfo.InvariantCulture, out var version) || version == 0)
             throw new ArgumentException("Outbound row version is invalid.", nameof(rowVersion));
-        if (type is not (OutboundTaskType.RichMenuGenerate or OutboundTaskType.QrImageGenerate or OutboundTaskType.AllotQuery)
+        if (type is not (OutboundTaskType.RichMenuGenerate or OutboundTaskType.QrImageGenerate or OutboundTaskType.AllotQuery or OutboundTaskType.MemberNotifyRelay)
             || status is not (OutboundTaskStatus.Pending or OutboundTaskStatus.Processing or OutboundTaskStatus.Completed or OutboundTaskStatus.Failed))
             throw new ArgumentException("Outbound option is invalid.");
         var prefix = churchId.ToString("N") + "-" + ((int)type).ToString(CultureInfo.InvariantCulture) + "-";

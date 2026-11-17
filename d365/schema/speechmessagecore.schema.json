@@ -198,6 +198,10 @@
             {
               "value": 100000002,
               "label": "AllotQuery"
+            },
+            {
+              "value": 100000003,
+              "label": "MemberNotifyRelay"
             }
           ]
         },

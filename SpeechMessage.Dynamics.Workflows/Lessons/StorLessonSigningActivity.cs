@@ -10,7 +10,7 @@
  * 可省略的來源參考若提供必須相符；不持有求值結果、WF context、SDK、Entity 或 key。
  * 平台 SDK 由外殼借用，Shadow recorder 由外殼 finally 排空／Dispose；共用通知 source
  * 在本次同步排空後釋放，沒有 Session、cache、timer、背景 Task 或固定收件者 fallback。
- * Live依核定在查詢前明確拒絕，真實例外交共用活動失敗邊界保留，
+ * Live普通通知只入列四欄代送待辦，付款在查詢前拒絕；真實例外交共用失敗邊界保留，
  * 供D365共用彙總告警接手；沙箱不自建notifier或另發管理者LINE。
  * 不讀資料列token或冒稱已送達；舊OutputResult
  * 未設定，維持 WF 預設值。未知訊息不執行，已知訊息的非法參數 fail closed。
@@ -26,6 +26,7 @@ using Microsoft.Xrm.Sdk.Workflow;
 using SpeechMessage.Dynamics.Plugins.Infrastructure;
 using SpeechMessage.Dynamics.Workflows.Infrastructure;
 using SpeechMessageProducts.GoodShepherd.Core.Lessons;
+using SpeechMessageProducts.GoodShepherd.Core.Notifications;
 
 namespace SpeechMessage.Dynamics.Workflows.Lessons;
 
@@ -54,17 +55,23 @@ public sealed class StorLessonSigningActivity : ActivityShellBase
     {
         if (input.PrimaryEntityName != "new_stor_lessons" ||
             input.MessageName is not ("ExecuteWorkflow" or "Create" or "Update")) return;
-        if (!services.IsShadow)
-            throw new InvalidPluginExecutionException("P5-PROP-006: Lesson signing activity Live notifications are not implemented.");
         var parameter = InputParameter.Get(context);
         var target = InputStorLesson.Get(context);
         if (target is not null && (target.LogicalName != "new_stor_lessons" ||
             target.Id == Guid.Empty || target.Id != input.PrimaryEntityId || target.KeyAttributes.Count != 0))
             throw new InvalidPluginExecutionException("Lesson signing activity source is invalid.");
         // 核定缺口不產生假的Create或Push；固定標記不含來源、參數、付款或credential內容。
-        if (!LessonSigningDispatch.TryNotifyLeader(input.MessageName, parameter, out _))
+        if (!LessonSigningDispatch.TryNotifyLeader(input.MessageName, parameter, out var leader))
         {
+            if (!services.IsShadow) throw new InvalidPluginExecutionException(LessonSigningDispatch.ApprovedGapMarker);
             context.GetExtension<ITracingService>().Trace(LessonSigningDispatch.ApprovedGapMarker);
+            return;
+        }
+        if (!services.IsShadow)
+        {
+            MemberNotifyRelay.Enqueue(services.Organization, MemberNotifyRelayKind.LessonSigning, input.PrimaryEntityId,
+                input.MessageName == "ExecuteWorkflow" ? 1 : input.MessageName == "Create" ? 2 : 3, leader ? 2 : 1,
+                input.OperationId != Guid.Empty ? input.OperationId : input.CorrelationId);
             return;
         }
         PluginServices.Wait(LessonSigningDispatch.NotifyAsync(services.Organization, new LinePushClient(), input.PrimaryEntityId,

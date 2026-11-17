@@ -13,11 +13,11 @@
  * 不存 static 可變資料、Session、cache、背景 queue 或 timer；不讀來源列 token，
  * 也不回落固定收件者。取消交既有通知契約，真傳輸例外保留原實例交外殼處理。
  * 驗證方式：真外殼離線測試以不同學員／組長 ID、付款拒絕及跨教會故障保護分派，
+ * Host代送與舊入口共用已解析route；來源教會不符於頻道解密前結束。
  * Core 具名簽核測試保護訊息內容；不宣稱 D365 或 LINE 實機送達。
  */
 using System;
 using System.Collections.Generic;
-using System.Runtime.ExceptionServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Line.Messaging;
@@ -99,19 +99,22 @@ public static class LessonSigningDispatch
         Guid organizationId, string message, string? parameter, IShadowPushSink? shadowSink,
         byte[]? key, CancellationToken ct)
     {
-#if NETFRAMEWORK
-        if (organization is null) throw new ArgumentNullException(nameof(organization));
-        if (push is null) throw new ArgumentNullException(nameof(push));
-#else
-        ArgumentNullException.ThrowIfNull(organization);
-        ArgumentNullException.ThrowIfNull(push);
-#endif
-        var leader = NotifyLeader(message, parameter);
-        if (storId == Guid.Empty || organizationId == Guid.Empty)
-            throw new InvalidPluginExecutionException("Lesson signing identity is invalid.");
-        if ((shadowSink is null) == (key is null) || (key is not null && key.Length != 64))
-            throw new InvalidPluginExecutionException("Lesson signing secure mode is unavailable.");
-        ct.ThrowIfCancellationRequested();
+        ValidateInputs(organization, push, storId, organizationId, shadowSink, key, ct);
+        var route = NotifyLeader(message, parameter) ? 2 : 1;
+        var result = await NotifyRouteAsync(organization, push, storId, organizationId, route, shadowSink, key, null, ct).ConfigureAwait(false);
+        if (result is null) return;
+        if (result.TransportException is { } transport) System.Runtime.ExceptionServices.ExceptionDispatchInfo.Capture(transport).Throw();
+        if (!result.Success && result.Reason is not ("NotBound" or "ChurchMismatch" or "ShadowRecorded"))
+            throw new InvalidPluginExecutionException("Lesson signing notification failed.");
+    }
+
+    /// <summary>已解析分派的共用入口；重讀來源後先驗expectedChurch再查頻道及解密。回傳真傳輸結果，由呼叫邊界決定重試；key只借用至await排空。</summary>
+    public static async Task<LinePushResult?> NotifyRouteAsync(IOrganizationService organization, ILineMemberPushClient push, Guid storId,
+        Guid organizationId, int route, IShadowPushSink? shadowSink, byte[]? key, Guid? expectedChurch, CancellationToken ct)
+    {
+        ValidateInputs(organization, push, storId, organizationId, shadowSink, key, ct);
+        if (route is not (1 or 2)) throw new ArgumentOutOfRangeException(nameof(route));
+        var leader = route == 2;
         var stor = organization.Retrieve("new_stor_lessons", storId,
             new ColumnSet("new_contact_new_stor_lessons", "new_new_disciple_lessons_new_stor_les"));
         var memberId = Lookup(stor, "new_contact_new_stor_lessons", "contact");
@@ -119,6 +122,7 @@ public static class LessonSigningDispatch
         var member = organization.Retrieve("contact", memberId,
             new ColumnSet("fullname", "new_cell_list_contact", "parentcustomerid", "new_equipment_status"));
         var churchId = Lookup(member, "parentcustomerid", "account");
+        if (expectedChurch.HasValue && churchId != expectedChurch.Value) return null;
         var recipientId = memberId;
         var signer = member;
         if (leader)
@@ -130,7 +134,7 @@ public static class LessonSigningDispatch
         }
         using var source = new LineRecipientQueries(organization);
         var recipient = source.ReadMember(recipientId, ct);
-        if (LinePushClient.ValidateRecipient(recipient, churchId) is not null) return;
+        if (LinePushClient.ValidateRecipient(recipient, churchId) is { } rejected) return rejected;
         var course = organization.Retrieve("new_disciple_lessons", courseId,
             new ColumnSet("new_name", "new_picture_link"));
         var account = organization.Retrieve("account", churchId, new ColumnSet("new_defaultlanguage"));
@@ -149,9 +153,25 @@ public static class LessonSigningDispatch
                 "Lessons.Signing", Compose, shadowSink, ct).ConfigureAwait(false)
             : await notifications.NotifyComposedAsync(source, context, recipientId, retryKey,
                 "Lessons.Signing", Compose, key!, ct).ConfigureAwait(false);
-        if (result.TransportException is { } transport) ExceptionDispatchInfo.Capture(transport).Throw();
-        if (!result.Success && result.Reason is not ("NotBound" or "ChurchMismatch" or "ShadowRecorded"))
-            throw new InvalidPluginExecutionException("Lesson signing notification failed.");
+        return result;
+    }
+
+    /// <summary>保留原入口在分派前的依賴、正式身分、互斥模式及取消驗證；不讀SDK、不保存任何狀態。</summary>
+    private static void ValidateInputs(IOrganizationService organization, ILineMemberPushClient push, Guid storId,
+        Guid organizationId, IShadowPushSink? shadowSink, byte[]? key, CancellationToken ct)
+    {
+#if NETFRAMEWORK
+        if (organization is null) throw new ArgumentNullException(nameof(organization));
+        if (push is null) throw new ArgumentNullException(nameof(push));
+#else
+        ArgumentNullException.ThrowIfNull(organization);
+        ArgumentNullException.ThrowIfNull(push);
+#endif
+        if (storId == Guid.Empty || organizationId == Guid.Empty)
+            throw new InvalidPluginExecutionException("Lesson signing identity is invalid.");
+        if ((shadowSink is null) == (key is null) || (key is not null && key.Length != 64))
+            throw new InvalidPluginExecutionException("Lesson signing secure mode is unavailable.");
+        ct.ThrowIfCancellationRequested();
     }
 
     /// <summary>兩目標均採 ordinal Contains，不讓執行環境文化改變舊業務關鍵字分派。</summary>

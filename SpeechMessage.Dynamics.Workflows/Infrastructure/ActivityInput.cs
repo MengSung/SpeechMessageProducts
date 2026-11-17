@@ -36,6 +36,7 @@ internal sealed class ActivityInput
         PrimaryEntityName = context.PrimaryEntityName ?? string.Empty;
         PrimaryEntityId = context.PrimaryEntityId;
         CorrelationId = context.CorrelationId;
+        OperationId = context.OperationId;
         OrganizationId = context.OrganizationId;
         OrganizationName = context.OrganizationName ?? string.Empty;
         UserId = context.UserId;
@@ -52,6 +53,8 @@ internal sealed class ActivityInput
     public Guid PrimaryEntityId { get; }
     /// <summary>本次活動的關聯事件識別，用於安全診斷及業務拒絕文字。</summary>
     public Guid CorrelationId { get; }
+    /// <summary>流程系統作業識別；空值由本次CorrelationId退路，兩者空值拒絕入列，不保存context。</summary>
+    public Guid OperationId { get; }
     /// <summary>本次平台組織識別；規則須另檢查業務資料是否屬於該來源邊界。</summary>
     public Guid OrganizationId { get; }
     /// <summary>平台組織唯一名稱，只供受控路由，不能單獨作為組織授權依據。</summary>

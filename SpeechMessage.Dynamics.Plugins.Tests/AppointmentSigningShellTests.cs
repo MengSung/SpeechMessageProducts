@@ -5,7 +5,7 @@
  * 保護嵌入 reading 黃金情境、深度、錯誤傳遞、正式收件者、重試與 A/B/A 隔離。
  * 主要功能與流程：一般測試執行真 WorkflowInvoker／Plugin，CAS 子域則使用相同
  * 無動態代理 fixture，檢查產品組件確實受限。完整期望不足時保留紅燈，不以
- * 產品結果、文字片段或通知計數冒充完整訊息相等；Live 活動只測查詢前核定拒絕。
+ * 產品結果、文字片段或通知計數冒充完整訊息相等；Live活動驗只入列、不讀key或推播。
  * 資源與隔離：每案 using owner 清空來源、SDK 回呼與追蹤；同一外殼 A/B/A 使用
  * 不同組織、教會、使用者、記錄及收件者。父域 finally 卸載每個一次性 CAS 域，
  * 只授 Execution 及輸出目錄唯讀，Xrm SDK 是唯一完整信任例外。
@@ -181,21 +181,14 @@ public sealed class AppointmentSigningShellTests
         Assert.Equal(0, fixture.Reads);
     }
 
-    /// <summary>Live 明示／省略／空白均在任何 SDK 讀寫前拒絕；正常取消或業務拒絕不代替固定缺口例外。</summary>
+    /// <summary>Live明示／省略／空白皆只入列，來源及四欄payload經真活動驗證，不取token或推播。</summary>
     [Theory]
     [InlineData("Live")]
     [InlineData(null)]
     [InlineData("")]
     public void Appointments_ActivityLive_RejectsBeforeAnyQuery(string? mode)
     {
-        using var fixture = Normal();
-        var failure = Assert.ThrowsAny<Exception>(() => fixture.RunActivity(mode: mode));
-        var actual = Assert.IsType<InvalidPluginExecutionException>(failure.GetBaseException());
-        Assert.Contains("P5-PROP-006", actual.Message, StringComparison.Ordinal);
-        Assert.Equal(0, fixture.Reads);
-        Assert.Empty(fixture.Service.Calls);
-        Assert.Contains(fixture.Trace.Entries, x => x == "ExceptionType=" + actual.GetType().FullName);
-        fixture.AssertNoWrites();
+        RelayShellTests.RunActivity(2, mode);
     }
 
     /// <summary>活動來源參照只做相容性驗證，錯 ID 查詢前拒絕，省略則使用平台正式 ID。</summary>

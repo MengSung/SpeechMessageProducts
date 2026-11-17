@@ -9,7 +9,7 @@
  * 使用邊界與維護：每個 store 只限同一已授權組織，教會值來自 SDK，不把格式當授權。
  * SDK 由呼叫端擁有 transport timeout，先排空同步 I/O 再 Dispose；本物件 Dispose
  * 只清借用參照並拒絕新操作。所有 Entity／交易／結果為操作局部，不保留帳密或跨批資料。
- * 未傳 allowlist 時保留舊查詢樹；有傳時只複製最多三個已核定類型，不保留 caller 集合。
+ * 未傳 allowlist 時保留舊查詢樹；有傳時只複製最多四個已核定類型，不保留 caller 集合。
  * 失敗路徑：僅明確版本衝突回落敗；其他例外原樣交 Host 通知，不自行重試不確定結果。
  * 日期按 D365 UTC 欄位語意讀取，不套用本機時區；認領先向下量化為整秒再寫入及精確讀回，
  * 對齊 D365 9.1 儲存精度（不到一秒的量化差）；回寫只容許固定有界錯誤分類，不存例外本文。
@@ -41,7 +41,7 @@ public sealed class D365OutboundTaskStore : IOutboundTaskStore, IDisposable
 
     /// <summary>
     /// 借用已驗證組織的 SDK，不接管連線與 transport timeout，也不接受每次請求切換組織。
-    /// 選用 allowlist 會在建構時複製、限制為一至三種核定類型，並直接加到候選 D365
+    /// 選用 allowlist 會在建構時複製、限制為一至四種核定類型，並直接加到候選 D365
     /// 查詢；null 保留舊有查詢行為。caller 集合不會被 store 保存或跨操作共用。
     /// </summary>
     /// <param name="service">呼叫端須先授權並在所有同步操作返回後才 Dispose 的 SDK。</param>
@@ -256,18 +256,18 @@ public sealed class D365OutboundTaskStore : IOutboundTaskStore, IDisposable
     /// 類型，避免可變輸入在查詢期間改變或由無界列舉造成資源消耗。
     /// </summary>
     /// <param name="allowedTypes">建構時提供的可選型別列舉。</param>
-    /// <returns>null 表示相容的全類型查詢；否則為一至三個穩定整數選項。</returns>
+    /// <returns>null 表示相容的全類型查詢；否則為一至四個穩定整數選項。</returns>
     private static int[]? SnapshotAllowedTypeValues(IEnumerable<OutboundTaskType>? allowedTypes)
     {
         if (allowedTypes is null) return null;
 
-        var values = new List<int>(3);
+        var values = new List<int>(4);
         var seen = new HashSet<OutboundTaskType>();
         foreach (var type in allowedTypes)
         {
-            if (values.Count == 3)
+            if (values.Count == 4)
                 throw new ArgumentException("Outbound type allowlist exceeds the supported type count.", nameof(allowedTypes));
-            if (type is not (OutboundTaskType.RichMenuGenerate or OutboundTaskType.QrImageGenerate or OutboundTaskType.AllotQuery))
+            if (type is not (OutboundTaskType.RichMenuGenerate or OutboundTaskType.QrImageGenerate or OutboundTaskType.AllotQuery or OutboundTaskType.MemberNotifyRelay))
                 throw new ArgumentOutOfRangeException(nameof(allowedTypes), "Outbound type allowlist contains an unsupported type.");
             if (!seen.Add(type))
                 throw new ArgumentException("Outbound type allowlist contains a duplicate type.", nameof(allowedTypes));

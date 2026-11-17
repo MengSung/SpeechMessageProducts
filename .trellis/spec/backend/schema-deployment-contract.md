@@ -138,3 +138,31 @@ Root6政策/舊hash、Metadata5型別邊界、Engine真SDK替身二次零寫入�
 
 ### 7 錯誤與正確作法
 錯誤：`catch(FaultException){ success=true; }`，或為了通過把audit刪掉。正確：只在第三筆固定資料識別已驗證的拒絕，40237增加完整差分控制，finally精確ID/marker清理；audit只完成本次新建設定並保留原規格。
+
+## P7 AddOptionValue（2026-11-17，C-a離線）
+
+### 1. 適用範圍
+既有choice缺核定值時只補值；多餘選項不刪、已有標籤不讀入改寫。其他型別／安全／稽核約束不變。
+
+### 2. 簽章
+SchemaOperation.Kind="AddOptionValue"；Entity/Name/Id為既有正式欄位，OptionValue/OptionLabel為schema核定的新值。
+nullable新增欄省略JSON，舊操作hash保持相容。SchemaFieldState.ChoiceIsGlobal由metadata投影，未知保持null。
+
+### 3. 契約
+只有ChoiceIsGlobal=false才可補局部選項；global或未知缺值先於plan發布拒絕。
+InsertOptionValueRequest帶EntityLogicalName/AttributeLogicalName/Value/Label(server LCID)/SolutionUniqueName，
+確認NewOptionValue等於核定值。after必讀已發布metadata，定向PublishXml必含補值涉及表；不PublishAll。
+
+### 4. 驗證與錯誤矩陣
+缺值→AddOptionValue；多餘值→保留、無Delete；global/unknown缺值→拒絕；未發布差異→寫前拒絕；
+回應值不同→失敗；apply先重算整份plan／fingerprint、flush before，再寫入。原失敗保留證據、不盲目重放。
+
+### 5. 案例
+正常補100000003 MemberNotifyRelay、第二次零寫入；基本完整快照零操作；錯誤不得改server-owned-label或刪額外100000099。
+
+### 6. 必要測試
+Schema_MissingOptionValue_PlansAddOptionValue、Schema_AddOptionValue_TwiceIdempotent、Schema_ExtraOptionOnServer_NotRemoved；
+另驗global/unknown拒絕。引擎替身核對真SDK請求與server LCID，9.1實際發布／solution行為仍待C-b。
+
+### 7. 錯誤與正確
+錯誤：選項完全相等才接受，或重建欄位改既有label。正確：保留server集合，逐個缺值產受審操作，安全約束與已發布驗收維持。

@@ -2,7 +2,7 @@
  * 檔案整體說明
  * 目的與定位：P5-11 繳費通知真 WF 入口驗收，共用 Core 的 reading 期望，不以
  * 只測輔助函式或宣告型別代替活動執行。測試不讀秘密、不連 D365 或 LINE。
- * 主要流程：六案逐欄核對完整 Shadow，另保護原例外、Live 查詢前拒絕、無舊
+ * 主要流程：六案逐欄核對完整 Shadow，另保護原例外、Live只入列代送、無舊
  * 深度限制與活動重用。部分信任子域只授 Execution、輸出目錄唯讀與 SDK 強名
  * 必要 FullTrust，真活動及 Core 必須仍受限；不放寬反射或網路權限。
  * 使用邊界與維護：每案 using 清除 SDK／trace／故障；父 CAS 測試 finally 卸載
@@ -57,14 +57,11 @@ public sealed class FeesWorkflowTests
         fixture.Verify(FeesGoldenFixture.Read("expected")["cases"]![3]!);
     }
 
-    /// <summary>依 P5-PROP-006，Live 必須在任何 fee／會友／token 查詢前拒絕。</summary>
+    /// <summary>依D7-24，Live只入列來源教會的四欄代送待辦，不取token或推播。</summary>
     [Fact]
     public void Fees_Live_RefusedBeforeQuery()
     {
-        using var fixture = new FeesWorkflowFixture(FeesGoldenFixture.Read("scenarios")["cases"]![0]!);
-        Assert.Throws<InvalidPluginExecutionException>(() => fixture.Invoke(new FeeNotifyActivity(), "Live"));
-        Assert.Equal(0, fixture.Sdk.Reads);
-        Assert.Equal(0, fixture.Sdk.WriteAttempts);
+        RelayShellTests.RunActivity(3);
     }
 
     /// <summary>同一活動正常、未綁定、正常交替重用，完整期望及 owner 零基線必須恢復。</summary>

@@ -114,3 +114,42 @@ KeyAttributes 與 RelatedEntities 均為空，並通過既有有界寫入深複�
 
 正確：有界讀取器明確保留 decimal／日期原文；SDK 深層複製遇未知型別 fail closed；
 根查詢、link、投影及衝突驗證共用經 metadata 核對的主鍵對照。
+
+## P7 活動／外送Host代送契約（2026-11-17，C-a離線）
+
+### 1. 適用範圍
+沒有secure設定的三個通知活動及OutboundLetterPlugin在Live只入列；付款fallback仍查詢前拒絕。
+其他有安全設定的Plugin照原路徑直接推播，Shadow維持原有輸出。
+
+### 2. 簽章
+`MemberNotifyRelay.Enqueue(IOrganizationService, MemberNotifyRelayKind, Guid recordId, int message, int route, Guid instance)`
+回傳正式待辦ID（入站／終止外送回null）；`ExecuteAsync(IOrganizationService, ILineMemberPushClient, Guid churchId, string payloadJson, byte[] tokenKey, CancellationToken)`只由Host呼叫。
+Lesson/Appointment新增`NotifyRouteAsync`與原入口共用查詢／組訊息；Fee補同名Live入口，Letter的SendRelayAsync沿既有組合／分類與狀態patch。
+
+### 3. 資料與生命週期
+第四類MemberNotifyRelay=100000003，只有kind/recordId/message/route。kind=1課程、2預約、3繳費、4外送；
+message=1 ExecuteWorkflow、2 Create、3 Update；route課程1本人/2組長，預約1預設圖/2TPE/3Abundance，其他0。
+流程文字只在外殼解析，不能放payload。來源教會沿學員／申請人／繳費會友／寄件者正式關聯，不能由收件者反推。
+活動source=DeterministicGuid.Create("notify.relay.v1",(int)kind,recordId,message,route,instance)，instance取OperationId、空用CorrelationId、再空拒絕；外送source=activityId。
+SDK、key、push借用至當筆await排空；入列store using清參照，Host擁有key清零及外部連線。
+
+### 4. 驗證與錯誤矩陣
+四欄數字／正式GUID且kind-route相容才可讀SDK；未知、多欄、重複欄、超量或尾隨JSON拒絕。
+Host先重驗來源church，使用同SDK WhoAmI取得server組織ID；規則解密前再次核對church，防止重讀競態。
+成功／AlreadyAccepted／NotBound／ChurchMismatch／永久4xx結束；429／5xx／傳輸故障拋MemberNotifyRelayDeliveryException，
+保留真ResponseStatus及TransportException inner，不偽造HTTP狀態。C-b Host adapter必須把該typed錯誤接到worker重試契約；
+原SendAsync與Plugin的既有例外分類不變。外送永久失敗依既有字典及1/4或2/5狀態回寫，不覆蓋description。
+
+### 5. 正常、基本、錯誤案例
+正常：同流程執行個體重跑讀回同待辦，另一執行個體各一筆。基本：繳費Retry Key是feeId，外送是activityId。
+錯誤：簽核者B的教會被誤當成來源A，或把429當永久完成；兩者皆不得發生。
+
+### 6. 必要測試
+MemberNotifyRelayTests十一指定方法涵蓋防重、來源、未知payload、解密前拒絕、完整HTTP JSON與原Live等價、
+Retry Key、外送patch、429/503及A/B/A；ToolUtility三指定方法兩宿主通過。RelayShellTests真WF三活動、付款、
+外送與受限域Enqueue全鏈，不授網路／反射權限。F24四舊拒絕測試只依D7-24改成新入列契約；其餘舊期望不變。
+這些全是離線證據，實機另於C-b／P7-02。
+
+### 7. 錯誤與正確作法
+錯誤：payload塞流程文字／token、每次retry新GUID、以收件者教會授權、吞HTTP失敗假稱200。
+正確：固定四欄、來源正式關聯、DB替代鍵原子防重、共用規則並把真傳輸結果交正確重試邊界。

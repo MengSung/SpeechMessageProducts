@@ -1,7 +1,7 @@
 /*
  * 檔案整體說明
  * 目的與定位：P5-12 真 OutboundLetterPlugin 的離線平台契約，保護外送方向、深度、
- * 單一正式收件者、權威來源教會、影子寫入及 Live 查詢前拒絕，不把 HTTP 替身當實機。
+ * 單一正式收件者、權威來源教會、影子寫入及 Live只入列代送，不把 HTTP 替身當實機。
  * 主要流程：每案用正式外殼加既有 FakeOrganizationService，合成 letter／account／
  * contact／channel；追蹤須有完整推播摘要與完成意圖，真 SDK WriteRecords 必須空。
  * 故障注入會改變收件者教會、移除綁定、增加第二個 party 或使用無教會關聯的寄件者；共用 fixture 使用真 RemoteExecutionContext，允許 CAS 子域
@@ -68,13 +68,11 @@ public sealed class OutboundLetterShellTests
         Assert.Empty(f.Sdk.WriteRecords);
     }
 
-    /// <summary>Live 在讀 letter 之前就依核定缺口拒絕，不能因為規則測試可送就開啟。</summary>
+    /// <summary>依D7-24，Live讀寄件來源並只建立四欄代送待辦，不取token或推播。</summary>
     [Fact]
     public void Messaging_Live_RefusedBeforeSdkRead()
     {
-        using var f = new Fixture();
-        Assert.Throws<InvalidPluginExecutionException>(() => f.Run(live: true));
-        Assert.Empty(f.Sdk.Calls);
+        new RelayShellTests().OutboundLetterPlugin_Live_EnqueuesRelay_NoTokenNoPush();
     }
 
     /// <summary>來源教會由寄件者 account 固定；收件者另一教會時只記失敗，不記推播。</summary>

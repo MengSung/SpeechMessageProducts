@@ -3,6 +3,7 @@
  *
  * 目的與定位：本檔是結構部署的只讀SDK邊界，將單一已連線組織的完整定義轉成不帶SDK參照的SchemaSnapshot。
  * 主要流程：取得實際組織ID／uniqueName／版本與基礎語言，讀完整entity metadata，再讀受管solution及publisher、component、filters、steps。
+ * choice保留局部／全域／未知政策供AddOptionValue守門；標籤不讀入快照，新選項label只取核定schema。
  * 欄位投影保留型別、長度、required/security/audit、lookup目標、日期behavior/format、choice正式值與key建置狀態。
  * Solution元件另保留根包含政策0/1/2及Guid根ID；缺值不猜包含、非法型別或數值整份拒絕，避免誤報新表子元件缺漏。
  * 只讀範圍：只查metadata及組織languagecode，不查業務實體值，也不讀步驟secure/unsecure設定或trace本文；沒有Create/Update/Delete。
@@ -163,7 +164,8 @@ internal static class SchemaMetadata
             Array.AsReadOnly(targets.OrderBy(target => target, StringComparer.Ordinal).ToArray()),
             field is DateTimeAttributeMetadata date ? date.DateTimeBehavior?.Value ?? "Unknown" : "",
             field is DateTimeAttributeMetadata formatted ? formatted.Format?.ToString() ?? "Unknown" : "",
-            Array.AsReadOnly(options.Order().ToArray()), field.IsManaged, field.IsAuditEnabled?.Value);
+            Array.AsReadOnly(options.Order().ToArray()), field.IsManaged, field.IsAuditEnabled?.Value)
+        { ChoiceIsGlobal = field is PicklistAttributeMetadata picklist ? picklist.OptionSet?.IsGlobal : null };
     }
 
     /// <summary>重用Core單頁／正式ID守門，metadata匯出另以十頁五萬列有界聚合；不改Core業務查詢5000列契約，不回傳部分定義。</summary>
