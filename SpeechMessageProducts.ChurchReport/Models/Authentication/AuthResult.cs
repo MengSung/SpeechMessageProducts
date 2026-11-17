@@ -15,6 +15,7 @@
  * SpeechMessageProducts.ChurchReport/Controllers/BaseChurchController.cs、
  * SpeechMessageProducts.ChurchReport/Controllers/DedicationAuditController.cs、
  * SpeechMessageProducts.ChurchReport/Controllers/DedicationController.cs 追查目前工作樹中的合作／使用位置。
+ * P6-07公開邊界：AuthResult、LoginType改為產品內部宣告；外部輸出與既有資源清理契約不變。
  */
 using Microsoft.Xrm.Sdk;
 
@@ -23,7 +24,9 @@ namespace ChurchReport.Models.Authentication
     /// <summary>
     /// 認證結果
     /// </summary>
-    public class AuthResult
+    /// <remarks>P6-07限於本產品內部使用；既有資料形狀、呼叫順序與資源所有權不變，不作為跨組件API。</remarks>
+    /// <remarks>P6-07限於本產品內部使用；既有資料形狀、呼叫順序與資源所有權不變，不作為跨組件API。</remarks>
+    internal class AuthResult
     {
         /// <summary>
         /// 是否成功
@@ -80,7 +83,9 @@ namespace ChurchReport.Models.Authentication
     /// <summary>
     /// 登入類型列舉
     /// </summary>
-    public enum LoginType
+    /// <remarks>P6-07限於本產品內部使用；既有資料形狀、呼叫順序與資源所有權不變，不作為跨組件API。</remarks>
+    /// <remarks>P6-07限於本產品內部使用；既有資料形狀、呼叫順序與資源所有權不變，不作為跨組件API。</remarks>
+    internal enum LoginType
     {
         /// <summary>
         /// 帳號密碼登入

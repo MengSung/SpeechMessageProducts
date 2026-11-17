@@ -17,6 +17,7 @@
  * SpeechMessageProducts.ChurchReport/Models/PersonalInfomationModel.cs、
  * SpeechMessageProducts.ChurchReport/Models/SmallGroupDataList.cs、
  * SpeechMessageProducts.ChurchReport/Models/WeeklyReportData.cs 追查目前工作樹中的合作／使用位置。
+ * P6-07公開邊界：AccountPasswordData改為產品內部宣告；外部輸出與既有資源清理契約不變。
  */
 using System;
 using System.Collections.Generic;
@@ -74,7 +75,11 @@ namespace ChurchReport.Models.CrmTransmitModule
         }
     }
 
-    public class AccountPasswordData
+    /// <summary>定義舊CRM傳輸所需的週報識別、帳密輸入與會友欄位模型，讓既有資料映射保有欄位相容性；帳密型別屬敏感輸入，不能因與一般資料共檔就被整份序列化至公開回應或日誌。
+    /// P6-07將本宣告限於主機內部；仍由既有呼叫端組裝及消費，不變更資料形狀、流程或資源owner。</summary>
+    /// <summary>定義舊CRM傳輸所需的週報識別、帳密輸入與會友欄位模型，讓既有資料映射保有欄位相容性；帳密型別屬敏感輸入，不能因與一般資料共檔就被整份序列化至公開回應或日誌。
+    /// P6-07將本宣告限於主機內部；仍由既有呼叫端組裝及消費，不變更資料形狀、流程或資源owner。</summary>
+    internal class AccountPasswordData
     {
         public AccountPasswordData()
         {

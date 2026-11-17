@@ -12,6 +12,7 @@
  * 修改繫結欄位、預設值或複製路徑時，須同步核對序列化、表單、快照及上傳映射，避免局部更新污染其他讀者。
  * 可沿 SpeechMessageProducts.ChurchReport/Controllers/ApiControllers/ShepherdMethodLookupController.cs
  * 追查目前工作樹中的合作／使用位置。
+ * P6-07公開邊界：ShepherdMethodData改為產品內部宣告；外部輸出與既有資源清理契約不變。
  */
 
 
@@ -21,7 +22,11 @@ using System.Linq;
 
 namespace ChurchReport.Models
 {
-    public partial class ShepherdMethodData
+    /// <summary>提供既有牧養方式選項資料來源，將固定或已載入的ShepherdMethod清單交給查詢端點；這是選單資料，不以選項本身決定目前使用者可操作的會友範圍。
+    /// P6-07將本宣告限於主機內部；仍由既有呼叫端組裝及消費，不變更資料形狀、流程或資源owner。</summary>
+    /// <summary>提供既有牧養方式選項資料來源，將固定或已載入的ShepherdMethod清單交給查詢端點；這是選單資料，不以選項本身決定目前使用者可操作的會友範圍。
+    /// P6-07將本宣告限於主機內部；仍由既有呼叫端組裝及消費，不變更資料形狀、流程或資源owner。</summary>
+    internal partial class ShepherdMethodData
     {
         public static List<ShepherdMethod> ShepherdMethodList = new List<ShepherdMethod> {
             new ShepherdMethod {

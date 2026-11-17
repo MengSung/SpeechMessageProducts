@@ -16,6 +16,7 @@
  * SpeechMessageProducts.ChurchReport/Filters/GlobalAuthorizationFilter.cs、
  * SpeechMessageProducts.ChurchReport/Models/FeeList.cs、
  * SpeechMessageProducts.ChurchReport/Models/ListManagementDataManager.cs 追查目前工作樹中的合作／使用位置。
+ * P6-07公開邊界：Field、HolidayOpenData、Record、Result改為產品內部宣告；外部輸出與既有資源清理契約不變。
  */
 using System;
 using System.Collections.Generic;
@@ -25,13 +26,21 @@ using System.Threading.Tasks;
 namespace ChurchReport.Models
 {
 
-    public class HolidayOpenData
+    /// <summary>描述政府假日開放資料JSON的封裝、欄位定義及逐日紀錄，保存日期、是否放假、假別與說明；資料模型本身不發出HTTP請求，也不判定教會時區。
+    /// P6-07將本宣告限於主機內部；仍由既有呼叫端組裝及消費，不變更資料形狀、流程或資源owner。</summary>
+    /// <summary>描述政府假日開放資料JSON的封裝、欄位定義及逐日紀錄，保存日期、是否放假、假別與說明；資料模型本身不發出HTTP請求，也不判定教會時區。
+    /// P6-07將本宣告限於主機內部；仍由既有呼叫端組裝及消費，不變更資料形狀、流程或資源owner。</summary>
+    internal class HolidayOpenData
     {
         public bool success { get; set; }
         public Result result { get; set; }
     }
 
-    public class Result
+    /// <summary>描述政府假日開放資料JSON的封裝、欄位定義及逐日紀錄，保存日期、是否放假、假別與說明；資料模型本身不發出HTTP請求，也不判定教會時區。
+    /// P6-07將本宣告限於主機內部；仍由既有呼叫端組裝及消費，不變更資料形狀、流程或資源owner。</summary>
+    /// <summary>描述政府假日開放資料JSON的封裝、欄位定義及逐日紀錄，保存日期、是否放假、假別與說明；資料模型本身不發出HTTP請求，也不判定教會時區。
+    /// P6-07將本宣告限於主機內部；仍由既有呼叫端組裝及消費，不變更資料形狀、流程或資源owner。</summary>
+    internal class Result
     {
         public string resource_id { get; set; }
         public int limit { get; set; }
@@ -40,13 +49,21 @@ namespace ChurchReport.Models
         public Record[] records { get; set; }
     }
 
-    public class Field
+    /// <summary>描述政府假日開放資料JSON的封裝、欄位定義及逐日紀錄，保存日期、是否放假、假別與說明；資料模型本身不發出HTTP請求，也不判定教會時區。
+    /// P6-07將本宣告限於主機內部；仍由既有呼叫端組裝及消費，不變更資料形狀、流程或資源owner。</summary>
+    /// <summary>描述政府假日開放資料JSON的封裝、欄位定義及逐日紀錄，保存日期、是否放假、假別與說明；資料模型本身不發出HTTP請求，也不判定教會時區。
+    /// P6-07將本宣告限於主機內部；仍由既有呼叫端組裝及消費，不變更資料形狀、流程或資源owner。</summary>
+    internal class Field
     {
         public string type { get; set; }
         public string id { get; set; }
     }
 
-    public class Record
+    /// <summary>描述政府假日開放資料JSON的封裝、欄位定義及逐日紀錄，保存日期、是否放假、假別與說明；資料模型本身不發出HTTP請求，也不判定教會時區。
+    /// P6-07將本宣告限於主機內部；仍由既有呼叫端組裝及消費，不變更資料形狀、流程或資源owner。</summary>
+    /// <summary>描述政府假日開放資料JSON的封裝、欄位定義及逐日紀錄，保存日期、是否放假、假別與說明；資料模型本身不發出HTTP請求，也不判定教會時區。
+    /// P6-07將本宣告限於主機內部；仍由既有呼叫端組裝及消費，不變更資料形狀、流程或資源owner。</summary>
+    internal class Record
     {
         public string date { get; set; }
         public string name { get; set; }

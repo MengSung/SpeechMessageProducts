@@ -19,6 +19,7 @@
  * 使用邊界與維護：
  * 模型含巢狀集合或敏感欄位時，呼叫端須維持目前登入／操作的所有權；顯示文字不能取代正式資料庫ID。
  * 修改繫結欄位、預設值或複製路徑時，須同步核對序列化、表單、快照及上傳映射，避免局部更新污染其他讀者。
+ * P6-07公開邊界：ContextDictionary改為產品內部宣告；外部輸出與既有資源清理契約不變。
  */
 using ChurchReport.Tools;
 using ChurchReport.Payments;
@@ -46,7 +47,9 @@ namespace ChurchReport.Models
     /// 行程級集合，也不會跨 request、使用者、租戶或 profile 重用可變狀態。
     /// </para>
     /// </summary>
-    public static class ContextDictionary
+    /// <remarks>P6-07限於本產品內部使用；既有資料形狀、呼叫順序與資源所有權不變，不作為跨組件API。</remarks>
+    /// <remarks>P6-07限於本產品內部使用；既有資料形狀、呼叫順序與資源所有權不變，不作為跨組件API。</remarks>
+    internal static class ContextDictionary
     {
         /// <summary>在目前 request 的 Items 中保存 context 的私有鍵；不含使用者資料。</summary>
         private static readonly object ContextItemKey = new object();

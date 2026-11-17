@@ -23,6 +23,7 @@
  * SpeechMessageProducts.ChurchReport/Controllers/DedicationController.cs、
  * SpeechMessageProducts.ChurchReport/Models/ContextDictionary.cs、SpeechMessageProducts.ChurchReport/Startup.cs
  * 追查目前工作樹中的合作／使用位置。
+ * P6-07公開邊界：InMemoryDataContextSmallGroup改為產品內部宣告；外部輸出與既有資源清理契約不變。
  */
 using ChurchReport.Payments;
 using ChurchReport.Diagnostics;
@@ -65,7 +66,9 @@ namespace ChurchReport.Models
     /// - 使用 IP + User-Agent 生成請求指紋，防止資料混淆
     /// - 支援已登入使用者的 Session 綁定
     /// </summary>
-    public class InMemoryDataContextSmallGroup : IInMemoryDataContext, IDisposable
+    /// <remarks>P6-07限於本產品內部使用；既有資料形狀、呼叫順序與資源所有權不變，不作為跨組件API。</remarks>
+    /// <remarks>P6-07限於本產品內部使用；既有資料形狀、呼叫順序與資源所有權不變，不作為跨組件API。</remarks>
+    internal class InMemoryDataContextSmallGroup : IInMemoryDataContext, IDisposable
     {
         #region 資料區
 

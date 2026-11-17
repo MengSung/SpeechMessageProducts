@@ -13,6 +13,7 @@
  * 修改繫結欄位、預設值或複製路徑時，須同步核對序列化、表單、快照及上傳映射，避免局部更新污染其他讀者。
  * 可沿 SpeechMessageProducts.ChurchReport/Services/Authentication/ISessionInitializationService.cs、
  * SpeechMessageProducts.ChurchReport/Services/Navigation/INavigationService.cs 追查目前工作樹中的合作／使用位置。
+ * P6-07公開邊界：SessionData改為產品內部宣告；外部輸出與既有資源清理契約不變。
  */
 using Microsoft.Xrm.Sdk;
 
@@ -21,7 +22,9 @@ namespace ChurchReport.Models.Authentication
     /// <summary>
     /// Session 資料模型
     /// </summary>
-    public class SessionData
+    /// <remarks>P6-07限於本產品內部使用；既有資料形狀、呼叫順序與資源所有權不變，不作為跨組件API。</remarks>
+    /// <remarks>P6-07限於本產品內部使用；既有資料形狀、呼叫順序與資源所有權不變，不作為跨組件API。</remarks>
+    internal class SessionData
     {
         /// <summary>
         /// 登入的連絡人實體

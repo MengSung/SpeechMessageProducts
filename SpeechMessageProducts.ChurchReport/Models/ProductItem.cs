@@ -11,6 +11,7 @@
  * 模型含巢狀集合或敏感欄位時，呼叫端須維持目前登入／操作的所有權；顯示文字不能取代正式資料庫ID。
  * 修改繫結欄位、預設值或複製路徑時，須同步核對序列化、表單、快照及上傳映射，避免局部更新污染其他讀者。
  * 可沿 SpeechMessageProducts.ChurchReport/Models/PayPage.cs 追查目前工作樹中的合作／使用位置。
+ * P6-07公開邊界：ProductItem改為產品內部宣告；外部輸出與既有資源清理契約不變。
  */
 using System;
 
@@ -19,7 +20,9 @@ namespace ChurchReport.Models
     /// <summary>
     /// 商品項目類別
     /// </summary>
-    public class ProductItem
+    /// <remarks>P6-07限於本產品內部使用；既有資料形狀、呼叫順序與資源所有權不變，不作為跨組件API。</remarks>
+    /// <remarks>P6-07限於本產品內部使用；既有資料形狀、呼叫順序與資源所有權不變，不作為跨組件API。</remarks>
+    internal class ProductItem
     {
         /// <summary>
         /// 商品編號
