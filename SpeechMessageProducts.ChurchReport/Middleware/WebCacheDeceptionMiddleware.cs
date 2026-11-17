@@ -15,6 +15,7 @@
  * 本檔的前置條件、錯誤及資源責任以各型別／成員契約為準；此導讀不把呼叫參數視為授權，也不擴張被借入依賴的所有權。
  * 變更介面、資料格式、取消或清理順序時，須一併核對下列合作檔案及對應測試，不能只改目前檔案。
  * 可沿 SpeechMessageProducts.ChurchReport/Startup.cs 追查目前工作樹中的合作／使用位置。
+ * P6-07公開邊界：WebCacheDeceptionMiddleware改為產品內部宣告；外部輸出與既有資源清理契約不變。
  */
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
@@ -39,7 +40,9 @@ namespace ChurchReport.Middleware
     /// 部署位置：
     /// 必須在 UseStaticFiles 之前、全站無快取中間件之後執行
     /// </summary>
-    public class WebCacheDeceptionMiddleware
+    /// <remarks>P6-07限於本產品內部使用；既有資料形狀、呼叫順序與資源所有權不變，不作為跨組件API。</remarks>
+    /// <remarks>P6-07限於本產品內部使用；既有資料形狀、呼叫順序與資源所有權不變，不作為跨組件API。</remarks>
+    internal class WebCacheDeceptionMiddleware
     {
         private readonly RequestDelegate _next;
         private readonly ILogger<WebCacheDeceptionMiddleware> _logger;

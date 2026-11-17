@@ -19,6 +19,7 @@
  * 變更介面、資料格式、取消或清理順序時，須一併核對下列合作檔案及對應測試，不能只改目前檔案。
  * 可沿 SpeechMessageProducts.ChurchReport/Middleware/IdentityAuditMiddleware.cs、
  * SpeechMessageProducts.ChurchReport/Startup.cs 追查目前工作樹中的合作／使用位置。
+ * P6-07公開邊界：IdentityAuditCleanupService改為產品內部宣告；外部輸出與既有資源清理契約不變。
  */
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -59,7 +60,9 @@ namespace ChurchReport.Middleware
     ///
     /// ?? 注意: 僅在 DEBUG 模式下啟用
     /// </summary>
-    public class IdentityAuditCleanupService : BackgroundService
+    /// <remarks>P6-07限於本產品內部使用；既有資料形狀、呼叫順序與資源所有權不變，不作為跨組件API。</remarks>
+    /// <remarks>P6-07限於本產品內部使用；既有資料形狀、呼叫順序與資源所有權不變，不作為跨組件API。</remarks>
+    internal class IdentityAuditCleanupService : BackgroundService
     {
         private readonly ILogger<IdentityAuditCleanupService> _logger;
         private readonly TimeSpan _cleanupInterval;

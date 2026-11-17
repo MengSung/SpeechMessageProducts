@@ -15,6 +15,7 @@
  * SpeechMessageProducts.ChurchReport/Middleware/PerfProfilingMiddleware.cs、
  * SpeechMessageProducts.ChurchReport/Middleware/PerformanceMonitoringMiddleware.cs、
  * SpeechMessageProducts.ChurchReport/Middleware/SessionValidationMiddleware.cs 追查目前工作樹中的合作／使用位置。
+ * P6-07公開邊界：StaticRequestPathHelper改為產品內部宣告；外部輸出與既有資源清理契約不變。
  */
 using System;
 using System.Collections.Generic;
@@ -26,7 +27,9 @@ namespace ChurchReport.Middleware
     /// Shared static asset path classifier for logging/profiling noise reduction.
     /// This helper must not be used to bypass authentication or session validation.
     /// </summary>
-    public static class StaticRequestPathHelper
+    /// <remarks>P6-07限於本產品內部使用；既有資料形狀、呼叫順序與資源所有權不變，不作為跨組件API。</remarks>
+    /// <remarks>P6-07限於本產品內部使用；既有資料形狀、呼叫順序與資源所有權不變，不作為跨組件API。</remarks>
+    internal static class StaticRequestPathHelper
     {
         private static readonly HashSet<string> StaticFileExtensions =
             new HashSet<string>(StringComparer.OrdinalIgnoreCase)

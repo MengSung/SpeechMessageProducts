@@ -11,6 +11,7 @@
  * 本檔的前置條件、錯誤及資源責任以各型別／成員契約為準；此導讀不把呼叫參數視為授權，也不擴張被借入依賴的所有權。
  * 變更介面、資料格式、取消或清理順序時，須一併核對下列合作檔案及對應測試，不能只改目前檔案。
  * 可沿 SpeechMessageProducts.ChurchReport/Startup.cs 追查目前工作樹中的合作／使用位置。
+ * P6-07公開邊界：PerformanceMonitoringMiddleware改為產品內部宣告；外部輸出與既有資源清理契約不變。
  */
 #if DEBUG
 using System.Diagnostics;
@@ -25,7 +26,8 @@ namespace ChurchReport.Middleware
     /// 用於追蹤每個請求的效能指標
     /// ?? 僅在 DEBUG 編譯模式下啟用（Release 版本不會包含此程式碼）
     /// </summary>
-    public class PerformanceMonitoringMiddleware
+    /// <remarks>P6-07限於本產品內部使用；既有資料形狀、呼叫順序與資源所有權不變，不作為跨組件API。</remarks>
+    internal class PerformanceMonitoringMiddleware
     {
         private readonly RequestDelegate _next;
         private readonly ILogger<PerformanceMonitoringMiddleware> _logger;

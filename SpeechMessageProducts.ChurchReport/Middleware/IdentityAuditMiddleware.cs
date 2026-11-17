@@ -26,6 +26,7 @@
  * 可沿 SpeechMessageProducts.ChurchReport/Controllers/DiagnosticsController.cs、
  * SpeechMessageProducts.ChurchReport/Middleware/IdentityAuditCleanupService.cs、
  * SpeechMessageProducts.ChurchReport/Startup.cs 追查目前工作樹中的合作／使用位置。
+ * P6-07公開邊界：IdentityAuditMiddleware改為產品內部宣告；外部輸出與既有資源清理契約不變。
  */
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
@@ -64,7 +65,9 @@ namespace ChurchReport.Middleware
     ///
     /// ?? 注意: 此中間件僅在 DEBUG 模式下啟用，避免生產環境的效能影響
     /// </summary>
-    public class IdentityAuditMiddleware
+    /// <remarks>P6-07限於本產品內部使用；既有資料形狀、呼叫順序與資源所有權不變，不作為跨組件API。</remarks>
+    /// <remarks>P6-07限於本產品內部使用；既有資料形狀、呼叫順序與資源所有權不變，不作為跨組件API。</remarks>
+    internal class IdentityAuditMiddleware
     {
         private readonly RequestDelegate _next;
         private readonly ILogger<IdentityAuditMiddleware> _logger;
