@@ -15,6 +15,7 @@
  *   並以真實 ChurchReport 的 Debug／Release 評估確認不再使用這些套件；不啟動網站或外部連線。
  * - ToolUtility.Core 的 Dataverse 例外只限 net10 SDK 型別來源，不能擴大為 net462 或任意 Extensions 豁免。
  * - 沙箱只引用可提供 net462 的雙目標產品；net48 宿主不等於合格部署產品。
+ * - P6-07以四個合成案例保護ChurchReport語意簽章閉包與實證例外，LineWebhook規則不變。
  * - R2 以公開型別宣告檢查主機／Plugin 邊界；R3 以精確來源檔白名單保護相容
  *   組織別名；R9 檢查 HttpClient 所在專案及 Plugin 的禁止參考。
  * 測試案例入口包含 DualTarget_ReferenceToNet10Only_IsRejected、DualTarget_HostPackage_IsRejected、
@@ -299,6 +300,80 @@ public sealed class ArchitectureRuleTests
 
         Assert.Contains(violations, item => item.Rule == "R2HostPublicType" && item.Dependency == "MutableRequestService");
         Assert.DoesNotContain(violations, item => item.Dependency == "HealthEndpoints");
+    }
+
+    /// <summary>
+    /// 真正MVC基底、控制器建構介面與其回傳模型構成公開簽章閉包；泛型及陣列亦須追蹤。
+    /// 合成來源不執行產品，故意讓介面方法回傳模型，禁止只放行控制器而漏掉必要契約。
+    /// </summary>
+    [Fact]
+    public void R2_SyntheticHost_ControllerSignatureType_IsAllowed()
+    {
+        var project = Product("SpeechMessageProducts.ChurchReport", "net10.0", "net10.0") with
+        {
+            Sources = new[] { Source("Host.cs", """
+                public class Startup { }
+                public class Controller : Microsoft.AspNetCore.Mvc.ControllerBase
+                {
+                    public Controller(IService service) { }
+                }
+                public interface IService { System.Collections.Generic.IReadOnlyList<Model[]> Read(); }
+                public sealed class Model { public string Name { get; set; } }
+                """) }
+        };
+        Assert.Empty(ArchitectureRules.ValidateSource(Graph(project)));
+    }
+
+    /// <summary>未進入公開簽章閉包的服務與假Controller名稱均拒絕，不能依命名或註解放行；只使用當案純來源。</summary>
+    [Fact]
+    public void R2_SyntheticHost_PublicNonSignatureType_IsViolation()
+    {
+        var project = Product("SpeechMessageProducts.ChurchReport", "net10.0", "net10.0") with
+        {
+            Sources = new[] { Source("Unused.cs", "public class UnusedService {} public class PretendController {}") }
+        };
+        var violations = ArchitectureRules.ValidateSource(Graph(project));
+        Assert.Equal("PretendController|UnusedService", string.Join("|", violations.Select(item => item.Dependency)
+            .OrderBy(value => value, StringComparer.Ordinal)));
+        Assert.All(violations, item => Assert.Equal("R2HostPublicType", item.Rule));
+    }
+
+    /// <summary>
+    /// 明列例外只有同時含精確身分、失敗理由與重現證據才允許；缺任一理由或證據即拒絕，
+    /// 防止以空清單欄位掩蓋公開型別。所有值合成，不讀寫正式例外檔。
+    /// </summary>
+    [Fact]
+    public void R2_SyntheticHost_ExplicitException_RequiresReasonAndEvidence()
+    {
+        var project = Product("SpeechMessageProducts.ChurchReport", "net10.0", "net10.0") with
+        {
+            Sources = new[] { Source("RuntimeModel.cs", "public class RuntimeModel {}") },
+            ChurchReportExceptions = new[] { new ArchitectureR2Exception("RuntimeModel", "synthetic runtime refusal", "Synthetic_RuntimeProbe") }
+        };
+        Assert.Empty(ArchitectureRules.ValidateSource(Graph(project)));
+        foreach (var exception in new[]
+        {
+            new ArchitectureR2Exception("RuntimeModel", "", "Synthetic_RuntimeProbe"),
+            new ArchitectureR2Exception("RuntimeModel", "synthetic runtime refusal", "")
+        })
+            Assert.Throws<InvalidDataException>(() => ArchitectureRules.ValidateSource(Graph(project with
+            { ChurchReportExceptions = new[] { exception } })));
+    }
+
+    /// <summary>LineWebhook仍只接受Program、Registration、Endpoints；不因ChurchReport的MVC規則而擴權或取得例外。</summary>
+    [Fact]
+    public void R2_LineWebhook_RuleUnchanged()
+    {
+        var project = Product("SpeechMessageProducts.LineWebhook", "net10.0", "net10.0") with
+        {
+            Sources = new[] { Source("Host.cs", """
+                public class Program {} public class HostRegistration {} public class HealthEndpoints {}
+                public class Startup {} public class Api : Microsoft.AspNetCore.Mvc.ControllerBase {}
+                """) }
+        };
+        var violations = ArchitectureRules.ValidateSource(Graph(project));
+        Assert.Equal("Api|Startup", string.Join("|", violations.Select(item => item.Dependency)
+            .OrderBy(value => value, StringComparer.Ordinal)));
     }
 
     /// <summary>

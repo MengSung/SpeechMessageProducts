@@ -17,6 +17,7 @@
  * 變更介面、資料格式、取消或清理順序時，須一併核對下列合作檔案及對應測試，不能只改目前檔案。
  * 可沿 SpeechMessageProducts.ChurchReport/Startup.cs 的共用 RichMenu 註冊追查使用位置；
  * P6-03 編譯探針確認該註冊仍需要本目錄，故刪除送訊殼時保留，不改選單內容或圖片來源。
+ * P6-07公開邊界：ChurchReportLegacyRichMenuCatalog改為產品內部宣告；外部輸出與既有資源清理契約不變。
  */
 using System.Collections.Generic;
 using System.IO;
@@ -32,6 +33,7 @@ namespace ChurchReport.Tools;
 /// 共用 RichMenu 專案只負責「依 catalog 佈建與指派」，不應知道 ChurchReport 的舊圖檔位置、
 /// 按鈕文字或認證用途；因此這份 catalog 留在 ChurchReport 產品層。
 /// </summary>
+/// <remarks>P6-07限於本產品內部使用；既有資料形狀、呼叫順序與資源所有權不變，不作為跨組件API。</remarks>
 public sealed class ChurchReportLegacyRichMenuCatalog : ILineRichMenuCatalog
 {
     /// <summary>

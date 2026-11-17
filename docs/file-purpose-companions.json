@@ -75,5 +75,6 @@
   "SpeechMessageProducts.GoodShepherd.Core.Tests/Golden/Legacy/messaging/expected.json": "保存P5-12人工閱讀期望與逐案差異宣告，basis=reading，列出舊來源行號、字典原因及影子完成候選；沒有偽造legacy.json，不得當成實機零差異或送達證據。",
   "d365/registration/legacy-disposition.json": "P5-13核定36個舊專案的唯一去向清冊；project為原第一層目錄、projectFile保留異名，ported列新target與真registration legacy的assembly/type複合身分，library僅列能力拆入的共用專案，不移植列具體原因。另列零來源方案殼排除與兩個暫緩項；只讀契約不執行舊DLL、不改D365，reading不是實機相容驗收。",
   "ChurchReport.MemberInfo.Tests/Golden/r2-serialization-shape.json": "P6-07可見性調整前由實際ChurchReport組件反射與Newtonsoft／System.Text.Json預設契約解析器取得的固定屬性名稱黃金；只記完整型別名稱與屬性名稱，不記可見性、物件值、個資或秘密。Release與Debug各自保存；正常測試唯讀逐位元組比對，只有明確本機產生開關可寫，不得在可見性調整後重生掩蓋差異。",
-  "ChurchReport.MemberInfo.Tests/Golden/r2-serialization-shape.debug.json": "P6-07可見性調整前由實際ChurchReport組件反射與Newtonsoft／System.Text.Json預設契約解析器取得的固定屬性名稱黃金；只記完整型別名稱與屬性名稱，不記可見性、物件值、個資或秘密。Release與Debug各自保存；正常測試唯讀逐位元組比對，只有明確本機產生開關可寫，不得在可見性調整後重生掩蓋差異。"
+  "ChurchReport.MemberInfo.Tests/Golden/r2-serialization-shape.debug.json": "P6-07可見性調整前由實際ChurchReport組件反射與Newtonsoft／System.Text.Json預設契約解析器取得的固定屬性名稱黃金；只記完整型別名稱與屬性名稱，不記可見性、物件值、個資或秘密。Release與Debug各自保存；正常測試唯讀逐位元組比對，只有明確本機產生開關可寫，不得在可見性調整後重生掩蓋差異。",
+  "SpeechMessage.Hosting.Tests/Architecture/r2-churchreport-exceptions.json": "P6-07 ChurchReport只能在測試或頁面驗收重現internal存取失敗後登錄的精確公開型別例外。每筆symbol、reason與evidence必填且身分唯一；預期空陣列，不能放大成名稱模式或整個產品豁免。架構掃描只讀本工作樹清單，缺檔與非法條目拒絕，不保存任何真實資料或秘密。"
 }

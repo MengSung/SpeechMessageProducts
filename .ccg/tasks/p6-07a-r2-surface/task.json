@@ -6,7 +6,7 @@
   "risk": "high",
   "domain": "backend",
   "currentPhase": "implementation",
-  "nextAction": "先兩份黃金測試紅燈，雙組態產生比對並獨立提交，尚不修改可見性",
+  "nextAction": "78d410e7黃金已鎖；Razor隔離探針成功並還原，不加第五類。下一步四個合成規則紅綠、Roslyn四類與r2-todo；先正常建置避免探針bin殘留。",
   "createdAt": "2026-11-17T07:59:57+08:00",
   "branch": "1.0.0.11.Integration.P6.Worktree"
 }

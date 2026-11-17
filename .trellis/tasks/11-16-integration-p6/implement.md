@@ -113,3 +113,10 @@ P6-PROP-008與06A修訂1已核定，僅下修DevelopmentSafetyTests設定建構�
 ## 2026-11-17 08:03 Asia/Taipei (UTC+08:00) P6-07a黃金接點
 
 P6-05收尾67ac88da4f075ec4c7c526d99651b08dd1d9d2f6已推送並ls-remote一致。P6-07a唯一active；兩指定黃金測試先紅後綠，Release／Debug各自保存兩檔，尚未改任何可見性。黃金hash與計數見P6-07-golden.md；先獨立提交，再Razor探針與四類規則。
+
+## 2026-11-17 08:07 Asia/Taipei (UTC+08:00) P6-07a續跑接點
+
+黃金獨立提交78d410e7完成，Release／Debug各兩指定測試先紅後綠，四個固定黃金檔不得再生成。Razor隔離探針Release成功（0警告0錯誤），已還原所有暫改；不加第五類。詳P6-07-inventory.md：前兩個候選被公開簽章阻擋，第三步只於探針暫收窄WeeklyReportData欄位以確認Razor本身可用internal；正式成員沒有修改。
+下一步只做P6-07a四個合成測試與Roslyn四類規則；78d410e7尚未推送或完整guard，待本段收斂。沒有進行頁面或階段審查。
+
+2026-11-17 08:19 Asia/Taipei (UTC+08:00)：P6-07a四合成規則4/4綠；實際R2待辦Debug187／Release175。Tools10檔14型別與BaseChurchController2個private protected已完成雙組態建置、ChurchReport643/644與Dataverse79/81、黃金比對。下一批WebServiceConnector；清冊依計畫於a段末更新，未驗收不推送。

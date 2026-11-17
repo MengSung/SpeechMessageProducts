@@ -13,7 +13,7 @@
  * - 檢查 NuGet 已選出的 Framework 相依，而不是只相信 csproj 宣告能提供 net462。
  * - 部署端 Plugin 與 Workflow 都受同一個 v4.6.2 沙箱契約約束。
  * - 以來源快照執行 R2 主機／Plugin 公開邊界、R3 組織字面值白名單及 R9 傳輸／Plugin 參考守門；
- *   舊 ChurchReport 的搬移債務保持精確可見，不以全產品豁免掩蓋。
+ *   ChurchReport以框架入口、MVC繼承及公開簽章閉包判定；明列例外必附理由與證據，其他主機規則不變。
  * - 以實際 DAG 而非示意圖的位置標記層級；共用核心內Localization為取字底層，其餘同層彼此不可參考。未知專案 fail closed， 加入新產品時必須明確分類並補正反例，不能因名稱相似自動取得高層權限。
  * 測試案例入口包含 ArchitectureProject、ArchitectureSource、ArchitectureViolation、Validate、
  * ValidateSource、ValidateFrameworkAssets、IsSandbox、IsHost、Layer。
@@ -58,6 +58,9 @@ internal sealed record ArchitectureProject(string Name, string Target, IReadOnly
     /// <summary>經本工作樹已還原資產解析的 SDK 契約中繼資料路徑；不載入或執行組件。</summary>
     internal IReadOnlyList<string> ContractMetadataPaths { get; init; } = Array.Empty<string>();
 
+    /// <summary>當次ChurchReport明列例外；只能由受版控清單或合成案例提供，不跨掃描保存。</summary>
+    internal IReadOnlyList<ArchitectureR2Exception> ChurchReportExceptions { get; init; } = Array.Empty<ArchitectureR2Exception>();
+
     /// <summary>本節點實際評估組態；不同組態來源及參考不能互相掩蓋。</summary>
     internal string Configuration { get; init; } = "Release";
 }
@@ -80,6 +83,12 @@ internal sealed record ArchitectureViolation(string Rule, string Project, string
     /// <summary>發現違規的實際組態，不能以另一組態綠燈遮蔽。</summary>
     internal string Configuration { get; init; } = "Release";
 }
+
+/// <summary>可見性調整的實證例外，只含來源型別身分、失敗理由與可重現證據，不授予其他專案權限。</summary>
+/// <param name="Symbol">精確完整型別名稱。</param>
+/// <param name="Reason">已重現不能internal的失敗現象。</param>
+/// <param name="Evidence">測試名稱或頁面驗收情境。</param>
+internal sealed record ArchitectureR2Exception(string Symbol, string Reason, string Evidence);
 
 /// <summary>純函式 R2／R3／R4／R9 規則；每次驗證獨立建立結果，不保存跨測試或跨目標的可變靜態圖。</summary>
 internal static class ArchitectureRules
@@ -256,6 +265,8 @@ internal static class ArchitectureRules
                             project.GlobalUsingDirectives), parseOptions, "<evaluated-global-usings>") }).ToArray();
                 var compilation = CSharpCompilation.Create(project.Name, trees, references,
                     new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
+                var churchReportAllowed = project.Name == "SpeechMessageProducts.ChurchReport"
+                    ? ChurchReportPublicSurface(compilation, project.ChurchReportExceptions) : null;
                 var inspectedTypes = new HashSet<ISymbol>(SymbolEqualityComparer.Default);
                 foreach (var tree in trees)
                 {
@@ -278,9 +289,11 @@ internal static class ArchitectureRules
                         }
 
                         var identity = symbol.ToDisplayString(SymbolDisplayFormat.CSharpErrorMessageFormat);
-                        if (IsHost(project.Name) && symbol.Name != "Program" &&
-                            !symbol.Name.EndsWith("Registration", StringComparison.Ordinal) &&
-                            !symbol.Name.EndsWith("Endpoints", StringComparison.Ordinal))
+                        if (IsHost(project.Name) && (churchReportAllowed is not null
+                            ? !churchReportAllowed.Contains(symbol.OriginalDefinition)
+                            : symbol.Name != "Program" &&
+                              !symbol.Name.EndsWith("Registration", StringComparison.Ordinal) &&
+                              !symbol.Name.EndsWith("Endpoints", StringComparison.Ordinal)))
                         {
                             Add("R2HostPublicType", project, identity, path);
                         }
@@ -366,17 +379,113 @@ internal static class ArchitectureRules
         return violations.AsReadOnly();
     }
 
-    /// <summary>僅借用目前 runtime 的六個純契約組件路徑，不載入產品 DLL 或列舉任意磁碟。</summary>
+    /// <summary>借用目前runtime的基礎與MVC契約metadata，供語意繼承辨識；不載入產品DLL或列舉任意磁碟。</summary>
     private static IEnumerable<string> PlatformContractPaths()
     {
         var allowed = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
         {
             "System.Private.CoreLib.dll", "System.Runtime.dll", "System.Net.Http.dll",
-            "System.Collections.dll", "System.Linq.dll", "netstandard.dll"
+            "System.Collections.dll", "System.Linq.dll", "netstandard.dll",
+            "Microsoft.AspNetCore.Mvc.Core.dll", "Microsoft.AspNetCore.Mvc.ViewFeatures.dll",
+            "Microsoft.AspNetCore.Mvc.Abstractions.dll"
         };
         var paths = AppContext.GetData("TRUSTED_PLATFORM_ASSEMBLIES") as string ??
             throw new InvalidDataException("Runtime contract metadata is unavailable.");
         return paths.Split(Path.PathSeparator).Where(path => allowed.Contains(Path.GetFileName(path)));
+    }
+
+    /// <summary>
+    /// 由Program／Startup、真正MVC控制器與ViewComponent展開本專案公開簽章閉包；
+    /// 泛型引數、陣列、ref型別、基底與介面均用Roslyn符號，不以Controller等名稱猜測。
+    /// 集合只活在當次compilation，visited保證循環及自參考有界；不保存metadata或來源到static。
+    /// </summary>
+    /// <param name="compilation">本目標與組態的來源編譯模型，不執行產品。</param>
+    /// <param name="exceptions">有失敗實證的精確例外，缺理由／證據或重複一律拒絕。</param>
+    /// <returns>本次允許公開的型別定義，供同次掃描比對。</returns>
+    private static HashSet<INamedTypeSymbol> ChurchReportPublicSurface(CSharpCompilation compilation,
+        IReadOnlyList<ArchitectureR2Exception> exceptions)
+    {
+        var declared = new HashSet<INamedTypeSymbol>(SymbolEqualityComparer.Default);
+        foreach (var tree in compilation.SyntaxTrees)
+        {
+            var model = compilation.GetSemanticModel(tree);
+            foreach (var declaration in tree.GetRoot().DescendantNodes().Where(node =>
+                node is BaseTypeDeclarationSyntax or DelegateDeclarationSyntax))
+                if (model.GetDeclaredSymbol(declaration) is INamedTypeSymbol type) declared.Add(type.OriginalDefinition);
+        }
+        var allowed = new HashSet<INamedTypeSymbol>(SymbolEqualityComparer.Default);
+        var pending = new Queue<INamedTypeSymbol>();
+        foreach (var type in declared.Where(IsExternallyVisible))
+            if (type.Name is "Program" or "Startup" || IsMvcEntry(type)) Include(type);
+        var exceptionNames = new HashSet<string>(StringComparer.Ordinal);
+        foreach (var exception in exceptions)
+        {
+            if (string.IsNullOrWhiteSpace(exception.Symbol) || string.IsNullOrWhiteSpace(exception.Reason)
+                || string.IsNullOrWhiteSpace(exception.Evidence) || !exceptionNames.Add(exception.Symbol))
+                throw new InvalidDataException("R2 exception requires unique symbol, reason and evidence.");
+            var type = declared.SingleOrDefault(item =>
+                item.ToDisplayString(SymbolDisplayFormat.CSharpErrorMessageFormat) == exception.Symbol);
+            if (type is null || !IsExternallyVisible(type))
+                throw new InvalidDataException("R2 exception does not identify a public source type.");
+            Include(type);
+        }
+        while (pending.TryDequeue(out var type))
+        {
+            Include(type.BaseType);
+            foreach (var contract in type.Interfaces) Include(contract);
+            foreach (var parameter in type.TypeParameters)
+                foreach (var constraint in parameter.ConstraintTypes) Include(constraint);
+            foreach (var member in type.GetMembers().Where(member => member.DeclaredAccessibility is
+                Accessibility.Public or Accessibility.Protected or Accessibility.ProtectedOrInternal))
+            {
+                switch (member)
+                {
+                    case IMethodSymbol method:
+                        Include(method.ReturnType);
+                        foreach (var parameter in method.Parameters) Include(parameter.Type);
+                        foreach (var parameter in method.TypeParameters)
+                            foreach (var constraint in parameter.ConstraintTypes) Include(constraint);
+                        break;
+                    case IPropertySymbol property:
+                        Include(property.Type);
+                        foreach (var parameter in property.Parameters) Include(parameter.Type);
+                        break;
+                    case IFieldSymbol field: Include(field.Type); break;
+                    case IEventSymbol eventSymbol: Include(eventSymbol.Type); break;
+                }
+            }
+        }
+        return allowed;
+
+        // 外部泛型的本地引數仍需公開；只將本地宣告入列，外部framework不可能由此增加本地來源。
+        void Include(ITypeSymbol? type)
+        {
+            switch (type)
+            {
+                case IArrayTypeSymbol array: Include(array.ElementType); break;
+                case IPointerTypeSymbol pointer: Include(pointer.PointedAtType); break;
+                case INamedTypeSymbol named:
+                    foreach (var argument in named.TypeArguments) Include(argument);
+                    if (named.ContainingType is not null) Include(named.ContainingType);
+                    if (declared.Contains(named.OriginalDefinition) && allowed.Add(named.OriginalDefinition))
+                        pending.Enqueue(named.OriginalDefinition);
+                    break;
+            }
+        }
+    }
+
+    /// <summary>完整基底鏈與官方MVC組件身分共同辨識；來源偽造同名ControllerBase不取得框架權限。</summary>
+    private static bool IsMvcEntry(INamedTypeSymbol type)
+    {
+        for (var current = type; current is not null; current = current.BaseType)
+        {
+            var name = current.ToDisplayString();
+            if ((name == "Microsoft.AspNetCore.Mvc.ControllerBase" &&
+                 current.ContainingAssembly?.Name == "Microsoft.AspNetCore.Mvc.Core") ||
+                (name == "Microsoft.AspNetCore.Mvc.ViewComponent" &&
+                 current.ContainingAssembly?.Name == "Microsoft.AspNetCore.Mvc.ViewFeatures")) return true;
+        }
+        return false;
     }
 
     /// <summary>所有包含型別均須公開；internal 容器、私有或 protected 巢狀型別不構成直接公開 API。</summary>

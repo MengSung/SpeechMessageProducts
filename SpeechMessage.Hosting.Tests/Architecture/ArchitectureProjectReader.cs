@@ -34,7 +34,7 @@ namespace SpeechMessage.Architecture.Tests;
 
 /// <summary>
 /// 從實際方案逐 csproj、逐目標呼叫 MSBuild 的唯讀評估；避免自行猜測 Condition／Import 規則漏掉
-/// Framework 專用參考。每個程序最長三十秒，輸入只來自受信任方案，程序、串流與 JSON 均有限持有。
+/// Framework 專用參考。ChurchReport另讀同工作樹有界R2實證例外。每個程序最長三十秒，輸入只來自受信任方案，程序、串流與 JSON 均有限持有。
 /// </summary>
 internal static class ArchitectureProjectReader
 {
@@ -159,6 +159,8 @@ internal static class ArchitectureProjectReader
                 projects.Add(new ArchitectureProject(Path.GetFileNameWithoutExtension(path), target, targets, references!, packages, test)
                 {
                     Sources = sources,
+                    ChurchReportExceptions = Path.GetFileNameWithoutExtension(path) == "SpeechMessageProducts.ChurchReport" && verifyRestoredAssets
+                        ? ReadChurchReportExceptions(root) : Array.Empty<ArchitectureR2Exception>(),
                     RestoredDependencies = assetsMetadata.Item1,
                     ContractMetadataPaths = assetsMetadata.Item2,
                     AssemblyReferences = assemblies,
@@ -170,6 +172,23 @@ internal static class ArchitectureProjectReader
         }
 
         return projects.AsReadOnly();
+    }
+
+    /// <summary>
+    /// 只讀本工作樹受版控的ChurchReport實證例外；上限64KiB，檔案與JSON owner在返回前釋放。
+    /// 不將缺檔當成空清單，也不在讀取器推定例外已核定；reason／evidence由規則層逐筆驗證。
+    /// </summary>
+    private static ArchitectureR2Exception[] ReadChurchReportExceptions(string root)
+    {
+        var path = Path.Combine(root, "SpeechMessage.Hosting.Tests/Architecture/r2-churchreport-exceptions.json");
+        ValidateLocalPath(root, path);
+        using var stream = File.OpenRead(path);
+        if (stream.Length > 65_536) throw new InvalidDataException("R2 exception inventory exceeded its budget.");
+        using var data = JsonDocument.Parse(stream);
+        return data.RootElement.EnumerateArray().Select(item => new ArchitectureR2Exception(
+            item.GetProperty("symbol").GetString() ?? string.Empty,
+            item.GetProperty("reason").GetString() ?? string.Empty,
+            item.GetProperty("evidence").GetString() ?? string.Empty)).ToArray();
     }
 
     /// <summary>

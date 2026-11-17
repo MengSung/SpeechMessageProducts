@@ -15,6 +15,7 @@
  * 變更介面、資料格式、取消或清理順序時，須一併核對下列合作檔案及對應測試，不能只改目前檔案。
  * 可沿 SpeechMessageProducts.ChurchReport/Tools/PersonalQrCodeUtility.cs、
  * SpeechMessageProducts.ChurchReport/Tools/SundayQrCodeUtility.cs 追查目前工作樹中的合作／使用位置。
+ * P6-07公開邊界：WeeklyReportProcessor改為產品內部宣告；外部輸出與既有資源清理契約不變。
  */
 using System;
 using System.Collections.Generic;
@@ -33,7 +34,9 @@ using System.Text.RegularExpressions;
 
 namespace ChurchReport.Tools
 {
-    public class WeeklyReportProcessor
+    /// <summary>依登入者與名單即時建立或讀取週報及個人出席記錄，保留原建立流程、日期與CRM主鍵。P6-02 以全方案編譯確認三個舊分類方法沒有呼叫者後移除；共用計算規則由 GoodShepherd.Core 擁有，本檔不改用整批產生服務。
+    /// P6-07將本宣告限於主機內部；仍由既有呼叫端組裝及消費，不變更資料形狀、流程或資源owner。</summary>
+    internal class WeeklyReportProcessor
     {
         #region 資料區
         #region 參數資料

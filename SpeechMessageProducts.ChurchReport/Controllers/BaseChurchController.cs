@@ -5,6 +5,7 @@
  *
  * 主要功能與流程：
  * 本檔宣告 BaseChurchController。
+ * - P6-07將使用產品內部context型別的基底建構式與欄位限於同組件衍生控制器；public action、輸入輸出與owner不變。
  * - 驗證快取允許保留的最大項目數；超過前會先淘汰一筆最舊項目。
  * - 取得 Dataverse/CRM 與各項後端服務的統一操作進入點。
  * - 指示本控制器是否擁有建構式自行建立的 data context。 DI 注入的 context 由 DI scope 負責釋放，控制器不得重複 Dispose； 相容路徑自行建立的 context 則由本控制器在
@@ -218,7 +219,7 @@ namespace ChurchReport.Controllers
         protected ToolUtilityClass ToolUtility => _toolUtilityProvider.GetToolUtility();
 
         /// <summary>
-        /// 本次請求的記憶體資料內容，聚合各個資料管理器。
+        /// 本次請求的記憶體資料內容，聚合各個資料管理器；只供同主機衍生控制器存取，不作為跨組件公開簽章。
         /// </summary>
         /// <remarks>
         /// 透過它可取得 <c>ListManager</c>（登入身分與名單）、<c>FeeList</c>（收費資料）、
@@ -229,7 +230,7 @@ namespace ChurchReport.Controllers
         /// 讓單元測試可以替換成假的實作，不必連上真的 CRM。
         /// 實例來源見建構式：優先使用 DI 注入，未注入時才自行組裝。
         /// </remarks>
-        protected readonly IInMemoryDataContext InMemoryContext;
+        private protected readonly IInMemoryDataContext InMemoryContext;
 
         /// <summary>
         /// 指示本控制器是否擁有建構式自行建立的 data context。
@@ -289,7 +290,7 @@ namespace ChurchReport.Controllers
         #region 建構式 (Constructor)
 
         /// <summary>
-        /// 建立控制器並準備好所有共用相依項。
+        /// 建立同主機控制器並準備好所有共用相依項；private protected限制產品context不洩入外部繼承簽章，不改DI或建立流程。
         /// </summary>
         /// <remarks>
         /// <para><b>必要相依項</b></para>
@@ -309,7 +310,7 @@ namespace ChurchReport.Controllers
         /// <param name="toolUtilityProvider">ToolUtility 取得管道，必要。</param>
         /// <param name="connectionPool">CRM 連線集區，必要（供統計用）。</param>
         /// <param name="inMemoryContext">記憶體資料內容；未提供時由本建構式自行組裝。</param>
-        protected BaseChurchController(
+        private protected BaseChurchController(
             IHttpContextAccessor httpContextAccessor,
             IMemoryCache memoryCache,
             IToolUtilityProvider toolUtilityProvider,

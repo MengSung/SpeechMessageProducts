@@ -12,6 +12,7 @@
  * 本檔的前置條件、錯誤及資源責任以各型別／成員契約為準；此導讀不把呼叫參數視為授權，也不擴張被借入依賴的所有權。
  * 變更介面、資料格式、取消或清理順序時，須一併核對下列合作檔案及對應測試，不能只改目前檔案。
  * 可沿 SpeechMessageProducts.ChurchReport/Tools/DonationFeePaymentProcessor.cs 追查目前工作樹中的合作／使用位置。
+ * P6-07公開邊界：DonationFeeGroupPaidPlan、DonationFeeGroupPaidPlanner、DonationFeePaidDecision、DonationFeePaidSnapshot改為產品內部宣告；外部輸出與既有資源清理契約不變。
  */
 using System;
 using System.Collections.Generic;
@@ -20,7 +21,8 @@ using System.Linq;
 namespace ChurchReport.Tools
 {
     /// <summary>回呼使用的收費單狀態快照；純資料型別避免攜帶 CRM 可變狀態或會友資料。</summary>
-    public sealed record DonationFeePaidSnapshot(
+    /// <remarks>P6-07限於本產品內部使用；既有資料形狀、呼叫順序與資源所有權不變，不作為跨組件API。</remarks>
+    internal sealed record DonationFeePaidSnapshot(
         Guid FeeId,
         int ShouldPay,
         int ExistingReallyPaid,
@@ -31,7 +33,8 @@ namespace ChurchReport.Tools
     /// 對一張收費單的處理決定。
     /// MarkPaid：本次標記已付款。CorrectAmount：已付款但實收被寫成整筆付款，本次校正為 ReallyPaid。
     /// </summary>
-    public sealed record DonationFeePaidDecision(
+    /// <remarks>P6-07限於本產品內部使用；既有資料形狀、呼叫順序與資源所有權不變，不作為跨組件API。</remarks>
+    internal sealed record DonationFeePaidDecision(
         Guid FeeId,
         bool MarkPaid,
         int ReallyPaid,
@@ -39,7 +42,8 @@ namespace ChurchReport.Tools
         bool CorrectAmount = false);
 
     /// <summary>整個群組的處理計畫；Decisions 順序與傳入的收費單順序相同（primary 在第一個）。</summary>
-    public sealed record DonationFeeGroupPaidPlan(
+    /// <remarks>P6-07限於本產品內部使用；既有資料形狀、呼叫順序與資源所有權不變，不作為跨組件API。</remarks>
+    internal sealed record DonationFeeGroupPaidPlan(
         IReadOnlyList<DonationFeePaidDecision> Decisions,
         int ExpectedTotal,
         int PaidAmount,
@@ -57,7 +61,8 @@ namespace ChurchReport.Tools
     }
 
     /// <summary>計算群組逐筆入帳、校正與冪等結果。</summary>
-    public static class DonationFeeGroupPaidPlanner
+    /// <remarks>P6-07限於本產品內部使用；既有資料形狀、呼叫順序與資源所有權不變，不作為跨組件API。</remarks>
+    internal static class DonationFeeGroupPaidPlanner
     {
         public const int PayStatusNew = 100000000;
 

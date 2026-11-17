@@ -20,6 +20,7 @@
  * 變更介面、資料格式、取消或清理順序時，須一併核對下列合作檔案及對應測試，不能只改目前檔案。
  * 可沿 SpeechMessageProducts.ChurchReport/Controllers/PhoneBindingController.cs、
  * SpeechMessageProducts.ChurchReport/Controllers/QrCodeController.cs 追查目前工作樹中的合作／使用位置。
+ * P6-07公開邊界：QrCodeUtility改為產品內部宣告；外部輸出與既有資源清理契約不變。
  */
 using ChurchReport.WebServiceConnector;
 using ChurchReport.Configuration;
@@ -51,7 +52,9 @@ using Line.Messaging;
 namespace ChurchReport.Tools
 {
     #region 課程 QR Code 簽到及簽退掃描
-    public class QrCodeUtility : IDisposable
+    /// <summary>提供課程及活動QR Code流程的共用舊入口，連接掃描資料、CRM操作與LINE訊息呈現；組態解析採既有集中邊界，掃描內容只是輸入，不能直接取得資料操作權限。
+    /// P6-07將本宣告限於主機內部；仍由既有呼叫端組裝及消費，不變更資料形狀、流程或資源owner。</summary>
+    internal class QrCodeUtility : IDisposable
     {
         #region 資料區
         // 掃描者
