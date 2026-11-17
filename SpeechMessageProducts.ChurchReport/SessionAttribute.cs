@@ -11,6 +11,7 @@
  * 使用邊界與維護：
  * 本檔的前置條件、錯誤及資源責任以各型別／成員契約為準；此導讀不把呼叫參數視為授權，也不擴張被借入依賴的所有權。
  * 變更介面、資料格式、取消或清理順序時，須一併核對下列合作檔案及對應測試，不能只改目前檔案。
+ * P6-07公開邊界：CheckSessionOutAttribute、SessionAttribute改為產品內部宣告；外部輸出與既有資源清理契約不變。
  */
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
@@ -20,7 +21,11 @@ using Microsoft.AspNetCore.Http;
 
 namespace ChurchReport
 {
-    public class SessionAttribute
+    /// <summary>本檔整合下列相關契約：CheckSessionOutAttribute：驗證同一個瀏覽器連線在請求之間的 Session Id 是否一致。
+    /// P6-07將本宣告限於主機內部；仍由既有呼叫端組裝及消費，不變更資料形狀、流程或資源owner。</summary>
+    /// <summary>本檔整合下列相關契約：CheckSessionOutAttribute：驗證同一個瀏覽器連線在請求之間的 Session Id 是否一致。
+    /// P6-07將本宣告限於主機內部；仍由既有呼叫端組裝及消費，不變更資料形狀、流程或資源owner。</summary>
+    internal class SessionAttribute
     {
     }
 
@@ -48,8 +53,10 @@ namespace ChurchReport
     /// 所以比較永遠只發生在同一位使用者的前後兩次請求之間，不會有任何跨使用者狀態。
     /// 方法改為同步的 <c>override void</c>，與基底類別的契約一致。
     /// </remarks>
+    /// <remarks>P6-07限於本產品內部使用；既有資料形狀、呼叫順序與資源所有權不變，不作為跨組件API。</remarks>
+    /// <remarks>P6-07限於本產品內部使用；既有資料形狀、呼叫順序與資源所有權不變，不作為跨組件API。</remarks>
     [AttributeUsage(AttributeTargets.Method, Inherited = true, AllowMultiple = false)]
-    public class CheckSessionOutAttribute : ActionFilterAttribute
+    internal class CheckSessionOutAttribute : ActionFilterAttribute
     {
         /// <summary>
         /// 記錄基準 Session Id 的 Session 鍵。存放於 Session 內即天然隔離於每位使用者。
