@@ -6,7 +6,7 @@
  * 操作Edge與讀回SDK欄位，再停止子程序與清理。只把去除秘密的合成對照及狀態寫artifacts。
  * 使用邊界與維護：既有會員帳密不讀不改；隨機登入帳密不經CLI、檔案、輸出。Host stdout/stderr
  * 只掃描固定啟動訊號並丟棄，不保存可能含token的原文。每次等待有上限，finally關Browser、
- * 結束Host並等待退出，再要求SDK清理及秘密還原；任何清理失敗明確失敗，不假稱殘留0。
+ * 結束Host並有界等待退出（包含spawn error），再要求SDK清理及秘密還原；任何清理失敗明確失敗，不假稱殘留0。
  * 正規化只使用fixture正式ID代號與明列日期欄位是否寫入，其餘值逐欄比較。Push成功數必須
  * 從測試LINE統計的前後差計算；沒有可辨識成功數則明列未驗證，不能用呼叫次數冒充送達。
  */
@@ -61,7 +61,16 @@ async function startHost(root, port) {
     if (text.includes('Development 測試憑證必須來自 User Secrets')) rejected = true; };
   child.stdout.on('data', scan); child.stderr.on('data', scan);
   const exited = new Promise(resolve => child.once('close', code => { closed = true; resolve(code); }));
-  async function stop() { if (!closed) child.kill(); await exited; }
+  child.once('error', () => { rejected = true; });
+  async function stop() {
+    if (!closed) child.kill();
+    let timer;
+    try {
+      await Promise.race([exited, new Promise((_, reject) => {
+        timer = setTimeout(() => reject(new Error('P6_HOST_DRAIN_TIMEOUT')), 30000);
+      })]);
+    } finally { clearTimeout(timer); }
+  }
   const deadline = Date.now() + 60000;
   while (Date.now() < deadline && !closed && !rejected && !listening)
     await new Promise(resolve => setTimeout(resolve, 200));
@@ -123,7 +132,10 @@ async function runAcceptance(root) {
   } catch (error) {
     failure = error instanceof Error && /^P6_[A-Z_]+$/.test(error.message) ? error.message : 'P6_ACCEPTANCE_OPERATION_FAILED';
   } finally {
-    try { cleanup = await bridge.close(); } catch { failure = 'P6_CLEANUP_OR_SECRET_RESTORE_FAILED'; }
+    try { cleanup = await bridge.close(); } catch (error) {
+      cleanup = error.cleanup || { cleanup: false, remaining: null, secretsRestored: false };
+      failure = 'P6_CLEANUP_OR_SECRET_RESTORE_FAILED';
+    }
     credentials.account = ''; credentials.password = ''; settings.lineUserId = ''; settings.testToken = '';
   }
   const comparison = rounds.length === 2 ? compareRounds(rounds[0], rounds[1]) : { equal: false };

@@ -7,7 +7,8 @@
  * stderr或SDK錯誤本文，只回固定狀態；生命週期owner必須finally呼叫close等清理結果。
  * 使用邊界與維護：只有Deployment白名單goodshepherdback；本模組不讀憑證或既有會員資料。
  * 子程序擁有SDK連線與本輪資料，finish/EOF會逆序刪除並驗證；close先關stdin等待清理，
- * 只有超時才終止。異常終止或未收到remaining=0必須回報，不能將殘留當成已清理。
+ * 所有失敗路徑也有界drain；只有超時才終止，再確認close，不能將kill當成秘密已還原。
+ * 未收到remaining=0與secretsRestored=true必須明列未確認，不得將未知狀態當成已清理。
  */
 'use strict';
 const fs = require('node:fs/promises');
@@ -44,30 +45,59 @@ async function compileFixtureOwner(root) {
   return { output, bin };
 }
 
-/** 單一序列命令owner，未完成或清理失敗必須拒絕驗收，不以kill冒充完成。 */
-async function createFixtureBridge(root) {
-  const { output, bin } = await compileFixtureOwner(root);
-  const child = spawn('dotnet', ['exec', '--runtimeconfig', path.join(bin, 'SpeechMessage.Dynamics.Deployment.runtimeconfig.json'),
+/**
+ * 先送EOF讓SDK owner清理與還原；不論協定／ready／cleanup是否失敗都等待close。
+ * 正常drain最多timeoutMs，超時才終止，再等最多5秒close；kill不等於資料或秘密已還原。
+ * timer由此呼叫finally清除，回傳純狀態供上層如實回報，不保存child或秘密。
+ */
+async function drainFixtureProcess(child, exited, timeoutMs = 60000) {
+  let timer;
+  const wait = async duration => {
+    try {
+      return await Promise.race([exited.then(code => ({ exited: true, code })),
+        new Promise(resolve => { timer = setTimeout(() => resolve({ exited: false }), duration); })]);
+    } finally { clearTimeout(timer); }
+  };
+  try { child.stdin.end(); } catch { /* 仍須等待已斷線子程序退出，不把pipe錯誤當成清理完成。 */ }
+  let result = await wait(timeoutMs);
+  if (result.exited) return { processExitCode: result.code, drainTimedOut: false, terminated: false, processExited: true };
+  let terminated = false;
+  try { terminated = child.kill(); } catch { /* kill失敗由processExited=false明確回報，不能吞成成功。 */ }
+  result = await wait(Math.min(timeoutMs, 5000));
+  return { processExitCode: result.exited ? result.code : null, drainTimedOut: true, terminated,
+    processExited: result.exited };
+}
+
+/** 單一序列命令owner；可注入的runtime僅供離線故障回歸，正式呼叫沿用本機compiler／spawn與60秒上限。 */
+async function createFixtureBridge(root, runtime = {}) {
+  const compile = runtime.compile || compileFixtureOwner;
+  const spawnProcess = runtime.spawnProcess || spawn;
+  const responseTimeoutMs = runtime.responseTimeoutMs || 60000;
+  const drainTimeoutMs = runtime.drainTimeoutMs || 60000;
+  const { output, bin } = await compile(root);
+  const child = spawnProcess('dotnet', ['exec', '--runtimeconfig', path.join(bin, 'SpeechMessage.Dynamics.Deployment.runtimeconfig.json'),
     '--depsfile', path.join(bin, 'SpeechMessage.Dynamics.Deployment.deps.json'), output],
   { cwd: root, stdio: ['pipe', 'pipe', 'pipe'], windowsHide: true });
   const queue = [];
   let waiter, ended = false, stderrBytes = 0;
   const lines = readline.createInterface({ input: child.stdout, crlfDelay: Infinity });
+  const endInput = () => { try { child.stdin.end(); } catch { /* drain負責確認程序退出與還原。 */ } };
   lines.on('line', line => {
-    if (Buffer.byteLength(line) > 128 * 1024) { child.stdin.end(); return; }
+    if (Buffer.byteLength(line) > 128 * 1024) { endInput(); return; }
     let value;
-    try { value = JSON.parse(line); } catch { child.stdin.end(); return; }
+    try { value = JSON.parse(line); } catch { endInput(); return; }
     if (waiter) { const resolve = waiter; waiter = undefined; resolve(value); }
     else if (queue.length < 4) queue.push(value);
-    else child.stdin.end();
+    else endInput();
   });
-  child.stderr.on('data', data => { stderrBytes += data.length; if (stderrBytes > 512 * 1024) child.stdin.end(); });
+  child.stderr.on('data', data => { stderrBytes += data.length; if (stderrBytes > 512 * 1024) endInput(); });
   const exited = new Promise(resolve => child.once('close', code => {
     ended = true;
     if (waiter) { const done = waiter; waiter = undefined; done({ error: 'P6_FIXTURE_EXITED' }); }
     resolve(code);
   }));
-  child.once('error', () => child.stdin.end());
+  child.once('error', endInput);
+  child.stdin.on('error', endInput);
   async function next() {
     if (queue.length) return queue.shift();
     if (ended || waiter) throw new Error('P6_FIXTURE_PROTOCOL_STATE');
@@ -75,12 +105,20 @@ async function createFixtureBridge(root) {
     try {
       return await Promise.race([
         new Promise(resolve => { waiter = resolve; }),
-        new Promise((_, reject) => { timeout = setTimeout(() => reject(new Error('P6_FIXTURE_RESPONSE_TIMEOUT')), 60000); })
+        new Promise((_, reject) => { timeout = setTimeout(() => reject(new Error('P6_FIXTURE_RESPONSE_TIMEOUT')), responseTimeoutMs); })
       ]);
     } finally { clearTimeout(timeout); waiter = undefined; }
   }
-  const ready = await next();
-  if (!ready.ready) { child.stdin.end(); await exited; throw new Error('P6_FIXTURE_NOT_READY'); }
+  try {
+    const ready = await next();
+    if (!ready.ready) throw new Error('P6_FIXTURE_NOT_READY');
+  } catch {
+    const drained = await drainFixtureProcess(child, exited, drainTimeoutMs);
+    lines.close(); queue.length = 0;
+    const error = new Error('P6_FIXTURE_NOT_READY');
+    error.cleanup = { cleanup: false, remaining: null, secretsRestored: true, ...drained };
+    throw error;
+  }
   return {
     async request(value) {
       const text = JSON.stringify(value);
@@ -91,17 +129,23 @@ async function createFixtureBridge(root) {
       return response;
     },
     async close() {
-      child.stdin.end();
-      let timeout;
-      try {
-        const cleanup = await next();
-        if (!cleanup.cleanup || cleanup.remaining !== 0 || !cleanup.secretsRestored) throw new Error('P6_FIXTURE_CLEANUP_FAILED');
-        const code = await Promise.race([exited, new Promise((_, reject) => {
-          timeout = setTimeout(() => { child.kill(); reject(new Error('P6_FIXTURE_DRAIN_TIMEOUT')); }, 60000);
-        })]);
-        return { ...cleanup, processExitCode: code };
-      } finally { clearTimeout(timeout); lines.close(); }
+      endInput();
+      let cleanup, protocolFailed = false, drained;
+      try { cleanup = await next(); } catch { protocolFailed = true; }
+      finally {
+        drained = await drainFixtureProcess(child, exited, drainTimeoutMs);
+        lines.close(); queue.length = 0;
+      }
+      const result = { cleanup: cleanup?.cleanup === true, remaining: cleanup?.remaining ?? null,
+        secretsRestored: cleanup?.secretsRestored === true, backupProtected: cleanup?.backupProtected === true, ...drained };
+      if (protocolFailed || !result.cleanup || result.remaining !== 0 || !result.secretsRestored
+          || !result.processExited || result.drainTimedOut) {
+        const error = new Error('P6_FIXTURE_CLEANUP_FAILED');
+        error.cleanup = result;
+        throw error;
+      }
+      return result;
     }
   };
 }
-module.exports = { compileFixtureOwner, createFixtureBridge };
+module.exports = { compileFixtureOwner, createFixtureBridge, drainFixtureProcess };

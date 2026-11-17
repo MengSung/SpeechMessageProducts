@@ -7,7 +7,7 @@
  * normalize只替換明確ID映射及明列時間欄位，其他文字、欄位與數值原樣比較。
  * 使用邊界與維護：此模組不讀既有會員帳密、不保存token／cookie／登入帳密至檔案。
  * Playwright只從repo外已安裝路徑載入，不下載瀏覽器。每輪browser/context由呼叫
- * 擁有，finally關閉；fixture及Host子程序由上層單一owner負責建立、停止及逆序清理。
+ * 擁有，以巢狀finally確保context關閉失敗時browser仍關閉；fixture及Host子程序由上層單一owner負責建立、停止及逆序清理。
  * 本檔不代表已完成實機；只有兩輪回應、寫入讀回、推播及殘留全檢查後才可驗收。
  * 故障只回固定代碼，禁止把Playwright原始錯誤、request body或秘密輸出到終端。
  */
@@ -119,8 +119,9 @@ async function runBrowserRound({ origin, fixture, outputDirectory, label, skipLo
     }
     return { qr: results, weekly };
   } finally {
-    if (context) await context.close();
-    await browser.close();
+    // Context關閉本身失敗時仍須由browser owner關閉程序；不能讓第一個例外略過最終釋放。
+    try { if (context) await context.close(); }
+    finally { await browser.close(); }
   }
 }
 

@@ -1,0 +1,19 @@
+# 階段6唯一階段審查
+
+2026-11-17 10:52 Asia/Taipei (UTC+08:00)：以專案Start-CcgDualModelRun.ps1自癒入口執行一次，單模型（使用者指定ClaudeOnly；使用者已取消強制雙模型）。Claude完成、ok=true、dualModelComplete=false，不是雙模型成功或quota降級；沒有再次呼叫外部審查。
+
+外部結論Critical0／High0，Medium3與Low3。Claude只讀程式、未跑測試，且明言沒有獨立讀Roslyn分類器／清冊；這部分由本機完整guard與主代理來源複核補足，不把外部文字當機器驗證。
+
+| 發現 | 複核與處置 | 證據 |
+| --- | --- | --- |
+| M1 context.close例外跳過browser.close | 確認可重現；AGENTS資源生命週期永久規則優先於一般只修C/H收斂，巢狀finally保證browser關閉 | Context_close_fault_still_closes_browser：舊紅→新綠 |
+| M2 cleanup錯誤／逾時未等SDK close | 確認可重現；所有路徑EOF後有界drain，超時才終止並等close，未知秘密標false、remaining null，錯誤帶脫敏cleanup狀態 | Invalid_cleanup_drains_and_preserves_unknown及Cleanup_timeout_bounds_child_and_never_claims_restore：舊紅→新綠 |
+| M3 ready逾時孤兒程序 | 確認可重現；ready失敗也同一drain owner，未prepare時明標秘密未改，不保存child | Ready_timeout_drains_child：舊紅→新綠 |
+| L1 Host spawn缺error listener | 同修工具生命週期，error變固定啟動失敗並有界等close，秘密owner finally仍執行 | Node語法與完整守門；不更動產品 |
+| L2 malformed QR讀取減少 | 屬D6-3核定差異，完整回報維持只四類，不宣稱全部輸入零差異 | 指定Malformed／DeclaredDifferences測試 |
+| L3 未來processor若改Disposable | 假設性未來變更，本次無新資源owner；不加碼改產品，登錄之後再說 | 原ForClient借用client契約 |
+
+四案離線回歸只替換外部spawn／Playwright邊界、執行真正工具來源；不連D365／LINE、不讀秘密。git舊3ea8a133四案全紅、修正後四綠。回歸來源tools/PageAcceptance/P6/Tests/P6Lifecycle.cjs。
+修正後SDK bridge唯讀實測七實體0，close回報processExited=true、drainTimedOut=false、terminated=false、remaining0；未寫token、未重播已通過頁面。最末程式提交完整guard尚待執行。
+
+原始外部summary.json SHA-256 `b558b75f09f32d4baf0ffb7ff26a3e0abcf9ee64139a4e19fb8f9ff2174da8f0`；stdout SHA-256 `cb964b4c15500aa52feda0688bb07eabee47368389a401e3238c8d7c5851ebdd`，原貌保留本機.ccg/dual-model-runs/20261117-104320-p6-stage-final-review-reviewer/。

@@ -18,3 +18,5 @@ Run-P6PageAcceptance.cjs負責Edge與正規化；P6AcceptanceOwner.cjs擁有兩�
 產物在`artifacts/p6/page-acceptance-<UTC>/`；截圖可能含測試聯絡人姓名／照片，只存本機，不提交。兩輪各查測試LINE月用量差作推播數補證，並搭配使用者送達截圖；計費用量不是逐則送達回執。2026-11-17兩輪各+2，手機確認課程／小組各1則。未偽造LIFF：桌面QR頁顯示原未初始化訊息，簽到以同session原POST完成，不宣稱手機LIFF登入已驗收。實際結果／限制及SHA見階段頁面一頁回報。
 
 EOF／finish時SDK逆序刪除並讀回確認；Host／Edge由各owner finally關閉。reset可在兩輪間刪除本輪資料而保留秘密租約；最終close才還原User Secrets。遇操作失敗不自動重送Create；兩次同一步失敗依06A §7回報。正常執行後殘留與秘密還原狀態必須明列，不能只靠程式exit 0。
+
+階段審查的必要生命週期回歸：`node tools/PageAcceptance/P6/Tests/P6Lifecycle.cjs`，四案注入ready／cleanup逾時、cleanup失敗及context關閉例外，替換外部邊界但執行真正來源；不連線、不讀秘密。以`before`參數只讀3ea8a133可重現4紅，目前4綠。Bridge所有失敗先EOF及有界drain，超時才終止並將秘密狀態明列未確認，不以kill冒充還原成功。
