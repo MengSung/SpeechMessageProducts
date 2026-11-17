@@ -2,7 +2,7 @@
 檔案整體說明
 目的與定位：把已驗簽 envelope 的 channel 提示轉成真正可信 CRM 組織、教會、頻道、使用者及文字範圍；不沿用舊 ToolUtilityFactory 的程序級身分。
 主要功能與流程：只讀 Host 的 LineWebhook:Channels 映射；每筆以 WhoAmI 複核 OrganizationId，再以既有 LineRecipientQueries 讀 Contact 偏好語言、Church 名稱／啟用語系及加密 token，驗 new_linechannel.new_channelid 等於入站頻道。Contact 同時依 parentcustomerid 與 new_lineid 查詢且拒絕多筆。沿用 ChannelTokenProtector，不另造密碼實作或跨頻道後備。
-使用邊界與維護：DI scoped 借用 SDK，生命週期由 queue scope 管理；同步 SDK 有 transport deadline 並於返回前 drain。設定不由事件控制，無 Session、cache、背景工作。解密 key byte[] 在 finally 清除；解密 token 只屬當次結果且 ToString 遮罩，不寫診斷。正式部署須提供明確 OrganizationId、ChurchId、TimeZone 及可選 HTTPS sender icon；缺項固定拒絕，不猜測預設教會。
+使用邊界與維護：DI scoped 借用 SDK，生命週期由 queue scope 管理；同步 SDK 有 transport deadline 並於返回前 drain。設定不由事件控制，無 Session、cache、背景工作。解密key讀取亦供代送Host共用，驗64-byte並由caller finally清除；解密 token 只屬當次結果且 ToString 遮罩，不寫診斷。正式部署須提供明確 OrganizationId、ChurchId、TimeZone 及可選 HTTPS sender icon；缺項固定拒絕，不猜測預設教會。
 */
 using LineMessagingProcessor.Core.Security;
 using Microsoft.Crm.Sdk.Messages;
@@ -189,8 +189,7 @@ public sealed class WebhookScopeResolver(
             memberCulture = resolved.TextCulture;
             formatCulture = resolved.FormatCulture;
         }
-        var keyPath = "Deployment:Organizations:" + organization + ":TokenKey";
-        var key = Convert.FromBase64String(configuration[keyPath] ?? throw new InvalidOperationException("The organization token key is unavailable."));
+        var key = ReadOrganizationTokenKey(configuration, organization);
         try
         {
             return new ResolvedWebhookScope(
@@ -211,6 +210,22 @@ public sealed class WebhookScopeResolver(
                 ReadSenderIcon(mapping));
         }
         finally { Array.Clear(key); }
+    }
+
+    /// <summary>Webhook及Host代送共用的key讀取；組織名稱須來自已驗server mapping／metadata，不接受payload。回傳64-byte由呼叫owner finally清零。</summary>
+    internal static byte[] ReadOrganizationTokenKey(IConfiguration configuration, string organization)
+    {
+        ArgumentNullException.ThrowIfNull(configuration);
+        if (string.IsNullOrWhiteSpace(organization) || organization.Length > 128 || organization.Any(c => !char.IsAsciiLetterOrDigit(c) && c is not '-' and not '_'))
+            throw new InvalidOperationException("The server organization name is invalid.");
+        var value = configuration["Deployment:Organizations:" + organization + ":TokenKey"];
+        if (string.IsNullOrWhiteSpace(value) || value.Length > 128) throw new InvalidOperationException("The organization token key is unavailable.");
+        byte[] key;
+        try { key = Convert.FromBase64String(value); }
+        catch (FormatException) { throw new InvalidOperationException("The organization token key format is invalid."); }
+        if (key.Length == 64) return key;
+        Array.Clear(key);
+        throw new InvalidOperationException("The organization token key size is invalid.");
     }
 
     /// <summary>只接受部署設定的 HTTPS icon；缺少時明確省略，不捏造固定網址。</summary>

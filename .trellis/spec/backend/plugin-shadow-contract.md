@@ -153,3 +153,41 @@ Retry Key、外送patch、429/503及A/B/A；ToolUtility三指定方法兩宿主�
 ### 7. 錯誤與正確作法
 錯誤：payload塞流程文字／token、每次retry新GUID、以收件者教會授權、吞HTTP失敗假稱200。
 正確：固定四欄、來源正式關聯、DB替代鍵原子防重、共用規則並把真傳輸結果交正確重試邊界。
+
+## P7 代送Host接線（C-b本機實作，實機未驗收）
+
+### 1. 範圍
+AddLineWebhook組合根新增RegisterMemberNotifyRelay，缺省關閉，沒有IIS／Node重部署。
+
+### 2. 簽章
+MemberNotifyRelayWorkStore實作IOutboundWorkStore，每方法自行scope；MemberNotifyRelayHostFactory.OpenAsync每筆async scope，
+MemberNotifyRelayHandler.ExecuteAsync只可執行一次。這些具名服務不註冊成全域IOutboundWorkStore／IOutboundTaskHandlerFactory，
+避免覆蓋付款／QR。只新增一個IHostedService OutboundTaskWorker，固定認領MemberNotifyRelay。
+
+### 3. 契約與資源
+Messaging:NotifyRelay:Enabled只接受無子節點布林，缺省/false不註冊worker/factory；非法拒絕。
+WebhookScopeResolver.ReadOrganizationTokenKey(IConfiguration,string)是Webhook／代送共同key讀取方法；
+server組織名稱由RetrieveCurrentOrganization取得，不能來自payload。key須64 bytes，錯格式固定訊息、錯長度先清零。
+HTTP命名MemberNotifyRelay，timeout15秒、cookies=false、redirect=false、MaxConnectionsPerServer16；每筆client using。
+key finally清零，lease在handler await排空後Dispose scoped SDK，singleton只持root scope factory。
+
+### 4. 驗證與錯誤
+缺key→當筆失敗、零推播；typed relay429/5xx→HttpRequestException帶真status及原typed inner；
+無回應→OutboundTransportException保留inner，worker以固定Transport分類排既有五段退避，不偽造HTTP或Timeout。
+永久拒絕仍由Core結束，終端真失敗由既有worker共用告警，取消不假當成功或先釋放scope。
+
+### 5. 案例
+正常全開關只有三worker：QR100000001、AllotQuery100000002、Relay100000003，各查詢一次；兩QR開關共用一個consumer。
+基本false不註冊；錯誤不能用singleton捕獲scoped SDK，或讓缺key的工作被當Completed。
+
+### 6. 測試
+六指定registration方法含invalid/disabled理論展開、only-type、缺key、A/B/A、停止中排空；另百筆交錯scope逐次回零，
+三種transient經真handler／worker驗Pending、Attempts1、Http429/Http5xx/Transport。
+Host_AllOutboundFlagsEnabled_EachServedTypeHasExactlyOneWorker實際啟動空輪詢並核查詢type，非只數descriptor。
+Manifest_StepsEnqueuingUnservedTaskType_MustBeDormant依型別對照，只對會建立待辦的ChurchLocale PostOperation檢查，
+PreOperation只驗設定不入列，MemberLanguageChanged直接link alias並非RichMenuGenerate來源。
+P7Live一般runsettings排除；明確filter才執行Live_Relay_PushesOnceToTestContact，真D34/舊新全停／empty baseline先於任何寫入。
+
+### 7. 錯誤與正確
+錯誤：把傳輸無回應說成HTTP503／逾時，或同一singleton沿用前一教會的SDK/key。
+正確：typed Transport保留真inner，operation與handler各scope，所有key/client待當筆await排空後清理。

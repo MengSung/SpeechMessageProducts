@@ -3,6 +3,7 @@
 目的與定位：提供共用 Webhook 契約註冊與真正 Host 啟動前的 fail-closed 守門，只驗證必要依賴，不安裝任何假正式服務。
 主要功能與流程：從部署 section 建立獨立 WebhookOptions，再以 HostedLifecycleService.StartingAsync 在所有服務 StartAsync 之前驗證三依賴可在 scope 內解析；Host 平行啟動也不能提前接收 HTTP。只保存 ScopeFactory，不捕獲 scoped verifier、SQL 連線或 queue。
 使用邊界與維護：服務集合僅組合根單寫；同入口註冊重複拒絕，避免設定衝突。探測 scope 在 StartAsync 返回前釋放，缺任一依賴就固定錯誤拒絕，容器仍由 Host Dispose。正式空 secret／SQL／queue 初始化政策由後續包實作；本守門不宣稱遠端健康。
+代送：Messaging:NotifyRelay:Enabled缺省關閉，獨立worker僅認領MemberNotifyRelay；每筆及每次store操作分開scope，key沿共用resolver讀取，排空後清理。
 課程 QR：Lessons:Qr:Enabled 明確啟用時建立獨立 QR worker，僅認領 QrImageGenerate；
 不覆蓋付款 worker。每次 store 操作及每筆圖片工作使用獨立 DI scope 的授權 SDK，
 課程與聯絡人版本 guard 在同一 D365 交易提交完整 URL。圖片由 QR publisher 管理。
@@ -48,6 +49,7 @@ public static partial class WebhookServiceRegistration
         RegisterQueue(services, configuration);
         RegisterDispatch(services, configuration);
         RegisterLessonQr(services, configuration);
+        RegisterMemberNotifyRelay(services, configuration);
         services.AddRouting();
         services.AddSingleton(options);
         services.AddHostedService<WebhookStartupRegistration>();

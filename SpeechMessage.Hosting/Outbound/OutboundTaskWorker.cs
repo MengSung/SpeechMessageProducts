@@ -8,6 +8,7 @@
  *
  * 主要功能與流程：BackgroundService 每五秒讀取最多五十筆候選，逐筆以 RowVersion
  * CAS 認領，成功後才開啟該筆自己的 handler scope。成功會以同一 owner 版本完成；
+ * 明確OutboundTransportException無回應故障保留inner並以Transport重試，不捏造HTTP或逾時。
  * 429、5xx、逾時依 1／2／4／8／16 分鐘排程重試，第六次失敗改為 Failed 並交給
  * 既有 ExceptionReporting 共用入口。停止時只停止新輪詢，當前 batch 最多排空
  * 三十秒；超時後取消 handler，未完成資料維持 Processing 交由下一輪 stale
@@ -463,6 +464,12 @@ public sealed class OutboundTaskWorker : BackgroundService
             exception is OperationCanceledException)
         {
             errorCode = "Timeout";
+            return true;
+        }
+
+        if (exception is OutboundTransportException)
+        {
+            errorCode = "Transport";
             return true;
         }
 

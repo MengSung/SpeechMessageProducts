@@ -1,0 +1,10 @@
+# C-b核定設計
+
+新增MemberNotifyRelayRegistration.cs，partial註冊獨立worker，不覆蓋付款／QR的共用介面。
+singleton只存IServiceScopeFactory；store每操作用scope與D365OutboundTaskStore固定MemberNotifyRelay白名單（與QR相同純Core映射，避免AspNetCore反向新增ToolUtility組合層參考）。
+factory每筆async scope取得scoped handler，handler只保留該筆SDK/push/config純值，finally清key，lease排空後釋放。
+WebhookScopeResolver抽共用組織TokenKey讀取方法，驗server組織名稱從RetrieveCurrentOrganization取得，與Host的ToolUtility組態一致；
+無待辦組織輸入。C-a typed delivery例外在handler轉成worker可認HTTP429/5xx；transport保留真inner並使用明確共用retry型別，
+不偽造HTTP狀態或timeout，比例修worker白名單且既有期望不變。
+LINE透過命名HttpClient、禁cookie／redirect、有限timeout，client由當筆scope釋放；handler不自建背景工作。
+實機由User Secrets取得固定goodshepherdback與D34測試contact/channel，不記秘密，資料所有權先落本機再寫，finally精確ID清理。

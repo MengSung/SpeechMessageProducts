@@ -1,7 +1,7 @@
 /*
 檔案整體說明
 目的與定位：LINE Webhook 的唯一組合根，只負責主機組裝與執行，不承接付款或產品資料規則。
-主要功能與流程：由受信任 builder 組裝 Hosting、Localization、固定 GoodShepherd ToolUtility、Webhook 與共用付款 gateway。付款對外待辦僅在 Payment:Outbound:Enabled 明確為 true 時註冊；ATM／信用卡回呼僅在 Payment:Callbacks:Enabled 明確為 true 時映射。缺少 Payment 區段仍維持原有主機組合。Messaging 失敗彙總缺省停用；啟用才以各輪 scoped SDK 聚合，停機先排空彙總再關閉較早註冊的診斷 owner。Console provider 僅允許固定 Reply sender category 的 Information 回覆 API 紀錄，Error/Critical 由安全診斷 provider 處理。
+主要功能與流程：由受信任 builder 組裝 Hosting、Localization、固定 GoodShepherd ToolUtility、Webhook 與共用付款 gateway。付款對外待辦僅在 Payment:Outbound:Enabled 明確為 true 時註冊；ATM／信用卡回呼僅在 Payment:Callbacks:Enabled 明確為 true 時映射。缺少 Payment 區段仍維持原有主機組合。Messaging:NotifyRelay:Enabled缺省關閉，啟用才建立只認領第四類的獨立worker；每筆key/client/SDK排空後依序清零及釋放。Messaging 失敗彙總缺省停用；啟用才以各輪 scoped SDK 聚合，停機先排空彙總再關閉較早註冊的診斷 owner。Console provider 僅允許固定 Reply sender category 的 Information 回覆 API 紀錄，Error/Critical 由安全診斷 provider 處理。
 使用邊界與維護：builder 與組態不是路由權限，成功建立後由 WebApplication 擁有；Main 以 await using 關閉主機、排空服務並釋放容器。每筆 outbound handler 與每次 store 操作都建立獨立 scope，避免跨教會重用 scoped SDK。建立失敗時組態仍由呼叫端釋放；Host 例外由 Hosting 安全 logger 接入，不宣稱尚未建立的診斷 owner 已記錄。
 */
 using ChurchReport.Logging;
