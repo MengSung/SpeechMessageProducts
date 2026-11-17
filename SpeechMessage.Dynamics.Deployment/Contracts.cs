@@ -12,6 +12,7 @@
  * - Plugin 完整型別名稱，必須在待部署 PE 中實作 IPlugin。
  * - RegistrationDocument 保存多組件根；各 RegistrationManifest 保留獨立步驟、映像及活動。
  * - Update 必須明列篩選欄位；Create／Delete 必須為空，不靜默忽略輸入。
+ * - 非diagnostics步驟與活動另持live分級/證據；步驟才可宣告TokenKey需求，純資料不解析秘密。
  * 主要操作入口包含 AssemblyImage、DeploymentOperation、DeploymentPlan、Dispose。
  *
  * 使用邊界與維護：
@@ -106,6 +107,10 @@ internal sealed record StepRegistration
     public IReadOnlyList<LegacyStepReference> Legacy { get; init; } = Array.Empty<LegacyStepReference>();
     /// <summary>驗收摘要只有相對檔名、差異數與證據基準，不包含 trace 或業務資料。</summary>
     public ShadowReport ShadowReport { get; init; } = new();
+    /// <summary>非診斷步驟必填的Live分級；diagnostics須為null並省略JSON欄位，避免誤入組織切換。</summary>
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public StepLiveRegistration? Live { get; init; }
+
 }
 
 /// <summary>映像只宣告具名欄位；由 planner 驗證與註冊，不允許整筆擷取。</summary>
@@ -163,6 +168,9 @@ internal sealed record ActivityRegistration
     public IReadOnlyList<LegacyActivityReference> Legacy { get; init; } = Array.Empty<LegacyActivityReference>();
     /// <summary>實機或離線驗收的安全摘要，預設尚未驗收。</summary>
     public ShadowReport ShadowReport { get; init; } = new();
+    /// <summary>活動必填的Live分級與安全證據摘要；沒有步驟安全設定欄位，不持有執行中的資料。</summary>
+    public LiveRegistration? Live { get; init; }
+
 }
 
 /// <summary>舊活動的非秘密身分；由 exporter 查到使用該活動的流程。</summary>

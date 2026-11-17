@@ -220,3 +220,38 @@ CLI 以正式 metadata 核對 lookup、主鍵及 BigInt versionnumber，整批�
 舊輪缺摘要證據不能 Passed；未執行舊輪不可附造出的摘要。版本變動可能受並行寫入
 影響，不能宣稱全域稽核或唯一因果。真 CLI 測試驗證變動傳遞、既有列保留、盤點／
 metadata 前置零寫入與前後快照分頁失敗時的還原清理；全部是合成離線證據。
+
+## P7 註冊清單live分級（2026-11-17）
+
+依07A §4.2/4.3維持schemaVersion=2；每個非diagnostics步驟與每個活動都必須有live，
+包含tier（live/dormant）、reason、evidence（file/sha256/at/result）。只有步驟另有必填
+布林tokenKey；活動出現該欄位一律由未知欄位規約拒絕，不因值false或null放行。
+diagnostics沒有live區塊，永不參與組織層級切換。
+
+loader對磁碟與程式內候選都驗證完整live資料，不能為沿用舊fixture而放寬產品檢查。
+dormant理由必須以P<階段>-PROP-<三位數>開頭；result只能空字串或pass，pass必有非空
+檔名、64位十六進位SHA-256及YYYY-MM-DD HH:mm Asia/Taipei (UTC+08:00)時間。
+空結果表示未驗收；欄位宣告不等於讀取證據或已通過實機，後續切換仍需完整plan關卡。
+資料只活在當次命令，沒有SDK/秘密/跨使用者可變狀態；1MiB與JSON深度32限制不變。
+
+前置B只可把預設live降為dormant，對每筆保留來源/欄位/通知與產品其他入口的盤點證據；
+不確定亦依D7-13降級。不更改enabledByOrganization、unsecureConfig或secureConfig來
+假裝已切換。tokenKey按外殼實際讀取判定，包含dormant的MemberLanguageChangedPlugin。
+
+ManifestLiveTests的四指定方法以合法控制組再注入故障，防止未知欄位或新缺欄遮蔽原故障。
+舊測試只補新必填合成live資料，不改斷言或期望值。詳前置B的wp-reports盤點表；
+這些離線格式測試不能宣稱goodshepherdback的影子或Live證據。
+
+### P7 格式錯誤與斷言矩陣
+
+| 輸入 | loader結果 | 決定性測試 |
+| --- | --- | --- |
+| 非診斷缺live、非法tier、活動含tokenKey | InvalidDataException，無SDK | Manifest_LiveBlockMissingOrInvalid_Rejected |
+| dormant理由空白/非提案前綴 | InvalidDataException | Manifest_DormantWithoutReason_Rejected |
+| 空result/完整pass | 合法控制組可讀 | Manifest_EvidenceResultOtherThanPass_Rejected |
+| 其他result、pass缺file/hash/時間 | InvalidDataException | 同上故障組 |
+| diagnostics省略live/帶區塊 | 前者可讀、後者拒絕 | Manifest_DiagnosticsHasNoLiveBlock |
+
+正例：步驟live含tokenKey=false、空evidence表示未驗收；基本例：dormant理由P7-PROP-006加說明。
+錯例：為保住舊fixture而讓程式內候選免驗live，或把活動tokenKey=false靜默忽略。
+正確：LoadDocument與Validate均驗完整候選；只補測試輸入，原故障/斷言與清理不變。

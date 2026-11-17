@@ -8,6 +8,8 @@
  * 寫入之前拒絕，並確認來源秘密未解析。
  * 使用邊界與維護：Fixture 擁有本案例暫存目錄及記憶體資料，
  * using 結束確定刪除；本檔不把合成映像當作正式 PE，也不宣稱實機驗收。
+ * P7分級相容：非診斷合成候選補完整live區塊，避免新必填格式遮蔽原本故障注入；
+ * 不更動既有斷言、期望值、假服務所有權或清理方式。
  */
 using System;
 using System.IO;
@@ -284,7 +286,7 @@ public sealed class DocumentDeploymentEngineTests
         Assemblies = new[] { f.Manifest, new RegistrationManifest
         {
             AssemblyName = "SpeechMessage.Dynamics.Workflows", ActivityGroup = "SpeechMessage",
-            Activities = new[] { new ActivityRegistration { Module = "attendance", Type = "Sample.Send", DisplayName = "合成活動" } }
+            Activities = new[] { new ActivityRegistration { Live = new LiveRegistration(), Module = "attendance", Type = "Sample.Send", DisplayName = "合成活動" } }
         } }
     };
 

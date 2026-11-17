@@ -7,6 +7,8 @@
  * 更新及冪等；注入第三方 metadata 變動以確認舊 plan 在任何寫入前拒絕。
  * 使用邊界與維護：本檔不證明 D365 實機支援；合成服務的官方欄位白名單獨立維護。
  * Fixture 是資料與暫存檔唯一 owner，Dispose 清理；沒有共用可變狀態、連線或背景工作。
+ * P7分級相容：非診斷合成候選補完整live區塊，避免新必填格式遮蔽原本故障注入；
+ * 不更動既有斷言、期望值、假服務所有權或清理方式。
  */
 using System;
 using System.IO;
@@ -84,7 +86,7 @@ public sealed class RegistrationEngineV2Tests
         var manifest = new RegistrationManifest
         {
             AssemblyName = "SpeechMessage.Dynamics.Workflows", ActivityGroup = "SpeechMessage",
-            Activities = new[] { new ActivityRegistration { Module = "attendance", Type = "Sample.Send", DisplayName = "合成活動" } }
+            Activities = new[] { new ActivityRegistration { Live = new LiveRegistration(), Module = "attendance", Type = "Sample.Send", DisplayName = "合成活動" } }
         };
         var image = f.Image with { Name = manifest.AssemblyName, PluginTypes = Array.Empty<string>(), ActivityTypes = new[] { "Sample.Send" } };
         f.Engine.Apply(f.Engine.Plan(manifest, image, Fixture.Organization), manifest, image);
@@ -158,7 +160,7 @@ public sealed class RegistrationEngineV2Tests
         var message = new Entity("sdkmessage", Guid.NewGuid()) { ["name"] = "Update" };
         f.Service.Seed(message);
         f.Service.Seed(new Entity("sdkmessagefilter", Guid.NewGuid()) { ["sdkmessageid"] = message.ToEntityReference(), ["primaryobjecttypecode"] = "task" });
-        var step = f.Manifest.Steps[0] with { Module = "attendance", Message = "Update", Stage = "PreOperation", Mode = "Synchronous",
+        var step = f.Manifest.Steps[0] with { Live = new StepLiveRegistration(), Module = "attendance", Message = "Update", Stage = "PreOperation", Mode = "Synchronous",
             UnsecureConfig = "{\"mode\":\"Shadow\"}", FilteringAttributes = new[] { "subject" },
             Images = new[] { new RegistrationImage { Name = "PreImage", Type = "PreImage", Attributes = new[] { "subject" } } } };
         var manifest = f.Manifest with { Steps = new[] { step } };

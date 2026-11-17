@@ -12,6 +12,8 @@
  * writer、租約與檔案均確定釋放。替身只擴充所需的權威 metadata 與精確追蹤查詢，
  * 外部觀察以合成既有列驗版本摘要及保留，分頁故障在觸發前後注入，不假稱全域稽核。
  * 不改既有通用假服務，也不把合成綠燈稱為實機驗收。
+ * P7分級相容：非診斷合成候選補完整live區塊，避免新必填格式遮蔽原本故障注入；
+ * 不更動既有斷言、期望值、假服務所有權或清理方式。
  */
 using System;
 using System.Collections.Generic;
@@ -504,7 +506,7 @@ public sealed class ShadowCliTests
         internal CliFixture(bool synchronous = false, bool images = false)
         {
             Service = new TestService(Core) { Synchronous = synchronous };
-            var step = Core.Manifest.Steps[0] with { Module = "localization", UnsecureConfig = "{\"mode\":\"Shadow\"}",
+            var step = Core.Manifest.Steps[0] with { Live = new StepLiveRegistration(), Module = "localization", UnsecureConfig = "{\"mode\":\"Shadow\"}",
                 Mode = synchronous ? "Synchronous" : "Asynchronous",
                 Images = images ? [new RegistrationImage { Name = "Image", Type = "PostImage", Attributes = ["subject"] }] : [] };
             var manifest = Core.Manifest with { Steps = [step] };

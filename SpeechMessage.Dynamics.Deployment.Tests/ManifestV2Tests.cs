@@ -11,6 +11,8 @@
  *
  * 使用邊界與維護：本檔只驗證離線合成契約，不能作為映像或活動實機註冊證據。
  * 新增欄位時須保留這些拒絕案例，並保持每案例檔案、服務與候選集合互不共享。
+ * P7分級相容：非診斷合成候選補完整live區塊，避免新必填格式遮蔽原本故障注入；
+ * 不更動既有斷言、期望值、假服務所有權或清理方式。
  */
 using System;
 using System.IO;
@@ -114,7 +116,7 @@ public sealed class ManifestV2Tests
     private static RegistrationManifest ActivityManifest() => new()
     {
         AssemblyName = "SpeechMessage.Dynamics.Workflows", ActivityGroup = "SpeechMessage",
-        Activities = new[] { new ActivityRegistration { Module = "attendance", Type = "Sample.SendActivity", DisplayName = "合成活動" } }
+        Activities = new[] { new ActivityRegistration { Live = new LiveRegistration(), Module = "attendance", Type = "Sample.SendActivity", DisplayName = "合成活動" } }
     };
 
     /// <summary>產生測試專用 PE；基底類別及活動在本組件，產生器不載入或執行候選組件。</summary>
@@ -189,6 +191,7 @@ public sealed class ManifestV2Tests
         var document = JsonNode.Parse(Document)!;
         var step = document["assemblies"]![0]!["steps"]![0]!;
         step["module"] = "attendance";
+        step["live"] = JsonNode.Parse("""{"tier":"live","tokenKey":false,"reason":"","evidence":{"file":"","sha256":"","at":"","result":""}}""");
         step["unsecureConfig"] = "{\"mode\":\"Shadow\"}";
         step["secureConfig"] = "${secret:TokenKey}";
         Write(fixture, document);

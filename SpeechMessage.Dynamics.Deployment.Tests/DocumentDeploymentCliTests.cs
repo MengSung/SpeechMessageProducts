@@ -9,6 +9,8 @@
  * 使用邊界與維護：所有資料均為合成資料，不讀 Secrets、不連 D365 或 LINE；
  * 非平行集合協調程序工作目錄，案例 owner 先還原 cwd 再刪除自己的暫存根，
  * 每次命令的租約皆須歸還，檔案串流只在同步斷言期間持有，不宣稱實機驗收。
+ * P7分級相容：非診斷合成候選補完整live區塊，避免新必填格式遮蔽原本故障注入；
+ * 不更動既有斷言、期望值、假服務所有權或清理方式。
  */
 using System;
 using System.Collections.Generic;
@@ -199,7 +201,7 @@ public sealed class DocumentDeploymentCliTests
             var workflow = new RegistrationManifest
             {
                 AssemblyName = "SpeechMessage.Dynamics.Workflows", ActivityGroup = "SpeechMessage",
-                Activities = new[] { new ActivityRegistration { Module = "attendance", Type = "Sample.Send", DisplayName = "合成活動" } }
+                Activities = new[] { new ActivityRegistration { Live = new LiveRegistration(), Module = "attendance", Type = "Sample.Send", DisplayName = "合成活動" } }
             };
             var document = new RegistrationDocument { Assemblies = new[] { Core.Manifest, workflow } };
             System.IO.File.WriteAllText(Path.Combine(registration, "plugins.registration.json"),

@@ -46,6 +46,17 @@
             "file": "",
             "differences": null,
             "basis": "new"
+          },
+          "live": {
+            "tier": "live",
+            "tokenKey": false,
+            "reason": "",
+            "evidence": {
+              "file": "",
+              "sha256": "",
+              "at": "",
+              "result": ""
+            }
           }
         },
         {
@@ -82,6 +93,17 @@
             "file": "",
             "differences": null,
             "basis": "new"
+          },
+          "live": {
+            "tier": "live",
+            "tokenKey": false,
+            "reason": "",
+            "evidence": {
+              "file": "",
+              "sha256": "",
+              "at": "",
+              "result": ""
+            }
           }
         },
         {
@@ -112,6 +134,17 @@
             "file": "",
             "differences": null,
             "basis": "new"
+          },
+          "live": {
+            "tier": "live",
+            "tokenKey": false,
+            "reason": "",
+            "evidence": {
+              "file": "",
+              "sha256": "",
+              "at": "",
+              "result": ""
+            }
           }
         },
         {
@@ -136,6 +169,17 @@
           "secureConfig": "",
           "enabledByOrganization": {
             "goodshepherdback": false
+          },
+          "live": {
+            "tier": "dormant",
+            "tokenKey": true,
+            "reason": "P7-PROP-001 宮格主機尚未接線，教會代碼規則待核定。",
+            "evidence": {
+              "file": "",
+              "sha256": "",
+              "at": "",
+              "result": ""
+            }
           }
         },
         {
@@ -174,6 +218,17 @@
           "secureConfig": "",
           "enabledByOrganization": {
             "goodshepherdback": false
+          },
+          "live": {
+            "tier": "live",
+            "tokenKey": false,
+            "reason": "",
+            "evidence": {
+              "file": "",
+              "sha256": "",
+              "at": "",
+              "result": ""
+            }
           }
         },
         {
@@ -212,6 +267,17 @@
           "secureConfig": "",
           "enabledByOrganization": {
             "goodshepherdback": false
+          },
+          "live": {
+            "tier": "dormant",
+            "tokenKey": false,
+            "reason": "P7-PROP-001 宮格主機尚未接線，教會代碼規則待核定。",
+            "evidence": {
+              "file": "",
+              "sha256": "",
+              "at": "",
+              "result": ""
+            }
           }
         },
         {
@@ -251,7 +317,18 @@
               "type": "WeeklyReportPlugIn.WeeklyReportPlugIn",
               "stepId": "907c7874-4de3-e911-810d-00155d006601"
             }
-          ]
+          ],
+          "live": {
+            "tier": "dormant",
+            "tokenKey": false,
+            "reason": "P7-PROP-006 ChurchReport上傳週報亦寫相同四個統計欄位，尚未共用同一事件/唯一寫入者。",
+            "evidence": {
+              "file": "",
+              "sha256": "",
+              "at": "",
+              "result": ""
+            }
+          }
         },
         {
           "message": "Update",
@@ -291,7 +368,18 @@
               "type": "WeeklyReportLinePlugIn.WeeklyReportLinePlugIn",
               "stepId": "b533a2a3-f50d-f011-8143-00155d006608"
             }
-          ]
+          ],
+          "live": {
+            "tier": "live",
+            "tokenKey": true,
+            "reason": "",
+            "evidence": {
+              "file": "",
+              "sha256": "",
+              "at": "",
+              "result": ""
+            }
+          }
         },
         {
           "type": "SpeechMessage.Dynamics.Plugins.Attendance.PresentRecordPlugin",
@@ -329,6 +417,17 @@
             "file": "",
             "differences": null,
             "basis": "reading"
+          },
+          "live": {
+            "tier": "live",
+            "tokenKey": true,
+            "reason": "",
+            "evidence": {
+              "file": "",
+              "sha256": "",
+              "at": "",
+              "result": ""
+            }
           }
         },
         {
@@ -357,6 +456,17 @@
             "file": "",
             "differences": null,
             "basis": "reading"
+          },
+          "live": {
+            "tier": "live",
+            "tokenKey": false,
+            "reason": "",
+            "evidence": {
+              "file": "",
+              "sha256": "",
+              "at": "",
+              "result": ""
+            }
           }
         },
         {
@@ -387,6 +497,17 @@
             "file": "",
             "differences": null,
             "basis": "reading"
+          },
+          "live": {
+            "tier": "live",
+            "tokenKey": false,
+            "reason": "",
+            "evidence": {
+              "file": "",
+              "sha256": "",
+              "at": "",
+              "result": ""
+            }
           }
         },
         {
@@ -409,6 +530,17 @@
             "file": "",
             "differences": null,
             "basis": "reading"
+          },
+          "live": {
+            "tier": "dormant",
+            "tokenKey": true,
+            "reason": "P7-PROP-006 課程報名/更新亦由ChurchReport建立並推播；新增/更新通知的事件範圍與RetryKey未證明互斥。",
+            "evidence": {
+              "file": "",
+              "sha256": "",
+              "at": "",
+              "result": ""
+            }
           }
         },
         {
@@ -443,6 +575,17 @@
             "file": "",
             "differences": null,
             "basis": "reading"
+          },
+          "live": {
+            "tier": "dormant",
+            "tokenKey": true,
+            "reason": "P7-PROP-006 課程報名/更新亦由ChurchReport建立並推播；新增/更新通知的事件範圍與RetryKey未證明互斥。",
+            "evidence": {
+              "file": "",
+              "sha256": "",
+              "at": "",
+              "result": ""
+            }
           }
         },
         {
@@ -476,6 +619,17 @@
             "file": "",
             "differences": null,
             "basis": "reading"
+          },
+          "live": {
+            "tier": "dormant",
+            "tokenKey": false,
+            "reason": "P7-PROP-006 ChurchReport報名亦設定課程學分/分類等欄位，與本規則同事件更新範圍及下游學籍卡效果尚未證明互斥。",
+            "evidence": {
+              "file": "",
+              "sha256": "",
+              "at": "",
+              "result": ""
+            }
           }
         },
         {
@@ -593,6 +747,17 @@
             "file": "",
             "differences": null,
             "basis": "reading"
+          },
+          "live": {
+            "tier": "dormant",
+            "tokenKey": false,
+            "reason": "P7-PROP-006 ChurchReport報名亦設定課程學分/分類等欄位，與本規則同事件更新範圍及下游學籍卡效果尚未證明互斥。",
+            "evidence": {
+              "file": "",
+              "sha256": "",
+              "at": "",
+              "result": ""
+            }
           }
         },
         {
@@ -621,6 +786,17 @@
             "file": "",
             "differences": null,
             "basis": "reading"
+          },
+          "live": {
+            "tier": "live",
+            "tokenKey": true,
+            "reason": "",
+            "evidence": {
+              "file": "",
+              "sha256": "",
+              "at": "",
+              "result": ""
+            }
           }
         },
         {
@@ -654,6 +830,17 @@
             "file": "",
             "differences": null,
             "basis": "reading"
+          },
+          "live": {
+            "tier": "live",
+            "tokenKey": true,
+            "reason": "",
+            "evidence": {
+              "file": "",
+              "sha256": "",
+              "at": "",
+              "result": ""
+            }
           }
         },
         {
@@ -676,6 +863,17 @@
           "secureConfig": "",
           "enabledByOrganization": {
             "goodshepherdback": false
+          },
+          "live": {
+            "tier": "live",
+            "tokenKey": false,
+            "reason": "",
+            "evidence": {
+              "file": "",
+              "sha256": "",
+              "at": "",
+              "result": ""
+            }
           }
         },
         {
@@ -706,6 +904,17 @@
           "secureConfig": "",
           "enabledByOrganization": {
             "goodshepherdback": false
+          },
+          "live": {
+            "tier": "live",
+            "tokenKey": false,
+            "reason": "",
+            "evidence": {
+              "file": "",
+              "sha256": "",
+              "at": "",
+              "result": ""
+            }
           }
         },
         {
@@ -739,6 +948,17 @@
             "file": ".trellis/tasks/archive/2026-11/11-16-p5-12-outbound-letters/wp-reports/P5-12-report.md",
             "differences": null,
             "basis": "reading"
+          },
+          "live": {
+            "tier": "dormant",
+            "tokenKey": false,
+            "reason": "P5-PROP-011 P5-PROP-012 外送來源與非文字/群組範圍待核定。",
+            "evidence": {
+              "file": "",
+              "sha256": "",
+              "at": "",
+              "result": ""
+            }
           }
         },
         {
@@ -778,6 +998,17 @@
             "file": ".trellis/tasks/archive/2026-11/11-16-p5-12-outbound-letters/wp-reports/P5-12-report.md",
             "differences": null,
             "basis": "reading"
+          },
+          "live": {
+            "tier": "dormant",
+            "tokenKey": false,
+            "reason": "P5-PROP-011 P5-PROP-012 外送來源與非文字/群組範圍待核定。",
+            "evidence": {
+              "file": "",
+              "sha256": "",
+              "at": "",
+              "result": ""
+            }
           }
         }
       ]
@@ -801,6 +1032,16 @@
             "file": "",
             "differences": null,
             "basis": "reading"
+          },
+          "live": {
+            "tier": "dormant",
+            "reason": "P7-PROP-006 ChurchReport新人/分組流程亦建立同會友的出席資料，未證明共用穩定唯一鍵。",
+            "evidence": {
+              "file": "",
+              "sha256": "",
+              "at": "",
+              "result": ""
+            }
           }
         },
         {
@@ -821,6 +1062,16 @@
             "file": "",
             "differences": null,
             "basis": "reading"
+          },
+          "live": {
+            "tier": "live",
+            "reason": "",
+            "evidence": {
+              "file": "",
+              "sha256": "",
+              "at": "",
+              "result": ""
+            }
           }
         },
         {
@@ -837,6 +1088,16 @@
             "file": "",
             "differences": null,
             "basis": "reading"
+          },
+          "live": {
+            "tier": "dormant",
+            "reason": "P6-PROP-001 週報兩個寫入者尚未共用唯一鍵；保留ChurchReport即時建立。",
+            "evidence": {
+              "file": "",
+              "sha256": "",
+              "at": "",
+              "result": ""
+            }
           }
         },
         {
@@ -853,6 +1114,16 @@
             "file": "",
             "differences": null,
             "basis": "reading"
+          },
+          "live": {
+            "tier": "live",
+            "reason": "",
+            "evidence": {
+              "file": "",
+              "sha256": "",
+              "at": "",
+              "result": ""
+            }
           }
         },
         {
@@ -869,6 +1140,16 @@
             "file": ".trellis/tasks/archive/2026-11/11-15-p5-07-lessons/wp-reports/P5-07-closure-status.md#已核定缺口：P5-PROP-006",
             "differences": null,
             "basis": "reading"
+          },
+          "live": {
+            "tier": "dormant",
+            "reason": "P5-PROP-006 付款分支不在D365實作，通知代送另行演練。",
+            "evidence": {
+              "file": "",
+              "sha256": "",
+              "at": "",
+              "result": ""
+            }
           }
         },
         {
@@ -885,6 +1166,16 @@
             "file": "",
             "differences": null,
             "basis": "reading"
+          },
+          "live": {
+            "tier": "dormant",
+            "reason": "P7-PROP-006 ChurchReport新會友初始化亦寫new_equipment_status，同事件與活動執行順序未能確認。",
+            "evidence": {
+              "file": "",
+              "sha256": "",
+              "at": "",
+              "result": ""
+            }
           }
         },
         {
@@ -901,6 +1192,16 @@
             "file": "",
             "differences": null,
             "basis": "reading"
+          },
+          "live": {
+            "tier": "live",
+            "reason": "",
+            "evidence": {
+              "file": "",
+              "sha256": "",
+              "at": "",
+              "result": ""
+            }
           }
         },
         {
@@ -917,6 +1218,16 @@
             "file": "",
             "differences": null,
             "basis": "reading"
+          },
+          "live": {
+            "tier": "live",
+            "reason": "",
+            "evidence": {
+              "file": "",
+              "sha256": "",
+              "at": "",
+              "result": ""
+            }
           }
         },
         {
@@ -933,6 +1244,16 @@
             "file": "",
             "differences": null,
             "basis": "reading"
+          },
+          "live": {
+            "tier": "live",
+            "reason": "",
+            "evidence": {
+              "file": "",
+              "sha256": "",
+              "at": "",
+              "result": ""
+            }
           }
         },
         {
@@ -949,6 +1270,16 @@
             "file": "",
             "differences": null,
             "basis": "reading"
+          },
+          "live": {
+            "tier": "live",
+            "reason": "",
+            "evidence": {
+              "file": "",
+              "sha256": "",
+              "at": "",
+              "result": ""
+            }
           }
         },
         {
@@ -969,6 +1300,16 @@
             "file": "",
             "differences": null,
             "basis": "reading"
+          },
+          "live": {
+            "tier": "live",
+            "reason": "",
+            "evidence": {
+              "file": "",
+              "sha256": "",
+              "at": "",
+              "result": ""
+            }
           }
         },
         {
@@ -985,6 +1326,16 @@
             "file": "",
             "differences": null,
             "basis": "reading"
+          },
+          "live": {
+            "tier": "dormant",
+            "reason": "P7-PROP-006 ChurchReport已對同一收費單補登/付款送確認通知，與活動尚未共用同一通知冪等鍵。",
+            "evidence": {
+              "file": "",
+              "sha256": "",
+              "at": "",
+              "result": ""
+            }
           }
         }
       ]

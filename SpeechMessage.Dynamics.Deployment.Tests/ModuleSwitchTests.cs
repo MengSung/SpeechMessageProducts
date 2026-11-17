@@ -7,6 +7,8 @@
  * 判定是否依清單回復；檔案備份與服務資料都由每案例 Fixture 獨占且確定釋放。
  * 使用邊界與維護：此測試不是實機 D34 證據。新功能須由真切換 API 驅動，不能
  * 手動改替身狀態假造成功；備份、token 與步驟更新的生命週期由產品程式負責。
+ * P7分級相容：非診斷合成候選補完整live區塊，避免新必填格式遮蔽原本故障注入；
+ * 不更動既有斷言、期望值、假服務所有權或清理方式。
  */
 using System;
 using System.IO;
@@ -57,7 +59,7 @@ public sealed class ModuleSwitchTests
     public void Switch_ModuleWithLiveStep_Rejected()
     {
         using var f = new Fixture();
-        var step = f.Manifest.Steps[0] with { Module = "attendance", UnsecureConfig = "{\"mode\":\"Live\"}" };
+        var step = f.Manifest.Steps[0] with { Live = new StepLiveRegistration(), Module = "attendance", UnsecureConfig = "{\"mode\":\"Live\"}" };
         var document = new RegistrationDocument { Assemblies = new[] { f.Manifest with { Steps = new[] { step } } } };
         Assert.Throws<InvalidDataException>(() => f.Engine.SwitchModule(document, Fixture.Organization, "attendance", "enabled", EmptyLegacy));
         Assert.Empty(f.Service.Writes);
@@ -151,7 +153,7 @@ public sealed class ModuleSwitchTests
     public void Switch_ActualStepModeDrift_RefusedBeforeWrites()
     {
         using var f = new Fixture();
-        var manifest = f.Manifest with { Steps = new[] { f.Manifest.Steps[0] with { Module = "attendance", UnsecureConfig = "{\"mode\":\"Shadow\"}" } } };
+        var manifest = f.Manifest with { Steps = new[] { f.Manifest.Steps[0] with { Live = new StepLiveRegistration(), Module = "attendance", UnsecureConfig = "{\"mode\":\"Shadow\"}" } } };
         f.Engine.Apply(f.Engine.Plan(manifest, f.Image, Fixture.Organization), manifest, f.Image);
         f.Service.Rows.Single(row => row.LogicalName == "sdkmessageprocessingstep")["configuration"] = "{\"mode\":\"Live\"}";
         var writes = f.Service.Writes.Count;

@@ -6,6 +6,7 @@
  * 主要功能與流程：
  * 本檔宣告 RegistrationManifestLoader。
  * - 從 repo 的固定清單位置讀取並驗證可解析的 JSON 結構。
+ * - 非diagnostics的live分級與完整pass摘要必須有效；活動不能攜帶tokenKey，未驗收不當成功。
  * 主要操作入口包含 Load。
  *
  * 使用邊界與維護：
@@ -120,6 +121,11 @@ internal static class RegistrationManifestLoader
             }
             if (step.EnabledByOrganization.Keys.Any(organization => organization != "goodshepherdback")) throw InvalidManifest();
             ValidateReport(step.ShadowReport);
+            if (step.Module == "diagnostics")
+            {
+                if (step.Live is not null) throw InvalidManifest();
+            }
+            else ValidateLive(step.Live);
             foreach (var legacy in step.Legacy)
                 if (legacy is null || string.IsNullOrWhiteSpace(legacy.Assembly) || string.IsNullOrWhiteSpace(legacy.Type) ||
                     !Guid.TryParseExact(legacy.StepId, "D", out var id) || id == Guid.Empty || !legacyIds.Add(id)) throw InvalidManifest();
@@ -132,6 +138,7 @@ internal static class RegistrationManifestLoader
                 string.IsNullOrWhiteSpace(activity.DisplayName) || string.IsNullOrWhiteSpace(manifest.ActivityGroup) ||
                 !activityTypes.Add(activity.Type) || activity.Legacy is null || activity.ShadowReport is null) throw InvalidManifest();
             ValidateReport(activity.ShadowReport);
+            ValidateLive(activity.Live);
             foreach (var legacy in activity.Legacy)
                 if (legacy is null || string.IsNullOrWhiteSpace(legacy.Assembly) || string.IsNullOrWhiteSpace(legacy.Type)) throw InvalidManifest();
         }
@@ -188,6 +195,38 @@ internal static class RegistrationManifestLoader
     {
         if (report.Differences < 0 || report.Basis is not ("" or "legacy-golden" or
             "reading" or "deferred-to-P7" or "new")) throw InvalidManifest();
+    }
+
+    /// <summary>
+    /// 分級及證據只在本次結構候選驗證；dormant必有理由，pass必有可定位的完整摘要。
+    /// 不讀取證據檔、不解析金鑰，失敗在任何SDK連線或切換之前拒絕整份文件。
+    /// </summary>
+    /// <param name="live">步驟或活動的操作區域純資料；缺少一律拒絕。</param>
+    private static void ValidateLive(LiveRegistration? live)
+    {
+        if (live is null || live.Tier is not ("live" or "dormant") || live.Reason is null ||
+            (live.Tier == "dormant" && !HasProposalPrefix(live.Reason)) ||
+            live.Evidence is not { } evidence || evidence.Result is not ("" or "pass") ||
+            evidence.File is null || evidence.Sha256 is null || evidence.At is null) throw InvalidManifest();
+        if (evidence.Result == "pass" &&
+            (string.IsNullOrWhiteSpace(evidence.File) || evidence.Sha256.Length != 64 ||
+             !evidence.Sha256.All(char.IsAsciiHexDigit) ||
+             !DateTime.TryParseExact(evidence.At, "yyyy-MM-dd HH:mm 'Asia/Taipei (UTC+08:00)'",
+                 CultureInfo.InvariantCulture, DateTimeStyles.None, out _))) throw InvalidManifest();
+    }
+
+    /// <summary>線性檢查固定提案前綴，不配置正規運算式、保留理由或允許無編號的dormant決策。</summary>
+    /// <param name="reason">本次候選理由；格式為P加階段數字、-PROP-及三位編號。</param>
+    /// <returns>前綴完整且編號不是四位以上時為true，後續中文說明不受影響。</returns>
+    private static bool HasProposalPrefix(string reason)
+    {
+        var separator = reason.IndexOf("-PROP-", StringComparison.Ordinal);
+        if (separator < 2 || reason.Length < separator + 9 || reason[0] != 'P') return false;
+        for (var index = 1; index < separator; index++)
+            if (!char.IsAsciiDigit(reason[index])) return false;
+        for (var index = separator + 6; index < separator + 9; index++)
+            if (!char.IsAsciiDigit(reason[index])) return false;
+        return reason.Length == separator + 9 || !char.IsAsciiDigit(reason[separator + 9]);
     }
 
     /// <summary>固定摘要不攜帶 JSON、secret、檔案內容或內層解析例外。</summary>
