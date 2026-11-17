@@ -240,11 +240,11 @@ footer{margin-top:36px;color:var(--muted);font-size:12.5px;text-align:center}
  */
 const DATA = {
   "planVersion": "3.5",
-  "snapshot": "2026-11-17 13:08 Asia/Taipei (UTC+08:00)",
-  "lastUpdated": "2026-11-17T13:08:34+08:00",
+  "snapshot": "2026-11-17 13:17 Asia/Taipei (UTC+08:00)",
+  "lastUpdated": "2026-11-17T13:17:57+08:00",
   "branch": "1.0.0.11.Integration.P7.Worktree",
-  "head": "60d1a4a3",
-  "headline": "2026-11-17 13:08 Asia/Taipei (UTC+08:00)：前置B離線分級完成盤點，live19/dormant14，Deployment783案通過；待固定guard驗收。前置A追蹤已恢復，不連正式組織。",
+  "head": "1620547ebd89e78310ccd01da399550615a2be6f",
+  "headline": "2026-11-17 13:17 Asia/Taipei (UTC+08:00)：前置B已驗收，live19/dormant14，1620547e固定guard八項全過（Release7085、另Debug7）；接前置C-a，P7-01/02尚未開工，不連正式組織。",
   "notices": [
     {
       "id": "plan-3.5-summary",
@@ -653,15 +653,16 @@ const DATA = {
       "phaseId": "階段 7",
       "level": "info",
       "title": "P7 進度摘要",
-      "body": "2026-11-17 13:08 Asia/Taipei (UTC+08:00)：前置B離線分級完成盤點，live19/dormant14，Deployment783案通過；待固定guard驗收。前置A追蹤已恢復，不連正式組織。",
-      "lastUpdated": "2026-11-17T13:08:34+08:00",
+      "body": "2026-11-17 13:17 Asia/Taipei (UTC+08:00)：前置B已驗收，live19/dormant14，1620547e固定guard八項全過（Release7085、另Debug7）；接前置C-a，P7-01/02尚未開工，不連正式組織。",
+      "lastUpdated": "2026-11-17T13:17:57+08:00",
       "steps": [
         "2026-11-17 12:43 Asia/Taipei (UTC+08:00)：起點f06d7596；Release7071與Deployment769取自P6最末守門，未重跑基準。",
         "2026-11-17 12:43 Asia/Taipei (UTC+08:00)：D34通過、22新步驟停用、舊步驟/流程啟用0、待辦0、追蹤1；未寫入D365。",
         "2026-11-17 12:43 Asia/Taipei (UTC+08:00)：父任務與前置缺項清單已建立；P7-01/02尚未開工，未推送。",
         "2026-11-17 12:46 Asia/Taipei (UTC+08:00)：P7-00驗收，編碼19檔/文件1753檔無失敗、進度28通過；前置A權限等待，依07A先接B離線。",
         "2026-11-17 12:53 Asia/Taipei (UTC+08:00)：前置A追蹤可用；唯一smoke通過、off/verify=0、trace1。1筆診斷trace留至R9備份清理；使用者指定本階段ClaudeOnly。",
-        "2026-11-17 13:08 Asia/Taipei (UTC+08:00)：前置B盤點8項降級，P7-PROP-006列明原因；未放寬檢查、未改既有斷言，尚未驗收推送。"
+        "2026-11-17 13:08 Asia/Taipei (UTC+08:00)：前置B盤點8項降級，P7-PROP-006列明原因；未放寬檢查、未改既有斷言，尚未驗收推送。",
+        "2026-11-17 13:17 Asia/Taipei (UTC+08:00)：前置B已驗收，完整guard八項全過；Report/P7-switch-tier-inventory完整27列，6舊測試檔斷言保持原樣。下一單元前置C-a。"
       ]
     }
   ],
@@ -832,7 +833,7 @@ const DATA = {
       "id": "階段 7",
       "name": "D365 9.1 切換（逐組織）",
       "planned": "每組織 1 天＋觀察 1 週",
-      "actual": "2026-11-17 13:08 Asia/Taipei (UTC+08:00)：P7-00/前置A完成，前置B實作與盤點完成、待完整守門；P7-01/02未開工。",
+      "actual": "2026-11-17 13:17 Asia/Taipei (UTC+08:00)：P7-00/前置A/B完成；前置C-a待開工，工作包仍done0。",
       "current": true,
       "done": 0,
       "active": 0
@@ -1974,8 +1975,8 @@ const DATA = {
       "id": "切換前置 B",
       "phaseId": "階段 7",
       "name": "切換前置 B（07A固定單元）",
-      "status": "active",
-      "note": "2026-11-17 13:08 Asia/Taipei (UTC+08:00)：指定14案/Deployment783案通過，27列盤點，live19/dormant14；完整guard尚未完成。"
+      "status": "done",
+      "note": "2026-11-17 13:17 Asia/Taipei (UTC+08:00)：1620547e固定guard八項全過，Release7085另Debug7；live19/dormant14、evidence皆空白。收尾後首次推送。"
     },
     {
       "id": "切換前置 C",

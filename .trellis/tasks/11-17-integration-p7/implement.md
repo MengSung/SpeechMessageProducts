@@ -8,7 +8,7 @@
 
 - [x] P7-00
 - [x] 切換前置 A
-- [ ] 切換前置 B
+- [x] 切換前置 B
 - [ ] 切換前置 C-a
 - [ ] 切換前置 C-b
 - [ ] P7-01a
@@ -33,3 +33,5 @@ D34 已實測通過；待辦 0、追蹤原值 1；22 新步驟全部停用、舊
 2026-11-17 12:53 Asia/Taipei (UTC+08:00)：前置A追蹤可用，單次smoke通過並回報PluginFileVersion=1.0.0.17；off=0、verify=0、追蹤還原1、smoke task0。新診斷追蹤1筆留本機對應範圍供R9先備份再清理，非目前測試資料殘留。後續影子比對依07A必做。
 
 2026-11-17 13:08 Asia/Taipei (UTC+08:00)：前置B指定測試14案與Deployment783案通過；盤點live19/dormant14，8項依D7-13降級，原6項保留；待完整固定guard驗收。
+
+2026-11-17 13:17 Asia/Taipei (UTC+08:00)：前置B驗收，程式1620547e固定guard八項全過，Release7085/Debug7；19live與14dormant，evidence仍空白未宣稱Live通過。收尾後首次推送，下一單元前置C-a。前置A的1筆trace仍留R9備份清理。

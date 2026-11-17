@@ -6,7 +6,7 @@
   "risk": "high",
   "domain": "backend",
   "currentPhase": "implementation",
-  "nextAction": "前置A追蹤恢復已完成；接前置B離線分級盤點。單模型（使用者指定 ClaudeOnly）。",
+  "nextAction": "前置B固定guard八項通過；收尾驗收與首次推送後接前置C-a。單模型（使用者指定 ClaudeOnly）。",
   "createdAt": "2026-11-17T12:43:48+08:00",
   "branch": "1.0.0.11.Integration.P7.Worktree"
 }
