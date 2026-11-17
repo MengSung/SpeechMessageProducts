@@ -40,6 +40,18 @@ public sealed class RelayLiveAcceptanceTests(ITestOutputHelper output)
         await using var f = new LiveOwner(output);
         await f.RunAsync();
     }
+    /// <summary>註冊檔的映像type不是CLR型別；故意混入PreImage，安全盤點只能取步驟／活動與legacy的完整CLR名稱。</summary>
+    [Fact]
+    public void RelayLiveSafety_ManifestImageTypes_AreNotClrNamespaces()
+    {
+        var manifest=JObject.Parse("{\"assemblies\":[{\"steps\":[{\"type\":\"Synthetic.Plugin\",\"images\":[{\"type\":\"PreImage\"}],\"legacy\":[{\"type\":\"Retired.Plugin\"}]}]}]}");
+        var types=ReadClrTypes(manifest);
+        Assert.Equal(2,types.Length);Assert.Contains("Synthetic.Plugin",types);Assert.Contains("Retired.Plugin",types);
+        Assert.DoesNotContain("PreImage",types);
+    }
+    /// <summary>只接真CLR完整名稱，不把image kind等同名JSON欄位拿去算命名空間；集合只活當次安全盤點。</summary>
+    private static string[] ReadClrTypes(JObject manifest)=>manifest.SelectTokens("$..type").Values<string>()
+        .Where(value=>!string.IsNullOrWhiteSpace(value)&&value.IndexOf('.',StringComparison.Ordinal)>0).Select(value=>value!).Distinct(StringComparer.Ordinal).ToArray();
     /// <summary>唯一操作owner；所有秘密只在記憶體與既有User Secrets，不進命令列或證據。</summary>
     private sealed class LiveOwner : IAsyncDisposable
     {
@@ -120,8 +132,19 @@ public sealed class RelayLiveAcceptanceTests(ITestOutputHelper output)
             }
             finally { await CleanupAsync(); }
         }
-        /// <summary>只為固定端點建立獨占SDK；transport由OnPremiseClient擁有，每次scope釋放。</summary>
-        private IOrganizationService OpenSdk() => new CrmConnectionService().CreateOnPremiseClient(Required("OrganizationUrl"), Required("Username"), Required("Password"));
+        /// <summary>只為固定端點建立獨占SDK並設15秒transport上限；每次scope唯一釋放，不提前關閉未排空I/O。</summary>
+        private IOrganizationService OpenSdk()
+        {
+            var client = new CrmConnectionService().CreateOnPremiseClient(Required("OrganizationUrl"), Required("Username"), Required("Password"));
+            try
+            {
+                if(client is not PowerPlatform.Dataverse.Client.OnPremiseClient onPremise)
+                    throw new InvalidOperationException("P7 bounded SDK type unavailable.");
+                onPremise.Timeout=TimeSpan.FromSeconds(15);
+                return client;
+            }
+            catch { (client as IDisposable)?.Dispose(); throw; }
+        }
         /// <summary>D34恰一測試綁定、來源教會相符、全部頻道加密token均為測試token才可寫入。</summary>
         private void VerifySafety()
         {
@@ -133,7 +156,7 @@ public sealed class RelayLiveAcceptanceTests(ITestOutputHelper output)
             foreach (var channel in channels.Entities) if (ChannelTokenProtector.Unprotect(channel.GetAttributeValue<string>("new_accesstokenencrypted"), key) != Required("TestChannelToken")) throw new InvalidOperationException("P7 D34 Channel rejected.");
             // 同時拒絕啟用中的新外殼及所有清單列出的舊型別，避免Create fee觸發舊程式。
             var manifest = JObject.Parse(File.ReadAllText(Path.Combine(root, "d365", "registration", "plugins.registration.json")));
-            var types = manifest.SelectTokens("$..type").Values<string>().Where(value => !string.IsNullOrWhiteSpace(value)).Select(value => value!).Distinct(StringComparer.Ordinal).ToArray();
+            var types = ReadClrTypes(manifest);
             var steps = new QueryExpression("sdkmessageprocessingstep") { TopCount = 1, ColumnSet = new ColumnSet(false) };
             steps.Criteria.AddCondition("statecode", ConditionOperator.Equal, 0);
             var plugin = steps.AddLink("plugintype", "eventhandler", "plugintypeid");
@@ -196,7 +219,17 @@ public sealed class RelayLiveAcceptanceTests(ITestOutputHelper output)
         /// <summary>finally即使Run失敗仍重做精確清理，最後關閉所有資源及清key。</summary>
         public async ValueTask DisposeAsync()
         {
-            try { await CleanupAsync(); } finally { (sdk as IDisposable)?.Dispose(); Array.Clear(key); http.Dispose(); ((IDisposable)configuration).Dispose(); }
+            try { await CleanupAsync(); }
+            finally
+            {
+                try { (sdk as IDisposable)?.Dispose(); }
+                finally
+                {
+                    Array.Clear(key);
+                    try { http.Dispose(); }
+                    finally { ((IDisposable)configuration).Dispose(); }
+                }
+            }
         }
         /// <summary>只沿本工作樹向上找方案根，證據不寫其他checkout。</summary>
         private static string FindRoot()
