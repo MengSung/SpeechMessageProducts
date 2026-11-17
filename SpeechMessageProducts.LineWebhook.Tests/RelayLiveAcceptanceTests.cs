@@ -50,6 +50,20 @@ public sealed class RelayLiveAcceptanceTests(ITestOutputHelper output)
         Assert.Equal(2,types.Length);Assert.Contains("Synthetic.Plugin",types);Assert.Contains("Retired.Plugin",types);
         Assert.DoesNotContain("PreImage",types);
     }
+    /// <summary>SDK保存的payload讀回為JSON字串；往返GUID必須正確解析，錯值拒絕，不能讓成功推播後清理失敗。</summary>
+    [Fact]
+    public void RelayLiveSafety_PayloadRecordIdentity_ParsesJsonString()
+    {
+        var id = Guid.NewGuid();
+        var payload = JObject.Parse(new JObject { ["recordId"] = id }.ToString());
+        Assert.True(OwnsRecord(payload, id));
+        Assert.False(OwnsRecord(payload, Guid.NewGuid()));
+        Assert.False(OwnsRecord(JObject.Parse("{\"recordId\":\"invalid\"}"), id));
+    }
+    /// <summary>只驗正式來源ID，不以文字標記替代資料列身分；未知或畸形值拒絕刪除。</summary>
+    private static bool OwnsRecord(JObject payload, Guid id) =>
+        payload["recordId"] is { Type: JTokenType.String } token &&
+        Guid.TryParseExact(token.Value<string>(), "D", out var actual) && actual != Guid.Empty && actual == id;
     /// <summary>只接真CLR完整名稱，不把image kind等同名JSON欄位拿去算命名空間；集合只活當次安全盤點。</summary>
     private static string[] ReadClrTypes(JObject manifest)=>manifest.SelectTokens("$..type").Values<string>()
         .Where(value=>!string.IsNullOrWhiteSpace(value)&&value.IndexOf('.',StringComparison.Ordinal)>0).Select(value=>value!).Distinct(StringComparer.Ordinal).ToArray();
@@ -206,7 +220,7 @@ public sealed class RelayLiveAcceptanceTests(ITestOutputHelper output)
             {
                 var q = new QueryExpression("new_outboundtask") { TopCount = 2, ColumnSet = new ColumnSet("new_accountid", "new_payload") }; q.Criteria.AddCondition("new_outboundtaskid", ConditionOperator.Equal, task.Value);
                 var rows = sdk.RetrieveMultiple(q); if (rows.MoreRecords || rows.Entities.Count > 1) throw new InvalidOperationException("P7 cleanup identity conflict.");
-                if (rows.Entities.Count == 1) { var row = rows.Entities[0]; if (row.GetAttributeValue<EntityReference>("new_accountid")?.Id != church || JObject.Parse(row.GetAttributeValue<string>("new_payload"))["recordId"]?.Value<Guid>() != fee) throw new InvalidOperationException("P7 cleanup ownership conflict."); sdk.Delete("new_outboundtask", task.Value); }
+                if (rows.Entities.Count == 1) { var row = rows.Entities[0]; if (row.GetAttributeValue<EntityReference>("new_accountid")?.Id != church || !OwnsRecord(JObject.Parse(row.GetAttributeValue<string>("new_payload")), fee)) throw new InvalidOperationException("P7 cleanup ownership conflict."); sdk.Delete("new_outboundtask", task.Value); }
             }
             if (feeAttempted)
             {
