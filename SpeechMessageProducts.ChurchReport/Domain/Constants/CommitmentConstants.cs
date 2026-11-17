@@ -16,6 +16,7 @@
  * SpeechMessageProducts.ChurchReport/Controllers/SmallGroupController/SmallGroupController.Save.cs、
  * SpeechMessageProducts.ChurchReport/Models/CrmTransmitModule/TransmitMemberInfomation.cs、
  * SpeechMessageProducts.ChurchReport/Models/Fee.cs 追查目前工作樹中的合作／使用位置。
+ * P6-07公開邊界：CareConstants、CommitmentType、FollowUpNextStep、FollowUpResult、FollowUpWeek、Gender改為產品內部宣告；外部輸出與既有資源清理契約不變。
  */
 namespace ChurchReport.Domain.Constants
 {
@@ -23,7 +24,9 @@ namespace ChurchReport.Domain.Constants
     /// 委身類型常數
     /// 定義 Dynamics 365 中的 customertypecode 選項集值
     /// </summary>
-    public static class CommitmentType
+    /// <remarks>P6-07限於本產品內部使用；既有資料形狀、呼叫順序與資源所有權不變，不作為跨組件API。</remarks>
+    /// <remarks>P6-07限於本產品內部使用；既有資料形狀、呼叫順序與資源所有權不變，不作為跨組件API。</remarks>
+    internal static class CommitmentType
     {
         /// <summary>
         /// 小組組員
@@ -94,7 +97,9 @@ namespace ChurchReport.Domain.Constants
     /// <summary>
     /// 性別常數
     /// </summary>
-    public static class Gender
+    /// <remarks>P6-07限於本產品內部使用；既有資料形狀、呼叫順序與資源所有權不變，不作為跨組件API。</remarks>
+    /// <remarks>P6-07限於本產品內部使用；既有資料形狀、呼叫順序與資源所有權不變，不作為跨組件API。</remarks>
+    internal static class Gender
     {
         public const int Male = 200000;
         public const int Female = 200001;
@@ -113,7 +118,9 @@ namespace ChurchReport.Domain.Constants
     /// <summary>
     /// 跟進週次常數
     /// </summary>
-    public static class FollowUpWeek
+    /// <remarks>P6-07限於本產品內部使用；既有資料形狀、呼叫順序與資源所有權不變，不作為跨組件API。</remarks>
+    /// <remarks>P6-07限於本產品內部使用；既有資料形狀、呼叫順序與資源所有權不變，不作為跨組件API。</remarks>
+    internal static class FollowUpWeek
     {
         public const int Week1 = 100000000;
         public const int Week2 = 100000001;
@@ -190,7 +197,9 @@ namespace ChurchReport.Domain.Constants
     /// <summary>
     /// 跟進結果常數
     /// </summary>
-    public static class FollowUpResult
+    /// <remarks>P6-07限於本產品內部使用；既有資料形狀、呼叫順序與資源所有權不變，不作為跨組件API。</remarks>
+    /// <remarks>P6-07限於本產品內部使用；既有資料形狀、呼叫順序與資源所有權不變，不作為跨組件API。</remarks>
+    internal static class FollowUpResult
     {
         public const int PleaseSelect = 100000000;
         public const int EnthusiasticResponse = 100000001;
@@ -225,7 +234,9 @@ namespace ChurchReport.Domain.Constants
     /// <summary>
     /// 跟進下一步驟常數
     /// </summary>
-    public static class FollowUpNextStep
+    /// <remarks>P6-07限於本產品內部使用；既有資料形狀、呼叫順序與資源所有權不變，不作為跨組件API。</remarks>
+    /// <remarks>P6-07限於本產品內部使用；既有資料形狀、呼叫順序與資源所有權不變，不作為跨組件API。</remarks>
+    internal static class FollowUpNextStep
     {
         public const int PleaseSelect = 100000000;
         public const int ContinueFollowUp = 100000001;
@@ -246,7 +257,9 @@ namespace ChurchReport.Domain.Constants
     /// <summary>
     /// 新人關懷相關常數
     /// </summary>
-    public static class CareConstants
+    /// <remarks>P6-07限於本產品內部使用；既有資料形狀、呼叫順序與資源所有權不變，不作為跨組件API。</remarks>
+    /// <remarks>P6-07限於本產品內部使用；既有資料形狀、呼叫順序與資源所有權不變，不作為跨組件API。</remarks>
+    internal static class CareConstants
     {
         /// <summary>
         /// 過去幾週內的出席統計週期
