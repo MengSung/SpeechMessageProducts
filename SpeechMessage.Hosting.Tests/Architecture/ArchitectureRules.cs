@@ -14,6 +14,7 @@
  * - 部署端 Plugin 與 Workflow 都受同一個 v4.6.2 沙箱契約約束。
  * - 以來源快照執行 R2 主機／Plugin 公開邊界、R3 組織字面值白名單及 R9 傳輸／Plugin 參考守門；
  *   ChurchReport以框架入口、MVC繼承及公開簽章閉包判定；明列例外必附理由與證據，其他主機規則不變。
+ *   公開表面統計沿用同次分類並同步交給可選接收器，不保存回呼或跨掃描狀態。
  * - 以實際 DAG 而非示意圖的位置標記層級；共用核心內Localization為取字底層，其餘同層彼此不可參考。未知專案 fail closed， 加入新產品時必須明確分類並補正反例，不能因名稱相似自動取得高層權限。
  * 測試案例入口包含 ArchitectureProject、ArchitectureSource、ArchitectureViolation、Validate、
  * ValidateSource、ValidateFrameworkAssets、IsSandbox、IsHost、Layer。
@@ -221,8 +222,10 @@ internal static class ArchitectureRules
     /// 參考均採拒絕策略，讓新產品不能藉由未分類語法靜默繞過守門。
     /// </summary>
     /// <param name="projects">每個實際目標或合成案例的來源快照。</param>
+    /// <param name="observePublicType">可選的當次公開表面統計接收器，依序接收組態、來源、型別及四類分類；不保存回呼或來源模型。</param>
     /// <returns>不含來源本文的固定架構違規。</returns>
-    internal static IReadOnlyList<ArchitectureViolation> ValidateSource(IReadOnlyList<ArchitectureProject> projects)
+    internal static IReadOnlyList<ArchitectureViolation> ValidateSource(IReadOnlyList<ArchitectureProject> projects,
+        Action<string, string, string, string>? observePublicType = null)
     {
         ArgumentNullException.ThrowIfNull(projects);
         var violations = new List<ArchitectureViolation>();
@@ -289,6 +292,15 @@ internal static class ArchitectureRules
                         }
 
                         var identity = symbol.ToDisplayString(SymbolDisplayFormat.CSharpErrorMessageFormat);
+                        if (churchReportAllowed is not null && observePublicType is not null)
+                        {
+                            // 與拒絕規則使用同一語意模型及閉包；分類互斥，入口及MVC優先，精確例外其次。
+                            var category = symbol.Name is "Program" or "Startup" ? "entry"
+                                : IsMvcEntry(symbol) ? "controller"
+                                : project.ChurchReportExceptions.Any(item => item.Symbol == identity) ? "exception"
+                                : churchReportAllowed.Contains(symbol.OriginalDefinition) ? "signature" : "violation";
+                            observePublicType(project.Configuration, path, identity, category);
+                        }
                         if (IsHost(project.Name) && (churchReportAllowed is not null
                             ? !churchReportAllowed.Contains(symbol.OriginalDefinition)
                             : symbol.Name != "Program" &&

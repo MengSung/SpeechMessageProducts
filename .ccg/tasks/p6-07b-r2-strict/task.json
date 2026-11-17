@@ -1,0 +1,12 @@
+{
+  "id": "p6-07b-r2-strict",
+  "title": "P6-07b R2清冊清零與嚴格模式",
+  "status": "in_progress",
+  "complexity": "L",
+  "risk": "high",
+  "domain": "backend",
+  "currentPhase": "implementation",
+  "nextAction": "完成全方案雙組態建置，最末程式提交固定guard八項；通過才驗收封存推送",
+  "createdAt": "2026-11-17T09:00:41+08:00",
+  "branch": "1.0.0.11.Integration.P6.Worktree"
+}

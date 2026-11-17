@@ -182,7 +182,7 @@ Hosting.Tests/Architecture 是 R2／R3／R4／R9 唯一來源。新增目標、�
 ### 2. 介面
 
 `ReadSolution(configuration)`／`ReadProjects(root, paths, verifyRestoredAssets, configuration)`
-只接受 Debug、Release。`ValidateSource(projects)` 回傳規則、專案、目標、組態、來源
+只接受 Debug、Release。`ValidateSource(projects, observePublicType = null)` 回傳規則、專案、目標、組態、來源
 與完整型別／依賴身分；不回傳來源本文、token或設定。
 
 ### 3. 契約
@@ -205,16 +205,20 @@ Payments／System.Drawing相依。global using不可漏掉HttpClient，raw文字
 
 ### 5. 正常／既有／錯誤
 
-真正SDK別名／繼承入口合法；既有ChurchReport公開型別寫精確未通過清冊；新來源、
-同名偽入口、白名單路徑拼接或任何新增R3／R9必須紅燈。清冊非空表示R2尚未驗收。
+真正SDK別名／繼承入口合法；ChurchReport只允許框架入口、真正MVC控制器／檢視元件、
+由其公開簽章展開的必要型別，以及附重現理由與證據的明列例外。其餘公開型別、新來源、
+同名偽入口、白名單路徑拼接或任何新增R3／R9必須紅燈；不得恢復清冊豁免。
 
 ### 6. 必要斷言
 
-合成語法反例、真正XML條件來源、大小／解碼故障、完整方案兩組態R4及精確未通過
-清冊比對、Plugin產物AssemblyRef與程序drain。完整方案每次同一快照同時驗R4及來源。
+合成語法反例、真正XML條件來源、大小／解碼故障、完整方案兩組態R4及來源嚴格零違規、
+Plugin產物AssemblyRef與程序drain。完整方案每次同一快照同時驗R4及來源；清冊必須resolved且空。
 
 ### 7. 錯誤與正確
 
 錯誤：`Assert.All(violations, x => x.Project == ChurchReport)`使整個產品任意違規綠燈。
-正確：逐完整身分核對`unresolved-r2-inventory.json`，任何差集都失敗；每筆附理由及
-移除條件。此測試只保護追蹤完整性，報告與HTML仍明標R2未通過，不把債務當成完成。
+正確：`unresolved-r2-inventory.json`固定為resolved且entries空陣列，僅保留歷史用途；
+`Solution_EvaluatedGraphAndSource_MatchContractsAndUnresolvedInventory`保名，但同時要求
+Validate及ValidateSource零違規。`R2_Inventory_IsEmptyAndResolved`與雙組態
+`R2_ChurchReport_PublicTypes_AreOnlyEntryControllerOrSignatureRequired`獨立防回歸。
+公開表面統計使用同次Roslyn分類的operation-local接收器，不維護人工允許大清單、不保存語意模型。

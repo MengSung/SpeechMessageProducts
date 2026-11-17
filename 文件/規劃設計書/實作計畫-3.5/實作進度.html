@@ -240,11 +240,11 @@ footer{margin-top:36px;color:var(--muted);font-size:12.5px;text-align:center}
  */
 const DATA = {
   "planVersion": "3.5",
-  "snapshot": "2026-11-17 08:56 Asia/Taipei (UTC+08:00)",
-  "lastUpdated": "2026-11-17T08:56:12+08:00",
+  "snapshot": "2026-11-17 09:31 Asia/Taipei (UTC+08:00)",
+  "lastUpdated": "2026-11-17T09:31:49+08:00",
   "branch": "1.0.0.11.Integration.P6.Worktree",
-  "head": "3e7a9339",
-  "headline": "2026-11-17 08:56 Asia/Taipei (UTC+08:00)：P6-07a五項定義成立且驗收；3e7a9339固定guard完整八項通過，Release7068不含另列Debug tracer7、編碼195、文件1747、進度28、重複新增0、I18nCheck0。R2清冊608→141，四資料夾違規0，四黃金不變；回報P6-07a.md。整包仍active，b段、頁面與唯一階段審查未完成。",
+  "head": "4b8fa3f1293df36329c6c7c36beaab2981a77bf1",
+  "headline": "2026-11-17 09:31 Asia/Taipei (UTC+08:00)：P6-07b依序完成11批75個待辦頂層型別內部化，雙組態產品建置與ChurchReport644/643、Dataverse81/79皆通過；Startup.Caching無待改。最終來源掃描Debug／Release全規則0違規，R2清冊141→0且resolved；公開表面129／119（原清冊口徑128／118），例外0。四黃金SHA不變。Hosting嚴格模式全測執行中，未完整guard、未驗收、不推送。Logging首輪Release遭SourceLink檔鎖，原證據保留；單節點同碼重試通過。",
   "notices": [
     {
       "id": "plan-3.5-summary",
@@ -592,8 +592,8 @@ const DATA = {
       "phaseId": "階段 6",
       "level": "info",
       "title": "P6 進度摘要",
-      "lastUpdated": "2026-11-17T08:56:12+08:00",
-      "body": "2026-11-17 08:56 Asia/Taipei (UTC+08:00)：P6-07a五項定義成立且驗收；3e7a9339固定guard完整八項通過，Release7068不含另列Debug tracer7、編碼195、文件1747、進度28、重複新增0、I18nCheck0。R2清冊608→141，四資料夾違規0，四黃金不變；回報P6-07a.md。整包仍active，b段、頁面與唯一階段審查未完成。",
+      "lastUpdated": "2026-11-17T09:31:49+08:00",
+      "body": "2026-11-17 09:31 Asia/Taipei (UTC+08:00)：P6-07b依序完成11批75個待辦頂層型別內部化，雙組態產品建置與ChurchReport644/643、Dataverse81/79皆通過；Startup.Caching無待改。最終來源掃描Debug／Release全規則0違規，R2清冊141→0且resolved；公開表面129／119（原清冊口徑128／118），例外0。四黃金SHA不變。Hosting嚴格模式全測執行中，未完整guard、未驗收、不推送。Logging首輪Release遭SourceLink檔鎖，原證據保留；單節點同碼重試通過。",
       "steps": [
         "2026-11-16 18:40 Asia/Taipei (UTC+08:00)：完整讀取四份依據，核對分支、起點與七包 todo；建立父任務，保存四個基準數字，納入原樣 06A。",
         "2026-11-16 18:40 Asia/Taipei (UTC+08:00)：三個 P5 殘留任務依既有驗收證據封存；330 筆 C:/smv 舊工具及原始證據保留移出，C:/smv 僅留 guard。",
@@ -631,7 +631,16 @@ const DATA = {
         "2026-11-17 08:29 Asia/Taipei (UTC+08:00)：Services52檔71個頂層型別完成internal，另DonationKeyInDedicationService已在前批提前處理；CacheKeys.Expiration是巢狀型別，保留修飾詞，隨容器internal不再對外可見。編譯CS0051指出ThemeViewDataFilter與ListManagerCacheExtensions的公開簽章用到ThemeSettings／ICacheService，兩者均屬待辦，依固定處理提前internal；同檔CachedListManagerData亦原在待辦中。雙組態建置、ChurchReport643/644及Dataverse79/81全過，四黃金位元組相同。",
         "2026-11-17 08:40 Asia/Taipei (UTC+08:00)：a段末掃描曾得到Debug89／Release80，抓到編輯工具在file-scoped宣告的同位置「插註解」覆蓋了「public→internal」替換，14個宣告未完成；前述批次數字是候選數，並非全部實際可見性已變。已修正同位置編輯合併與每次寫前的Roslyn宣告後置條件，依原序補Tools1、Payments7、Services6個型別，共9檔，只有public→internal token改動。三批重新執行雙組態建置、ChurchReport643/644、Dataverse79/81與黃金比對。Services第一次Dataverse Release有既有trace租期排序1紅，原78綠1紅證據保留；同碼重試79全綠、Debug81全綠，沒有改測試或pool程式、沒有降低斷言。",
         "2026-11-17 08:44 Asia/Taipei (UTC+08:00)：a段最終來源掃描Debug75、Release66，共141筆／75不同型別；四個已處理資料夾R2均0，沒有其他規則違規。清冊608→141僅刪467筆，完整身分皆原清冊子集；其中246筆由四類分類不再違規、221筆由實際內部化不再公開（Debug112／Release109，含1個巢狀型別隨容器不再公開）。仍unresolved，不能當階段完成。",
-        "2026-11-17 08:56 Asia/Taipei (UTC+08:00)：P6-07a五項定義成立且驗收；3e7a9339固定guard完整八項通過，Release7068不含另列Debug tracer7、編碼195、文件1747、進度28、重複新增0、I18nCheck0。R2清冊608→141，四資料夾違規0，四黃金不變；回報P6-07a.md。整包仍active，b段、頁面與唯一階段審查未完成。"
+        "2026-11-17 08:56 Asia/Taipei (UTC+08:00)：P6-07a五項定義成立且驗收；3e7a9339固定guard完整八項通過，Release7068不含另列Debug tracer7、編碼195、文件1747、進度28、重複新增0、I18nCheck0。R2清冊608→141，四資料夾違規0，四黃金不變；回報P6-07a.md。整包仍active，b段、頁面與唯一階段審查未完成。",
+        "2026-11-17 09:00 Asia/Taipei (UTC+08:00)：P6-07a已驗收並推送，ls-remote核對2dc58e80ae9a8dfdff69f928f235f1edf388082a。P6-07b接續141筆清冊，先嚴格測試紅燈，再依Middleware等固定順序處理，不重做a段guard；整包仍active。",
+        "2026-11-17 09:13 Asia/Taipei (UTC+08:00)：P6-07b Logging 已完成雙組態建置、ChurchReport644/643及Dataverse81/79與原黃金比對；提交6f483e96。仍未整包驗收，不推送。",
+        "2026-11-17 09:14 Asia/Taipei (UTC+08:00)：P6-07b Diagnostics 已完成雙組態建置、ChurchReport644/643及Dataverse81/79與原黃金比對；提交b34317c8。仍未整包驗收，不推送。",
+        "2026-11-17 09:15 Asia/Taipei (UTC+08:00)：P6-07b Utilities 已完成雙組態建置、ChurchReport644/643及Dataverse81/79與原黃金比對；提交9974def1。仍未整包驗收，不推送。",
+        "2026-11-17 09:17 Asia/Taipei (UTC+08:00)：P6-07b Domain 已完成雙組態建置、ChurchReport644/643及Dataverse81/79與原黃金比對；提交18b292fd。仍未整包驗收，不推送。",
+        "2026-11-17 09:18 Asia/Taipei (UTC+08:00)：P6-07b Models 已完成雙組態建置、ChurchReport644/643及Dataverse81/79與原黃金比對；提交86603bd6。仍未整包驗收，不推送。",
+        "2026-11-17 09:19 Asia/Taipei (UTC+08:00)：P6-07b ViewModels 已完成雙組態建置、ChurchReport644/643及Dataverse81/79與原黃金比對；提交8c19e80f。仍未整包驗收，不推送。",
+        "2026-11-17 09:20 Asia/Taipei (UTC+08:00)：P6-07b SessionAttribute.cs 已完成雙組態建置、ChurchReport644/643及Dataverse81/79與原黃金比對；提交4b8fa3f1。仍未整包驗收，不推送。",
+        "2026-11-17 09:31 Asia/Taipei (UTC+08:00)：P6-07b依序完成11批75個待辦頂層型別內部化，雙組態產品建置與ChurchReport644/643、Dataverse81/79皆通過；Startup.Caching無待改。最終來源掃描Debug／Release全規則0違規，R2清冊141→0且resolved；公開表面129／119（原清冊口徑128／118），例外0。四黃金SHA不變。Hosting嚴格模式全測執行中，未完整guard、未驗收、不推送。Logging首輪Release遭SourceLink檔鎖，原證據保留；單節點同碼重試通過。"
       ]
     }
   ],
@@ -1909,7 +1918,7 @@ const DATA = {
     {
       "id": "P6-07",
       "startedAt": "2026-11-17 07:59 Asia/Taipei (UTC+08:00)",
-      "timebox": "a、b各1天",
+      "timebox": "b段1天（a段已驗收）",
       "dod": [
         [
           "測試",
@@ -1937,7 +1946,7 @@ const DATA = {
           "a、b各有證據與回報，兩段皆驗收才done。"
         ]
       ],
-      "next": "a段封存收尾並推送核對，接P6-07b其餘資料夾與嚴格模式清零。"
+      "next": "b段兩個嚴格測試先紅，Middleware→Filters→Extensions→Security→Logging→Diagnostics→Utilities→Domain→Models→ViewModels→根目錄。"
     }
   ],
   "gates": [

@@ -15,7 +15,7 @@
  *   並以真實 ChurchReport 的 Debug／Release 評估確認不再使用這些套件；不啟動網站或外部連線。
  * - ToolUtility.Core 的 Dataverse 例外只限 net10 SDK 型別來源，不能擴大為 net462 或任意 Extensions 豁免。
  * - 沙箱只引用可提供 net462 的雙目標產品；net48 宿主不等於合格部署產品。
- * - P6-07以四個合成案例保護ChurchReport語意簽章閉包與實證例外，LineWebhook規則不變。
+ * - P6-07以四個合成案例保護ChurchReport語意簽章閉包與實證例外，LineWebhook規則不變；b段另以清冊resolved且空與雙組態零違規防回歸。
  * - R2 以公開型別宣告檢查主機／Plugin 邊界；R3 以精確來源檔白名單保護相容
  *   組織別名；R9 檢查 HttpClient 所在專案及 Plugin 的禁止參考。
  * 測試案例入口包含 DualTarget_ReferenceToNet10Only_IsRejected、DualTarget_HostPackage_IsRejected、
@@ -43,10 +43,6 @@ namespace SpeechMessage.Architecture.Tests;
 public sealed class ArchitectureRuleTests
 {
     private static readonly IReadOnlyList<string> SystemDrawingPackages = new[] { "System.Drawing.Common" };
-
-    /// <summary>固定清冊欄位順序，唯讀 schema 不含來源值或任何跨案例可變狀態。</summary>
-    private static readonly IReadOnlyList<string> InventoryFields =
-        Array.AsReadOnly(new[] { "rule", "project", "target", "configuration", "source", "symbol" });
 
     /// <summary>
     /// 將已由共用框架提供的舊套件逐一注入主機的直接參考與還原相依，
@@ -606,9 +602,9 @@ public sealed class ArchitectureRuleTests
     }
 
     /// <summary>
-    /// 逐組態／目標驗證完整 R4 圖，再核對真實來源與精確的未通過清冊。所有新增、移除、改名、移動或其他
-    /// 規則違規均須明確審查；不再允許整個 ChurchReport 任意違規。此案例只保護追蹤完整性，
-    /// 清冊非空仍表示 R2 未驗收，不能以本案例綠燈宣稱主機已經只剩外殼。
+    /// 逐組態以同一份方案快照驗證完整參考圖與來源均零違規；舊清冊只保留已解決的空紀錄，
+    /// 不再接受任何清冊豁免。反例是新增任意架構違規、回填清冊或將狀態退回unresolved，任一即失敗。
+    /// 來源、metadata與子程序由當次讀取器有界持有並釋放，不執行產品或連線外部服務。
     /// </summary>
     /// <param name="configuration">分別驗證的實際建置組態。</param>
     [Theory]
@@ -616,33 +612,45 @@ public sealed class ArchitectureRuleTests
     [InlineData("Release")]
     public void Solution_EvaluatedGraphAndSource_MatchContractsAndUnresolvedInventory(string configuration)
     {
-        // 同一個唯讀快照供 R4 及來源檢查使用，減少重複子程序，並讓兩種規則看到相同目標／組態。
         var projects = ArchitectureProjectReader.ReadSolution(configuration);
         Assert.NotEmpty(projects);
         Assert.Empty(ArchitectureRules.Validate(projects));
-        var violations = ArchitectureRules.ValidateSource(projects);
+        Assert.Empty(ArchitectureRules.ValidateSource(projects));
         var path = Path.Combine(ArchitectureProjectReader.FindRoot(),
             "SpeechMessage.Hosting.Tests/Architecture/unresolved-r2-inventory.json");
         using var inventory = JsonDocument.Parse(File.ReadAllText(path));
-        Assert.Equal("unresolved", inventory.RootElement.GetProperty("status").GetString());
-        var entries = inventory.RootElement.GetProperty("entries").EnumerateArray().ToArray();
-        Assert.All(entries, entry =>
-        {
-            Assert.False(string.IsNullOrWhiteSpace(entry.GetProperty("reason").GetString()));
-            Assert.False(string.IsNullOrWhiteSpace(entry.GetProperty("removalCondition").GetString()));
-        });
-        var expected = entries.Where(entry => entry.GetProperty("configuration").GetString() == configuration)
-            .Select(entry => string.Join("|", InventoryFields
-                .Select(key => entry.GetProperty(key).GetString()))).OrderBy(key => key, StringComparer.Ordinal).ToArray();
-        Assert.Equal(expected.Length, expected.Distinct(StringComparer.Ordinal).Count());
-        var actual = violations.Select(item => string.Join("|", item.Rule, item.Project, item.Target,
-            item.Configuration, item.SourcePath, item.Dependency)).OrderBy(key => key, StringComparer.Ordinal).ToArray();
-        var added = actual.Except(expected, StringComparer.Ordinal).ToArray();
-        var removed = expected.Except(actual, StringComparer.Ordinal).ToArray();
-        Assert.True(added.Length == 0 && removed.Length == 0,
-            "Untracked architecture changes; R2 inventory is unresolved, not an acceptance exemption." +
-            Environment.NewLine + string.Join(Environment.NewLine, added.Select(key => "+ " + key)
-                .Concat(removed.Select(key => "- " + key))));
+        Assert.Equal("resolved", inventory.RootElement.GetProperty("status").GetString());
+        Assert.Empty(inventory.RootElement.GetProperty("entries").EnumerateArray());
+    }
+
+    /// <summary>清冊的狀態與空陣列同時防回歸，任一新項目或unresolved都必須拒絕；只讀受版控檔並立即釋放JSON。</summary>
+    [Fact]
+    public void R2_Inventory_IsEmptyAndResolved()
+    {
+        var path = Path.Combine(ArchitectureProjectReader.FindRoot(),
+            "SpeechMessage.Hosting.Tests/Architecture/unresolved-r2-inventory.json");
+        using var inventory = JsonDocument.Parse(File.ReadAllText(path));
+        Assert.Equal("resolved", inventory.RootElement.GetProperty("status").GetString());
+        Assert.Empty(inventory.RootElement.GetProperty("entries").EnumerateArray());
+    }
+
+    /// <summary>
+    /// 逐組態以真正Roslyn語意規則檢查ChurchReport所有對外可見型別；一般公開服務即使有舊清冊也不得放行。
+    /// 錯誤列出不合格完整型別名稱；讀取器擁有有界子程序與metadata，測試不啟動Host或外部連線。
+    /// </summary>
+    /// <param name="configuration">Debug與Release分別驗證，不能互相替代。</param>
+    [Theory]
+    [InlineData("Debug")]
+    [InlineData("Release")]
+    public void R2_ChurchReport_PublicTypes_AreOnlyEntryControllerOrSignatureRequired(string configuration)
+    {
+        var projects = ArchitectureProjectReader.ReadSolution(configuration);
+        var host = Assert.Single(projects, project => project.Name == "SpeechMessageProducts.ChurchReport");
+        Assert.NotEmpty(host.Sources);
+        var violations = ArchitectureRules.ValidateSource(projects)
+            .Where(item => item.Project == host.Name && item.Rule == "R2HostPublicType").ToArray();
+        Assert.True(violations.Length == 0, "Unexpected public host types: "
+            + string.Join(", ", violations.Select(item => item.Dependency)));
     }
 
     /// <summary>
