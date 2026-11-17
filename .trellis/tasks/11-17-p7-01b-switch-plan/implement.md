@@ -10,4 +10,6 @@
 - [ ] Deployment全測試、Hosting Architecture→提交→固定C:\smv\guard完整八項→一頁回報／里程碑／封存→輕量三檢查→推送ls-remote核SHA，才開始c。
 P7-01整包仍未完成；本段不連D365，不執行真舊程式或測試推播，不提早寫手冊／演練。
 
-2026-11-17 20:14 Asia/Taipei (UTC+08:00)：ClaudeOnly分析ok=true／dualModelComplete=false；使用既有SharedText資源與產生器，不提高CJK基準。所有指定方法已加入且本機Deployment864案通過、Architecture89案通過。CLI離線循環plan→switch→verify plan→rollback→verify off通過，故障案例含SDK送達後Create／Update／SetState失敗與取消；尚待提交與固定guard，不標驗收。四個舊任務目錄實際有evidence檔案，保留不刪。
+2026-11-17 20:14 Asia/Taipei (UTC+08:00)：ClaudeOnly分析ok=true／dualModelComplete=false；使用既有資源產生器與文字表API，不提高CJK基準。所有指定方法已加入且本機Deployment864案通過、Architecture89案通過。CLI離線循環plan→switch→verify plan→rollback→verify off通過，故障案例含SDK送達後Create／Update／SetState失敗與取消；尚待提交與固定guard，不標驗收。四個舊任務目錄實際有evidence檔案，保留不刪。
+
+2026-11-17 20:28 Asia/Taipei (UTC+08:00)：cd18c6b9固定guard建置通過、Hosting165／Deployment864通過，但Localization原24鍵集合兩案在雙目標失敗。根因是本段把15個部署文案加入SharedText；改用Switching/SwitchText.resx獨立表、沿既有產生器與SystemTextTable.FromRows，原測試與期望不動。Localization186/184、Deployment864及I18n verify已通過，需新提交重跑完整guard。

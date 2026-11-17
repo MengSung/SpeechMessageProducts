@@ -284,6 +284,6 @@ SDK前先完整export與legacy export，再write-ahead flush attempted；完成�
 secure候選GUID在Create前記錄，送達後throw亦精確清孤兒；清lookup後只刪無引用secure列，不讀值。
 故障與取消反序回復所有attempted，讀寫回復使用None token；原失敗保留，cleanup失敗Aggregate回報。
 本機switch-log有界128MiB、strict JSON／hash、原子flush替換；不進版控，原XAML總量16MiB。
-來源／server／正式ID不符拒絕回復；只碰本次log列出的項目。固定資源沿SharedText與既有產生器。
+來源／server／正式ID不符拒絕回復；只碰本次log列出的項目。固定資源在Switching/SwitchText.resx，沿既有產生器與SystemTextTable.FromRows。
 指定測試在SwitchTargetTests、SwitchPlanTests、WorkflowRepointerTests、SwitchExecutorTests；
 另以SwitchSnapshotReaderTests與SwitchCliTests驗真SDK讀取及離線完整循環，均不能當作實機證據。

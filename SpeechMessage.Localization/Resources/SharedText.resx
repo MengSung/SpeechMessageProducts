@@ -5,7 +5,7 @@
 目的與定位：保存SharedText的正式文字資源，提供固定key、翻譯與具名參數給I18nCheck驗證及產生器；本檔是文字的單一來源，不在生成C#內手改文案。
 
 主要功能與流程：
-外殼通用錯誤、診斷、結構部署與P7切換核定書資源列；鍵身分、參數集合、發布語系與長度受資源守門限制，重複鍵不能用覆寫隱藏。
+外殼通用錯誤、診斷與部署資源列；鍵身分、參數集合、發布語系與長度受資源守門限制，重複鍵不能用覆寫隱藏。
 
 使用邊界與維護：修改前先核對引用此檔的專案、頁面、腳本或CI步驟，保留既有參數、輸出及失敗結束碼。
 涉及寫入、外部命令或暫存資源時，依本檔實際實作的owner及清理路徑處理；說明不能取代執行前的範圍驗證。
@@ -42,20 +42,4 @@
   <data name="Common.Plugin.MissingService" xml:space="preserve"><value>外掛必要服務無法取得。</value></data>
   <data name="Common.Plugin.RuleRejected" xml:space="preserve"><value>無法完成此操作。</value></data>
   <data name="Common.Plugin.EventId" xml:space="preserve"><value>事件 ID={eventId}</value></data>
-  <!-- P7切換計畫固定標題與核定書摘要；無使用者／組織資料，不修改既有資源。 -->
-  <data name="Deployment.Switch.Organization" xml:space="preserve"><value>組織：</value></data>
-  <data name="Deployment.Switch.State" xml:space="preserve"><value>狀態：</value></data>
-  <data name="Deployment.Switch.PlanHash" xml:space="preserve"><value>plan 雜湊：</value></data>
-  <data name="Deployment.Switch.Actions" xml:space="preserve"><value>會做的事</value></data>
-  <data name="Deployment.Switch.KeepLegacy" xml:space="preserve"><value>不會做、需要決定的事（KeepLegacy）</value></data>
-  <data name="Deployment.Switch.Manual" xml:space="preserve"><value>人工步驟（Manual）</value></data>
-  <data name="Deployment.Switch.Dormant" xml:space="preserve"><value>不切的項目與原因（dormant）</value></data>
-  <data name="Deployment.Switch.RegisteredLegacy" xml:space="preserve"><value>仍登錄的舊組件</value></data>
-  <data name="Deployment.Switch.ApprovalSummary" xml:space="preserve"><value>核定書摘要</value></data>
-  <data name="Deployment.Switch.Summary" xml:space="preserve"><value>會啟用 {newSteps} 個新步驟、停用 {oldSteps} 個舊步驟、改指 {workflows} 個流程；需決定 {decisions} 項。</value></data>
-  <data name="Deployment.Switch.Rollback" xml:space="preserve"><value>回復：rollback --from &lt;switch-log.json&gt;。安全設定只檢查有無，不比較秘密實值，不能用於金鑰輪替。</value></data>
-  <data name="Deployment.Switch.DormantLegacyReason" xml:space="preserve"><value>項目分級為 dormant；保留舊項目原狀態，等待決定。</value></data>
-  <data name="Deployment.Switch.WorkflowManualReason" xml:space="preserve"><value>流程定義超過容量上限或處於暫停狀態，需人工處理。</value></data>
-  <data name="Deployment.Switch.WorkflowKeepReason" xml:space="preserve"><value>流程含未移植或保留的活動，或目標不改指；整個流程維持原狀。</value></data>
-  <data name="Deployment.Switch.UnmappedStepReason" xml:space="preserve"><value>未對應移植項目的舊步驟，整筆註冊保留，等待決定。</value></data>
 </root>
