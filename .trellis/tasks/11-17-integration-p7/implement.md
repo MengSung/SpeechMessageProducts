@@ -35,3 +35,5 @@ D34 已實測通過；待辦 0、追蹤原值 1；22 新步驟全部停用、舊
 2026-11-17 13:08 Asia/Taipei (UTC+08:00)：前置B指定測試14案與Deployment783案通過；盤點live19/dormant14，8項依D7-13降級，原6項保留；待完整固定guard驗收。
 
 2026-11-17 13:17 Asia/Taipei (UTC+08:00)：前置B驗收，程式1620547e固定guard八項全過，Release7085/Debug7；19live與14dormant，evidence仍空白未宣稱Live通過。收尾後首次推送，下一單元前置C-a。前置A的1筆trace仍留R9備份清理。
+
+2026-11-17 13:20 Asia/Taipei (UTC+08:00)：C-a研究查明AppointmentPlugin的Create/Update沿舊空參數，NotifyAsync Contains不成立即返回；B盤點兩列效果文字已更正，分級不變。原產品/期望值不修改；活動正常路徑與Plugin有明確分派差異，後續Relay對照須選有效route或對應期望檔。
