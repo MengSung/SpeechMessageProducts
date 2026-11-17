@@ -1,0 +1,12 @@
+{
+  "id": "p6-page-acceptance",
+  "title": "階段6頁面前後對照",
+  "status": "in_progress",
+  "complexity": "L",
+  "risk": "high",
+  "domain": "integration",
+  "currentPhase": "implementation",
+  "nextAction": "頁面四情境／清理還原完成；提交腳本後固定guard全過才驗收，接唯一階段審查",
+  "createdAt": "2026-11-17T09:56:55+08:00",
+  "branch": "1.0.0.11.Integration.P6.Worktree"
+}
