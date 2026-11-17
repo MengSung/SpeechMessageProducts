@@ -12,16 +12,25 @@
  * 變更介面、資料格式、取消或清理順序時，須一併核對下列合作檔案及對應測試，不能只改目前檔案。
  * 可沿 SpeechMessageProducts.ChurchReport/Controllers/AuthenticationController/AuthenticationController.Private.cs
  * 追查目前工作樹中的合作／使用位置。
+ * P6-07公開邊界：LoginResponseFactory、LoginResponsePayload改為產品內部宣告；外部輸出與既有資源清理契約不變。
  */
 namespace ChurchReport.Security
 {
-    public sealed record LoginResponsePayload(
+    /// <summary>定義前端登入回應及其factory，保留既有欄位名稱與空名單的相容形狀，同時限制回傳資料不含登入憑證；回應是目前請求的結果，不作全域身分快取。
+    /// P6-07將本宣告限於主機內部；仍由既有呼叫端組裝及消費，不變更資料形狀、流程或資源owner。</summary>
+    /// <summary>定義前端登入回應及其factory，保留既有欄位名稱與空名單的相容形狀，同時限制回傳資料不含登入憑證；回應是目前請求的結果，不作全域身分快取。
+    /// P6-07將本宣告限於主機內部；仍由既有呼叫端組裝及消費，不變更資料形狀、流程或資源owner。</summary>
+    internal sealed record LoginResponsePayload(
         string DisplayViewType,
         string ActiveListId,
         string message,
         string fullname);
 
-    public static class LoginResponseFactory
+    /// <summary>定義前端登入回應及其factory，保留既有欄位名稱與空名單的相容形狀，同時限制回傳資料不含登入憑證；回應是目前請求的結果，不作全域身分快取。
+    /// P6-07將本宣告限於主機內部；仍由既有呼叫端組裝及消費，不變更資料形狀、流程或資源owner。</summary>
+    /// <summary>定義前端登入回應及其factory，保留既有欄位名稱與空名單的相容形狀，同時限制回傳資料不含登入憑證；回應是目前請求的結果，不作全域身分快取。
+    /// P6-07將本宣告限於主機內部；仍由既有呼叫端組裝及消費，不變更資料形狀、流程或資源owner。</summary>
+    internal static class LoginResponseFactory
     {
         public static LoginResponsePayload Build(string displayViewType, string activeListId, string fullName)
         {

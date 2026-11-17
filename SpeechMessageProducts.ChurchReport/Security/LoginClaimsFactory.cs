@@ -12,6 +12,7 @@
  * 變更介面、資料格式、取消或清理順序時，須一併核對下列合作檔案及對應測試，不能只改目前檔案。
  * 可沿 SpeechMessageProducts.ChurchReport/Controllers/BaseChurchController.cs、
  * SpeechMessageProducts.ChurchReport/Controllers/DedicationController.cs 追查目前工作樹中的合作／使用位置。
+ * P6-07公開邊界：LoginClaimsFactory改為產品內部宣告；外部輸出與既有資源清理契約不變。
  */
 using System.Collections.Generic;
 using System.Security.Claims;
@@ -19,7 +20,11 @@ using Microsoft.AspNetCore.Authentication.Cookies;
 
 namespace ChurchReport.Security
 {
-    public static class LoginClaimsFactory
+    /// <summary>將已完成認證的登入資料轉成ClaimsPrincipal，保留流程必要識別而排除密碼等憑證；建立claims不能替代前置認證，產生的principal必須由目前登入流程持有。
+    /// P6-07將本宣告限於主機內部；仍由既有呼叫端組裝及消費，不變更資料形狀、流程或資源owner。</summary>
+    /// <summary>將已完成認證的登入資料轉成ClaimsPrincipal，保留流程必要識別而排除密碼等憑證；建立claims不能替代前置認證，產生的principal必須由目前登入流程持有。
+    /// P6-07將本宣告限於主機內部；仍由既有呼叫端組裝及消費，不變更資料形狀、流程或資源owner。</summary>
+    internal static class LoginClaimsFactory
     {
         public const string ContactIdClaim = "church:contactId";
         public const string AccountClaim = "church:account";

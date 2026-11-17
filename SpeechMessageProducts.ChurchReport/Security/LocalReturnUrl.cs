@@ -12,10 +12,15 @@
  * 變更介面、資料格式、取消或清理順序時，須一併核對下列合作檔案及對應測試，不能只改目前檔案。
  * 可沿 SpeechMessageProducts.ChurchReport/Controllers/AuthenticationController/AuthenticationController.LineLoginOAuth.cs
  * 追查目前工作樹中的合作／使用位置。
+ * P6-07公開邊界：LocalReturnUrl改為產品內部宣告；外部輸出與既有資源清理契約不變。
  */
 namespace ChurchReport.Security
 {
-    public static class LocalReturnUrl
+    /// <summary>判斷登入後返回網址是否為站內相對路徑，拒絕外部host、雙斜線及反斜線等可造成開放轉址的形式；只回傳分類結果，不自行重新導向或保存登入資料。
+    /// P6-07將本宣告限於主機內部；仍由既有呼叫端組裝及消費，不變更資料形狀、流程或資源owner。</summary>
+    /// <summary>判斷登入後返回網址是否為站內相對路徑，拒絕外部host、雙斜線及反斜線等可造成開放轉址的形式；只回傳分類結果，不自行重新導向或保存登入資料。
+    /// P6-07將本宣告限於主機內部；仍由既有呼叫端組裝及消費，不變更資料形狀、流程或資源owner。</summary>
+    internal static class LocalReturnUrl
     {
         public static bool IsLocal(string url)
         {
