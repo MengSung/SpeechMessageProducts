@@ -19,6 +19,7 @@
           "alias": "text-1",
           "entity": "new_localizedtext",
           "fields": {
+            "new_name": "SMV-TEST-Localized text",
             "new_accountid": {
               "ref": "church-a",
               "entity": "account"

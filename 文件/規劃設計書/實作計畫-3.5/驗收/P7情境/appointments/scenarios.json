@@ -64,7 +64,9 @@
         {
           "alias": "channel",
           "entity": "new_linechannel",
-          "fields": {}
+          "fields": {
+            "new_name": "SMV-TEST-Appointment channel"
+          }
         },
         {
           "alias": "p7-test-contact",

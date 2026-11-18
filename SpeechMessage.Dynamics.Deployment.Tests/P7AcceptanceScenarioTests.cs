@@ -123,6 +123,34 @@ public sealed class P7AcceptanceScenarioTests
     }
 
     /// <summary>
+    /// 保護四個可執行 Live 驗收情境中由即時 metadata 確認為 ApplicationRequired 的 seed 欄位。
+    /// 故障輸入注入是移除指定合成 alias 的必要欄位；決定性斷言要求固定 reader 仍讀到該欄，
+    /// 且安全測試名稱保持 SMV-TEST- 前綴。測試只讀版控 JSON，不建立 SDK、連線、資料或流程；
+    /// 即使通過也不代表 Live 實測，失敗表示該 module 的 Live 準備必須拒絕而不可假綠。
+    /// </summary>
+    /// <param name="module">固定 P7 驗收情境模組。</param>
+    /// <param name="alias">含必要欄位的合成 seed 別名。</param>
+    /// <param name="entity">情境中對應的 Dataverse 實體。</param>
+    /// <param name="requiredField">即時 metadata 核定為 ApplicationRequired 的欄位。</param>
+    [Theory]
+    [InlineData("localization", "text-1", "new_localizedtext", "new_name")]
+    [InlineData("appointments", "channel", "new_linechannel", "new_name")]
+    [InlineData("weeklyreports", "pastor", "contact", "lastname")]
+    [InlineData("weeklyreports", "channel", "new_linechannel", "new_name")]
+    public void P7LiveSeed_ApplicationRequiredField_IsSupplied(string module, string alias, string entity, string requiredField)
+    {
+        var file = Assert.Single(ShadowScenarioFiles.LoadLive(Root(), module, true));
+        var row = Assert.Single(file.Seed.EnumerateArray(), seed =>
+            seed.GetProperty("alias").GetString() == alias && seed.GetProperty("entity").GetString() == entity);
+        var fields = row.GetProperty("fields");
+
+        Assert.True(fields.TryGetProperty(requiredField, out var value),
+            $"Seed '{alias}' for '{entity}' must supply ApplicationRequired field '{requiredField}'.");
+        Assert.Equal(JsonValueKind.String, value.ValueKind);
+        Assert.StartsWith("SMV-TEST-", value.GetString(), StringComparison.Ordinal);
+    }
+
+    /// <summary>
     /// 保護attendance與weeklyreports送入SDK的合成名單建立契約：createdfromcode必須是連絡人類型2，
     /// type必須明列靜態名單false，purpose必須非空；依已匯出的list metadata及既有ChurchReport建立路徑取值。
     /// 缺欄位的原始情境是故障輸入，決定性斷言直接檢查正式strict reader讀出的seed，不建假SDK也不連組織。

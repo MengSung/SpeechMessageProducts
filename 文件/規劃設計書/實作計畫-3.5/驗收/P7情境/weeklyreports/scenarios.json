@@ -18,7 +18,9 @@
         {
           "alias": "channel",
           "entity": "new_linechannel",
-          "fields": {}
+          "fields": {
+            "new_name": "SMV-TEST-Weekly report channel"
+          }
         },
         {
           "alias": "leader",
@@ -73,6 +75,7 @@
           "alias": "pastor",
           "entity": "contact",
           "fields": {
+            "lastname": "SMV-TEST-Pastor",
             "parentcustomerid": {
               "ref": "church",
               "entity": "account"
