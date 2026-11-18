@@ -461,7 +461,7 @@ internal static class ShadowSdkScenarioFactory
             outputResult.ValueKind == JsonValueKind.Number && outputResult.TryGetInt32(out var result) && result == 0 &&
             outputs.TryGetProperty("ReadingSource", out var readingSource) &&
             readingSource.ValueKind == JsonValueKind.String && readingSource.GetString() is { Length: > 0 and <= 2048 } source &&
-            source.All(character => char.IsAsciiLetterOrDigit(character) || character is '.' or '_' or '-' or ':' or ',' or '/' or ' '))
+            source.All(character => char.IsAsciiLetterOrDigit(character) || character is '.' or '_' or '-' or ':' or ',' or '/' or ' ' or ';' or '(' or ')'))
             return;
         if (properties.Length != 1 || !outputs.TryGetProperty("observed", out var observed) ||
             observed.ValueKind != JsonValueKind.Object) throw Invalid();

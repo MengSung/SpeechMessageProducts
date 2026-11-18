@@ -362,7 +362,7 @@ public sealed class ShadowSdkScenarioFactoryTests
     {
         var file = File() with
         {
-            Outputs = Json("""{"OutputResult":0,"ReadingSource":"SyntheticLegacy.cs:1-4"}""")
+            Outputs = Json("""{"OutputResult":0,"ReadingSource":"SyntheticLegacy.cs:1-4; Adapter.cs:7-9 (fixed source)"}""")
         };
         var metadata = new ShadowSdkMetadata(new MetadataService(), ["account", "contact", "task"], CancellationToken.None);
         var prepared = ShadowSdkScenarioFactory.Prepare(file, metadata, Identity(), Binding());
