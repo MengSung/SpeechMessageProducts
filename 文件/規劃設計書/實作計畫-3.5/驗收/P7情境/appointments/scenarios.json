@@ -50,9 +50,6 @@
               "ref": "church-a",
               "entity": "account"
             },
-            "new_lineid": {
-              "line": "signer"
-            },
             "new_preferredlanguage": "zh-TW"
           }
         },
