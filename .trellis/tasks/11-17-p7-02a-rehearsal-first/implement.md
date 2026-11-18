@@ -27,3 +27,7 @@ ClaudeOnly具體核對：R5切換與rollback間不得改plugins.registration.jso
 2026-11-18 06:43 Asia/Taipei (UTC+08:00)：續跑唯讀核對仍因Hyper-V權限不足無法取得D365-9.1服務／載入事件；verify/off與D34清理基線通過，未重跑smoke。R3仍未完成，R4保持未開始。
 
 2026-11-18 07:08 Asia/Taipei (UTC+08:00)：R3更正程序完成並通過；前置狀態缺漏造成先前誤判，正確程序產生1.0.0.19。接R4逐模組影子比對，執行前trace設2，finally還原1。
+
+2026-11-18 17:58 Asia/Taipei (UTC+08:00)：補正 R4 診斷。16:07／16:40 的安全 stack 均為 DeploymentCli.RunShadow:83（完整部署 Verify），當時先開 diagnostics 與 manifest 停用狀態衝突，未進 factory，不是 seed 失敗。原 DateTimeOffset 格式能解析無小數秒 UTC，既有 Convert_DateBehaviorsAreExplicit 亦通過；35801fdd 的日期根因判斷撤回，恢復原產品日期格式，保留加強斷言。未提交的 metadata 重建／Exception.Data 診斷嘗試已撤回並在本機保留 patch，未放寬任何檢查。
+
+2026-11-18 17:58 Asia/Taipei (UTC+08:00)：R4正確前置單次驗證仍有切換／收尾fault；獨立核對off、trace1、D34與清冊0。新增「已停用舊step只讀」6案，Deployment927通過，待guard與實機，不勾選R4。後續提交皆繁體中文，外部雙模型與ClaudeOnly停止。

@@ -5,6 +5,7 @@
  * 只提供候選，組織白名單、正式 lookup、D5-18 與新步驟模式均在當次操作驗證。
  * 主要功能與流程：先備份各組件；新輪只允許 Shadow（診斷維持 trace），舊輪須
  * 在同程序完成測試聯絡人核對與測試 token 注入，再於受控回呼內暫時啟用。
+ * 收尾對舊步驟先依精確 ID 即時讀取狀態，已停用只核對、不重送 Update，避免觸發退役組件驗證。
  * 使用邊界與維護：服務由主引擎租約擁有；無 static、快取或背景工作。舊輪無論
  * 成功、例外或取消都須停用並清除自建記錄上的 token。記錄刪除由 runner owner
  * 負責；本檔不能把任意呼叫者的 ID 或欄位視為已核定盤點，也不允許 CLI 傳 token。
@@ -249,13 +250,27 @@ internal sealed partial class DeploymentEngine
         if (failures.Count > 1) throw new AggregateException("Legacy round or cleanup failed.", failures);
     }
 
-    /// <summary>每個舊步驟與流程都獨立嘗試停用；任一失敗保留真實例外，不能假稱已清理。</summary>
+    /// <summary>
+    /// 每個舊列獨立收尾；舊步驟先即時讀回精確 ID，只對啟用狀態送停用更新。
+    /// 已停用不得再次 Update，以免平台重新驗證退役組件。缺值、未知狀態及讀寫失敗都聚合回報，
+    /// 不以預設值或吞例外假稱清理；後續 runner 的 VerifyDisabled 仍完整核對新舊狀態。
+    /// </summary>
     private void DisableLegacyRows(LegacySwitchRows rows, List<Exception> failures)
     {
         foreach (var id in rows.Workflows)
             try { SetWorkflowEnabled(id, false); } catch (Exception failure) { failures.Add(failure); }
         foreach (var id in rows.Steps)
-            try { SetPluginStepEnabled(id, false); } catch (Exception failure) { failures.Add(failure); }
+        {
+            try
+            {
+                var row = service.Retrieve(StepLogicalName, id, new ColumnSet("statecode"));
+                if (row.Id != id || row.LogicalName != StepLogicalName ||
+                    row.GetAttributeValue<OptionSetValue>("statecode") is not { Value: 0 or 1 } state)
+                    throw InvalidSwitch();
+                if (state.Value == 0) SetPluginStepEnabled(id, false);
+            }
+            catch (Exception failure) { failures.Add(failure); }
+        }
     }
 
     /// <summary>以正式 SetState 訊息啟停已核定流程 ID，不能以更新 XAML 或改名稱取得權限。</summary>

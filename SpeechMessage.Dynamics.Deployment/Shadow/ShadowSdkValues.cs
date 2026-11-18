@@ -241,8 +241,7 @@ internal static class ShadowSdkValues
             var hasZone = text.EndsWith('Z') ||
                 (text.Length >= 6 && text[^3] == ':' && text[^6] is '+' or '-');
             if (!hasZone || !DateTimeOffset.TryParseExact(text,
-                ["yyyy-MM-dd'T'HH:mm:sszzz", "yyyy-MM-dd'T'HH:mm:ss.FFFFFFFzzz",
-                 "yyyy-MM-dd'T'HH:mm:ss'Z'", "yyyy-MM-dd'T'HH:mm:ss.FFFFFFF'Z'"],
+                ["yyyy-MM-dd'T'HH:mm:ss.FFFFFFFzzz", "yyyy-MM-dd'T'HH:mm:ss.FFFFFFF'Z'"],
                 CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal | DateTimeStyles.AdjustToUniversal,
                 out var instant)) throw InvalidValue();
             return instant.UtcDateTime;

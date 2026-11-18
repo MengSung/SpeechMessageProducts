@@ -21,6 +21,6 @@
   "children": [],
   "parent": "11-17-integration-p7",
   "relatedFiles": [],
-  "notes": "2026-11-18 14:00～14:08 Asia/Taipei (UTC+08:00)：appointments 依最新 guard 修正重跑一次，安全 fault code 為 0x80040275（2次）、0x80044191（多次，內含 0x80040216）；未取得 seed alias 或欄位內容，未推定根因。收尾後 verify=0/off、trace=1、D34 通過、待辦／SMV-TEST／smoke task=0。R4 未完成，weeklyreports/localization 尚未開始。",
+  "notes": "2026-11-18 17:58 Asia/Taipei (UTC+08:00)：R4未驗收；已補記 diagnostics 啟用造成 RunShadow:83 前置拒絕、日期誤判更正。17:30單次正確前置進runner仍有切換／收尾fault；off、trace1、D34、清冊0。已停用舊步驟只讀修正：Deployment927通過，待guard與實機。雙模型與ClaudeOnly停止。",
   "meta": {}
 }

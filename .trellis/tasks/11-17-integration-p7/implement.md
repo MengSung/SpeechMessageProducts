@@ -47,3 +47,7 @@ D34 已實測通過；待辦 0、追蹤原值 1；22 新步驟全部停用、舊
 2026-11-17 20:39 Asia/Taipei (UTC+08:00)：P7-01b驗收提交57ab3f62，固定guard完整八項通過，Release7219／Debug7；Deployment864、Architecture89。21指定方法及未移植KeepLegacy測試通過；回復與CLI循環離線通過。收尾後接P7-01c，每段驗收同步此清單。四個舊任務目錄有實際evidence檔案，保留。
 
 2026-11-17 21:53 Asia/Taipei (UTC+08:00)：P7-01c驗收提交073cd5ef，固定guard完整八項通過，Release7262／Debug7；Deployment900、Architecture89；十三指定方法展開17案全過。a/b/c全驗收，整包P7-01完成。接P7-02a，前置A追蹤可用，R4必做。
+
+2026-11-18 17:58 Asia/Taipei (UTC+08:00)：補正 R4 診斷。16:07／16:40 的安全 stack 均為 DeploymentCli.RunShadow:83（完整部署 Verify），當時先開 diagnostics 與 manifest 停用狀態衝突，未進 factory，不是 seed 失敗。原 DateTimeOffset 格式能解析無小數秒 UTC，既有 Convert_DateBehaviorsAreExplicit 亦通過；35801fdd 的日期根因判斷撤回，恢復原產品日期格式，保留加強斷言。未提交的 metadata 重建／Exception.Data 診斷嘗試已撤回並在本機保留 patch，未放寬任何檢查。
+
+2026-11-18 17:58 Asia/Taipei (UTC+08:00)：R4正確前置單次驗證仍有切換／收尾fault；獨立核對off、trace1、D34與清冊0。新增「已停用舊step只讀」6案，Deployment927通過，待guard與實機，不勾選R4。後續提交皆繁體中文，外部雙模型與ClaudeOnly停止。
