@@ -14,7 +14,7 @@
 - [x] P7-01a
 - [x] P7-01b
 - [x] P7-01c
-- [ ] P7-02a
+- [x] P7-02a（R0～R5b完成；驗收紀錄待此提交固定guard）
 - [ ] P7-02b
 - [ ] 階段審查與 §6A 收尾
 
@@ -82,3 +82,14 @@ D34 已實測通過；待辦 0、追蹤原值 1；22 新步驟全部停用、舊
 2026-11-18 20:02 Asia/Taipei (UTC+08:00)：提交f79956df固定guard完整八項EXIT=0；全方案Release 22組件7299案、Debug tracer7案；Deployment.Tests 930案；編碼195檔零問題、重複碼groups/new/stale皆0、I18n verify、檔案說明1816檔零失敗、進度頁28案通過。guard log SHA-256 244DA6818C232AAFE5FC0D83A7877DC27C0302634DC8498D9D2251DFC95A6356。P7-02a目前18/20提交；R4仍待weeklyreports核定後完成。
 
 2026-11-18 20:53 Asia/Taipei (UTC+08:00)：依使用者指示直接採已核定建議，移除weeklyreports全部contact seed的statecode。擴大測試P7WeeklyReportContactSeeds_NonCreatableStatecodeIsNotSent先紅，指出pastor alias；移除後綠。leader、pastor、p7-test-contact皆不提交statecode，D365正式metadata預設Active。指定測試及Deployment.Tests 930案通過；尚待程式提交、完整guard及唯一一次weeklyreports重跑。
+
+2026-11-18 21:06 Asia/Taipei (UTC+08:00)：weeklyreports唯一核定重跑成功，SHADOW_EXIT=0、CLEANUP_FAILED=False。Runner逐一輸出完成訊息；觀察與意圖比對差異均0，R4閉合。log SHA-256 A6DC2D6E22035C3661F913956C89C7259FB8AB3CF527A4304A16645B67574AE0；shadow報告SHA-256 2068B9D0EA106C7D110DFF2D1C281B91E82B071B7FD6E3B6D0FCDC79C63AB583。
+2026-11-18 21:11 Asia/Taipei (UTC+08:00)：提交f961502a固定guard完整八項EXIT=0；全方案Release 22組件7299案、Debug tracer7案、Deployment.Tests 930案；編碼195檔零問題、重複碼groups/new/stale皆0、I18n verify、檔案說明1816檔零失敗、進度頁28案通過。guard log SHA-256 E5E2328F0085C72E4B6EF773CECC44D3E45269E7B97FC3D1665BD8D095A57922。
+2026-11-18 21:11 Asia/Taipei (UTC+08:00)：R4四個固定模組均已逐一shadow通過。weeklyreports在使用者核定移除所有contact seed的statecode後，以f961502a單次重跑成功；ShadowToExpected與ShadowIntentsToExpected皆Comparable=true／Differences=0、Passed=true、LegacyExecuted=false。finally停用模組、trace還原1、verify0、D34及待辦／smoke task／SMV-TEST清冊均0，診斷trace保留2供R9。每份shadowReport只登錄實際觸發step，全部均為shadow而非Live證據。
+
+2026-11-18 21:20 Asia/Taipei (UTC+08:00)：第一次f79956df固定guard在Deployment.Tests的WeeklyReport_Registration_DisabledShadowWithLegacyReferences失敗，原因是清冊測試仍斷言通知step的shadowReport.differences=null，與R4實測通知step差異0衝突。依D7-24第(1)類計數／清冊預期更新，只改此測試：NotificationPlugin指定實測0及報告路徑，StatisticsPlugin與尚未影子比對的workflow activity仍斷言null。指定測試1/1、Deployment.Tests 930/930通過；其餘測試期望不變。修正納入同一未推送第20提交，需重跑完整guard。
+
+2026-11-18 21:30 Asia/Taipei (UTC+08:00)：R5a plan shadow經審核後switch成功，verify --plan=0；用同輪switch-log rollback成功，verify off=0。plan SHA B86E416DE518D9CBC1B6661260812BB773AB7D746DE4D876A9E9A49589C9791C；switch-log SHA CE5B2CD9434384766FE1324A69478F8471AFDBA07A9C6DDD0014B22828F933BF。12個新step啟用僅為臨時shadow；沒有舊step停用或流程改指。
+2026-11-18 21:39 Asia/Taipei (UTC+08:00)：已依07A核定加入goodshepherdback演練override：OutboundLetterPlugin及StorLessonSigningActivity tier=live、decidedBy=演練，organizations.switchState保持off；待提交與guard後唯讀plan檢視，再執行R5b。
+
+2026-11-18 22:02 Asia/Taipei (UTC+08:00)：R5b plan SHA F19D7BD1C9BB686BBEE9D08100E831050FE64342BFA3D243E667C1BAC9A866C4逐行通過；12新步驟啟用、停用舊步驟0、14個原停用流程改指後仍停用、KeepLegacy 21、Manual 0。switch 38項操作完成，verify --plan通過；原始switch-log SHA 38C165FBAD3AA9E718D6E932A394D744D7939BD4ADBF6B8EC03E15661FEADCA0，plan檔SHA C7CCA34C74D4C59D58DF8842DE60A1585C6020BC1D76DDEB3CAE035B9E76A3B2。R5b只驗切換機制，未構成Live實機證據；本段尚待更新後提交固定guard。

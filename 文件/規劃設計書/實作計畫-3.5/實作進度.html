@@ -241,7 +241,7 @@ footer{margin-top:36px;color:var(--muted);font-size:12.5px;text-align:center}
 const DATA = {
   "planVersion": "3.5",
   "snapshot": "2026-11-17 18:36 Asia/Taipei (UTC+08:00)",
-  "lastUpdated": "2026-11-18T20:53:06+08:00",
+  "lastUpdated": "2026-11-18T21:42:29+08:00",
   "branch": "1.0.0.11.Integration.P7.Worktree",
   "head": "f79956df0ab23c217d2f23c334c7a1dd31ef2173",
   "headline": "2026-11-18 20:53 Asia/Taipei (UTC+08:00)：P7-02a進行中，HEAD f79956df（18/20提交）；第18提交完整guard八項通過（Release全方案7299案、Debug tracer7、Deployment.Tests 930）。R4 appointments、attendance、localization影子差異各0且回off。使用者已核定直接移除weeklyreports所有contact seed的statecode；回歸測試先紅指出pastor，修正後Deployment.Tests 930案通過；待第19提交guard後唯一一次重跑weeklyreports。外部審核暫停。",
@@ -653,8 +653,8 @@ const DATA = {
       "phaseId": "階段 7",
       "level": "info",
       "title": "P7 進度摘要",
-      "body": "2026-11-18 20:53 Asia/Taipei (UTC+08:00)：P7-02a進行中，HEAD f79956df（18/20提交）；第18提交完整guard八項通過（Release全方案7299案、Debug tracer7、Deployment.Tests 930）。R4 appointments、attendance、localization影子差異各0且回off。使用者已核定直接移除weeklyreports所有contact seed的statecode；回歸測試先紅指出pastor，修正後Deployment.Tests 930案通過；待第19提交guard後唯一一次重跑weeklyreports。外部審核暫停。",
-      "lastUpdated": "2026-11-18T20:53:06+08:00",
+      "body": "2026-11-18 21:42 Asia/Taipei (UTC+08:00)：P7-02a進行中，第20/20提交已完成R4四模組影子比對與清理。R5a shadow plan／切換／回復均verify=0並回off；R5b兩筆核定演練override已加至organizations.json、switchState仍off，待固定guard與live plan審查。目標只goodshepherdback；不啟用舊步驟或改流程。外部雙模型／ClaudeOnly仍暫停。",
+      "lastUpdated": "2026-11-18T21:42:29+08:00",
       "steps": [
         "2026-11-17 12:43 Asia/Taipei (UTC+08:00)：起點f06d7596；Release7071與Deployment769取自P6最末守門，未重跑基準。",
         "2026-11-17 12:43 Asia/Taipei (UTC+08:00)：D34通過、22新步驟停用、舊步驟/流程啟用0、待辦0、追蹤1；未寫入D365。",
@@ -684,7 +684,12 @@ const DATA = {
         "2026-11-18 19:52 Asia/Taipei (UTC+08:00)：weeklyreports第二次單次shadow（19:43:23～19:44:44）仍在ShadowSdkMetadata.ConvertFields／ShadowSdkScenarioFactory.PrepareCore拒絕，與前次同屬Create可寫性檢查；本輪未建立seed。finally成功停用模組、trace還原1、verify0、D34及待辦／smoke task／SMV-TEST皆0。唯讀metadata證明contact.statecode不可Create、DefaultFormValue=0；首修只移除leader.statecode，情境仍有pastor.statecode。依07A §7-5已請使用者核定後續，未做第三次重跑。log SHA-256 4C8C0ACE9EA095A49F19BAFF178E69A2B74C4FACC94D5921B340C62947A4787E。",
         "2026-11-18 19:53 Asia/Taipei (UTC+08:00)：localization R4摘要檔SHA-256 90366BA2EAC29620D44BFDF92299B2BDC10B8EE4E7EE9EE2C2A43BEAAE142431；Deployments.Tests 930案、進度頁28案、檔案說明1816檔及編碼194檔檢查均通過，待本提交固定guard。weeklyreports依§7-5等待核定，不再重跑。",
         "2026-11-18 20:02 Asia/Taipei (UTC+08:00)：提交f79956df固定guard完整八項EXIT=0；全方案Release 22組件7299案、Debug tracer7案；Deployment.Tests 930案；編碼195檔零問題、重複碼groups/new/stale皆0、I18n verify、檔案說明1816檔零失敗、進度頁28案通過。guard log SHA-256 244DA6818C232AAFE5FC0D83A7877DC27C0302634DC8498D9D2251DFC95A6356。P7-02a目前18/20提交；R4仍待weeklyreports核定後完成。",
-        "2026-11-18 20:53 Asia/Taipei (UTC+08:00)：依使用者指示直接採已核定建議，移除weeklyreports全部contact seed的statecode。擴大測試P7WeeklyReportContactSeeds_NonCreatableStatecodeIsNotSent先紅，指出pastor alias；移除後綠。leader、pastor、p7-test-contact皆不提交statecode，D365正式metadata預設Active。指定測試及Deployment.Tests 930案通過；尚待程式提交、完整guard及唯一一次weeklyreports重跑。"
+        "2026-11-18 20:53 Asia/Taipei (UTC+08:00)：依使用者指示直接採已核定建議，移除weeklyreports全部contact seed的statecode。擴大測試P7WeeklyReportContactSeeds_NonCreatableStatecodeIsNotSent先紅，指出pastor alias；移除後綠。leader、pastor、p7-test-contact皆不提交statecode，D365正式metadata預設Active。指定測試及Deployment.Tests 930案通過；尚待程式提交、完整guard及唯一一次weeklyreports重跑。",
+        "2026-11-18 21:06 Asia/Taipei (UTC+08:00)：weeklyreports唯一核定重跑成功，SHADOW_EXIT=0、CLEANUP_FAILED=False。Runner逐一輸出完成訊息；觀察與意圖比對差異均0，R4閉合。log SHA-256 A6DC2D6E22035C3661F913956C89C7259FB8AB3CF527A4304A16645B67574AE0；shadow報告SHA-256 2068B9D0EA106C7D110DFF2D1C281B91E82B071B7FD6E3B6D0FCDC79C63AB583。",
+        "2026-11-18 21:11 Asia/Taipei (UTC+08:00)：提交f961502a固定guard完整八項EXIT=0；全方案Release 22組件7299案、Debug tracer7案、Deployment.Tests 930案；編碼195檔零問題、重複碼groups/new/stale皆0、I18n verify、檔案說明1816檔零失敗、進度頁28案通過。guard log SHA-256 E5E2328F0085C72E4B6EF773CECC44D3E45269E7B97FC3D1665BD8D095A57922。",
+        "2026-11-18 21:20 Asia/Taipei (UTC+08:00)：第一次f79956df固定guard在Deployment.Tests的WeeklyReport_Registration_DisabledShadowWithLegacyReferences失敗，原因是清冊測試仍斷言通知step的shadowReport.differences=null，與R4實測通知step差異0衝突。依D7-24第(1)類計數／清冊預期更新，只改此測試：NotificationPlugin指定實測0及報告路徑，StatisticsPlugin與尚未影子比對的workflow activity仍斷言null。指定測試1/1、Deployment.Tests 930/930通過；其餘測試期望不變。修正納入同一未推送第20提交，需重跑完整guard。",
+        "2026-11-18 21:30 Asia/Taipei (UTC+08:00)：R5a plan shadow經審核後switch成功，verify --plan=0；用同輪switch-log rollback成功，verify off=0。plan SHA B86E416DE518D9CBC1B6661260812BB773AB7D746DE4D876A9E9A49589C9791C；switch-log SHA CE5B2CD9434384766FE1324A69478F8471AFDBA07A9C6DDD0014B22828F933BF。12個新step啟用僅為臨時shadow；沒有舊step停用或流程改指。",
+        "2026-11-18 21:39 Asia/Taipei (UTC+08:00)：已依07A核定加入goodshepherdback演練override：OutboundLetterPlugin及StorLessonSigningActivity tier=live、decidedBy=演練，organizations.switchState保持off；待提交與guard後唯讀plan檢視，再執行R5b。"
       ]
     }
   ],
@@ -855,7 +860,7 @@ const DATA = {
       "id": "階段 7",
       "name": "D365 9.1 切換（逐組織）",
       "planned": "每組織 1 天＋觀察 1 週",
-      "actual": "2026-11-18 20:53 Asia/Taipei (UTC+08:00)：P7-02a進行中，HEAD f79956df（18/20提交）；第18提交完整guard八項通過（Release全方案7299案、Debug tracer7、Deployment.Tests 930）。R4 appointments、attendance、localization影子差異各0且回off。使用者已核定直接移除weeklyreports所有contact seed的statecode；回歸測試先紅指出pastor，修正後Deployment.Tests 930案通過；待第19提交guard後唯一一次重跑weeklyreports。外部審核暫停。",
+      "actual": "2026-11-18 21:42 Asia/Taipei (UTC+08:00)：P7-02a進行中，第20/20提交已完成R4四模組影子比對與清理。R5a shadow plan／切換／回復均verify=0並回off；R5b兩筆核定演練override已加至organizations.json、switchState仍off，待固定guard與live plan審查。目標只goodshepherdback；不啟用舊步驟或改流程。外部雙模型／ClaudeOnly仍暫停。",
       "current": true,
       "done": 1,
       "active": 1
@@ -1816,7 +1821,7 @@ const DATA = {
       "timebox": "1 天",
       "doneAt": "",
       "commit": "",
-      "note": "2026-11-18 20:53 Asia/Taipei (UTC+08:00)：P7-02a進行中，HEAD f79956df（18/20提交）；第18提交完整guard八項通過（Release全方案7299案、Debug tracer7、Deployment.Tests 930）。R4 appointments、attendance、localization影子差異各0且回off。使用者已核定直接移除weeklyreports所有contact seed的statecode；回歸測試先紅指出pastor，修正後Deployment.Tests 930案通過；待第19提交guard後唯一一次重跑weeklyreports。外部審核暫停。"
+      "note": "2026-11-18 21:42 Asia/Taipei (UTC+08:00)：P7-02a進行中，第20/20提交已完成R4四模組影子比對與清理。R5a shadow plan／切換／回復均verify=0並回off；R5b兩筆核定演練override已加至organizations.json、switchState仍off，待固定guard與live plan審查。目標只goodshepherdback；不啟用舊步驟或改流程。外部雙模型／ClaudeOnly仍暫停。"
     },
     {
       "id": "P8-01",
@@ -2033,7 +2038,7 @@ const DATA = {
       "phaseId": "階段 7",
       "name": "P7-02a（07A固定單元）",
       "status": "active",
-      "note": "2026-11-18 20:53 Asia/Taipei (UTC+08:00)：P7-02a進行中，HEAD f79956df（18/20提交）；第18提交完整guard八項通過（Release全方案7299案、Debug tracer7、Deployment.Tests 930）。R4 appointments、attendance、localization影子差異各0且回off。使用者已核定直接移除weeklyreports所有contact seed的statecode；回歸測試先紅指出pastor，修正後Deployment.Tests 930案通過；待第19提交guard後唯一一次重跑weeklyreports。外部審核暫停。"
+      "note": "2026-11-18 21:42 Asia/Taipei (UTC+08:00)：P7-02a進行中，第20/20提交已完成R4四模組影子比對與清理。R5a shadow plan／切換／回復均verify=0並回off；R5b兩筆核定演練override已加至organizations.json、switchState仍off，待固定guard與live plan審查。目標只goodshepherdback；不啟用舊步驟或改流程。外部雙模型／ClaudeOnly仍暫停。"
     },
     {
       "id": "P7-02b",

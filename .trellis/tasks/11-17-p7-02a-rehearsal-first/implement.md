@@ -7,9 +7,9 @@
 - [x] R1 export、export-legacy、export-metadata，備份SHA記在演練紀錄。
 - [x] R2 schema plan additions=0／verify0。
 - [x] R3 打包、plan核不重建、apply、verify0、診斷smoke新FileVersion（更正前置狀態缺漏：trace=2、diagnostics enabled後單次smoke輸出1.0.0.19並通過；finally diagnostics off、trace=1、verify/off、D34／待辦／smoke task0；診斷trace保留2供R9）。
-- [ ] R4每模組影子差異0與殘留0，清單填報告；前置A追蹤可用必做。2026-11-18 08:45 Asia/Taipei (UTC+08:00)：根因確認為 seed lookup 指向後置 alias，離線加入穩定拓撲排序與循環拒絕；weeklyreports owner 改 WhoAmI shared、leader 移除不可寫 fullname／new_lineid。原兩次 attendance 失敗及 finally 基線保留；離線測試／Deployment.Tests 通過，待提交與固定 guard 後重跑 R4。
-- [ ] R5a plan shadow→switch→verify plan0→rollback→verify off0。
-- [ ] R5b override提交guard→plan live逐行審→switch→verify plan0；不中斷接b。
+- [x] 2026-11-18 21:06 Asia/Taipei (UTC+08:00)：R4四模組appointments／attendance／weeklyreports／localization單次影子比對均通過，ShadowToExpected及ShadowIntentsToExpected差異各0，測試owned資料清理0；各模組off、trace還原1、verify0、D34及待辦／smoke task／SMV-TEST全回基線。只為各情境實際觸發的步驟填shadowReport，影子證據不是Live evidence。週報聯絡人statecode經使用者核定移除，Deployment.Tests 930案通過；guard與證據見本段後續紀錄。
+- [x] 2026-11-18 21:30 Asia/Taipei (UTC+08:00)：R5a shadow plan已審核，switch後verify --plan=0；用同輪switch-log rollback後verify off=0。plan SHA-256 B86E416DE518D9CBC1B6661260812BB773AB7D746DE4D876A9E9A49589C9791C；switch-log SHA-256 CE5B2CD9434384766FE1324A69478F8471AFDBA07A9C6DDD0014B22828F933BF。所有KeepLegacy流程未改指，舊步驟維持停用。
+- [x] 2026-11-18 22:00 Asia/Taipei (UTC+08:00)：R5b plan逐行審核通過；12新步驟啟用、舊步驟停用0、14流程改指且原本全停用、KeepLegacy 21、Manual 0。plan SHA-256 F19D7BD1C9BB686BBEE9D08100E831050FE64342BFA3D243E667C1BAC9A866C4；切換成功且verify --plan通過；switch log位於同一artifacts目錄。以最後一筆提交併入此記錄，完整guard重跑待完成；不離開演練，接續P7-02b。
 - [ ] 完整guard、紀錄／父清單同步與收尾提交。
 
 2026-11-17 21:55 Asia/Taipei (UTC+08:00)：接P7-02a；P7-01遠端5eb3923ed9e5907332c22cb76c32177b7fdf8db0已核。尚未開始R0或寫入組織。
@@ -64,3 +64,12 @@ ClaudeOnly具體核對：R5切換與rollback間不得改plugins.registration.jso
 2026-11-18 20:06 Asia/Taipei (UTC+08:00)：使用者核定移除weeklyreports所有contact seed的statecode，完整guard後只重跑一次。回歸測試先紅並精確指出pastor alias仍帶不可Create欄位；移除後所有contact seeds皆不傳statecode，由D365套用metadata預設Active。指定測試通過，Deployment.Tests 930/930；待提交／固定guard後執行唯一一次實機重跑。
 
 2026-11-18 20:53 Asia/Taipei (UTC+08:00)：依使用者指示直接採已核定建議，移除weeklyreports全部contact seed的statecode。擴大測試P7WeeklyReportContactSeeds_NonCreatableStatecodeIsNotSent先紅，指出pastor alias；移除後綠。leader、pastor、p7-test-contact皆不提交statecode，D365正式metadata預設Active。指定測試及Deployment.Tests 930案通過；尚待程式提交、完整guard及唯一一次weeklyreports重跑。
+
+2026-11-18 21:06 Asia/Taipei (UTC+08:00)：weeklyreports唯一核定重跑成功，SHADOW_EXIT=0、CLEANUP_FAILED=False。Runner逐一輸出完成訊息；觀察與意圖比對差異均0，R4閉合。log SHA-256 A6DC2D6E22035C3661F913956C89C7259FB8AB3CF527A4304A16645B67574AE0；shadow報告SHA-256 2068B9D0EA106C7D110DFF2D1C281B91E82B071B7FD6E3B6D0FCDC79C63AB583。
+2026-11-18 21:11 Asia/Taipei (UTC+08:00)：提交f961502a固定guard完整八項EXIT=0；全方案Release 22組件7299案、Debug tracer7案、Deployment.Tests 930案；編碼195檔零問題、重複碼groups/new/stale皆0、I18n verify、檔案說明1816檔零失敗、進度頁28案通過。guard log SHA-256 E5E2328F0085C72E4B6EF773CECC44D3E45269E7B97FC3D1665BD8D095A57922。
+2026-11-18 21:11 Asia/Taipei (UTC+08:00)：R4四個固定模組均已逐一shadow通過。weeklyreports在使用者核定移除所有contact seed的statecode後，以f961502a單次重跑成功；ShadowToExpected與ShadowIntentsToExpected皆Comparable=true／Differences=0、Passed=true、LegacyExecuted=false。finally停用模組、trace還原1、verify0、D34及待辦／smoke task／SMV-TEST清冊均0，診斷trace保留2供R9。每份shadowReport只登錄實際觸發step，全部均為shadow而非Live證據。
+
+2026-11-18 21:20 Asia/Taipei (UTC+08:00)：第一次f79956df固定guard在Deployment.Tests的WeeklyReport_Registration_DisabledShadowWithLegacyReferences失敗，原因是清冊測試仍斷言通知step的shadowReport.differences=null，與R4實測通知step差異0衝突。依D7-24第(1)類計數／清冊預期更新，只改此測試：NotificationPlugin指定實測0及報告路徑，StatisticsPlugin與尚未影子比對的workflow activity仍斷言null。指定測試1/1、Deployment.Tests 930/930通過；其餘測試期望不變。修正納入同一未推送第20提交，需重跑完整guard。
+
+2026-11-18 21:30 Asia/Taipei (UTC+08:00)：R5a plan shadow經審核後switch成功，verify --plan=0；用同輪switch-log rollback成功，verify off=0。plan SHA B86E416DE518D9CBC1B6661260812BB773AB7D746DE4D876A9E9A49589C9791C；switch-log SHA CE5B2CD9434384766FE1324A69478F8471AFDBA07A9C6DDD0014B22828F933BF。12個新step啟用僅為臨時shadow；沒有舊step停用或流程改指。
+2026-11-18 21:39 Asia/Taipei (UTC+08:00)：已依07A核定加入goodshepherdback演練override：OutboundLetterPlugin及StorLessonSigningActivity tier=live、decidedBy=演練，organizations.switchState保持off；待提交與guard後唯讀plan檢視，再執行R5b。

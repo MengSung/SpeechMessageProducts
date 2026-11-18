@@ -1,14 +1,14 @@
 /*
  * 檔案整體說明
  *
- * 目的與定位：以正式清單及共用六案驗證 P5-05 週報部署的三入口，避免測試使用
- * 合成清單而漏掉實際模組、前像、活動或舊型別對照錯誤。
+ * 目的與定位：以正式清單及共用六案驗證 P5-05 週報部署的三入口，並鎖定 P7 已通過的
+ * 通知步驟影子報告摘要，避免測試使用合成清單而漏掉實際模組、前像、活動或舊型別對照錯誤。
  * 主要功能與流程：嚴格 loader 讀正式 JSON，統計為同步 PostOperation、通知為
  * 非同步 PostOperation，兩者有精確 PreImage 與篩選欄位、Shadow、空 secure、
  * goodshepherdback 停用；Workflows 的本模組生成活動保留真正舊 namespace。
  * 使用邊界與維護：僅讀取本工作樹公開結構與合成期望，不建立 SDK、不讀 Secrets，
  * 不啟用步驟或流程、不推播。reader 同步關閉串流，候選及集合只存活於本次測試，
- * 沒有跨使用者資料或需排空的背景資源；這不代表實機影子比對已完成。
+ * 沒有跨使用者資料或需排空的背景資源；只有通知步驟附有實機shadow摘要，活動不冒稱已比對。
  */
 using System;
 using System.IO;
@@ -18,7 +18,7 @@ using Xunit;
 
 namespace SpeechMessage.Dynamics.Deployment.Tests;
 
-/// <summary>保護正式週報清單與共用情境，實機延後不得冒充差異為零。</summary>
+/// <summary>保護正式週報清單與共用情境；只有附有實機shadow報告的通知步驟可標記實測零差異。</summary>
 public sealed class WeeklyReportRegistrationTests
 {
     /// <summary>用真正 loader 驗證離線文件及三入口註冊，不以檔案文字搜尋代替結構契約。</summary>
@@ -46,7 +46,6 @@ public sealed class WeeklyReportRegistrationTests
             Assert.Empty(step.SecureConfig);
             Assert.False(step.EnabledByOrganization["goodshepherdback"]);
             Assert.Equal("reading", step.ShadowReport.Basis);
-            Assert.Null(step.ShadowReport.Differences);
             Assert.Single(step.Legacy);
             var image = Assert.Single(step.Images);
             Assert.Equal("PreImage", image.Name);
@@ -59,6 +58,11 @@ public sealed class WeeklyReportRegistrationTests
         Assert.Equal("Asynchronous", notice.Mode);
         Assert.Equal("new_paster_reply", Assert.Single(notice.FilteringAttributes));
         Assert.Equal("WeeklyReportLinePlugInDatabase", Assert.Single(notice.Legacy).Assembly);
+        Assert.Equal(0, notice.ShadowReport.Differences);
+        Assert.Equal(".trellis/tasks/11-17-p7-02a-rehearsal-first/wp-reports/P7-02-R4-weeklyreports-shadow.md",
+            notice.ShadowReport.File);
+        var statistics = Assert.Single(steps, item => item.Type.EndsWith(".WeeklyReportStatisticsPlugin", StringComparison.Ordinal));
+        Assert.Null(statistics.ShadowReport.Differences);
         var workflows = Assert.Single(document.Assemblies, item => item.AssemblyName == "SpeechMessage.Dynamics.Workflows");
         Assert.Empty(workflows.Steps);
         var activity = Assert.Single(workflows.Activities, item => item.Module == "weeklyreports");
