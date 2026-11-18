@@ -408,8 +408,7 @@ internal sealed partial class ShadowSdkRuntime : IShadowScenarioRuntime
                 {
                     CreateOwned(item.Record);
                 }
-                catch (Exception exception) when (exception is CommunicationException or TimeoutException or
-                    FaultException<OrganizationServiceFault>)
+                catch (Exception exception) when (IsSeedTransportFailure(exception))
                 {
                     seedReferenceAliases.TryGetValue(item.Alias, out var referenceAliases);
                     throw new ShadowSeedCreateException(item.Alias, item.Record.LogicalName,
@@ -419,6 +418,30 @@ internal sealed partial class ShadowSdkRuntime : IShadowScenarioRuntime
             }
             cancellationToken.ThrowIfCancellationRequested();
             seeded = true;
+        }
+
+        /// <summary>
+        /// SDK 有時會以 AggregateException 包住傳輸或 Dataverse fault；只在有界例外樹內
+        /// 找到可安全摘要的類型時包裝 seed。其他業務／清理錯誤保持原型別，避免把未知失敗
+        /// 誤標成 seed 或無界走訪例外鏈造成記憶體與時間風險。
+        /// </summary>
+        private static bool IsSeedTransportFailure(Exception exception)
+        {
+            var pending = new Stack<Exception>();
+            var visited = new HashSet<Exception>(ReferenceEqualityComparer.Instance);
+            pending.Push(exception);
+            for (var inspected = 0; pending.Count != 0 && inspected < 16; inspected++)
+            {
+                var current = pending.Pop();
+                if (!visited.Add(current)) continue;
+                if (current is CommunicationException or TimeoutException or FaultException<OrganizationServiceFault>)
+                    return true;
+                if (current is AggregateException aggregate)
+                    foreach (var inner in aggregate.InnerExceptions.Take(16)) pending.Push(inner);
+                else if (current.InnerException is not null)
+                    pending.Push(current.InnerException);
+            }
+            return false;
         }
 
         /// <summary>建立規則前的初始候選；trigger patch 先套到安全副本，不讀已被舊規則改過的值。</summary>

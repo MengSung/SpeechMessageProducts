@@ -295,6 +295,35 @@ public sealed class ShadowSdkRuntimeTests
     }
 
     /// <summary>
+    /// SDK 將 Dataverse fault 包在有限 AggregateException 內時，仍須保留 seed alias
+    /// 與 lookup aliases；未知例外樹不可被無界展開或誤分類。
+    /// </summary>
+    [Fact]
+    public void SdkRound_AggregatedSeedFaultReportsSafeAliasContext()
+    {
+        using var f = new Fixture();
+        var definition = Definition();
+        var fault = new System.ServiceModel.FaultException<OrganizationServiceFault>(
+            new OrganizationServiceFault { ErrorCode = unchecked((int)0x80040217) },
+            new System.ServiceModel.FaultReason("Synthetic sensitive server message"));
+        var service = new PollingService(f.Service)
+        {
+            CreateFailure = new AggregateException("Synthetic wrapper", new TimeoutException("transport"), fault)
+        };
+        var runtime = new ShadowSdkRuntime(service, Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid(),
+            new Dictionary<ShadowScenarioDefinition, ShadowSdkScenario> { [definition] = Source() }, () => { }, f.Clock);
+        using var round = runtime.CreateRound(definition, false);
+
+        var failure = Assert.Throws<ShadowSeedCreateException>(() => round.Seed(CancellationToken.None));
+
+        Assert.Equal("record-1", failure.Alias);
+        Assert.Contains("referenceAliases=(none)", failure.SafeSummary, StringComparison.Ordinal);
+        Assert.DoesNotContain("Synthetic sensitive server message", failure.SafeSummary, StringComparison.Ordinal);
+        round.DeleteOwnedRecords();
+        round.VerifyNoRemainingRecords();
+    }
+
+    /// <summary>
     /// Create 已在伺服器落地但回應 fault，且 finally 清理首次刪除失敗時，外層 aggregate 仍須
     /// 保留 seed alias 與原始 fault code；第二次清理必須排空本輪資料。
     /// </summary>
