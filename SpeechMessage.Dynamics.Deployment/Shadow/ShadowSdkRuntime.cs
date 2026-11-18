@@ -408,7 +408,8 @@ internal sealed partial class ShadowSdkRuntime : IShadowScenarioRuntime
                 {
                     CreateOwned(item.Record);
                 }
-                catch (Exception exception) when (exception is CommunicationException or TimeoutException)
+                catch (Exception exception) when (exception is CommunicationException or TimeoutException or
+                    FaultException<OrganizationServiceFault>)
                 {
                     seedReferenceAliases.TryGetValue(item.Alias, out var referenceAliases);
                     throw new ShadowSeedCreateException(item.Alias, item.Record.LogicalName,
