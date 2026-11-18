@@ -31,6 +31,6 @@
   ],
   "parent": null,
   "relatedFiles": [],
-  "notes": "",
+  "notes": "2026-11-18 14:00～14:08 Asia/Taipei (UTC+08:00)：R4 appointments 影子演練未通過；安全 fault code 為 0x80040275（2次）、0x80044191（多次，內含 0x80040216），未取得 seed alias 或欄位內容。finally 後 verify=0/off、trace=1、D34 通過、待辦／SMV-TEST／smoke task=0。依 00 §9-7 停止重試，R4 尚未完成；不進入 R5a/R5b。",
   "meta": {}
 }

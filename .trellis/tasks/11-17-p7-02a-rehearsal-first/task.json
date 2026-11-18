@@ -2,7 +2,7 @@
   "id": "p7-02a-rehearsal-first",
   "name": "p7-02a-rehearsal-first",
   "title": "P7-02a 手冊初稿與演練前半",
-  "description": "",
+  "description": "R4 appointments 影子演練未通過；依 00 §9-7 停止重試，待後續核定處理。",
   "status": "in_progress",
   "dev_type": null,
   "scope": null,
@@ -21,6 +21,6 @@
   "children": [],
   "parent": "11-17-integration-p7",
   "relatedFiles": [],
-  "notes": "",
+  "notes": "2026-11-18 14:00～14:08 Asia/Taipei (UTC+08:00)：appointments 依最新 guard 修正重跑一次，安全 fault code 為 0x80040275（2次）、0x80044191（多次，內含 0x80040216）；未取得 seed alias 或欄位內容，未推定根因。收尾後 verify=0/off、trace=1、D34 通過、待辦／SMV-TEST／smoke task=0。R4 未完成，weeklyreports/localization 尚未開始。",
   "meta": {}
 }

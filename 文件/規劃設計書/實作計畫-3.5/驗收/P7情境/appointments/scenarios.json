@@ -14,6 +14,9 @@
           "alias": "record",
           "entity": "appointment",
           "fields": {
+            "subject": "SMV-TEST-appointment",
+            "scheduledstart": "2026-11-15T04:00:00Z",
+            "scheduledend": "2026-11-15T05:00:00Z",
             "new_signing_contact": {
               "ref": "signer",
               "entity": "contact",

@@ -105,6 +105,22 @@ public sealed class P7AcceptanceScenarioTests
         }
     }
 
+    /// <summary>
+    /// appointments 的 activity seed 必須包含當下 metadata 要求的 subject、開始及結束時間；
+    /// 這是 Create 前的離線資料契約，不宣稱實機 Create 已通過。
+    /// </summary>
+    [Fact]
+    public void P7Appointments_ActivitySeedContainsApplicationRequiredFields()
+    {
+        var file = Assert.Single(ShadowScenarioFiles.LoadLive(Root(), "appointments", true));
+        var record = Assert.Single(file.Seed.EnumerateArray(), row =>
+            row.GetProperty("alias").GetString() == "record");
+        var fields = record.GetProperty("fields");
+        Assert.Equal("SMV-TEST-appointment", fields.GetProperty("subject").GetString());
+        Assert.Equal("2026-11-15T04:00:00Z", fields.GetProperty("scheduledstart").GetString());
+        Assert.Equal("2026-11-15T05:00:00Z", fields.GetProperty("scheduledend").GetString());
+    }
+
     private static IEnumerable<string> References(JsonElement value)
     {
         if (value.ValueKind == JsonValueKind.Object)
