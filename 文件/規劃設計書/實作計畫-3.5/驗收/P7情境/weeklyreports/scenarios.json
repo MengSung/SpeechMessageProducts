@@ -76,9 +76,6 @@
             "parentcustomerid": {
               "ref": "church",
               "entity": "account"
-            },
-            "statecode": {
-              "option": 0
             }
           }
         },

@@ -58,3 +58,9 @@ ClaudeOnly具體核對：R5切換與rollback間不得改plugins.registration.jso
 2026-11-18 19:52 Asia/Taipei (UTC+08:00)：weeklyreports第二次單次shadow（19:43:23～19:44:44）仍在ShadowSdkMetadata.ConvertFields／ShadowSdkScenarioFactory.PrepareCore拒絕，與前次同屬Create可寫性檢查；本輪未建立seed。finally成功停用模組、trace還原1、verify0、D34及待辦／smoke task／SMV-TEST皆0。唯讀metadata證明contact.statecode不可Create、DefaultFormValue=0；首修只移除leader.statecode，情境仍有pastor.statecode。依07A §7-5已請使用者核定後續，未做第三次重跑。log SHA-256 4C8C0ACE9EA095A49F19BAFF178E69A2B74C4FACC94D5921B340C62947A4787E。
 
 2026-11-18 19:53 Asia/Taipei (UTC+08:00)：localization R4摘要檔SHA-256 90366BA2EAC29620D44BFDF92299B2BDC10B8EE4E7EE9EE2C2A43BEAAE142431；Deployments.Tests 930案、進度頁28案、檔案說明1816檔及編碼194檔檢查均通過，待本提交固定guard。weeklyreports依§7-5等待核定，不再重跑。
+
+2026-11-18 20:02 Asia/Taipei (UTC+08:00)：提交f79956df固定guard完整八項EXIT=0；全方案Release 22組件7299案、Debug tracer7案；Deployment.Tests 930案；編碼195檔零問題、重複碼groups/new/stale皆0、I18n verify、檔案說明1816檔零失敗、進度頁28案通過。guard log SHA-256 244DA6818C232AAFE5FC0D83A7877DC27C0302634DC8498D9D2251DFC95A6356。P7-02a目前18/20提交；R4仍待weeklyreports核定後完成。
+
+2026-11-18 20:06 Asia/Taipei (UTC+08:00)：使用者核定移除weeklyreports所有contact seed的statecode，完整guard後只重跑一次。回歸測試先紅並精確指出pastor alias仍帶不可Create欄位；移除後所有contact seeds皆不傳statecode，由D365套用metadata預設Active。指定測試通過，Deployment.Tests 930/930；待提交／固定guard後執行唯一一次實機重跑。
+
+2026-11-18 20:53 Asia/Taipei (UTC+08:00)：依使用者指示直接採已核定建議，移除weeklyreports全部contact seed的statecode。擴大測試P7WeeklyReportContactSeeds_NonCreatableStatecodeIsNotSent先紅，指出pastor alias；移除後綠。leader、pastor、p7-test-contact皆不提交statecode，D365正式metadata預設Active。指定測試及Deployment.Tests 930案通過；尚待程式提交、完整guard及唯一一次weeklyreports重跑。
