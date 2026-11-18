@@ -149,6 +149,20 @@ public sealed class P7AcceptanceScenarioTests
         }
     }
 
+    /// <summary>
+    /// 保護weeklyreports的合成leader不送出D365明確標記為不可Create的contact.statecode；新聯絡人由平台套用預設啟用狀態。
+    /// 此欄位會在ShadowSdkMetadata.ConvertFields準備階段被拒絕，測試直接讀正式strict reader載入的情境並斷言排除。
+    /// 使用的是版控合成JSON，無SDK、秘密或遠端記錄；失敗時不建立或清理資源，通過不代表R4實機結果。
+    /// </summary>
+    [Fact]
+    public void P7WeeklyReportLeaderSeed_NonCreatableStatecodeIsNotSent()
+    {
+        var file = Assert.Single(ShadowScenarioFiles.LoadLive(Root(), "weeklyreports", true));
+        var leader = Assert.Single(file.Seed.EnumerateArray(), row => row.GetProperty("alias").GetString() == "leader");
+
+        Assert.False(leader.GetProperty("fields").TryGetProperty("statecode", out _));
+    }
+
     private static IEnumerable<string> References(JsonElement value)
     {
         if (value.ValueKind == JsonValueKind.Object)

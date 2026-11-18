@@ -241,7 +241,7 @@ footer{margin-top:36px;color:var(--muted);font-size:12.5px;text-align:center}
 const DATA = {
   "planVersion": "3.5",
   "snapshot": "2026-11-17 18:36 Asia/Taipei (UTC+08:00)",
-  "lastUpdated": "2026-11-18T19:01:06+08:00",
+  "lastUpdated": "2026-11-18T19:33:02+08:00",
   "branch": "1.0.0.11.Integration.P7.Worktree",
   "head": "238fff1e3832055e9ed6405a771dff32ef5b2c6a",
   "headline": "2026-11-18 18:20 Asia/Taipei (UTC+08:00)：P7-02a進行中；238fff1e固定guard八項全過（全方案Release 7289案、另Debug tracer 7案；Deployment 927案）。R3通過1.0.0.19；R4 appointments影子及意圖比對均差異0、清理成功；attendance在list-a（list；參照source-leader）Create失敗，安全碼0x80040265／0x80040216，未重試。verify/off、D34、trace1、待辦／smoke task／SMV-TEST均回基線，診斷trace保留2供R9。R4其餘模組及R5～R9待完成；雙模型及ClaudeOnly審核維持暫停；後續提交訊息使用繁體中文。",
@@ -653,8 +653,8 @@ const DATA = {
       "phaseId": "階段 7",
       "level": "info",
       "title": "P7 進度摘要",
-      "body": "2026-11-18 18:20 Asia/Taipei (UTC+08:00)：P7-02a進行中；238fff1e固定guard八項全過（全方案Release 7289案、另Debug tracer 7案；Deployment 927案）。R3通過1.0.0.19；R4 appointments影子及意圖比對均差異0、清理成功；attendance在list-a（list；參照source-leader）Create失敗，安全碼0x80040265／0x80040216，未重試。verify/off、D34、trace1、待辦／smoke task／SMV-TEST均回基線，診斷trace保留2供R9。R4其餘模組及R5～R9待完成；雙模型及ClaudeOnly審核維持暫停；後續提交訊息使用繁體中文。 2026-11-18 18:25 Asia/Taipei (UTC+08:00)：另完成名單seed離線契約修正，工作樹Deployment929案通過；未提交／未guard／未實機，仍待提交額度核定。",
-      "lastUpdated": "2026-11-18T19:01:06+08:00",
+      "body": "2026-11-18 19:31 Asia/Taipei (UTC+08:00)：P7-02a進行中；R4 appointments與attendance影子均差異0並完整清理回off。weeklyreports於準備階段因contact.statecode不可Create拒絕，已唯讀metadata確認且離線移除欄位、新增回歸測試；待提交及guard後單次重跑。localization、R5～R9待完成；所有結果限goodshepherdback，不代表Live證據。外部審核維持暫停。",
+      "lastUpdated": "2026-11-18T19:33:02+08:00",
       "steps": [
         "2026-11-17 12:43 Asia/Taipei (UTC+08:00)：起點f06d7596；Release7071與Deployment769取自P6最末守門，未重跑基準。",
         "2026-11-17 12:43 Asia/Taipei (UTC+08:00)：D34通過、22新步驟停用、舊步驟/流程啟用0、待辦0、追蹤1；未寫入D365。",
@@ -674,7 +674,11 @@ const DATA = {
         "2026-11-18 18:20 Asia/Taipei (UTC+08:00)：P7-02a自5eb3923e至238fff1e共15個提交，已達D7-25上限。依D7-28盤點：R5a／R5b涉及安全切換及回復，必須完成；R4是其固定順序前置，不能以移入b段規避依賴。尚無可在不違反順序及回復要求下解消上限的安排；下一筆提交前依07A §7-6請使用者核定本段後續提交額度。不標a段驗收、不推送、不啟動b段。",
         "2026-11-18 18:25 Asia/Taipei (UTC+08:00)：額度核定等待期間完成離線名單seed契約修正；既有metadata與ChurchReport建立路徑均明列createdfromcode=2、type=false及非空purpose。新測試P7ListSeeds_ContactMarketingListCreateContract_IsComplete先2案紅燈，再補attendance三欄及weeklyreports來源類型；P7情境6案與Deployment.Tests 929案全過，檔案說明1816檔及編碼192檔零問題。未改expected、產品程式或其他測試期望。這只是離線輸入契約修正，不證明實機根因或R4通過；未提交、未guard、未重跑Create；15提交上限仍待07A §7-6核定，外部審核維持暫停。",
         "2026-11-18 19:01 Asia/Taipei (UTC+08:00)：使用者核定P7-02a提交上限延長至20個，只用於完成R4、R5與收尾；維持原順序、全部指定測試與固定guard要求。當前由15個提交續行；本核定不代表R4通過或允許略過守門。雙模型及ClaudeOnly階段審查仍暫停。",
-        "2026-11-18 19:01 Asia/Taipei (UTC+08:00)：離線名單seed契約修正已納入候選提交。P7ListSeeds_ContactMarketingListCreateContract_IsComplete先紅2案後綠；Deployment.Tests 929案、檔案說明1816檔及編碼192檔通過。尚未新增提交、尚未執行guard或實機，R4仍未完成。"
+        "2026-11-18 19:01 Asia/Taipei (UTC+08:00)：離線名單seed契約修正已納入候選提交。P7ListSeeds_ContactMarketingListCreateContract_IsComplete先紅2案後綠；Deployment.Tests 929案、檔案說明1816檔及編碼192檔通過。尚未新增提交、尚未執行guard或實機，R4仍未完成。",
+        "2026-11-18 19:09 Asia/Taipei (UTC+08:00)：提交25c504bf固定guard完整八項EXIT=0；全方案Release 22組件7289案、Debug tracer7案；編碼192檔零問題、重複碼groups/new/stale皆0、I18n verify、檔案說明1816檔零失敗、進度頁28案通過。guard log SHA-256 F80F35A60A37478D82827523A7EB92843B8540B1BFE467D247003C1166AD2976。",
+        "2026-11-18 19:31 Asia/Taipei (UTC+08:00)：R4更新（保留先前失敗紀錄）。appointments（2026-11-18 18:06:42～18:09:31）與attendance（19:10:17～19:12:45）各完成單次影子比對；兩者ShadowToExpected及ShadowIntentsToExpected均可比較、差異各0、Passed=true、LegacyExecuted=false。模組停用、trace還原1、verify0、D34及待辦／smoke task／SMV-TEST清冊均回基線；診斷trace保留2。兩者皆僅shadow，不是Live。已按實際觸發型別填manifest：appointments只填Create，attendance填Update，summary及原始紀錄SHA見P7-02a/wp-reports。",
+        "2026-11-18 19:31 Asia/Taipei (UTC+08:00)：weeklyreports本輪（19:15:17～19:16:35）在runner準備階段被InvalidDataException拒絕，尚未建立seed；finally完整回off、trace1、verify0、D34、待辦／SMV-TEST／smoke task均0。只讀metadata明確顯示contact.statecode IsValidForCreate=false、RequiredLevel=SystemRequired、DefaultFormValue=0；情境leader不應送此欄，交由平台預設Active。新增P7WeeklyReportLeaderSeed_NonCreatableStatecodeIsNotSent先紅後綠並已從JSON移除statecode；尚未提交／guard／重跑weeklyreports。唯讀metadata probe及失敗紀錄不含業務資料；weekly metadata SHA-256 A296BD6F8D33B47CB43CB0A8E871E1A073D0E4803522B292F3CB034C90EF2ACE，runner log SHA-256 C1E803989E8688A1BE18929462D2141FBF4130CAF15D7BC227884AF580581E7F。localization尚未開始。",
+        "2026-11-18 19:33 Asia/Taipei (UTC+08:00)：statecode修正後P7AcceptanceScenarioTests 7案通過，Deployment.Tests 930案通過；檔案說明1816檔零失敗、編碼檢查192檔零問題、進度頁28案全過。新增測試先紅後綠。現HEAD 25c504bf仍是第16個提交，以上候選差異尚未提交／固定guard；按核定額度將以繁中訊息建立第17個提交，完整guard後再對weeklyreports單次重跑。"
       ]
     }
   ],
@@ -845,7 +849,7 @@ const DATA = {
       "id": "階段 7",
       "name": "D365 9.1 切換（逐組織）",
       "planned": "每組織 1 天＋觀察 1 週",
-      "actual": "2026-11-18 18:20 Asia/Taipei (UTC+08:00)：P7-02a進行中；238fff1e固定guard八項全過（全方案Release 7289案、另Debug tracer 7案；Deployment 927案）。R3通過1.0.0.19；R4 appointments影子及意圖比對均差異0、清理成功；attendance在list-a（list；參照source-leader）Create失敗，安全碼0x80040265／0x80040216，未重試。verify/off、D34、trace1、待辦／smoke task／SMV-TEST均回基線，診斷trace保留2供R9。R4其餘模組及R5～R9待完成；雙模型及ClaudeOnly審核維持暫停；後續提交訊息使用繁體中文。",
+      "actual": "2026-11-18 19:31 Asia/Taipei (UTC+08:00)：P7-02a進行中；R4 appointments與attendance影子均差異0並完整清理回off。weeklyreports於準備階段因contact.statecode不可Create拒絕，已唯讀metadata確認且離線移除欄位、新增回歸測試；待提交及guard後單次重跑。localization、R5～R9待完成；所有結果限goodshepherdback，不代表Live證據。外部審核維持暫停。",
       "current": true,
       "done": 1,
       "active": 1
@@ -1806,7 +1810,7 @@ const DATA = {
       "timebox": "1 天",
       "doneAt": "",
       "commit": "",
-      "note": "2026-11-18 18:20 Asia/Taipei (UTC+08:00)：P7-02a進行中；238fff1e固定guard八項全過（全方案Release 7289案、另Debug tracer 7案；Deployment 927案）。R3通過1.0.0.19；R4 appointments影子及意圖比對均差異0、清理成功；attendance在list-a（list；參照source-leader）Create失敗，安全碼0x80040265／0x80040216，未重試。verify/off、D34、trace1、待辦／smoke task／SMV-TEST均回基線，診斷trace保留2供R9。R4其餘模組及R5～R9待完成；雙模型及ClaudeOnly審核維持暫停；後續提交訊息使用繁體中文。"
+      "note": "2026-11-18 19:31 Asia/Taipei (UTC+08:00)：P7-02a進行中；R4 appointments與attendance影子均差異0並完整清理回off。weeklyreports於準備階段因contact.statecode不可Create拒絕，已唯讀metadata確認且離線移除欄位、新增回歸測試；待提交及guard後單次重跑。localization、R5～R9待完成；所有結果限goodshepherdback，不代表Live證據。外部審核維持暫停。"
     },
     {
       "id": "P8-01",
@@ -2023,7 +2027,7 @@ const DATA = {
       "phaseId": "階段 7",
       "name": "P7-02a（07A固定單元）",
       "status": "active",
-      "note": "2026-11-18 18:20 Asia/Taipei (UTC+08:00)：P7-02a進行中；238fff1e固定guard八項全過（全方案Release 7289案、另Debug tracer 7案；Deployment 927案）。R3通過1.0.0.19；R4 appointments影子及意圖比對均差異0、清理成功；attendance在list-a（list；參照source-leader）Create失敗，安全碼0x80040265／0x80040216，未重試。verify/off、D34、trace1、待辦／smoke task／SMV-TEST均回基線，診斷trace保留2供R9。R4其餘模組及R5～R9待完成；雙模型及ClaudeOnly審核維持暫停；後續提交訊息使用繁體中文。"
+      "note": "2026-11-18 19:31 Asia/Taipei (UTC+08:00)：P7-02a進行中；R4 appointments與attendance影子均差異0並完整清理回off。weeklyreports於準備階段因contact.statecode不可Create拒絕，已唯讀metadata確認且離線移除欄位、新增回歸測試；待提交及guard後單次重跑。localization、R5～R9待完成；所有結果限goodshepherdback，不代表Live證據。外部審核維持暫停。"
     },
     {
       "id": "P7-02b",
@@ -3460,3 +3464,5 @@ const DATA = {
 </script>
 </body>
 </html>
+
+2026-11-18 19:33 Asia/Taipei (UTC+08:00)：statecode修正後P7AcceptanceScenarioTests 7案通過，Deployment.Tests 930案通過；檔案說明1816檔零失敗、編碼檢查192檔零問題、進度頁28案全過。新增測試先紅後綠。現HEAD 25c504bf仍是第16個提交，以上候選差異尚未提交／固定guard；按核定額度將以繁中訊息建立第17個提交，完整guard後再對weeklyreports單次重跑。

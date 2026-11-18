@@ -62,3 +62,11 @@ D34 已實測通過；待辦 0、追蹤原值 1；22 新步驟全部停用、舊
 
 2026-11-18 19:01 Asia/Taipei (UTC+08:00)：使用者核定P7-02a提交上限延長至20個，只用於完成R4、R5與收尾；維持原順序、全部指定測試與固定guard要求。當前由15個提交續行；本核定不代表R4通過或允許略過守門。雙模型及ClaudeOnly階段審查仍暫停。
 2026-11-18 19:01 Asia/Taipei (UTC+08:00)：離線名單seed契約修正已納入候選提交。P7ListSeeds_ContactMarketingListCreateContract_IsComplete先紅2案後綠；Deployment.Tests 929案、檔案說明1816檔及編碼192檔通過。尚未新增提交、尚未執行guard或實機，R4仍未完成。
+
+2026-11-18 19:09 Asia/Taipei (UTC+08:00)：提交25c504bf固定guard完整八項EXIT=0；全方案Release 22組件7289案、Debug tracer7案；編碼192檔零問題、重複碼groups/new/stale皆0、I18n verify、檔案說明1816檔零失敗、進度頁28案通過。guard log SHA-256 F80F35A60A37478D82827523A7EB92843B8540B1BFE467D247003C1166AD2976。
+
+2026-11-18 19:31 Asia/Taipei (UTC+08:00)：R4更新（保留先前失敗紀錄）。appointments（2026-11-18 18:06:42～18:09:31）與attendance（19:10:17～19:12:45）各完成單次影子比對；兩者ShadowToExpected及ShadowIntentsToExpected均可比較、差異各0、Passed=true、LegacyExecuted=false。模組停用、trace還原1、verify0、D34及待辦／smoke task／SMV-TEST清冊均回基線；診斷trace保留2。兩者皆僅shadow，不是Live。已按實際觸發型別填manifest：appointments只填Create，attendance填Update，summary及原始紀錄SHA見P7-02a/wp-reports。
+
+2026-11-18 19:31 Asia/Taipei (UTC+08:00)：weeklyreports本輪（19:15:17～19:16:35）在runner準備階段被InvalidDataException拒絕，尚未建立seed；finally完整回off、trace1、verify0、D34、待辦／SMV-TEST／smoke task均0。只讀metadata明確顯示contact.statecode IsValidForCreate=false、RequiredLevel=SystemRequired、DefaultFormValue=0；情境leader不應送此欄，交由平台預設Active。新增P7WeeklyReportLeaderSeed_NonCreatableStatecodeIsNotSent先紅後綠並已從JSON移除statecode；尚未提交／guard／重跑weeklyreports。唯讀metadata probe及失敗紀錄不含業務資料；weekly metadata SHA-256 A296BD6F8D33B47CB43CB0A8E871E1A073D0E4803522B292F3CB034C90EF2ACE，runner log SHA-256 C1E803989E8688A1BE18929462D2141FBF4130CAF15D7BC227884AF580581E7F。localization尚未開始。
+
+2026-11-18 19:33 Asia/Taipei (UTC+08:00)：statecode修正後P7AcceptanceScenarioTests 7案通過，Deployment.Tests 930案通過；檔案說明1816檔零失敗、編碼檢查192檔零問題、進度頁28案全過。新增測試先紅後綠。現HEAD 25c504bf仍是第16個提交，以上候選差異尚未提交／固定guard；按核定額度將以繁中訊息建立第17個提交，完整guard後再對weeklyreports單次重跑。

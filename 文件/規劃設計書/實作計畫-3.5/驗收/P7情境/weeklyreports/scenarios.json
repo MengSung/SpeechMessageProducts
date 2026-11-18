@@ -31,9 +31,6 @@
             "customertypecode": {
               "option": 1
             },
-            "statecode": {
-              "option": 0
-            },
             "lastname": "Synthetic Member",
             "ownerid": {
               "ref": "owner",

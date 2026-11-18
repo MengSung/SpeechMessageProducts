@@ -414,8 +414,8 @@
             }
           ],
           "shadowReport": {
-            "file": "",
-            "differences": null,
+            "file": ".trellis/tasks/11-17-p7-02a-rehearsal-first/wp-reports/P7-02-R4-attendance-shadow.md",
+            "differences": 0,
             "basis": "reading"
           },
           "live": {
@@ -783,8 +783,8 @@
             }
           ],
           "shadowReport": {
-            "file": "",
-            "differences": null,
+            "file": ".trellis/tasks/11-17-p7-02a-rehearsal-first/wp-reports/P7-02-R4-appointments-shadow.md",
+            "differences": 0,
             "basis": "reading"
           },
           "live": {
