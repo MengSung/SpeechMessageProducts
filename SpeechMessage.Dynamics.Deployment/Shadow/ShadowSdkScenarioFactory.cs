@@ -8,7 +8,8 @@
  * 正式註冊 metadata 建立 binding；factory 以明確別名綁定共享列，轉換自建 seed、
  * trigger 與 observe，經唯一 recorder 投影 expected，再將暫時 GUID 換回情境代號。
  * 使用邊界與維護：共享教會／會友在 seed 只能宣告空欄位，不能忽略其修改要求；
- * 它們不進自建清冊，也不可作 trigger 或 expected 寫入目標。owned lookup 以別名
+ * 它們不進自建清冊，也不可作 trigger 或 expected Create／Delete 目標；既有Plugin
+ * 對權威共享列的合法 Update 只記錄投影，不建立、清理或保留共享列副本。owned lookup 以別名
  * 留待每輪配置新 GUID，不讓規劃用暫時 ID 被送到 SDK。欄位、精度與名稱前綴長度
  * 均由 metadata 驗證；related 僅可指向自建 seed，Create 期望須帶相同 lookup，
  * 同一 selector 不可宣告兩個別名。推播要求期望明列 shadow 摘要、單一權威測試
@@ -40,6 +41,9 @@ internal sealed record ShadowSdkBinding(string Entrypoint, string ChurchAlias, s
     IReadOnlyList<string> ShadowTypes, IReadOnlyList<ShadowSdkTokenField> TokenFields,
     bool HasUnconditionalHardcodedToken)
 {
+    /// <summary>由命令 caller 以權威既有身分核對的額外 shared rows；不建立、不清理、不接受情境自行授權。</summary>
+    public IReadOnlyDictionary<string, EntityReference> SharedReferences { get; init; } =
+        new Dictionary<string, EntityReference>(StringComparer.Ordinal);
     /// <summary>當下正式註冊為同步的 step 與實際型別，由 CLI metadata 核對提供，不讀情境旗標。</summary>
     public IReadOnlyDictionary<Guid, string> SynchronousStepTypes { get; init; } = new Dictionary<Guid, string>();
     /// <summary>受審盤點明確確認所有舊入口都沒有 token 相依，不能由空 tokenFields 自動推定。</summary>
@@ -103,7 +107,7 @@ internal static class ShadowSdkScenarioFactory
             file.Basis is not ("new" or "reading" or "legacy-golden" or "legacy-live" or "legacy-live-only") ||
             file.ExpectedLineCalls.ValueKind != JsonValueKind.Array ||
             file.Exception.ValueKind != JsonValueKind.Null || file.Outputs.ValueKind != JsonValueKind.Object ||
-            file.Outputs.EnumerateObject().Any() || identity.OrganizationId == Guid.Empty ||
+            identity.OrganizationId == Guid.Empty ||
             identity.ChurchId == Guid.Empty || identity.ContactId == Guid.Empty || identity.ChurchId == identity.ContactId ||
             !ShadowProjection.ValidIdentity(binding.ChurchAlias) || !ShadowProjection.ValidIdentity(binding.ContactAlias) ||
             binding.ChurchAlias == binding.ContactAlias ||
@@ -116,6 +120,14 @@ internal static class ShadowSdkScenarioFactory
             [binding.ChurchAlias] = new("account", identity.ChurchId),
             [binding.ContactAlias] = new("contact", identity.ContactId)
         };
+        if (binding.SharedReferences is null || binding.SharedReferences.Count > 64) throw Invalid();
+        foreach (var pair in binding.SharedReferences)
+        {
+            if (!ShadowProjection.ValidIdentity(pair.Key) || shared.ContainsKey(pair.Key) ||
+                pair.Value is null || pair.Value.Id == Guid.Empty || pair.Value.KeyAttributes.Count != 0 ||
+                !ShadowProjection.ValidIdentity(pair.Value.LogicalName)) throw Invalid();
+            shared.Add(pair.Key, new EntityReference(pair.Value.LogicalName, pair.Value.Id));
+        }
         var aliases = new Dictionary<string, EntityReference>(shared, StringComparer.Ordinal);
         var rows = file.Seed.EnumerateArray().ToArray();
         if (rows.Length is < 3 or > 64) throw Invalid();
@@ -152,6 +164,11 @@ internal static class ShadowSdkScenarioFactory
             links.Add(alias, ExtractReferences(candidate, idAliases));
             seeds.Add(new ShadowSdkSeed(alias, candidate));
         }
+        var dependencies = links.ToDictionary(pair => pair.Key,
+            pair => (IReadOnlyCollection<string>)pair.Value.Values.ToArray(), StringComparer.Ordinal);
+        var seedOrder = OrderSeedAliases(seeds.Select(seed => seed.Alias).ToArray(), dependencies);
+        var seedByAlias = seeds.ToDictionary(seed => seed.Alias, StringComparer.Ordinal);
+        seeds = seedOrder.Select(alias => seedByAlias[alias]).ToList();
         var targetAlias = Text(file.Trigger, "target");
         var targetEntity = Text(file.Trigger, "entity");
         var message = Text(file.Trigger, "message");
@@ -192,7 +209,8 @@ internal static class ShadowSdkScenarioFactory
                 aliases.Add(alias, reference);
                 idAliases.Add(reference.Id.ToString("D"), alias);
             }
-            else if (shared.ContainsKey(alias) || !declared.Contains(alias) ||
+            else if ((!shared.ContainsKey(alias) && !declared.Contains(alias)) ||
+                (shared.ContainsKey(alias) && alias != binding.ChurchAlias) ||
                 !aliases.TryGetValue(alias, out var reference) || reference.LogicalName != entity) throw Invalid();
             var fields = metadata.ValidateObservation(entity,
                 row.GetProperty("fields").EnumerateArray().Select(field => field.GetString()!).ToArray());
@@ -200,7 +218,9 @@ internal static class ShadowSdkScenarioFactory
         }
         if (aliases.Count > 64 || observations.Count is < 1 or > 64 ||
             observations.Select(item => item.Id).Distinct(StringComparer.Ordinal).Count() != observations.Count) throw Invalid();
-        var expected = PrepareExpected(file.ExpectedWrites, file.ExpectedLineCalls, metadata, aliases, shared, idAliases, observations, Resolve);
+        ValidateOutputs(file.Outputs, observations);
+        var expected = PrepareExpected(file.ExpectedWrites, file.ExpectedLineCalls, metadata, aliases, shared,
+            binding.ChurchAlias, idAliases, observations, Resolve);
         var definition = new ShadowScenarioDefinition(expected, observations.AsReadOnly(),
             new HashSet<string>(file.Volatile, StringComparer.Ordinal)) { Basis = file.Basis };
         var source = new ShadowSdkScenario(seeds.AsReadOnly(), new ShadowSdkTrigger(message, targetAlias, patch),
@@ -221,6 +241,50 @@ internal static class ShadowSdkScenarioFactory
             ExternalInventoryReviewed = binding.ExternalInventoryReviewed
         };
         return new ShadowSdkPreparedScenario(definition, source);
+    }
+
+    /// <summary>
+    /// 依 owned lookup alias 做穩定拓撲排序；同層保持 scenarios.json 原順序，循環只回報 alias。
+    /// Shared alias 不在輸入集合中，視為已存在且不增加 indegree；任何未解析 alias 立即 fail closed。
+    /// </summary>
+    internal static IReadOnlyList<string> OrderSeedAliases(IReadOnlyList<string> aliases,
+        IReadOnlyDictionary<string, IReadOnlyCollection<string>> dependencies)
+    {
+        ArgumentNullException.ThrowIfNull(aliases);
+        ArgumentNullException.ThrowIfNull(dependencies);
+        if (aliases.Count is < 1 or > 64 || aliases.Distinct(StringComparer.Ordinal).Count() != aliases.Count ||
+            dependencies.Count != aliases.Count || dependencies.Keys.Any(alias => !aliases.Contains(alias, StringComparer.Ordinal)))
+            throw Invalid();
+        var index = aliases.Select((alias, position) => (alias, position))
+            .ToDictionary(item => item.alias, item => item.position, StringComparer.Ordinal);
+        var indegree = aliases.ToDictionary(alias => alias, _ => 0, StringComparer.Ordinal);
+        var dependents = aliases.ToDictionary(alias => alias, _ => new List<string>(), StringComparer.Ordinal);
+        foreach (var alias in aliases)
+        {
+            var owned = dependencies[alias].Distinct(StringComparer.Ordinal).ToArray();
+            foreach (var dependency in owned)
+            {
+                if (!index.ContainsKey(dependency)) continue;
+                indegree[alias]++;
+                dependents[dependency].Add(alias);
+            }
+        }
+        var ordered = new List<string>(aliases.Count);
+        var emitted = new HashSet<string>(StringComparer.Ordinal);
+        while (ordered.Count < aliases.Count)
+        {
+            var next = aliases.Where(alias => !emitted.Contains(alias) && indegree[alias] == 0)
+                .OrderBy(alias => index[alias]).FirstOrDefault();
+            if (next is null)
+            {
+                var cycle = aliases.Where(alias => !emitted.Contains(alias));
+                throw new InvalidDataException("Shadow seed dependency cycle: " + string.Join(",", cycle));
+            }
+            emitted.Add(next);
+            ordered.Add(next);
+            foreach (var dependent in dependents[next]) indegree[dependent]--;
+        }
+        return Array.AsReadOnly(ordered.ToArray());
     }
 
     /// <summary>
@@ -274,7 +338,7 @@ internal static class ShadowSdkScenarioFactory
     /// </summary>
     private static ShadowTrace PrepareExpected(JsonElement writes, JsonElement lineCalls, ShadowSdkMetadata metadata,
         Dictionary<string, EntityReference> aliases, Dictionary<string, EntityReference> shared,
-        Dictionary<string, string> idAliases, IReadOnlyList<ShadowObservation> observations,
+        string churchAlias, Dictionary<string, string> idAliases, IReadOnlyList<ShadowObservation> observations,
         Func<string, string, EntityReference> resolve)
     {
         if (writes.ValueKind != JsonValueKind.Array || writes.GetArrayLength() > 128) throw Invalid();
@@ -286,7 +350,8 @@ internal static class ShadowSdkScenarioFactory
             var operation = Text(write, "operation");
             var entity = Text(write, "entity");
             var alias = Text(write, "alias");
-            if (operation is not ("Create" or "Update" or "Delete") || shared.ContainsKey(alias) ||
+            if (operation is not ("Create" or "Update" or "Delete") ||
+                (shared.ContainsKey(alias) && (operation is not "Update" || alias != churchAlias)) ||
                 !aliases.TryGetValue(alias, out var target) || target.LogicalName != entity) throw Invalid();
             var candidate = metadata.ConvertFields(entity, write.GetProperty("fields"), operation == "Create", resolve);
             if (operation == "Create")
@@ -381,6 +446,30 @@ internal static class ShadowSdkScenarioFactory
     /// <summary>固定 reader DTO 的必要字串不接受空值，錯誤不回顯原文。</summary>
     private static string Text(JsonElement value, string name) =>
         value.GetProperty(name).GetString() is { Length: > 0 } text ? text : throw Invalid();
+
+    /// <summary>
+    /// 僅接受 CRUD 影子輪可以決定性驗證的 observed 摘要。changedFields 必須是空集合，
+    /// 因為本輪的最終快照／意圖比較才是欄位變更的權威證據；非空或活動輸出不能被忽略。
+    /// </summary>
+    private static void ValidateOutputs(JsonElement outputs, IReadOnlyList<ShadowObservation> observations)
+    {
+        if (outputs.ValueKind != JsonValueKind.Object) throw Invalid();
+        var properties = outputs.EnumerateObject().ToArray();
+        if (properties.Length == 0) return;
+        if (properties.Length != 1 || !outputs.TryGetProperty("observed", out var observed) ||
+            observed.ValueKind != JsonValueKind.Object) throw Invalid();
+        if (observed.TryGetProperty("execution", out _) ||
+            !observed.TryGetProperty("entity", out var entity) || entity.ValueKind != JsonValueKind.String ||
+            !observed.TryGetProperty("alias", out var alias) || alias.ValueKind != JsonValueKind.String ||
+            !observed.TryGetProperty("changedFields", out var changedFields) ||
+            changedFields.ValueKind != JsonValueKind.Array || changedFields.GetArrayLength() != 0 ||
+            observed.EnumerateObject().Any(property => property.Name is not ("entity" or "alias" or "changedFields")))
+            throw Invalid();
+        var entityName = entity.GetString();
+        var aliasName = alias.GetString();
+        if (!ShadowProjection.ValidIdentity(entityName) || !ShadowProjection.ValidIdentity(aliasName) ||
+            !observations.Any(item => item.Entity == entityName && item.Id == aliasName)) throw Invalid();
+    }
 
     /// <summary>固定安全錯誤不含候選資料、秘密、GUID 或原始 metadata。</summary>
     private static InvalidDataException Invalid() => new("Shadow scenario binding failed.");

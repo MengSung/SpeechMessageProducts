@@ -8,8 +8,11 @@
 資料契約測試不代表R4實機證據。
 */
 using System.IO;
+using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using System.Text.Json;
+using System;
 using SpeechMessage.Dynamics.Deployment.Shadow;
 using Xunit;
 namespace SpeechMessage.Dynamics.Deployment.Tests;
@@ -70,6 +73,52 @@ public sealed class P7AcceptanceScenarioTests
         var mapped = Assert.Single(document.Assemblies.SelectMany(assembly => assembly.Steps)
             .Where(step => step.Module == "weeklyreports" && DeploymentCli.MatchesShadowEntrypoint(step, oldEntryPoint)));
         Assert.Equal(weeklyStep.Type, mapped.Type);
+    }
+
+    /// <summary>四個 P7 情境排序後每筆 owned lookup 都只指向已建立或 shared alias。</summary>
+    [Fact]
+    public void P7Scenarios_AllSeeds_HaveNoUnresolvedOrderAfterSort()
+    {
+        foreach (var module in new[] { "appointments", "attendance", "localization", "weeklyreports" })
+        {
+            var file = Assert.Single(ShadowScenarioFiles.LoadLive(Root(), module, true));
+            var rows = file.Seed.EnumerateArray().ToArray();
+            var shared = new HashSet<string>(StringComparer.Ordinal)
+            {
+                file.Church.GetProperty("alias").GetString()!, "p7-test-contact"
+            };
+            if (module == "weeklyreports") shared.Add("owner");
+            var aliases = rows.Select(row => row.GetProperty("alias").GetString()!)
+                .Where(alias => !shared.Contains(alias)).ToArray();
+            var owned = aliases.ToHashSet(StringComparer.Ordinal);
+            var dependencies = rows.Where(row => owned.Contains(row.GetProperty("alias").GetString()!))
+                .ToDictionary(row => row.GetProperty("alias").GetString()!,
+                    row => (IReadOnlyCollection<string>)References(row.GetProperty("fields"))
+                        .Where(owned.Contains).Distinct(StringComparer.Ordinal).ToArray(), StringComparer.Ordinal);
+            var ordered = ShadowSdkScenarioFactory.OrderSeedAliases(aliases, dependencies);
+            var created = new HashSet<string>(shared, StringComparer.Ordinal);
+            foreach (var alias in ordered)
+            {
+                Assert.All(dependencies[alias], dependency => Assert.Contains(dependency, created));
+                created.Add(alias);
+            }
+        }
+    }
+
+    private static IEnumerable<string> References(JsonElement value)
+    {
+        if (value.ValueKind == JsonValueKind.Object)
+        {
+            if (value.TryGetProperty("ref", out var reference) && reference.ValueKind == JsonValueKind.String)
+                yield return reference.GetString()!;
+            foreach (var property in value.EnumerateObject())
+                foreach (var nested in References(property.Value)) yield return nested;
+        }
+        else if (value.ValueKind == JsonValueKind.Array)
+        {
+            foreach (var item in value.EnumerateArray())
+                foreach (var nested in References(item)) yield return nested;
+        }
     }
 
     /// <summary>由本原始碼位置取得本checkout，不採程序CWD或其他worktree。</summary>

@@ -23,6 +23,7 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using Microsoft.Xrm.Sdk;
+using Microsoft.Crm.Sdk.Messages;
 using SpeechMessage.Dynamics.Deployment.Shadow;
 
 namespace SpeechMessage.Dynamics.Deployment;
@@ -163,7 +164,8 @@ internal static partial class DeploymentCli
                 StepImages = stepImages,
                 ExternalScopes = externalScopes,
                 ExternalInventoryReviewed = liveLegacy,
-                TokenNotRequired = liveLegacy && inventory.All(rule => rule.NoTokenDependency)
+                TokenNotRequired = liveLegacy && inventory.All(rule => rule.NoTokenDependency),
+                SharedReferences = SharedReferencesForScenario(service, file)
             };
             prepared.Add(ShadowSdkScenarioFactory.Prepare(file, metadata, identity, binding));
         }
@@ -187,6 +189,27 @@ internal static partial class DeploymentCli
             output.WriteLine(report.Passed ? "Shadow scenario comparison passed; owned records cleaned and registrations disabled." :
                 "Shadow scenario comparison failed; owned records cleaned and registrations disabled.");
         return report.Passed ? 0 : 1;
+    }
+
+    /// <summary>
+    /// 只把 weeklyreports 情境的 owner 指到目前 SDK 連線的 WhoAmI 使用者；不建立 systemuser，
+    /// 也不把 caller 提供的 GUID 當授權。其餘 systemuser seed 一律拒絕，避免誤建或跨使用者殘留。
+    /// </summary>
+    private static Dictionary<string, EntityReference> SharedReferencesForScenario(
+        IOrganizationService service, ShadowFileCase file)
+    {
+        var systemUsers = file.Seed.EnumerateArray()
+            .Where(row => row.GetProperty("entity").GetString() == "systemuser")
+            .Select(row => row.GetProperty("alias").GetString()!)
+            .ToArray();
+        if (systemUsers.Length == 0) return new Dictionary<string, EntityReference>(StringComparer.Ordinal);
+        if (systemUsers.Length != 1 || systemUsers[0] != "owner") throw InvalidShadowCommand();
+        var response = service.Execute(new WhoAmIRequest()) as WhoAmIResponse;
+        if (response is null || response.UserId == Guid.Empty) throw InvalidShadowCommand();
+        return new Dictionary<string, EntityReference>(StringComparer.Ordinal)
+        {
+            ["owner"] = new EntityReference("systemuser", response.UserId)
+        };
     }
 
     /// <summary>固定錯誤不包含檔案內容、實際 GUID、設定或秘密。</summary>

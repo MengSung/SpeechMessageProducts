@@ -33,7 +33,7 @@
           "alias": "applicant",
           "entity": "contact",
           "fields": {
-            "fullname": "申請人",
+            "lastname": "Synthetic Applicant",
             "parentcustomerid": {
               "ref": "church-a",
               "entity": "account"
@@ -45,7 +45,7 @@
           "alias": "signer",
           "entity": "contact",
           "fields": {
-            "fullname": "下一位簽核者",
+            "lastname": "Synthetic Signer",
             "parentcustomerid": {
               "ref": "church-a",
               "entity": "account"

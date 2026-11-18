@@ -152,6 +152,7 @@ internal sealed partial class ShadowSdkRuntime : IShadowScenarioRuntime
         private readonly ShadowObservation[] observations;
         private readonly bool legacy;
         private readonly List<(string Alias, Entity Record)> records;
+        private readonly Dictionary<string, EntityReference> sharedReferences;
         private readonly Dictionary<string, string> aliases = new(StringComparer.Ordinal);
         private readonly HashSet<(string Entity, Guid Id)> attempted = new();
         // Create trigger 的目標會延後建立，清理順序必須依實際送出順序，不能依 seed 宣告位置。
@@ -187,6 +188,9 @@ internal sealed partial class ShadowSdkRuntime : IShadowScenarioRuntime
                 throw InvalidRuntime();
             observations = definition.Observe.Select(item => item with { Fields = item.Fields.ToArray() }).ToArray();
             this.legacy = legacy;
+            sharedReferences = source.SharedReferences?.ToDictionary(pair => pair.Key,
+                pair => new EntityReference(pair.Value.LogicalName, pair.Value.Id), StringComparer.Ordinal)
+                ?? throw InvalidRuntime();
             if (source.Seeds is null || source.Seeds.Count is < 1 or > 64 || source.Trigger is null ||
                 source.Trigger.Message is not ("Create" or "Update" or "Delete") ||
                 source.LegacyStepIds is null || source.ShadowStepIds is null || source.ShadowTypes is null ||
@@ -234,7 +238,8 @@ internal sealed partial class ShadowSdkRuntime : IShadowScenarioRuntime
                         !ValidAttribute(observation.Entity) || !ValidAttribute(related.Attribute) ||
                         !records.Any(record => record.Alias == related.ParentAlias)) throw InvalidRuntime();
                 }
-                else if (!records.Any(record => record.Alias == observation.Id && record.Record.LogicalName == observation.Entity))
+                else if (!records.Any(record => record.Alias == observation.Id && record.Record.LogicalName == observation.Entity) &&
+                    !(sharedReferences.TryGetValue(observation.Id, out var shared) && shared.LogicalName == observation.Entity))
                     throw InvalidRuntime();
             }
             if (records.Count + observations.Count(item => item.Related is not null) > 64 ||
@@ -352,6 +357,13 @@ internal sealed partial class ShadowSdkRuntime : IShadowScenarioRuntime
                         foreach (var pair in trigger.Fields.Attributes) record[pair.Key] = pair.Value;
                     rows.Add(ShadowSdkProjection.Project(record));
                 }
+                foreach (var observation in observations.Where(item => item.Related is null && sharedReferences.ContainsKey(item.Id)))
+                {
+                    var reference = sharedReferences[observation.Id];
+                    var shared = runtime.service.Retrieve(reference.LogicalName, reference.Id,
+                        new ColumnSet(observation.Fields.ToArray()));
+                    rows.Add(ShadowSdkProjection.Project(shared));
+                }
                 return new ShadowSnapshot(true, rows.AsReadOnly());
             }
         }
@@ -440,8 +452,12 @@ internal sealed partial class ShadowSdkRuntime : IShadowScenarioRuntime
                 }
                 else
                 {
-                    var record = records.Single(item => item.Alias == observation.Id).Record;
-                    row = FindOwned(record.LogicalName, record.Id, new ColumnSet(observation.Fields.ToArray()));
+                    if (records.SingleOrDefault(item => item.Alias == observation.Id) is { } owned)
+                        row = FindOwned(owned.Record.LogicalName, owned.Record.Id, new ColumnSet(observation.Fields.ToArray()));
+                    else if (sharedReferences.TryGetValue(observation.Id, out var shared))
+                        row = runtime.service.Retrieve(shared.LogicalName, shared.Id,
+                            new ColumnSet(observation.Fields.ToArray()));
+                    else throw InvalidRuntime();
                 }
                 cancellationToken.ThrowIfCancellationRequested();
                 if (row is not null) rows.Add(ShadowSdkProjection.Project(row));

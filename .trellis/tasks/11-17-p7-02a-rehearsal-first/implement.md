@@ -7,7 +7,7 @@
 - [x] R1 export、export-legacy、export-metadata，備份SHA記在演練紀錄。
 - [x] R2 schema plan additions=0／verify0。
 - [x] R3 打包、plan核不重建、apply、verify0、診斷smoke新FileVersion（更正前置狀態缺漏：trace=2、diagnostics enabled後單次smoke輸出1.0.0.19並通過；finally diagnostics off、trace=1、verify/off、D34／待辦／smoke task0；診斷trace保留2供R9）。
-- [ ] R4每模組影子差異0與殘留0，清單填報告；前置A追蹤可用必做。
+- [ ] R4每模組影子差異0與殘留0，清單填報告；前置A追蹤可用必做。2026-11-18 08:45 Asia/Taipei (UTC+08:00)：根因確認為 seed lookup 指向後置 alias，離線加入穩定拓撲排序與循環拒絕；weeklyreports owner 改 WhoAmI shared、leader 移除不可寫 fullname／new_lineid。原兩次 attendance 失敗及 finally 基線保留；離線測試／Deployment.Tests 通過，待提交與固定 guard 後重跑 R4。
 - [ ] R5a plan shadow→switch→verify plan0→rollback→verify off0。
 - [ ] R5b override提交guard→plan live逐行審→switch→verify plan0；不中斷接b。
 - [ ] 完整guard、紀錄／父清單同步與收尾提交。

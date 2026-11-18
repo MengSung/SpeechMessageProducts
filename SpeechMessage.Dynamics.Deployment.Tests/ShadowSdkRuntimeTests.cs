@@ -26,6 +26,47 @@ namespace SpeechMessage.Dynamics.Deployment.Tests;
 /// <summary>在合成 SDK 上驗證真正 owner，而非手動替產品建立或刪除 seed。</summary>
 public sealed class ShadowSdkRuntimeTests
 {
+    /// <summary>
+    /// 以合成 SDK 記錄 Create 實際先後，證明排序後的 dependency 已存在才建立 dependent；
+    /// injected lookup 使用 round 新配 GUID，測試 finally 刪除兩筆 owned seed 並確認殘留為零。
+    /// </summary>
+    [Fact]
+    public void ShadowSeed_ReferenceToLaterAlias_CreatedAfterDependency()
+    {
+        using var f = new Fixture();
+        var source = Source();
+        var seeds = new[]
+        {
+            new ShadowSdkSeed("record-1", new Entity("region") { ["name"] = "dependent", ["score"] = 1 }),
+            new ShadowSdkSeed("record-2", new Entity("region") { ["name"] = "dependency", ["score"] = 1 })
+        };
+        var orderedAliases = ShadowSdkScenarioFactory.OrderSeedAliases(
+            ["record-1", "record-2"],
+            new Dictionary<string, IReadOnlyCollection<string>>(StringComparer.Ordinal)
+            {
+                ["record-1"] = ["record-2"], ["record-2"] = Array.Empty<string>()
+            });
+        var orderedSeeds = orderedAliases.Select(alias => seeds.Single(seed => seed.Alias == alias)).ToArray();
+        source = source with
+        {
+            Seeds = orderedSeeds,
+            ReferenceAliases = new Dictionary<string, IReadOnlyDictionary<string, string>>(StringComparer.Ordinal)
+            {
+                ["record-1"] = new Dictionary<string, string>(StringComparer.Ordinal) { ["parentid"] = "record-2" }
+            }
+        };
+        var definition = Definition();
+        var service = new PollingService(f.Service);
+        var runtime = new ShadowSdkRuntime(service, Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid(),
+            new Dictionary<ShadowScenarioDefinition, ShadowSdkScenario> { [definition] = source }, () => { }, f.Clock);
+        using var round = runtime.CreateRound(definition, false);
+        round.Seed(CancellationToken.None);
+        Assert.Equal(["SMV-TEST-dependency", "SMV-TEST-dependent"], service.CreatedNames);
+        round.DeleteOwnedRecords();
+        round.VerifyNoRemainingRecords();
+        Assert.DoesNotContain(f.Service.Rows, row => row.LogicalName == "region");
+    }
+
     /// <summary>建立已送達但回應失敗時，預先登錄 GUID 仍能精確找回並刪除，不能遺留不明記錄。</summary>
     [Fact]
     public void SdkRound_CreateResponseLostStillFindsOwnedIdForCleanup()
@@ -487,6 +528,7 @@ public sealed class ShadowSdkRuntimeTests
         internal bool WrongOwnedId;
         internal bool FailFirstDelete;
         internal readonly List<Guid> DeleteAttempts = new();
+        internal readonly List<string?> CreatedNames = new();
         internal string Fault = "";
         internal string Trace = "SMV-SHADOW|1|{\"end\":true,\"count\":0}";
         internal Guid RequestedStep;
@@ -497,6 +539,7 @@ public sealed class ShadowSdkRuntimeTests
         /// <summary>注入真建立後才失敗，保護回應不明時的 owner 清理契約。</summary>
         public Guid Create(Entity entity)
         {
+            CreatedNames.Add(entity.GetAttributeValue<string>("name"));
             var id = inner.Create(entity);
             if (MutateCreate)
             {

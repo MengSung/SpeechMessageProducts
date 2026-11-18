@@ -34,10 +34,7 @@
             "statecode": {
               "option": 0
             },
-            "new_lineid": {
-              "line": "leader"
-            },
-            "fullname": "Synthetic Member",
+            "lastname": "Synthetic Member",
             "ownerid": {
               "ref": "owner",
               "entity": "systemuser"

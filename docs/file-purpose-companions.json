@@ -84,6 +84,6 @@
   "文件/規劃設計書/實作計畫-3.5/驗收/P7情境/appointments/expected.json": "P7預約Plugin空參數閱讀情境的合成結果摘要，列明legacy entrypoint、輸出結果及無資料寫入／推播期望；reader再依Deployment manifest將入口對應新版正式step。原始Golden保持不變，這份期望不宣稱已完成Shadow或Live實機比較。",
   "文件/規劃設計書/實作計畫-3.5/驗收/P7情境/attendance/scenarios.json": "P7出席代禱回應不變的合成閱讀情境，使用不同alias的兩位同名合成會友與兩筆正式不同身分的記錄，驗證identity不因顯示名稱相同而合併；共享教會及測試聯絡人保持空欄位。只供固定Shadow/Live reader及本輪owned資料清理，不推播亦非實機證據。",
   "文件/規劃設計書/實作計畫-3.5/驗收/P7情境/attendance/expected.json": "P7出席代禱回應不變的合成期望摘要，明列舊Plugin入口、預期未變欄位與空寫入／推播結果；比較以各筆alias與正式資料列身分為準，不按同名去重。只供離線解析與後續實機比較，不修改既有Golden。",
-  "文件/規劃設計書/實作計畫-3.5/驗收/P7情境/weeklyreports/scenarios.json": "P7週報通知回應未變的合成閱讀情境，以固定Update、new_group_present_weekly_report及明列映像為入口；seed只含合成會友、名單、週報和空白共享列。兩個正式step雖共用事件與實體，情境entrypoint必須精確指向通知Plugin。無推播、不執行舊程式，不能當作實機證據。",
+  "文件/規劃設計書/實作計畫-3.5/驗收/P7情境/weeklyreports/scenarios.json": "P7週報通知回應未變的合成閱讀情境，以固定Update、new_group_present_weekly_report及明列映像為入口；seed只含合成會友、名單、週報和空白共享列，owner 由命令以 WhoAmI 綁定既有 systemuser，不建立或清理使用者。兩個正式step雖共用事件與實體，情境entrypoint必須精確指向通知Plugin。無推播、不執行舊程式，不能當作實機證據。",
   "文件/規劃設計書/實作計畫-3.5/驗收/P7情境/weeklyreports/expected.json": "P7週報通知回應未變的合成閱讀期望，entrypoint明確指定新版WeeklyReportNotificationPlugin，輸出摘要不含寫入或推播；runner依entrypoint及正式Step.Type消歧同Update/entity的兩個step，並以新版型別執行影子輪。保留舊Golden不變，離線期望不是Live證據。"
 }

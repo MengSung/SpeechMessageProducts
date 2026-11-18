@@ -30,6 +30,34 @@ namespace SpeechMessage.Dynamics.Deployment.Tests;
 /// <summary>檔案讀取與執行 owner 之間必須有真正接線，不能以兩端各自綠燈替代。</summary>
 public sealed class ShadowSdkScenarioFactoryTests
 {
+    /// <summary>被參照 seed 即使在來源 JSON 後方，也必須先建立以避免 D365 lookup 不存在。</summary>
+    [Fact]
+    public void ShadowSeed_ReferenceToLaterAlias_CreatedAfterDependency()
+    {
+        var ordered = ShadowSdkScenarioFactory.OrderSeedAliases(
+            ["present-1", "list-a"],
+            new Dictionary<string, IReadOnlyCollection<string>>(StringComparer.Ordinal)
+            {
+                ["present-1"] = ["list-a"], ["list-a"] = Array.Empty<string>()
+            });
+        Assert.Equal(["list-a", "present-1"], ordered);
+    }
+
+    /// <summary>owned lookup 循環必須 fail closed，錯誤只包含 alias 而不回顯欄位值。</summary>
+    [Fact]
+    public void ShadowSeed_CyclicReference_Rejected()
+    {
+        var failure = Assert.Throws<InvalidDataException>(() => ShadowSdkScenarioFactory.OrderSeedAliases(
+            ["first", "second"],
+            new Dictionary<string, IReadOnlyCollection<string>>(StringComparer.Ordinal)
+            {
+                ["first"] = ["second"], ["second"] = ["first"]
+            }));
+        Assert.Contains("first", failure.Message, StringComparison.Ordinal);
+        Assert.Contains("second", failure.Message, StringComparison.Ordinal);
+        Assert.DoesNotContain("secret", failure.Message, StringComparison.OrdinalIgnoreCase);
+    }
+
     /// <summary>
     /// 情境映像只可描述平台由 seed／trigger 產生的值，不可注入合成 context。
     /// 前後映像分別驗 seed 與覆蓋後欄值，正式註冊必須含相同別名及所有宣告欄。
@@ -313,6 +341,19 @@ public sealed class ShadowSdkScenarioFactoryTests
         if (fault == "images") file = file with { Trigger = Json("""{"target":"task-1","entity":"task","message":"Update","fields":{},"images":{"pre":{"image":{"score":1}}}}""") };
         var metadata = new ShadowSdkMetadata(new MetadataService(), ["account", "contact", "task"], CancellationToken.None);
         Assert.Throws<InvalidDataException>(() => ShadowSdkScenarioFactory.Prepare(file, metadata, Identity(), Binding()));
+    }
+
+    /// <summary>保護 P7 attendance 的空欄位 observed 摘要；它必須對應 observe 且不能帶未驗證變更。</summary>
+    [Fact]
+    public void ScenarioFactory_AcceptsObservedEmptyOutputForCrudShadow()
+    {
+        var file = File() with
+        {
+            Outputs = Json("""{"observed":{"entity":"task","alias":"task-1","changedFields":[]}}""")
+        };
+        var metadata = new ShadowSdkMetadata(new MetadataService(), ["account", "contact", "task"], CancellationToken.None);
+        var prepared = ShadowSdkScenarioFactory.Prepare(file, metadata, Identity(), Binding());
+        Assert.True(prepared.Definition.Expected.Comparable);
     }
 
     /// <summary>硬編碼 token 只阻擋真舊輪；reading 保留旗標而不冒稱執行，重複步驟與共享 token 目標也拒絕。</summary>
