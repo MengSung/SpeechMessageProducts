@@ -356,6 +356,20 @@ public sealed class ShadowSdkScenarioFactoryTests
         Assert.True(prepared.Definition.Expected.Comparable);
     }
 
+    /// <summary>reading 基準的舊入口回傳值與來源僅保留作 provenance，不冒充新 Plugin 可觀察輸出。</summary>
+    [Fact]
+    public void ScenarioFactory_AcceptsBoundedReadingProvenanceWithoutTreatingItAsRuntimeOutput()
+    {
+        var file = File() with
+        {
+            Outputs = Json("""{"OutputResult":0,"ReadingSource":"SyntheticLegacy.cs:1-4"}""")
+        };
+        var metadata = new ShadowSdkMetadata(new MetadataService(), ["account", "contact", "task"], CancellationToken.None);
+        var prepared = ShadowSdkScenarioFactory.Prepare(file, metadata, Identity(), Binding());
+        Assert.True(prepared.Definition.Expected.Comparable);
+        Assert.Equal("Update", Assert.Single(prepared.Definition.Expected.Intents).Operation);
+    }
+
     /// <summary>硬編碼 token 只阻擋真舊輪；reading 保留旗標而不冒稱執行，重複步驟與共享 token 目標也拒絕。</summary>
     [Fact]
     public void ScenarioFactory_ValidatesTrustedInventoryAndDoesNotFabricateLegacyEvidence()

@@ -218,7 +218,7 @@ internal static class ShadowSdkScenarioFactory
         }
         if (aliases.Count > 64 || observations.Count is < 1 or > 64 ||
             observations.Select(item => item.Id).Distinct(StringComparer.Ordinal).Count() != observations.Count) throw Invalid();
-        ValidateOutputs(file.Outputs, observations);
+        ValidateOutputs(file.Outputs, observations, file.Basis);
         var expected = PrepareExpected(file.ExpectedWrites, file.ExpectedLineCalls, metadata, aliases, shared,
             binding.ChurchAlias, idAliases, observations, Resolve);
         var definition = new ShadowScenarioDefinition(expected, observations.AsReadOnly(),
@@ -451,11 +451,18 @@ internal static class ShadowSdkScenarioFactory
     /// 僅接受 CRUD 影子輪可以決定性驗證的 observed 摘要。changedFields 必須是空集合，
     /// 因為本輪的最終快照／意圖比較才是欄位變更的權威證據；非空或活動輸出不能被忽略。
     /// </summary>
-    private static void ValidateOutputs(JsonElement outputs, IReadOnlyList<ShadowObservation> observations)
+    private static void ValidateOutputs(JsonElement outputs, IReadOnlyList<ShadowObservation> observations, string basis)
     {
         if (outputs.ValueKind != JsonValueKind.Object) throw Invalid();
         var properties = outputs.EnumerateObject().ToArray();
         if (properties.Length == 0) return;
+        if (basis is "reading" or "legacy-golden" && properties.Length == 2 &&
+            outputs.TryGetProperty("OutputResult", out var outputResult) &&
+            outputResult.ValueKind == JsonValueKind.Number && outputResult.TryGetInt32(out var result) && result == 0 &&
+            outputs.TryGetProperty("ReadingSource", out var readingSource) &&
+            readingSource.ValueKind == JsonValueKind.String && readingSource.GetString() is { Length: > 0 and <= 2048 } source &&
+            source.All(character => char.IsAsciiLetterOrDigit(character) || character is '.' or '_' or '-' or ':' or ',' or '/' or ' '))
+            return;
         if (properties.Length != 1 || !outputs.TryGetProperty("observed", out var observed) ||
             observed.ValueKind != JsonValueKind.Object) throw Invalid();
         if (observed.TryGetProperty("execution", out _) ||
