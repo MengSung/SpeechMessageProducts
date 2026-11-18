@@ -323,6 +323,25 @@ public sealed class ShadowSdkRuntimeTests
         round.VerifyNoRemainingRecords();
     }
 
+    /// <summary>seed 內部 invariant 失敗也要帶安全 alias，避免外層只剩泛化 aggregate。</summary>
+    [Fact]
+    public void SdkRound_SeedInvariantFailureReportsSafeAliasContext()
+    {
+        using var f = new Fixture();
+        var definition = Definition();
+        var service = new PollingService(f.Service) { CreateFailure = new InvalidDataException("Synthetic invariant") };
+        var runtime = new ShadowSdkRuntime(service, Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid(),
+            new Dictionary<ShadowScenarioDefinition, ShadowSdkScenario> { [definition] = Source() }, () => { }, f.Clock);
+        using var round = runtime.CreateRound(definition, false);
+
+        var failure = Assert.Throws<ShadowSeedCreateException>(() => round.Seed(CancellationToken.None));
+
+        Assert.Equal("record-1", failure.Alias);
+        Assert.DoesNotContain("Synthetic invariant", failure.SafeSummary, StringComparison.Ordinal);
+        round.DeleteOwnedRecords();
+        round.VerifyNoRemainingRecords();
+    }
+
     /// <summary>
     /// Create 已在伺服器落地但回應 fault，且 finally 清理首次刪除失敗時，外層 aggregate 仍須
     /// 保留 seed alias 與原始 fault code；第二次清理必須排空本輪資料。

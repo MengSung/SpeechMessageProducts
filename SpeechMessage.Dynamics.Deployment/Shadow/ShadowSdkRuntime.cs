@@ -434,7 +434,8 @@ internal sealed partial class ShadowSdkRuntime : IShadowScenarioRuntime
             {
                 var current = pending.Pop();
                 if (!visited.Add(current)) continue;
-                if (current is CommunicationException or TimeoutException or FaultException<OrganizationServiceFault>)
+                if (current is CommunicationException or TimeoutException or FaultException<OrganizationServiceFault> or
+                    InvalidDataException)
                     return true;
                 if (current is AggregateException aggregate)
                     foreach (var inner in aggregate.InnerExceptions.Take(16)) pending.Push(inner);
