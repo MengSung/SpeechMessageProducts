@@ -185,6 +185,7 @@ public sealed class ShadowSdkValuesTests
         Assert.Equal(new DateTime(2026, 11, 14, 2, 20, 30, DateTimeKind.Utc), utc);
         Assert.Equal(DateTimeKind.Utc, utc.Kind);
         Assert.Equal(utc, Convert("\"2026-11-14T02:20:30Z\"", local));
+        Assert.Equal(utc, Convert("\"2026-11-14T02:20:30.0000000Z\"", local));
         Reject("\"2026-11-14T02:20:30\"", local);
         Reject("\"2026-11-14\"", local);
         var date = new DateTimeAttributeMetadata { DateTimeBehavior = DateTimeBehavior.DateOnly };
