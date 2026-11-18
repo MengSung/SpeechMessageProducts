@@ -445,6 +445,15 @@ internal static partial class DeploymentCli
                     continue;
                 }
 
+                // Aggregate cleanup/runner failures can retain a direct Dataverse fault
+                // without a seed wrapper.  Emit only bounded numeric fault codes so the
+                // stage remains diagnosable without exposing SDK messages or record data.
+                if (current is FaultException<OrganizationServiceFault>)
+                {
+                    WriteDataverseFaultCodes(current, output);
+                    continue;
+                }
+
                 if (current is AggregateException aggregate)
                 {
                     foreach (var inner in aggregate.InnerExceptions.Take(maximumExceptions).Reverse())

@@ -389,7 +389,7 @@ public sealed class ShadowSdkRuntimeTests
         DeploymentCli.WriteSupplementalFailureDiagnostics(
             new AggregateException("Synthetic wrapper", new System.ServiceModel.FaultException<OrganizationServiceFault>(
                 new OrganizationServiceFault { ErrorCode = unchecked((int)0x80040220) })), unrelatedOutput);
-        Assert.DoesNotContain("Dataverse fault code[", unrelatedOutput.ToString(), StringComparison.Ordinal);
+        Assert.Contains("Dataverse fault code[0]: 0x80040220", unrelatedOutput.ToString(), StringComparison.Ordinal);
         round.DeleteOwnedRecords();
         round.VerifyNoRemainingRecords();
     }
@@ -421,6 +421,23 @@ public sealed class ShadowSdkRuntimeTests
         Assert.Contains("Command failed (FaultException`1)", output.ToString(), StringComparison.Ordinal);
         Assert.DoesNotContain("Synthetic sensitive server message", output.ToString(), StringComparison.Ordinal);
         Assert.Equal(1, connector.ConnectCount);
+    }
+
+    /// <summary>Aggregate 內的直接 Dataverse fault 只輸出有限數字碼，不洩漏 fault message。</summary>
+    [Fact]
+    public void Cli_AggregatedDataverseFaultReportsOnlyNumericCode()
+    {
+        var original = new System.ServiceModel.FaultException<OrganizationServiceFault>(
+            new OrganizationServiceFault { ErrorCode = unchecked((int)0x80040217) },
+            new System.ServiceModel.FaultReason("Synthetic sensitive server message"));
+        using var output = new StringWriter(System.Globalization.CultureInfo.InvariantCulture);
+
+        DeploymentCli.WriteSupplementalFailureDiagnostics(
+            new AggregateException("Synthetic aggregate", new InvalidOperationException("stage"), original), output);
+
+        Assert.Contains("Dataverse fault code[0]: 0x80040217", output.ToString(), StringComparison.Ordinal);
+        Assert.DoesNotContain("Synthetic sensitive server message", output.ToString(), StringComparison.Ordinal);
+        Assert.DoesNotContain("Synthetic aggregate", output.ToString(), StringComparison.Ordinal);
     }
 
     /// <summary>TimeoutException 經真正 CLI catch 只輸出 seed 身分，不合成不存在的 Dataverse fault code。</summary>
