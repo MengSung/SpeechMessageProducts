@@ -50,3 +50,11 @@ ClaudeOnly具體核對：R5切換與rollback間不得改plugins.registration.jso
 2026-11-18 19:31 Asia/Taipei (UTC+08:00)：weeklyreports本輪（19:15:17～19:16:35）在runner準備階段被InvalidDataException拒絕，尚未建立seed；finally完整回off、trace1、verify0、D34、待辦／SMV-TEST／smoke task均0。只讀metadata明確顯示contact.statecode IsValidForCreate=false、RequiredLevel=SystemRequired、DefaultFormValue=0；情境leader不應送此欄，交由平台預設Active。新增P7WeeklyReportLeaderSeed_NonCreatableStatecodeIsNotSent先紅後綠並已從JSON移除statecode；尚未提交／guard／重跑weeklyreports。唯讀metadata probe及失敗紀錄不含業務資料；weekly metadata SHA-256 A296BD6F8D33B47CB43CB0A8E871E1A073D0E4803522B292F3CB034C90EF2ACE，runner log SHA-256 C1E803989E8688A1BE18929462D2141FBF4130CAF15D7BC227884AF580581E7F。localization尚未開始。
 
 2026-11-18 19:33 Asia/Taipei (UTC+08:00)：statecode修正後P7AcceptanceScenarioTests 7案通過，Deployment.Tests 930案通過；檔案說明1816檔零失敗、編碼檢查192檔零問題、進度頁28案全過。新增測試先紅後綠。現HEAD 25c504bf仍是第16個提交，以上候選差異尚未提交／固定guard；按核定額度將以繁中訊息建立第17個提交，完整guard後再對weeklyreports單次重跑。
+
+2026-11-18 19:42 Asia/Taipei (UTC+08:00)：提交764a403a固定guard八項全過；全方案Release 22組件共7299案、Debug tracer7案；編碼194檔零問題、重複碼groups/new/stale皆0、I18n verify、檔案說明1816檔零失敗、進度頁28案通過。guard log SHA-256 917B250D24E97922F80E5B957E3AF934A16DECC8CA47EBC21C39F57C430D46CE。
+
+2026-11-18 19:52 Asia/Taipei (UTC+08:00)：localization單次R4通過；ShadowToExpected與ShadowIntentsToExpected差異各0、basis=new、LegacyExecuted=false。finally off、trace1、verify0、D34與待辦／smoke task／SMV-TEST皆0。只影子證據，不是Live；manifest只填實際觸發的LocalizedTextChangedPlugin Create step。
+
+2026-11-18 19:52 Asia/Taipei (UTC+08:00)：weeklyreports第二次單次shadow（19:43:23～19:44:44）仍在ShadowSdkMetadata.ConvertFields／ShadowSdkScenarioFactory.PrepareCore拒絕，與前次同屬Create可寫性檢查；本輪未建立seed。finally成功停用模組、trace還原1、verify0、D34及待辦／smoke task／SMV-TEST皆0。唯讀metadata證明contact.statecode不可Create、DefaultFormValue=0；首修只移除leader.statecode，情境仍有pastor.statecode。依07A §7-5已請使用者核定後續，未做第三次重跑。log SHA-256 4C8C0ACE9EA095A49F19BAFF178E69A2B74C4FACC94D5921B340C62947A4787E。
+
+2026-11-18 19:53 Asia/Taipei (UTC+08:00)：localization R4摘要檔SHA-256 90366BA2EAC29620D44BFDF92299B2BDC10B8EE4E7EE9EE2C2A43BEAAE142431；Deployments.Tests 930案、進度頁28案、檔案說明1816檔及編碼194檔檢查均通過，待本提交固定guard。weeklyreports依§7-5等待核定，不再重跑。
