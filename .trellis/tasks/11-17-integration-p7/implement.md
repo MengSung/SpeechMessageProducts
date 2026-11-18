@@ -51,3 +51,14 @@ D34 已實測通過；待辦 0、追蹤原值 1；22 新步驟全部停用、舊
 2026-11-18 17:58 Asia/Taipei (UTC+08:00)：補正 R4 診斷。16:07／16:40 的安全 stack 均為 DeploymentCli.RunShadow:83（完整部署 Verify），當時先開 diagnostics 與 manifest 停用狀態衝突，未進 factory，不是 seed 失敗。原 DateTimeOffset 格式能解析無小數秒 UTC，既有 Convert_DateBehaviorsAreExplicit 亦通過；35801fdd 的日期根因判斷撤回，恢復原產品日期格式，保留加強斷言。未提交的 metadata 重建／Exception.Data 診斷嘗試已撤回並在本機保留 patch，未放寬任何檢查。
 
 2026-11-18 17:58 Asia/Taipei (UTC+08:00)：R4正確前置單次驗證仍有切換／收尾fault；獨立核對off、trace1、D34與清冊0。新增「已停用舊step只讀」6案，Deployment927通過，待guard與實機，不勾選R4。後續提交皆繁體中文，外部雙模型與ClaudeOnly停止。
+
+2026-11-18 18:20 Asia/Taipei (UTC+08:00)：P7-02a進行中；238fff1e固定guard八項全過（全方案Release 7289案、另Debug tracer 7案；Deployment 927案）。R3通過1.0.0.19；R4 appointments影子及意圖比對均差異0、清理成功；attendance在list-a（list；參照source-leader）Create失敗，安全碼0x80040265／0x80040216，未重試。verify/off、D34、trace1、待辦／smoke task／SMV-TEST均回基線，診斷trace保留2供R9。R4其餘模組及R5～R9待完成；雙模型及ClaudeOnly審核維持暫停；後續提交訊息使用繁體中文。
+
+2026-11-18 18:20 Asia/Taipei (UTC+08:00)：238fff1e固定guard完整八項EXIT=0；22組件Release共7289案、Deployment927案、Debug tracer7案；編碼192檔零問題、重複碼groups/new/stale皆0、檔案說明1816檔0失敗、進度頁28案通過。guard-238fff1e-full.log SHA-256：619000F928A978F90A4DBDF37CC4D0CFC2E980EEF7F1CABD07AE2A5DF4FB5956；不重跑已通過守門。
+
+2026-11-18 18:20 Asia/Taipei (UTC+08:00)：P7-02a自5eb3923e至238fff1e共15個提交，已達D7-25上限。依D7-28盤點：R5a／R5b涉及安全切換及回復，必須完成；R4是其固定順序前置，不能以移入b段規避依賴。尚無可在不違反順序及回復要求下解消上限的安排；下一筆提交前依07A §7-6請使用者核定本段後續提交額度。不標a段驗收、不推送、不啟動b段。
+
+2026-11-18 18:25 Asia/Taipei (UTC+08:00)：額度核定等待期間完成離線名單seed契約修正；既有metadata與ChurchReport建立路徑均明列createdfromcode=2、type=false及非空purpose。新測試P7ListSeeds_ContactMarketingListCreateContract_IsComplete先2案紅燈，再補attendance三欄及weeklyreports來源類型；P7情境6案與Deployment.Tests 929案全過，檔案說明1816檔及編碼192檔零問題。未改expected、產品程式或其他測試期望。這只是離線輸入契約修正，不證明實機根因或R4通過；未提交、未guard、未重跑Create；15提交上限仍待07A §7-6核定，外部審核維持暫停。
+
+2026-11-18 19:01 Asia/Taipei (UTC+08:00)：使用者核定P7-02a提交上限延長至20個，只用於完成R4、R5與收尾；維持原順序、全部指定測試與固定guard要求。當前由15個提交續行；本核定不代表R4通過或允許略過守門。雙模型及ClaudeOnly階段審查仍暫停。
+2026-11-18 19:01 Asia/Taipei (UTC+08:00)：離線名單seed契約修正已納入候選提交。P7ListSeeds_ContactMarketingListCreateContract_IsComplete先紅2案後綠；Deployment.Tests 929案、檔案說明1816檔及編碼192檔通過。尚未新增提交、尚未執行guard或實機，R4仍未完成。

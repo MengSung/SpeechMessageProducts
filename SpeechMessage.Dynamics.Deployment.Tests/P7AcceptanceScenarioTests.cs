@@ -5,7 +5,8 @@
 這避免R4連線後才發現來源格式錯誤、選錯同事件step，或將共享測試列誤作本輪建立資料清除。
 資源與隔離：只讀版控合成JSON及manifest，reader自行關閉文件；沒有SDK、秘密、程序或背景工作。
 決定性斷言：案例可完整解析、週報同事件step唯一對應、舊entrypoint映射到新版step、無推播且只觀察核定alias；
-資料契約測試不代表R4實機證據。
+資料契約測試不代表R4實機證據。名單seed另依既有metadata及ChurchReport建立契約，
+驗證連絡人名單的來源類型、靜態型態及非空目的，避免僅靠lookup排序就把不完整輸入送進SDK。
 */
 using System.IO;
 using System.Collections.Generic;
@@ -119,6 +120,33 @@ public sealed class P7AcceptanceScenarioTests
         Assert.Equal("SMV-TEST-appointment", fields.GetProperty("subject").GetString());
         Assert.Equal("2026-11-15T04:00:00Z", fields.GetProperty("scheduledstart").GetString());
         Assert.Equal("2026-11-15T05:00:00Z", fields.GetProperty("scheduledend").GetString());
+    }
+
+    /// <summary>
+    /// 保護attendance與weeklyreports送入SDK的合成名單建立契約：createdfromcode必須是連絡人類型2，
+    /// type必須明列靜態名單false，purpose必須非空；依已匯出的list metadata及既有ChurchReport建立路徑取值。
+    /// 缺欄位的原始情境是故障輸入，決定性斷言直接檢查正式strict reader讀出的seed，不建假SDK也不連組織。
+    /// 所有JSON由reader以命令區域文件解析，測試無秘密、可寫共用狀態或需清理的遠端記錄；通過不等於實機Create成功。
+    /// </summary>
+    /// <param name="module">含有新建list seed的固定P7驗收模組。</param>
+    [Theory]
+    [InlineData("attendance")]
+    [InlineData("weeklyreports")]
+    public void P7ListSeeds_ContactMarketingListCreateContract_IsComplete(string module)
+    {
+        var file = Assert.Single(ShadowScenarioFiles.LoadLive(Root(), module, true));
+        var lists = file.Seed.EnumerateArray().Where(row => row.GetProperty("entity").GetString() == "list").ToArray();
+        Assert.NotEmpty(lists);
+        foreach (var list in lists)
+        {
+            var fields = list.GetProperty("fields");
+            Assert.True(fields.TryGetProperty("createdfromcode", out var source), "List seed must declare createdfromcode.");
+            Assert.Equal(2, source.GetProperty("option").GetInt32());
+            Assert.True(fields.TryGetProperty("type", out var kind), "List seed must declare type.");
+            Assert.False(kind.GetBoolean());
+            Assert.True(fields.TryGetProperty("purpose", out var purpose), "List seed must declare purpose.");
+            Assert.False(string.IsNullOrWhiteSpace(purpose.GetString()));
+        }
     }
 
     private static IEnumerable<string> References(JsonElement value)

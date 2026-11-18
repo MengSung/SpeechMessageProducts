@@ -92,7 +92,12 @@
             "new_contact_family_leader_list": {
               "ref": "source-leader",
               "entity": "contact"
-            }
+            },
+            "createdfromcode": {
+              "option": 2
+            },
+            "type": false,
+            "purpose": "SMV-TEST-synthetic-group"
           }
         },
         {
