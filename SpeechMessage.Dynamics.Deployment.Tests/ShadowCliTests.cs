@@ -5,8 +5,8 @@
  * factory 及 runner 各自通過卻無法由命令執行。所有組織、metadata、身分及追蹤皆為
  * 每案獨占的合成資料，不讀取 User Secrets、不連 D365、不發 LINE。
  * 主要功能與流程：暫存方案含合成 net462 DLL、固定清單及黃金情境，先由正式引擎
- * 部署，再由命令完成權威身分核對、seed、觸發、追蹤比較及報告。故障注入涵蓋錯誤
- * 身分、追蹤內容、觸發例外、外部路徑、寫鎖與取消；決定性斷言為 lease 歸還、原
+ * 部署，再由命令完成權威身分核對、seed、觸發、追蹤比較及報告。故障注入涵蓋 seed Create fault、
+ * 錯誤身分、追蹤內容、觸發例外、外部路徑、寫鎖與取消；決定性斷言為 lease 歸還、原
  * trace 等級與停用狀態恢復、自建 task 零殘留，以及報告不洩漏秘密或實際 GUID。
  * 使用邊界與維護：非平行集合保護程序 cwd；fixture 先恢復 cwd，再刪除自己的唯一根，
  * writer、租約與檔案均確定釋放。替身只擴充所需的權威 metadata 與精確追蹤查詢，
@@ -19,6 +19,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.ServiceModel;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Threading;
@@ -364,6 +365,76 @@ public sealed class ShadowCliTests
         Assert.DoesNotContain(Fixture.SecretValue, f.Output.ToString(), StringComparison.Ordinal);
     }
 
+    /// <summary>
+    /// 在記憶體 SDK 的真實 Create 邊界注入 Dataverse fault，經 ShadowSdkRuntime 包裝並走完整 CLI catch；
+    /// 斷言 reporter 收到原始 fault、輸出只含 seed 身分與數字碼，且 trace／步驟／資料均清理。
+    /// </summary>
+    [Fact]
+    public void ShadowCli_SeedCreateFaultFlowsThroughRuntimeAndReportsSafeContext()
+    {
+        using var f = new CliFixture();
+        var original = new FaultException<OrganizationServiceFault>(
+            new OrganizationServiceFault { ErrorCode = unchecked((int)0x80040217) },
+            new FaultReason("Synthetic sensitive server message"));
+        f.Service.CreateFailure = original;
+        var scenarioPath = Path.Combine(f.ScenarioRoot, "scenarios.json");
+        var scenarios = JsonNode.Parse(File.ReadAllText(scenarioPath))!;
+        scenarios["cases"]![0]!["seed"]!.AsArray().Insert(2,
+            JsonNode.Parse("""{"alias":"region-seed","entity":"region","fields":{"score":7}}"""));
+        File.WriteAllText(scenarioPath, scenarios.ToJsonString());
+
+        Assert.Equal(1, f.Run());
+
+        Assert.Same(original, Assert.Single(f.Reports));
+        Assert.Contains("Dataverse fault code[0]: 0x80040217", f.Output.ToString(), StringComparison.Ordinal);
+        Assert.Contains("alias=region-seed; entity=region; referenceAliases=(none)", f.Output.ToString(), StringComparison.Ordinal);
+        Assert.DoesNotContain("Synthetic sensitive server message", f.Output.ToString(), StringComparison.Ordinal);
+        Assert.Equal(0, f.Service.Triggers);
+        f.AssertRestored();
+    }
+
+    /// <summary>
+    /// 真實 seed Create 已落地後擲 fault 並讓第一輪 Delete 失敗，驗證 runner 聚合後的 CLI
+    /// reporter 保留原 AggregateException，診斷仍指出 seed alias／fault code，測試 owner 最後清理唯一合成殘留。
+    /// </summary>
+    [Fact]
+    public void ShadowCli_SeedFaultAndCleanupFaultReportsAggregateAndSafeContext()
+    {
+        using var f = new CliFixture();
+        var original = new FaultException<OrganizationServiceFault>(
+            new OrganizationServiceFault { ErrorCode = unchecked((int)0x80040217) },
+            new FaultReason("Synthetic sensitive server message"));
+        f.Service.CreateFailure = original;
+        f.Service.CreateFailureAfterWrite = true;
+        f.Service.FailSeedDelete = true;
+        var scenarioPath = Path.Combine(f.ScenarioRoot, "scenarios.json");
+        var scenarios = JsonNode.Parse(File.ReadAllText(scenarioPath))!;
+        scenarios["cases"]![0]!["seed"]!.AsArray().Insert(2,
+            JsonNode.Parse("""{"alias":"region-seed","entity":"region","fields":{"score":7}}"""));
+        File.WriteAllText(scenarioPath, scenarios.ToJsonString());
+
+        try
+        {
+            Assert.Equal(1, f.Run());
+            var aggregate = Assert.IsType<AggregateException>(Assert.Single(f.Reports));
+            Assert.Contains(aggregate.Flatten().InnerExceptions,
+                failure => failure is ShadowSeedCreateException seed && ReferenceEquals(seed.InnerException, original));
+            Assert.Contains("Dataverse fault code[0]: 0x80040217", f.Output.ToString(), StringComparison.Ordinal);
+            Assert.Contains("alias=region-seed; entity=region; referenceAliases=(none)",
+                f.Output.ToString(), StringComparison.Ordinal);
+            Assert.DoesNotContain("Synthetic sensitive server message", f.Output.ToString(), StringComparison.Ordinal);
+
+            var leftover = Assert.Single(f.Core.Service.Rows.Where(row => row.LogicalName == "region"));
+            f.Core.Service.Delete("region", leftover.Id);
+            f.AssertRestored();
+        }
+        finally
+        {
+            foreach (var row in f.Core.Service.Rows.Where(row => row.LogicalName == "region").ToArray())
+                f.Core.Service.Delete("region", row.Id);
+        }
+    }
+
     /// <summary>SDK 送達後 caller 取消仍須停用及刪除，清理查詢不得沿用已取消的 token。</summary>
     /// <param name="synchronous">以同步 request 或非同步 CRUD 入口送達。</param>
     [Theory]
@@ -656,6 +727,9 @@ public sealed class ShadowCliTests
         internal Guid Church { get; } = Guid.NewGuid();
         internal Guid Contact { get; } = Guid.NewGuid();
         internal Exception Failure { get; } = new InvalidOperationException(Fixture.SecretValue);
+        internal Exception? CreateFailure;
+        internal bool CreateFailureAfterWrite;
+        internal bool FailSeedDelete;
         internal bool DifferentIntent;
         internal bool PushIntent;
         internal bool DifferentPushContent;
@@ -724,7 +798,9 @@ public sealed class ShadowCliTests
         /// <summary>真正呼叫通用服務建列，補官方活動主鍵，故障在送達後注入以驗清理清冊。</summary>
         public Guid Create(Entity entity)
         {
+            if (CreateFailure is not null && entity.LogicalName == "region" && !CreateFailureAfterWrite) throw CreateFailure;
             var id = core.Service.Create(entity);
+            if (CreateFailure is not null && entity.LogicalName == "region") throw CreateFailure;
             if (entity.LogicalName == "task")
             {
                 target = id;
@@ -756,6 +832,11 @@ public sealed class ShadowCliTests
         /// <summary>清理只接受正式 runtime 提供的精確身份。</summary>
         public void Delete(string entityName, Guid id)
         {
+            if (entityName == "region" && FailSeedDelete)
+            {
+                FailSeedDelete = false;
+                throw new InvalidOperationException("Injected seed cleanup failure");
+            }
             if (entityName == "region" && RelatedReadFault == "delete-child") throw new InvalidOperationException("Injected cleanup fault");
             core.Service.Delete(entityName, id);
         }

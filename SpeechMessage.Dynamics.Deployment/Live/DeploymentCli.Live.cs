@@ -6,7 +6,8 @@ live-check 只在 test 組織，按即時 metadata 核啟用及模式、D34、�
 安全與隔離：每命令獨占 lease，SDK 歸還後才釋放寫鎖；manifest/catalog handle 全程只讀持有，
 檔案固定在本組織 artifacts。計畫有界、拒未知／重複欄位，不接受命令列秘密或任意輸出位置。
 資源與失敗：HTTP safety owner 在 SDK 前 Dispose，所有真失敗在 lease 釋放後交共同告警，
-正常 caller 取消回130；報告不含實際資料值。Live 只用本輪正式 ID 清理，不改任何步驟。
+seed 識別包裝會還原原始例外供 reporter 分類；安全摘要可攜帶固定 alias 脈絡，不含欄位值。
+正常 caller 取消回130；Live 只用本輪正式 ID 清理，不改任何步驟。
 驗證方式：指定核心測試與離線 CLI 循環；本檔的成功不取代每個型別的 Live 實機證據。
 */
 using System;
@@ -68,10 +69,12 @@ internal static partial class DeploymentCli
                 var module = options["--module"];
                 if (!(module == folder || module == "lessons" && folder is "lessonsequipment" or "lessonslink" or "lessonsprogression" or "lessonssigning")) return 2;
                 var expected = Path.GetFullPath(Path.Combine(repository, "SpeechMessageProducts.GoodShepherd.Core.Tests", "Golden", "Legacy", folder));
-                var acceptanceRoot = Path.Combine(repository, LiveText.Get("AcceptanceFolder"), LiveText.Get("ScenarioFolder"), module);
+                var acceptanceRoot = Path.GetFullPath(Path.Combine(repository, LiveText.Get("AcceptanceFolder"),
+                    LiveText.Get("ScenarioFolder"), module));
                 if (!IsContainedPath(repository, options["--scenario-root"], out var full)) return 2;
-                var acceptance = string.Equals(full, acceptanceRoot, StringComparison.OrdinalIgnoreCase);
-                if (!acceptance && !string.Equals(full, expected, StringComparison.OrdinalIgnoreCase)) return 2;
+                var normalizedFull = Path.TrimEndingDirectorySeparator(full);
+                var acceptance = string.Equals(normalizedFull, Path.TrimEndingDirectorySeparator(acceptanceRoot), StringComparison.OrdinalIgnoreCase);
+                if (!acceptance && !string.Equals(normalizedFull, Path.TrimEndingDirectorySeparator(expected), StringComparison.OrdinalIgnoreCase)) return 2;
                 files = ShadowScenarioFiles.LoadLive(repository, folder, acceptance);
             }
             using var manifestHandle = OpenSource(Path.Combine(repository, "d365", "registration", "plugins.registration.json"));
@@ -135,8 +138,9 @@ internal static partial class DeploymentCli
         catch (OperationCanceledException) when (token.IsCancellationRequested) { output.WriteLine("Command cancelled."); return 130; }
         catch (Exception failure)
         {
-            try { report(failure); } catch { WriteFixedError(output); }
-            WriteDataverseFaultCodes(failure, output); output.WriteLine("Live tooling command failed; sensitive details suppressed."); return 1;
+            try { report(ExceptionForReporting(failure)); } catch { WriteFixedError(output); }
+            WriteSupplementalFailureDiagnostics(failure, output);
+            output.WriteLine("Live tooling command failed; sensitive details suppressed."); return 1;
         }
     }
     /// <summary>整批現況核對及情境準備成功後才允許任何 seed，dormant 明列未檢查。</summary>

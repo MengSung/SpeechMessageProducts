@@ -4,7 +4,7 @@
  * 目的與定位：驗證影子 SDK owner 的記錄身分、精確查詢及清理邊界；全部依賴為
  * 記憶體 SDK 與假時鐘，不連組織、不發 LINE，也不把合成查詢成功描述為實機證據。
  * 主要功能與流程：直接呼叫正式 runtime／round，建立相同名稱的不同記錄、模擬
- * 建立後回應失敗、系統作業未完成與追蹤歧義，斷言清冊保存、有限等待、零秘密輸出。
+ * 建立後回應失敗、seed SDK fault、CLI catch、系統作業未完成與追蹤歧義，斷言清冊保存、有限等待、安全失敗識別與零秘密輸出。
  * 使用邊界與維護：案例獨占 Entity 與輸入集合，測試 owner 在 finally 刪除自己的
  * 合成資料；正式 round 的 Dispose 不取代遠端清理，失敗需可由呼叫端繼續嘗試。
  * 顯式 alias 涵蓋 owned 前向 lookup、shared 只讀身分與 trigger patch；注入 SDK
@@ -12,8 +12,8 @@
  */
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.IO;
+using System.Linq;
 using System.Text.Json;
 using System.Threading;
 using Microsoft.Xrm.Sdk;
@@ -217,6 +217,233 @@ public sealed class ShadowSdkRuntimeTests
         round.DeleteOwnedRecords();
         round.VerifyNoRemainingRecords();
         Assert.DoesNotContain(f.Service.Rows, row => row.LogicalName == "region");
+    }
+
+    /// <summary>
+    /// SDK seed fault 的診斷只揭露合成 alias、logical entity 與 lookup alias；注入含敏感文字的
+    /// fault message，斷言安全摘要能定位失敗 seed 且不會洩漏欄位值或伺服器訊息。
+    /// </summary>
+    [Fact]
+    public void SdkRound_SeedFaultReportsOnlySafeAliasContext()
+    {
+        using var f = new Fixture();
+        var definition = Definition();
+        var source = Source() with
+        {
+            SharedReferences = new Dictionary<string, EntityReference>(StringComparer.Ordinal)
+            {
+                ["shared-parent\r\nInjected-CLI-Line"] = new EntityReference("region", Guid.NewGuid())
+            },
+            ReferenceAliases = new Dictionary<string, IReadOnlyDictionary<string, string>>(StringComparer.Ordinal)
+            {
+                ["record-1"] = new Dictionary<string, string>(StringComparer.Ordinal)
+                {
+                    ["parentid"] = "shared-parent\r\nInjected-CLI-Line"
+                }
+            }
+        };
+        var service = new PollingService(f.Service)
+        {
+            CreateFailure = new System.ServiceModel.FaultException<OrganizationServiceFault>(
+                new OrganizationServiceFault { ErrorCode = unchecked((int)0x80040217) },
+                new System.ServiceModel.FaultReason("Synthetic sensitive server message"))
+        };
+        var runtime = new ShadowSdkRuntime(service, Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid(),
+            new Dictionary<ShadowScenarioDefinition, ShadowSdkScenario> { [definition] = source }, () => { }, f.Clock);
+        using var round = runtime.CreateRound(definition, false);
+
+        var failure = Assert.Throws<ShadowSeedCreateException>(() => round.Seed(CancellationToken.None));
+
+        Assert.Equal("record-1", failure.Alias);
+        Assert.Equal("region", failure.Entity);
+        Assert.Equal(["shared-parent\r\nInjected-CLI-Line"], failure.ReferenceAliases);
+        Assert.Contains("alias=record-1; entity=region; referenceAliases=shared-parent\\u000D\\u000AInjected-CLI-Line", failure.SafeSummary,
+            StringComparison.Ordinal);
+        Assert.DoesNotContain("Synthetic sensitive server message", failure.SafeSummary, StringComparison.Ordinal);
+        Assert.DoesNotContain("Synthetic", failure.Message, StringComparison.Ordinal);
+        Assert.Same(failure.InnerException, DeploymentCli.ExceptionForReporting(failure));
+        using var output = new StringWriter(System.Globalization.CultureInfo.InvariantCulture);
+        DeploymentCli.WriteSupplementalFailureDiagnostics(failure, output);
+        Assert.Contains("Dataverse fault code[0]: 0x80040217", output.ToString(), StringComparison.Ordinal);
+        Assert.Contains("referenceAliases=shared-parent\\u000D\\u000AInjected-CLI-Line", output.ToString(),
+            StringComparison.Ordinal);
+        Assert.DoesNotContain("Synthetic sensitive server message", output.ToString(), StringComparison.Ordinal);
+        Assert.DoesNotContain("\r\nInjected-CLI-Line", output.ToString(), StringComparison.Ordinal);
+        round.DeleteOwnedRecords();
+        round.VerifyNoRemainingRecords();
+    }
+
+    /// <summary>SDK 傳輸逾時同樣保留失敗 seed 的安全識別，且不讀出或包裝例外訊息。</summary>
+    [Fact]
+    public void SdkRound_SeedTimeoutReportsSafeAliasContext()
+    {
+        using var f = new Fixture();
+        var definition = Definition();
+        var service = new PollingService(f.Service) { CreateFailure = new TimeoutException("Synthetic timeout detail") };
+        var runtime = new ShadowSdkRuntime(service, Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid(),
+            new Dictionary<ShadowScenarioDefinition, ShadowSdkScenario> { [definition] = Source() }, () => { }, f.Clock);
+        using var round = runtime.CreateRound(definition, false);
+
+        var failure = Assert.Throws<ShadowSeedCreateException>(() => round.Seed(CancellationToken.None));
+
+        Assert.Equal("record-1", failure.Alias);
+        Assert.Equal("region", failure.Entity);
+        Assert.Contains("referenceAliases=(none)", failure.SafeSummary, StringComparison.Ordinal);
+        Assert.DoesNotContain("Synthetic timeout detail", failure.SafeSummary, StringComparison.Ordinal);
+        round.DeleteOwnedRecords();
+        round.VerifyNoRemainingRecords();
+    }
+
+    /// <summary>
+    /// Create 已在伺服器落地但回應 fault，且 finally 清理首次刪除失敗時，外層 aggregate 仍須
+    /// 保留 seed alias 與原始 fault code；第二次清理必須排空本輪資料。
+    /// </summary>
+    [Fact]
+    public void SdkRound_SeedFaultAndCleanupFailureKeepSafeCliContext()
+    {
+        using var f = new Fixture();
+        var definition = Definition();
+        var service = new PollingService(f.Service)
+        {
+            CreateFailureAfterWrite = true,
+            CreateFailure = new System.ServiceModel.FaultException<OrganizationServiceFault>(
+                new OrganizationServiceFault { ErrorCode = unchecked((int)0x80040217) },
+                new System.ServiceModel.FaultReason("Synthetic sensitive server message")),
+            FailFirstDelete = true
+        };
+        var runtime = new ShadowSdkRuntime(service, Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid(),
+            new Dictionary<ShadowScenarioDefinition, ShadowSdkScenario> { [definition] = Source() }, () => { }, f.Clock);
+        using var round = runtime.CreateRound(definition, false);
+        var seedFailure = Assert.Throws<ShadowSeedCreateException>(() => round.Seed(CancellationToken.None));
+        Assert.Throws<AggregateException>(() => round.DeleteOwnedRecords());
+
+        using var output = new StringWriter(System.Globalization.CultureInfo.InvariantCulture);
+        var aggregate = new AggregateException("Sensitive aggregate message", seedFailure,
+            new InvalidOperationException("Cleanup detail"));
+        DeploymentCli.WriteSupplementalFailureDiagnostics(aggregate, output);
+        Assert.Same(aggregate, DeploymentCli.ExceptionForReporting(aggregate));
+
+        Assert.Contains("alias=record-1; entity=region", output.ToString(), StringComparison.Ordinal);
+        Assert.Contains("Dataverse fault code[0]: 0x80040217", output.ToString(), StringComparison.Ordinal);
+        Assert.DoesNotContain("Synthetic sensitive server message", output.ToString(), StringComparison.Ordinal);
+        Assert.DoesNotContain("Sensitive aggregate message", output.ToString(), StringComparison.Ordinal);
+        Assert.DoesNotContain("Cleanup detail", output.ToString(), StringComparison.Ordinal);
+        var bounded = new ShadowSeedCreateException("alias-" + new string('x', 256), "region",
+            Enumerable.Range(0, 17).Select(index => "ref-" + index.ToString(System.Globalization.CultureInfo.InvariantCulture)),
+            new InvalidOperationException());
+        Assert.Contains("+(1 more)", bounded.SafeSummary, StringComparison.Ordinal);
+        Assert.DoesNotContain(new string('x', 128), bounded.SafeSummary, StringComparison.Ordinal);
+        Assert.True(bounded.SafeSummary.Length < 8192);
+        var invalid = new ShadowSeedCreateException(null!, null!, null!, new InvalidOperationException());
+        Assert.Contains("alias=(null); entity=(null); referenceAliases=(none)",
+            invalid.SafeSummary, StringComparison.Ordinal);
+        using var unrelatedOutput = new StringWriter(System.Globalization.CultureInfo.InvariantCulture);
+        DeploymentCli.WriteSupplementalFailureDiagnostics(
+            new AggregateException("Synthetic wrapper", new System.ServiceModel.FaultException<OrganizationServiceFault>(
+                new OrganizationServiceFault { ErrorCode = unchecked((int)0x80040220) })), unrelatedOutput);
+        Assert.DoesNotContain("Dataverse fault code[", unrelatedOutput.ToString(), StringComparison.Ordinal);
+        round.DeleteOwnedRecords();
+        round.VerifyNoRemainingRecords();
+    }
+
+    /// <summary>
+    /// 從部署 CLI 的真實 catch 邊界注入 seed fault wrapper，斷言 reporter 收到原始 SDK fault，
+    /// stdout 只含數字碼與安全 alias，並遮蔽內層伺服器訊息；connector 不建立任何組織連線。
+    /// </summary>
+    [Fact]
+    public void Cli_SeedCreateFault_ReportsOriginalFaultAndSafeAliasContext()
+    {
+        var original = new System.ServiceModel.FaultException<OrganizationServiceFault>(
+            new OrganizationServiceFault { ErrorCode = unchecked((int)0x80040217) },
+            new System.ServiceModel.FaultReason("Synthetic sensitive server message"));
+        var failure = new ShadowSeedCreateException("present-1", "new_group_present_weekly_report",
+            ["list-a"], original);
+        var connector = new ThrowingSeedConnector(failure);
+        var reported = new List<Exception>();
+        using var output = new StringWriter(System.Globalization.CultureInfo.InvariantCulture);
+
+        var exitCode = DeploymentCli.Run(
+            ["verify", "--org", "goodshepherdback"], connector, output, reported.Add);
+
+        Assert.Equal(1, exitCode);
+        Assert.Same(original, Assert.Single(reported));
+        Assert.Contains("Dataverse fault code[0]: 0x80040217", output.ToString(), StringComparison.Ordinal);
+        Assert.Contains("alias=present-1; entity=new_group_present_weekly_report; referenceAliases=list-a",
+            output.ToString(), StringComparison.Ordinal);
+        Assert.Contains("Command failed (FaultException`1)", output.ToString(), StringComparison.Ordinal);
+        Assert.DoesNotContain("Synthetic sensitive server message", output.ToString(), StringComparison.Ordinal);
+        Assert.Equal(1, connector.ConnectCount);
+    }
+
+    /// <summary>TimeoutException 經真正 CLI catch 只輸出 seed 身分，不合成不存在的 Dataverse fault code。</summary>
+    [Fact]
+    public void Cli_SeedTimeout_ReportsSafeAliasWithoutDataverseCode()
+    {
+        var failure = new ShadowSeedCreateException("present-1", "new_group_present_weekly_report",
+            ["list-a"], new TimeoutException("Synthetic sensitive timeout"));
+        var connector = new ThrowingSeedConnector(failure);
+        var reported = new List<Exception>();
+        using var output = new StringWriter(System.Globalization.CultureInfo.InvariantCulture);
+
+        var exitCode = DeploymentCli.Run(
+            ["verify", "--org", "goodshepherdback"], connector, output, reported.Add);
+
+        Assert.Equal(1, exitCode);
+        Assert.Same(failure.InnerException, Assert.Single(reported));
+        Assert.Contains("alias=present-1; entity=new_group_present_weekly_report; referenceAliases=list-a",
+            output.ToString(), StringComparison.Ordinal);
+        Assert.DoesNotContain("Dataverse fault code[", output.ToString(), StringComparison.Ordinal);
+        Assert.DoesNotContain("Synthetic sensitive timeout", output.ToString(), StringComparison.Ordinal);
+    }
+
+    /// <summary>
+    /// live-check 與一般 CLI 共用 seed runtime；注入 connector 在真正連線前失敗，驗證專屬 catch
+    /// 也會還原 reporter 的原始 SDK fault、輸出 alias／錯碼並遮蔽原始 fault message。
+    /// </summary>
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void Cli_LiveCheckSeedFault_ReportsOriginalFaultAndSafeAliasContext(bool trailingSeparator)
+    {
+        var original = new System.ServiceModel.FaultException<OrganizationServiceFault>(
+            new OrganizationServiceFault { ErrorCode = unchecked((int)0x80040217) },
+            new System.ServiceModel.FaultReason("Synthetic sensitive server message"));
+        var failure = new ShadowSeedCreateException("record", "appointment", ["signer", "applicant"], original);
+        var connector = new ThrowingSeedConnector(failure);
+        var reported = new List<Exception>();
+        var artifactRoot = Path.Combine(Path.GetTempPath(), "smv-p7-live-cli-" + Guid.NewGuid().ToString("N"));
+        var repository = new DirectoryInfo(AppContext.BaseDirectory);
+        while (repository is not null && !File.Exists(Path.Combine(repository.FullName, "SpeechMessageProducts.sln")))
+            repository = repository.Parent;
+        Assert.NotNull(repository);
+        var scenarioRoot = Path.Combine(repository.FullName, "文件", "規劃設計書", "實作計畫-3.5",
+            "驗收", "P7情境", "appointments");
+        if (trailingSeparator) scenarioRoot += Path.DirectorySeparatorChar;
+        var arguments = new[] { "live-check", "--org", "goodshepherdback", "--module", "appointments", "--scenario-root", scenarioRoot };
+        var catalog = OrganizationCatalog.LoadDefault();
+        Assert.Equal("test", ProductionGuard.Inspect(arguments, catalog, CancellationToken.None).Organization.Kind);
+        Assert.True(DeploymentCli.IsContainedPath(repository.FullName, scenarioRoot, out _));
+        Assert.NotEmpty(ShadowScenarioFiles.LoadLive(repository.FullName, "appointments", acceptance: true));
+        using var output = new StringWriter(System.Globalization.CultureInfo.InvariantCulture);
+
+        try
+        {
+            var exitCode = DeploymentCli.Run(
+                arguments,
+                connector, output, reported.Add, artifactRoot: artifactRoot);
+
+            Assert.Equal(1, exitCode);
+            Assert.Same(original, Assert.Single(reported));
+            Assert.Contains("Dataverse fault code[0]: 0x80040217", output.ToString(), StringComparison.Ordinal);
+            Assert.Contains("alias=record; entity=appointment; referenceAliases=applicant,signer",
+                output.ToString(), StringComparison.Ordinal);
+            Assert.DoesNotContain("Synthetic sensitive server message", output.ToString(), StringComparison.Ordinal);
+            Assert.Equal(1, connector.ConnectCount);
+        }
+        finally
+        {
+            if (Directory.Exists(artifactRoot)) Directory.Delete(artifactRoot, recursive: true);
+        }
     }
 
     /// <summary>種子重複別名或指定外部資料庫 ID 必須在任何 Create 之前拒絕，不能覆寫既有資料。</summary>
@@ -527,6 +754,8 @@ public sealed class ShadowSdkRuntimeTests
         internal bool MutateCreate;
         internal bool WrongOwnedId;
         internal bool FailFirstDelete;
+        internal Exception? CreateFailure;
+        internal bool CreateFailureAfterWrite;
         internal readonly List<Guid> DeleteAttempts = new();
         internal readonly List<string?> CreatedNames = new();
         internal string Fault = "";
@@ -540,7 +769,9 @@ public sealed class ShadowSdkRuntimeTests
         public Guid Create(Entity entity)
         {
             CreatedNames.Add(entity.GetAttributeValue<string>("name"));
+            if (CreateFailure is not null && !CreateFailureAfterWrite) throw CreateFailure;
             var id = inner.Create(entity);
+            if (CreateFailure is not null) throw CreateFailure;
             if (MutateCreate)
             {
                 entity.Id = Guid.NewGuid();
@@ -609,5 +840,18 @@ public sealed class ShadowSdkRuntimeTests
         /// <summary>不提供本工作包未使用的解除關聯能力。</summary>
         public void Disassociate(string entityName, Guid entityId, Relationship relationship, EntityReferenceCollection relatedEntities) =>
             throw new NotSupportedException();
+    }
+
+    /// <summary>在 CLI 連線邊界注入例外，不建立服務或可清理資源。</summary>
+    private sealed class ThrowingSeedConnector(Exception failure) : IOrganizationConnector
+    {
+        internal int ConnectCount;
+
+        /// <summary>記錄單次呼叫後立即擲回注入例外。</summary>
+        public OrganizationLease Connect(string organization)
+        {
+            ConnectCount++;
+            throw failure;
+        }
     }
 }

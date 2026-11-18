@@ -24,7 +24,9 @@
  * credential、request、Session或可變結果快取；secretReader僅在真正寫入設定瞬間解析。
  *
  * 失敗與限制：正常caller取消回130且不通知；真正例外在lease已歸還後交注入的共用report，
- * 只輸出固定摘要、例外型別及最多四層SDK數字錯碼，不讀Message、TraceText或設定本文。
+ * seed識別包裝會先還原原始內層例外供report分類；摘要列出例外型別及最多四層SDK數字錯碼，seed fault 額外列出固定 alias、
+ * logical entity 與 lookup alias，供定位建立順序；AggregateException 只走訪尋找 seed 脈絡，
+ * 一般 aggregate 保持舊輸出。診斷失敗降級為固定訊息，不讀Message、欄位值、TraceText或設定本文。
  * parser／白名單與hash不代表實機寫入授權；VM隔離、備份、復原及本次明確操作範圍須另外證明。
  *
  * 維護驗證：保留DeploymentContractTests原62案與SmokePollingTests；修改路由須另跑SchemaCliTests，
@@ -40,6 +42,7 @@ using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Xrm.Sdk;
+using SpeechMessage.Dynamics.Deployment.Shadow;
 
 namespace SpeechMessage.Dynamics.Deployment;
 
@@ -322,15 +325,15 @@ internal static partial class DeploymentCli
         {
             try
             {
-                report(exception);
+                report(ExceptionForReporting(exception));
             }
             catch
             {
                 WriteFixedError(output);
             }
 
-            WriteDataverseFaultCodes(exception, output);
-            output.WriteLine("Command failed (" + exception.GetType().Name + "). Sensitive details are not shown.");
+            WriteSupplementalFailureDiagnostics(exception, output);
+            output.WriteLine("Command failed (" + ExceptionForReporting(exception).GetType().Name + "). Sensitive details are not shown.");
             return 1;
         }
     }
@@ -385,7 +388,10 @@ internal static partial class DeploymentCli
     /// <param name="output">由呼叫端持有的摘要 writer，本方法不取得其所有權。</param>
     private static void WriteDataverseFaultCodes(Exception exception, TextWriter output)
     {
-        if (exception is not FaultException<OrganizationServiceFault> fault)
+        var fault = exception is ShadowSeedCreateException seedFailure
+            ? seedFailure.InnerException as FaultException<OrganizationServiceFault>
+            : exception as FaultException<OrganizationServiceFault>;
+        if (fault is null)
         {
             return;
         }
@@ -406,6 +412,68 @@ internal static partial class DeploymentCli
             // 原始失敗已先上報；補充診斷不可另起告警或中斷既有固定失敗摘要。
         }
     }
+
+    /// <summary>只輸出有限 SDK 數字碼與 seed 的安全識別，不展開任何原始例外本文。</summary>
+    /// <param name="exception">命令失敗的原始或 seed 識別例外。</param>
+    /// <param name="output">CLI 命令 owner 持有的摘要 writer。</param>
+    internal static void WriteSupplementalFailureDiagnostics(Exception exception, TextWriter output)
+    {
+        try
+        {
+            if (exception is FaultException<OrganizationServiceFault>)
+            {
+                WriteDataverseFaultCodes(exception, output);
+                return;
+            }
+
+            const int maximumExceptions = 16;
+            var pending = new Stack<Exception>();
+            var visited = new HashSet<Exception>(ReferenceEqualityComparer.Instance);
+            pending.Push(exception);
+            for (var inspected = 0; pending.Count != 0 && inspected < maximumExceptions; inspected++)
+            {
+                var current = pending.Pop();
+                if (!visited.Add(current))
+                {
+                    continue;
+                }
+
+                if (current is ShadowSeedCreateException seedFailure)
+                {
+                    output.WriteLine(seedFailure.SafeSummary);
+                    WriteDataverseFaultCodes(seedFailure, output);
+                    continue;
+                }
+
+                if (current is AggregateException aggregate)
+                {
+                    foreach (var inner in aggregate.InnerExceptions.Take(maximumExceptions).Reverse())
+                    {
+                        pending.Push(inner);
+                    }
+                }
+                else if (current.InnerException is not null)
+                {
+                    pending.Push(current.InnerException);
+                }
+            }
+        }
+        catch
+        {
+            try { WriteFixedError(output); } catch { }
+        }
+    }
+
+    /// <summary>
+    /// 避免 seed 脈絡包裝改變共用 reporter 對原始 SDK 例外的型別分類。AggregateException 維持原物件；
+    /// 目前共用 reporter 只記錄最外層型別、HResult 與堆疊符號，不依賴內層例外做分類。
+    /// </summary>
+    /// <param name="exception">CLI 捕捉的單一例外或 aggregate。</param>
+    /// <returns>直接 seed 包裝的原始例外；其他情況保留原始捕捉物件。</returns>
+    internal static Exception ExceptionForReporting(Exception exception) =>
+        exception is ShadowSeedCreateException { InnerException: not null } seedFailure
+            ? seedFailure.InnerException!
+            : exception;
 
     /// <summary>
     /// 將規劃結果轉成 verify 的固定輸出與程序結束碼；純輸出步驟不持有服務、秘密或可變跨命令狀態。

@@ -18,13 +18,15 @@
  * 在seed前及舊輪完成後比較；observer與快照由同一round Dispose清除。每個 round
  * 只支援單一同步呼叫者；SDK 輸入輸出均深複製，禁止部分 Seed 失敗後觸發。
  * 原始業務資料只存活一輪；追蹤最多六十秒、最多二秒一次且回應有界，取消不略過
- * 清理。所有 SDK 例外由外層共用告警處理，本檔不輸出 token、原始 trace 或個資。
+ * 清理。seed Create 的 Dataverse／傳輸 fault 僅附帶安全 alias、logical entity 與 lookup alias，
+ * 供 CLI 定位失敗項目；不帶欄位值、名稱、原始 SDK 訊息或 trace，其他例外保持原身分傳遞。
  */
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
+using System.ServiceModel;
 using System.Text;
 using System.Threading.Tasks;
 using System.Threading;
@@ -37,6 +39,69 @@ namespace SpeechMessage.Dynamics.Deployment.Shadow;
 
 /// <summary>已核對 metadata 的 seed 範本；欄位為 SDK 值，owner 在 Seed 前深層複製。</summary>
 internal sealed record ShadowSdkSeed(string Alias, Entity Record);
+
+/// <summary>只帶 seed 識別脈絡的 SDK 建立失敗；不複製原始訊息或欄位內容。</summary>
+internal sealed class ShadowSeedCreateException : Exception
+{
+    /// <summary>建立只含合成情境 alias 與實體 logical name 的錯誤脈絡。</summary>
+    /// <param name="alias">本輪 seed 的固定 alias。</param>
+    /// <param name="entity">Dataverse logical entity name。</param>
+    /// <param name="referenceAliases">本 seed lookup 所指向的固定 alias。</param>
+    /// <param name="innerException">原始 SDK fault，由 owner 保留供 fault code 擷取。</param>
+    public ShadowSeedCreateException(string alias, string entity, IEnumerable<string> referenceAliases,
+        Exception innerException)
+        : base("Shadow seed Create failed.", innerException)
+    {
+        Alias = alias ?? "(null)";
+        Entity = entity ?? "(null)";
+        ReferenceAliases = Array.AsReadOnly((referenceAliases ?? Array.Empty<string>()).Select(value => value ?? "(null)")
+            .Distinct(StringComparer.Ordinal)
+            .OrderBy(value => value, StringComparer.Ordinal).ToArray());
+    }
+
+    /// <summary>本輪 seed alias，不包含記錄欄位或顯示資料。</summary>
+    public string Alias { get; }
+
+    /// <summary>本輪 seed 的 logical entity name。</summary>
+    public string Entity { get; }
+
+    /// <summary>排序後的 lookup target aliases；唯讀集合僅供單次錯誤摘要。</summary>
+    public IReadOnlyList<string> ReferenceAliases { get; }
+
+    /// <summary>CLI 可列印的固定格式識別摘要，完全不含原始錯誤內容。</summary>
+    public string SafeSummary
+    {
+        get
+        {
+            const int maximumReferences = 16;
+            var references = ReferenceAliases.Take(maximumReferences).Select(EscapeDiagnosticAlias).ToArray();
+            var remainder = ReferenceAliases.Count - references.Length;
+            var referenceText = references.Length == 0 ? "(none)" : string.Join(",", references);
+            if (remainder > 0) referenceText += ",+(" + remainder.ToString(System.Globalization.CultureInfo.InvariantCulture) + " more)";
+            return "Shadow seed Create failed: alias=" + EscapeDiagnosticAlias(Alias) + "; entity=" +
+                EscapeDiagnosticAlias(Entity) + "; referenceAliases=" + referenceText;
+        }
+    }
+
+    /// <summary>將控制字元與非 ASCII 內容轉成可見跳脫，避免合成 alias 注入額外終端行。</summary>
+    private static string EscapeDiagnosticAlias(string? value)
+    {
+        if (value is null) return "(null)";
+        const int maximumCharacters = 64;
+        var characterCount = Math.Min(value.Length, maximumCharacters);
+        var builder = new StringBuilder(characterCount * 6 + 3);
+        for (var index = 0; index < characterCount; index++)
+        {
+            var character = value[index];
+            if (character is >= 'A' and <= 'Z' or >= 'a' and <= 'z' or >= '0' and <= '9' or '-' or '_' or '.' or ':' or '(' or ')')
+                builder.Append(character);
+            else
+                builder.Append("\\u").Append(((int)character).ToString("X4", System.Globalization.CultureInfo.InvariantCulture));
+        }
+        if (value.Length > maximumCharacters) builder.Append("...");
+        return builder.ToString();
+    }
+}
 
 /// <summary>核定的 CRUD 觸發；只可操作本輪自建列，欄位不得包含真實秘密或個資。</summary>
 internal sealed record ShadowSdkTrigger(string Message, string TargetAlias, Entity Fields);
@@ -158,6 +223,7 @@ internal sealed partial class ShadowSdkRuntime : IShadowScenarioRuntime
         // Create trigger 的目標會延後建立，清理順序必須依實際送出順序，不能依 seed 宣告位置。
         private readonly List<(string Entity, Guid Id)> createOrder = new();
         private readonly ShadowSdkTrigger trigger;
+        private readonly Dictionary<string, string[]> seedReferenceAliases;
         private readonly Guid[] stepIds;
         private readonly string[] types;
         private readonly ShadowSdkTokenField[] tokenFields;
@@ -199,6 +265,9 @@ internal sealed partial class ShadowSdkRuntime : IShadowScenarioRuntime
                 source.ReferenceAliases is null || source.ReferenceAliases.Count > 64 ||
                 source.TriggerReferenceAliases is null || source.TriggerReferenceAliases.Count > 128)
                 throw InvalidRuntime();
+            seedReferenceAliases = source.ReferenceAliases.ToDictionary(pair => pair.Key,
+                pair => pair.Value?.Values.OrderBy(alias => alias, StringComparer.Ordinal).ToArray()
+                    ?? throw InvalidRuntime(), StringComparer.Ordinal);
             var names = new HashSet<string>(StringComparer.Ordinal);
             var references = new Dictionary<string, EntityReference>(StringComparer.Ordinal);
             var identities = new HashSet<Guid>();
@@ -335,7 +404,16 @@ internal sealed partial class ShadowSdkRuntime : IShadowScenarioRuntime
             {
                 cancellationToken.ThrowIfCancellationRequested();
                 if (trigger.Message == "Create" && item.Alias == trigger.TargetAlias) continue;
-                CreateOwned(item.Record);
+                try
+                {
+                    CreateOwned(item.Record);
+                }
+                catch (Exception exception) when (exception is CommunicationException or TimeoutException)
+                {
+                    seedReferenceAliases.TryGetValue(item.Alias, out var referenceAliases);
+                    throw new ShadowSeedCreateException(item.Alias, item.Record.LogicalName,
+                        referenceAliases ?? Array.Empty<string>(), exception);
+                }
                 cancellationToken.ThrowIfCancellationRequested();
             }
             cancellationToken.ThrowIfCancellationRequested();
@@ -603,6 +681,7 @@ internal sealed partial class ShadowSdkRuntime : IShadowScenarioRuntime
             liveActivity = null;
             liveExpectedTasks = Array.Empty<LiveTaskExpectation>();
             liveMetadata = null;
+            seedReferenceAliases.Clear();
         }
 
         /// <summary>預先登錄已知 ID，確保「伺服器建立但回應失敗」仍能以該 ID 查回清理。</summary>
