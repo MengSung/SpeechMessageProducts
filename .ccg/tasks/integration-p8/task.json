@@ -1,0 +1,12 @@
+{
+  "id": "integration-p8",
+  "title": "實作計畫 3.5 階段 8 專案終點",
+  "status": "in_progress",
+  "complexity": "L",
+  "risk": "high",
+  "domain": "backend",
+  "currentPhase": "implementation",
+  "nextAction": "依 08A 固定順序完成 P8-00 到專案終點回報；目前先完成 P8-00",
+  "createdAt": "2026-11-19T20:01:22+08:00",
+  "branch": "1.0.0.11.Integration.P8.Worktree"
+}

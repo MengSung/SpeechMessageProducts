@@ -1,12 +1,12 @@
 {
   "domain": "backend",
   "createdAt": "2026-11-19T08:52:05.5992254+08:00",
-  "currentPhase": "implementation",
+  "currentPhase": "completed",
   "id": "p7-02b-rehearsal-completion",
   "complexity": "L",
   "branch": "1.0.0.11.Integration.P7.Worktree",
   "risk": "high",
-  "nextAction": "等待唯一收尾提交amend核定；繼續離線補齊五模組P7情境與契約，合批程式提交完整guard後才允許live-check",
-  "status": "in_progress",
+  "nextAction": "P7-02b 已結案；依 P8-00 封存本子任務，P7 父任務保留不動",
+  "status": "completed",
   "title": "P7 剩餘演練、離線診斷與階段審查"
 }

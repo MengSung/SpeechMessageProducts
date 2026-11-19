@@ -240,11 +240,11 @@ footer{margin-top:36px;color:var(--muted);font-size:12.5px;text-align:center}
  */
 const DATA = {
   "planVersion": "3.5",
-  "snapshot": "2026-11-19 09:15 Asia/Taipei (UTC+08:00)",
-  "lastUpdated": "2026-11-19T17:58:08+08:00",
-  "branch": "1.0.0.11.Integration.P7.Worktree",
-  "head": "552bdbcfe625cdcf736dc347cbad6f95068aed6c",
-  "headline": "2026-11-19 17:58 Asia/Taipei (UTC+08:00)：P7-02a已推送；P7-02b R5b/R6～R9按縮減範圍完成，33項live12/pass1/dormant21，未解及延後項列於P8以後清單。ClaudeOnly單模型審查完成，Critical／High已處理。進度頁note尾逗號已修正且ProgressPage 28/28；結案提交及遠端SHA見本輪驗收紀錄。goodshepherdback最後核對off=0、trace=1，不啟動階段8。",
+  "snapshot": "2026-11-19 20:13 Asia/Taipei (UTC+08:00)",
+  "lastUpdated": "2026-11-19T20:13:17+08:00",
+  "branch": "1.0.0.11.Integration.P8.Worktree",
+  "head": "c6433c03581fbaed61809f386069b4118f384321",
+  "headline": "階段 8 2026-11-19 20:13 Asia/Taipei (UTC+08:00)：依 08A 固定順序開工；P8-00 前置盤點中，goodshepherdback 唯讀 verify 連線失敗，狀態未確認；不宣稱 off 或 verify=0。",
   "notices": [
     {
       "id": "plan-3.5-summary",
@@ -696,6 +696,20 @@ const DATA = {
         "2026-11-19 09:15 Asia/Taipei (UTC+08:00)：使用者核定的範圍縮減，影響07A §5 R8、R5a重演、附錄乙、手冊正式組織章節：R8只做本次switch-log rollback／verify off=0，不對R1 export／export-legacy或流程定義逐位元組比對；不重演R5a，R5b只再切一次供R6；不新增或擴充正式確認關卡、正式組織手冊章節及附錄乙核定書範例。既有ProductionGuard、--production、stdin確認、rollback及手冊檔案／契約字串保留，不改07A；每模組90分鐘／最多2次實機；只goodshepherdback、不啟階段8。",
         "2026-11-19 09:15 Asia/Taipei (UTC+08:00)：6d57ec22完整guard重試於編碼關卡失敗：封存P7-02a task.json缺末尾CRLF，未推送；需核定amend唯一收尾提交。08:56補充唯讀已確認verify off=0、D34通過、待辦／smoke／SMV-TEST0、trace1、保留診斷trace2；未做新switch或live-check。離線原因碼審查缺口修正，24案通過，尚未全guard／實機。"
       ]
+    },
+    {
+      "id": "phase-8-summary",
+      "phaseId": "階段 8",
+      "level": "info",
+      "title": "P8 進度摘要",
+      "body": "2026-11-19 20:01 Asia/Taipei (UTC+08:00)：階段 8 依 08A 固定順序啟動；起點 6a37f16b，Release 7341／Debug tracer 7 為 P7 最末完整守門基準。唯讀 verify 一次回傳 InvalidDataException，未取得 goodshepherdback 目前狀態；秘密鍵、D34、待辦及殘留狀態均不推定為通過。",
+      "lastUpdated": "2026-11-19T20:13:17+08:00",
+      "steps": [
+        "2026-11-19 20:01 Asia/Taipei (UTC+08:00)：起點與分支核對為 6a37f16ba111943eb023c14dea3c9a006a0f0a5c、1.0.0.11.Integration.P8.Worktree；P8 分支遠端尚不存在，依 08A 首次推送延至 P8-01a 驗收後。",
+        "2026-11-19 20:01 Asia/Taipei (UTC+08:00)：P7 最末完整守門基準 Release 7341、Debug tracer 7；Deployment.Tests 977 僅為候選檢查點；註冊清冊 live 12／pass 1／dormant 21；CJK 專案 count 合計 3764。",
+        "2026-11-19 20:01 Asia/Taipei (UTC+08:00)：唯讀 verify --org goodshepherdback 一次以 InvalidDataException 結束，未取得目前狀態；未重試、未寫入組織，不記作 verify=0。",
+        "2026-11-19 20:13 Asia/Taipei (UTC+08:00)：階段 8 Trellis 父任務與 P8-00 子任務已啟動；P7-02b 子任務已封存。封存工具自動產生紀錄提交 c6433c035，P7 父任務未修改。"
+      ]
     }
   ],
   "userActions": [
@@ -866,7 +880,6 @@ const DATA = {
       "name": "D365 9.1 切換（逐組織）",
       "planned": "每組織 1 天＋觀察 1 週",
       "actual": "2026-11-19 17:58 Asia/Taipei (UTC+08:00)：P7-02a已由4f221bda推送並核SHA一致；P7-02b依核定縮減範圍完成R5b/R6～R9及單模型ClaudeOnly審查。33項live12/pass1/dormant21；R9 off=0、D34通過、待辦／marker／SMV-TEST／smoke=0、trace=1、P7Live停止。提交552bdbcf固定guard八項通過、Release 7341/7341；已推送且ls-remote SHA一致。補正進度頁DATA尾逗號後，ProgressPage 28/28。只goodshepherdback、不啟用舊步驟或流程、不啟動階段8。",
-      "current": true,
       "done": 2,
       "active": 0
     },
@@ -874,7 +887,10 @@ const DATA = {
       "id": "階段 8",
       "name": "收尾、偽語系驗收、教會設定網頁",
       "planned": "3～4 個工作天",
-      "actual": ""
+      "actual": "2026-11-19 20:01 Asia/Taipei (UTC+08:00)：依 08A 固定順序開工；目前 P8-00 前置盤點中。",
+      "current": true,
+      "done": 0,
+      "active": 0
     }
   ],
   "wps": [
@@ -1891,6 +1907,13 @@ const DATA = {
   ],
   "milestones": [
     {
+      "id": "專案終點",
+      "phaseId": "階段 8",
+      "name": "實作計畫 3.5 專案終點回報與停止",
+      "status": "todo",
+      "note": "2026-11-19 20:01 Asia/Taipei (UTC+08:00)：依 08A §4.8 登錄；整體驗收、階段審查及終點文件尚未完成。"
+    },
+    {
       "id": "M-P0-REVIEW",
       "phaseId": "階段 0",
       "name": "階段 0 外部審查（單模型，使用者指定 ClaudeOnly）",
@@ -2284,6 +2307,36 @@ const DATA = {
       "text": "2026-11-17 12:43 Asia/Taipei (UTC+08:00)：演練發現的舊錯字與用語另記，不擴大本階段。",
       "source": "07A §9",
       "addedAt": "2026-11-17T12:43:48+08:00"
+    },
+    {
+      "id": "P8-LATER-001",
+      "text": "2026-11-19 20:01 Asia/Taipei (UTC+08:00)：Plugin 在沙箱內讀取教會覆寫；由使用者決定是否支援。",
+      "source": "08A §9",
+      "addedAt": "2026-11-19T20:01:22+08:00"
+    },
+    {
+      "id": "P8-LATER-002",
+      "text": "2026-11-19 20:01 Asia/Taipei (UTC+08:00)：教會設定頁的多語名稱 Data.OfferingCategory.{ID}.Name（en 尚未開放）。",
+      "source": "08A §9",
+      "addedAt": "2026-11-19T20:01:22+08:00"
+    },
+    {
+      "id": "P8-LATER-003",
+      "text": "2026-11-19 20:01 Asia/Taipei (UTC+08:00)：/api/callback 相容路由的移除條件待決定。",
+      "source": "08A §9",
+      "addedAt": "2026-11-19T20:01:22+08:00"
+    },
+    {
+      "id": "P8-LATER-004",
+      "text": "2026-11-19 20:01 Asia/Taipei (UTC+08:00)：ChurchReport 舊頁面版面與錯字是否修正，依 I6 不納入本階段。",
+      "source": "08A §9",
+      "addedAt": "2026-11-19T20:01:22+08:00"
+    },
+    {
+      "id": "P8-LATER-005",
+      "text": "2026-11-19 20:01 Asia/Taipei (UTC+08:00)：observe 每週自動彙整一頁。",
+      "source": "08A §9、P7-LATER-003",
+      "addedAt": "2026-11-19T20:01:22+08:00"
     }
   ],
   "proposals": [
@@ -2677,7 +2730,71 @@ const DATA = {
       "evidence": "本輪LIVE-PREP-09離線原因碼路徑與使用者核定紀錄；活動tier與空白Live evidence見plugins.registration.json。",
       "proposal": "活動（Workflow）的 Live 測試工具需支援流程樣板建立（LIVE-PREP-09）。使用者確認未來產品會沿用 Workflow，列為後續階段必做項目；完成後補驗 7 個 dormant 活動。",
       "impact": "後續階段必做；完成後補驗ContactAnniversaryActivity、LessonQrCodeActivity、AppointmentSigningActivity、MeetingQrCodeActivity、MeetingScanCountActivity、PersonalQrCodeActivity、FeeAllotActivity。",
-      "status": "2026-11-19 16:43 Asia/Taipei (UTC+08:00)：依使用者最新核定列為後續階段必做；本階段不擴充工具、不執行七個活動。"
+      "status": "2026-11-19 20:01 Asia/Taipei (UTC+08:00)：階段 8 遺留 L2 執行；工具支援 Workflow 樣板並依結果補驗七個 dormant 活動。"
+    },
+    {
+      "id": "P8-PROP-001",
+      "problem": "遺留 L3 時間盒用完仍未通過 Live 檢查的步驟。",
+      "evidence": "2026-11-19 20:01 Asia/Taipei (UTC+08:00)：依 08A §9 登錄；實際結果由遺留 L3 回填。",
+      "proposal": "未通過項目改為 dormant，reason 以 P8-PROP-001 及原因碼開頭；上線前由使用者決定是否另排時間處理。",
+      "impact": "限 P8 遺留 L3 的 live 步驟。",
+      "status": "預先核定預設，待遺留 L3 結果"
+    },
+    {
+      "id": "P8-PROP-002",
+      "problem": "Workflow 活動樣板工具結論與仍未通過的活動。",
+      "evidence": "2026-11-19 20:01 Asia/Taipei (UTC+08:00)：依 08A §9 登錄；實際工具與補驗結果由遺留 L2／L3 回填。",
+      "proposal": "依 08A §4.6、§4.7 處理；不可行時活動維持 dormant 並記錄 LIVE-PREP-10 fault 碼。",
+      "impact": "限七個 P7 遺留 Workflow 活動及 Live 工具。",
+      "status": "預先核定預設，待遺留 L2／L3 結果"
+    },
+    {
+      "id": "P8-PROP-003",
+      "problem": "名稱相同或相近的奉獻類別未合併。",
+      "evidence": "2026-11-19 20:01 Asia/Taipei (UTC+08:00)：依 08A §9 登錄，資料列以 D365 ID 區分。",
+      "proposal": "不合併；教會可於設定頁停用其中一項。",
+      "impact": "奉獻類別清單與教會設定頁。",
+      "status": "依 08A 預先核定，不合併"
+    },
+    {
+      "id": "P8-PROP-004",
+      "problem": "ChurchReport 約 40 處以中文身分標籤比對。",
+      "evidence": "2026-11-19 20:01 Asia/Taipei (UTC+08:00)：依 08A §1 F12 登錄。",
+      "proposal": "本階段不改；若未來支援教會新增角色，先改用代碼。",
+      "impact": "ChurchReport 既有身分判斷。",
+      "status": "之後再說"
+    },
+    {
+      "id": "P8-PROP-005",
+      "problem": "全教會權限沿用 new_church_jobtitle 文字比對。",
+      "evidence": "2026-11-19 20:01 Asia/Taipei (UTC+08:00)：依 08A §1 F13 登錄；現行權限由伺服器讀取登入者 contact 判定。",
+      "proposal": "沿用既有權限判定；改為代碼或專用欄位需資料轉換，交使用者決定。",
+      "impact": "ChurchReport 全教會資料範圍。",
+      "status": "之後再說"
+    },
+    {
+      "id": "P8-PROP-006",
+      "problem": "ChurchReport 舊頁面（含 LIFF）未國際化。",
+      "evidence": "2026-11-19 20:01 Asia/Taipei (UTC+08:00)：依 08A §1 F16 及 I6 登錄。",
+      "proposal": "依 I6 排除偽語系稽核；是否全面國際化由使用者決定。",
+      "impact": "ChurchReport 舊頁與 LIFF。",
+      "status": "之後再說"
+    },
+    {
+      "id": "P8-PROP-007",
+      "problem": "16.4 第②步與第⑥步採合成簽章事件及替代證據。",
+      "evidence": "2026-11-19 20:01 Asia/Taipei (UTC+08:00)：依 D8-20 登錄。",
+      "proposal": "依 08A 指定方式執行，報告明確指出替代證據與未改機器時區。",
+      "impact": "P8-04b 偽語系實機驗收。",
+      "status": "預先核定，待 P8-04b 結果"
+    },
+    {
+      "id": "P8-PROP-008",
+      "problem": "05、00、附錄及 08A 文字存在差異。",
+      "evidence": "2026-11-19 20:01 Asia/Taipei (UTC+08:00)：以 08A 為本階段唯一執行清單。",
+      "proposal": "3.6 時一次修正文案；本階段依 08A 執行。",
+      "impact": "後續計畫文件一致性。",
+      "status": "待 3.6 處理"
     }
   ],
   "decisions": [

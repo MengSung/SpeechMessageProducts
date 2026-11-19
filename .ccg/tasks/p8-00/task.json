@@ -1,0 +1,13 @@
+{
+  "id": "p8-00",
+  "title": "P8-00 階段 8 開工切換與前置缺項檢查",
+  "status": "in_progress",
+  "complexity": "M",
+  "risk": "medium",
+  "domain": "docs",
+  "currentPhase": "implementation",
+  "nextAction": "完成進度 DATA、指定檢查、回報與提交；P8-00 不推送",
+  "createdAt": "2026-11-19T20:01:22+08:00",
+  "branch": "1.0.0.11.Integration.P8.Worktree",
+  "parent": "integration-p8"
+}
