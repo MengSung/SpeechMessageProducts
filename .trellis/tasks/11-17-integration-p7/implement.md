@@ -15,8 +15,8 @@
 - [x] P7-01b
 - [x] P7-01c
 - [x] P7-02a（21個既有提交經使用者核定結案；`4f221bda`含唯一收尾紀錄修補及完整guard修正，已推送且遠端SHA一致）
-- [ ] P7-02b
-- [ ] 階段審查與 §6A 收尾
+- [x] P7-02b（R5b/R6～R9依使用者縮減範圍完成；未解／延後列於P8以後清單；D7-22表單依本輪縮減未執行，不列為本單元阻擋，人工程序記於P7-PROP-005）
+- [ ] 階段審查與 §6A 收尾（ClaudeOnly審查已完成，High文案已修正；完整guard、提交推送及ls-remote待完成）
 
 ## 驗證與續跑
 每段指定測試先紅後綠，通過後提交並在固定 guard 完整 00 §8.1；P7-00/前置 A 依 07A 輕量檢查。每次開始讀頁面 DATA、git log/status、父任務與最新 goodshepherdback artifacts，verify；若演練未回 off 先回復。首次推送在前置 B 驗收後。
@@ -116,3 +116,7 @@ D34 已實測通過；待辦 0、追蹤原值 1；22 新步驟全部停用、舊
 2026-11-19 11:29 Asia/Taipei (UTC+08:00)：依使用者2026-11-19全權委任採推薦方案：保留完整guard與階段起點，不以改base或放寬守門掩蓋禁改執行紀錄的MissingFinalCrlf；只修P7-02b自有紀錄，繼續離線驗證並維持P7-02a未推送及新R5b未開始狀態。c6059943固定guard的Release建置、全方案Release測試、Debug tracer通過，但Changed編碼因`.ccg/tasks/line-token-config-separation/.turns.json`失敗；遵守禁改指示，不改該檔、不改守門，因此該提交尚不可宣告驗收或推送。活動輸入XAML繫結無可驗證契約時維持fail-closed；不啟用舊流程、不猜欄位，準備／環境失敗維持原tier。後續先完成允許的離線檢查及紀錄。
 
 2026-11-19 13:28 Asia/Taipei (UTC+08:00)：候選離線驗證更新：Deployment.Tests 977/977、進度頁28/28、檔案說明1826檔0失敗、Changed編碼15檔0問題、`git diff --check`通過、TextEncoding Pester 22/22。清冊33項為live12/pass0/dormant21/未解live12；13個活動皆dormant，七項核定理由逐項一致。以上不是Live結果，尚未跑完整八項guard、重新R5b或live-check。既有`C:\smv\guard`含忽略的使用者Trellis任務資料，為避免固定clean刪除此資料，候選提交guard將使用獨立乾淨worktree。
+
+2026-11-19 16:43 Asia/Taipei (UTC+08:00)：P7-02b R5b/R6/R7/R8/R9結果已完成；33項tier總表live12/pass1/dormant21，另11項未解或未檢查，逐項原因及P8以後建議見`wp-reports/P7-02-evidence.md`。最新R9唯讀off=0、D34通過、待辦／marker／smoke／SMV-TEST=0、trace=1、診斷trace=0、P7Live停止。D7-22表單未執行，依P7-PROP-005留下人工步驟；Workflow Live工具樣板建立依P7-PROP-007列後續必做。最終ClaudeOnly、完整guard、提交推送及遠端SHA核對尚待完成。
+
+2026-11-19 17:02 Asia/Taipei (UTC+08:00)：最終ClaudeOnly階段審查輸出可用，標記「單模型（使用者指定 ClaudeOnly）」。未發現Critical；High指出證據頁預先宣稱無Critical／High，已改為記錄審查時間、實際結果與修正。Medium補記attendance原始證據僅存本機，以及診斷trace起點2、R9為0但缺少中間備份／清理紀錄；trace去向列P8以後未解，不推定已清理。父任務將P7-02b勾選範圍明確限定為縮減後範圍，D7-22仍單獨標示未執行。完整guard、提交推送與遠端SHA核對尚待完成。

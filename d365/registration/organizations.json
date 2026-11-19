@@ -6,15 +6,7 @@
       "kind": "test",
       "host": "goodshepherdback.speechmessage.com.tw",
       "switchState": "off",
-      "tierOverrides": [
-        {
-          "target": "SpeechMessage.Dynamics.Plugins.Messaging.OutboundLetterPlugin",
-          "tier": "live",
-          "reason": "演練：依07A R5b核定，驗證外送訊息代送切換；不連正式組織。",
-          "decidedBy": "演練",
-          "decidedAt": "2026-11-18 21:39 Asia/Taipei (UTC+08:00)"
-        }
-      ]
+      "tierOverrides": []
     }
   ]
 }

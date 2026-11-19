@@ -1826,7 +1826,7 @@ const DATA = {
       "timebox": "1 天",
       "doneAt": "",
       "commit": "",
-      "note": "2026-11-19 13:08 Asia/Taipei (UTC+08:00)：P7-02a收尾及guard範圍修正提交4f221bda已推送並核對遠端SHA一致。P7-02b離線工作進行中；目前live 12、pass 0、dormant 21、未解live 12，無本輪實機pass。未重新R5b或live-check；R6每模組60分鐘、最多2次。使用者核定的縮減影響07A §5 R8、R5a重演、附錄乙及手冊正式組織章節，保留全部既有安全關卡且不改07A。"
+      "note": "2026-11-19 17:02 Asia/Taipei (UTC+08:00)：R5b一次切換及R8 rollback／verify完成；R6共12個live項目，attendance 1 pass、11未解或未檢查，21個dormant（含使用者核定七個Workflow活動）。R9唯讀off=0、D34通過、待辦／marker／SMV-TEST／smoke=0、trace=1、診斷trace=0、P7Live已停止。R7系統作業與Workflow失敗0，trace exceptions 2未能逐筆分類；診斷trace起點2至R9為0，去向無證據，列P8以後未解。D7-22依核定範圍未執行並依P7-PROP-005記人工步驟。ClaudeOnly審查單模型完成，High文案已修正；完整guard／提交／推送待完成。"
     },
     {
       "id": "P8-01",
@@ -2050,7 +2050,7 @@ const DATA = {
       "phaseId": "階段 7",
       "name": "P7-02b（07A固定單元）",
       "status": "active",
-      "note": "2026-11-19 13:08 Asia/Taipei (UTC+08:00)：依使用者核定範圍縮減（影響07A §5 R8、R5a重演、附錄乙、手冊正式組織章節），不做R1匯出／流程位元組比對、不重演R5a、不新增正式組織關卡／手冊章節／附錄乙範例，保留ProductionGuard、--production、stdin組織確認與rollback程式，不改07A。使用者明確核定僅七個活動因LIVE-PREP-09改dormant，固定P7-PROP-006 reason；同模組Plugin不降級。新活動工具提案P7-PROP-007。R6每模組60分鐘、最多2次。新增appointments依賴順序與appointments／lessons／fees dormant活動不阻擋Plugin準備測試，先紅後綠4案通過；Deployment.Tests 975/975為加兩案前的完整結果，新增聚焦4案另通過。當前離線變更尚未完整guard／提交，live 12、pass 0、dormant 21、未解live 12，尚無本輪實機結果。"
+      "note": "2026-11-19 17:02 Asia/Taipei (UTC+08:00)：P7-02b R5b/R6/R7/R8/R9結果已落證據頁；33項總表為live 12、pass 1、dormant 21。七個Workflow活動因核定LIVE-PREP-09維持dormant，care/qrcodes未檢查；其餘未解及延後項目列於P8以後待驗證清單。D7-22依核定範圍未執行並依P7-PROP-005列人工步驟；P7-PROP-007列後續必做。ClaudeOnly審查標記「單模型（使用者指定 ClaudeOnly）」已完成，High文案已修正；完整guard、提交推送及遠端SHA核對待完成。"
     }
   ],
   "active": [
@@ -2709,9 +2709,9 @@ const DATA = {
       "id": "P7-PROP-007",
       "problem": "2026-11-19 13:08 Asia/Taipei (UTC+08:00)：Live測試工具尚未支援Workflow活動樣板建立及XAML參數繫結驗證；本次七個活動為使用者特別核定例外。",
       "evidence": "本輪LIVE-PREP-09離線原因碼路徑與使用者核定紀錄；活動tier與空白Live evidence見plugins.registration.json。",
-      "proposal": "將來有產品需要上線使用流程活動時，再補安全樣板建立與參數繫結驗證；不列為上線前通用必補項目。",
-      "impact": "只影響後續需要上線流程活動的產品；不得擴大本輪七項dormant例外。",
-      "status": "2026-11-19 13:08 Asia/Taipei (UTC+08:00)：新增提案，未授權本輪擴充實作。"
+      "proposal": "活動（Workflow）的 Live 測試工具需支援流程樣板建立（LIVE-PREP-09）。使用者確認未來產品會沿用 Workflow，列為後續階段必做項目；完成後補驗 7 個 dormant 活動。",
+      "impact": "後續階段必做；完成後補驗ContactAnniversaryActivity、LessonQrCodeActivity、AppointmentSigningActivity、MeetingQrCodeActivity、MeetingScanCountActivity、PersonalQrCodeActivity、FeeAllotActivity。",
+      "status": "2026-11-19 16:43 Asia/Taipei (UTC+08:00)：依使用者最新核定列為後續階段必做；本階段不擴充工具、不執行七個活動。"
     }
   ],
   "decisions": [

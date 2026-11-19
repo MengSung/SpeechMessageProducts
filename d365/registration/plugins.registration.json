@@ -423,10 +423,10 @@
             "tokenKey": true,
             "reason": "",
             "evidence": {
-              "file": "",
-              "sha256": "",
-              "at": "",
-              "result": ""
+              "file": "artifacts/d365/goodshepherdback/20261119-075315-7562587-dd01266836a745918c02766bb6f4d88f/live-check.json",
+              "sha256": "04980FA03DFAFD7A7B7BA1C180A40F720DB142CDA0546EA6256C4229BC050F3C",
+              "at": "2026-11-19 15:53 Asia/Taipei (UTC+08:00)",
+              "result": "pass"
             }
           }
         },

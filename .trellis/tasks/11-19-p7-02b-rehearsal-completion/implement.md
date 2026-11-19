@@ -2,14 +2,15 @@
 - [x] 必讀與唯讀起點：首次verify/D34連線失敗；補充診斷唯讀探針成功，D34/待辦0/smoke0/SMV-TEST0/trace1/診斷trace2；verify off=0。原因未證實，不推論權限或快取。
 - [x] 撤回未提交16筆不當dormant與移除override，記錄於P7演練紀錄。
 - [x] P7-02a收尾紀錄與guard範圍修正已由`4f221bda`推送；`git ls-remote`核對遠端SHA一致。
-- [ ] 離線Live原因碼逐碼測試先紅後綠；Deployment.Tests/文件/編碼；完整guard八項後提交。
-- [ ] 重新R5b plan逐行審/switch/verify plan；記時間與R8 log。
-- [ ] R6九模組依序，代送owner按模組啟停；missing P7情境補正與離線測試guard。
-- [ ] R7 observe與失敗作業逐筆分類。
-- [ ] finally R8原log rollback/verify off（依核定不對R1）；此後才填evidence與移除override；提交guard。
-- [ ] R9精確trace備份後清理、零測試殘留/trace1/host停止。
-- [ ] D7-22表單2小時、手冊定稿、wp-reports/P7-02-evidence.md。
-- [ ] 最終提交完整guard、推送核SHA；ClaudeOnly階段審查與Critical/High處理後停止回報。
+- [x] 離線Live原因碼／測試、Deployment.Tests、文件與編碼及完整guard已由已推送提交鏈驗收。
+- [x] R5b plan逐行審、單次switch及verify plan完成；R8使用本次switch-log rollback。
+- [x] R6依最新核定只跑有Plugin的指定模組；attendance pass，其餘失敗／未執行項目維持tier並列待驗證；care/qrcodes未檢查。
+- [x] R7 observe完成；系統作業與Workflow失敗0，2筆trace exception無逐筆原因資訊，已列未解。
+- [x] R8依縮減範圍rollback／verify off完成；其後只寫attendance pass evidence並移除演練override。
+- [x] R9唯讀核對off=0、D34通過、待辦／marker／SMV-TEST／smoke=0、trace=1、診斷trace=0、P7Live停止；診斷trace起點2至R9為0的去向缺少證據，列未解。
+- [x] D7-22表單依使用者核定縮減範圍未執行，不列本單元結案阻擋；無安全的現有SDK表單寫入入口，按P7-PROP-005保留備份／人工發布／讀回／失敗還原步驟。手冊時間與常見狀況、證據頁已更新。
+- [x] ClaudeOnly階段審查完成，標記「單模型（使用者指定 ClaudeOnly）」；High文案已修正，Critical／High無未處理項目。
+- [ ] 最終提交完整guard、推送核SHA，完成後停止，不啟動階段8。
 
 ## 使用者核定的範圍縮減與例外
 
@@ -44,3 +45,15 @@
 2026-11-19 13:28 Asia/Taipei (UTC+08:00)：部署原因碼與情境修改完成候選驗證。`SpeechMessage.Dynamics.Deployment.Tests` 977/977；ProgressPage 28/28；檔案說明 1826 檔、0 失敗；Changed 編碼 15 檔、0 問題；`git diff --check`通過；TextEncoding Pester 22/22。這些全是離線結果，不是Live證據。固定八項guard尚未對候選提交執行，R5b／live-check尚未開始。
 
 清冊確認共33項：live 12、pass 0、dormant 21、未解live 12。13個活動目前全為dormant；organizations演練override僅OutboundLetterPlugin。現存`C:\smv\guard`含忽略的使用者Trellis任務資料，固定runner的`git clean -ffdx`會刪除它們；依全權委任採推薦方案：保留既有資料，在全新候選提交worktree執行相同八項guard，不以刪除使用者資料換取守門通過。
+
+## 2026-11-19 16:43 Asia/Taipei (UTC+08:00) 演練收尾檢查點
+
+R5b/R6/R7/R8/R9已依使用者2026-11-19最新範圍完成。本輪R6只執行含Plugin的核定模組順序；localization church-defaults未解`0x80040224`，weeklyreports兩次`LIVE-PREP-03`，attendance單案pass，lessons遇`0x80040224`，appointments `LIVE-PREP-03`，fees relay前置失敗且未取得安全原因碼；messaging無核准情境未執行；care/qrcodes只有活動，核定為未檢查。失敗／未檢查項目維持原tier、不寫manifest evidence。清冊總數33：live12/pass1/dormant21。
+
+localization根因調查：四欄metadata為字串且值符合長度，已排除值超長及欄型不符；仍缺目標列state與`IsValidForUpdate`，不猜平台根因。R7系統作業及Workflow失敗0，trace exception計數2但無逐筆原因碼。R8不對R1做匯出／流程比對；R9最新唯讀verify off=0、D34通過、待辦／marker／smoke／SMV-TEST=0、trace1、診斷trace0、P7Live停止。
+
+D7-22未執行：現有Deployment UI方案會排除account/contact FormXml，沒有安全既有SDK更新命令；不臨時直寫表單。依P7-PROP-005記為後續人工程序。Evidence已增「P8以後的待驗證清單」及建議下一步；Workflow工具支援流程樣板建立（LIVE-PREP-09）依最新核定列P7-PROP-007後續必做，完成後補驗7個dormant活動。
+
+2026-11-19 17:02 Asia/Taipei (UTC+08:00)：最終ClaudeOnly審查已完成並記錄於證據頁；High指出審查結論曾被預寫，已改為如實記錄審查結果及修正。診斷trace在08:56為2、16:43為0，但沒有足以證明期間備份／清理的紀錄；依使用者全權委任採推薦方案，不猜原因，列為P8以後未解並保留在回報清單。attendance原始證據檔為本機忽略檔，證據頁已揭露不隨repo推送。
+
+2026-11-19 16:43 Asia/Taipei (UTC+08:00)：依使用者2026-11-19全權委任採推薦方案：保持表單寫入fail-closed，不以未審核SDK直寫替代缺少的產品命令；備份、人工發布／讀回與失敗還原留在P7-PROP-005，沒有偽造表單通過證據。
