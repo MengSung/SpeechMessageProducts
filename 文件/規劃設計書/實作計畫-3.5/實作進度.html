@@ -240,11 +240,11 @@ footer{margin-top:36px;color:var(--muted);font-size:12.5px;text-align:center}
  */
 const DATA = {
   "planVersion": "3.5",
-  "snapshot": "2026-11-19 20:13 Asia/Taipei (UTC+08:00)",
-  "lastUpdated": "2026-11-19T20:13:17+08:00",
+  "snapshot": "2026-11-19 20:48 Asia/Taipei (UTC+08:00)",
+  "lastUpdated": "2026-11-19T20:48:27+08:00",
   "branch": "1.0.0.11.Integration.P8.Worktree",
-  "head": "c6433c03581fbaed61809f386069b4118f384321",
-  "headline": "階段 8 2026-11-19 20:13 Asia/Taipei (UTC+08:00)：依 08A 固定順序開工；P8-00 前置盤點中，goodshepherdback 唯讀 verify 連線失敗，狀態未確認；不宣稱 off 或 verify=0。",
+  "head": "29740bf5dccc64609ed10ce315283d2449924554",
+  "headline": "階段 8 2026-11-19 20:48 Asia/Taipei (UTC+08:00)：P8-00 已驗收，完整守門全通過；goodshepherdback 唯讀 verify 仍未取得狀態，接續 P8-01a 離線工作。",
   "notices": [
     {
       "id": "plan-3.5-summary",
@@ -702,13 +702,14 @@ const DATA = {
       "phaseId": "階段 8",
       "level": "info",
       "title": "P8 進度摘要",
-      "body": "2026-11-19 20:01 Asia/Taipei (UTC+08:00)：階段 8 依 08A 固定順序啟動；起點 6a37f16b，Release 7341／Debug tracer 7 為 P7 最末完整守門基準。唯讀 verify 一次回傳 InvalidDataException，未取得 goodshepherdback 目前狀態；秘密鍵、D34、待辦及殘留狀態均不推定為通過。",
-      "lastUpdated": "2026-11-19T20:13:17+08:00",
+      "body": "2026-11-19 20:48 Asia/Taipei (UTC+08:00)：P8-00 已驗收並提交 29740bf5；專用 guard 的 §8.1 全部通過。唯讀 verify 一次回傳 InvalidDataException，未取得 goodshepherdback 目前狀態；秘密鍵、D34、待辦及殘留狀態均不推定為通過。",
+      "lastUpdated": "2026-11-19T20:48:27+08:00",
       "steps": [
         "2026-11-19 20:01 Asia/Taipei (UTC+08:00)：起點與分支核對為 6a37f16ba111943eb023c14dea3c9a006a0f0a5c、1.0.0.11.Integration.P8.Worktree；P8 分支遠端尚不存在，依 08A 首次推送延至 P8-01a 驗收後。",
         "2026-11-19 20:01 Asia/Taipei (UTC+08:00)：P7 最末完整守門基準 Release 7341、Debug tracer 7；Deployment.Tests 977 僅為候選檢查點；註冊清冊 live 12／pass 1／dormant 21；CJK 專案 count 合計 3764。",
         "2026-11-19 20:01 Asia/Taipei (UTC+08:00)：唯讀 verify --org goodshepherdback 一次以 InvalidDataException 結束，未取得目前狀態；未重試、未寫入組織，不記作 verify=0。",
-        "2026-11-19 20:13 Asia/Taipei (UTC+08:00)：階段 8 Trellis 父任務與 P8-00 子任務已啟動；P7-02b 子任務已封存。封存工具自動產生紀錄提交 c6433c035，P7 父任務未修改。"
+        "2026-11-19 20:13 Asia/Taipei (UTC+08:00)：階段 8 Trellis 父任務與 P8-00 子任務已啟動；P7-02b 子任務已封存。封存工具自動產生紀錄提交 c6433c035，P7 父任務未修改。",
+        "2026-11-19 20:43 Asia/Taipei (UTC+08:00)：P8-00 提交 29740bf5；C:\\smv\\guard-p8 Release 建置0錯誤（65警告）、全方案 Release 測試0失敗、Debug tracer 7/7、編碼21檔0問題、重複程式42專案新增0、I18nCheck、檔案說明1826檔0失敗、進度頁28/28全通過。守門摘要與準備紀錄位於 artifacts/p8/guard-29740bf5-*.log。"
       ]
     }
   ],
@@ -887,7 +888,7 @@ const DATA = {
       "id": "階段 8",
       "name": "收尾、偽語系驗收、教會設定網頁",
       "planned": "3～4 個工作天",
-      "actual": "2026-11-19 20:01 Asia/Taipei (UTC+08:00)：依 08A 固定順序開工；目前 P8-00 前置盤點中。",
+      "actual": "2026-11-19 20:43 Asia/Taipei (UTC+08:00)：P8-00 已驗收；下一單元 P8-01a。階段 8 已用時約 0.7 小時。",
       "current": true,
       "done": 0,
       "active": 0
@@ -1907,11 +1908,97 @@ const DATA = {
   ],
   "milestones": [
     {
+      "id": "P8-00",
+      "phaseId": "階段 8",
+      "name": "P8-00 開工切換與前置缺項檢查",
+      "status": "done",
+      "note": "2026-11-19 20:43 Asia/Taipei (UTC+08:00)：起點、授權、前置缺項與固定順序已登錄；verify 連線失敗仍列未確認。完整 §8.1 全通過；提交 29740bf5。",
+      "doneAt": "2026-11-19 20:43 Asia/Taipei (UTC+08:00)",
+      "commit": "29740bf5dccc64609ed10ce315283d2449924554"
+    },
+    {
+      "id": "P8-01a",
+      "phaseId": "階段 8",
+      "name": "P8-01a 奉獻類別結構與轉換指令",
+      "status": "todo",
+      "note": "2026-11-19 20:43 Asia/Taipei (UTC+08:00)：依 08A 固定順序待執行。"
+    },
+    {
+      "id": "P8-01b",
+      "phaseId": "階段 8",
+      "name": "P8-01b ChurchReport 奉獻類別清單",
+      "status": "todo",
+      "note": "2026-11-19 20:43 Asia/Taipei (UTC+08:00)：依 08A 固定順序待執行。"
+    },
+    {
+      "id": "P8-01c",
+      "phaseId": "階段 8",
+      "name": "P8-01c goodshepherdback 轉換與核對",
+      "status": "todo",
+      "note": "2026-11-19 20:43 Asia/Taipei (UTC+08:00)：依 08A 固定順序待執行；實機狀態須依本單元規則確認。"
+    },
+    {
+      "id": "P8-03a",
+      "phaseId": "階段 8",
+      "name": "P8-03a 教會覆寫接線與設定服務",
+      "status": "todo",
+      "note": "2026-11-19 20:43 Asia/Taipei (UTC+08:00)：依 08A 固定順序待執行。"
+    },
+    {
+      "id": "P8-03b",
+      "phaseId": "階段 8",
+      "name": "P8-03b 教會設定網頁",
+      "status": "todo",
+      "note": "2026-11-19 20:43 Asia/Taipei (UTC+08:00)：依 08A 固定順序待執行。"
+    },
+    {
+      "id": "遺留 L1",
+      "phaseId": "階段 8",
+      "name": "遺留 L1 原因補齊與唯讀調查",
+      "status": "todo",
+      "note": "2026-11-19 20:43 Asia/Taipei (UTC+08:00)：依 08A 固定順序待執行。"
+    },
+    {
+      "id": "遺留 L2",
+      "phaseId": "階段 8",
+      "name": "遺留 L2 Workflow 流程樣板工具",
+      "status": "todo",
+      "note": "2026-11-19 20:43 Asia/Taipei (UTC+08:00)：依 08A 固定順序待執行。"
+    },
+    {
+      "id": "遺留 L3",
+      "phaseId": "階段 8",
+      "name": "遺留 L3 Live 補驗與分級定案",
+      "status": "todo",
+      "note": "2026-11-19 20:43 Asia/Taipei (UTC+08:00)：依 08A 固定順序待執行。"
+    },
+    {
+      "id": "P8-04a",
+      "phaseId": "階段 8",
+      "name": "P8-04a 偽語系稽核工具與網頁修正",
+      "status": "todo",
+      "note": "2026-11-19 20:43 Asia/Taipei (UTC+08:00)：依 08A 固定順序待執行。"
+    },
+    {
+      "id": "P8-04b",
+      "phaseId": "階段 8",
+      "name": "P8-04b 偽語系驗收腳本、教會自訂與隔離驗收",
+      "status": "todo",
+      "note": "2026-11-19 20:43 Asia/Taipei (UTC+08:00)：依 08A 固定順序待執行。"
+    },
+    {
+      "id": "整體驗收",
+      "phaseId": "階段 8",
+      "name": "整體驗收表與最終條件核對",
+      "status": "todo",
+      "note": "2026-11-19 20:43 Asia/Taipei (UTC+08:00)：依 08A 固定順序待執行。"
+    },
+    {
       "id": "專案終點",
       "phaseId": "階段 8",
       "name": "實作計畫 3.5 專案終點回報與停止",
       "status": "todo",
-      "note": "2026-11-19 20:01 Asia/Taipei (UTC+08:00)：依 08A §4.8 登錄；整體驗收、階段審查及終點文件尚未完成。"
+      "note": "2026-11-19 20:01 Asia/Taipei (UTC+08:00)：依 08A §4.8 名稱對照表登錄；整體驗收、階段審查及終點文件尚未完成。"
     },
     {
       "id": "M-P0-REVIEW",
