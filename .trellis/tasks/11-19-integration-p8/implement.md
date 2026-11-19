@@ -14,7 +14,7 @@
 - [ ] P8-00 開工切換與前置缺項檢查
 - [x] P8-01a 奉獻類別結構與轉換指令（2026-11-20；守門 commit bfc713f2；完整證據 `C:\smv\guard-p8-evidence\guard-bfc713f2-full-rerun.log`；實機 option labels／verify 狀態未查證，依離線單元契約不阻擋驗收）
 - [x] P8-01b ChurchReport 奉獻類別清單（2026-11-20；程式提交 97d260c1；完整守門 `C:\smv\guard-p8-evidence\guard-97d260c1-full.log`；離線單元驗收，goodshepherdback 狀態未查證且不再重試）
-- [ ] P8-01c goodshepherdback 轉換與核對
+- [ ] P8-01c goodshepherdback 轉換與核對（2026-11-20 04:46 Asia/Taipei (UTC+08:00)：未驗收；既有兩次唯讀 verify 均 InvalidDataException，依 08A §7.3 不再重試且停止實機操作；回報 `P8-01c-migration.md`，依 §7.2 接續 P8-02）
 - [ ] P8-02 角色代碼與字典
 - [ ] P8-03a 教會覆寫接線與設定服務
 - [ ] P8-03b 教會設定網頁
