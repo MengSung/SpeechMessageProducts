@@ -164,3 +164,7 @@ D7-22表單未執行，依本輪核定縮減範圍不列為P7-02b結案阻擋：
 2026-11-19 16:54 Asia/Taipei (UTC+08:00)：`docs/scripts/Start-CcgDualModelRun.ps1`完成ClaudeOnly階段審查，標記「單模型（使用者指定 ClaudeOnly）」，Claude輸出可用。未發現Critical；High指出本證據頁在審查結論產生前預寫「未發現Critical／High」，已於本次修正為依實際審查結果描述。修正後目前無未處理Critical／High。Medium建議已補記attendance原始證據僅存本機，以及診斷trace由2變0但去向缺少證據；後者列為P8以後未解。此為單模型審查，不是雙模型審查。
 
 attendance原始`live-check.json`位於被Git忽略的本機`artifacts/`；manifest所記SHA-256可在該工作站核對，但此檔不隨repo推送，其他clone無法取得原始內容。本輪不把此本機檔案表述為可由遠端重現的證據。
+
+## 最終驗收與推送狀態
+
+2026-11-19 17:25 Asia/Taipei (UTC+08:00)：commit `186cbe0b2ce57b5dc7a4cfb52c3272ab93347f6d`在新建且核對乾淨的隔離worktree `C:\smv\guard-p7-final-186cbe0b`完成固定八項guard；未清理或改動既有`C:\smv\guard`及其忽略資料。結果：Release build EXIT=0（0錯誤，既有警告65）；全方案Release tests EXIT=0（22個測試組件，7341/7341）；Debug tracer 7/7；Changed encoding 217檔、0問題；duplicate scan 42專案／1510檔、groups/new/stale均0；I18n verify通過；檔案說明1826檔、0失敗；ProgressPage 28/28。最終狀態同步提交與推送尚待完成，遠端SHA尚未核對。
