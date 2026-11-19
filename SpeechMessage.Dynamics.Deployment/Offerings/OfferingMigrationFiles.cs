@@ -100,6 +100,7 @@ internal static class OfferingMigrationFiles
     }
 
     /// <summary>輸出人工可讀的結構與聚合數量；不包含來源記錄主鍵、付款人或例外內容。</summary>
+    [I18nIgnore("只產生供操作者審核的固定繁中計畫文件，不是產品執行期介面資源。")]
     private static string FormatPlanMarkdown(OfferingMigrationPlan plan)
     {
         var text = new StringBuilder();

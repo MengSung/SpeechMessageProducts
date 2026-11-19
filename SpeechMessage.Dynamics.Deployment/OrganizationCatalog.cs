@@ -15,6 +15,7 @@ using System.IO;
 using System.Linq;
 using System.Text.Json;
 using System.Text;
+using SpeechMessage.Dynamics.Deployment.Offerings;
 namespace SpeechMessage.Dynamics.Deployment;
 
 /// <summary>命令區域不可變組織描述；純值不包含連線或帳密，不能替代ProductionGuard。</summary>
@@ -53,6 +54,7 @@ internal sealed class OrganizationCatalog
         return Parse(reader.ReadToEnd());
     }
     /// <summary>讀取有界JSON並完整驗證後建立純值catalog；錯誤不包含原文或秘密。</summary>
+    [I18nIgnore("演練與使用者是組織核定紀錄的固定欄位值，不是執行期顯示資源。")]
     internal static OrganizationCatalog Parse(string json)
     {
         if (string.IsNullOrEmpty(json) || json.Length > 1024 * 1024) throw Invalid();

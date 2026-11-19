@@ -19,6 +19,7 @@ namespace SpeechMessage.Dynamics.Deployment.Offerings;
 internal static class OfferingMigrationCatalog
 {
     /// <summary>由現行畫面盤點的六個固定文字與順序；值只可由D365 metadata映射。</summary>
+    [I18nIgnore("僅供遷移時比對組織metadata的固定來源標籤，不作為執行期顯示文字。")]
     internal static readonly OfferingScreenOption[] ScreenOptions =
     {
         new("十一奉獻", 1),
@@ -28,4 +29,22 @@ internal static class OfferingMigrationCatalog
         new("主日奉獻", 5),
         new("愛心奉獻", 6)
     };
+}
+
+/// <summary>
+/// 標記僅供工具協定比對、並非使用者介面資源的固定文字，供方案 I18n 掃描器排除此欄位。
+/// 此屬性不改變標籤值，也不提供執行期翻譯；只有明確標註的成員會自掃描計數中排除。
+/// </summary>
+[AttributeUsage(AttributeTargets.Field | AttributeTargets.Method)]
+internal sealed class I18nIgnoreAttribute : Attribute
+{
+    /// <summary>建立具體說明排除原因的掃描標記，理由需非空且對應實際協定用途。</summary>
+    /// <param name="reason">為何此成員字串不是面向使用者的語系資源。</param>
+    public I18nIgnoreAttribute(string reason)
+    {
+        if (string.IsNullOrWhiteSpace(reason))
+        {
+            throw new ArgumentException("A concrete localization exclusion reason is required.", nameof(reason));
+        }
+    }
 }

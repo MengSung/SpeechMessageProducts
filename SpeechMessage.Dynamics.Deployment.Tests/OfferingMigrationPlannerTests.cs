@@ -32,6 +32,8 @@ public sealed class OfferingMigrationPlannerTests
         new("十一奉獻", 1), new("感恩奉獻", 2), new("建堂奉獻", 3), new("宣教奉獻", 4),
         new("主日奉獻", 5), new("愛心奉獻", 6)
     };
+    private static readonly string[] ExpectedCatalogLabels =
+        ["十一奉獻", "感恩奉獻", "建堂奉獻", "宣教奉獻", "主日奉獻", "愛心奉獻"];
 
     /// <summary>來源列依教會 ID 與選項數值分組；同值不同實體筆數累計但類別身份不依顯示名稱。</summary>
     [Fact]
@@ -105,6 +107,19 @@ public sealed class OfferingMigrationPlannerTests
         Assert.Equal(ScreenOptions.Length, plan.Categories.Count);
         Assert.Equal(1, plan.Categories.Single(item => item.LegacyOptionValue == 100000000).RecordCount);
         Assert.All(plan.Categories.Where(item => item.LegacyOptionValue != 100000000), item => Assert.Equal(0, item.RecordCount));
+    }
+
+    /// <summary>部署對照標籤是工具協定資料而非 UI 資源；標註不可改變六個精確比對值。</summary>
+    [Fact]
+    public void Catalog_ScreenOptions_UsesProtocolLabelsAndExplicitI18nExclusion()
+    {
+        var field = typeof(OfferingMigrationCatalog).GetField(
+            nameof(OfferingMigrationCatalog.ScreenOptions),
+            System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static);
+
+        Assert.NotNull(field);
+        Assert.NotNull(Attribute.GetCustomAttribute(field!, typeof(I18nIgnoreAttribute)));
+        Assert.Equal(ExpectedCatalogLabels, OfferingMigrationCatalog.ScreenOptions.Select(option => option.Label));
     }
 
     /// <summary>沒有可判定教會的正式列只計入未解析總數，不建立教會類別或以付款人／其他列臆造歸屬。</summary>
