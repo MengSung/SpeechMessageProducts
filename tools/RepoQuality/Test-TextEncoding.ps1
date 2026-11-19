@@ -13,7 +13,8 @@
 .SYNOPSIS
 檢查差異檔案的 UTF-8 無 BOM、CRLF 與 PowerShell 非 ASCII 邊界，或唯讀產生全量盤點。
 .DESCRIPTION
-Changed 只採 git diff 的新增／修改／重新命名路徑；未追蹤新檔須先暫存，避免把本機診斷封包混入發布差異。
+Changed 只採 git diff 的新增／修改／重新命名路徑，再依目前 .gitignore 排除忽略路徑
+（包括舊基準中仍被追蹤的工具執行紀錄）；未追蹤新檔不會混入發布差異。
 All 只讀取此工作樹的 Git 追蹤檔，不沿 reparse point 讀取外部內容；只輸出舊問題報告。
 報告只保存路徑與原因，不保存來源文字、個資或憑證；每檔讀取完成即釋放區域參照。
 .PARAMETER Scope
@@ -47,6 +48,7 @@ try {
     }
     [string[]]$paths = @($listing.Split([char]0) | Where-Object { $_ })
     [array]::Sort($paths, [StringComparer]::Ordinal)
+    $ignoredPaths = Get-TextIgnoredPaths -Root $root -Paths $paths
     $extensions = @('.cs','.cshtml','.csproj','.props','.targets','.json','.md','.ps1','.resx','.xml','.yml')
     $violations = New-Object 'Collections.Generic.List[object]'
     $checked = 0
@@ -54,6 +56,7 @@ try {
     foreach ($relative in $paths) {
         $extension = [IO.Path]::GetExtension($relative).ToLowerInvariant()
         if ($extensions -notcontains $extension) { continue }
+        if ($ignoredPaths.Contains($relative)) { $excluded++; continue }
         # 即使誤被追蹤，也不讀取其他工作樹、參考舊方案或建置產物。
         if ($relative -match '(^|/)(\.worktrees|\.\u5176\u4ED6\u89E3\u6C7A\u65B9\u6848|bin|obj)(/|$)') { $excluded++; continue }
         # 僅排除具時間戳記的 CCG 原始執行目錄；手寫提示詞與審查包仍須接受編碼守門。

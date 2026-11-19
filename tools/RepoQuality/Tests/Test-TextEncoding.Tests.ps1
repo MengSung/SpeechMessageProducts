@@ -11,9 +11,9 @@
 #>
 <#
 .SYNOPSIS
-以實際 Git 差異、位元組樣本與子程序驗證編碼守門及無損轉換契約。
+以實際 Git 差異、位元組樣本與子程序驗證編碼守門、忽略路徑邊界及無損轉換契約。
 .DESCRIPTION
-每例擁有獨立暫存 Git 目錄；注入不合法位元組後，斷言結束碼與具體診斷，避免任何失敗都算通過。
+每例擁有獨立暫存 Git 目錄；注入不合法位元組或已追蹤的忽略檔後，斷言結束碼與具體診斷，避免任何失敗都算通過。
 轉換案例獨立比對預期 UTF-8 位元組、原始雜湊與 manifest，不能只相信工具宣告成功。
 測試只使用合成中文字串，不含使用者、教會、憑證或外部網路資料；清理前驗證目錄邊界。
 #>
@@ -203,6 +203,21 @@ Describe 'Repository text encoding and lossless conversion contracts' {
         $result = Invoke-EncodingCheck
         $result.ExitCode | Should Be 0
         $result.Output | Should Match 'checked=0'
+    }
+    It 'ChangedScope_TrackedIgnoredBadFile_IsExcludedByGitIgnore' {
+        $ignoredPath = Join-Path $script:caseRepo 'generated-record.json'
+        [IO.File]::WriteAllText((Join-Path $script:caseRepo '.gitignore'), "generated-record.json`r`n", $script:utf8)
+        [IO.File]::WriteAllText($ignoredPath, "{}" + "`r`n", $script:utf8)
+        & git -c core.longpaths=true -C $script:caseRepo add .gitignore
+        & git -c core.longpaths=true -C $script:caseRepo add -f -- generated-record.json
+        & git -c core.longpaths=true -C $script:caseRepo -c user.name=EncodingTest -c user.email=encoding-test@invalid.example commit -q -m 'tracked ignored fixture'
+        if ($LASTEXITCODE -ne 0) { throw 'Could not create the tracked ignored fixture.' }
+
+        [IO.File]::WriteAllText($ignoredPath, "invalid`n", $script:utf8)
+        $result = Invoke-EncodingCheck
+        $result.ExitCode | Should Be 0
+        $result.Output | Should Match 'checked=0 excluded=1 filesWithIssues=0'
+        $result.Output | Should Not Match 'generated-record.json'
     }
     # 轉換必須比對真正輸出位元組；無損與乾跑的斷言都不能只依賴 manifest 的宣告。
     It 'ConvertCp950_Apply_PreservesChineseAndWritesUtf8' {

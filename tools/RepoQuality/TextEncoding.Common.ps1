@@ -14,12 +14,13 @@
 編碼守門與無損轉換共用的唯讀位元組、雜湊及 Git 邊界工具。
 .DESCRIPTION
 所有資料只活在單次腳本呼叫；串流與雜湊演算法都有明確釋放路徑，不保存來源文字到全域快取。
-Git 程序最長三十秒，輸出以 UTF-8 及 NUL 路徑分隔處理，不走訪父工作樹或忽略產物。
+Git 程序最長三十秒，輸出以 UTF-8 及 NUL 路徑分隔處理，不走訪父工作樹；
+差異檢查會依目前 .gitignore 排除忽略路徑，即使該路徑在舊基準中曾被追蹤。
 #>
 
 function Invoke-TextQualityGit {
     <# 執行不經 shell 的 Git 唯讀操作，正確引用每個 Windows 引數並在結束／逾時後釋放資源。 #>
-    param([string]$Root, [string[]]$Arguments)
+    param([string]$Root, [string[]]$Arguments, [switch]$AllowNoMatch)
     $quoted = foreach ($value in (@('-c','core.longpaths=true','-c','core.quotepath=false') + $Arguments)) {
         '"' + [regex]::Replace([regex]::Replace($value, '(\\*)"', '$1$1\"'), '(\\+)$', '$1$1') + '"'
     }
@@ -46,10 +47,23 @@ function Invoke-TextQualityGit {
         }
         $output = $stdout.GetAwaiter().GetResult()
         $errorText = $stderr.GetAwaiter().GetResult()
-        if ($process.ExitCode -ne 0) { throw "Git text inventory failed: $errorText" }
+        if ($process.ExitCode -ne 0 -and -not ($AllowNoMatch -and $process.ExitCode -eq 1)) { throw "Git text inventory failed: $errorText" }
         return $output
     }
     finally { $process.Dispose() }
+}
+
+function Get-TextIgnoredPaths {
+    <# 依 Git 忽略規則批次識別差異路徑；--no-index 讓歷史上已追蹤的產物也遵循忽略規則。 #>
+    param([string]$Root, [string[]]$Paths)
+    $ignored = New-Object 'Collections.Generic.HashSet[string]' ([StringComparer]::Ordinal)
+    for ($offset = 0; $offset -lt $Paths.Count; $offset += 64) {
+        $count = [Math]::Min(64, $Paths.Count - $offset)
+        $batch = @($Paths[$offset..($offset + $count - 1)])
+        [string]$listing = Invoke-TextQualityGit -Root $Root -Arguments (@('check-ignore','--no-index','--') + $batch) -AllowNoMatch
+        foreach ($path in ($listing -split '\r?\n' | Where-Object { $_ })) { [void]$ignored.Add($path) }
+    }
+    return ,$ignored
 }
 
 function Get-TextByteIssues {
