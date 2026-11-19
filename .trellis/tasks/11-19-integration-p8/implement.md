@@ -12,7 +12,7 @@
 ## 順序與收尾
 
 - [ ] P8-00 開工切換與前置缺項檢查
-- [ ] P8-01a 奉獻類別結構與轉換指令
+- [x] P8-01a 奉獻類別結構與轉換指令（2026-11-20；守門 commit bfc713f2；完整證據 `C:\smv\guard-p8-evidence\guard-bfc713f2-full-rerun.log`；實機 option labels／verify 狀態未查證，依離線單元契約不阻擋驗收）
 - [ ] P8-01b ChurchReport 奉獻類別清單
 - [ ] P8-01c goodshepherdback 轉換與核對
 - [ ] P8-02 角色代碼與字典
