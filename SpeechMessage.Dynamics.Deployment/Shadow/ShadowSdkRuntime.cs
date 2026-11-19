@@ -19,7 +19,7 @@
  * 只支援單一同步呼叫者；SDK 輸入輸出均深複製，禁止部分 Seed 失敗後觸發。
  * 原始業務資料只存活一輪；追蹤最多六十秒、最多二秒一次且回應有界，取消不略過
  * 清理。seed Create 的 Dataverse／傳輸 fault 僅附帶安全 alias、logical entity 與 lookup alias，
- * 供 CLI 定位失敗項目；不帶欄位值、名稱、原始 SDK 訊息或 trace，其他例外保持原身分傳遞。
+ * 供 CLI 定位失敗項目；相同有界跳脫也由 Live 準備原因碼借用，避免終端識別規則分叉；不帶欄位值、名稱、原始 SDK 訊息或 trace，其他例外保持原身分傳遞。
  */
 using System;
 using System.Collections.Generic;
@@ -84,7 +84,7 @@ internal sealed class ShadowSeedCreateException : Exception
     }
 
     /// <summary>將控制字元與非 ASCII 內容轉成可見跳脫，避免合成 alias 注入額外終端行。</summary>
-    private static string EscapeDiagnosticAlias(string? value)
+    internal static string EscapeDiagnosticAlias(string? value)
     {
         if (value is null) return "(null)";
         const int maximumCharacters = 64;

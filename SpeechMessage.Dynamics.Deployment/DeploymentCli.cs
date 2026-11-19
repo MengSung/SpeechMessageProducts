@@ -24,7 +24,8 @@
  * credential、request、Session或可變結果快取；secretReader僅在真正寫入設定瞬間解析。
  *
  * 失敗與限制：正常caller取消回130且不通知；真正例外在lease已歸還後交注入的共用report，
- * seed識別包裝會先還原原始內層例外供report分類；摘要列出例外型別及最多四層SDK數字錯碼，seed fault 額外列出固定 alias、
+ * seed與Live準備識別包裝會先還原原始內層例外供report分類；LIVE-PREP 固定碼只列有界識別，
+ * 準備失敗不代表比較差異；摘要列出例外型別及最多四層SDK數字錯碼，seed fault 額外列出固定 alias、
  * logical entity 與 lookup alias，供定位建立順序；AggregateException 只走訪尋找 seed 脈絡，
  * 一般 aggregate 保持舊輸出。診斷失敗降級為固定訊息，不讀Message、欄位值、TraceText或設定本文。
  * parser／白名單與hash不代表實機寫入授權；VM隔離、備份、復原及本次明確操作範圍須另外證明。
@@ -43,6 +44,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Xrm.Sdk;
 using SpeechMessage.Dynamics.Deployment.Shadow;
+using SpeechMessage.Dynamics.Deployment.Live;
 
 namespace SpeechMessage.Dynamics.Deployment;
 
@@ -438,6 +440,13 @@ internal static partial class DeploymentCli
                     continue;
                 }
 
+                if (current is LivePreparationFailure preparation)
+                {
+                    output.WriteLine(preparation.SafeSummary);
+                    if (preparation.InnerException is not null) pending.Push(preparation.InnerException);
+                    continue;
+                }
+
                 if (current is ShadowSeedCreateException seedFailure)
                 {
                     output.WriteLine(seedFailure.SafeSummary);
@@ -474,15 +483,18 @@ internal static partial class DeploymentCli
     }
 
     /// <summary>
-    /// 避免 seed 脈絡包裝改變共用 reporter 對原始 SDK 例外的型別分類。AggregateException 維持原物件；
+    /// 避免 seed／Live準備脈絡包裝改變共用 reporter 對原始 SDK 例外的型別分類。AggregateException 維持原物件；
     /// 目前共用 reporter 只記錄最外層型別、HResult 與堆疊符號，不依賴內層例外做分類。
     /// </summary>
     /// <param name="exception">CLI 捕捉的單一例外或 aggregate。</param>
-    /// <returns>直接 seed 包裝的原始例外；其他情況保留原始捕捉物件。</returns>
-    internal static Exception ExceptionForReporting(Exception exception) =>
-        exception is ShadowSeedCreateException { InnerException: not null } seedFailure
-            ? seedFailure.InnerException!
-            : exception;
+    /// <returns>直接 seed／Live準備包裝的原始例外；其他情況保留原始捕捉物件。</returns>
+    internal static Exception ExceptionForReporting(Exception exception)
+    {
+        // 只拆已知識別包裝，不展開 Aggregate，原故障與清理失敗的共同身分保持不變。
+        for (var depth = 0; depth < 16 && exception is ShadowSeedCreateException or LivePreparationFailure &&
+            exception.InnerException is not null; depth++) exception = exception.InnerException;
+        return exception;
+    }
 
     /// <summary>
     /// 將規劃結果轉成 verify 的固定輸出與程序結束碼；純輸出步驟不持有服務、秘密或可變跨命令狀態。

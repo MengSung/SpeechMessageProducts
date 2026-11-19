@@ -7,6 +7,7 @@ live-check 只在 test 組織，按即時 metadata 核啟用及模式、D34、�
 檔案固定在本組織 artifacts。計畫有界、拒未知／重複欄位，不接受命令列秘密或任意輸出位置。
 資源與失敗：HTTP safety owner 在 SDK 前 Dispose，所有真失敗在 lease 釋放後交共同告警，
 seed 識別包裝會還原原始例外供 reporter 分類；安全摘要可攜帶固定 alias 脈絡，不含欄位值。
+準備失敗以不可重編 LIVE-PREP 原因碼定位，只列模組／情境／alias／實體；不把準備失敗當比對差異。
 正常 caller 取消回130；Live 只用本輪正式 ID 清理，不改任何步驟。
 驗證方式：指定核心測試與離線 CLI 循環；本檔的成功不取代每個型別的 Live 實機證據。
 */
@@ -75,12 +76,16 @@ internal static partial class DeploymentCli
                 var normalizedFull = Path.TrimEndingDirectorySeparator(full);
                 var acceptance = string.Equals(normalizedFull, Path.TrimEndingDirectorySeparator(acceptanceRoot), StringComparison.OrdinalIgnoreCase);
                 if (!acceptance && !string.Equals(normalizedFull, Path.TrimEndingDirectorySeparator(expected), StringComparison.OrdinalIgnoreCase)) return 2;
-                files = ShadowScenarioFiles.LoadLive(repository, folder, acceptance);
+                files = LivePreparationFailure.Capture(LivePreparationReason.ScenarioSource, module, null, null, null,
+                    () => ShadowScenarioFiles.LoadLive(repository, folder, acceptance), token);
             }
             using var manifestHandle = OpenSource(Path.Combine(repository, "d365", "registration", "plugins.registration.json"));
             using var catalogHandle = OpenSource(Path.Combine(repository, "d365", "registration", "organizations.json"));
             using var writeLock = apply || args[0] == "live-check" ? OrganizationWriteLock.Acquire(root, writeLockTimeout ?? TimeSpan.FromMinutes(5), token) : null;
-            using var lease = connector.Connect(target.Name);
+            using var lease = args[0] == "live-check"
+                ? LivePreparationFailure.Capture(LivePreparationReason.Connection, options["--module"], null, null, null,
+                    () => connector.Connect(target.Name), token)
+                : connector.Connect(target.Name);
             ProductionGuard.VerifyServer(lease.Service, target, token);
             var operation = CreateOperationDirectory(root);
             if (args[0] == "church-defaults")
@@ -115,10 +120,16 @@ internal static partial class DeploymentCli
                 output.WriteLine("Church defaults completed; existing values were preserved."); return 0;
             }
             var service = args[0] == "observe" ? new ReadOnlyOrganizationService(lease.Service) : lease.Service;
-            var document = RegistrationManifestLoader.LoadDocument(repository);
-            var images = document.Assemblies.Select(assembly => AssemblyCatalog.Read(Path.Combine(repository, "artifacts", "plugins", assembly.AssemblyName + ".dll"), assembly)).ToArray();
-            var snapshot = SwitchSnapshotReader.Read(service, document, images, target,
-                Convert.ToHexString(SHA256.HashData(manifestHandle)), Convert.ToHexString(SHA256.HashData(catalogHandle)), operation, catalog, token);
+            SwitchSnapshot ReadSnapshot()
+            {
+                var document = RegistrationManifestLoader.LoadDocument(repository);
+                var images = document.Assemblies.Select(assembly => AssemblyCatalog.Read(Path.Combine(repository, "artifacts", "plugins", assembly.AssemblyName + ".dll"), assembly)).ToArray();
+                return SwitchSnapshotReader.Read(service, document, images, target,
+                    Convert.ToHexString(SHA256.HashData(manifestHandle)), Convert.ToHexString(SHA256.HashData(catalogHandle)), operation, catalog, token);
+            }
+            var snapshot = args[0] == "live-check"
+                ? LivePreparationFailure.Capture(LivePreparationReason.RegistrationSnapshot, options["--module"], null, null, null, ReadSnapshot, token)
+                : ReadSnapshot();
             if (args[0] == "observe")
             {
                 var mutual = true;
@@ -148,12 +159,15 @@ internal static partial class DeploymentCli
         string repository, string operation, IOrganizationService service, SwitchSnapshot snapshot,
         TextWriter output, Func<string, string>? secretReader, CancellationToken token)
     {
-        _ = SwitchPlanner.Create(snapshot, "off");
-        if (snapshot.LegacySteps.Any(row => row.Enabled) || snapshot.Workflows.Any(row => row.State != 0)) throw InvalidLive();
+        _ = LivePreparationFailure.Capture(LivePreparationReason.OffPlan, module, null, null, null,
+            () => SwitchPlanner.Create(snapshot, "off"), token);
+        if (snapshot.LegacySteps.Any(row => row.Enabled) || snapshot.Workflows.Any(row => row.State != 0))
+            throw new LivePreparationFailure(LivePreparationReason.LegacyEnabled, module);
         using var safety = new LiveSafety(service, name => ResolveRequiredSecret(target.Name, name, secretReader));
-        var identity = safety.Verify(token);
+        var identity = LivePreparationFailure.Capture(LivePreparationReason.Safety, module, null, null, null,
+            () => safety.Verify(token), token);
         var selected = files.Where(file => file.LiveShadow).ToArray();
-        if (selected.Length == 0) throw InvalidLive();
+        if (selected.Length == 0) throw new LivePreparationFailure(LivePreparationReason.NoScenario, module);
         var prepared = new Dictionary<LiveCheckScenario, ShadowSdkPreparedScenario>();
         var activities = new Dictionary<LiveCheckScenario, LiveActivityTemplate>();
         var scenarios = new List<LiveCheckScenario>();
@@ -166,7 +180,8 @@ internal static partial class DeploymentCli
                 row.Registration.Entity == file.Trigger.GetProperty("entity").GetString()).ToArray();
             var activityMatches = snapshot.Activities.Where(row => row.Registration.Module == module && file.IsActivity &&
                 (row.Registration.Type == file.Entrypoint || row.Registration.Legacy.Any(old => old.Type == file.Entrypoint))).ToArray();
-            if (steps.Length + activityMatches.Length != 1) throw InvalidLive();
+            if (steps.Length + activityMatches.Length != 1)
+                throw PreparationFailure(LivePreparationReason.AmbiguousBinding, module, file);
             var step = steps.SingleOrDefault();
             var activity = activityMatches.SingleOrDefault();
             var type = step?.Registration.Type ?? activity!.Registration.Type;
@@ -177,19 +192,21 @@ internal static partial class DeploymentCli
                 file.ExpectedLineCalls.EnumerateArray().Sum(call => call.GetProperty("messageCount").GetInt32()), empty,
                 Array.Empty<ShadowObservation>(), new HashSet<string>(file.Volatile, StringComparer.Ordinal));
             if (tier == "dormant") { scenarios.Add(scenario); continue; }
-            if (!scenario.Enabled || mode != "Live") throw InvalidLive();
+            if (!scenario.Enabled || mode != "Live") throw PreparationFailure(LivePreparationReason.StepState, module, file);
             var churchAlias = file.Church.GetProperty("alias").GetString()!;
             var contacts = file.Seed.EnumerateArray().Where(row => row.GetProperty("entity").GetString() == "contact" &&
                 !row.GetProperty("fields").EnumerateObject().Any()).ToArray();
-            if (contacts.Length != 1) throw InvalidLive();
+            if (contacts.Length != 1) throw PreparationFailure(LivePreparationReason.ContactCount, module, file);
             var names = file.Seed.EnumerateArray().Concat(file.Observe.EnumerateArray())
                 .Concat(file.ExpectedWrites.EnumerateArray()).Select(row => row.GetProperty("entity").GetString()!).Distinct(StringComparer.Ordinal).ToArray();
-            var metadata = new ShadowSdkMetadata(service, names, token);
+            var metadata = CapturePreparation(LivePreparationReason.Metadata, module, file,
+                () => new ShadowSdkMetadata(service, names, token), token);
             LiveActivityTemplate? template = null;
             if (activity is not null)
             {
                 // 非空活動輸入須先製作並核對專用樣板，不能把檔案參數默默忽略。
-                if (file.Trigger.GetProperty("inputs").EnumerateObject().Any()) throw InvalidLive();
+                if (file.Trigger.GetProperty("inputs").EnumerateObject().Any())
+                    throw PreparationFailure(LivePreparationReason.ActivityInputs, module, file);
                 var workflows = new LegacyRegistrationExporter.MetadataReader(service, 500, 10000, 100, token)
                     .Read("workflow", ["xaml", "statecode", "primaryentity"], "type", [1]).Where(row =>
                     row.GetAttributeValue<OptionSetValue>("statecode")?.Value == 0 &&
@@ -198,7 +215,7 @@ internal static partial class DeploymentCli
                     .Where(item => item.References.Count != 0 && item.References.All(reference => reference.Type == type ||
                         activity.Registration.Legacy.Any(old => WorkflowRepointer.SameReference(reference, old.Assembly, old.Type))))
                     .OrderBy(item => item.Row.Id).ToArray();
-                if (workflows.Length == 0) throw InvalidLive();
+                if (workflows.Length == 0) throw PreparationFailure(LivePreparationReason.ActivityTemplate, module, file);
                 var chosen = workflows[0];
                 var reference = chosen.References[0];
                 template = new(chosen.Row, new(reference.Assembly, reference.Type, activity.QualifiedAssembly, type));
@@ -212,7 +229,8 @@ internal static partial class DeploymentCli
                 StepImages = step is null ? new Dictionary<Guid, IReadOnlyList<RegistrationImage>>() :
                     new Dictionary<Guid, IReadOnlyList<RegistrationImage>> { [executionId] = step.Registration.Images }
             };
-            var candidate = ShadowSdkScenarioFactory.PrepareLive(file, metadata, identity, binding);
+            var candidate = CapturePreparation(LivePreparationReason.PrepareScenario, module, file,
+                () => ShadowSdkScenarioFactory.PrepareLive(file, metadata, identity, binding), token);
             scenario = scenario with { Observe = candidate.Definition.Observe };
             prepared.Add(scenario, candidate); scenarios.Add(scenario);
             if (template is not null) activities.Add(scenario, template);
@@ -224,7 +242,8 @@ internal static partial class DeploymentCli
         else
         {
             var sdk = new ShadowSdkRuntime(service, identity.OrganizationId, identity.ChurchId, identity.ContactId,
-                prepared.Values.ToDictionary(item => item.Definition, item => item.Source), () => throw InvalidLive(), TimeProvider.System);
+                prepared.Values.ToDictionary(item => item.Definition, item => item.Source),
+                () => throw new LivePreparationFailure(LivePreparationReason.ForbiddenShadowCapability, module), TimeProvider.System);
             result = new LiveCheckRunner(new LiveSdkRuntime(sdk, safety, prepared, activities)).Run(target, module, scenarios, token);
         }
         var text = string.Join("\r\n", result.Cases.Select(item => item.Type + " " + item.Name + " " + LiveText.Get(item.Status == "pass" ? "Pass" : item.Status == "not-checked" ? "NotChecked" : "Difference") +
@@ -237,6 +256,33 @@ internal static partial class DeploymentCli
         WriteDocumentFile(operation, "live-check.json", JsonSerializer.Serialize(result, DocumentJson));
         output.WriteLine("Live check completed after cleanup; see the safe report."); return result.Passed ? 0 : 1;
     }
+    /// <summary>準備故障只取明列的目標識別；活動用固定record seed，不讀欄位值或記錄ID。</summary>
+    private static LivePreparationFailure PreparationFailure(LivePreparationReason reason, string module, ShadowFileCase file, Exception? inner = null)
+    {
+        var context = PreparationContext(file);
+        return new LivePreparationFailure(reason, module, file.Name, context.Alias, context.Entity, inner);
+    }
+
+    /// <summary>只在特定準備呼叫加碼，保留原始SDK故障與caller取消，不涵蓋runner清理範圍。</summary>
+    private static T CapturePreparation<T>(LivePreparationReason reason, string module, ShadowFileCase file,
+        Func<T> operation, CancellationToken token)
+    {
+        var context = PreparationContext(file);
+        return LivePreparationFailure.Capture(reason, module, file.Name, context.Alias, context.Entity, operation, token);
+    }
+
+    /// <summary>來源已由strict reader驗證；TryGetProperty防止診斷本身遮蔽原錯誤，缺值保持空白不猜測。</summary>
+    private static (string? Alias, string? Entity) PreparationContext(ShadowFileCase file)
+    {
+        static string? Text(JsonElement value, string key) => value.ValueKind == JsonValueKind.Object &&
+            value.TryGetProperty(key, out var property) && property.ValueKind == JsonValueKind.String ? property.GetString() : null;
+        if (!file.IsActivity) return (Text(file.Trigger, "target"), Text(file.Trigger, "entity"));
+        if (file.Seed.ValueKind == JsonValueKind.Array)
+            foreach (var row in file.Seed.EnumerateArray())
+                if (Text(row, "alias") == "record") return ("record", Text(row, "entity"));
+        return ("record", null);
+    }
+
     /// <summary>只讀受管 configuration 的模式，JSON owner 立即釋放。</summary>
     private static string JsonDocumentMode(string configuration)
     {
