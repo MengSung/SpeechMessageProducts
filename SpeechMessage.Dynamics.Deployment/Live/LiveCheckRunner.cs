@@ -2,7 +2,7 @@
 檔案整體說明
 目的與定位：部署工具 Live 正常情境的單次編排入口，不修改任何步驟狀態或執行舊程式。
 主要流程：先拒絕正式組織與非 Live 狀態，逐輪核對 D34、記錄用量、建立種子、觸發及觀察；
-實際欄位沿用 ShadowComparer 精確比較，推播以測試 Channel 的前後用量核對。
+D34失敗使用LIVE-PREP-03安全摘要；實際欄位沿用ShadowComparer精確比較，推播以測試Channel的前後用量核對。
 資源與隔離：runtime 由命令借用，round 是每個情境的唯一 owner；finally 即使取消也以
 None token 清理、驗證殘留及 Dispose。追蹤原值在最外層恢復，原失敗與清理失敗皆保留。
 輸出只含固定情境代號、型別、筆數及安全差異位置，沒有原始記錄、秘密或跨命令快取。
@@ -96,11 +96,11 @@ internal sealed class LiveCheckRunner(ILiveCheckRuntime runtime)
                 ILiveCheckRound? round = null;
                 try
                 {
-                    runtime.VerifyD34(cancellationToken);
+                    VerifySafety(runtime, scenario, cancellationToken);
                     var before = runtime.ReadUsage(cancellationToken);
                     round = runtime.CreateRound(scenario);
                     round.Seed(cancellationToken);
-                    runtime.VerifyD34(cancellationToken);
+                    VerifySafety(runtime, scenario, cancellationToken);
                     round.Trigger(cancellationToken);
                     var observed = round.Observe(TimeSpan.FromSeconds(60), cancellationToken);
                     var comparison = ShadowComparer.CompareFinalStates(observed.Expected ?? scenario.Expected, observed.Actual,
@@ -136,6 +136,15 @@ internal sealed class LiveCheckRunner(ILiveCheckRuntime runtime)
     {
         try { action(); } catch (Exception failure) { failures.Add(failure); }
     }
+    /// <summary>
+    /// 將執行期間每次權威D34核對失敗映射為固定安全原因碼與目前情境識別；
+    /// caller取消仍原樣傳遞，真實例外只保留於單輪包裝供共用回報且不輸出本文。
+    /// </summary>
+    private static void VerifySafety(ILiveCheckRuntime runtime, LiveCheckScenario scenario,
+        CancellationToken cancellationToken) =>
+        _ = LivePreparationFailure.Capture(LivePreparationReason.Safety, scenario.Module, scenario.Name,
+            null, null, () => { runtime.VerifyD34(cancellationToken); return true; }, cancellationToken);
+
     /// <summary>單一錯誤保留原 stack／取消型別，多個錯誤完整聚合而不覆蓋根因。</summary>
     private static void ThrowFailures(List<Exception> failures)
     {

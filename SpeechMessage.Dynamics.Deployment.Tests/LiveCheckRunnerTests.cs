@@ -11,6 +11,7 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Text.Json;
+using SpeechMessage.Dynamics.Deployment;
 using SpeechMessage.Dynamics.Deployment.Live;
 using SpeechMessage.Dynamics.Deployment.Shadow;
 using Xunit;
@@ -85,6 +86,35 @@ public sealed class LiveCheckRunnerTests
         Assert.False(runtime.Round.CleanupTokenCancelled);
         Assert.Equal(1, runtime.Trace);
     }
+    /// <summary>
+    /// 注入種子建立後第二次D34失敗，保護即時安全核對也輸出LIVE-PREP-03；
+    /// 決定性斷言確認秘密本文不外洩、失敗仍清理本輪資料並還原trace。
+    /// </summary>
+    [Fact]
+    public void LiveCheck_SecondD34Failure_ReportsSafetyCodeAndCleansRound()
+    {
+        const string secretSentinel = "SENSITIVE-D34-FAILURE";
+        var runtime = new Runtime
+        {
+            D34FailureAtCall = 2,
+            D34Failure = new InvalidOperationException(secretSentinel)
+        };
+
+        var failure = Assert.Throws<LivePreparationFailure>(() =>
+            new LiveCheckRunner(runtime).Run(Organization(), "care", new[] { Scenario() }));
+        using var writer = new StringWriter();
+        DeploymentCli.WriteSupplementalFailureDiagnostics(failure, writer);
+
+        Assert.Contains("LIVE-PREP-03", writer.ToString(), StringComparison.Ordinal);
+        Assert.Contains("module=care", writer.ToString(), StringComparison.Ordinal);
+        Assert.Contains("scenario=normal", writer.ToString(), StringComparison.Ordinal);
+        Assert.DoesNotContain(secretSentinel, writer.ToString(), StringComparison.Ordinal);
+        Assert.True(runtime.Round.Seeded);
+        Assert.True(runtime.Round.Cleaned);
+        Assert.True(runtime.Round.Verified);
+        Assert.True(runtime.Round.Disposed);
+        Assert.Equal(1, runtime.Trace);
+    }
     /// <summary>待辦真實投影先參與共用比較再清理；清後殘留0才可計通過。</summary>
     [Fact]
     public void LiveCheck_TaskCreatedWithExpectedPayload_CountsAsEvidenceThenDeleted()
@@ -109,10 +139,17 @@ public sealed class LiveCheckRunnerTests
         internal Round Round { get; } = new();
         internal int Trace { get; private set; } = 1;
         internal int D34 { get; private set; }
+        internal int D34FailureAtCall { get; init; }
+        internal Exception? D34Failure { get; init; }
         internal long UsageAfter { get; set; } = 10;
         private int usages;
         /// <summary>以計數證明每輪seed前與trigger前都核D34。</summary>
-        public void VerifyD34(CancellationToken cancellationToken) { cancellationToken.ThrowIfCancellationRequested(); D34++; }
+        public void VerifyD34(CancellationToken cancellationToken)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            D34++;
+            if (D34 == D34FailureAtCall && D34Failure is not null) throw D34Failure;
+        }
         /// <summary>保存原值1，不假設trace已開。</summary>
         public int ReadTraceSetting() => Trace;
         /// <summary>收尾token不可已取消。</summary>
