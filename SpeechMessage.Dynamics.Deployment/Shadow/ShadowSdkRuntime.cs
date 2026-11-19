@@ -13,8 +13,9 @@
  * 以 requestid、pluginstepid、型別、模式及時間窗查追蹤，不等待不存在的系統作業。
  * 使用邊界與維護：呼叫端須先驗證實體／欄位 metadata、測試教會與會友權威關聯、
  * 盤點 token 來源及模組切換設定。本層不從顯示名稱推斷授權，也不解析任意查詢。
- * 顯式 alias 先配置全部 owned ID，再以 lookup 連結 owned／shared；shared 的授權與
- * metadata 由 caller 負責，本層不寫入或清理 shared。受審外部範圍只查ID／版本，
+ * 顯式 alias 先配置全部 owned ID，再以 lookup 連結 owned／shared；observe 亦可按
+ * 權威 shared alias 唯讀取回欄位，shared 的授權與 metadata 由 caller 負責，本層不寫入
+ * 或清理 shared。受審外部範圍只查ID／版本，
  * 在seed前及舊輪完成後比較；observer與快照由同一round Dispose清除。每個 round
  * 只支援單一同步呼叫者；SDK 輸入輸出均深複製，禁止部分 Seed 失敗後觸發。
  * 原始業務資料只存活一輪；追蹤最多六十秒、最多二秒一次且回應有界，取消不略過
@@ -555,8 +556,14 @@ internal sealed partial class ShadowSdkRuntime : IShadowScenarioRuntime
                 }
                 else
                 {
-                    if (records.SingleOrDefault(item => item.Alias == observation.Id) is { } owned)
+                    // ValueTuple 的預設值仍符合 { }；必須檢查 Entity 欄位，否則 shared alias
+                    // 會被誤當 seed 並在讀取 LogicalName 時解參照 null。
+                    var owned = records.SingleOrDefault(item => item.Alias == observation.Id);
+                    if (owned.Record is not null)
+                    {
+                        if (owned.Record.LogicalName != observation.Entity) throw InvalidRuntime();
                         row = FindOwned(owned.Record.LogicalName, owned.Record.Id, new ColumnSet(observation.Fields.ToArray()));
+                    }
                     else if (sharedReferences.TryGetValue(observation.Id, out var shared))
                         row = runtime.service.Retrieve(shared.LogicalName, shared.Id,
                             new ColumnSet(observation.Fields.ToArray()));

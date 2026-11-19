@@ -7,8 +7,8 @@
  * 建立後回應失敗、seed SDK fault、CLI catch、系統作業未完成與追蹤歧義，斷言清冊保存、有限等待、安全失敗識別與零秘密輸出。
  * 使用邊界與維護：案例獨占 Entity 與輸入集合，測試 owner 在 finally 刪除自己的
  * 合成資料；正式 round 的 Dispose 不取代遠端清理，失敗需可由呼叫端繼續嘗試。
- * 顯式 alias 涵蓋 owned 前向 lookup、shared 只讀身分與 trigger patch；注入 SDK
- * 改寫、主鍵錯配及 caller 取消，斷言發布失敗、shared 不變與清冊逆序排空。
+ * 顯式 alias 涵蓋 owned 前向 lookup、shared 唯讀 observation／lookup 與 trigger patch；
+ * 注入 SDK 改寫、主鍵錯配及 caller 取消，斷言發布失敗、shared 不變與清冊逆序排空。
  */
 using System;
 using System.Collections.Generic;
@@ -103,6 +103,50 @@ public sealed class ShadowSdkRuntimeTests
         Assert.Equal(round.Aliases.Single(pair => pair.Value == "record-1").Key, service.RequestedTarget.ToString("D"));
         Assert.Equal(0, f.Clock.ActiveTimers);
         round.DeleteOwnedRecords();
+    }
+
+    /// <summary>
+    /// 以共享 contact 作為觀察目標並注入成功的合成作業，保護值 tuple 預設值不被誤判為 owned seed；
+    /// 決定性斷言確認共享列可讀、欄位投影正確、共享列未被寫入或刪除，且本輪 seed 全數清理。
+    /// </summary>
+    [Fact]
+    public void SdkRound_LegacyObserveReadsSharedReferenceWithoutMutatingIt()
+    {
+        using var f = new Fixture();
+        var sharedId = Guid.NewGuid();
+        f.Service.Seed(new Entity("contact", sharedId) { ["new_language"] = "zh-TW" });
+        var definition = new ShadowScenarioDefinition(
+            ShadowTraceParser.Parse("SMV-SHADOW|1|{\"end\":true,\"count\":0}"),
+            new[] { new ShadowObservation("contact", "shared-contact", ["new_language"]) },
+            new HashSet<string>());
+        var source = Source() with
+        {
+            SharedReferences = new Dictionary<string, EntityReference>(StringComparer.Ordinal)
+            {
+                ["shared-contact"] = new EntityReference("contact", sharedId)
+            },
+            PrimaryIdAttributes = new Dictionary<string, string>(StringComparer.Ordinal)
+            {
+                ["region"] = "regionid",
+                ["contact"] = "contactid"
+            }
+        };
+        var service = new PollingService(f.Service);
+        var runtime = new ShadowSdkRuntime(service, Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid(),
+            new Dictionary<ShadowScenarioDefinition, ShadowSdkScenario> { [definition] = source }, () => { }, f.Clock);
+        using var round = runtime.CreateRound(definition, true);
+
+        round.Seed(CancellationToken.None);
+        round.Trigger(CancellationToken.None);
+        var observed = round.ObserveLegacy(TimeSpan.FromSeconds(1), CancellationToken.None);
+
+        Assert.Equal("zh-TW", Assert.Single(observed.Rows).Fields.GetProperty("new_language").GetString());
+        Assert.Equal(sharedId, Assert.Single(f.Service.Rows.Where(row => row.LogicalName == "contact")).Id);
+        Assert.DoesNotContain(f.Service.Writes, write => write.EndsWith(":contact", StringComparison.Ordinal));
+        round.DeleteOwnedRecords();
+        round.VerifyNoRemainingRecords();
+        Assert.DoesNotContain(f.Service.Rows, row => row.LogicalName == "region");
+        Assert.Single(f.Service.Rows.Where(row => row.LogicalName == "contact"));
     }
 
     /// <summary>非本輪追蹤原文不可進結果；只抽取已關聯追蹤中的安全版本行，精確保留完整標記。</summary>
