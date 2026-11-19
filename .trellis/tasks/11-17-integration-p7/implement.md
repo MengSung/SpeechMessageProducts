@@ -14,7 +14,7 @@
 - [x] P7-01a
 - [x] P7-01b
 - [x] P7-01c
-- [x] P7-02a（R0～R5b完成；驗收紀錄待此提交固定guard）
+- [x] P7-02a（21個既有提交經使用者核定結案，266b6e27完整guard通過；唯一收尾提交後guard／推送）
 - [ ] P7-02b
 - [ ] 階段審查與 §6A 收尾
 
@@ -93,3 +93,10 @@ D34 已實測通過；待辦 0、追蹤原值 1；22 新步驟全部停用、舊
 2026-11-18 21:39 Asia/Taipei (UTC+08:00)：已依07A核定加入goodshepherdback演練override：OutboundLetterPlugin及StorLessonSigningActivity tier=live、decidedBy=演練，organizations.switchState保持off；待提交與guard後唯讀plan檢視，再執行R5b。
 
 2026-11-18 22:02 Asia/Taipei (UTC+08:00)：R5b plan SHA F19D7BD1C9BB686BBEE9D08100E831050FE64342BFA3D243E667C1BAC9A866C4逐行通過；12新步驟啟用、停用舊步驟0、14個原停用流程改指後仍停用、KeepLegacy 21、Manual 0。switch 38項操作完成，verify --plan通過；原始switch-log SHA 38C165FBAD3AA9E718D6E932A394D744D7939BD4ADBF6B8EC03E15661FEADCA0，plan檔SHA C7CCA34C74D4C59D58DF8842DE60A1585C6020BC1D76DDEB3CAE035B9E76A3B2。R5b只驗切換機制，未構成Live實機證據；本段尚待更新後提交固定guard。
+
+
+2026-11-19 08:54 Asia/Taipei (UTC+08:00)：依使用者核定以現有21個提交（末筆266b6e27）結案P7-02a，僅另加本次收尾紀錄提交。R0～R5b已有演練證據；266b6e27完整guard八項EXIT=0（Deployment934案），log SHA-256 C3502315309280446D938FFAB2B3D9B08748BCAEE61492684DE87BE9353C22ED。原R5b已由原switch-log回復，既存r8-final-rollback2／verify2及r9-final-readonly-inventory記錄回off、trace1、D34與清冊0；這些是前輪證據，不冒充本次唯讀成功。
+
+2026-11-19 08:54 Asia/Taipei (UTC+08:00)：本次起點唯讀verify結束碼1、D34／殘留探針結束碼1，均在連線階段失敗，未取得目前off／D34／清冊讀值。DNS解析與443可達只證明網路端點可達，原因尚未查明，不歸咎權限或快取。起點與finally：本次未寫入組織，租約與組態由程序釋放，無寫入可回復；本輪殘留狀態未驗證，保留診斷trace2僅為前輪值。原始安全輸出artifacts/p7/resume-20261119-start-readonly.log。暫停實機動作，不重跑live-check；離線診斷不視為實機通過。
+
+2026-11-19 08:54 Asia/Taipei (UTC+08:00)：依使用者指示git restore撤回plugins.registration.json的16筆live→dormant降級及organizations.json移除override的未提交修改，兩檔與HEAD相同。前輪沒有比對有跑且仍有差異的證據，fees／care／qrcodes／lessons也未跑Live；工具／準備失敗不是差異，不能改dormant繞過。只可依本輪實測差異與核定修正上限，或§8-6無流程樣板且時間盒用盡，登錄合法降級；未解環境原因碼保持原tier。

@@ -240,11 +240,11 @@ footer{margin-top:36px;color:var(--muted);font-size:12.5px;text-align:center}
  */
 const DATA = {
   "planVersion": "3.5",
-  "snapshot": "2026-11-17 18:36 Asia/Taipei (UTC+08:00)",
-  "lastUpdated": "2026-11-18T21:42:29+08:00",
+  "snapshot": "2026-11-19 08:54 Asia/Taipei (UTC+08:00)",
+  "lastUpdated": "2026-11-19T08:54:05+08:00",
   "branch": "1.0.0.11.Integration.P7.Worktree",
-  "head": "f79956df0ab23c217d2f23c334c7a1dd31ef2173",
-  "headline": "2026-11-18 20:53 Asia/Taipei (UTC+08:00)：P7-02a進行中，HEAD f79956df（18/20提交）；第18提交完整guard八項通過（Release全方案7299案、Debug tracer7、Deployment.Tests 930）。R4 appointments、attendance、localization影子差異各0且回off。使用者已核定直接移除weeklyreports所有contact seed的statecode；回歸測試先紅指出pastor，修正後Deployment.Tests 930案通過；待第19提交guard後唯一一次重跑weeklyreports。外部審核暫停。",
+  "head": "266b6e27efd1cd971739f912e425379c8cc629a3",
+  "headline": "2026-11-19 08:54 Asia/Taipei (UTC+08:00)：P7-02a依核定21個提交結案，266b6e27 guard八項通過；唯一收尾提交後guard／推送。P7-02b先補離線Live原因碼；本次起點連線失敗，未確認當下off／D34／殘留，暫停實機；不連正式組織、不啟動階段8。",
   "notices": [
     {
       "id": "plan-3.5-summary",
@@ -653,8 +653,8 @@ const DATA = {
       "phaseId": "階段 7",
       "level": "info",
       "title": "P7 進度摘要",
-      "body": "2026-11-18 21:42 Asia/Taipei (UTC+08:00)：P7-02a進行中，第20/20提交已完成R4四模組影子比對與清理。R5a shadow plan／切換／回復均verify=0並回off；R5b兩筆核定演練override已加至organizations.json、switchState仍off，待固定guard與live plan審查。目標只goodshepherdback；不啟用舊步驟或改流程。外部雙模型／ClaudeOnly仍暫停。",
-      "lastUpdated": "2026-11-18T21:42:29+08:00",
+      "body": "2026-11-19 08:54 Asia/Taipei (UTC+08:00)：P7-02a依核定21個提交結案，266b6e27 guard八項通過；唯一收尾提交後guard／推送。P7-02b先補離線Live原因碼；本次起點連線失敗，未確認當下off／D34／殘留，暫停實機；不連正式組織、不啟動階段8。",
+      "lastUpdated": "2026-11-19T08:54:05+08:00",
       "steps": [
         "2026-11-17 12:43 Asia/Taipei (UTC+08:00)：起點f06d7596；Release7071與Deployment769取自P6最末守門，未重跑基準。",
         "2026-11-17 12:43 Asia/Taipei (UTC+08:00)：D34通過、22新步驟停用、舊步驟/流程啟用0、待辦0、追蹤1；未寫入D365。",
@@ -689,7 +689,10 @@ const DATA = {
         "2026-11-18 21:11 Asia/Taipei (UTC+08:00)：提交f961502a固定guard完整八項EXIT=0；全方案Release 22組件7299案、Debug tracer7案、Deployment.Tests 930案；編碼195檔零問題、重複碼groups/new/stale皆0、I18n verify、檔案說明1816檔零失敗、進度頁28案通過。guard log SHA-256 E5E2328F0085C72E4B6EF773CECC44D3E45269E7B97FC3D1665BD8D095A57922。",
         "2026-11-18 21:20 Asia/Taipei (UTC+08:00)：第一次f79956df固定guard在Deployment.Tests的WeeklyReport_Registration_DisabledShadowWithLegacyReferences失敗，原因是清冊測試仍斷言通知step的shadowReport.differences=null，與R4實測通知step差異0衝突。依D7-24第(1)類計數／清冊預期更新，只改此測試：NotificationPlugin指定實測0及報告路徑，StatisticsPlugin與尚未影子比對的workflow activity仍斷言null。指定測試1/1、Deployment.Tests 930/930通過；其餘測試期望不變。修正納入同一未推送第20提交，需重跑完整guard。",
         "2026-11-18 21:30 Asia/Taipei (UTC+08:00)：R5a plan shadow經審核後switch成功，verify --plan=0；用同輪switch-log rollback成功，verify off=0。plan SHA B86E416DE518D9CBC1B6661260812BB773AB7D746DE4D876A9E9A49589C9791C；switch-log SHA CE5B2CD9434384766FE1324A69478F8471AFDBA07A9C6DDD0014B22828F933BF。12個新step啟用僅為臨時shadow；沒有舊step停用或流程改指。",
-        "2026-11-18 21:39 Asia/Taipei (UTC+08:00)：已依07A核定加入goodshepherdback演練override：OutboundLetterPlugin及StorLessonSigningActivity tier=live、decidedBy=演練，organizations.switchState保持off；待提交與guard後唯讀plan檢視，再執行R5b。"
+        "2026-11-18 21:39 Asia/Taipei (UTC+08:00)：已依07A核定加入goodshepherdback演練override：OutboundLetterPlugin及StorLessonSigningActivity tier=live、decidedBy=演練，organizations.switchState保持off；待提交與guard後唯讀plan檢視，再執行R5b。",
+        "2026-11-19 08:54 Asia/Taipei (UTC+08:00)：依使用者核定以現有21個提交（末筆266b6e27）結案P7-02a，僅另加本次收尾紀錄提交。R0～R5b已有演練證據；266b6e27完整guard八項EXIT=0（Deployment934案），log SHA-256 C3502315309280446D938FFAB2B3D9B08748BCAEE61492684DE87BE9353C22ED。原R5b已由原switch-log回復，既存r8-final-rollback2／verify2及r9-final-readonly-inventory記錄回off、trace1、D34與清冊0；這些是前輪證據，不冒充本次唯讀成功。",
+        "2026-11-19 08:54 Asia/Taipei (UTC+08:00)：本次起點唯讀verify結束碼1、D34／殘留探針結束碼1，均在連線階段失敗，未取得目前off／D34／清冊讀值。DNS解析與443可達只證明網路端點可達，原因尚未查明，不歸咎權限或快取。起點與finally：本次未寫入組織，租約與組態由程序釋放，無寫入可回復；本輪殘留狀態未驗證，保留診斷trace2僅為前輪值。原始安全輸出artifacts/p7/resume-20261119-start-readonly.log。暫停實機動作，不重跑live-check；離線診斷不視為實機通過。",
+        "2026-11-19 08:54 Asia/Taipei (UTC+08:00)：依使用者指示git restore撤回plugins.registration.json的16筆live→dormant降級及organizations.json移除override的未提交修改，兩檔與HEAD相同。前輪沒有比對有跑且仍有差異的證據，fees／care／qrcodes／lessons也未跑Live；工具／準備失敗不是差異，不能改dormant繞過。只可依本輪實測差異與核定修正上限，或§8-6無流程樣板且時間盒用盡，登錄合法降級；未解環境原因碼保持原tier。"
       ]
     }
   ],
@@ -1821,7 +1824,7 @@ const DATA = {
       "timebox": "1 天",
       "doneAt": "",
       "commit": "",
-      "note": "2026-11-18 21:42 Asia/Taipei (UTC+08:00)：P7-02a進行中，第20/20提交已完成R4四模組影子比對與清理。R5a shadow plan／切換／回復均verify=0並回off；R5b兩筆核定演練override已加至organizations.json、switchState仍off，待固定guard與live plan審查。目標只goodshepherdback；不啟用舊步驟或改流程。外部雙模型／ClaudeOnly仍暫停。"
+      "note": "2026-11-19 08:54 Asia/Taipei (UTC+08:00)：P7-02a依核定21個提交結案，266b6e27 guard八項通過；唯一收尾提交後guard／推送。P7-02b先補離線Live原因碼；本次起點連線失敗，未確認當下off／D34／殘留，暫停實機；不連正式組織、不啟動階段8。"
     },
     {
       "id": "P8-01",
@@ -2037,8 +2040,8 @@ const DATA = {
       "id": "P7-02a",
       "phaseId": "階段 7",
       "name": "P7-02a（07A固定單元）",
-      "status": "active",
-      "note": "2026-11-18 21:42 Asia/Taipei (UTC+08:00)：P7-02a進行中，第20/20提交已完成R4四模組影子比對與清理。R5a shadow plan／切換／回復均verify=0並回off；R5b兩筆核定演練override已加至organizations.json、switchState仍off，待固定guard與live plan審查。目標只goodshepherdback；不啟用舊步驟或改流程。外部雙模型／ClaudeOnly仍暫停。"
+      "status": "done",
+      "note": "2026-11-19 08:54 Asia/Taipei (UTC+08:00)：依使用者核定以現有21個提交（末筆266b6e27）結案P7-02a，僅另加本次收尾紀錄提交。R0～R5b已有演練證據；266b6e27完整guard八項EXIT=0（Deployment934案），log SHA-256 C3502315309280446D938FFAB2B3D9B08748BCAEE61492684DE87BE9353C22ED。原R5b已由原switch-log回復，既存r8-final-rollback2／verify2及r9-final-readonly-inventory記錄回off、trace1、D34與清冊0；這些是前輪證據，不冒充本次唯讀成功。"
     },
     {
       "id": "P7-02b",
@@ -2057,12 +2060,12 @@ const DATA = {
         [
           "指定測試同名通過",
           "ok",
-          "Deployment.Tests 927/927；實機結果另列第4項，不以測試綠燈代替。"
+          "266b6e27 Deployment.Tests 934案通過；不代表Live實機。"
         ],
         [
           "固定guard完整八項",
           "ok",
-          "238fff1e：Release7289、Debug tracer7；編碼192檔0問題、重複新增0、I18n、文件1816/0、進度28/28。"
+          "266b6e27完整guard八項EXIT=0；唯一收尾提交另跑完整guard。"
         ],
         [
           "新專案覆蓋率",
@@ -2072,15 +2075,15 @@ const DATA = {
         [
           "實機操作與零殘留",
           "no",
-          "R3通過；R4尚未通過。最近獨立核對off、trace1、D34與全部清冊0，不等於影子比對通過。"
+          "前輪R0～R5b及rollback有證據；本次起點連線失敗，當下off／D34／殘留未確認，R6～R9尚未驗收。"
         ],
         [
           "一頁回報與進度頁",
           "no",
-          "手冊初稿、演練紀錄與此頁已同步；R4～R9及最終一頁回報尚未完成。"
+          "P7-02a結案紀錄同步；P7-02b手冊定稿、Live證據與階段審查尚未完成。"
         ]
       ],
-      "next": "R4正確前置及收尾驗證；全部影子差異0後依序R5a／R5b，再接P7-02b；本目標不連正式組織。"
+      "next": "起點目前連線失敗，暫停實機；P7-02a唯一收尾提交／guard／推送後，離線原因碼與測試／guard；起點通過才重新R5b。"
     }
   ],
   "gates": [

@@ -10,7 +10,7 @@
 - [x] 2026-11-18 21:06 Asia/Taipei (UTC+08:00)：R4四模組appointments／attendance／weeklyreports／localization單次影子比對均通過，ShadowToExpected及ShadowIntentsToExpected差異各0，測試owned資料清理0；各模組off、trace還原1、verify0、D34及待辦／smoke task／SMV-TEST全回基線。只為各情境實際觸發的步驟填shadowReport，影子證據不是Live evidence。週報聯絡人statecode經使用者核定移除，Deployment.Tests 930案通過；guard與證據見本段後續紀錄。
 - [x] 2026-11-18 21:30 Asia/Taipei (UTC+08:00)：R5a shadow plan已審核，switch後verify --plan=0；用同輪switch-log rollback後verify off=0。plan SHA-256 B86E416DE518D9CBC1B6661260812BB773AB7D746DE4D876A9E9A49589C9791C；switch-log SHA-256 CE5B2CD9434384766FE1324A69478F8471AFDBA07A9C6DDD0014B22828F933BF。所有KeepLegacy流程未改指，舊步驟維持停用。
 - [x] 2026-11-18 22:00 Asia/Taipei (UTC+08:00)：R5b plan逐行審核通過；12新步驟啟用、舊步驟停用0、14流程改指且原本全停用、KeepLegacy 21、Manual 0。plan SHA-256 F19D7BD1C9BB686BBEE9D08100E831050FE64342BFA3D243E667C1BAC9A866C4；切換成功且verify --plan通過；switch log位於同一artifacts目錄。以最後一筆提交併入此記錄，完整guard重跑待完成；不離開演練，接續P7-02b。
-- [ ] 完整guard、紀錄／父清單同步與收尾提交。
+- [x] 266b6e27完整guard八項通過；使用者核定21個提交結案及唯一一次收尾紀錄提交，提交後完整guard與推送SHA核對。
 
 2026-11-17 21:55 Asia/Taipei (UTC+08:00)：接P7-02a；P7-01遠端5eb3923ed9e5907332c22cb76c32177b7fdf8db0已核。尚未開始R0或寫入組織。
 
@@ -73,3 +73,10 @@ ClaudeOnly具體核對：R5切換與rollback間不得改plugins.registration.jso
 
 2026-11-18 21:30 Asia/Taipei (UTC+08:00)：R5a plan shadow經審核後switch成功，verify --plan=0；用同輪switch-log rollback成功，verify off=0。plan SHA B86E416DE518D9CBC1B6661260812BB773AB7D746DE4D876A9E9A49589C9791C；switch-log SHA CE5B2CD9434384766FE1324A69478F8471AFDBA07A9C6DDD0014B22828F933BF。12個新step啟用僅為臨時shadow；沒有舊step停用或流程改指。
 2026-11-18 21:39 Asia/Taipei (UTC+08:00)：已依07A核定加入goodshepherdback演練override：OutboundLetterPlugin及StorLessonSigningActivity tier=live、decidedBy=演練，organizations.switchState保持off；待提交與guard後唯讀plan檢視，再執行R5b。
+
+
+2026-11-19 08:54 Asia/Taipei (UTC+08:00)：依使用者核定以現有21個提交（末筆266b6e27）結案P7-02a，僅另加本次收尾紀錄提交。R0～R5b已有演練證據；266b6e27完整guard八項EXIT=0（Deployment934案），log SHA-256 C3502315309280446D938FFAB2B3D9B08748BCAEE61492684DE87BE9353C22ED。原R5b已由原switch-log回復，既存r8-final-rollback2／verify2及r9-final-readonly-inventory記錄回off、trace1、D34與清冊0；這些是前輪證據，不冒充本次唯讀成功。
+
+2026-11-19 08:54 Asia/Taipei (UTC+08:00)：本次起點唯讀verify結束碼1、D34／殘留探針結束碼1，均在連線階段失敗，未取得目前off／D34／清冊讀值。DNS解析與443可達只證明網路端點可達，原因尚未查明，不歸咎權限或快取。起點與finally：本次未寫入組織，租約與組態由程序釋放，無寫入可回復；本輪殘留狀態未驗證，保留診斷trace2僅為前輪值。原始安全輸出artifacts/p7/resume-20261119-start-readonly.log。暫停實機動作，不重跑live-check；離線診斷不視為實機通過。
+
+2026-11-19 08:54 Asia/Taipei (UTC+08:00)：依使用者指示git restore撤回plugins.registration.json的16筆live→dormant降級及organizations.json移除override的未提交修改，兩檔與HEAD相同。前輪沒有比對有跑且仍有差異的證據，fees／care／qrcodes／lessons也未跑Live；工具／準備失敗不是差異，不能改dormant繞過。只可依本輪實測差異與核定修正上限，或§8-6無流程樣板且時間盒用盡，登錄合法降級；未解環境原因碼保持原tier。
