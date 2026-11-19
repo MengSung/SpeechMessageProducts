@@ -5,7 +5,8 @@
  * 組織白名單、固定artifacts邊界、寫鎖及終端例外回報；P2 Channel命令在清單路由前分流。
  *
  * 主要功能與流程：先由catalog／ProductionGuard核定組織、旗標與正式寫入確認，再嚴格解析命令及檔案路徑；
- * 明確--schema或export-metadata轉交SchemaDeploymentCli，該路徑不需Plugin DLL。
+ * 明確--schema或export-metadata轉交SchemaDeploymentCli，奉獻類別轉換則交OfferingMigrationCli；
+ * 這兩條結構／資料遷移路徑均不需Plugin DLL，且各自嚴格驗證輸入、寫鎖與一次性SDK租約。
  * export-legacy 以有界唯讀查詢匯出安全 metadata 並回報啟用筆數，不需要清單或 DLL；
  * shadow 使用同一寫鎖及租約，只接受固定 Golden/Legacy 或 P7驗收情境路徑；strict reader先驗完整來源，再交影子 partial 核對實機身分、
  * 已部署映像與步驟，完成新程式影子執行、清理及安全報告。修訂 2 起 legacy switch
@@ -160,6 +161,10 @@ internal static partial class DeploymentCli
 
         if (args[0] is "live-check" or "observe" or "church-defaults")
             return RunLiveCommands(args, target, catalog, connector, output, report, artifactRoot, secretReader, writeLockTimeout, cancellationToken);
+
+        if (args[0] == "migrate-offering-categories")
+            return Offerings.OfferingMigrationCli.Run(args, target, connector, output, report,
+                artifactRoot, writeLockTimeout, cancellationToken);
 
         // P1結構命令不需要Plugin DLL；只在明確--schema或export-metadata時進新路由，舊P0語法與安全邊界保留。
         if (args[0] == "export-metadata" || Array.IndexOf(args, "--schema") >= 0)
@@ -750,6 +755,9 @@ internal static partial class DeploymentCli
         output.WriteLine("          smoke --org <name> --scenario <p0-ping-trace|p0-ping-push>");
         output.WriteLine("          export-metadata --org <name> | plan/verify --org <name> --schema <file>");
         output.WriteLine("          apply --org <name> --schema <file> --plan <file>");
+        output.WriteLine("          migrate-offering-categories --org <test-name>");
+        output.WriteLine("          migrate-offering-categories --org <test-name> --apply --plan <file> --plan-sha256 <sha256>");
+        output.WriteLine("          migrate-offering-categories --org <test-name> --verify");
         output.WriteLine("          protect-token --org <name> --channel-id <id> (two secret lines from stdin)");
         output.WriteLine("          assign-channel --org <name> --channel-id <id> --account <guid>");
     }

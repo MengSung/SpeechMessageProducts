@@ -1,9 +1,10 @@
 /*
  * 檔案整體說明
  *
- * 目的與定位：本檔用獨立於產品清單的附錄A期望，驗P1 schema解析／hash契約；它保護正式結構內容，而不只是檔案存在。
- * 測試範圍：七個受管實體、四新表／唯一鍵、Account與Contact欄位、phase邊界、日期UserLocal/DateAndTime與兩個加密欄位安全。
- * 故障注入：未知及重複JSON屬性、重複表／欄、非法名稱／型別、錯phase、缺key欄與錯日期行為；任何錯誤必須拒絕整個候選。
+ * 目的與定位：本檔用獨立於產品清單的附錄A期望，驗結構schema解析／hash契約；它保護正式結構內容，而不只是檔案存在。
+ * 測試範圍：九個受管實體、四新表／唯一鍵、Account與Contact欄位、phase邊界、P8奉獻lookup、日期UserLocal/DateAndTime與加密欄位安全。
+ * 故障注入：未知及重複JSON屬性、重複表／欄、null欄位／鍵集合、非法名稱／型別、錯phase、
+ * 缺key欄與錯日期行為；任何錯誤必須以受控資料錯誤拒絕整個候選。
  * 決定性斷言：P4永豐欄不能參與P1、key順序與choice正式值精確符合附錄；完整同檔hash穩定，有效欄位改變必須使hash不同。
  * 依賴與生命週期：只讀本worktree正式schema，各案獨立暫存JSON由WithFile建立並在finally刪除；不連D365、不讀憑證、不持有背景資源。
  * 維護要求：新增結構須先更新獨立業務期望及失敗樣本；不能從被測清單反推自身oracle，也不能把本離線契約稱為P1-12實機通過。
@@ -25,18 +26,19 @@ public sealed class SchemaDefinitionTests
     private static readonly int[] LanguageSourceValues = { 100000000, 100000001, 100000002 };
     /// <summary>附錄A.6正式唯一鍵順序，不能由被測清單生成自身oracle。</summary>
     private static readonly string[] LocalizedKeyFields = { "new_accountid", "new_key", "new_culture" };
-    /// <summary>正式清單須含七個受管實體、四新表與四唯一鍵；核對activePhase、P4／P5欄位階段、日期及安全契約。</summary>
+    /// <summary>正式清單須含九個受管實體、四新表、四十一欄與四唯一鍵；既有P1／P4／P5斷言不因P8欄位成長而放寬。</summary>
     [Fact]
     public void Load_FormalSchema_MatchesAppendixAAndPhaseBoundaries()
     {
         var schema = SchemaFiles.Load(SchemaPath());
         Assert.Equal("SpeechMessageCore", schema.Solution);
         Assert.Equal("new", schema.Prefix);
-        Assert.Equal(5, schema.ActivePhase);
+        Assert.Equal(8, schema.ActivePhase);
         var withoutActivePhase = JsonNode.Parse(File.ReadAllText(SchemaPath(), Encoding.UTF8))!.AsObject();
         withoutActivePhase.Remove("activePhase");
         WithFile(withoutActivePhase.ToJsonString(), path => Assert.Equal(1, SchemaFiles.Load(path).ActivePhase));
-        Assert.Equal(7, schema.Entities.Count);
+        Assert.Equal(9, schema.Entities.Count);
+        Assert.Equal(41, schema.Entities.Sum(entity => entity.Fields.Count));
         Assert.Equal(4, schema.Entities.Count(entity => entity.IsNew));
         Assert.Equal(4, schema.Entities.Sum(entity => entity.Keys.Count));
         var account = schema.Entities.Single(entity => entity.LogicalName == "account");
@@ -72,6 +74,25 @@ public sealed class SchemaDefinitionTests
         Assert.All(dates, field => { Assert.Equal("UserLocal", field.Behavior); Assert.Equal("DateAndTime", field.Format); });
     }
 
+    /// <summary>保護P8只為兩個核定舊實體規劃optional奉獻類別lookup；synthetic schema test不代表D365已存在或已發布欄位。</summary>
+    [Fact]
+    public void Schema_OfferingLookups_PlannedForFeeAndDedicationBooking()
+    {
+        var schema = SchemaFiles.Load(SchemaPath());
+        Assert.Equal(8, schema.ActivePhase);
+
+        foreach (var entityName in new[] { "new_fee", "new_dedication_booking" })
+        {
+            var entity = Assert.Single(schema.Entities.Where(candidate => candidate.LogicalName == entityName));
+            Assert.False(entity.IsNew);
+            var lookup = Assert.Single(entity.Fields.Where(field => field.LogicalName == "new_offeringcategoryid"));
+            Assert.Equal("lookup", lookup.Type);
+            Assert.Equal("new_offeringcategory", lookup.Target);
+            Assert.Equal(8, lookup.Phase);
+            Assert.False(lookup.Required);
+        }
+    }
+
     /// <summary>未知／重複欄位或JSON屬性、非法識別、錯phase、缺key欄及變更日期行為都須在SDK之前拒絕，不能靜默略過。</summary>
     /// <param name="fault">獨立注入的清單錯誤種類。</param>
     [Theory]
@@ -86,6 +107,9 @@ public sealed class SchemaDefinitionTests
     [InlineData("active-phase-high")]
     [InlineData("missing-key-field")]
     [InlineData("wrong-date")]
+    [InlineData("unknown-existing-entity")]
+    [InlineData("extra-existing-field")]
+    [InlineData("wrong-existing-lookup-target")]
     public void Load_InvalidDefinition_RejectsEntireCandidate(string fault)
     {
         var text = File.ReadAllText(SchemaPath(), Encoding.UTF8);
@@ -105,9 +129,35 @@ public sealed class SchemaDefinitionTests
             case "active-phase-high": candidate["activePhase"] = 9; break;
             case "missing-key-field": candidate["entities"]![2]!["keys"]![0]!["attributes"]![0] = "new_missing"; break;
             case "wrong-date": entity["fields"]![4]!["behavior"] = "DateOnly"; break;
+            case "unknown-existing-entity":
+                candidate["entities"]!.AsArray().Single(item => item!["logicalName"]!.GetValue<string>() == "new_fee")!["logicalName"] = "new_unapproved_table";
+                break;
+            case "extra-existing-field":
+                candidate["entities"]!.AsArray().Single(item => item!["logicalName"]!.GetValue<string>() == "new_fee")!["fields"]!.AsArray()
+                    .Add(candidate["entities"]!.AsArray()[0]!["fields"]![0]!.DeepClone());
+                break;
+            case "wrong-existing-lookup-target":
+                candidate["entities"]!.AsArray().Single(item => item!["logicalName"]!.GetValue<string>() == "new_fee")!["fields"]![0]!["target"] = "account";
+                break;
         }
         if (fault != "duplicate-property") text = candidate.ToJsonString();
         WithFile(text, path => Assert.ThrowsAny<Exception>(() => SchemaFiles.Load(path)));
+    }
+
+    /// <summary>既有表白名單驗證在欄位集合為null時必須回受控資料錯誤，不得以NullReferenceException洩漏實作細節。</summary>
+    /// <param name="collection">注入為null的結構集合。</param>
+    [Theory]
+    [InlineData("fields")]
+    [InlineData("keys")]
+    public void Load_ExistingEntityNullCollections_RejectsWithInvalidData(string collection)
+    {
+        var candidate = JsonNode.Parse(File.ReadAllText(SchemaPath(), Encoding.UTF8))!.AsObject();
+        var entity = candidate["entities"]!.AsArray()
+            .Single(item => item!["logicalName"]!.GetValue<string>() == "new_fee")!.AsObject();
+        entity[collection] = null;
+
+        WithFile(candidate.ToJsonString(), path =>
+            Assert.Throws<InvalidDataException>(() => SchemaFiles.Load(path)));
     }
 
     /// <summary>讀取及hash只有結構定義；同檔兩次hash一致，任一正式欄位異動必須改hash，不把不可辨識的未知值納入計畫。</summary>

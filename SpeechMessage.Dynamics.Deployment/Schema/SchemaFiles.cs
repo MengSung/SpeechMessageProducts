@@ -9,7 +9,8 @@
  *
  * 主要功能與流程：Load 讀取最多 1 MiB 的 schema，ReadPlan 讀取最多 4 MiB 的 plan；
  * 共用的 Read<T> 開啟檔案後再次核對大小，解析深度最多 32，拒絕未知及重複 JSON 屬性。
- * Validate 逐一確認固定 solution／publisher／new 前綴、ActivePhase範圍、實體與欄位的穩定邏輯身份、唯一性、
+ * Validate 逐一確認固定 solution／publisher／new 前綴、ActivePhase範圍、精確既有實體白名單、欄位身份與唯一性、
+ * 進入既有實體白名單輔助函式前先確認Fields／Keys不為null；null集合與其他結構錯誤一律轉成受控資料錯誤，
  * 型別／長度／phase、lookup 目標、選項數值與索引欄位；主要名稱與索引欄仍要求phase 1，P1時間點必須為UserLocal／DateAndTime。
  * Hash 與 HashValue 對已辨識的純結構計算 SHA-256；它們用於完整性與漂移檢查，不代表使用者授權。
  * WriteNew 與 WritePlanMarkdown 共用 WriteContent，以 UTF-8 無 BOM、CRLF 輸出，最多 100 MiB。
@@ -174,7 +175,7 @@ internal static class SchemaFiles
             foreach (var item in element.EnumerateArray()) RejectDuplicateProperties(item);
     }
 
-    /// <summary>驗全部實體與欄位後才交規劃器；既有表限account、contact及P5課程紀錄，所有錯誤固定訊息，不回顯清單未知值。</summary>
+    /// <summary>驗全部實體與欄位後才交規劃器；P8只額外允許兩張舊表的指定optional lookup，未知表或欄仍拒絕且不回顯輸入。</summary>
     internal static void Validate(SchemaDefinition definition)
     {
         ArgumentNullException.ThrowIfNull(definition);
@@ -186,7 +187,7 @@ internal static class SchemaFiles
         foreach (var entity in definition.Entities)
         {
             if (entity is null || !entities.Add(entity.LogicalName)
-                || (entity.IsNew ? !ValidName(entity.LogicalName) : entity.LogicalName is not ("account" or "contact" or "new_stor_lessons"))
+                || (entity.IsNew ? !ValidName(entity.LogicalName) : !ValidExistingEntity(entity))
                 || !ValidLabel(entity.DisplayName) || !ValidLabel(entity.PluralName)
                 || entity.Fields is null || entity.Fields.Count is < 1 or > 128 || entity.Keys is null || entity.Keys.Count > 8)
                 throw new InvalidDataException("Invalid or duplicate schema entity.");
@@ -213,6 +214,29 @@ internal static class SchemaFiles
         }
         foreach (var field in definition.Entities.SelectMany(entity => entity.Fields).Where(field => field.Type == "lookup"))
             if (!entities.Contains(field.Target)) throw new InvalidDataException("Unknown schema lookup target.");
+    }
+
+    /// <summary>既有表延伸採逐表逐欄白名單；奉獻實體只接受一個phase 8 optional lookup，不允許順帶管理其他舊欄位。</summary>
+    private static bool ValidExistingEntity(SchemaEntity entity)
+    {
+        if (entity.LogicalName is "account" or "contact" or "new_stor_lessons")
+        {
+            return true;
+        }
+
+        if (entity.LogicalName is not ("new_fee" or "new_dedication_booking")
+            || entity.Fields is null || entity.Keys is null
+            || entity.Fields.Count != 1 || entity.Keys.Count != 0)
+        {
+            return false;
+        }
+
+        var field = entity.Fields[0];
+        return field.LogicalName == "new_offeringcategoryid"
+            && field.Type == "lookup"
+            && field.Target == "new_offeringcategory"
+            && field.Phase == 8
+            && !field.Required;
     }
 
     /// <summary>每種型別只接受可明確建立與比對的約束；未知欄位、錯日期或多餘參數全部fail closed。</summary>

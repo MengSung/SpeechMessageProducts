@@ -17,16 +17,20 @@ apply使用既有OrganizationWriteLock，先Dispose client再釋放寫鎖；不�
 
 ## 唯一定義與嚴格輸入
 
-`d365/schema/speechmessagecore.schema.json` 目前 activePhase=5，記7個受管實體、39欄（P1 36、P4 1、P5 2）與4個唯一鍵。
+`d365/schema/speechmessagecore.schema.json` 的 activePhase 會隨核定階段前進。P8 將其設為 8，受管實體增至9、欄位增至41，包含兩個 phase 8 optional lookup；原有4個唯一鍵及 P1／P4／P5 欄位契約不變。
 Account的五個語系欄之外，附錄A.1的LINE lookup屬P1；`new_sinopacprofile`保留phase4，不提前apply。
 既有transactioncurrencyid/new_lineid/statecode沿用；其餘A.7舊業務表lookup等P8盤點，不猜表名。
-P5-07精確納管既有 `new_stor_lessons` 表，只新增 `account.new_lessonprogressionprofile`（Optional string64）及 `new_stor_lessons.new_saved_flag`（Optional string2000）。既有表白名單只允許 account、contact、new_stor_lessons；不重建既有表、不修改業務列或放寬未知表。P1／P4測試使用原phase投影，不能以正式schema成長放寬原本欄位斷言。
+P5-07精確納管既有 `new_stor_lessons` 表，只新增 `account.new_lessonprogressionprofile`（Optional string64）及 `new_stor_lessons.new_saved_flag`（Optional string2000）。P8僅額外允許既有 `new_fee.new_offeringcategoryid` 與 `new_dedication_booking.new_offeringcategoryid`，皆為指向 `new_offeringcategory` 的 optional lookup、phase 8。既有表擴充採實體＋欄位精確白名單，不重建既有表、不修改任何其他舊欄位或放寬未知表／欄。P1／P4／P5測試使用原phase投影，不能以正式schema成長放寬原本欄位斷言。
 
 - schema最多1MiB、plan最多4MiB、JSON深度32；open後重驗大小，拒未知／重複屬性。
 - 固定SpeechMessageCore、清單指定publisher、new前綴；表／欄／key邏輯身份唯一且有界。
 - 新表主名稱必須在P1字串欄存在；key欄須存在且不重複；lookup僅指向已宣告表。
 - 欄位支援string/memo/integer/choice/lookup/datetime；日期時間點UserLocal/DateAndTime存UTC，沒有資料轉換入口。
 - 加密token/secret欄啟用IsSecured；本工具不建立角色、帳號或FieldSecurityProfile擴權。
+
+SchemaFiles.Validate 必須在任何既有實體白名單 helper 讀取集合前驗證
+`Fields`／`Keys` 非 null。Null 集合屬無效輸入，應以受控
+`InvalidDataException` 拒絕，不可讓它變成 `NullReferenceException`。
 - 新localizedtext/offeringcategory開entity及field audit；outbound必須具樂觀並行。
   SDK IsOptimisticConcurrencyEnabled是readonly，不能反射／直接設定；官方說明custom table預設true，建立後重讀核對，不符驗收失敗。
 

@@ -81,7 +81,7 @@ public sealed class SchemaPlannerTests
     [Fact]
     public void Plan_ActivePhase5_AddsOnlyProgressionProfileAndSaveFlag()
     {
-        var definition = SchemaFiles.Load(SchemaDefinitionTests.SchemaPath());
+        var definition = DefinitionThroughPhase(5);
         var snapshot = CompleteSnapshot(definition);
         var account = snapshot.Entities.Single(entity => entity.LogicalName == "account");
         var profile = new SchemaFieldState(Guid.NewGuid(), "new_sinopacprofile", "string", 64,
@@ -271,6 +271,17 @@ public sealed class SchemaPlannerTests
         var definition = SchemaFiles.Load(SchemaDefinitionTests.SchemaPath());
         return definition with { ActivePhase = 1,
             Entities = definition.Entities.Where(entity => entity.Fields.Any(field => field.Phase == 1)).ToArray() };
+    }
+
+    /// <summary>建立特定歷史phase的獨立schema投影，避免現行activePhase前進後P1／P5案例意外測到未來欄位。</summary>
+    private static SchemaDefinition DefinitionThroughPhase(int phase)
+    {
+        var definition = SchemaFiles.Load(SchemaDefinitionTests.SchemaPath());
+        var entities = definition.Entities
+            .Select(entity => entity with { Fields = entity.Fields.Where(field => field.Phase <= phase).ToArray() })
+            .Where(entity => entity.Fields.Count != 0)
+            .ToArray();
+        return definition with { ActivePhase = phase, Entities = entities };
     }
 
     /// <summary>建立本案獨佔的完整純metadata候選；不代表SDK建立成功，實際SDK契約由整合案例另驗。</summary>

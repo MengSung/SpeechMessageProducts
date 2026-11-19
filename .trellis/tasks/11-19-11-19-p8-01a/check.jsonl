@@ -1,0 +1,5 @@
+{"file": ".trellis/spec/backend/deployment-contract.md", "reason": "P8-01a adds a new Deployment CLI command, metadata adapter, plan/apply/verify flow, bounded paging, safe batch evidence, and borrowed SDK lifetime."}
+{"file": ".trellis/spec/backend/schema-deployment-contract.md", "reason": "P8-01a extends the existing schema allowlist with two phase-8 offering-category lookups and updates expected schema projection counts."}
+{"file": ".trellis/spec/backend/file-documentation-contract.md", "reason": "All new and modified C# source and test files require a complete Traditional Chinese file overview and verified UTF-8/CRLF bytes."}
+{"file": ".trellis/spec/backend/duplicate-row-publication-contract.md", "reason": "Migration source rows and OfferingCategory publication use stable database identities; duplicate identities must fail closed and same-name distinct records remain."}
+{"file": ".trellis/spec/guides/cross-layer-thinking-guide.md", "reason": "The CLI, Deployment SDK projection, schema, plan artifacts, and GoodShepherd.Core types form a cross-layer contract."}

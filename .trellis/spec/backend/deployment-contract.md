@@ -316,3 +316,65 @@ plan含server/fingerprint/內部hash，apply另驗完整檔SHA且同buffer嚴格
 
 十三指定方法位於LiveCheckRunnerTests、ObservationReaderTests、ChurchDefaultsTests；LiveCliTests、LiveSdkRoundTests、
 LiveActivityProbeTests補真接線與故障所有權，LineChannelUsageReaderTests驗A/B/A、容量、取消及dispose。全部是離線證據。
+
+## P8-01a Offering category migration (2026-11-19)
+
+`migrate-offering-categories --org <name>` uses the shared OrganizationCatalog and
+ProductionGuard before its command parser. `--apply --plan <path>
+--plan-sha256 <sha256>` and `--verify` are mutually exclusive; option ordering is
+not significant. Plan files must remain beneath the selected organization's
+artifact root. No command-line value grants tenant authority.
+
+The SDK store borrows one CLI-owned OrganizationLease and verifies the server
+organization ID/uniqueName, language 1028, both legacy Picklist attributes,
+their unique 1028 labels and RequiredLevel, lookup targets, and the
+`new_offeringcategory` alternate key before querying business rows. The two
+choice sets are independently validated and unioned by numeric option value;
+different values and their labels are retained. A value present in both fields
+must have the same 1028 label in both or planning fails closed. Each field's
+RequiredLevel remains separately represented. Metadata unknowns remain
+explicit; local fixtures or code maps never stand in for organization metadata.
+Direct account church lookup is authoritative when
+present and populated; otherwise church scope comes from the payer contact's
+account `parentcustomerid`. Missing or non-account parent references remain
+unresolved and are never backfilled.
+
+Every query is ordered by the server primary key and bounded to 5,000 rows per
+page, ten pages, and 50,000 rows per query. Missing/repeated paging cookies,
+empty continuation pages, duplicate/empty database IDs, invalid lookup types,
+or cancellation reject the complete candidate. No partial plan is published.
+Source fingerprints include stable database identity, entity, church, and
+legacy choice but exclude the mutable offering lookup so a confirmed completed
+batch can be skipped on retry.
+
+The plan records server labels, RequiredLevel, organization identity, per-church
+and option counts, screen-label matches, unresolved counts, and metadata/source
+fingerprints. It contains no source row ID or payer identity. Plan input is
+strict JSON, maximum 4 MiB, and rejects duplicate or unknown properties. Apply
+reads and hashes one bounded file snapshot, compares SHA-256 in constant time,
+then re-reads one bounded source snapshot and reconstructs the complete
+candidate from that snapshot and current server metadata under the existing
+organization write lock. Organization identity, source and metadata
+fingerprints, required levels, unresolved counts, unmatched labels, and every
+category identity/name/order/count must match before the first write. Apply
+uses that exact verified source snapshot for its writes, avoiding a second
+query between validation and batch selection. Candidate expansion is bounded
+to 50,000 categories; oversized church-by-option products fail before plan
+publication.
+
+Apply upserts categories by the complete `(new_accountid, new_code)` alternate
+key and uses only the SDK-returned category ID. Empty offering lookups are
+updated using `ExecuteMultiple` in batches of at most 100; response indexes and
+every success/fault outcome must match. A failed or incomplete batch stops
+subsequent writes and is not blindly retried. Existing lookups are skipped.
+Each operation writes an operation-scoped bounded JSONL log (16 MiB maximum) containing
+only batch number, fixed entity, counts, and validated numeric SDK fault codes;
+each batch is flushed before continuing. Neither logs nor output contain source
+IDs, payer data, exception text, or credentials.
+
+`OfferingMigrationSdkStore` never owns the connector service. The CLI disposes
+the store first, which clears its borrowed SDK reference, then disposes the
+lease and finally releases the write lock. There is no cross-command cache,
+task, timer, retry worker, or retained mutable candidate. Synthetic SDK tests
+prove offline contracts only and do not establish the state of any Dataverse
+organization.

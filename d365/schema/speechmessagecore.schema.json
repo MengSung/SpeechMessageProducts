@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "activePhase": 5,
+  "activePhase": 8,
   "solution": "SpeechMessageCore",
   "publisher": "SpeechMessagePublisher",
   "prefix": "new",
@@ -424,6 +424,42 @@
         }
       ],
       "primaryName": "new_name"
+    },
+    {
+      "logicalName": "new_fee",
+      "displayName": "收費單",
+      "pluralName": "收費單",
+      "isNew": false,
+      "audit": false,
+      "fields": [
+        {
+          "logicalName": "new_offeringcategoryid",
+          "displayName": "奉獻類別",
+          "type": "lookup",
+          "phase": 8,
+          "target": "new_offeringcategory",
+          "required": false
+        }
+      ],
+      "keys": []
+    },
+    {
+      "logicalName": "new_dedication_booking",
+      "displayName": "奉獻預約",
+      "pluralName": "奉獻預約",
+      "isNew": false,
+      "audit": false,
+      "fields": [
+        {
+          "logicalName": "new_offeringcategoryid",
+          "displayName": "奉獻類別",
+          "type": "lookup",
+          "phase": 8,
+          "target": "new_offeringcategory",
+          "required": false
+        }
+      ],
+      "keys": []
     },
     {
       "logicalName": "new_stor_lessons",
