@@ -240,11 +240,11 @@ footer{margin-top:36px;color:var(--muted);font-size:12.5px;text-align:center}
  */
 const DATA = {
   "planVersion": "3.5",
-  "snapshot": "2026-11-19 20:48 Asia/Taipei (UTC+08:00)",
-  "lastUpdated": "2026-11-19T20:48:27+08:00",
+  "snapshot": "2026-11-20 01:20 Asia/Taipei (UTC+08:00)",
+  "lastUpdated": "2026-11-20T01:20:29+08:00",
   "branch": "1.0.0.11.Integration.P8.Worktree",
-  "head": "29740bf5dccc64609ed10ce315283d2449924554",
-  "headline": "階段 8 2026-11-19 20:48 Asia/Taipei (UTC+08:00)：P8-00 已驗收，完整守門全通過；goodshepherdback 唯讀 verify 仍未取得狀態，接續 P8-01a 離線工作。",
+  "head": "eda46dabec170c03c1f3793cd827ee51119d58d0",
+  "headline": "階段 8 2026-11-20 01:20 Asia/Taipei (UTC+08:00)：P8-01a 離線單元已驗收，P8-01 總包仍進行中，接續 P8-01b；實機 metadata／verify 未查證。",
   "notices": [
     {
       "id": "plan-3.5-summary",
@@ -702,14 +702,16 @@ const DATA = {
       "phaseId": "階段 8",
       "level": "info",
       "title": "P8 進度摘要",
-      "body": "2026-11-19 20:48 Asia/Taipei (UTC+08:00)：P8-00 已驗收並提交 29740bf5；專用 guard 的 §8.1 全部通過。唯讀 verify 一次回傳 InvalidDataException，未取得 goodshepherdback 目前狀態；秘密鍵、D34、待辦及殘留狀態均不推定為通過。",
-      "lastUpdated": "2026-11-19T20:48:27+08:00",
+      "body": "2026-11-20 01:07 Asia/Taipei (UTC+08:00)：P8-00 與 P8-01a 離線單元已驗收。P8-01a 的 16 個指定測試、Core net48／net10.0 與 bfc713f2 完整 §8.1 守門通過；收尾提交 50a9e87c。P8-01 總包仍進行中，下一單元 P8-01b。goodshepherdback option labels 原始證據與 verify=0 未查證，既有兩次 InvalidDataException 不再重試；沒有組織寫入。",
+      "lastUpdated": "2026-11-20T01:20:29+08:00",
       "steps": [
         "2026-11-19 20:01 Asia/Taipei (UTC+08:00)：起點與分支核對為 6a37f16ba111943eb023c14dea3c9a006a0f0a5c、1.0.0.11.Integration.P8.Worktree；P8 分支遠端尚不存在，依 08A 首次推送延至 P8-01a 驗收後。",
         "2026-11-19 20:01 Asia/Taipei (UTC+08:00)：P7 最末完整守門基準 Release 7341、Debug tracer 7；Deployment.Tests 977 僅為候選檢查點；註冊清冊 live 12／pass 1／dormant 21；CJK 專案 count 合計 3764。",
         "2026-11-19 20:01 Asia/Taipei (UTC+08:00)：唯讀 verify --org goodshepherdback 一次以 InvalidDataException 結束，未取得目前狀態；未重試、未寫入組織，不記作 verify=0。",
         "2026-11-19 20:13 Asia/Taipei (UTC+08:00)：階段 8 Trellis 父任務與 P8-00 子任務已啟動；P7-02b 子任務已封存。封存工具自動產生紀錄提交 c6433c035，P7 父任務未修改。",
-        "2026-11-19 20:43 Asia/Taipei (UTC+08:00)：P8-00 提交 29740bf5；C:\\smv\\guard-p8 Release 建置0錯誤（65警告）、全方案 Release 測試0失敗、Debug tracer 7/7、編碼21檔0問題、重複程式42專案新增0、I18nCheck、檔案說明1826檔0失敗、進度頁28/28全通過。守門摘要與準備紀錄位於 artifacts/p8/guard-29740bf5-*.log。"
+        "2026-11-19 20:43 Asia/Taipei (UTC+08:00)：P8-00 提交 29740bf5；C:\\smv\\guard-p8 Release 建置0錯誤（65警告）、全方案 Release 測試0失敗、Debug tracer 7/7、編碼21檔0問題、重複程式42專案新增0、I18nCheck、檔案說明1826檔0失敗、進度頁28/28全通過。守門摘要與準備紀錄位於 artifacts/p8/guard-29740bf5-*.log。",
+        "2026-11-19 23:41 Asia/Taipei (UTC+08:00)：P8-01a 指定16個測試名均存在；Deployment Release 1016/1016、Core Release net10.0 391/391、net48 391/391。新增兩組SDK合成測試：不同choice值集合紅燈後改為按值聯集；同值標籤衝突拒絕。先前metadata投影摘要為new_fee 24值、dedication booking 18值、RequiredLevel均None，但labels與原始snapshot未取得；本輪唯讀verify再回InvalidDataException，累計兩次，沒有off／verify=0證據。P8-01a不驗收，依D8-26記缺項並續行；沒有組織寫入。",
+        "2026-11-20 01:07 Asia/Taipei (UTC+08:00)：依08A §5 P8-01a離線完成條件及00 §7.1，16個指定測試存在並通過，Deployment 1021、Core net10.0／net48各391；guard-p8完整守門對bfc713f2重跑全通過（Release建置0警告／錯誤、全方案測試0失敗、Debug tracer 7/7、編碼50檔0問題、duplicate 42專案new/stale皆0、I18nCheck、檔案說明1842檔0失敗、進度頁28/28）。完整log與prepare log在C:\\smv\\guard-p8-evidence\\guard-bfc713f2-*-rerun.log；收尾提交50a9e87c。原始option labels與verify=0仍未查證，不能作為此離線單元阻擋；不再重試兩次失敗的verify，沒有組織寫入。"
       ]
     }
   ],
@@ -888,10 +890,10 @@ const DATA = {
       "id": "階段 8",
       "name": "收尾、偽語系驗收、教會設定網頁",
       "planned": "3～4 個工作天",
-      "actual": "2026-11-19 20:43 Asia/Taipei (UTC+08:00)：P8-00 已驗收；下一單元 P8-01a。階段 8 已用時約 0.7 小時。",
+      "actual": "2026-11-20 01:07 Asia/Taipei (UTC+08:00)：P8-00、P8-01a 已驗收；P8-01 總包進行中，下一單元 P8-01b。階段 8 實際用時持續累計。",
       "current": true,
       "done": 0,
-      "active": 0
+      "active": 1
     }
   ],
   "wps": [
@@ -1849,13 +1851,13 @@ const DATA = {
       "id": "P8-01",
       "phaseId": "階段 8",
       "name": "奉獻類別清單 new_offeringcategory",
-      "status": "todo",
+      "status": "active",
       "deps": "P1-11",
       "live": "有",
       "timebox": "1 天",
       "doneAt": "",
       "commit": "",
-      "note": "類別合併由你決定"
+      "note": "2026-11-20 01:07 Asia/Taipei (UTC+08:00)：P8-01a 離線段已驗收；16個指定測試與兩個Core目標通過，bfc713f2完整守門全通過，相關提交50a9e87c、eda46dab。P8-01b接續；P8-01c實機metadata與verify狀態仍待允許的實機單元查證。"
     },
     {
       "id": "P8-02",
@@ -1920,8 +1922,10 @@ const DATA = {
       "id": "P8-01a",
       "phaseId": "階段 8",
       "name": "P8-01a 奉獻類別結構與轉換指令",
-      "status": "todo",
-      "note": "2026-11-19 20:43 Asia/Taipei (UTC+08:00)：依 08A 固定順序待執行。"
+      "status": "done",
+      "note": "2026-11-20 01:07 Asia/Taipei (UTC+08:00)：16個指定測試存在並通過；Deployment 1021，Core net10.0與net48各391。完整§8.1守門對bfc713f2重跑全通過；離線單元依契約驗收。goodshepherdback option labels與verify狀態仍未查證。相關提交50a9e87c、eda46dab。",
+      "doneAt": "2026-11-20 01:07 Asia/Taipei (UTC+08:00)",
+      "commit": "eda46dab"
     },
     {
       "id": "P8-01b",
@@ -2163,7 +2167,20 @@ const DATA = {
       "note": "2026-11-19 17:45 Asia/Taipei (UTC+08:00)：R5b/R6/R7/R8/R9依核定縮減範圍完成；33項總表live12/pass1/dormant21。七個Workflow活動因核定LIVE-PREP-09維持dormant，care/qrcodes未檢查；其餘未解及延後項目列於P8以後待驗證清單。D7-22依核定範圍未執行並依P7-PROP-005列人工步驟；P7-PROP-007列後續必做。ClaudeOnly審查標記「單模型（使用者指定 ClaudeOnly）」已完成，High文案已修正；提交552bdbcf完整guard八項通過並已推送，ls-remote核對相同SHA。"
     }
   ],
-  "active": [],
+  "active": [
+    {
+      "id": "P8-01",
+      "phaseId": "階段 8",
+      "name": "P8-01 奉獻類別結構與轉換指令",
+      "dod": [
+        ["離線實作", "ok", "Deployment plan/apply/verify、schema lookup 與 Core 型別已完成本輪離線測試。"],
+        ["指定測試", "ok", "16 個指定名稱存在；Deployment 1021/1021，Core net10.0 與 net48 各 391/391。"],
+        ["P8-01c 實機 metadata 與 verify", "no", "option labels 原始證據缺失；此前唯讀 verify 累計兩次 InvalidDataException，未取得 off 或 verify=0；不再重試。"],
+        ["P8-01a 離線守門與提交", "ok", "bfc713f2 的完整 §8.1 守門全通過；P8-01a 收尾提交 50a9e87c、eda46dab。"],
+        ["使用者需處理", "na", "未查證項目保留於 P8-01c 前置與終點上線清單；P8-01a 離線驗收不依賴該證據。"]
+      ]
+    }
+  ],
   "gates": [
     {
       "item": "方案建置（Release）",
