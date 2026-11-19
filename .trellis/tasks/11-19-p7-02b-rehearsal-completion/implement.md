@@ -10,7 +10,7 @@
 - [x] R9唯讀核對off=0、D34通過、待辦／marker／SMV-TEST／smoke=0、trace=1、診斷trace=0、P7Live停止；診斷trace起點2至R9為0的去向缺少證據，列未解。
 - [x] D7-22表單依使用者核定縮減範圍未執行，不列本單元結案阻擋；無安全的現有SDK表單寫入入口，按P7-PROP-005保留備份／人工發布／讀回／失敗還原步驟。手冊時間與常見狀況、證據頁已更新。
 - [x] ClaudeOnly階段審查完成，標記「單模型（使用者指定 ClaudeOnly）」；High文案已修正，Critical／High無未處理項目。
-- [ ] 最終狀態同步提交、對最終提交跑完整guard、推送並核對遠端SHA，完成後停止，不啟動階段8。
+- [x] 最終狀態同步提交`552bdbcfe625cdcf736dc347cbad6f95068aed6c`完成完整guard、推送並核對遠端SHA一致；結案後停止，不啟動階段8。
 
 ## 使用者核定的範圍縮減與例外
 
@@ -18,7 +18,7 @@
 
 同一核定明確授權且僅限下列七個活動改為dormant，reason固定為「P7-PROP-006 LIVE-PREP-09：Live 測試工具尚不支援流程活動的樣板建立；使用者 2026-11-19 核定改 dormant，未經實機 Live 驗證。」：ContactAnniversaryActivity、LessonQrCodeActivity、AppointmentSigningActivity、MeetingQrCodeActivity、MeetingScanCountActivity、PersonalQrCodeActivity、FeeAllotActivity。不得連帶降級同模組Plugin或其他活動。organizations.json的演練override只保留OutboundLetterPlugin。
 
-活動Live工具提案採P7-PROP-007：將來有產品要上線使用流程活動時，再補Workflow樣板建立與參數繫結驗證；不列為上線前通用必補項目。R6每模組時間盒為60分鐘、最多2次實機；準備／環境失敗維持tier並記原因碼，只有使用者明確核定的七項可依上述例外改dormant。
+活動Live工具提案採P7-PROP-007：活動（Workflow）的Live測試工具需支援流程樣板建立（LIVE-PREP-09）。使用者確認未來產品會沿用Workflow，列為後續階段必做項目；完成後補驗7個dormant活動。此要求取代先前「有產品需要時再補、不列通用必補」的寫法。R6每模組時間盒為60分鐘、最多2次實機；準備／環境失敗維持tier並記原因碼，只有使用者明確核定的七項可依上述例外改dormant。
 
 2026-11-19 13:08 Asia/Taipei (UTC+08:00)：P7-02a完成：`4f221bdaebefad5ece0751047a446772e462b515`已推送，`ls-remote`相同；包含P7-02a唯一收尾紀錄修補及工具執行紀錄忽略規則，沒有修改`.ccg/tasks/line-token-config-separation`內容。離線新增測試先紅後綠：appointments seed lookup排序首次指出record早於signer，修正後appointments依賴排序與三模組dormant activity不阻擋Plugin準備共4案通過。完整Deployment.Tests 975/975、檔案說明1826檔0失敗、進度頁28/28；本輪變更尚未完整guard、提交或推送，未開始R5b/R6。
 
@@ -57,5 +57,9 @@ D7-22未執行：現有Deployment UI方案會排除account/contact FormXml，沒
 2026-11-19 17:02 Asia/Taipei (UTC+08:00)：最終ClaudeOnly審查已完成並記錄於證據頁；High指出審查結論曾被預寫，已改為如實記錄審查結果及修正。診斷trace在08:56為2、16:43為0，但沒有足以證明期間備份／清理的紀錄；依使用者全權委任採推薦方案，不猜原因，列為P8以後未解並保留在回報清單。attendance原始證據檔為本機忽略檔，證據頁已揭露不隨repo推送。
 
 2026-11-19 17:25 Asia/Taipei (UTC+08:00)：`186cbe0b2ce57b5dc7a4cfb52c3272ab93347f6d`固定guard於隔離worktree八項全通過：Release建置0錯誤、全方案Release 7341/7341、Debug tracer 7/7、Changed encoding 217檔0問題、duplicate 0、I18n通過、檔案說明1826檔0失敗、ProgressPage 28/28。最終狀態同步提交、再對最終提交跑guard、推送及ls-remote尚待完成。
+
+2026-11-19 17:45 Asia/Taipei (UTC+08:00)：最終提交`552bdbcfe625cdcf736dc347cbad6f95068aed6c`固定guard八項全部通過；已推送分支`1.0.0.11.Integration.P7.Worktree`，`git ls-remote`回傳相同SHA。最終組織狀態維持off=0、殘留0、trace=1；停止，不啟動階段8。
+
+2026-11-19 17:58 Asia/Taipei (UTC+08:00)：修正進度頁DATA中P7-02階段項目note的JSON尾逗號；`Test-ProgressPage.cjs` 28/28及檔案說明1826檔／0失敗通過，`git diff --check`無錯誤。依使用者後續核定，P7-PROP-007改列後續階段必做，完成後補驗七個dormant Workflow活動；這取代13:08紀錄中「不列通用必補」的早期範圍文字。本次結案提交的完整guard與遠端SHA核對結果見最終驗收紀錄。
 
 2026-11-19 16:43 Asia/Taipei (UTC+08:00)：依使用者2026-11-19全權委任採推薦方案：保持表單寫入fail-closed，不以未審核SDK直寫替代缺少的產品命令；備份、人工發布／讀回與失敗還原留在P7-PROP-005，沒有偽造表單通過證據。

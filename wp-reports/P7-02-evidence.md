@@ -167,4 +167,4 @@ attendance原始`live-check.json`位於被Git忽略的本機`artifacts/`；manif
 
 ## 最終驗收與推送狀態
 
-2026-11-19 17:25 Asia/Taipei (UTC+08:00)：commit `186cbe0b2ce57b5dc7a4cfb52c3272ab93347f6d`在新建且核對乾淨的隔離worktree `C:\smv\guard-p7-final-186cbe0b`完成固定八項guard；未清理或改動既有`C:\smv\guard`及其忽略資料。結果：Release build EXIT=0（0錯誤，既有警告65）；全方案Release tests EXIT=0（22個測試組件，7341/7341）；Debug tracer 7/7；Changed encoding 217檔、0問題；duplicate scan 42專案／1510檔、groups/new/stale均0；I18n verify通過；檔案說明1826檔、0失敗；ProgressPage 28/28。最終狀態同步提交與推送尚待完成，遠端SHA尚未核對。
+2026-11-19 17:58 Asia/Taipei (UTC+08:00)：`552bdbcfe625cdcf736dc347cbad6f95068aed6c`於新建且核對乾淨的隔離worktree完成固定八項guard並已推送，`git ls-remote` SHA與當時本機一致。之後同步進度頁DATA時發現P7-02階段note多一個JSON尾逗號，已修正；`Test-ProgressPage.cjs` 28/28、檔案說明1826檔／0失敗、`git diff --check`通過。此後續文件同步另列為結案提交；其固定guard及遠端SHA以本報告提交版本和最終驗收紀錄為準。既有guard結果：Release build 0錯誤（既有警告65）；Release tests 7341/7341；Debug tracer 7/7；Changed encoding 217檔0問題；duplicate scan 42專案／1510檔、groups/new/stale均0；I18n verify通過。

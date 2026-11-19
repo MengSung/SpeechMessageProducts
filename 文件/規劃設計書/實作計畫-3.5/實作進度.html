@@ -241,10 +241,10 @@ footer{margin-top:36px;color:var(--muted);font-size:12.5px;text-align:center}
 const DATA = {
   "planVersion": "3.5",
   "snapshot": "2026-11-19 09:15 Asia/Taipei (UTC+08:00)",
-  "lastUpdated": "2026-11-19T17:31:10+08:00",
+  "lastUpdated": "2026-11-19T17:58:08+08:00",
   "branch": "1.0.0.11.Integration.P7.Worktree",
-  "head": "186cbe0b2ce57b5dc7a4cfb52c3272ab93347f6d",
-  "headline": "2026-11-19 17:31 Asia/Taipei (UTC+08:00)：P7-02a已推送；P7-02b R5b/R6～R9按縮減範圍完成，33項live12/pass1/dormant21，未解及延後項列於P8以後清單。完整guard對186cbe0b八項通過；單模型（使用者指定 ClaudeOnly）審查完成，Critical／High已處理。最終狀態紀錄提交後仍須guard、推送及ls-remote核對；goodshepherdback最後核對off=0、trace=1，不啟動階段8。",
+  "head": "552bdbcfe625cdcf736dc347cbad6f95068aed6c",
+  "headline": "2026-11-19 17:58 Asia/Taipei (UTC+08:00)：P7-02a已推送；P7-02b R5b/R6～R9按縮減範圍完成，33項live12/pass1/dormant21，未解及延後項列於P8以後清單。ClaudeOnly單模型審查完成，Critical／High已處理。進度頁note尾逗號已修正且ProgressPage 28/28；結案提交及遠端SHA見本輪驗收紀錄。goodshepherdback最後核對off=0、trace=1，不啟動階段8。",
   "notices": [
     {
       "id": "plan-3.5-summary",
@@ -865,7 +865,7 @@ const DATA = {
       "id": "階段 7",
       "name": "D365 9.1 切換（逐組織）",
       "planned": "每組織 1 天＋觀察 1 週",
-      "actual": "2026-11-19 17:31 Asia/Taipei (UTC+08:00)：P7-02a已由4f221bda推送並核SHA一致；P7-02b依核定縮減範圍完成R5b/R6～R9及單模型ClaudeOnly審查。33項live12/pass1/dormant21；R9 off=0、D34通過、待辦／marker／SMV-TEST／smoke=0、trace=1、P7Live停止。186cbe0b固定guard八項通過，全方案Release 7341/7341；最終狀態同步提交guard／推送核SHA待完成。只goodshepherdback、不啟用舊步驟或流程、不啟動階段8。",
+      "actual": "2026-11-19 17:58 Asia/Taipei (UTC+08:00)：P7-02a已由4f221bda推送並核SHA一致；P7-02b依核定縮減範圍完成R5b/R6～R9及單模型ClaudeOnly審查。33項live12/pass1/dormant21；R9 off=0、D34通過、待辦／marker／SMV-TEST／smoke=0、trace=1、P7Live停止。提交552bdbcf固定guard八項通過、Release 7341/7341；已推送且ls-remote SHA一致。補正進度頁DATA尾逗號後，ProgressPage 28/28。只goodshepherdback、不啟用舊步驟或流程、不啟動階段8。",
       "current": true,
       "done": 2,
       "active": 0
@@ -1824,9 +1824,9 @@ const DATA = {
       "deps": "P7-01",
       "live": "有",
       "timebox": "1 天",
-      "doneAt": "2026-11-19 17:31 Asia/Taipei (UTC+08:00)",
-      "commit": "186cbe0b2ce57b5dc7a4cfb52c3272ab93347f6d",
-      "note": "2026-11-19 17:31 Asia/Taipei (UTC+08:00)：R5b一次切換及R8 rollback／verify完成；R6共12個live項目，attendance 1 pass、11未解或未檢查，21個dormant（含使用者核定七個Workflow活動）。R9唯讀off=0、D34通過、待辦／marker／SMV-TEST／smoke=0、trace=1、診斷trace=0、P7Live已停止。R7系統作業與Workflow失敗0，trace exceptions 2未能逐筆分類；診斷trace起點2至R9為0，去向無證據，列P8以後未解。D7-22依核定範圍未執行並依P7-PROP-005記人工步驟。ClaudeOnly審查單模型完成，High文案已修正。commit 186cbe0b完整guard八項全過（Release測試7341/7341、Debug tracer 7/7）；最終狀態同步提交與遠端核對隨後完成。"
+      "doneAt": "2026-11-19 17:58 Asia/Taipei (UTC+08:00)",
+      "commit": "552bdbcfe625cdcf736dc347cbad6f95068aed6c",
+      "note": "2026-11-19 17:58 Asia/Taipei (UTC+08:00)：R5b一次切換及R8 rollback／verify完成；R6共12個live項目，attendance 1 pass、11未解或未檢查，21個dormant（含使用者核定七個Workflow活動）。R9唯讀off=0、D34通過、待辦／marker／SMV-TEST／smoke=0、trace=1、診斷trace=0、P7Live已停止。R7系統作業與Workflow失敗0，trace exceptions 2未能逐筆分類；診斷trace起點2至R9為0，去向無證據，列P8以後未解。D7-22依核定範圍未執行並依P7-PROP-005記人工步驟。ClaudeOnly審查單模型完成，High文案已修正。提交552bdbcf完整guard八項全過（Release測試7341/7341、Debug tracer 7/7），已推送並由ls-remote核SHA一致。其後修正進度頁DATA尾逗號且ProgressPage 28/28；本次結案提交之守門結果與遠端SHA詳見驗收紀錄。"
     },
     {
       "id": "P8-01",
@@ -2050,7 +2050,7 @@ const DATA = {
       "phaseId": "階段 7",
       "name": "P7-02b（07A固定單元）",
       "status": "done",
-      "note": "2026-11-19 17:31 Asia/Taipei (UTC+08:00)：R5b/R6/R7/R8/R9依核定縮減範圍完成；33項總表live12/pass1/dormant21。七個Workflow活動因核定LIVE-PREP-09維持dormant，care/qrcodes未檢查；其餘未解及延後項目列於P8以後待驗證清單。D7-22依核定範圍未執行並依P7-PROP-005列人工步驟；P7-PROP-007列後續必做。ClaudeOnly審查標記「單模型（使用者指定 ClaudeOnly）」已完成，High文案已修正；186cbe0b完整guard八項通過，最終狀態提交、guard、推送與遠端SHA核對仍須完成。"
+      "note": "2026-11-19 17:45 Asia/Taipei (UTC+08:00)：R5b/R6/R7/R8/R9依核定縮減範圍完成；33項總表live12/pass1/dormant21。七個Workflow活動因核定LIVE-PREP-09維持dormant，care/qrcodes未檢查；其餘未解及延後項目列於P8以後待驗證清單。D7-22依核定範圍未執行並依P7-PROP-005列人工步驟；P7-PROP-007列後續必做。ClaudeOnly審查標記「單模型（使用者指定 ClaudeOnly）」已完成，High文案已修正；提交552bdbcf完整guard八項通過並已推送，ls-remote核對相同SHA。"
     }
   ],
   "active": [],
