@@ -1,7 +1,7 @@
 /*
  * 檔案整體說明
  *
- * 目的與定位：表示舊奉獻頁的單項金額、類別與可選類別清單，提供畫面繫結相容形狀；正式多品項及金流建立流程由對應表單與工作流程處理。
+ * 目的與定位：表示舊奉獻頁的單項金額、類別與類別選項清單，提供畫面繫結相容形狀；正式多品項及金流建立流程由對應表單與工作流程處理。
  *
  * 主要功能與流程：
  * 本檔宣告 DedicationModel。
@@ -32,7 +32,10 @@ namespace ChurchReport.Models
         public int Amount { get; set; }
         public String Category { get; set; }
 
-        // ✅ 新增：動態奉獻類別清單（從 Dynamics 365 OptionSet 取得）
-        public List<String> DedicationCategoryList { get; set; } = new List<String>();
+        /// <summary>
+        /// 舊頁面的正式奉獻類別選項；Id 是資料庫 ID、Name 僅供顯示，清單仍須由伺服器登入教會組裝。
+        /// </summary>
+        public List<DonationOfferingCategoryOption> DedicationCategoryList { get; set; } =
+            new List<DonationOfferingCategoryOption>();
     }
 }

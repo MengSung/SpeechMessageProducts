@@ -40,7 +40,7 @@
     // 前端需要的資料一次序列化成 JSON；Json.Serialize 會跳脫 HTML 特殊字元，可安全放進 script。
     var pageData = new
     {
-        categories = Model.DedicationCategoryList ?? new List<string>(),
+        categories = Model.DedicationCategoryList ?? new List<DonationOfferingCategoryOption>(),
         specialItems = Model.SpecialCategoryArray ?? new List<string>(),
         missionTargets = Model.OtherCategoryArray ?? new List<string>(),
         payWays = payWayOptions,
@@ -1009,12 +1009,12 @@
         DATA = {};
     }
 
-    var CATEGORIES = (DATA.categories || []).filter(function (c) { return typeof c === 'string' && c.trim().length > 0; });
+    var CATEGORIES = (DATA.categories || []).filter(function (c) {
+        return c && typeof c.id === 'string' && c.id.length > 0 && c.isSelectable === true;
+    });
     var PAY_WAYS = DATA.payWays && DATA.payWays.length ? DATA.payWays : ['信用卡'];
     var HOLIDAYS = ['元旦', '新春', '清明節', '復活節', '母親節', '父親節', '重陽節', '感恩節', '聖誕節'];
-    var REGULAR = ['主日奉獻', '十一奉獻', '感恩奉獻', '愛心奉獻', '建堂奉獻', '宣教奉獻'];
     var GROUPS = ['常規奉獻', '事工與專案', '特別與其他'];
-    var DEFAULT_PINNED = ['十一奉獻', '感恩奉獻', '建堂奉獻', '宣教奉獻'];
     var MAX = DATA.maxLines > 0 ? DATA.maxLines : 7;
     var PINNED_COUNT = 4;
     var CARD = '信用卡';
@@ -1046,7 +1046,9 @@
             return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
         });
     }
-    function hasCat(name) { return CATEGORIES.indexOf(name) >= 0; }
+    function categoryOption(id) { return CATEGORIES.find(function (item) { return item.id === id; }) || null; }
+    function categoryName(id) { var item = categoryOption(id); return item ? item.name : ''; }
+    function hasCat(id) { return categoryOption(id) !== null; }
     function loadMode() {
         try { var v = window.localStorage.getItem(MODE_KEY); return MODES[v] ? v : null; } catch (e) { return null; }
     }
@@ -1071,12 +1073,14 @@
     }
 
     // ==================== 類別規則 ====================
-    function groupFor(name) {
-        if (REGULAR.indexOf(name) >= 0) return '常規奉獻';
+    function groupFor(id) {
+        var name = categoryName(id);
         if (/特別|節期|其他|代收|代轉/.test(name)) return '特別與其他';
+        if (/主日|十一|什一|感恩|愛心|建堂|宣教/.test(name)) return '常規奉獻';
         return '事工與專案';
     }
-    function subFor(name) {
+    function subFor(id) {
+        var name = categoryName(id);
         if (name === '節期獻金') return { type: 'select', label: '節期', required: true, options: HOLIDAYS };
         if (name === '特別奉獻') return { type: 'select', label: '特別奉獻項目', required: true, options: DATA.specialItems || [] };
         if (name === '宣教奉獻' && (DATA.missionTargets || []).length) return { type: 'select', label: '宣教對象', required: false, options: DATA.missionTargets };
@@ -1084,9 +1088,7 @@
         return null;
     }
     function defaultPinned() {
-        var list = DEFAULT_PINNED.filter(hasCat);
-        CATEGORIES.forEach(function (c) { if (list.length < PINNED_COUNT && list.indexOf(c) < 0) list.push(c); });
-        return list;
+        return CATEGORIES.slice(0, PINNED_COUNT).map(function (item) { return item.id; });
     }
 
     // ==================== 狀態 ====================
@@ -1120,8 +1122,8 @@
 
     function freshLines(v) {
         if (v === 'A') return state.pinned.map(function (c) { return mk(c, { pinned: true }); });
-        if (v === 'B') return CATEGORIES.map(function (c) { return mk(c); });
-        return [mk(CATEGORIES[0] || '')];
+        if (v === 'B') return CATEGORIES.map(function (c) { return mk(c.id); });
+        return [mk(CATEGORIES[0] ? CATEGORIES[0].id : '')];
     }
     // 切換輸入方式或帶入「同上次」時，以類別→金額對照表重建明細，已輸入的金額與子項目會保留。
     function linesFromMap(map, v, order) {
@@ -1131,8 +1133,8 @@
             order.forEach(function (c) { if (state.pinned.indexOf(c) < 0) lines.push(mk(c, take(c))); });
             return lines;
         }
-        if (v === 'B') return CATEGORIES.map(function (c) { return mk(c, take(c)); });
-        return order.length ? order.map(function (c) { return mk(c, take(c)); }) : [mk(CATEGORIES[0] || '')];
+        if (v === 'B') return CATEGORIES.map(function (c) { return mk(c.id, take(c.id)); });
+        return order.length ? order.map(function (c) { return mk(c, take(c)); }) : [mk(CATEGORIES[0] ? CATEGORIES[0].id : '')];
     }
     function currentMap() {
         var map = {}, order = [];
@@ -1152,7 +1154,7 @@
         if (act.length > MAX) out.push('一次最多 ' + MAX + ' 個類別');
         act.forEach(function (l) {
             var s = subFor(l.cat);
-            if (s && s.required && !l.sub) out.push('「' + l.cat + '」請選擇' + s.label);
+            if (s && s.required && !l.sub) out.push('「' + categoryName(l.cat) + '」請選擇' + s.label);
         });
         if (isRecurring() && act.length > 1) out.push('定期定額一次只能設定一個類別');
         if (state.pay === 'ATM轉帳/匯款' && act.length > 1) out.push('ATM 多類別付款尚未開放，請分開建立奉獻或改用信用卡');
@@ -1182,13 +1184,13 @@
     }
     function amtHtml(l) {
         return '<label class="gv-amt"><span class="gv-amt__cur">NT$</span><input class="gv-amt__input" data-key="' + l.key + '" inputmode="numeric" autocomplete="off" placeholder="0" value="' +
-            (l.amount ? fmt(l.amount) : '') + '" aria-label="' + esc(l.cat) + '金額"></label>';
+            (l.amount ? fmt(l.amount) : '') + '" aria-label="' + esc(categoryName(l.cat)) + '金額"></label>';
     }
     // 常用與完整清單直接以金額決定是否計入；不另存勾選狀態，避免清空後仍送出舊金額。
     function rowA(l) {
         var on = l.amount > 0;
         return '<div class="gv-row' + (on ? ' is-active' : '') + '" data-key="' + l.key + '"><div class="gv-row__main">' +
-            '<div class="gv-row__name"><span class="gv-row__nm">' + esc(l.cat) + '</span>' + (l.pinned ? '<span class="gv-tag">常用</span>' : '') + '</div>' +
+            '<div class="gv-row__name"><span class="gv-row__nm">' + esc(categoryName(l.cat)) + '</span>' + (l.pinned ? '<span class="gv-tag">常用</span>' : '') + '</div>' +
             amtHtml(l) +
             '<button type="button" class="gv-row__x" data-act="' + (l.pinned ? 'clear' : 'remove') + '" data-key="' + l.key + '" aria-label="' + (l.pinned ? '清除金額' : '移除此類別') + '"' + (l.pinned && !on ? ' hidden' : '') + '>×</button>' +
             '</div>' + chipsHtml(l.key) + subHtml(l) + '</div>';
@@ -1196,17 +1198,17 @@
     function rowB(l) {
         var on = l.amount > 0;
         return '<div class="gv-row' + (on ? ' is-active' : '') + '" data-key="' + l.key + '"><div class="gv-row__main">' +
-            '<div class="gv-row__name"><span class="gv-row__nm">' + esc(l.cat) + '</span></div>' + amtHtml(l) +
+            '<div class="gv-row__name"><span class="gv-row__nm">' + esc(categoryName(l.cat)) + '</span></div>' + amtHtml(l) +
             '</div>' + subHtml(l) + '</div>';
     }
     function rowC(l, index) {
         var on = l.amount > 0;
         var used = state.lines.filter(function (x) { return x !== l; }).map(function (x) { return x.cat; });
         var options = GROUPS.map(function (g) {
-            var items = CATEGORIES.filter(function (c) { return groupFor(c) === g; });
+            var items = CATEGORIES.filter(function (c) { return groupFor(c.id) === g; });
             if (!items.length) return '';
             return '<optgroup label="' + g + '">' + items.map(function (c) {
-                return '<option value="' + esc(c) + '"' + (c === l.cat ? ' selected' : '') + (used.indexOf(c) >= 0 ? ' disabled' : '') + '>' + esc(c) + '</option>';
+                return '<option value="' + esc(c.id) + '"' + (c.id === l.cat ? ' selected' : '') + (used.indexOf(c.id) >= 0 ? ' disabled' : '') + '>' + esc(c.name) + '</option>';
             }).join('') + '</optgroup>';
         }).join('');
         return '<div class="gv-row' + (on ? ' is-active' : '') + '" data-key="' + l.key + '"><div class="gv-row__main">' +
@@ -1288,7 +1290,7 @@
                 PERIODS.map(function (n) { return '<option value="' + n + '"' + (state.period === n ? ' selected' : '') + '>' + n + ' 個月</option>'; }).join('') +
                 '</select></div>';
             var notice = act.length > 1
-                ? '<div class="gv-notice"><span>定期定額一次只能設定一個類別；多類別請用單次奉獻，或分別建立定期定額。</span><button type="button" data-act="keepFirst">只保留「' + esc(act[0].cat) + '」</button></div>'
+                ? '<div class="gv-notice"><span>定期定額一次只能設定一個類別；多類別請用單次奉獻，或分別建立定期定額。</span><button type="button" data-act="keepFirst">只保留「' + esc(categoryName(act[0].cat)) + '」</button></div>'
                 : '';
             detail.innerHTML = periods + cardsHtml() + notice + bookingsHtml();
         } else {
@@ -1308,7 +1310,7 @@
         var act = activeLines(), sum = total(), list = issues(), rec = isRecurring();
         byId('gvSumLines').innerHTML = act.length
             ? act.map(function (l) {
-                return '<li><span>' + esc(l.cat) + (l.sub ? '<small>' + esc(l.sub) + '</small>' : '') + '</span><span>' + fmt(l.amount) + '</span></li>';
+                return '<li><span>' + esc(categoryName(l.cat)) + (l.sub ? '<small>' + esc(l.sub) + '</small>' : '') + '</span><span>' + fmt(l.amount) + '</span></li>';
             }).join('')
             : '<li class="is-empty">尚未輸入金額</li>';
         byId('gvSumPay').textContent = '付款：' + payText() + (rec ? ' · ' + state.period + ' 期' : '');
@@ -1357,7 +1359,7 @@
         renderSummary();
         var input = byId('gvRows').querySelector('.gv-amt__input[data-key="' + line.key + '"]');
         if (input) input.focus();
-        toast('已加入「' + cat + '」，請輸入金額');
+        toast('已加入「' + categoryName(cat) + '」，請輸入金額');
     }
     function removeLine(key) {
         key = Number(key);
@@ -1383,7 +1385,7 @@
         var mapped = LAST_PAY_MAP[gift.payWay];
         if (mapped && PAY_WAYS.indexOf(mapped) >= 0) state.pay = mapped;
         renderAll();
-        toast('已帶入：' + order.map(function (c) { return c + ' ' + fmt(map[c].amount); }).join('、') + '，可直接修改');
+        toast('已帶入：' + order.map(function (c) { return categoryName(c) + ' ' + fmt(map[c].amount); }).join('、') + '，可直接修改');
     }
 
     // ==================== 對話框 ====================
@@ -1415,11 +1417,11 @@
         var full = activeLines().length >= MAX;
         var html = '';
         GROUPS.forEach(function (g) {
-            var items = CATEGORIES.filter(function (c) { return groupFor(c) === g && (!query || c.indexOf(query) >= 0); });
+            var items = CATEGORIES.filter(function (c) { return groupFor(c.id) === g && (!query || c.name.indexOf(query) >= 0); });
             if (!items.length) return;
             html += '<div class="gv-pgroup"><h4>' + g + '</h4><div class="gv-plist">' + items.map(function (c) {
-                var has = present.indexOf(c) >= 0;
-                return '<button type="button" class="gv-pitem" data-pick="' + esc(c) + '"' + (has || full ? ' disabled' : '') + '><span>' + esc(c) + '</span>' +
+                var has = present.indexOf(c.id) >= 0;
+                return '<button type="button" class="gv-pitem" data-pick="' + esc(c.id) + '"' + (has || full ? ' disabled' : '') + '><span>' + esc(c.name) + '</span>' +
                     (has ? '<span class="gv-pitem__added">已在清單</span>' : '') + '</button>';
             }).join('') + '</div></div>';
         });
@@ -1437,7 +1439,7 @@
         if (issues().length) { renderSummary(); return; }
         var rec = isRecurring();
         byId('gvConfLines').innerHTML = activeLines().map(function (l) {
-            return '<li><span>' + esc(l.cat) + (l.sub ? '<small>' + esc(l.sub) + '</small>' : '') + '</span><span>NT$ ' + fmt(l.amount) + '</span></li>';
+            return '<li><span>' + esc(categoryName(l.cat)) + (l.sub ? '<small>' + esc(l.sub) + '</small>' : '') + '</span><span>NT$ ' + fmt(l.amount) + '</span></li>';
         }).join('');
         byId('gvConfMeta').innerHTML = '<div><span>付款方式</span><b>' + esc(payText()) + '</b></div>' +
             (rec ? '<div><span>期數</span><b>' + state.period + ' 期，每月扣款</b></div>' : '') +
@@ -1833,8 +1835,8 @@
         byId('gvAdd').addEventListener('click', function () {
             if (state.variant === 'A') { openPicker(); return; }
             var used = state.lines.map(function (l) { return l.cat; });
-            var next = CATEGORIES.filter(function (c) { return used.indexOf(c) < 0; })[0];
-            if (next && state.lines.length < MAX) addLine(next);
+            var next = CATEGORIES.filter(function (c) { return used.indexOf(c.id) < 0; })[0];
+            if (next && state.lines.length < MAX) addLine(next.id);
         });
 
         var rows = byId('gvRows');

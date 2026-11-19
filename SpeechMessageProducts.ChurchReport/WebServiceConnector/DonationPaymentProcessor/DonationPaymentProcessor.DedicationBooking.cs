@@ -7,6 +7,8 @@
  * 本檔宣告 DonationPaymentProcessor。
  * 主要操作入口包含 CreateDedicationBooking、SetDedicationBookingParameter、SetDedicationBookingAmounts、
  * SetDedicationBookingDates、AssignDedicationBookingOwner。
+ * 建立認獻單時重新以本次登入 contact 解析正式類別 ID，覆寫模型內部暫存值後才建立候選 Entity；
+ * SDK 由既有 ToolUtility 管理，本檔不延長登入資料或類別快照的生命週期。
  *
  * 使用邊界與維護：
  * 本檔的前置條件、錯誤及資源責任以各型別／成員契約為準；此導讀不把呼叫參數視為授權，也不擴張被借入依賴的所有權。
@@ -15,6 +17,7 @@
  */
 using ChurchReport.Models;
 using Microsoft.Xrm.Sdk;
+using SpeechMessageProducts.GoodShepherd.Core.Offerings;
 using System;
 
 namespace ChurchReport.WebServiceConnector
@@ -43,6 +46,8 @@ namespace ChurchReport.WebServiceConnector
         {
             try
             {
+                DonationPaymentFormModel.ResolvedCategory =
+                    ResolveOfferingCategory(aContact, DonationPaymentFormModel.Category);
                 var dedicationBookingEntity = new Entity("new_dedication_booking");
 
                 // 設定認獻單參數
@@ -89,7 +94,9 @@ namespace ChurchReport.WebServiceConnector
                 SetDedicationBookingDates(ref aDedicationBookingToCreated, DonationPaymentFormModel);
 
                 // 奉獻類別
-                SetPayCategory(DonationPaymentFormModel.Category, "new_dedication_category", ref aDedicationBookingToCreated);
+                var category = DonationPaymentFormModel.ResolvedCategory
+                    ?? throw new InvalidOperationException("建立認獻預約前必須先驗證奉獻類別。");
+                SetPayCategory(category, "new_dedication_category", ref aDedicationBookingToCreated);
 
                 // 奉獻備註
                 ToolUtility.SetEntityStringAttribute(ref aDedicationBookingToCreated, "new_explain", DonationPaymentFormModel.Explain);

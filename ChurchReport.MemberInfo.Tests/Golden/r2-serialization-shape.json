@@ -8387,6 +8387,19 @@
     ]
   },
   {
+    "Type": "ChurchReport.Models.DonationOfferingCategoryOption",
+    "Newtonsoft": [
+      "Id",
+      "IsSelectable",
+      "Name"
+    ],
+    "SystemTextJson": [
+      "Id",
+      "IsSelectable",
+      "Name"
+    ]
+  },
+  {
     "Type": "ChurchReport.Models.DonationPaymentFormModel",
     "Newtonsoft": [
       "Amount",

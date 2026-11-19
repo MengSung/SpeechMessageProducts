@@ -24,18 +24,28 @@ namespace ChurchReport.MemberInfo.Tests.Dedication;
 
 public class DonationGivingHistoryTests
 {
-    private static readonly IReadOnlyList<string> Available = new[]
+    private static readonly IReadOnlyList<DonationOfferingCategoryOption> Available = new[]
     {
-        "主日奉獻", "十一奉獻", "感恩奉獻", "建堂奉獻", "宣教奉獻", "愛心奉獻", "特別奉獻"
+        Option("主日奉獻", "10000000-0000-0000-0000-000000000001"),
+        Option("十一奉獻", "10000000-0000-0000-0000-000000000002"),
+        Option("感恩奉獻", "10000000-0000-0000-0000-000000000003"),
+        Option("建堂奉獻", "10000000-0000-0000-0000-000000000004"),
+        Option("宣教奉獻", "10000000-0000-0000-0000-000000000005"),
+        Option("愛心奉獻", "10000000-0000-0000-0000-000000000006"),
+        Option("特別奉獻", "10000000-0000-0000-0000-000000000007")
     };
 
     private static readonly DateTime Base = new(2026, 9, 1, 10, 0, 0);
 
+    private static DonationOfferingCategoryOption Option(string name, string id) => new(id, name, true);
+
     private static DedicationFee Fee(string category, int amount, DateTime created, string payWay = "信用卡", string paidPeriod = "", string others = "")
     {
+        var categoryId = Available.FirstOrDefault(option => option.Name == category)?.Id;
         return new DedicationFee
         {
             Category = category,
+            CategoryId = Guid.TryParse(categoryId, out var id) ? id : null,
             Amount = amount,
             DedicationDate = created,
             PayDate = created,
@@ -44,6 +54,8 @@ public class DonationGivingHistoryTests
             Others = others
         };
     }
+
+    private static string Id(string name) => Available.Single(option => option.Name == name).Id;
 
     [Fact]
     public void RankPinned_OrdersByFrequency_ThenFillsWithDefaults()
@@ -55,7 +67,7 @@ public class DonationGivingHistoryTests
         };
 
         DonationGivingHistory.RankPinnedCategories(fees, Available)
-            .Should().Equal("愛心奉獻", "十一奉獻", "感恩奉獻", "建堂奉獻");
+            .Should().Equal(Id("愛心奉獻"), Id("十一奉獻"), Id("主日奉獻"), Id("感恩奉獻"));
     }
 
     [Fact]
@@ -64,7 +76,7 @@ public class DonationGivingHistoryTests
         var fees = new[] { Fee("主日奉獻", 100, Base.AddDays(-60)), Fee("愛心奉獻", 100, Base.AddDays(-1)) };
 
         DonationGivingHistory.RankPinnedCategories(fees, Available)
-            .Should().Equal("愛心奉獻", "主日奉獻", "十一奉獻", "感恩奉獻");
+            .Should().Equal(Id("愛心奉獻"), Id("主日奉獻"), Id("十一奉獻"), Id("感恩奉獻"));
     }
 
     [Fact]
@@ -73,16 +85,17 @@ public class DonationGivingHistoryTests
         var fees = new[] { Fee("代收代轉", 500, Base), Fee("代收代轉", 500, Base.AddDays(-1)) };
 
         DonationGivingHistory.RankPinnedCategories(fees, Available)
-            .Should().Equal("十一奉獻", "感恩奉獻", "建堂奉獻", "宣教奉獻");
+            .Should().Equal(Id("主日奉獻"), Id("十一奉獻"), Id("感恩奉獻"), Id("建堂奉獻"));
         DonationGivingHistory.RankPinnedCategories(null!, Available)
-            .Should().Equal("十一奉獻", "感恩奉獻", "建堂奉獻", "宣教奉獻");
+            .Should().Equal(Id("主日奉獻"), Id("十一奉獻"), Id("感恩奉獻"), Id("建堂奉獻"));
     }
 
     [Fact]
     public void RankPinned_FillsFromOfferedCategories_WhenDefaultsAreMissing()
     {
-        DonationGivingHistory.RankPinnedCategories(null!, new[] { "主日奉獻", "愛心奉獻" })
-            .Should().Equal("主日奉獻", "愛心奉獻");
+        var offered = new[] { Available[0], Available[5] };
+        DonationGivingHistory.RankPinnedCategories(null!, offered)
+            .Should().Equal(Id("主日奉獻"), Id("愛心奉獻"));
     }
 
     [Fact]
@@ -123,11 +136,42 @@ public class DonationGivingHistoryTests
     [Fact]
     public void FindLastGift_MergesTheSameCategoryWithinOneSubmission()
     {
-        var fees = new[] { Fee("十一奉獻", 1000, Base), Fee("十一奉獻", 2000, Base.AddMinutes(1)) };
+        var categoryId = Guid.Parse(Id("十一奉獻"));
+        var fees = new[]
+        {
+            new DedicationFee { CategoryId = categoryId, Category = "十一奉獻", Amount = 1000, DedicationDate = Base, PayDate = Base, PayWay = "信用卡" },
+            new DedicationFee { CategoryId = categoryId, Category = "十一奉獻", Amount = 2000, DedicationDate = Base.AddMinutes(1), PayDate = Base.AddMinutes(1), PayWay = "信用卡" }
+        };
 
         var gift = DonationGivingHistory.FindLastGift(fees, Available);
 
         gift!.Lines.Should().ContainSingle().Which.Amount.Should().Be(3000);
+    }
+
+    [Fact]
+    public void FindLastGift_KeepsSameNameCategoriesWithDifferentDatabaseIdsSeparate()
+    {
+        var firstId = Guid.Parse("11111111-1111-1111-1111-111111111111");
+        var secondId = Guid.Parse("22222222-2222-2222-2222-222222222222");
+        var fees = new[]
+        {
+            new DedicationFee { CategoryId = firstId, Category = "重名類別", Amount = 100, DedicationDate = Base,
+                PayDate = Base, PayWay = "信用卡" },
+            new DedicationFee { CategoryId = secondId, Category = "重名類別", Amount = 200, DedicationDate = Base.AddMinutes(1),
+                PayDate = Base.AddMinutes(1), PayWay = "信用卡" }
+        };
+
+        var available = new[]
+        {
+            Option("重名類別", firstId.ToString("D")),
+            Option("重名類別", secondId.ToString("D"))
+        };
+        var gift = DonationGivingHistory.FindLastGift(fees, available);
+
+        gift.Should().NotBeNull();
+        gift!.Lines.Should().HaveCount(2);
+        gift.Lines.Select(line => line.CategoryId).Should().Equal(firstId, secondId);
+        gift.Lines.Select(line => line.Amount).Should().Equal(100, 200);
     }
 
     [Fact]

@@ -8,7 +8,7 @@
  * 測試案例入口包含 Normalize_UsesTrimmedLines_AndDropsBlankRows、Normalize_UsesLegacyFields_WhenLinesAreEmpty、
  * ValidateDonationForm_AllowsSevenLines_RejectsEight_AndRecurringMultipleLines、
  * ValidateDonationForm_RejectsDuplicateCategories_AndMultiCategoryAtm、GroupText_SumsLines_AndPreservesAtmLabels、
- * PaidPlanner_MarksEveryNewGroupFee_WithItsOwnAmount_AndIsIdempotent。
+ * GroupText_UsesResolvedCategoryNameInsteadOfDatabaseId、PaidPlanner_MarksEveryNewGroupFee_WithItsOwnAmount_AndIsIdempotent。
  *
  * 使用邊界與維護：
  * 以本檔實際安排的輸入、替身及斷言判定契約；測試名稱只說明案例，不能代替執行結果。
@@ -20,6 +20,7 @@ using ChurchReport.Models;
 using ChurchReport.Services;
 using ChurchReport.Tools;
 using FluentAssertions;
+using SpeechMessageProducts.GoodShepherd.Core.Offerings;
 using Xunit;
 
 namespace ChurchReport.MemberInfo.Tests.Dedication;
@@ -126,6 +127,34 @@ public sealed class DonationMultiCategoryTests
         DonationFeeGroupText.CategorySummary(lines).Should().Be("十一奉獻 3,000元、感恩奉獻 500元");
         var atm = DonationFeeGroupText.AtmInfo("測試會友", lines, "123456", "2026/09/24");
         atm.LineMessage.Should().Contain("姓名 : 測試會友").And.Contain("名稱 : 十一奉獻 3,000元、感恩奉獻 500元").And.Contain("金額 : 3500元").And.Contain("帳號     : 123456");
+    }
+
+    [Fact]
+    public void GroupText_UsesResolvedCategoryNameInsteadOfDatabaseId()
+    {
+        var churchId = Guid.Parse("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa");
+        var categoryId = Guid.Parse("bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb");
+        var category = new OfferingCategory(categoryId, churchId, "legacy-1", "資料庫奉獻名稱", 1, null, 100000001, true);
+        IReadOnlyList<DonationLineItemInput> lines = new[]
+        {
+            new DonationLineItemInput
+            {
+                Category = categoryId.ToString("D"),
+                Amount = 250,
+                ResolvedCategory = category
+            }
+        };
+
+        DonationFeeGroupText.CategorySummary(lines).Should().Be("資料庫奉獻名稱");
+        DonationFeeGroupText.ProviderProductName(lines, "測試會友")
+            .Should().Be("資料庫奉獻名稱-測試會友")
+            .And.NotContain(categoryId.ToString("D"));
+        DonationFeeGroupText.ProviderItems(lines).Should().ContainSingle()
+            .Which.Name.Should().Be("資料庫奉獻名稱");
+
+        var atm = DonationFeeGroupText.AtmInfo("測試會友", lines, "123456", "2026/09/24");
+        atm.LineMessage.Should().Contain("名稱 : 資料庫奉獻名稱")
+            .And.NotContain(categoryId.ToString("D"));
     }
 
     [Fact]

@@ -1,7 +1,7 @@
 @*
     檔案整體說明
 
-    目的與定位：提供LINE情境的人工奉獻登錄表單，收集日期、類別、金額及其他輸入並交伺服器保存。
+    目的與定位：提供LINE情境的人工奉獻登錄表單，收集日期、正式類別 Guid、金額及其他輸入並交伺服器保存。
 
     主要功能與流程：
     畫面輸入採用 DonationPaymentFormModel，欄位語意須與控制器組裝的模型一致。
@@ -11,6 +11,7 @@
     cell_prepared、cell_prepared_background_color、OnClickQuery、OnCategorySelectBoxValueChanged、OnClickUpdate，
     維護時須一併核對宣告、載入順序與元件ID。
 
+    奉獻下拉以伺服器提供的類別 Id 作值、名稱作顯示；事件名稱只由目前選項物件讀取。
     使用邊界與維護：畫面僅呈現目前請求取得的資料；使用者輸入與元件傳回值仍須在伺服器驗證。
     修改模型、元素ID、路由或callback時，須同步檢查引用此頁的父頁／控制器；非同步回應不能覆寫較新畫面狀態。
     本段使用Razor註解，編譯後不會將維護說明或內部路徑傳到瀏覽器。
@@ -340,7 +341,9 @@
                     e => e
                     .SelectBox()
                     .Width(120)
-                    .DataSource(Model.DedicationCategoryList) // ✅ 改為使用動態清單
+                    .DataSource(Model.DedicationCategoryList.Where(item => item.IsSelectable).ToList())
+                    .ValueExpr("Id")
+                    .DisplayExpr("Name")
                     .Placeholder("請選擇奉獻類別")
                     //.Value(Model.Category)
                     .OnValueChanged("OnCategorySelectBoxValueChanged")
@@ -565,22 +568,23 @@
         var GlobalCategory = "";
 
         function OnCategorySelectBoxValueChanged(e) {
-            if (e.value == "宣教奉獻") {
+            var categoryName = e.component.option("selectedItem")?.Name || "";
+            if (categoryName == "宣教奉獻") {
                 $("#form2").dxForm("instance").itemOption("OtherDedication", 'visible', false);
                 $("#form2").dxForm("instance").itemOption("OtherDedicationSelectionBox", 'visible', true);
                 $("#form2").dxForm("instance").itemOption("SpecialDedicationSelectionBox", 'visible', false);
             }
-            else if (e.value == "代收代轉") {
+            else if (categoryName == "代收代轉") {
                 $("#form2").dxForm("instance").itemOption("OtherDedication", 'visible', true);
                 $("#form2").dxForm("instance").itemOption("OtherDedicationSelectionBox", 'visible', false);
                 $("#form2").dxForm("instance").itemOption("SpecialDedicationSelectionBox", 'visible', false);
             }
-            else if (e.value == "其他奉獻") {
+            else if (categoryName == "其他奉獻") {
                 $("#form2").dxForm("instance").itemOption("OtherDedication", 'visible', true);
                 $("#form2").dxForm("instance").itemOption("OtherDedicationSelectionBox", 'visible', false);
                 $("#form2").dxForm("instance").itemOption("SpecialDedicationSelectionBox", 'visible', false);
             }
-            else if (e.value == "特別奉獻") {
+            else if (categoryName == "特別奉獻") {
                 $("#form2").dxForm("instance").itemOption("OtherDedication", 'visible', false);
                 $("#form2").dxForm("instance").itemOption("OtherDedicationSelectionBox", 'visible', false);
                 $("#form2").dxForm("instance").itemOption("SpecialDedicationSelectionBox", 'visible', true);

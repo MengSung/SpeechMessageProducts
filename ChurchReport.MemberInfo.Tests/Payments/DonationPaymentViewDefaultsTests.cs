@@ -1,8 +1,8 @@
 /*
  * 檔案整體說明
  *
- * 目的與定位：鎖定奉獻頁初始資料的安全預設值。 奉獻頁可能在 LINE 使用者資料或 CRM OptionSet 尚未載入完成前先產生 View， 因此 ViewModel 本身必須提供基本奉獻類別與付款方式，
- * 避免下拉選單空白。
+ * 目的與定位：鎖定奉獻頁初始資料及類別資料庫 ID 的安全預設值。沒有正式類別時不得以名稱或 OptionSet
+ * 偽造 lookup 身分；有清單時只以正式 Guid 選取，且同名異 ID 必須保留。
  *
  * 主要功能與流程：
  * 本檔宣告 DonationPaymentViewDefaultsTests、AuditControllerContext。
@@ -52,9 +52,9 @@ public sealed class DonationPaymentViewDefaultsTests
     {
         var model = new DonationPaymentFormModel();
 
-        model.Category.Should().Be("十一奉獻");
+        model.Category.Should().BeEmpty("沒有伺服器類別清單時不得猜測或偽造正式類別 ID");
         model.PayWay.Should().Be("信用卡");
-        model.DedicationCategoryList.Should().Contain("十一奉獻");
+        model.DedicationCategoryList.Should().BeEmpty();
         model.OtherCategoryArray.Should().NotBeNull();
         model.SpecialCategoryArray.Should().NotBeNull();
     }
@@ -79,7 +79,7 @@ public sealed class DonationPaymentViewDefaultsTests
         {
             Category = "",
             PayWay = "",
-            DedicationCategoryList = new List<string>(),
+            DedicationCategoryList = new List<DonationOfferingCategoryOption>(),
             OtherCategoryArray = null!,
             SpecialCategoryArray = null!,
             CreditCardList = null!,
@@ -89,9 +89,9 @@ public sealed class DonationPaymentViewDefaultsTests
 
         model.EnsureFormDefaults();
 
-        model.Category.Should().Be("十一奉獻");
+        model.Category.Should().BeEmpty();
         model.PayWay.Should().Be("信用卡");
-        model.DedicationCategoryList.Should().Contain("十一奉獻");
+        model.DedicationCategoryList.Should().BeEmpty();
         model.OtherCategoryArray.Should().NotBeNull();
         model.SpecialCategoryArray.Should().NotBeNull();
         model.CreditCardList.Should().NotBeNull();
@@ -102,84 +102,86 @@ public sealed class DonationPaymentViewDefaultsTests
     [Fact]
     public void Qpay_model_falls_back_to_first_crm_category_when_hardcoded_default_is_absent()
     {
-        // 好牧人這類教會的 new_fee.new_category OptionSet 用「獻金」命名，沒有「十一奉獻」。
-        // 硬編碼預設值不在 DataSource 裡時，DevExtreme SelectBox 會退回顯示 placeholder「選擇...」，
-        // 使用者必須自己下拉才能送出，因此 ViewModel 必須把預設值對帳回實際清單。
+        // 無效舊名稱不能識別類別；表單改用正式 Guid，並預設排序第一個可提交項目。
+        var firstId = Guid.Parse("11111111-1111-1111-1111-111111111111");
         var model = new DonationPaymentFormModel
         {
             Category = "十一奉獻",
-            DedicationCategoryList = new List<string>
+            DedicationCategoryList = new List<DonationOfferingCategoryOption>
             {
-                "月定獻金",
-                "禮拜獻金",
-                "感恩獻金",
-                "聖餐獻金"
+                new(firstId.ToString("D"), "月定獻金", true),
+                new("22222222-2222-2222-2222-222222222222", "禮拜獻金", true),
+                new("33333333-3333-3333-3333-333333333333", "感恩獻金", true),
+                new("44444444-4444-4444-4444-444444444444", "聖餐獻金", true)
             }
         };
 
         model.EnsureFormDefaults();
 
-        model.Category.Should().Be("月定獻金");
+        model.Category.Should().Be(firstId.ToString("D"));
     }
 
     [Fact]
     public void Qpay_model_keeps_hardcoded_default_when_crm_category_list_contains_it()
     {
-        // OptionSet 有「十一奉獻」的教會必須維持原本的預設值，不能被改成清單第一項。
+        // 正式類別值是資料庫 ID，不因顯示名稱看似預設類別而獲得特權。
+        var firstId = "11111111-1111-1111-1111-111111111111";
+        var selectedId = "22222222-2222-2222-2222-222222222222";
         var model = new DonationPaymentFormModel
         {
-            Category = "十一奉獻",
-            DedicationCategoryList = new List<string>
+            Category = selectedId,
+            DedicationCategoryList = new List<DonationOfferingCategoryOption>
             {
-                "主日奉獻",
-                "十一奉獻",
-                "感恩奉獻"
+                new(firstId, "主日奉獻", true),
+                new(selectedId, "十一奉獻", true),
+                new("33333333-3333-3333-3333-333333333333", "感恩奉獻", true)
             }
         };
 
         model.EnsureFormDefaults();
 
-        model.Category.Should().Be("十一奉獻");
+        model.Category.Should().Be(selectedId);
     }
 
     [Fact]
     public void Qpay_model_keeps_selected_category_that_exists_in_crm_category_list()
     {
-        // 對帳只負責修掉「清單裡沒有的值」，不能覆蓋使用者或流程已經選好的合法類別。
+        // 對帳只保留清單中正式 ID；同名文字不是合法身分。
+        var selectedId = "22222222-2222-2222-2222-222222222222";
         var model = new DonationPaymentFormModel
         {
-            Category = "禮拜獻金",
-            DedicationCategoryList = new List<string>
+            Category = selectedId,
+            DedicationCategoryList = new List<DonationOfferingCategoryOption>
             {
-                "月定獻金",
-                "禮拜獻金",
-                "感恩獻金"
+                new("11111111-1111-1111-1111-111111111111", "月定獻金", true),
+                new(selectedId, "禮拜獻金", true),
+                new("33333333-3333-3333-3333-333333333333", "感恩獻金", true)
             }
         };
 
         model.EnsureFormDefaults();
 
-        model.Category.Should().Be("禮拜獻金");
+        model.Category.Should().Be(selectedId);
     }
 
     [Fact]
     public void Qpay_model_matches_crm_category_ignoring_surrounding_whitespace()
     {
-        // CRM OptionSet 標籤偶爾帶前後空白；比對必須容忍，且要回填清單裡的原始字串，
-        // 否則 SelectBox 的 value 仍然對不上 DataSource 項目。
+        // 顯示標籤不得作為類別 ID。未能解析為正式 Guid 時使用第一個伺服器選項。
+        var firstId = "11111111-1111-1111-1111-111111111111";
         var model = new DonationPaymentFormModel
         {
             Category = "月定獻金",
-            DedicationCategoryList = new List<string>
+            DedicationCategoryList = new List<DonationOfferingCategoryOption>
             {
-                " 月定獻金 ",
-                "禮拜獻金"
+                new(firstId, " 月定獻金 ", true),
+                new("22222222-2222-2222-2222-222222222222", "禮拜獻金", true)
             }
         };
 
         model.EnsureFormDefaults();
 
-        model.Category.Should().Be(" 月定獻金 ");
+        model.Category.Should().Be(firstId);
     }
 
     [Theory]
@@ -385,18 +387,22 @@ public sealed class DonationPaymentViewDefaultsTests
     }
 
     /// <summary>
-    /// 固定奉獻模型組裝器的 OptionSet metadata cache 必須有明確 owner；
-    /// 每次 LINE 登入建立的暫時 MemoryCache 必須在同步查詢結束後 deterministic dispose。
+    /// 固定共享奉獻類別 resolver 對 OptionSet metadata 使用區域 MemoryCache owner；
+    /// LINE 表單刷新與一般頁面共用該入口，且每次同步查詢結束後確定 Dispose。
     /// </summary>
     [Fact]
     public void Donation_payment_assembler_disposes_temporary_metadata_cache()
     {
         var repositoryRoot = FindRepositoryRoot();
-        var assembler = File.ReadAllText(Path.Combine(
-            repositoryRoot, "SpeechMessageProducts.ChurchReport", "Services", "DonationPaymentModelAssembler.cs"));
+        var resolver = File.ReadAllText(Path.Combine(
+            repositoryRoot, "SpeechMessageProducts.ChurchReport", "Services", "DonationOfferingCategoryResolver.cs"));
+        var lineFormService = File.ReadAllText(Path.Combine(
+            repositoryRoot, "SpeechMessageProducts.ChurchReport", "Services", "DonationDedicationFeeFormService.cs"));
 
-        assembler.Should().Contain("using var metadataCache");
-        assembler.Should().Contain("metadataCache");
+        resolver.Should().Contain("using var metadataCache");
+        resolver.Should().Contain("metadataCache");
+        lineFormService.Should().Contain("ReadOptionsForContact");
+        lineFormService.Should().NotContain("Category = \"十一奉獻\"");
     }
 
     /// <summary>

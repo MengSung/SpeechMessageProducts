@@ -464,7 +464,7 @@ namespace ChurchReport.Tools
                         // 這裡只做 ChurchReport 顯示文字對應，不涉及任何 provider 狀態。
                         categoryText = isMultiFeeGroup
                             ? BuildGroupCategoryText(groupFees)
-                            : GetDedicationCategoryText(this.m_ToolUtilityClass.GetOptionSetAttribute(aFeeEntity, "new_category"));
+                            : DonationFeeQueryService.ConvertCategory(aFeeEntity);
                     }
                 }
                 catch { categoryText = "繳費"; }
@@ -976,7 +976,7 @@ namespace ChurchReport.Tools
             return ChurchReport.Services.DonationFeeGroupText.CategorySummary(groupFees
                 .Select(groupFee => new ChurchReport.Models.DonationLineItemInput
                 {
-                    Category = GetDedicationCategoryText(this.m_ToolUtilityClass.GetOptionSetAttribute(groupFee, "new_category")),
+                    Category = DonationFeeQueryService.ConvertCategory(groupFee),
                     Amount = Convert.ToInt32(this.m_ToolUtilityClass.GetEntityMoneyAttribute(groupFee, "new_fee_shoud_pay")?.Value ?? 0m)
                 })
                 .ToList());
@@ -1424,27 +1424,6 @@ namespace ChurchReport.Tools
             return false;
 
             #endregion
-        }
-
-        /// <summary>
-        /// 取得奉獻類別文字
-        ///
-        /// CRM 的 <c>new_category</c> 是 OptionSet 整數，不能直接顯示給使用者。
-        /// 此方法把 ChurchReport 目前使用的奉獻類別代碼轉成 LINE 訊息與結果頁可讀文字。
-        /// 若遇到未知代碼，回傳「奉獻」作為保守預設。
-        /// </summary>
-        private string GetDedicationCategoryText(int categoryOption)
-        {
-            switch (categoryOption)
-            {
-                case 100000000: return "什一奉獻";
-                case 100000001: return "感恩奉獻";
-                case 100000002: return "宣教奉獻";
-                case 100000003: return "建堂奉獻";
-                case 100000004: return "愛心奉獻";
-                case 100000005: return "其他奉獻";
-                default: return "奉獻";
-            }
         }
 
         #endregion

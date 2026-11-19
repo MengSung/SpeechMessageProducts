@@ -9,7 +9,7 @@
  * - 將 CRM 查出的奉獻收費單填入表單模型，並同步更新總金額。
  * - 將收費單清單投影成既有 AJAX endpoint 會序列化的匿名物件形狀。
  * - 將 CRM new_pay_way OptionSet 值轉成 ChurchReport 畫面文字。
- * - 優先使用 CRM FormattedValues 的顯示文字；查不到時回到既有預設「十一奉獻」。
+ * - 奉獻類別文字優先使用正式 lookup 名稱，舊 OptionSet 標籤只作相容回退；未知值使用通用奉獻文字。
  * 主要操作入口包含 FillFeeList、ToAjaxRows、ConvertPayWay、MapFee、ConvertCategory。
  *
  * 使用邊界與維護：
@@ -26,6 +26,7 @@ using System.Collections.Generic;
 using System.Linq;
 using ChurchReport.Models;
 using Microsoft.Xrm.Sdk;
+using SpeechMessageProducts.GoodShepherd.Core.Offerings;
 using ToolUtilityNameSpace;
 
 namespace ChurchReport.Services
@@ -121,6 +122,7 @@ namespace ChurchReport.Services
                 PayDate = _utility.GetEntityDateTimeAttribute(feeEntity, "new_pay_date").ToLocalTime(),
                 Amount = Convert.ToInt32(_utility.GetEntityMoneyAttribute(feeEntity, "new_fee_really_paid").Value),
                 PayWay = ConvertPayWay(_utility.GetOptionSetAttribute(feeEntity, "new_pay_way")),
+                CategoryId = feeEntity.GetAttributeValue<EntityReference>("new_offeringcategoryid")?.Id,
                 Category = ConvertCategory(feeEntity),
                 Others = _utility.GetEntityStringAttribute(feeEntity, "new_others"),
                 PaidPeriod = _utility.GetEntityStringAttribute(feeEntity, "new_paid_period")
@@ -130,27 +132,17 @@ namespace ChurchReport.Services
         }
 
         /// <summary>
-        /// 優先使用 CRM FormattedValues 的顯示文字；查不到時回到既有預設「十一奉獻」。
+        /// 以類別 lookup 名稱為優先，舊選項標籤僅作相容回退，未知值使用通用奉獻文字。
         /// </summary>
         public static string ConvertCategory(Entity feeEntity)
         {
-            try
-            {
-                if (feeEntity.FormattedValues.Contains("new_category"))
-                {
-                    string displayText = feeEntity.FormattedValues["new_category"];
-                    if (!string.IsNullOrEmpty(displayText))
-                    {
-                        return displayText;
-                    }
-                }
-
-                return "十一奉獻";
-            }
-            catch
-            {
-                return "十一奉獻";
-            }
+            ArgumentNullException.ThrowIfNull(feeEntity);
+            var categoryLookup = feeEntity.GetAttributeValue<EntityReference>("new_offeringcategoryid");
+            var legacyAttribute = feeEntity.LogicalName == "new_dedication_booking"
+                ? "new_dedication_category"
+                : "new_category";
+            feeEntity.FormattedValues.TryGetValue(legacyAttribute, out var legacyLabel);
+            return OfferingCategoryText.Resolve(categoryLookup?.Name, legacyLabel, "奉獻");
         }
     }
 }

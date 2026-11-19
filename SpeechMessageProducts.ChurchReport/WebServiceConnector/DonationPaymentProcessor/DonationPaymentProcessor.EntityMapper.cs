@@ -5,8 +5,8 @@
  * 查找表模式：使用字典快速映射
  *
  * 主要功能與流程：
- * 本檔宣告 DonationPaymentProcessor。
- * - 根據顯示文字取得對應的 OptionSet 值（動態查詢）
+ * 本檔宣告 DonationPaymentProcessor。奉獻類別映射只接受已由登入教會清單解析的領域值，
+ * 並於候選 Entity 同時設定正式 lookup 與相容 OptionSet 欄位；不再依名稱或 metadata 猜測身分。
  * 主要操作入口包含 SetFeePayCategory、SetPayCategory、GetCategoryValueByDisplayText、SetIncomeCategory、SetAccountingCode、
  * SetPayMethod、SetPayStatus。
  *
@@ -16,6 +16,8 @@
  * P6-07公開邊界：DonationPaymentProcessor改為產品內部宣告；外部輸出與既有資源清理契約不變。
  */
 using Microsoft.Xrm.Sdk;
+using ChurchReport.Services;
+using SpeechMessageProducts.GoodShepherd.Core.Offerings;
 using System;
 using System.Collections.Generic;
 
@@ -41,78 +43,30 @@ namespace ChurchReport.WebServiceConnector
         #region ===== 奉獻類別映射 =====
 
         /// <summary>
-        /// 設定奉獻類別（使用動態 OptionSet 查詢）
+        /// 設定已驗證的奉獻類別正式 lookup 與既有必填選項欄位。
         /// </summary>
-        public void SetFeePayCategory(string value, ref Entity aFeeEntity)
+        public void SetFeePayCategory(OfferingCategory category, ref Entity aFeeEntity)
         {
-            try
-            {
-                var categoryValue = GetCategoryValueByDisplayText(value);
-                ToolUtility.SetOptionSetAttribute(aFeeEntity, "new_category", categoryValue);
-
-                System.Diagnostics.Debug.WriteLine($"[SetFeePayCategory] 設定奉獻類別: {value} -> {categoryValue}");
-            }
-            catch (Exception ex)
-            {
-                System.Diagnostics.Debug.WriteLine($"[SetFeePayCategory] 錯誤: {ex.Message}，使用預設值（十一奉獻）");
-                ToolUtility.SetOptionSetAttribute(aFeeEntity, "new_category", 100000000);
-            }
+            DonationOfferingCategoryResolver.ApplyToEntity(
+                aFeeEntity,
+                category,
+                "new_offeringcategoryid",
+                "new_category");
         }
 
         /// <summary>
-        /// 設定付款類別（通用方法）
+        /// 設定已驗證奉獻類別的 lookup 與指定相容欄位。
         /// </summary>
-        public void SetPayCategory(string value, string attributeName, ref Entity aFeeEntity)
+        public void SetPayCategory(OfferingCategory category, string attributeName, ref Entity aFeeEntity)
         {
-            try
-            {
-                var categoryValue = GetCategoryValueByDisplayText(value);
-                ToolUtility.SetOptionSetAttribute(aFeeEntity, attributeName, categoryValue);
-
-                System.Diagnostics.Debug.WriteLine($"[SetPayCategory] 設定 {attributeName}: {value} -> {categoryValue}");
-            }
-            catch (Exception ex)
-            {
-                System.Diagnostics.Debug.WriteLine($"[SetPayCategory] 錯誤: {ex.Message}，使用預設值（十一奉獻）");
-                ToolUtility.SetOptionSetAttribute(aFeeEntity, attributeName, 100000000);
-            }
-        }
-
-        /// <summary>
-        /// 根據顯示文字取得對應的 OptionSet 值（動態查詢）
-        /// </summary>
-        private int GetCategoryValueByDisplayText(string displayText)
-        {
-            try
-            {
-                // ? 修復：檢查 null 或空白字串
-                if (string.IsNullOrWhiteSpace(displayText))
-                {
-                    System.Diagnostics.Debug.WriteLine("[GetCategoryValueByDisplayText] 輸入為空，使用預設值（十一奉獻 = 100000000）");
-                    return 100000000;
-                }
-
-                // 使用 OptionSetMetadataService 動態查詢
-                int categoryValue = OptionSetService.GetOptionSetValue(
-                    entityName: "new_fee",
-                    attributeName: "new_category",
-                    displayText: displayText.Trim(),
-                    defaultValue: 100000000
-                );
-
-                System.Diagnostics.Debug.WriteLine($"[GetCategoryValueByDisplayText] {displayText} => {categoryValue}");
-                return categoryValue;
-            }
-            catch (KeyNotFoundException)
-            {
-                System.Diagnostics.Debug.WriteLine($"[GetCategoryValueByDisplayText] 找不到對應的奉獻類別: {displayText}，使用預設值");
-                return 100000000;
-            }
-            catch (Exception ex)
-            {
-                System.Diagnostics.Debug.WriteLine($"[GetCategoryValueByDisplayText] 錯誤: {ex.Message}，使用預設值");
-                return 100000000;
-            }
+            string lookupAttribute = attributeName == "new_dedication_category"
+                ? "new_offeringcategoryid"
+                : throw new ArgumentException("不支援的奉獻類別相容欄位。", nameof(attributeName));
+            DonationOfferingCategoryResolver.ApplyToEntity(
+                aFeeEntity,
+                category,
+                lookupAttribute,
+                attributeName);
         }
 
         #endregion
@@ -165,33 +119,12 @@ namespace ChurchReport.WebServiceConnector
         /// <summary>
         /// 設定會計科目（暫時保留，但建議使用動態映射）
         /// </summary>
-        public void SetAccountingCode(string value, ref Entity aFeeEntity)
+        public void SetAccountingCode(OfferingCategory category, ref Entity aFeeEntity)
         {
-            // ? 修復：檢查 null 或空白字串
-            if (string.IsNullOrWhiteSpace(value))
+            if (!string.IsNullOrWhiteSpace(category?.AccountingCode))
             {
-                System.Diagnostics.Debug.WriteLine("[SetAccountingCode] 奉獻類別為空，使用預設值（十一奉獻 = 4111100）");
-                ToolUtility.SetEntityStringAttribute(aFeeEntity, "new_accounting_code", "4111100");
-                return;
+                ToolUtility.SetEntityStringAttribute(aFeeEntity, "new_accounting_code", category.AccountingCode);
             }
-
-            var accountingCodeMap = new Dictionary<string, string>
-            {
-                { "十一奉獻", "4111100" },
-                { "建堂奉獻", "4113100" },
-                { "感恩奉獻", "4112100" },
-                { "其他奉獻", "4119100" },
-                { "指定奉獻", "4115100" },
-                { "宣教奉獻", "4114100" },
-                { "慈惠奉獻", "4116100" },
-                { "特別奉獻", "4117100" }
-            };
-
-            var accountingCode = accountingCodeMap.ContainsKey(value)
-                ? accountingCodeMap[value]
-                : "4111100"; // 預設為十一奉獻
-
-            ToolUtility.SetEntityStringAttribute(aFeeEntity, "new_accounting_code", accountingCode);
         }
 
         #endregion

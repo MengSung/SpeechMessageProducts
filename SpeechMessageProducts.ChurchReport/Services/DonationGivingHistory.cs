@@ -5,9 +5,9 @@
  *
  * 主要功能與流程：
  * 本檔宣告 DonationLastGift、DonationHistoryRow、DonationGivingHistory。
- * - 沒有奉獻紀錄時的常用類別；只取目前 CRM 仍提供的類別。
- * - 依奉獻次數排序常用類別（次數相同時較近期者優先），不足時以預設類別、再以 CRM 類別順序補滿。
+ * - 依奉獻次數排序常用類別（次數相同時較近期者優先），不足時依伺服器傳入的教會清單順序補滿；不保存全域類別名稱。
  * - 找出最近一次奉獻：以最新一張收費單為基準，收集同付款方式、建立時間相近的收費單。 定期定額自動扣款（有期數）不算「上次奉獻」；CRM 已不提供的類別會略過。
+ * - 正式 ID 相同才合併同一提交的明細；缺少舊 lookup ID 的歷史列不會用顯示名稱推測身份。
  * 主要操作入口包含 DonationLastGift、DonationHistoryRow、RankPinnedCategories、FindLastGift、ToHistoryRows、Clean。
  *
  * 使用邊界與維護：
@@ -48,50 +48,52 @@ namespace ChurchReport.Services
     {
         public const int PinnedCount = 4;
 
-        /// <summary>沒有奉獻紀錄時的常用類別；只取目前 CRM 仍提供的類別。</summary>
-        public static readonly IReadOnlyList<string> DefaultPinned = new[] { "十一奉獻", "感恩奉獻", "建堂奉獻", "宣教奉獻" };
-
         /// <summary>同一次送出建立的收費單彼此相差不超過此時間。</summary>
         public static readonly TimeSpan SameGiftWindow = TimeSpan.FromMinutes(5);
 
         /// <summary>
-        /// 依奉獻次數排序常用類別（次數相同時較近期者優先），不足時以預設類別、再以 CRM 類別順序補滿。
+        /// 依奉獻次數排序常用類別（次數相同時較近期者優先），不足時依已授權教會清單順序補滿。
+        /// 可用清單必須是當次登入 contact 所屬教會的啟用選項；以資料庫 Guid 排名及補位，
+        /// 即使顯示名稱相同也不會合併。呼叫端不得自報教會或跨請求共用清單。
         /// </summary>
         public static IReadOnlyList<string> RankPinnedCategories(
             IEnumerable<DedicationFee> fees,
-            IReadOnlyList<string> available,
+            IReadOnlyList<DonationOfferingCategoryOption> available,
             int take = PinnedCount)
         {
             var availableList = Clean(available);
-            var availableSet = new HashSet<string>(availableList, StringComparer.Ordinal);
+            var availableById = availableList.ToDictionary(
+                item => Guid.ParseExact(item.Id, "D"),
+                item => item);
+            var availableSet = availableById.Keys.ToHashSet();
 
             var ranked = (fees ?? Enumerable.Empty<DedicationFee>())
-                .Where(fee => fee != null && fee.Amount > 0 && availableSet.Contains(fee.Category ?? string.Empty))
-                .GroupBy(fee => fee.Category, StringComparer.Ordinal)
+                .Where(fee => fee != null && fee.Amount > 0
+                    && fee.CategoryId.HasValue && availableSet.Contains(fee.CategoryId.Value))
+                .GroupBy(fee => fee.CategoryId!.Value)
                 .Select(group => new
                 {
-                    Category = group.Key,
+                    Id = group.Key,
+                    Category = availableById[group.Key].Name,
                     Count = group.Count(),
                     Latest = group.Max(fee => fee.PayDate)
                 })
                 .OrderByDescending(item => item.Count)
                 .ThenByDescending(item => item.Latest)
-                .ThenBy(item => availableList.IndexOf(item.Category))
-                .Select(item => item.Category);
+                .ThenBy(item => availableList.FindIndex(option => option.Id == item.Id.ToString("D")))
+                .Select(item => item.Id.ToString("D"));
 
             var result = new List<string>(Math.Max(take, 0));
-            foreach (var category in ranked
-                .Concat(DefaultPinned.Where(availableSet.Contains))
-                .Concat(availableList))
+            foreach (var categoryId in ranked.Concat(availableList.Select(item => item.Id)))
             {
                 if (result.Count >= take)
                 {
                     break;
                 }
 
-                if (!result.Contains(category))
+                if (!result.Contains(categoryId, StringComparer.OrdinalIgnoreCase))
                 {
-                    result.Add(category);
+                    result.Add(categoryId);
                 }
             }
 
@@ -102,14 +104,19 @@ namespace ChurchReport.Services
         /// 找出最近一次奉獻：以最新一張收費單為基準，收集同付款方式、建立時間相近的收費單。
         /// 定期定額自動扣款（有期數）不算「上次奉獻」；CRM 已不提供的類別會略過。
         /// </summary>
-        public static DonationLastGift FindLastGift(IEnumerable<DedicationFee> fees, IReadOnlyList<string> available)
+        public static DonationLastGift FindLastGift(
+            IEnumerable<DedicationFee> fees,
+            IReadOnlyList<DonationOfferingCategoryOption> available)
         {
-            var availableSet = new HashSet<string>(Clean(available), StringComparer.Ordinal);
+            var availableSet = Clean(available)
+                .Select(item => Guid.ParseExact(item.Id, "D"))
+                .ToHashSet();
             var candidates = (fees ?? Enumerable.Empty<DedicationFee>())
                 .Where(fee => fee != null
                     && fee.Amount > 0
                     && string.IsNullOrWhiteSpace(fee.PaidPeriod)
-                    && availableSet.Contains(fee.Category ?? string.Empty))
+                    && fee.CategoryId.HasValue
+                    && availableSet.Contains(fee.CategoryId.Value))
                 .ToList();
 
             if (candidates.Count == 0)
@@ -126,7 +133,10 @@ namespace ChurchReport.Services
             var lines = new List<DonationLineItemInput>();
             foreach (var fee in sameGift)
             {
-                var existing = lines.FirstOrDefault(line => line.Category == fee.Category);
+                // 只有正式 ID 相同才能合併；舊資料缺 lookup 時不以可能重名的文字猜測身份。
+                var existing = fee.CategoryId.HasValue
+                    ? lines.FirstOrDefault(line => line.CategoryId == fee.CategoryId)
+                    : null;
                 if (existing != null)
                 {
                     existing.Amount += fee.Amount;
@@ -141,6 +151,7 @@ namespace ChurchReport.Services
                 lines.Add(new DonationLineItemInput
                 {
                     Category = fee.Category,
+                    CategoryId = fee.CategoryId,
                     Amount = fee.Amount,
                     Others = fee.Others ?? string.Empty
                 });
@@ -166,12 +177,13 @@ namespace ChurchReport.Services
                 .ToList();
         }
 
-        private static List<string> Clean(IReadOnlyList<string> available)
+        private static List<DonationOfferingCategoryOption> Clean(
+            IReadOnlyList<DonationOfferingCategoryOption> available)
         {
-            return (available ?? Array.Empty<string>())
-                .Where(category => !string.IsNullOrWhiteSpace(category))
-                .Select(category => category.Trim())
-                .Distinct(StringComparer.Ordinal)
+            return (available ?? Array.Empty<DonationOfferingCategoryOption>())
+                .Where(category => category is { IsSelectable: true }
+                    && Guid.TryParseExact(category.Id, "D", out var id)
+                    && id != Guid.Empty)
                 .ToList();
         }
     }

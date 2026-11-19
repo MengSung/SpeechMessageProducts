@@ -354,8 +354,7 @@ namespace ChurchReport.Tools
                     ViewBag.PaymentMethod = "信用卡定期定額 (第" + ProcessStageNumber(paymentResult.OrderNo) + "期)";
 
                     // 取得奉獻類別
-                    int categoryOption = this.m_ToolUtilityClass.GetOptionSetAttribute(aDedicationBookingEntity, "new_dedication_category");
-                    string dedicationCategory = GetDedicationCategoryText(categoryOption);
+                    string dedicationCategory = DonationFeeQueryService.ConvertCategory(aDedicationBookingEntity);
                     ViewBag.DedicationCategory = dedicationCategory;
 
                     return View("~/Views/PaymentReturn/PaymentResult.cshtml");
@@ -485,7 +484,18 @@ namespace ChurchReport.Tools
                 this.m_ToolUtilityClass.SetEntityDateTimeAttribute(ref aFeeToCreated, "new_pay_date", DateTime.Now.ToLocalTime());
 
                 // 奉獻類別
-                this.m_ToolUtilityClass.SetOptionSetAttribute(aFeeToCreated, "new_category", this.m_ToolUtilityClass.GetOptionSetAttribute(ref aDedicationBookingEntity, "new_dedication_category"));
+                if (aDedicationBookingEntity.GetAttributeValue<EntityReference>("new_offeringcategoryid") is not { LogicalName: "new_offeringcategory" } offeringCategory)
+                {
+                    throw new InvalidOperationException("定期奉獻認獻預約缺少正式奉獻類別 lookup。");
+                }
+
+                aFeeToCreated["new_offeringcategoryid"] = new EntityReference(offeringCategory.LogicalName, offeringCategory.Id);
+                if (aDedicationBookingEntity.GetAttributeValue<OptionSetValue>("new_dedication_category") is not { } legacyCategory)
+                {
+                    throw new InvalidOperationException("定期奉獻認獻預約缺少必填舊奉獻類別值。");
+                }
+
+                aFeeToCreated["new_category"] = new OptionSetValue(legacyCategory.Value);
 
                 // 付款紀錄
                 String aPaymentRecords =
@@ -979,23 +989,6 @@ namespace ChurchReport.Tools
                     return 24;
                 default:
                     return 0;
-            }
-        }
-
-        /// <summary>
-        /// 取得奉獻類別文字
-        /// </summary>
-        private string GetDedicationCategoryText(int categoryOption)
-        {
-            switch (categoryOption)
-            {
-                case 100000000: return "什一奉獻";
-                case 100000001: return "感恩奉獻";
-                case 100000002: return "宣教奉獻";
-                case 100000003: return "建堂奉獻";
-                case 100000004: return "愛心奉獻";
-                case 100000005: return "其他奉獻";
-                default: return "奉獻";
             }
         }
 

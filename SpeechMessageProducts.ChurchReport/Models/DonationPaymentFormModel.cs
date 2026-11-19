@@ -6,10 +6,10 @@
  * DonationPaymentFormModel 明確表示：這是 ChurchReport 奉獻付款表單資料， 真正的銀行協定資料應該留在 SpeechMessage.Payments 的 provider 實作內。
  *
  * 主要功能與流程：
- * 本檔宣告 DonationPaymentFormModel。
- * - 確保奉獻頁面 render 時一定有可用的基本表單資料。 DonationPaymentFormModel 目前會被 DonationPaymentManager 當作長生命週期狀態重複使用， 舊流程或 CRM
- * 查詢失敗時可能把下拉選單清成 null 或空集合。 Controller 在回傳 View 前呼叫此方法，可以讓畫面至少保有可操作的奉獻類別與付款方式， 再由 CRM/LINE 初始化流程補上更完整的個人資料與選項。
- * - 將目前類別對帳回 CRM 提供的可選清單，避免不同教會的 OptionSet 造成畫面選取值失效。 只回傳清單中的原始字串，不接受瀏覽器自行捏造的類別文字作為預設值。
+ * 本檔宣告 DonationPaymentFormModel 與 DonationOfferingCategoryOption。
+ * 表單類別值為正式資料庫 Guid，名稱只供呈現；metadata 相容項目明確標為不可提交。
+ * EnsureFormDefaults 只選擇當次教會清單中排序第一個可提交類別，不以硬編碼名稱回填；CloneForLine
+ * 只把已驗證類別帶入該明細副本，原始表單與其他 request 不共享解析狀態。
  * - 判斷奉獻頁是否缺少從 CRM contact 帶出的奉獻者識別資料。 這個方法刻意只檢查「姓名」與「奉獻編號」兩個畫面上必須顯示的欄位： - 下拉選單空白可以由 EnsureFormDefaults 補安全預設值。 -
  * 姓名、奉獻編號、信用卡清單則必須回到 CRM contact 重新初始化，不能用假資料補。 Controller 透過這個判斷決定是否要用 Session 裡保存的 contact id 重新呼叫
  * DonationPaymentManager.SetDonationPaymentModel(...)。
@@ -19,6 +19,7 @@
  *
  * 使用邊界與維護：
  * 模型含巢狀集合或敏感欄位時，呼叫端須維持目前登入／操作的所有權；顯示文字不能取代正式資料庫ID。
+ * 類別清單必須由伺服器登入 contact 的 account 範圍於每次組裝時重新投影，不能沿用其他使用者的清單。
  * 修改繫結欄位、預設值或複製路徑時，須同步核對序列化、表單、快照及上傳映射，避免局部更新污染其他讀者。
  * 可沿 SpeechMessageProducts.ChurchReport/Controllers/BaseChurchController.cs、
  * SpeechMessageProducts.ChurchReport/Controllers/DedicationAuditController.cs、
@@ -30,6 +31,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using SpeechMessageProducts.GoodShepherd.Core.Offerings;
 
 namespace ChurchReport.Models
 {
@@ -46,19 +48,7 @@ namespace ChurchReport.Models
     /// </summary>
     public class DonationPaymentFormModel
     {
-        private const String DefaultCategory = "十一奉獻";
         private const String DefaultPayWay = "信用卡";
-
-        private static readonly string[] s_defaultDedicationCategories =
-        {
-            "主日奉獻",
-            "十一奉獻",
-            "感恩奉獻",
-            "建堂奉獻",
-            "宣教奉獻",
-            "愛心奉獻",
-            "特別奉獻"
-        };
 
         public DonationPaymentFormModel()
         {
@@ -66,18 +56,13 @@ namespace ChurchReport.Models
         }
 
         /// <summary>
-        /// 確保奉獻頁面 render 時一定有可用的基本表單資料。
-        /// DonationPaymentFormModel 目前會被 DonationPaymentManager 當作長生命週期狀態重複使用，
-        /// 舊流程或 CRM 查詢失敗時可能把下拉選單清成 null 或空集合。
-        /// Controller 在回傳 View 前呼叫此方法，可以讓畫面至少保有可操作的奉獻類別與付款方式，
-        /// 再由 CRM/LINE 初始化流程補上更完整的個人資料與選項。
+        /// 確保表單集合有效，並把選取類別限制在本次伺服器投影的正式資料庫 ID。
+        /// 類別清單可能來自本次已驗證 contact 的教會，但表單模型本身不是授權證明；
+        /// Create 前仍須由服務端重新讀取教會清單並驗證 ID。空清單時保留空類別，不偽造預設項。
         /// </summary>
         public void EnsureFormDefaults()
         {
-            if (DedicationCategoryList == null || DedicationCategoryList.Count == 0)
-            {
-                DedicationCategoryList = new List<String>(s_defaultDedicationCategories);
-            }
+            DedicationCategoryList ??= new List<DonationOfferingCategoryOption>();
 
             Category = ResolveCategoryAgainstList(Category, DedicationCategoryList);
 
@@ -97,24 +82,27 @@ namespace ChurchReport.Models
         }
 
         /// <summary>
-        /// 將目前類別對帳回 CRM 提供的可選清單，避免不同教會的 OptionSet 造成畫面選取值失效。
-        /// 只回傳清單中的原始字串，不接受瀏覽器自行捏造的類別文字作為預設值。
+        /// 將目前類別對帳回本次伺服器提供的選項清單，只以 Guid 比對正式資料庫 ID。
+        /// 不以顯示名稱、舊 OptionSet 標籤或呼叫端輸入推導類別身分。
         /// </summary>
-        private static String ResolveCategoryAgainstList(String category, List<String> categoryList)
+        private static String ResolveCategoryAgainstList(
+            String category,
+            List<DonationOfferingCategoryOption> categoryList)
         {
             var selected = FindCategoryInList(categoryList, category);
             if (selected != null) return selected;
-            return FindCategoryInList(categoryList, DefaultCategory)
-                ?? categoryList.FirstOrDefault(item => !String.IsNullOrWhiteSpace(item))
-                ?? DefaultCategory;
+            return categoryList.FirstOrDefault(item => item.IsSelectable)?.Id ?? String.Empty;
         }
 
-        /// <summary>在類別清單中以不分大小寫且忽略前後空白的方式尋找項目。</summary>
-        private static String FindCategoryInList(List<String> categoryList, String category)
+        /// <summary>在類別清單中依標準 D 格式 Guid 尋找正式且可提交的選項。</summary>
+        private static String FindCategoryInList(
+            List<DonationOfferingCategoryOption> categoryList,
+            String category)
         {
-            if (String.IsNullOrWhiteSpace(category)) return null;
-            return categoryList.FirstOrDefault(item => !String.IsNullOrWhiteSpace(item)
-                && String.Equals(item.Trim(), category.Trim(), StringComparison.OrdinalIgnoreCase));
+            if (!Guid.TryParseExact(category, "D", out var id) || id == Guid.Empty) return null;
+            return categoryList.FirstOrDefault(item => item.IsSelectable
+                && Guid.TryParseExact(item.Id, "D", out var optionId)
+                && optionId == id)?.Id;
         }
 
         /// <summary>
@@ -149,7 +137,10 @@ namespace ChurchReport.Models
         /// ///////////////////////////////////////////////////////////////////////////
         /// </summary>
         public int Amount { get; set; }                                 //奉獻金額
-        public String Category { get; set; }                            //奉獻類別
+        /// <summary>目前表單選取的奉獻類別正式資料庫 Guid，不是顯示名稱。</summary>
+        public String Category { get; set; }
+        /// <summary>付款流程本次驗證後的類別快照；只供內部建單使用，不作為表單輸入或跨請求狀態。</summary>
+        internal OfferingCategory? ResolvedCategory { get; set; }
         public String PayWay { get; set; }                              //付款方式
         public String DeductTotalNumber { get; set; }                   //定期定額總期數
         public String Others { get; set; }                              //其他奉獻
@@ -175,11 +166,14 @@ namespace ChurchReport.Models
             clone.Amount = line.Amount;
             clone.Others = line.Others;
             clone.Lines = new List<DonationLineItemInput>();
+            clone.ResolvedCategory = line.ResolvedCategory;
             // MemberwiseClone 對集合欄位只會複製參考；若直接沿用，任一列建單流程修改集合就會
             // 污染原始表單，甚至把一位會友的暫存資料帶到下一列或下一個請求。每個可變集合都
             // 建立新的容器，讓副本擁有自己的集合生命週期；集合元素本身是既有流程的資料快照，
             // 建單階段只讀取，不在此處註冊事件、配置 timer、開啟 stream 或保留外部資源。
-            clone.DedicationCategoryList = DedicationCategoryList?.ToList() ?? new List<String>();
+            clone.DedicationCategoryList = DedicationCategoryList?
+                .Select(item => item.Clone())
+                .ToList() ?? new List<DonationOfferingCategoryOption>();
             clone.OtherCategoryArray = OtherCategoryArray?.ToList() ?? new List<String>();
             clone.SpecialCategoryArray = SpecialCategoryArray?.ToList() ?? new List<String>();
             clone.CreditCardList = CreditCardList?.ToList() ?? new List<CreditCard>();
@@ -197,8 +191,8 @@ namespace ChurchReport.Models
         public String SelectedCreditCard { get; set; }                  //選取的信用卡
         public String SelectedContactId { get; set; }                   //從同名清單選取的 CRM Contact GUID，用於上傳時直接定位避免模糊查詢卡住
 
-        // ✅ 新增：動態奉獻類別清單（從 Dynamics 365 OptionSet 取得）
-        public List<String> DedicationCategoryList { get; set; } = new List<String>();
+        /// <summary>本次教會範圍的最小 ID／名稱選項投影；不得放入跨請求快取。</summary>
+        public List<DonationOfferingCategoryOption> DedicationCategoryList { get; set; } = new List<DonationOfferingCategoryOption>();
 
         public List<String> OtherCategoryArray { get; set; }
         public List<String> SpecialCategoryArray { get; set; }
@@ -216,5 +210,34 @@ namespace ChurchReport.Models
 
         public List<SameNameElement> SameNameList { get; set; } = new List<SameNameElement>();
 
+    }
+
+    /// <summary>奉獻表單的最小下拉選項投影，不暴露會計代碼或舊選項值。</summary>
+    public sealed class DonationOfferingCategoryOption
+    {
+        /// <summary>
+        /// 建立一個由伺服器讀取的選項投影；metadata 相容項目沒有正式 ID 且不可提交。
+        /// </summary>
+        /// <param name="id">奉獻類別正式 Guid；無正式類別的 metadata 項目使用空字串。</param>
+        /// <param name="name">伺服器來源的顯示文字。</param>
+        /// <param name="isSelectable">是否有正式 ID 並可供建立新記錄使用。</param>
+        public DonationOfferingCategoryOption(string id, string name, bool isSelectable)
+        {
+            Id = id ?? string.Empty;
+            Name = name ?? string.Empty;
+            IsSelectable = isSelectable;
+        }
+
+        /// <summary>表單送出的正式資料庫 Guid；不可提交項目為空字串。</summary>
+        public string Id { get; }
+
+        /// <summary>供畫面呈現的類別名稱，不能作為身分或授權依據。</summary>
+        public string Name { get; }
+
+        /// <summary>沒有正式 lookup ID 的 metadata 相容項目為 false。</summary>
+        public bool IsSelectable { get; }
+
+        /// <summary>建立 DTO 獨立副本，避免複製後共用可變集合元素。</summary>
+        public DonationOfferingCategoryOption Clone() => new(Id, Name, IsSelectable);
     }
 }

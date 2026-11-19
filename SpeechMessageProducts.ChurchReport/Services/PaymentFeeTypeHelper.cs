@@ -4,15 +4,12 @@
  * 目的與定位：ChurchReport 付款收費單類型判斷輔助服務 此類別只理解 ChurchReport 的 CRM 欄位與奉獻/課程分類規則，不處理任何 MyPay、永豐或台新 provider protocol。
  *
  * 主要功能與流程：
- * 本檔宣告 PaymentFeeTypeHelper、FeeType。
- * - ======================================== 判斷收費單類型 ======================================== 【判斷邏輯】 1.
- * 檢查是否有關聯課程（new_course_id）→ 課程類型 2. 檢查收費單名稱是否包含課程關鍵字 → 課程類型 3. 檢查課程名稱欄位是否有值 → 課程類型 4.
- * 檢查奉獻類別代碼範圍（100000000~100000019）→ 奉獻類型 5. 預設為奉獻類型
- * - ======================================== 取得課程名稱 ======================================== 【取得順序】 1.
- * 透過課程關聯（new_course_id）查詢課程實體的名稱 2. 使用收費單的課程名稱欄位（new_course_name） 3. 使用收費單本身的名稱（new_name） 4. 預設回傳「課程」
- * - ======================================== 取得奉獻類別名稱 ======================================== 【支援的奉獻類別】 -
- * 100000010: 主日奉獻 - 100000000: 十一奉獻 - 100000002: 感恩奉獻 - 100000006: 建堂奉獻 - 100000007: 宣教奉獻 - 100000019: 愛心奉獻 -
- * 100000008: 特別奉獻 【支援多種輸入方式】 1. 傳入 Entity：從 FormattedValues 或 OptionSetValue 取得 2. 傳入 int：直接對應類別代碼
+ * 本檔宣告 PaymentFeeTypeHelper、FeeType。奉獻名稱委派 DonationFeeQueryService，
+ * 正式 lookup 優先、舊 OptionSet 標籤相容回退，未知類別採通用文字。
+ * 類型判定先檢查課程 lookup、課程文字線索與課程名稱，保留既有付款分類行為；
+ * 奉獻顯示名稱只委派 DonationFeeQueryService，lookup 名稱優先，舊欄位僅以 Dataverse
+ * FormattedValues 相容回退，未知類別不透過整數 switch 猜測名稱。
+ * 課程名稱依關聯記錄、收費單課程名稱、收費單名稱的既有順序回退。
  * 主要操作入口包含 DetermineFeeType、GetCourseName、GetDedicationCategoryName。
  *
  * 使用邊界與維護：
@@ -163,47 +160,12 @@ namespace ChurchReport.Services
         }
 
         /// <summary>
-        /// ========================================
-        /// 取得奉獻類別名稱
-        /// ========================================
-        ///
-        /// 【支援的奉獻類別】
-        /// - 100000010: 主日奉獻
-        /// - 100000000: 十一奉獻
-        /// - 100000002: 感恩奉獻
-        /// - 100000006: 建堂奉獻
-        /// - 100000007: 宣教奉獻
-        /// - 100000019: 愛心奉獻
-        /// - 100000008: 特別奉獻
-        ///
-        /// 【支援多種輸入方式】
-        /// 1. 傳入 Entity：從 FormattedValues 或 OptionSetValue 取得
-        /// 2. 傳入 int：直接對應類別代碼
+        /// 依共用 ChurchReport 類別文字規則取得奉獻類別名稱。
         /// </summary>
         public string GetDedicationCategoryName(Entity aFeeEntity)
         {
-            try
-            {
-                // 方法 1: 優先使用 FormattedValues（最快速且最可靠）
-                if (aFeeEntity.FormattedValues.Contains("new_category"))
-                {
-                    string displayText = aFeeEntity.FormattedValues["new_category"];
-                    if (!string.IsNullOrEmpty(displayText))
-                    {
-                        _logger.LogDebug("使用 FormattedValues 取得奉獻類別: {Category}", displayText);
-                        return displayText;
-                    }
-                }
-
-                // 預設值
-                _logger.LogWarning("無法從 Entity 取得奉獻類別，使用預設值");
-                return "十一奉獻";
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "GetDedicationCategoryName(Entity) 發生錯誤");
-                return "十一奉獻";
-            }
+            ArgumentNullException.ThrowIfNull(aFeeEntity);
+            return DonationFeeQueryService.ConvertCategory(aFeeEntity);
         }
 
     }

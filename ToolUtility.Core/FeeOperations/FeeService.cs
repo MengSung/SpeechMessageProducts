@@ -186,7 +186,7 @@ namespace ToolUtilityNameSpace.FeeOperations
         private static XElement CreateDedicationFetch(string name, string id, bool dateRange)
         {
             var fields = new List<string> { "new_feeid", "new_name", "createdon", "new_pay_date", "new_fee_shoud_pay",
-                "new_fee_really_paid", "new_pay_way", "new_category", "new_others" };
+                "new_fee_really_paid", "new_pay_way", "new_category", "new_offeringcategoryid", "new_others" };
             if (dateRange) fields.Add("new_paid_period");
             var fetch = CreateFetch("new_fee", fields, "new_name", false);
             fetch.Element("entity")!.Add(new XElement("filter", new XAttribute("type", "and"),

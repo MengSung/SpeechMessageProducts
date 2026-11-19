@@ -64,12 +64,31 @@ namespace ChurchReport.Services
             foreach (var line in lines)
             {
                 if (line.Amount < 0) return "奉獻金額不可為負數";
-                if (line.Category == "節期獻金" && string.IsNullOrWhiteSpace(line.Others)) return "錯誤:沒有選擇節期!";
-                if (line.Category == "特別奉獻" && string.IsNullOrWhiteSpace(line.Others)) return "錯誤:沒有選擇特別奉獻的項目!";
             }
             if (lines.All(x => x.Amount <= 0)) return "未輸入奉獻金額";
             return string.Empty;
 
+        }
+
+        /// <summary>
+        /// 在伺服器已解析正式類別後，依資料庫名稱檢查類別專屬的補充欄位。
+        /// </summary>
+        /// <param name="lines">本次付款操作已完成教會範圍驗證的明細。</param>
+        /// <returns>空字串表示通過；非空為應回傳的業務拒絕訊息。</returns>
+        /// <remarks>不得使用表單自行提交的名稱決定節期或特別奉獻規則。</remarks>
+        internal static string ValidateResolvedCategoryDetails(
+            System.Collections.Generic.IReadOnlyList<DonationLineItemInput> lines)
+        {
+            foreach (var line in lines)
+            {
+                var name = line.ResolvedCategory?.Name;
+                if (name == "節期獻金" && string.IsNullOrWhiteSpace(line.Others))
+                    return "錯誤:沒有選擇節期!";
+                if (name == "特別奉獻" && string.IsNullOrWhiteSpace(line.Others))
+                    return "錯誤:沒有選擇特別奉獻的項目!";
+            }
+
+            return string.Empty;
         }
 
         /// <summary>

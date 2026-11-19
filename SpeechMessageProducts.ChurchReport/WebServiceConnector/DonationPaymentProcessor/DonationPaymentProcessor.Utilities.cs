@@ -7,6 +7,7 @@
  * 本檔宣告 DonationPaymentProcessor。
  * - P6-03 通知改由 ChurchReportLineNotifier 借用共用流程；原本文、來源代號與等待方式不變，LINE／CRM owner 不轉移。
  * - 財務中文大寫數字字元表。唯讀靜態資料不含 request 或使用者狀態， 可安全由所有 processor 共用，避免每次金額轉換重複配置陣列。
+ * - 感謝 LINE 文案以本次已驗證的資料庫類別名稱呈現；正式 Guid 僅用於表單／資料查找，不作為使用者標籤。
  * - 根據 DonationPaymentFormModel 取得連絡人
  * 主要操作入口包含 GetContact、GetContactByDedicationNumber、GetContactByNameAndMobile、GetContactByNameOnly、
  * SendGratitudeLineMessage、BuildGratitudeMessage、MoneyToChinese、TransferToDeductTotalNum。
@@ -23,6 +24,7 @@
  * P6-07公開邊界：DonationPaymentProcessor改為產品內部宣告；外部輸出與既有資源清理契約不變。
  */
 using ChurchReport.Models;
+using ChurchReport.Services;
 using Microsoft.Xrm.Sdk;
 using System;
 using System.Globalization;
@@ -183,7 +185,7 @@ namespace ChurchReport.WebServiceConnector
         {
             return $"敬收 {fullName} 奉獻{Environment.NewLine}" +
                    $"日期 : {DonationPaymentFormModel.DedicationDate.ToShortDateString()}{Environment.NewLine}" +
-                   $"類別 : {DonationPaymentFormModel.Category}  {DonationPaymentFormModel.Others}{Environment.NewLine}" +
+                   $"類別 : {DonationFeeGroupText.DisplayCategoryName(DonationPaymentFormModel.Category, DonationPaymentFormModel.ResolvedCategory)}  {DonationPaymentFormModel.Others}{Environment.NewLine}" +
                    $"付款方式: {DonationPaymentFormModel.PayWay}{Environment.NewLine}" +
                    $"金額 : {DonationPaymentFormModel.Amount}";
         }

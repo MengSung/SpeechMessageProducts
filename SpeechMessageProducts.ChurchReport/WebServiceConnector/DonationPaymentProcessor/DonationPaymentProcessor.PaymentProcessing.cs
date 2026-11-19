@@ -6,6 +6,8 @@
  *
  * 主要功能與流程：
  * 本檔宣告 DonationPaymentProcessor。
+ * - 金流與 ATM 文案由本次伺服器解析後的類別名稱產生，不將表單 Guid 當顯示文字；資料庫欄位仍使用解析出的正式 ID。
+ *   獨立 ATM 入口重讀登入教會清單並核對既有收費單 lookup，避免過期模型解析值被用來發送付款指示。
  * - P6-03 通知改由 ChurchReportLineNotifier 借用共用流程；原本文、來源代號與等待方式不變，LINE／CRM owner 不轉移。
  * - 把同一次付款建立的所有收費單 Id 編成永豐 Param1（格式見 DonationFeeIdList）。 付款完成時 callback 依這份清單逐張把收費單標記已付款，實收金額＝各自的應收金額。
  * 主要操作入口包含 EncodeProviderFeeIds、ProcessCreditCardPayment、ProcessRecurringPayment、ProcessMobilePayment、
@@ -116,7 +118,7 @@ namespace ChurchReport.WebServiceConnector
 
             var createdCardOrder = await CreOrderCard(
                 DonationPaymentFormModel.Amount,
-                $"{DonationPaymentFormModel.Category}-{DonationPaymentFormModel.FullName}",
+                $"{DonationFeeGroupText.DisplayCategoryName(DonationPaymentFormModel.Category, DonationPaymentFormModel.ResolvedCategory)}-{DonationPaymentFormModel.FullName}",
                 orderDate,
                 dedicationBookingId.ToString(),
                 "C",
@@ -250,7 +252,22 @@ namespace ChurchReport.WebServiceConnector
             string LineId,
             Entity LineLoginContact)
         {
-            var line = new DonationLineItemInput { Category = DonationPaymentFormModel.Category, Amount = DonationPaymentFormModel.Amount, Others = DonationPaymentFormModel.Others };
+            var resolvedCategory =
+                ResolveOfferingCategory(LineLoginContact, DonationPaymentFormModel.Category);
+            if (aFeeToUpdate.GetAttributeValue<EntityReference>("new_offeringcategoryid")?.Id
+                != resolvedCategory.Id)
+            {
+                throw new InvalidOperationException("ATM 付款收費單類別與本次已驗證的教會類別不一致。");
+            }
+
+            var line = new DonationLineItemInput
+            {
+                Category = DonationPaymentFormModel.Category,
+                Amount = DonationPaymentFormModel.Amount,
+                Others = DonationPaymentFormModel.Others,
+                ResolvedCategory = resolvedCategory
+            };
+            DonationPaymentFormModel.ResolvedCategory = resolvedCategory;
             return await ProcessAtmGroup(new List<(Guid, Entity, DonationLineItemInput)> { (aCreatedFeeId, aFeeToUpdate, line) }, new[] { line }, DonationPaymentFormModel, OrderId, LineId, LineLoginContact);
         }
 
@@ -321,7 +338,7 @@ namespace ChurchReport.WebServiceConnector
 
             var lineMessage =
                 $"姓名 : {fullName}{Environment.NewLine}" +
-                $"名稱 : {model.Category}{Environment.NewLine}" +
+                $"名稱 : {DonationFeeGroupText.DisplayCategoryName(model.Category, model.ResolvedCategory)}{Environment.NewLine}" +
                 $"金額 : {model.Amount}元{Environment.NewLine}" +
                 $"付款到期日: {expireDate}{Environment.NewLine}" +
                 $"*** 請依照訊息付款 ***{Environment.NewLine}" +

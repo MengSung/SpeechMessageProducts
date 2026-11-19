@@ -6,6 +6,7 @@
  * 主要功能與流程：
  * 本檔宣告 FeeQueryContractTests。
  * - 鎖定三個舊來源補回方法的完整條件及欄位；注入同名不同ID兩筆資料， 以完整golden及兩筆ID斷言證明沒有按名稱合併或丟失。
+ * - 奉獻查詢必須投影正式類別 lookup，讓上層以類別資料庫 ID 保留同名類別；FetchXML 欄位由合成SDK替身直接檢查。
  * - 課程ID是查詢界線；注入空白、空GUID及XML注入字串均須在I/O前拒絕， 不可將XML編碼誤當成授權或合法識別碼驗證。
  * - 舊API保留但未使用的課程名稱可含XML字元，不能被加入查詢或拿來當識別／權限； 完整golden仍相等，證明兩個方法只按伺服器提供的課程ID查詢。
  * - 訂單號是文字而非GUID；含所有XML特殊字元仍須只產生原有兩個OR條件， 解碼後值逐字相等，不能新增節點或讓卡／ATM任一分支遺失。
@@ -356,6 +357,26 @@ namespace ToolUtility.Tests.FeeOperations
             Assert.Throws<ArgumentException>(() => sut.RetrieveDedicationFeeByDateRange("Synthetic Contact", ScopeId,
                 new DateTime(2027, 3, 4), new DateTime(2027, 1, 2)));
             client.VerifyNoOtherCalls();
+        }
+
+        /// <summary>
+        /// 奉獻查詢必須投影正式類別 lookup，才能以資料庫 ID 維持同名類別的獨立身份；
+        /// 合成 SDK callback 直接檢查 FetchXML 欄位，並由測試持有及釋放 mock。
+        /// </summary>
+        [Fact]
+        public void DedicationQuery_ProjectsOfferingCategoryLookup()
+        {
+            var client = Client(Rows(), xml =>
+            {
+                var fields = XDocument.Parse(xml).Root!.Element("entity")!
+                    .Elements("attribute")
+                    .Select(attribute => (string?)attribute.Attribute("name"));
+
+                Assert.Contains("new_offeringcategoryid", fields);
+            });
+            var sut = new FeeService(client.Object);
+
+            Assert.Equal(2, sut.RetrieveDedicationFee("Synthetic Contact", ScopeId).Entities.Count);
         }
 
         /// <summary>

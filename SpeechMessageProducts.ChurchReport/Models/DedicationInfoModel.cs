@@ -37,7 +37,11 @@ namespace ChurchReport.Models
         public String Category { get; set; }            //奉獻類別
         public String Others { get; set; }              //其他奉獻
 
-        // ✅ 新增：動態奉獻類別清單（從 Dynamics 365 OptionSet 取得）
-        public List<String> DedicationCategoryList { get; set; } = new List<String>();
+        /// <summary>
+        /// 舊人工登錄頁面的正式奉獻類別選項；Id 是資料庫身分、Name 是顯示文字，
+        /// 不代表呼叫端可自行指定教會或略過儲存時的伺服器驗證。
+        /// </summary>
+        public List<DonationOfferingCategoryOption> DedicationCategoryList { get; set; } =
+            new List<DonationOfferingCategoryOption>();
     }
 }

@@ -9,6 +9,8 @@
  * - 嘗試以 LINE user id 查詢 CRM contact。
  * - 取得指定 contact 的奉獻收費單 AJAX rows。 這個方法把 contactId 解析、CRM 讀取、model 刷新與 rows 投影包成單一入口， 讓 DonationPaymentManager
  * 不需要再知道這些步驟的順序。
+ * - LINE 刷新表單時依伺服器 contact 的 account 重載奉獻類別選項，並以第一個可提交類別的正式 Guid 作為預設；
+ *   只有 OptionSet metadata 的舊教會保留不可提交顯示項，絕不以固定名稱偽造 lookup 身分。
  * - 清除查無 contact 時的所有使用者識別與奉獻清單欄位。
  * 主要操作入口包含 FillFromLineId、TryResolveLineContact、FillFromContact、GetFeesByContactId、FillIdentity、
  * ClearModelForMissingContact。
@@ -21,6 +23,7 @@
  */
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using ChurchReport.Models;
 using Microsoft.Xrm.Sdk;
 using ToolUtilityNameSpace;
@@ -72,7 +75,7 @@ namespace ChurchReport.Services
 
             FillIdentity(model, lineLoginContact, overwriteWhenClickTypeExists: true);
             model.NationId = _utility.GetEntityStringAttribute(ref lineLoginContact, "new_personal_id");
-            model.Category = "十一奉獻";
+            SetOfferingCategoryOptions(model, lineLoginContact);
             model.PayWay = "信用卡";
             model.DedicationDate = DateTime.Now;
             model.DedicateLocation = "好牧人";
@@ -113,8 +116,22 @@ namespace ChurchReport.Services
                 lineLoginContact,
                 overwriteWhenClickTypeExists: model.ClickType == null);
 
+            SetOfferingCategoryOptions(model, lineLoginContact);
             _feeQueryService.FillFeeList(model, lineLoginContact);
             return model;
+        }
+
+        /// <summary>
+        /// 以目前已驗證 contact 的教會重新載入類別，並選取排序第一個可提交的正式 ID。
+        /// metadata fallback 僅可顯示；缺少正式 ID 時保持空值，不以舊名稱偽造 lookup。
+        /// </summary>
+        private void SetOfferingCategoryOptions(DonationPaymentFormModel model, Entity loginContact)
+        {
+            model.DedicationCategoryList = DonationOfferingCategoryResolver.ReadOptionsForContact(
+                _utility.m_Crm2011OrganizationService,
+                loginContact);
+            model.Category = model.DedicationCategoryList.FirstOrDefault(option => option.IsSelectable)?.Id
+                ?? string.Empty;
         }
 
         /// <summary>

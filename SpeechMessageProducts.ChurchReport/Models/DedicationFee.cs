@@ -7,6 +7,7 @@
  * 本檔宣告 DedicationFee。
  * 資料／選項欄位包含 DedicationFee、FullName、MobilePhone、DedicationDate、PayDate、Amount、PayWay、Category、Others、PaidPeriod，名稱、
  * 型別與序列化規約須與消費端保持一致。
+ * CategoryId 是資料庫類別 lookup 的穩定身份；Category 為 lookup 名稱／舊標籤的呈現投影，不能代替身份。
  *
  * 使用邊界與維護：
  * 模型含巢狀集合或敏感欄位時，呼叫端須維持目前登入／操作的所有權；顯示文字不能取代正式資料庫ID。
@@ -36,6 +37,8 @@ namespace ChurchReport.Models {
         public DateTime PayDate { get; set; }               // 繳費日期
         public int Amount { get; set; }                     // 繳費金額
         public String PayWay { get; set; }                  // 付款方式
+        /// <summary>奉獻類別正式資料庫 ID；未知或舊資料未回填時為空，不以名稱補造。</summary>
+        internal Guid? CategoryId { get; set; }
         public String Category { get; set; }                // 奉獻類別
         public String Others { get; set; }                  // 其他奉獻
         public String PaidPeriod { get; set; }              // 定期定額期數

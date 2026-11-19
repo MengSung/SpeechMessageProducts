@@ -142,19 +142,31 @@ public sealed class DonationPaymentServiceExtractionTests
 
     /// <summary>
     /// 保護節期奉獻必填節期選項。
-    /// 注入有金額但未選節期的模型，斷言回傳既有驗證訊息而非接受表單。
+    /// 注入伺服器已依正式 ID 解析出的節期類別及空白補充資料，斷言回傳既有驗證訊息；
+    /// 表單自行提交的名稱不參與此判斷，避免偽造名稱繞過或觸發業務規則。
     /// </summary>
     [Fact]
     public void ValidateDonationForm_should_require_festival_selection_for_festival_dedication()
     {
-        var result = DonationPaymentSubmissionService.ValidateDonationForm(new DonationPaymentFormModel
+        var category = new SpeechMessageProducts.GoodShepherd.Core.Offerings.OfferingCategory(
+            Guid.Parse("11111111-1111-1111-1111-111111111111"),
+            Guid.Parse("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"),
+            "festival",
+            "節期獻金",
+            1,
+            null,
+            100000001,
+            true);
+        var line = new DonationLineItemInput
         {
-            Category = "節期獻金",
+            Category = category.Id.ToString("D"),
             Amount = 100,
             Others = ""
-        });
+        };
+        line.ResolvedCategory = category;
 
-        result.Should().Be("錯誤:沒有選擇節期!");
+        DonationPaymentSubmissionService.ValidateResolvedCategoryDetails(new[] { line })
+            .Should().Be("錯誤:沒有選擇節期!");
     }
 
     /// <summary>

@@ -5,7 +5,8 @@
  *
  * 主要功能與流程：
  * 本檔宣告 DonationFeeGroupText。
- * - 產生 ATM 顯示與 LINE 共用文字。標籤名稱刻意維持既有契約， 以確保 DonationPaymentView 的 parser 與「複製虛擬帳號」功能不被破壞。
+ * - 產生 ATM 顯示、LINE 與金流商品文字。已解析類別一律用伺服器名稱顯示，表單 Guid 不進入使用者文案；
+ *   舊純文字呼叫端維持原輸出，確保相容流程與 DonationPaymentView 的 parser 不被破壞。
  * 主要操作入口包含 Total、CategorySummary、ProviderProductName、ProviderItems。
  *
  * 使用邊界與維護：
@@ -20,6 +21,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using ChurchReport.Models;
+using SpeechMessageProducts.GoodShepherd.Core.Offerings;
 using SpeechMessage.Payments.Models;
 
 namespace ChurchReport.Services
@@ -35,14 +37,16 @@ namespace ChurchReport.Services
         public static string CategorySummary(IReadOnlyList<DonationLineItemInput> lines)
         {
             if (lines == null || lines.Count == 0) return string.Empty;
-            if (lines.Count == 1) return lines[0]?.Category ?? string.Empty;
-            return string.Join("、", lines.Where(x => x != null).Select(x => $"{x.Category} {x.Amount:N0}元"));
+            if (lines.Count == 1) return DisplayCategoryName(lines[0]?.Category, lines[0]?.ResolvedCategory);
+            return string.Join("、", lines.Where(x => x != null)
+                .Select(x => $"{DisplayCategoryName(x.Category, x.ResolvedCategory)} {x.Amount:N0}元"));
         }
 
         public static string ProviderProductName(IReadOnlyList<DonationLineItemInput> lines, string fullName)
         {
             var names = (lines ?? Array.Empty<DonationLineItemInput>()).Where(x => x != null)
-                .Select(x => x.Category).Where(x => !string.IsNullOrWhiteSpace(x)).ToList();
+                .Select(x => DisplayCategoryName(x.Category, x.ResolvedCategory))
+                .Where(x => !string.IsNullOrWhiteSpace(x)).ToList();
             var full = $"{(names.Count == 0 ? "奉獻" : string.Join("+", names))}-{fullName}";
             if (full.Length <= ProviderProductNameMaxLength) return full;
             var compact = $"{(names.FirstOrDefault() ?? "奉獻")}等{names.Count}項-{fullName}";
@@ -52,8 +56,27 @@ namespace ChurchReport.Services
         public static IReadOnlyList<PaymentLineItem> ProviderItems(IReadOnlyList<DonationLineItemInput> lines) =>
             (lines ?? Array.Empty<DonationLineItemInput>()).Where(x => x != null).Select(x => new PaymentLineItem
             {
-                Name = x.Category ?? string.Empty, Quantity = 1, UnitPrice = x.Amount, Currency = "TWD"
+                Name = DisplayCategoryName(x.Category, x.ResolvedCategory), Quantity = 1, UnitPrice = x.Amount, Currency = "TWD"
             }).ToList();
+
+        /// <summary>
+        /// 將本次伺服器解析出的類別名稱用於外部文案；未解析的舊純文字呼叫端保持原值，
+        /// 但格式正確的 Guid 不得洩漏為奉獻者可見標籤。
+        /// </summary>
+        /// <param name="categoryValue">表單綁定值，正式流程中為資料庫 Guid。</param>
+        /// <param name="resolvedCategory">本次授權教會清單解析出的類別，未解析時為 null。</param>
+        /// <returns>資料庫類別名稱、相容的舊文字，或無法安全顯示時的空字串。</returns>
+        internal static string DisplayCategoryName(string categoryValue, OfferingCategory resolvedCategory)
+        {
+            if (resolvedCategory != null)
+            {
+                return resolvedCategory.Name ?? string.Empty;
+            }
+
+            return Guid.TryParseExact(categoryValue, "D", out _)
+                ? string.Empty
+                : categoryValue ?? string.Empty;
+        }
 
         /// <summary>
         /// 產生 ATM 顯示與 LINE 共用文字。標籤名稱刻意維持既有契約，

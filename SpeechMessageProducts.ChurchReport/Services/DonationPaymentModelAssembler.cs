@@ -9,6 +9,7 @@
  * 本檔宣告 DonationPaymentModelAssembler。
  * - 建立奉獻付款頁面所需的完整表單模型。 這裡沿用原本 DonationPaymentManager.SetDonationPaymentModel 的填值順序，避免頁面初始狀態改變。 最後一定呼叫
  * EnsureFormDefaults，保護 CRM OptionSet 或 task 設定查詢失敗時的畫面基本可用性。
+ * - 類別清單由 DonationOfferingCategoryResolver 依登入 contact 的 account 讀取；空正式清單時只顯示不可提交的 metadata 標籤。
  * 主要操作入口包含 Build、FillDonorIdentity、FillOtherCategories、FillSpecialCategories、ReadTaskDescriptionLines、
  * FillCreditCards、FillDedicationBookings、IsAccountingWorker；其餘入口見下方成員契約。
  *
@@ -23,7 +24,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using ChurchReport.Models;
-using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Xrm.Sdk;
 using ToolUtilityNameSpace;
 
@@ -76,7 +76,7 @@ namespace ChurchReport.Services
             model.QueryStartDate = new DateTime(DateTime.Now.Year, 1, 1);
             model.QueryEndDate = DateTime.Now;
             model.IsAOfficeWorker = IsAccountingWorker(contact);
-            model.DedicationCategoryList = LoadDedicationCategoryList();
+            model.DedicationCategoryList = LoadDedicationCategoryList(contact);
             model.EnsureFormDefaults();
 
             return model;
@@ -91,7 +91,7 @@ namespace ChurchReport.Services
                 ? "願意上傳國稅局"
                 : "不願意上傳國稅局";
 
-            model.Category = "十一奉獻";
+            model.Category = string.Empty;
             model.PayWay = "信用卡";
             model.DedicateLocation = "好牧人";
         }
@@ -167,43 +167,11 @@ namespace ChurchReport.Services
             return !string.IsNullOrEmpty(jobTitle) && jobTitle.Contains("會計");
         }
 
-        private List<string> LoadDedicationCategoryList()
+        private List<DonationOfferingCategoryOption> LoadDedicationCategoryList(Entity loginContact)
         {
-            try
-            {
-                // 這個 metadata cache 只服務本次模型組裝，不能讓每次 LINE 登入都遺留一個
-                // 永遠可達的 MemoryCache。using 讓 cache 及其 eviction 資源在查詢完成後立即釋放；
-                // 不把任何 contact、token 或 scoped service 放進程序級快取。
-                using var metadataCache = new MemoryCache(new MemoryCacheOptions());
-                var optionSetService = new OptionSetMetadataService(
-                    _utility.m_Crm2011OrganizationService,
-                    null,
-                    metadataCache);
-
-                var categoryMapping = optionSetService.GetOptionSetMapping("new_fee", "new_category");
-                var categoryList = categoryMapping.Keys.ToList();
-
-                System.Diagnostics.Debug.WriteLine(
-                    $"[DonationPaymentModelAssembler] 成功取得 {categoryList.Count} 個奉獻類別");
-
-                return categoryList;
-            }
-            catch (Exception ex)
-            {
-                System.Diagnostics.Debug.WriteLine(
-                    $"[DonationPaymentModelAssembler] 動態取得奉獻類別失敗，使用備用清單: {ex.Message}");
-
-                return new List<string>
-                {
-                    "主日奉獻",
-                    "十一奉獻",
-                    "感恩奉獻",
-                    "建堂奉獻",
-                    "宣教奉獻",
-                    "愛心奉獻",
-                    "特別奉獻"
-                };
-            }
+            return DonationOfferingCategoryResolver.ReadOptionsForContact(
+                _utility.m_Crm2011OrganizationService,
+                loginContact);
         }
     }
 }

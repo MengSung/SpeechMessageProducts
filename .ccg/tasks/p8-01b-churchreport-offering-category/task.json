@@ -1,0 +1,12 @@
+{
+  "id": "p8-01b-churchreport-offering-category",
+  "title": "P8-01b ChurchReport 奉獻類別接線",
+  "status": "in_progress",
+  "complexity": "M",
+  "risk": "high",
+  "domain": "backend",
+  "currentPhase": "implementation",
+  "nextAction": "以指定離線測試覆蓋類別 ID 讀寫、批次預檢與訊息顯示路徑",
+  "createdAt": "2026-11-20T00:00:00Z",
+  "branch": "1.0.0.11.Integration.P8.Worktree"
+}

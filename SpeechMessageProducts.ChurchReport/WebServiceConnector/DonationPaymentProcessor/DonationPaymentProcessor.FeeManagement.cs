@@ -7,7 +7,11 @@
  * 主要功能與流程：
  * 本檔宣告 DonationPaymentProcessor。
  * - P6-03 通知改由 ChurchReportLineNotifier 借用共用流程；原本文、來源代號與等待方式不變，LINE／CRM owner 不轉移。
- * - 依明細逐張建立收費單；所有收費單 Id 會一起放進金流 Param1（第一張是 primary）。
+ * - 依明細逐張建立收費單；在任何 Create 前先由登入 contact 的教會清單驗證全部奉獻類別
+ *   Guid、啟用狀態與必填舊選項值，再建立收費單；資料庫寫入使用正式 ID，LINE、收據及金流文案使用解析後名稱。
+ *   批次流程將本次完整驗證的不可變類別值傳入私有建單核心，避免逐筆重讀 CRM；公開單筆入口重新解析，
+ *   不信任表單或 Session 可能殘留的 ResolvedCategory。KeyIn 以登入同工決定教會範圍，受款 contact
+ *   必須屬於同教會；兩個 contact 都只在當次請求存活，不跨操作快取。
  * - 將同一金流訂單資訊寫入群組內每張收費單，確保 callback 可依鍵找齊。
  * - 鍵入奉獻專用的會友查詢。 同一奉獻編號可能掛在大量會友上，原本整批撈回所有欄位再在記憶體比對姓名， 曾造成上傳卡住近百秒；改為奉獻編號＋姓名直接在 CRM 端雙條件過濾， 同編號不同姓名也能即時找到正確會友。
  * - 解析手動輸入奉獻通知要使用的 LINE user id。 這個 helper 故意和 ATM 建單通知的解析規則保持一致，避免同一位奉獻者在 「線上 ATM 建單」可收到通知，但「後台手動輸入 ATM 奉獻」收不到通知。
@@ -64,6 +68,14 @@ namespace ChurchReport.WebServiceConnector
                     return "未輸入奉獻金額";
                 }
 
+                // 一次讀取伺服器所屬教會清單並完整驗證，確保第二列無效時第一列也尚未 Create。
+                ResolveOfferingCategories(LineLoginContact, lines);
+                var categoryValidation = DonationPaymentSubmissionService.ValidateResolvedCategoryDetails(lines);
+                if (!string.IsNullOrWhiteSpace(categoryValidation))
+                {
+                    return categoryValidation;
+                }
+
                 // 根據付款方式路由到對應處理方法
                 return DonationPaymentFormModel.PayWay switch
                 {
@@ -99,7 +111,9 @@ namespace ChurchReport.WebServiceConnector
             {
                 foreach (var line in lines)
                 {
-                    var feeId = CreateFee(contact, model.CloneForLine(line), false);
+                    var category = line.ResolvedCategory
+                        ?? throw new InvalidOperationException("建立收費單前必須先完成奉獻類別驗證。");
+                    var feeId = CreateFee(contact, model.CloneForLine(line), false, category);
                     created.Add((feeId, ToolUtility.RetrieveEntity("new_fee", feeId), line));
                 }
 
@@ -148,8 +162,31 @@ namespace ChurchReport.WebServiceConnector
         /// </summary>
         public Guid CreateFee(Entity aContact, DonationPaymentFormModel DonationPaymentFormModel, bool KeyinMode)
         {
+            var loginContact = m_LoginContact
+                ?? throw new InvalidOperationException("建立收費單前必須提供本次已驗證的登入 contact。");
+            DonationOfferingCategoryResolver.ValidateKeyInDonor(loginContact, aContact);
+            var category = ResolveOfferingCategory(loginContact, DonationPaymentFormModel.Category);
+            return CreateFee(aContact, DonationPaymentFormModel, KeyinMode, category);
+        }
+
+        /// <summary>
+        /// 使用本次付款操作已驗證的不可變類別值建立收費單，避免每個明細重讀 CRM。
+        /// </summary>
+        /// <param name="aContact">已確認與登入教會同範圍的受款 contact。</param>
+        /// <param name="DonationPaymentFormModel">本次明細副本；其類別欄位會覆寫為新解析結果。</param>
+        /// <param name="KeyinMode">是否沿用人工輸入建單的既有欄位規則。</param>
+        /// <param name="category">本次操作從授權教會清單整批解析得到的類別。</param>
+        /// <returns>CRM 建立收費單後回傳的正式記錄 ID。</returns>
+        private Guid CreateFee(
+            Entity aContact,
+            DonationPaymentFormModel DonationPaymentFormModel,
+            bool KeyinMode,
+            SpeechMessageProducts.GoodShepherd.Core.Offerings.OfferingCategory category)
+        {
             try
             {
+                DonationPaymentFormModel.ResolvedCategory = category
+                    ?? throw new InvalidOperationException("建立收費單前必須先驗證奉獻類別。");
                 var feeEntity = new Entity("new_fee");
 
                 // 設定收費單參數
@@ -294,8 +331,15 @@ namespace ChurchReport.WebServiceConnector
                     return "錯誤:找不到會友!";
                 }
 
+                var loginContact = m_LoginContact
+                    ?? throw new InvalidOperationException("人工輸入奉獻前必須提供本次已驗證的登入同工。");
+                DonationOfferingCategoryResolver.ValidateKeyInDonor(loginContact, contact);
+                var category =
+                    ResolveOfferingCategory(loginContact, DonationPaymentFormModel.Category);
+                DonationPaymentFormModel.ResolvedCategory = category;
+
                 var swCreateFee = System.Diagnostics.Stopwatch.StartNew();
-                var feeId = CreateFee(contact, DonationPaymentFormModel, true);
+                var feeId = CreateFee(contact, DonationPaymentFormModel, true, category);
                 swCreateFee.Stop();
                 System.Diagnostics.Trace.WriteLine($"[PERF-DEDICATION] CreateFee elapsed = {swCreateFee.ElapsedMilliseconds} ms");
 
@@ -520,7 +564,7 @@ namespace ChurchReport.WebServiceConnector
                          $"✨ 感謝您的奉獻！\n\n" +
                          $"📅 日期：{donationPaymentFormModel.DedicationDate:yyyy/MM/dd}\n" +
                          $"👤 姓名：{donationPaymentFormModel.FullName}\n" +
-                         $"🏷️ 類別：{donationPaymentFormModel.Category}\n";
+                         $"🏷️ 類別：{DonationFeeGroupText.DisplayCategoryName(donationPaymentFormModel.Category, donationPaymentFormModel.ResolvedCategory)}\n";
 
             // 如果有其他類別說明
             if (!string.IsNullOrEmpty(donationPaymentFormModel.Others))
@@ -622,8 +666,9 @@ namespace ChurchReport.WebServiceConnector
         /// </summary>
         private void SetFeeCategoryInfo(ref Entity aFeeToCreated, DonationPaymentFormModel DonationPaymentFormModel)
         {
-            // 奉獻類別
-            SetFeePayCategory(DonationPaymentFormModel.Category, ref aFeeToCreated);
+            var category = DonationPaymentFormModel.ResolvedCategory
+                ?? throw new InvalidOperationException("建立收費單前必須先驗證奉獻類別。");
+            SetFeePayCategory(category, ref aFeeToCreated);
 
             // 奉獻其他類別
             if (DonationPaymentFormModel.Others != "" && DonationPaymentFormModel.Others != null)
@@ -632,7 +677,8 @@ namespace ChurchReport.WebServiceConnector
             }
 
             // 收入類別
-            SetIncomeCategory(DonationPaymentFormModel.Category, ref aFeeToCreated);
+            SetIncomeCategory(category.Name, ref aFeeToCreated);
+            SetAccountingCode(category, ref aFeeToCreated);
         }
 
         /// <summary>
@@ -688,7 +734,7 @@ namespace ChurchReport.WebServiceConnector
                    $"奉獻編號: {ToolUtility.GetEntityStringAttribute(ref aContact, "pager")}<br/>" +
                    $"身分證字號: {ToolUtility.GetEntityStringAttribute(ref aContact, "new_personal_id")}<br/>" +
                    $"電話    : {DonationPaymentFormModel.Mobile}<br/>" +
-                   $"類別    : {DonationPaymentFormModel.Category}<br/>" +
+                   $"類別    : {DonationFeeGroupText.DisplayCategoryName(DonationPaymentFormModel.Category, DonationPaymentFormModel.ResolvedCategory)}<br/>" +
                    $"奉獻地點: {DonationPaymentFormModel.DedicateLocation}<br/>" +
                    $"付款方式: {DonationPaymentFormModel.PayWay}<br/>" +
                    $"金額    : {DonationPaymentFormModel.Amount}<br/>" +
