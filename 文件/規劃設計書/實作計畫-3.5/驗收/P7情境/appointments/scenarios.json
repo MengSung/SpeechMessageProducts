@@ -10,28 +10,7 @@
         "culture": "zh-TW"
       },
       "seed": [
-        {
-          "alias": "record",
-          "entity": "appointment",
-          "fields": {
-            "subject": "SMV-TEST-appointment",
-            "scheduledstart": "2026-11-15T04:00:00Z",
-            "scheduledend": "2026-11-15T05:00:00Z",
-            "new_signing_contact": {
-              "ref": "signer",
-              "entity": "contact",
-              "name": "下一位簽核者"
-            },
-            "new_applier_appointment": {
-              "ref": "applicant",
-              "entity": "contact"
-            },
-            "new_signing_content": "不額外推播",
-            "new_meeting_kind": {
-              "option": 4
-            }
-          }
-        },
+        { "alias": "church-a", "entity": "account", "fields": {} },
         {
           "alias": "applicant",
           "entity": "contact",
@@ -57,15 +36,32 @@
           }
         },
         {
-          "alias": "church-a",
-          "entity": "account",
-          "fields": {}
-        },
-        {
           "alias": "channel",
           "entity": "new_linechannel",
           "fields": {
             "new_name": "SMV-TEST-Appointment channel"
+          }
+        },
+        {
+          "alias": "record",
+          "entity": "appointment",
+          "fields": {
+            "subject": "SMV-TEST-appointment",
+            "scheduledstart": "2026-11-15T04:00:00Z",
+            "scheduledend": "2026-11-15T05:00:00Z",
+            "new_signing_contact": {
+              "ref": "signer",
+              "entity": "contact",
+              "name": "下一位簽核者"
+            },
+            "new_applier_appointment": {
+              "ref": "applicant",
+              "entity": "contact"
+            },
+            "new_signing_content": "不額外推播",
+            "new_meeting_kind": {
+              "option": 4
+            }
           }
         },
         {

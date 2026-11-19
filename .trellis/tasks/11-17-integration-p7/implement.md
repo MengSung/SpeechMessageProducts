@@ -14,7 +14,7 @@
 - [x] P7-01a
 - [x] P7-01b
 - [x] P7-01c
-- [x] P7-02a（21個既有提交經使用者核定結案，266b6e27完整guard通過；唯一收尾提交後guard／推送）
+- [x] P7-02a（21個既有提交經使用者核定結案；`4f221bda`含唯一收尾紀錄修補及完整guard修正，已推送且遠端SHA一致）
 - [ ] P7-02b
 - [ ] 階段審查與 §6A 收尾
 
@@ -105,4 +105,14 @@ D34 已實測通過；待辦 0、追蹤原值 1；22 新步驟全部停用、舊
 
 2026-11-19 09:11 Asia/Taipei (UTC+08:00)：使用者核定的範圍縮減（2026-11-19）。影響07A §5 R8、R5a重演、附錄乙、手冊正式組織章節：R8僅以本次R5b switch-log rollback一次及verify off=0，不與R1 export／export-legacy或流程定義逐位元組比對；R5a不重演，R5b只重新切換一次供R6；不新增或擴充正式組織確認關卡、正式組織手冊章節、附錄乙核定書範例。既有ProductionGuard、--production、stdin組織名確認及rollback程式保持不變；保留P7_組織切換手冊.md與進度契約字串；不改07A。全程只goodshepherdback，不啟用舊程式、不啟動階段8。每模組90分鐘／最多2次實機；準備／環境失敗不得dormant，合法候選及pass證據均R8回復後才登錄。
 
+2026-11-19 11:56 Asia/Taipei (UTC+08:00)：P7-02b最新狀態：ClaudeOnly階段審查完成（單模型、Claude可用輸出、Critical無發現）；情境測試已改為按manifest live tier雙向核對並鎖定lookup建立順序。唯讀清單33項（live 19、既有dormant 14、pass 0）；未執行本輪Live。c6059943固定guard仍因禁改任務紀錄MissingFinalCrlf失敗，未推送／未進新R5b；詳見子任務與`wp-reports/P7-02-evidence.md`。
+
+2026-11-19 12:05 Asia/Taipei (UTC+08:00)：修正後ClaudeOnly複核Critical／High均無發現。LIVE-PREP-09拒絕所有非dormant活動；因逐模組整批準備，lessons、qrcodes、care、fees整模組（含Plugin案例）均無Live結果。該四模組列未解並維持原tier；活動Workflow唯讀掃描成本尚未量測，列R6前評估。P7-02b仍受c6059943完整guard的禁改路徑MissingFinalCrlf阻擋，未進R5b/R6。
+
+2026-11-19 13:08 Asia/Taipei (UTC+08:00)：依使用者2026-11-19全權委任採推薦方案：P7-02a收尾與禁改執行紀錄守門修正以`4f221bda`推送並由`git ls-remote`核對相同；不重寫已推送歷史。使用者核定範圍縮減另明確授權七個指定Workflow活動改為`dormant`，固定reason為`P7-PROP-006 LIVE-PREP-09`；只限該七項，不擴及Plugin或其他活動。R6每模組時間盒採60分鐘、最多2次實機。新增活動Live工具支援提案採`P7-PROP-007`，既有`P7-PROP-006`理由契約不改。此時離線原因碼及情境修改未提交，Deployment.Tests 975/975、檔案說明1826檔、進度頁28/28通過；尚未對本輪修改跑完整guard，未重切R5b或live-check。
+
 2026-11-19 09:15 Asia/Taipei (UTC+08:00)：6d57ec22完整guard重試於編碼關卡失敗：封存P7-02a task.json缺末尾CRLF，未推送；需核定amend唯一收尾提交。08:56補充唯讀已確認verify off=0、D34通過、待辦／smoke／SMV-TEST0、trace1、保留診斷trace2；未做新switch或live-check。離線原因碼審查缺口修正，24案通過，尚未全guard／實機。
+
+2026-11-19 11:29 Asia/Taipei (UTC+08:00)：依使用者2026-11-19全權委任採推薦方案：保留完整guard與階段起點，不以改base或放寬守門掩蓋禁改執行紀錄的MissingFinalCrlf；只修P7-02b自有紀錄，繼續離線驗證並維持P7-02a未推送及新R5b未開始狀態。c6059943固定guard的Release建置、全方案Release測試、Debug tracer通過，但Changed編碼因`.ccg/tasks/line-token-config-separation/.turns.json`失敗；遵守禁改指示，不改該檔、不改守門，因此該提交尚不可宣告驗收或推送。活動輸入XAML繫結無可驗證契約時維持fail-closed；不啟用舊流程、不猜欄位，準備／環境失敗維持原tier。後續先完成允許的離線檢查及紀錄。
+
+2026-11-19 13:28 Asia/Taipei (UTC+08:00)：候選離線驗證更新：Deployment.Tests 977/977、進度頁28/28、檔案說明1826檔0失敗、Changed編碼15檔0問題、`git diff --check`通過、TextEncoding Pester 22/22。清冊33項為live12/pass0/dormant21/未解live12；13個活動皆dormant，七項核定理由逐項一致。以上不是Live結果，尚未跑完整八項guard、重新R5b或live-check。既有`C:\smv\guard`含忽略的使用者Trellis任務資料，為避免固定clean刪除此資料，候選提交guard將使用獨立乾淨worktree。

@@ -196,6 +196,141 @@ public sealed class P7AcceptanceScenarioTests
                 $"Contact seed '{contact.GetProperty("alias").GetString()}' must use the platform state default."));
     }
 
+    /// <summary>
+    /// 保護lessons、qrcodes、care及fees的Live情境必須與manifest tier雙向一致，
+    /// 並以引用先於使用的順序檢查注入故障；決定性斷言涵蓋唯一註冊映射、lookup先建、
+    /// 共享測試contact空欄及不可建立欄位。只讀合成JSON與manifest，不連Dataverse；
+    /// 通過不表示活動XAML可執行，也不代表Live實測。
+    /// </summary>
+    [Fact]
+    public void P7RemainingLiveModules_HaveOneSafeScenarioPerLiveRegistration()
+    {
+        var document = RegistrationManifestLoader.LoadDocument(Root());
+        foreach (var module in new[] { "lessons", "qrcodes", "care", "fees" })
+        {
+            var cases = ShadowScenarioFiles.LoadLive(Root(), module, true);
+            Assert.All(cases, item => Assert.True(item.LiveShadow));
+            var steps = document.Assemblies.SelectMany(assembly => assembly.Steps)
+                .Where(step => step.Module == module && step.Live?.Tier == "live").ToArray();
+            var activities = document.Assemblies.SelectMany(assembly => assembly.Activities)
+                .Where(activity => activity.Module == module).ToArray();
+            Assert.Equal(steps.Length + activities.Count(activity => activity.Live?.Tier == "dormant" &&
+                activity.Type is "SpeechMessage.Dynamics.Workflows.Care.ContactAnniversaryActivity" or
+                    "SpeechMessage.Dynamics.Workflows.Lessons.LessonQrCodeActivity" or
+                    "SpeechMessage.Dynamics.Workflows.QrCodes.MeetingQrCodeActivity" or
+                    "SpeechMessage.Dynamics.Workflows.QrCodes.MeetingScanCountActivity" or
+                    "SpeechMessage.Dynamics.Workflows.QrCodes.PersonalQrCodeActivity" or
+                    "SpeechMessage.Dynamics.Workflows.Fees.FeeAllotActivity"), cases.Count);
+            foreach (var item in cases)
+            {
+                var matchingSteps = steps.Where(step => !item.IsActivity &&
+                    step.Message == item.Trigger.GetProperty("message").GetString() &&
+                    step.Entity == item.Trigger.GetProperty("entity").GetString() &&
+                    (step.Type == item.Entrypoint || step.Legacy.Any(old => old.Type == item.Entrypoint))).ToArray();
+                var matchingActivities = activities.Where(activity => item.IsActivity &&
+                    (activity.Type == item.Entrypoint || activity.Legacy.Any(old => old.Type == item.Entrypoint))).ToArray();
+                Assert.Equal(1, matchingSteps.Length + matchingActivities.Length);
+                if (item.IsActivity)
+                {
+                    var activity = Assert.Single(matchingActivities);
+                    Assert.Equal("dormant", activity.Live?.Tier);
+                    Assert.Equal("P7-PROP-006 LIVE-PREP-09：Live 測試工具尚不支援流程活動的樣板建立；使用者 2026-11-19 核定改 dormant，未經實機 Live 驗證。",
+                        activity.Live?.Reason);
+                    Assert.Empty(activity.Live!.Evidence.File);
+                    Assert.Empty(activity.Live.Evidence.Sha256);
+                    Assert.Empty(activity.Live.Evidence.At);
+                    Assert.Empty(activity.Live.Evidence.Result);
+                }
+                Assert.DoesNotContain(item.Seed.EnumerateArray(), row =>
+                    row.GetProperty("entity").GetString() == "systemuser");
+                Assert.DoesNotContain(item.Seed.EnumerateArray(), row =>
+                    row.GetProperty("fields").EnumerateObject().Any(field =>
+                        field.Name is "statecode" or "fullname" or "new_lineid"));
+                Assert.Single(item.Seed.EnumerateArray(), row =>
+                    row.GetProperty("entity").GetString() == "contact" &&
+                    !row.GetProperty("fields").EnumerateObject().Any());
+                var record = Assert.Single(item.Seed.EnumerateArray(), row =>
+                    row.GetProperty("alias").GetString() == "record");
+                Assert.Equal("account", item.Seed.EnumerateArray().Single(row =>
+                    row.GetProperty("alias").GetString() == item.Church.GetProperty("alias").GetString())
+                    .GetProperty("entity").GetString());
+                Assert.NotEqual("systemuser", record.GetProperty("entity").GetString());
+
+                var seedRows = item.Seed.EnumerateArray().ToArray();
+                var positions = seedRows.Select((row, index) =>
+                    (Alias: row.GetProperty("alias").GetString()!, Index: index))
+                    .ToDictionary(row => row.Alias, row => row.Index, StringComparer.Ordinal);
+                foreach (var row in seedRows)
+                {
+                    var alias = row.GetProperty("alias").GetString()!;
+                    foreach (var dependency in References(row.GetProperty("fields")).Where(positions.ContainsKey))
+                        Assert.True(positions[dependency] < positions[alias],
+                            $"Seed '{alias}' must follow referenced seed '{dependency}'.");
+                }
+            }
+        }
+    }
+
+    /// <summary>
+    /// 把appointments情境中每個lookup參照當作seed依賴，保證被參照列先於引用列建立。
+    /// 故障輸入為目前版控情境的次序；逐筆斷言在引用列前已建立所有本地alias依賴，
+    /// 防止Live建立record時指向尚不存在的synthetic資料。只解析離線JSON，不連Dataverse。
+    /// </summary>
+    [Fact]
+    public void P7Appointments_ReferencedSeedsAreCreatedBeforeDependents()
+    {
+        var scenario = Assert.Single(ShadowScenarioFiles.LoadLive(Root(), "appointments", true));
+        var rows = scenario.Seed.EnumerateArray().ToArray();
+        var positions = rows.Select((row, index) =>
+            (Alias: row.GetProperty("alias").GetString()!, Index: index))
+            .ToDictionary(row => row.Alias, row => row.Index, StringComparer.Ordinal);
+
+        foreach (var row in rows)
+        {
+            var alias = row.GetProperty("alias").GetString()!;
+            foreach (var dependency in References(row.GetProperty("fields")).Where(positions.ContainsKey))
+                Assert.True(positions[dependency] < positions[alias],
+                    $"Seed '{alias}' must follow referenced seed '{dependency}'.");
+        }
+    }
+
+    /// <summary>
+    /// 保護使用者核定的七個活動只降為dormant，不連帶改變同模組Plugin的live tier。
+    /// 故障輸入為目前仍live或理由不同的版控manifest；決定性斷言逐項驗固定理由及空白
+    /// pass證據，並確認lessons、appointments、fees的Plugin步驟仍可供live準備。
+    /// 測試只解析本機JSON，不連D365、不建立資料或流程；通過不代表任何活動或Plugin實測。
+    /// </summary>
+    /// <param name="module">核定活動所屬模組。</param>
+    /// <param name="activityType">唯一可套用此例外的完整活動型別。</param>
+    [Theory]
+    [InlineData("care", "SpeechMessage.Dynamics.Workflows.Care.ContactAnniversaryActivity")]
+    [InlineData("lessons", "SpeechMessage.Dynamics.Workflows.Lessons.LessonQrCodeActivity")]
+    [InlineData("appointments", "SpeechMessage.Dynamics.Workflows.Appointments.AppointmentSigningActivity")]
+    [InlineData("qrcodes", "SpeechMessage.Dynamics.Workflows.QrCodes.MeetingQrCodeActivity")]
+    [InlineData("qrcodes", "SpeechMessage.Dynamics.Workflows.QrCodes.MeetingScanCountActivity")]
+    [InlineData("qrcodes", "SpeechMessage.Dynamics.Workflows.QrCodes.PersonalQrCodeActivity")]
+    [InlineData("fees", "SpeechMessage.Dynamics.Workflows.Fees.FeeAllotActivity")]
+    public void P7ApprovedWorkflowActivities_AreDormantWithoutPassEvidence(string module, string activityType)
+    {
+        const string reason = "P7-PROP-006 LIVE-PREP-09：Live 測試工具尚不支援流程活動的樣板建立；使用者 2026-11-19 核定改 dormant，未經實機 Live 驗證。";
+        var document = RegistrationManifestLoader.LoadDocument(Root());
+        var activity = Assert.Single(document.Assemblies.SelectMany(assembly => assembly.Activities)
+            .Where(item => item.Module == module && item.Type == activityType));
+
+        Assert.Equal("dormant", activity.Live?.Tier);
+        Assert.Equal(reason, activity.Live?.Reason);
+        Assert.Empty(activity.Live!.Evidence.File);
+        Assert.Empty(activity.Live.Evidence.Sha256);
+        Assert.Empty(activity.Live.Evidence.At);
+        Assert.Empty(activity.Live.Evidence.Result);
+
+        var liveSteps = document.Assemblies.SelectMany(assembly => assembly.Steps)
+            .Where(step => step.Module == module && step.Live?.Tier == "live").ToArray();
+        if (module is "appointments" or "fees" or "lessons")
+            Assert.NotEmpty(liveSteps);
+        Assert.All(liveSteps, step => Assert.Equal("live", step.Live?.Tier));
+    }
+
     private static IEnumerable<string> References(JsonElement value)
     {
         if (value.ValueKind == JsonValueKind.Object)

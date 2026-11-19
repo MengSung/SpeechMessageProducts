@@ -1,0 +1,50 @@
+{
+  "module": "lessons",
+  "cases": [
+    {
+      "name": "lesson-link-create",
+      "church": { "alias": "church-a", "organizationName": "synthetic-lessons", "timeZone": "Asia/Taipei", "culture": "zh-TW" },
+      "seed": [
+        { "alias": "church-a", "entity": "account", "fields": {} },
+        { "alias": "p7-test-contact", "entity": "contact", "fields": {} },
+        { "alias": "coordinator", "entity": "contact", "fields": { "lastname": "SMV-TEST-Coordinator", "parentcustomerid": { "ref": "church-a", "entity": "account" } } },
+        { "alias": "record", "entity": "new_disciple_lessons", "fields": { "new_contact_new_disciple_lessons": { "ref": "coordinator", "entity": "contact" } } }
+      ],
+      "trigger": { "project": "SpeechMessage.Dynamics.Plugins", "type": "DiscipleLessonsPluIn.DiscipleLessonsPluIn", "message": "Create", "entity": "new_disciple_lessons", "target": "record", "fields": {}, "depth": 1 },
+      "now": "2026-11-19T00:00:00Z",
+      "volatile": [ "new_idempotencykey", "new_name" ],
+      "liveShadow": true,
+      "observe": [ { "alias": "record", "entity": "new_disciple_lessons", "fields": [ "new_contact_new_disciple_lessons" ] } ]
+    },
+    {
+      "name": "lesson-link-update",
+      "church": { "alias": "church-a", "organizationName": "synthetic-lessons", "timeZone": "Asia/Taipei", "culture": "zh-TW" },
+      "seed": [
+        { "alias": "church-a", "entity": "account", "fields": {} },
+        { "alias": "p7-test-contact", "entity": "contact", "fields": {} },
+        { "alias": "coordinator", "entity": "contact", "fields": { "lastname": "SMV-TEST-Coordinator", "parentcustomerid": { "ref": "church-a", "entity": "account" } } },
+        { "alias": "record", "entity": "new_disciple_lessons", "fields": { "new_contact_new_disciple_lessons": { "ref": "coordinator", "entity": "contact" } } }
+      ],
+      "trigger": { "project": "SpeechMessage.Dynamics.Plugins", "type": "DiscipleLessonsPluIn.DiscipleLessonsPluIn", "message": "Update", "entity": "new_disciple_lessons", "target": "record", "fields": {}, "depth": 1 },
+      "now": "2026-11-19T00:00:00Z",
+      "volatile": [ "new_idempotencykey", "new_name" ],
+      "liveShadow": true,
+      "observe": [ { "alias": "record", "entity": "new_disciple_lessons", "fields": [ "new_contact_new_disciple_lessons" ] } ]
+    },
+    {
+      "name": "lesson-qr-activity",
+      "church": { "alias": "church-a", "organizationName": "synthetic-lessons", "timeZone": "Asia/Taipei", "culture": "zh-TW" },
+      "seed": [
+        { "alias": "church-a", "entity": "account", "fields": {} },
+        { "alias": "p7-test-contact", "entity": "contact", "fields": {} },
+        { "alias": "coordinator", "entity": "contact", "fields": { "lastname": "SMV-TEST-Coordinator", "parentcustomerid": { "ref": "church-a", "entity": "account" } } },
+        { "alias": "record", "entity": "new_disciple_lessons", "fields": { "new_contact_new_disciple_lessons": { "ref": "coordinator", "entity": "contact" } } }
+      ],
+      "trigger": { "project": "SpeechMessage.Dynamics.Workflows", "type": "QrCodeWorkflow.QrCodeWorkflow", "activity": true, "depth": 1, "inputs": { "InputParameter": "synthetic" } },
+      "now": "2026-11-19T00:00:00Z",
+      "volatile": [ "new_idempotencykey", "new_name" ],
+      "liveShadow": true,
+      "observe": [ { "alias": "record", "entity": "new_disciple_lessons", "fields": [ "new_contact_new_disciple_lessons" ] } ]
+    }
+  ]
+}

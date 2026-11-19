@@ -13,13 +13,6 @@
           "reason": "演練：依07A R5b核定，驗證外送訊息代送切換；不連正式組織。",
           "decidedBy": "演練",
           "decidedAt": "2026-11-18 21:39 Asia/Taipei (UTC+08:00)"
-        },
-        {
-          "target": "SpeechMessage.Dynamics.Workflows.Lessons.StorLessonSigningActivity",
-          "tier": "live",
-          "reason": "演練：依07A R5b核定，驗證課程簽核通知代送切換；付款分支仍拒絕。",
-          "decidedBy": "演練",
-          "decidedAt": "2026-11-18 21:39 Asia/Taipei (UTC+08:00)"
         }
       ]
     }

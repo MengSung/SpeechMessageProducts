@@ -37,7 +37,7 @@ internal enum LivePreparationReason
     ContactCount = 7,
     /// <summary>權威 metadata 取得或結構驗證失敗。</summary>
     Metadata = 8,
-    /// <summary>活動含尚未核定專用樣板的輸入，不可默默忽略。</summary>
+    /// <summary>目前不執行任何Live活動；Workflow XAML參數繫結契約尚未經證實，因此準備階段拒絕。</summary>
     ActivityInputs = 9,
     /// <summary>流程樣板讀取、解析或選取失敗，或沒有可安全複製的停用樣板。</summary>
     ActivityTemplate = 10,

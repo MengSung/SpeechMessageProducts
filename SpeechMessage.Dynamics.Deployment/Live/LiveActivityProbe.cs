@@ -1,13 +1,15 @@
 /*
 檔案整體說明
-目的與定位：Live 活動演練的手動測試流程 owner，複製已停用原流程並精確改指新活動。
+目的與定位：Live 活動演練的手動測試流程 owner，複製已停用原流程並精確改指新活動；
+目前 CLI 因輸入繫結契約未經證實而在準備階段拒絕活動，故此 owner 尚未由 CLI 呼叫。
 主要流程：首個寫入前驗參照及模式，預配 GUID 並登錄 attempted，再建立 SMV-TEST 流程；
 所有自動觸發關閉，只能對本輪 owned 記錄 ExecuteWorkflow。原流程永不啟用或修改。
-安全邊界：只接受包含單一核定自訂活動的流程；含其他自訂活動、Shadow 或不可核對輸入
-就拒絕，不能把舊程式帶入演練。不能製作的情境依階段規則登錄 dormant，不假稱通過。
+安全邊界：只接受包含單一核定自訂活動的流程；含其他自訂活動或Shadow就拒絕，
+不能把舊程式帶入演練，也不能猜測Dataverse XAML參數格式。目前CLI對所有非dormant
+Live活動都在seed前fail-closed；本owner尚不可由CLI到達。
 資源生命週期：SDK 借用，流程先停用再刪除；故障／取消仍由 round cleanup 呼叫，
 遠端流程的正式 ID 持有到殘留查詢完成。原 XAML 不輸出、不進 repo，沒有背景工作。
-驗證方式：SDK 離線故障注入及 R6 實機；未實測不能列為 Live 證據。
+驗證方式：SDK 離線故障注入；R6 實機須先取得可驗證的 XAML 參數繫結契約，未實測不能列為 Live 證據。
 */
 using System;
 using System.IO;
@@ -88,4 +90,5 @@ internal sealed class LiveActivityProbe(IOrganizationService service, LiveActivi
     }
     /// <summary>固定安全錯誤不回顯 XAML 或流程名稱。</summary>
     private static InvalidDataException Invalid() => new("Live activity probe could not be prepared or completed safely.");
+
 }

@@ -1064,8 +1064,8 @@
             "basis": "reading"
           },
           "live": {
-            "tier": "live",
-            "reason": "",
+            "tier": "dormant",
+            "reason": "P7-PROP-006 LIVE-PREP-09：Live 測試工具尚不支援流程活動的樣板建立；使用者 2026-11-19 核定改 dormant，未經實機 Live 驗證。",
             "evidence": {
               "file": "",
               "sha256": "",
@@ -1116,8 +1116,8 @@
             "basis": "reading"
           },
           "live": {
-            "tier": "live",
-            "reason": "",
+            "tier": "dormant",
+            "reason": "P7-PROP-006 LIVE-PREP-09：Live 測試工具尚不支援流程活動的樣板建立；使用者 2026-11-19 核定改 dormant，未經實機 Live 驗證。",
             "evidence": {
               "file": "",
               "sha256": "",
@@ -1194,8 +1194,8 @@
             "basis": "reading"
           },
           "live": {
-            "tier": "live",
-            "reason": "",
+            "tier": "dormant",
+            "reason": "P7-PROP-006 LIVE-PREP-09：Live 測試工具尚不支援流程活動的樣板建立；使用者 2026-11-19 核定改 dormant，未經實機 Live 驗證。",
             "evidence": {
               "file": "",
               "sha256": "",
@@ -1220,8 +1220,8 @@
             "basis": "reading"
           },
           "live": {
-            "tier": "live",
-            "reason": "",
+            "tier": "dormant",
+            "reason": "P7-PROP-006 LIVE-PREP-09：Live 測試工具尚不支援流程活動的樣板建立；使用者 2026-11-19 核定改 dormant，未經實機 Live 驗證。",
             "evidence": {
               "file": "",
               "sha256": "",
@@ -1246,8 +1246,8 @@
             "basis": "reading"
           },
           "live": {
-            "tier": "live",
-            "reason": "",
+            "tier": "dormant",
+            "reason": "P7-PROP-006 LIVE-PREP-09：Live 測試工具尚不支援流程活動的樣板建立；使用者 2026-11-19 核定改 dormant，未經實機 Live 驗證。",
             "evidence": {
               "file": "",
               "sha256": "",
@@ -1272,8 +1272,8 @@
             "basis": "reading"
           },
           "live": {
-            "tier": "live",
-            "reason": "",
+            "tier": "dormant",
+            "reason": "P7-PROP-006 LIVE-PREP-09：Live 測試工具尚不支援流程活動的樣板建立；使用者 2026-11-19 核定改 dormant，未經實機 Live 驗證。",
             "evidence": {
               "file": "",
               "sha256": "",
@@ -1302,8 +1302,8 @@
             "basis": "reading"
           },
           "live": {
-            "tier": "live",
-            "reason": "",
+            "tier": "dormant",
+            "reason": "P7-PROP-006 LIVE-PREP-09：Live 測試工具尚不支援流程活動的樣板建立；使用者 2026-11-19 核定改 dormant，未經實機 Live 驗證。",
             "evidence": {
               "file": "",
               "sha256": "",

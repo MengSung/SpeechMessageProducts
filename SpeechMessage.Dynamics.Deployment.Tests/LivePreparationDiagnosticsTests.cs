@@ -3,7 +3,7 @@
 目的與定位：P7 Live 準備原因碼的離線故障注入測試，直接執行 CLI 準備路徑與安全診斷，
 不連組織、不讀 User Secrets、不發 LINE。每案配置獨立 snapshot、合成身分與 metadata。
 主要流程：逐項破壞 off 計畫、舊程式狀態、D34、情境、步驟唯一性與模式、聯絡人數、
-metadata、活動參數／流程樣板及 factory 輸入，要求固定碼和情境識別，不准開始 seed。
+metadata、活動輸入／流程樣板及 factory 輸入，要求固定碼和情境識別，不准開始 seed。
 決定性斷言：原因碼與真正故障關卡一致、業務寫入零、原始例外本文及秘密哨兵不輸出；
 取消維持原 OperationCanceledException。數字 fault 與 seed alias 仍須穿過診斷包裝。
 資源與隔離：JSON 均為 detached 值，writer 與取消來源由測試 Dispose；服務只有記憶體
@@ -147,6 +147,7 @@ public sealed class LivePreparationDiagnosticsTests
                     Trigger = Json(code == 9 ? """{"inputs":{"synthetic":true}}""" : """{"inputs":{}}""") };
                 snapshot = snapshot with { Activities = [new(new ActivityRegistration
                     { Module = "care", Type = "New.Activity", Live = new LiveRegistration() }, "New.Assembly")] };
+                if (code == 9) service.WorkflowXml = "<Activity><Node AssemblyQualifiedName=\"New.Activity, New.Assembly\" /></Activity>";
                 break;
             case 11: file = file with { Basis = "unsupported" }; break;
         }
@@ -159,7 +160,12 @@ public sealed class LivePreparationDiagnosticsTests
         if (code >= 5) Assert.Contains("scenario=case-a", text, StringComparison.Ordinal);
         Assert.DoesNotContain(SafetyService.Sentinel, text, StringComparison.Ordinal);
         Assert.Equal(0, service.Writes);
-        if (code == 8) Assert.Contains("0x80040265", text, StringComparison.Ordinal);
+        if (code == 8)
+        {
+            Assert.Contains("alias=record", text, StringComparison.Ordinal);
+            Assert.Contains("entity=task", text, StringComparison.Ordinal);
+            Assert.Contains("0x80040265", text, StringComparison.Ordinal);
+        }
     }
 
     /// <summary>
@@ -185,9 +191,48 @@ public sealed class LivePreparationDiagnosticsTests
     }
 
     /// <summary>
-    /// 離線鎖定流程狀態：停用樣板可供複製並抵達factory，啟用流程仍在碼02拒絕，
-    /// 沒有「必須啟用樣板」的矛盾；不得為活動演練而放寬舊流程互斥。
-    /// 故意以unsupported basis終止factory，確保不進runtime或寫seed。
+    /// 活動情境有停用流程樣板但沒有可驗證的Dataverse XAML argument-binding契約；唯讀確認樣板後，
+    /// 必須在metadata讀取或seed前以LIVE-PREP-09拒絕，避免把一般XML attribute誤當成WF binding。
+    /// 測試不載入活動、不連組織、不執行XAML，服務、JSON及writer均由本案持有。
+    /// </summary>
+    [Fact]
+    public void LivePreparation_ActivityInputsWithoutValidatedBinding_RejectBeforeSeed()
+    {
+        const string oldType = "Old.Activity";
+        const string oldAssembly = "Old.Assembly";
+        var activity = new ActivityRegistration
+        {
+            Module = "care",
+            Type = "SpeechMessage.Dynamics.Workflows.Care.ContactAnniversaryActivity",
+            Live = new LiveRegistration(),
+            Legacy = [new LegacyActivityReference { Assembly = oldAssembly, Type = oldType }]
+        };
+        var snapshot = ActivitySnapshot() with { Activities = [new(activity, "New.Assembly")] };
+        var service = new SafetyService
+        {
+            WorkflowXml = "<Activity><Node AssemblyQualifiedName=\"Old.Activity, Old.Assembly\" /></Activity>",
+            WorkflowState = 0
+        };
+        var file = ActivityScenario() with
+        {
+            Basis = "unsupported",
+            Entrypoint = oldType,
+            Trigger = Json("""{"inputs":{"AnniversaryKind":"Birthday"}}""")
+        };
+
+        var failure = Invoke(snapshot, file, service);
+        using var writer = new StringWriter();
+        DeploymentCli.WriteSupplementalFailureDiagnostics(failure, writer);
+
+        Assert.Contains("LIVE-PREP-09", writer.ToString(), StringComparison.Ordinal);
+        Assert.DoesNotContain("LIVE-PREP-11", writer.ToString(), StringComparison.Ordinal);
+        Assert.Equal(0, service.Writes);
+    }
+
+    /// <summary>
+    /// 離線鎖定流程狀態：停用樣板存在時通過舊流程互斥並由未核定輸入繫結碼09拒絕，
+    /// 啟用流程則由碼02拒絕；不存在「必須啟用樣板」的矛盾，也不放寬舊流程互斥。
+    /// 測試流程不進runtime且不寫seed。
     /// </summary>
     /// <param name="state">0為停用樣板，1為啟用流程。</param>
     [Theory]
@@ -204,7 +249,7 @@ public sealed class LivePreparationDiagnosticsTests
         var failure = Invoke(snapshot, ActivityScenario() with { Basis = "unsupported" }, service);
         using var writer = new StringWriter();
         DeploymentCli.WriteSupplementalFailureDiagnostics(failure, writer);
-        Assert.Contains(state == 0 ? "LIVE-PREP-11" : "LIVE-PREP-02", writer.ToString(), StringComparison.Ordinal);
+        Assert.Contains(state == 0 ? "LIVE-PREP-09" : "LIVE-PREP-02", writer.ToString(), StringComparison.Ordinal);
         Assert.Equal(0, service.Writes);
     }
 
@@ -235,6 +280,61 @@ public sealed class LivePreparationDiagnosticsTests
         Assert.Contains("LIVE-PREP-08", writer.ToString(), StringComparison.Ordinal);
         Assert.Contains("module=" + module, writer.ToString(), StringComparison.Ordinal);
         Assert.Contains("scenario=" + file.Name, writer.ToString(), StringComparison.Ordinal);
+        Assert.Equal(0, service.Writes);
+    }
+
+    /// <summary>
+    /// 以真實版控情境同時準備 live Plugin 與使用者核定 dormant 的活動；
+    /// 故障在 Plugin metadata 關卡注入，必須抵達LIVE-PREP-08而非活動碼09。
+    /// 合成SDK拒絕全部寫入，決定性斷言包含模組／Plugin情境識別及零寫入；
+    /// 這只證明離線準備路徑不互相阻塞，不宣稱metadata或Live實測通過。
+    /// </summary>
+    /// <param name="module">同時含live Plugin與核定dormant活動的模組。</param>
+    [Theory]
+    [InlineData("lessons")]
+    [InlineData("fees")]
+    [InlineData("appointments")]
+    public void LivePreparation_ApprovedDormantActivityDoesNotBlockLivePlugin(string module)
+    {
+        var files = ShadowScenarioFiles.LoadLive(Root(), module, true);
+        var pluginFile = Assert.Single(files.Where(file => !file.IsActivity &&
+            file.Trigger.GetProperty("message").GetString() == "Create"));
+        var activityScenario = files.SingleOrDefault(file => file.IsActivity);
+        var activities = RegistrationManifestLoader.LoadDocument(Root()).Assemblies
+            .SelectMany(assembly => assembly.Activities)
+            .Where(activity => activity.Module == module && activity.Live?.Tier == "dormant");
+        var registration = activityScenario is null
+            ? Assert.Single(activities.Where(activity =>
+                activity.Type == "SpeechMessage.Dynamics.Workflows.Appointments.AppointmentSigningActivity"))
+            : Assert.Single(activities.Where(activity => activity.Type == activityScenario.Entrypoint ||
+                activity.Legacy.Any(old => old.Type == activityScenario.Entrypoint)));
+        var activityFile = activityScenario ?? pluginFile with
+        {
+            IsActivity = true,
+            Entrypoint = registration.Type,
+            Trigger = Json("""{"inputs":{}}""")
+        };
+        var snapshot = Snapshot();
+        var step = snapshot.Steps[0].Registration with
+        {
+            Module = module,
+            Type = pluginFile.Entrypoint,
+            Entity = pluginFile.Trigger.GetProperty("entity").GetString()!,
+            Message = pluginFile.Trigger.GetProperty("message").GetString()!
+        };
+        snapshot = snapshot with
+        {
+            Steps = [snapshot.Steps[0] with { Registration = step }],
+            Activities = [new(registration, "SpeechMessage.Dynamics.Workflows")]
+        };
+        var service = new SafetyService { MetadataFault = true };
+        var failure = InvokeCases(snapshot, [activityFile, pluginFile], service, module);
+        using var writer = new StringWriter();
+        DeploymentCli.WriteSupplementalFailureDiagnostics(failure, writer);
+
+        Assert.Contains("LIVE-PREP-08", writer.ToString(), StringComparison.Ordinal);
+        Assert.Contains("module=" + module, writer.ToString(), StringComparison.Ordinal);
+        Assert.Contains("scenario=" + pluginFile.Name, writer.ToString(), StringComparison.Ordinal);
         Assert.Equal(0, service.Writes);
     }
 
@@ -283,7 +383,7 @@ public sealed class LivePreparationDiagnosticsTests
     private static SwitchSnapshot ActivitySnapshot() => Snapshot() with { Activities = [new(new ActivityRegistration
         { Module = "care", Type = "New.Activity", Live = new LiveRegistration() }, "New.Assembly")] };
 
-    /// <summary>活動明列record與空輸入；內容故障由每個案例獨立注入。</summary>
+    /// <summary>活動明列record與空字串輸入物件；內容故障由每個案例獨立注入。</summary>
     private static ShadowFileCase ActivityScenario() => Scenario() with { IsActivity = true, Entrypoint = "New.Activity",
         Trigger = Json("""{"inputs":{}}""") };
 
@@ -316,11 +416,16 @@ public sealed class LivePreparationDiagnosticsTests
 
     /// <summary>反射只存取真正私有準備入口，不增產品測試專用分支；回傳內層供既有診斷列印。</summary>
     private static Exception Invoke(SwitchSnapshot snapshot, ShadowFileCase file, SafetyService service, string module = "care", CancellationToken token = default)
+        => InvokeCases(snapshot, [file], service, module, token);
+
+    /// <summary>以同一私有準備入口重放多個真實情境；輸入仍為唯讀JSON與單案合成服務。</summary>
+    private static Exception InvokeCases(SwitchSnapshot snapshot, IReadOnlyList<ShadowFileCase> files,
+        SafetyService service, string module, CancellationToken token = default)
     {
         using var writer = new StringWriter();
         var method = typeof(DeploymentCli).GetMethod("RunPreparedLive", BindingFlags.NonPublic | BindingFlags.Static)!;
         var wrapper = Assert.Throws<TargetInvocationException>(() => method.Invoke(null,
-            [snapshot.Organization, module, new[] { file }, Path.GetTempPath(), Path.GetTempPath(),
+            [snapshot.Organization, module, files, Path.GetTempPath(), Path.GetTempPath(),
                 service, snapshot, writer, (Func<string, string>)service.Secret, token]));
         return wrapper.InnerException!;
     }

@@ -95,7 +95,10 @@ internal static partial class DeploymentCli
                 ? LivePreparationFailure.Capture(LivePreparationReason.Connection, options["--module"], null, null, null,
                     () => connector.Connect(target.Name), token)
                 : connector.Connect(target.Name);
-            ProductionGuard.VerifyServer(lease.Service, target, token);
+            if (args[0] == "live-check")
+                _ = LivePreparationFailure.Capture(LivePreparationReason.Safety, options["--module"], null, null, null,
+                    () => { ProductionGuard.VerifyServer(lease.Service, target, token); return true; }, token);
+            else ProductionGuard.VerifyServer(lease.Service, target, token);
             var operation = args[0] == "live-check"
                 ? LivePreparationFailure.Capture(LivePreparationReason.LocalResources, options["--module"], null, null, null,
                     () => CreateOperationDirectory(root), token) : CreateOperationDirectory(root);
@@ -203,13 +206,31 @@ internal static partial class DeploymentCli
             var activity = activityMatches.SingleOrDefault();
             var type = step?.Registration.Type ?? activity!.Registration.Type;
             var tier = SwitchTarget.EffectiveTier(target, module, type, step?.Registration.Live?.Tier ?? activity!.Registration.Live!.Tier);
-            var mode = step is null ? "Live" : JsonDocumentMode(step.Configuration);
-            var empty = new ShadowSnapshot(false, Array.Empty<ShadowRow>());
+            var mode = step is null ? "Live" : CapturePreparation(LivePreparationReason.StepState, module, file,
+                () => JsonDocumentMode(step.Configuration), token);
             var scenario = new LiveCheckScenario(file.Name, type, module, tier, step?.Enabled ?? true, mode,
-                file.ExpectedLineCalls.EnumerateArray().Sum(call => call.GetProperty("messageCount").GetInt32()), empty,
-                Array.Empty<ShadowObservation>(), new HashSet<string>(file.Volatile, StringComparer.Ordinal));
+                file.ExpectedLineCalls.EnumerateArray().Sum(call => call.GetProperty("messageCount").GetInt32()),
+                new(false, Array.Empty<ShadowRow>()), Array.Empty<ShadowObservation>(),
+                new HashSet<string>(file.Volatile, StringComparer.Ordinal));
             if (tier == "dormant") { scenarios.Add(scenario); continue; }
             if (!scenario.Enabled || mode != "Live") throw PreparationFailure(LivePreparationReason.StepState, module, file);
+            if (activity is not null)
+            {
+                var recordEntity = file.Seed.EnumerateArray()
+                    .Single(seed => seed.GetProperty("alias").GetString() == "record")
+                    .GetProperty("entity").GetString();
+                var workflows = CapturePreparation(LivePreparationReason.ActivityTemplate, module, file,
+                    () => new LegacyRegistrationExporter.MetadataReader(service, 500, 10000, 100, token)
+                    .Read("workflow", ["xaml", "statecode", "primaryentity"], "type", [1]).Where(row =>
+                        row.GetAttributeValue<OptionSetValue>("statecode")?.Value == 0 &&
+                        row.GetAttributeValue<string>("primaryentity") == recordEntity)
+                    .Select(row => (Row: row, References: WorkflowRepointer.ReadReferences(row.GetAttributeValue<string>("xaml") ?? "")))
+                    .Where(item => item.References.Count != 0 && item.References.All(reference => reference.Type == type ||
+                        activity.Registration.Legacy.Any(old => WorkflowRepointer.SameReference(reference, old.Assembly, old.Type))))
+                    .OrderBy(item => item.Row.Id).ToArray(), token);
+                if (workflows.Length == 0) throw PreparationFailure(LivePreparationReason.ActivityTemplate, module, file);
+                throw PreparationFailure(LivePreparationReason.ActivityInputs, module, file);
+            }
             var churchAlias = file.Church.GetProperty("alias").GetString()!;
             var contacts = file.Seed.EnumerateArray().Where(row => row.GetProperty("entity").GetString() == "contact" &&
                 !row.GetProperty("fields").EnumerateObject().Any()).ToArray();
@@ -218,27 +239,7 @@ internal static partial class DeploymentCli
                 .Concat(file.ExpectedWrites.EnumerateArray()).Select(row => row.GetProperty("entity").GetString()!).Distinct(StringComparer.Ordinal).ToArray();
             var metadata = CapturePreparation(LivePreparationReason.Metadata, module, file,
                 () => new ShadowSdkMetadata(service, names, token), token);
-            LiveActivityTemplate? template = null;
-            if (activity is not null)
-            {
-                // 非空活動輸入須先製作並核對專用樣板，不能把檔案參數默默忽略。
-                if (file.Trigger.GetProperty("inputs").EnumerateObject().Any())
-                    throw PreparationFailure(LivePreparationReason.ActivityInputs, module, file);
-                var workflows = CapturePreparation(LivePreparationReason.ActivityTemplate, module, file,
-                    () => new LegacyRegistrationExporter.MetadataReader(service, 500, 10000, 100, token)
-                    .Read("workflow", ["xaml", "statecode", "primaryentity"], "type", [1]).Where(row =>
-                    row.GetAttributeValue<OptionSetValue>("statecode")?.Value == 0 &&
-                    row.GetAttributeValue<string>("primaryentity") == file.Seed.EnumerateArray().Single(seed => seed.GetProperty("alias").GetString() == "record").GetProperty("entity").GetString())
-                    .Select(row => (Row: row, References: WorkflowRepointer.ReadReferences(row.GetAttributeValue<string>("xaml") ?? "")))
-                    .Where(item => item.References.Count != 0 && item.References.All(reference => reference.Type == type ||
-                        activity.Registration.Legacy.Any(old => WorkflowRepointer.SameReference(reference, old.Assembly, old.Type))))
-                    .OrderBy(item => item.Row.Id).ToArray(), token);
-                if (workflows.Length == 0) throw PreparationFailure(LivePreparationReason.ActivityTemplate, module, file);
-                var chosen = workflows[0];
-                var reference = chosen.References[0];
-                template = new(chosen.Row, new(reference.Assembly, reference.Type, activity.QualifiedAssembly, type));
-            }
-            var executionId = step?.Id ?? template!.Source.Id;
+            var executionId = step!.Id;
             var binding = new ShadowSdkBinding(file.Entrypoint, churchAlias, contacts[0].GetProperty("alias").GetString()!,
                 Array.Empty<Guid>(), new[] { executionId }, new[] { type }, Array.Empty<ShadowSdkTokenField>(), false)
             {
@@ -246,15 +247,13 @@ internal static partial class DeploymentCli
                 // 沿R4已核定的WhoAmI繫結，owner只借用目前服務使用者，不建立或清除systemuser。
                 SharedReferences = CapturePreparation(LivePreparationReason.PrepareScenario, module, file,
                     () => SharedReferencesForScenario(service, file), token),
-                SynchronousStepTypes = step?.Registration.Mode == "Synchronous" ? new Dictionary<Guid, string> { [executionId] = type } : new Dictionary<Guid, string>(),
-                StepImages = step is null ? new Dictionary<Guid, IReadOnlyList<RegistrationImage>>() :
-                    new Dictionary<Guid, IReadOnlyList<RegistrationImage>> { [executionId] = step.Registration.Images }
+                SynchronousStepTypes = step.Registration.Mode == "Synchronous" ? new Dictionary<Guid, string> { [executionId] = type } : new Dictionary<Guid, string>(),
+                StepImages = new Dictionary<Guid, IReadOnlyList<RegistrationImage>> { [executionId] = step.Registration.Images }
             };
             var candidate = CapturePreparation(LivePreparationReason.PrepareScenario, module, file,
                 () => ShadowSdkScenarioFactory.PrepareLive(file, metadata, identity, binding), token);
             scenario = scenario with { Observe = candidate.Definition.Observe };
             prepared.Add(scenario, candidate); scenarios.Add(scenario);
-            if (template is not null) activities.Add(scenario, template);
         }
         LiveCheckResult result;
         if (prepared.Count == 0)

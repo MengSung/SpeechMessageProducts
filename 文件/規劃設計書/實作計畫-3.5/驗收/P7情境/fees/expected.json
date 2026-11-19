@@ -1,0 +1,37 @@
+{
+  "module": "fees",
+  "basis": "reading",
+  "cases": [
+    {
+      "name": "fee-allot-create",
+      "entrypoint": "SpeechMessage.Dynamics.Plugins.Fees.FeeAllotPlugin",
+      "writes": [
+        { "operation": "Create", "entity": "new_outboundtask", "alias": "allot-task", "fields": { "new_accountid": { "ref": "church-a", "entity": "account" }, "new_attempts": 0, "new_idempotencykey": "synthetic-idempotency", "new_name": "AllotQuery|synthetic-idempotency", "new_payload": "{\"feeId\":\"${record}\",\"queryDate\":20261119}", "new_taskstatus": 100000000, "new_type": 100000002 } }
+      ],
+      "lineCalls": [],
+      "outputs": {},
+      "exception": null
+    },
+    {
+      "name": "fee-allot-update",
+      "entrypoint": "SpeechMessage.Dynamics.Plugins.Fees.FeeAllotPlugin",
+      "writes": [
+        { "operation": "Create", "entity": "new_outboundtask", "alias": "allot-task", "fields": { "new_accountid": { "ref": "church-a", "entity": "account" }, "new_attempts": 0, "new_idempotencykey": "synthetic-idempotency", "new_name": "AllotQuery|synthetic-idempotency", "new_payload": "{\"feeId\":\"${record}\",\"queryDate\":20261119}", "new_taskstatus": 100000000, "new_type": 100000002 } }
+      ],
+      "lineCalls": [],
+      "outputs": {},
+      "exception": null
+    },
+    {
+      "name": "fee-allot-activity",
+      "entrypoint": "AllotWorkflow.AllotWorkflowClass",
+      "writes": [
+        { "operation": "Create", "entity": "new_outboundtask", "alias": "allot-task", "fields": { "new_accountid": { "ref": "church-a", "entity": "account" }, "new_attempts": 0, "new_idempotencykey": "synthetic-idempotency", "new_name": "AllotQuery|synthetic-idempotency", "new_payload": "{\"feeId\":\"${record}\",\"queryDate\":20261119}", "new_taskstatus": 100000000, "new_type": 100000002 } }
+      ],
+      "lineCalls": [],
+      "outputs": {},
+      "exception": null
+    }
+  ],
+  "declaredDifferences": []
+}
