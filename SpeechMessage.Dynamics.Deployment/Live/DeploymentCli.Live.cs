@@ -79,15 +79,26 @@ internal static partial class DeploymentCli
                 files = LivePreparationFailure.Capture(LivePreparationReason.ScenarioSource, module, null, null, null,
                     () => ShadowScenarioFiles.LoadLive(repository, folder, acceptance), token);
             }
-            using var manifestHandle = OpenSource(Path.Combine(repository, "d365", "registration", "plugins.registration.json"));
-            using var catalogHandle = OpenSource(Path.Combine(repository, "d365", "registration", "organizations.json"));
-            using var writeLock = apply || args[0] == "live-check" ? OrganizationWriteLock.Acquire(root, writeLockTimeout ?? TimeSpan.FromMinutes(5), token) : null;
+            using var manifestHandle = args[0] == "live-check"
+                ? LivePreparationFailure.Capture(LivePreparationReason.RegistrationSnapshot, options["--module"], null, null, null,
+                    () => OpenSource(Path.Combine(repository, "d365", "registration", "plugins.registration.json")), token)
+                : OpenSource(Path.Combine(repository, "d365", "registration", "plugins.registration.json"));
+            using var catalogHandle = args[0] == "live-check"
+                ? LivePreparationFailure.Capture(LivePreparationReason.RegistrationSnapshot, options["--module"], null, null, null,
+                    () => OpenSource(Path.Combine(repository, "d365", "registration", "organizations.json")), token)
+                : OpenSource(Path.Combine(repository, "d365", "registration", "organizations.json"));
+            using var writeLock = args[0] == "live-check"
+                ? LivePreparationFailure.Capture(LivePreparationReason.LocalResources, options["--module"], null, null, null,
+                    () => OrganizationWriteLock.Acquire(root, writeLockTimeout ?? TimeSpan.FromMinutes(5), token), token)
+                : apply ? OrganizationWriteLock.Acquire(root, writeLockTimeout ?? TimeSpan.FromMinutes(5), token) : null;
             using var lease = args[0] == "live-check"
                 ? LivePreparationFailure.Capture(LivePreparationReason.Connection, options["--module"], null, null, null,
                     () => connector.Connect(target.Name), token)
                 : connector.Connect(target.Name);
             ProductionGuard.VerifyServer(lease.Service, target, token);
-            var operation = CreateOperationDirectory(root);
+            var operation = args[0] == "live-check"
+                ? LivePreparationFailure.Capture(LivePreparationReason.LocalResources, options["--module"], null, null, null,
+                    () => CreateOperationDirectory(root), token) : CreateOperationDirectory(root);
             if (args[0] == "church-defaults")
             {
                 Guid Server()
@@ -161,8 +172,14 @@ internal static partial class DeploymentCli
     {
         _ = LivePreparationFailure.Capture(LivePreparationReason.OffPlan, module, null, null, null,
             () => SwitchPlanner.Create(snapshot, "off"), token);
-        if (snapshot.LegacySteps.Any(row => row.Enabled) || snapshot.Workflows.Any(row => row.State != 0))
-            throw new LivePreparationFailure(LivePreparationReason.LegacyEnabled, module);
+        // Snapshot包含平台標準流程；不能把所有啟用流程都誤認成舊活動流程。
+        // 仍拒絕任何啟用舊step或引用完整舊活動清冊的流程（含未移植活動），
+        // 精確以assembly/type配對，不依名稱猜測；解析失敗也拒絕。樣板仍只接受停用流程。
+        var legacyEnabled = LivePreparationFailure.Capture(LivePreparationReason.LegacyEnabled, module, null, null, null,
+            () => snapshot.LegacySteps.Any(row => row.Enabled) || snapshot.Workflows.Any(row => row.State != 0 &&
+                WorkflowRepointer.ReadReferences(row.Xaml).Any(reference => snapshot.LegacyActivities.Any(old =>
+                    WorkflowRepointer.SameReference(reference, old.Assembly, old.Type)))), token);
+        if (legacyEnabled) throw new LivePreparationFailure(LivePreparationReason.LegacyEnabled, module);
         using var safety = new LiveSafety(service, name => ResolveRequiredSecret(target.Name, name, secretReader));
         var identity = LivePreparationFailure.Capture(LivePreparationReason.Safety, module, null, null, null,
             () => safety.Verify(token), token);
@@ -207,14 +224,15 @@ internal static partial class DeploymentCli
                 // 非空活動輸入須先製作並核對專用樣板，不能把檔案參數默默忽略。
                 if (file.Trigger.GetProperty("inputs").EnumerateObject().Any())
                     throw PreparationFailure(LivePreparationReason.ActivityInputs, module, file);
-                var workflows = new LegacyRegistrationExporter.MetadataReader(service, 500, 10000, 100, token)
+                var workflows = CapturePreparation(LivePreparationReason.ActivityTemplate, module, file,
+                    () => new LegacyRegistrationExporter.MetadataReader(service, 500, 10000, 100, token)
                     .Read("workflow", ["xaml", "statecode", "primaryentity"], "type", [1]).Where(row =>
                     row.GetAttributeValue<OptionSetValue>("statecode")?.Value == 0 &&
                     row.GetAttributeValue<string>("primaryentity") == file.Seed.EnumerateArray().Single(seed => seed.GetProperty("alias").GetString() == "record").GetProperty("entity").GetString())
                     .Select(row => (Row: row, References: WorkflowRepointer.ReadReferences(row.GetAttributeValue<string>("xaml") ?? "")))
                     .Where(item => item.References.Count != 0 && item.References.All(reference => reference.Type == type ||
                         activity.Registration.Legacy.Any(old => WorkflowRepointer.SameReference(reference, old.Assembly, old.Type))))
-                    .OrderBy(item => item.Row.Id).ToArray();
+                    .OrderBy(item => item.Row.Id).ToArray(), token);
                 if (workflows.Length == 0) throw PreparationFailure(LivePreparationReason.ActivityTemplate, module, file);
                 var chosen = workflows[0];
                 var reference = chosen.References[0];
@@ -225,6 +243,9 @@ internal static partial class DeploymentCli
                 Array.Empty<Guid>(), new[] { executionId }, new[] { type }, Array.Empty<ShadowSdkTokenField>(), false)
             {
                 TokenNotRequired = true,
+                // 沿R4已核定的WhoAmI繫結，owner只借用目前服務使用者，不建立或清除systemuser。
+                SharedReferences = CapturePreparation(LivePreparationReason.PrepareScenario, module, file,
+                    () => SharedReferencesForScenario(service, file), token),
                 SynchronousStepTypes = step?.Registration.Mode == "Synchronous" ? new Dictionary<Guid, string> { [executionId] = type } : new Dictionary<Guid, string>(),
                 StepImages = step is null ? new Dictionary<Guid, IReadOnlyList<RegistrationImage>>() :
                     new Dictionary<Guid, IReadOnlyList<RegistrationImage>> { [executionId] = step.Registration.Images }

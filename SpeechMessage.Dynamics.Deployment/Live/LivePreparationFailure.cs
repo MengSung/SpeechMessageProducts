@@ -39,7 +39,7 @@ internal enum LivePreparationReason
     Metadata = 8,
     /// <summary>活動含尚未核定專用樣板的輸入，不可默默忽略。</summary>
     ActivityInputs = 9,
-    /// <summary>沒有可安全複製、原本停用的流程樣板。</summary>
+    /// <summary>流程樣板讀取、解析或選取失敗，或沒有可安全複製的停用樣板。</summary>
     ActivityTemplate = 10,
     /// <summary>情境 factory 的欄位、別名、映像或期望驗證拒絕。</summary>
     PrepareScenario = 11,
@@ -50,7 +50,9 @@ internal enum LivePreparationReason
     /// <summary>註冊來源、部署產物或組織現況快照準備失敗。</summary>
     RegistrationSnapshot = 14,
     /// <summary>白名單服務連線建立失敗，不能推定為權限或快取。</summary>
-    Connection = 15
+    Connection = 15,
+    /// <summary>本機同組織寫鎖或操作證據目錄無法建立；尚未執行業務寫入。</summary>
+    LocalResources = 16
 }
 
 /// <summary>只含固定原因與受審識別的單命令失敗；原例外保留但永不直接列印。</summary>

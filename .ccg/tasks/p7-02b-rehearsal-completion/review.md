@@ -1,0 +1,18 @@
+# 離線原因碼審查處理
+
+2026-11-19 Asia/Taipei (UTC+08:00)，實際測試時間見本機log時間戳；未連組織。
+
+- 自癒入口20261119-090615-p7-02b-diagnostics-review-reviewer：Claude有可用報告，Gemini兩次503，ok=false、dualModelComplete=false、quotaBlocked=false。這不是完整雙模型審查，也不是額度降級成功；尚未執行最後ClaudeOnly階段審查。
+- Critical：Claude未確認任何Critical。僅限五個staged檔案的靜態審查，不代表階段審查通過。
+- W1確認：workflow讀取及XML解析原無碼。新增實際RunPreparedLive故障注入兩案；先紅（SDK fault及非法XML皆缺LIVE-PREP-10），窄範圍CapturePreparation包完整樣板讀取／解析／選取後綠。保留原SDK例外及數字碼，沒有改樣板選擇條件。
+- W2不適用於目前可達路徑：ProductionGuard.VerifyServer僅kind=production執行，live-check嚴格只允許kind=test，故在本路徑必為no-op。原提議新增ServerIdentity原因碼的測試實際落入14（snapshot）而非這個點；已撤下不成立的測試，不新增正式關卡、不修改ProductionGuard。來源open／write lock／artifact建目錄屬命令基礎設施，既有固定失敗訊息保留；不冒稱這些已被新原因碼覆蓋。
+- Info唯一性：補兩個contact及兩個binding的實際準備測試，分別碼07／05，零寫入。
+- 流程狀態衝突核對：RunPreparedLive及LiveActivityProbe都要求原樣板statecode=0（停用），不是啟用。新離線對照：停用的合成單活動樣板可通過樣板關卡，故意以unsupported basis在factory碼11停止；啟用流程仍碼02拒絕。兩案零寫入，無矛盾，不放寬舊流程互斥。
+- 碼12仍為Capture與安全摘要單元測試，沒有宣稱走到runner的禁止能力callback；其餘01～11走真準備入口，13～15走真CLI邊界。
+- 本次24案通過。證據：artifacts/p7/live-prep-review-gaps-red.log與live-prep-review-gaps-green.log。不是實機通過證據，不能降級dormant。
+
+## 後續離線定位（尚待審查）
+
+2026-11-19 09:23 Asia/Taipei (UTC+08:00)：離線重放已定位共同準備拒絕為LIVE-PREP-02。既存switch-log的Before含146啟用平台流程，引用舊活動的啟用流程0、停用流程23，XML解析錯誤0（本機snapshot SHA-256 F90F7A2D11FAAD2361874D40C57C42E1EC902D2F6B1FECE896106B394894841D）。原RunPreparedLive以任何State!=0拒絕，四模組替身／真P7來源均重現碼02；改為完整舊活動清冊assembly/type精確比對後抵達刻意注入的metadata碼08，仍零寫入。這僅證明共同舊流程關卡修正，不代表metadata或整案準備通過。樣板原本即要求停用，無啟用樣板矛盾；啟用舊流程仍碼02拒絕。週報另補沿R4的WhoAmI owner共享繫結，先紅後綠，不建systemuser。診斷30案通過，未提交／全guard／live-check，兩份registration未動。
+
+本機來源／鎖／目錄追加碼16：真CLI以檔案阻擋artifact root，先紅（匿名錯誤）後綠；source handle失敗沿碼14。ProductionGuard無修改。新增碼16與先前撤下的ServerIdentity提議無關。安全樣板讀取碼10範圍含SDK讀取、XML解析與選取；不得將舊版24／25案數冒充目前30案。
