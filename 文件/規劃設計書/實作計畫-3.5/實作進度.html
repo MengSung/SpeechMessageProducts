@@ -240,11 +240,11 @@ footer{margin-top:36px;color:var(--muted);font-size:12.5px;text-align:center}
  */
 const DATA = {
   "planVersion": "3.5",
-  "snapshot": "2026-11-20 15:34 Asia/Taipei (UTC+08:00)",
-  "lastUpdated": "2026-11-20T15:34:00+08:00",
+  "snapshot": "2026-11-20 16:39 Asia/Taipei (UTC+08:00)",
+  "lastUpdated": "2026-11-20T16:39:00+08:00",
   "branch": "1.0.0.11.Integration.P8.Worktree",
   "head": "4975f2b00e736964c09a934394f3f1efd0dc27ea",
-  "headline": "階段 8 2026-11-20 15:34 Asia/Taipei (UTC+08:00)：P8-02 已驗收；P8-01c 的 lookup 結構與組織稽核已完成，殘留盤點為 0 且 verify 符合 off；migration plan 因五組標籤衝突 fail closed，Live 未驗收，依 D8-26 接續 P8-03a。",
+  "headline": "階段 8 2026-11-20 16:39 Asia/Taipei (UTC+08:00)：P8-02 角色映射依最新修正覆核完成；依新指示回到 P8-01c 重跑指定遷移步驟，P8-01 尚未驗收。",
   "notices": [
     {
       "id": "plan-3.5-summary",
@@ -702,8 +702,8 @@ const DATA = {
       "phaseId": "階段 8",
       "level": "info",
       "title": "P8 進度摘要",
-      "body": "2026-11-20 12:43 Asia/Taipei (UTC+08:00)：P8-00、P8-01a、P8-01b、P8-02 已驗收。P8-01c build 20 Plugin／Workflow assembly 更新後，本次唯讀 verify 成功且符合清冊 off；五組共用選項值標籤衝突使遷移 fail closed，未套用 lookup 或奉獻資料。D34 探針兩次同條件 InvalidOperationException、writes=0，SMV-TEST 殘留未知，P8-01c 未驗收；依 08A §7.2／D8-26 接續 P8-03a。4975f2b0 的完整守門命令成功、已推送並核對遠端 SHA；transcript 未完整保存原生輸出，限制已記錄。",
-      "lastUpdated": "2026-11-20T12:43:00+08:00",
+      "body": "2026-11-20 16:39 Asia/Taipei (UTC+08:00)：P8-02 角色標籤對照依最新修正覆核，僅精確匹配 metadata。遵照使用者新順序，P8-01c 已回到進行中，將重新執行 build 20 核對、兩個 lookup 結構與 migration 指定步驟；既有五組共用值標籤衝突仍 fail closed，不猜測或寫入資料。15:52 的縮減驗收只作歷史紀錄，不代表本次回頭單元已完成。P8-03a 已建立但待 P8-01 驗收後續行；階段 8 尚未完成。",
+      "lastUpdated": "2026-11-20T16:39:00+08:00",
       "steps": [
         "2026-11-19 20:01 Asia/Taipei (UTC+08:00)：起點與分支核對為 6a37f16ba111943eb023c14dea3c9a006a0f0a5c、1.0.0.11.Integration.P8.Worktree；P8 分支遠端尚不存在，依 08A 首次推送延至 P8-01a 驗收後。",
         "2026-11-19 20:01 Asia/Taipei (UTC+08:00)：P7 最末完整守門基準 Release 7341、Debug tracer 7；Deployment.Tests 977 僅為候選檢查點；註冊清冊 live 12／pass 1／dormant 21；CJK 專案 count 合計 3764。",
@@ -718,7 +718,9 @@ const DATA = {
         "2026-11-20 12:16 Asia/Taipei (UTC+08:00)：build 20 組件更新後唯讀 verify 成功，狀態符合 off；export-legacy 舊步驟／流程啟用數皆為0。ID-only 備份97筆；labels黃金檔41個選項，RequiredLevel均None，共享值中5個標籤不一致，migration plan fail closed；沒有套用lookup或資料回填。D34唯讀探針兩次失敗且writes=0，不重試同一條件；SMV-TEST殘留未確認。P8-01c仍進行中，細節見P8-01c-migration.md；上線前先轉換並回填已列於P8-上線前置清單.md。",
         "2026-11-20 12:23 Asia/Taipei (UTC+08:00)：P8-01c Deployment.Tests Release 1,029/1,029 通過；檔案說明 1,856 檔零失敗；進度頁契約 28/28 通過。這些離線證據不代表指定 P8Live 或奉獻資料遷移已驗收。",
         "2026-11-20 12:43 Asia/Taipei (UTC+08:00)：新會話 User Secrets 必要鍵存在且 endpoint 在記憶體內符合 goodshepherdback allowlist；唯讀 verify 成功、符合 off，證據位於 C:\\smv\\guard-p8-evidence\\p8-01c-resume-verify-20261120.log。4975f2b0 在唯一 guard 的 §8.1 各命令成功、ProgressPage 28/28；transcript 僅留起訖與成功標記，沒有重跑。P8-01c 因遷移缺項仍未驗收，按 D8-26 接續 P8-03a。",
-        "2026-11-20 15:34 Asia/Taipei (UTC+08:00)：兩個 lookup 欄結構 plan/apply/verify 完成，組織稽核已開啟；唯讀殘留盤點 15 個實體記錄0、workflow0，verify 符合 off。qrcodes live-check 到達 LIVE-PREP-04；D34 子檢查依順序通過，但整體 Live 未通過。migration plan 因五組 metadata 標籤衝突 fail closed；未執行資料 migration、冪等 apply 或指定 P8Live。P8-01c 維持進行中，按 D8-26 接續 P8-03a。"
+        "2026-11-20 15:34 Asia/Taipei (UTC+08:00)：兩個 lookup 欄結構 plan/apply/verify 完成，組織稽核已開啟；唯讀殘留盤點 15 個實體記錄0、workflow0，verify 符合 off。qrcodes live-check 到達 LIVE-PREP-04；D34 子檢查依順序通過，但整體 Live 未通過。migration plan 因五組 metadata 標籤衝突 fail closed；未執行資料 migration、冪等 apply 或指定 P8Live。P8-01c 尚待依 D8-26 做縮減驗收登錄。",
+        "2026-11-20 15:52 Asia/Taipei (UTC+08:00)：P8-01c 當時依 D8-26 縮減驗收；已完成項為 build 20 assembly 核對、兩個 lookup 欄結構 plan/apply/verify、組織稽核開啟、15 個實體與 workflow 殘留 0、verify 符合 off。縮減項為五組標籤衝突後的 migration plan/apply/verify、冪等第二次 apply、指定 P8Live 與整體 Live。此歷史結論已由 2026-11-20 16:39 使用者新指示取代，P8-01c 回到進行中。",
+        "2026-11-20 16:39 Asia/Taipei (UTC+08:00)：依使用者更正重做 P8-02 對照回報；固定順序回到 P8-01c，先前 15:52 縮減驗收不作本次完成依據。P8-03a 已建 Trellis 子任務並有紅燈測試草稿，待 P8-01 整包驗收後續行。"
       ]
     }
   ],
@@ -897,7 +899,7 @@ const DATA = {
       "id": "階段 8",
       "name": "收尾、偽語系驗收、教會設定網頁",
       "planned": "3～4 個工作天",
-      "actual": "2026-11-20 12:23 Asia/Taipei (UTC+08:00)：P8-00、P8-01a、P8-01b、P8-02已驗收；P8-01c仍進行中。Deployment.Tests 1,029/1,029、檔案說明1,856檔與進度測試28/28通過。build 20 assembly更新與verify已通過；RequiredLevel=None；5組重複選項值標籤不同，遷移未套用。D34與SMV-TEST殘留未確認，提案P8-PROP-008保留；階段8實際用時持續累計。",
+      "actual": "2026-11-20 16:39 Asia/Taipei (UTC+08:00)：P8-00、P8-01a、P8-01b、P8-02已驗收；依使用者新指示，P8-01c回到進行中並按08A指定步驟重做，P8-01整包待驗收。P8-03a已建立但依固定順序待續；階段8尚未完成。",
       "current": true,
       "done": 1,
       "active": 1
@@ -1864,7 +1866,7 @@ const DATA = {
       "timebox": "1 天",
       "doneAt": "",
       "commit": "",
-      "note": "2026-11-20 12:23 Asia/Taipei (UTC+08:00)：P8-01a、P8-01b離線段已驗收；P8-01c build 20組件更新後verify符合off，舊步驟／流程啟用0。兩欄RequiredLevel=None；17個共用值中5個metadata標籤不同，plan fail closed且未apply。Deployment.Tests 1,029/1,029通過。D34探針兩次InvalidOperationException、writes=0；SMV-TEST殘留未確認。P8-01總包仍進行中，完整缺項見P8-01c-migration.md。"
+      "note": "2026-11-20 16:39 Asia/Taipei (UTC+08:00)：回到 P8-01c 按使用者新指示重做；先前 15:52 縮減驗收保留為歷史，不作本次 P8-01 完成依據。P8-01a/b 原驗收仍有效；P8-01c 待 build 20、結構、遷移、核對與收尾重驗後再決定完整或縮減驗收。"
     },
     {
       "id": "P8-02",
@@ -1948,14 +1950,14 @@ const DATA = {
       "phaseId": "階段 8",
       "name": "P8-01c goodshepherdback 轉換與核對",
       "status": "active",
-      "note": "2026-11-20 15:34 Asia/Taipei (UTC+08:00)：build 20組件verify符合off；指定兩個lookup結構已apply並verify，組織稽核已開啟；殘留盤點15個實體記錄0、workflow0。qrcodes live-check到達LIVE-PREP-04，僅D34子檢查通過，整體Live未驗收。migration plan因5組metadata標籤衝突fail closed，沒有資料apply、verify、冪等apply或指定P8Live；依D8-26維持進行中並接續P8-03a。"
+      "note": "2026-11-20 16:39 Asia/Taipei (UTC+08:00)：依使用者新指示回到本單元；15:52 的 D8-26 縮減驗收仍保留歷史，但不代表本次重新執行已完成。新的核對若仍遇五組共用 option value metadata labels 衝突，必須維持 fail closed 並如實依 D8-26 記錄。"
     },
     {
       "id": "P8-03a",
       "phaseId": "階段 8",
       "name": "P8-03a 教會覆寫接線與設定服務",
       "status": "todo",
-      "note": "2026-11-19 20:43 Asia/Taipei (UTC+08:00)：依 08A 固定順序待執行。"
+      "note": "2026-11-20 16:39 Asia/Taipei (UTC+08:00)：Trellis 子任務與紅燈測試草稿已建立；依使用者最新順序，待 P8-01 整包驗收後續行。"
     },
     {
       "id": "P8-03b",
@@ -2186,7 +2188,7 @@ const DATA = {
         ["指定測試", "ok", "16 個指定名稱存在；Deployment 1021/1021，Core net10.0 與 net48 各 391/391。"],
         ["P8-01c 實機 metadata 與 verify", "ok", "build 20組件verify符合off；兩個lookup結構apply/verify成功，組織稽核已開啟；殘留盤點15個實體記錄0、workflow0。"],
         ["P8-01a 離線守門與提交", "ok", "bfc713f2 的完整 §8.1 守門全通過；P8-01a 收尾提交 50a9e87c、eda46dab。"],
-        ["P8-01c 遷移與收尾", "no", "5組共享選項值標籤衝突，migration plan fail closed；未執行資料migration、冪等apply或指定P8Live。qrcodes live-check到達LIVE-PREP-04，D34子檢查通過但整體Live未通過；殘留盤點0、verify符合off。單元未驗收。詳見 P8-01c-migration.md 與 P8-上線前置清單.md。"]
+        ["P8-01c 遷移與收尾（續作中）", "no", "依使用者新指示回到本單元，15:52的縮減驗收只保留歷史；重新完成build 20、結構、migration、逐段核對、verify、冪等apply及收尾後再決定完整或縮減驗收。"]
       ]
     }
   ],
@@ -2872,8 +2874,8 @@ const DATA = {
     {
       "id": "P8-PROP-004",
       "problem": "ChurchReport 約 40 處以中文身分標籤比對。",
-      "evidence": "2026-11-20 07:10 Asia/Taipei (UTC+08:00)：P8-02 位置盤點與檔名／行號見 `.trellis/tasks/11-19-integration-p8/wp-reports/P8-02.md`；含控制器、模型、服務、WebServiceConnector 與 Razor 既有比對。",
-      "proposal": "本階段不改既有判斷；P8-02 僅以 metadata 標籤完全相同映射七個角色。ZoneShepherd／ZoneLeader／AssistantGroupLeader／CoreWorker 保留代碼但選項值留空；「全職同工」「區長」「實習小組長」不給角色代碼或權限並顯示 D365 原文，禁止語意猜測。未來若支援教會新增角色，先改用穩定代碼。",
+      "evidence": "2026-11-20 16:39 Asia/Taipei (UTC+08:00)：P8-02 回報 `.trellis/tasks/11-19-integration-p8/wp-reports/P8-02.md` 與 `wp-reports/P8-02.md` 列明 10 個 metadata 標籤及結果；唯讀黃金檔 SHA-256 `131D071EAEF4901E67FBB0BB92FE35AA66FEA9C47B11A24`。既有約 40 處位置清單見同一 P8-02 回報。",
+      "proposal": "只以 metadata 標籤 ordinal 完全相同作映射。小組組員→Member、新朋友→Newcomer、結案→Closed、未入組→NotInGroup、牧師師母→PastorCouple、外教會→OtherChurch、小組長→GroupLeader。全職同工、區長、實習小組長沒有角色代碼及權限，顯示 D365 原文。ZoneShepherd、ZoneLeader、AssistantGroupLeader、CoreWorker 保留代碼但 option value 留空；不得將實習小組長語意猜測為 AssistantGroupLeader。ChurchReport 約 40 處既有中文標籤判斷不在本階段改寫；未來支援新增角色前先改用穩定代碼。",
       "impact": "ChurchReport 既有身分判斷。",
       "status": "位置盤點完成；依 08A D8-11 保留提案，未改既有程式"
     },
