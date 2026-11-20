@@ -26,6 +26,7 @@ using Microsoft.Xrm.Sdk;
 using Microsoft.Xrm.Sdk.Query;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using SpeechMessage.Localization;
 using SpeechMessageProducts.GoodShepherd.Core.Appointments;
 using SpeechMessageProducts.GoodShepherd.Core.Fees;
 using SpeechMessageProducts.GoodShepherd.Core.Lessons;
@@ -90,7 +91,8 @@ public static class MemberNotifyRelay
 
     /// <summary>解析封閉四欄並重讀來源，教會不符不解密；借用key至通知排空，不清理caller所有的key或SDK。</summary>
     public static async Task ExecuteAsync(IOrganizationService sdk, ILineMemberPushClient push, Guid churchId,
-        string payloadJson, byte[] tokenKey, CancellationToken ct)
+        string payloadJson, byte[] tokenKey, CancellationToken ct, ITextCatalog? catalog = null,
+        string textProduct = "GoodShepherd")
     {
 #if NETFRAMEWORK
         if (sdk is null) throw new ArgumentNullException(nameof(sdk));
@@ -125,7 +127,8 @@ public static class MemberNotifyRelay
             case MemberNotifyRelayKind.AppointmentSigning:
                 result = await AppointmentSigningRule.NotifyRouteAsync(sdk, push, recordId, who.OrganizationId, route, null, tokenKey, churchId, ct).ConfigureAwait(false); break;
             case MemberNotifyRelayKind.FeeNotify:
-                result = await FeeNotificationService.NotifyRouteAsync(sdk, push, recordId, who.OrganizationId, route, churchId, tokenKey, ct).ConfigureAwait(false); break;
+                result = await FeeNotificationService.NotifyRouteAsync(sdk, push, recordId, who.OrganizationId,
+                    route, churchId, tokenKey, catalog, textProduct, ct).ConfigureAwait(false); break;
             default:
                 await OutboundLetterRecords.SendAsync(sdk, push, recordId, who.OrganizationId, churchId, tokenKey, ct).ConfigureAwait(false); return;
         }

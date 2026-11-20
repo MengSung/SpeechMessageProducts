@@ -1,0 +1,7 @@
+{"_example": "Fill with {\"file\": \"<path>\", \"reason\": \"<why>\"}. Put spec/research files only — no code paths. Run `python .trellis/scripts/get_context.py --mode packages` to list available specs. Delete this line once real entries are added."}
+{"file": ".trellis/spec/backend/church-text-override-cache-contract.md", "reason": "遵守覆寫來源、快取隔離與輪詢生命週期"}
+{"file": ".trellis/spec/backend/tenancy-channel-contract.md", "reason": "遵守產品與教會授權 scope 邊界"}
+{"file": ".trellis/spec/backend/localization-contract.md", "reason": "遵守 TextContext 與文化資料契約"}
+{"file": ".trellis/spec/backend/file-documentation-contract.md", "reason": "遵守繁中檔案說明與位元組格式契約"}
+{"file": ".trellis/spec/guides/cross-layer-thinking-guide.md", "reason": "核對核心、兩個 Host、資料來源與測試跨層流程"}
+{"file": ".trellis/spec/guides/code-reuse-thinking-guide.md", "reason": "重用既有 factory、lease、cache、polling 實作"}

@@ -69,26 +69,45 @@ public sealed class ChurchTextOverrideValidator
                 throw new ArgumentException("Override schema budget exceeded.", nameof(rows));
             characters = checked(characters + row.Text.Length);
             if (characters > 1_000_000) throw new ArgumentException("Override character budget exceeded.", nameof(rows));
-            RequireUnicode(row.Text);
-            if (!string.Equals(row.Culture, "*", StringComparison.Ordinal))
-            {
-                if (CultureInfo.GetCultureInfo(row.Culture).Name.Length == 0)
-                    throw new ArgumentException("Override culture must be explicit.", nameof(rows));
-            }
-            if (!system.TryGetOriginalText("zh-TW", row.Key, out var original))
-                throw new ArgumentException("Override key does not exist in the system catalog.", nameof(rows));
-            if (!NamedTextFormatter.ParameterNames(original).SetEquals(NamedTextFormatter.ParameterNames(row.Text)))
-                throw new FormatException("Override parameter names do not match the system catalog.");
-            var maximum = row.Key.Value == "Line.Sender.Template" ? 20
-                : row.Key.Value.StartsWith("RichMenu.ChatBar.", StringComparison.Ordinal) ? 14 : 0;
-            if (maximum != 0)
-            {
-                var length = NamedTextFormatter.MaximumLength(row.Text, churchNameLength);
-                if (length == 0 || length > maximum)
-                    throw new ArgumentException("Override text exceeds the platform length limit.", nameof(rows));
-            }
+            ValidateOverride(context, row.Key, row.Culture, row.Text);
         }
         return new ChurchTextOverrideSnapshot(context, rows);
+    }
+
+    /// <summary>驗證單筆待儲存覆寫，不建立假資料庫身分或發布部分快照。</summary>
+    /// <param name="context">本次操作的完整伺服器授權範圍。</param>
+    /// <param name="key">固定系統文字鍵。</param>
+    /// <param name="culture">明確語系或全語系星號。</param>
+    /// <param name="text">待保存的有界文字本文。</param>
+    /// <exception cref="ArgumentException">schema、語系、文字或平台長度不符。</exception>
+    /// <exception cref="FormatException">鍵不存在或具名參數集合不同。</exception>
+    public void ValidateOverride(TextContext context, TextKey key, string culture, string text)
+    {
+#if NET10_0_OR_GREATER
+        ArgumentNullException.ThrowIfNull(context);
+        ArgumentNullException.ThrowIfNull(culture);
+        ArgumentNullException.ThrowIfNull(text);
+#else
+        if (context is null) throw new ArgumentNullException(nameof(context));
+        if (culture is null) throw new ArgumentNullException(nameof(culture));
+        if (text is null) throw new ArgumentNullException(nameof(text));
+#endif
+        if (key.Value.Length > 200 || culture.Length > 16 || text.Length > 2000)
+            throw new ArgumentException("Override schema budget exceeded.");
+        if (!string.Equals(culture, "*", StringComparison.Ordinal)
+            && CultureInfo.GetCultureInfo(culture).Name.Length == 0)
+            throw new ArgumentException("Override culture must be explicit.", nameof(culture));
+        RequireUnicode(text);
+        if (!system.TryGetOriginalText("zh-TW", key, out var original))
+            throw new ArgumentException("Override key does not exist in the system catalog.", nameof(key));
+        if (!NamedTextFormatter.ParameterNames(original).SetEquals(NamedTextFormatter.ParameterNames(text)))
+            throw new FormatException("Override parameter names do not match the system catalog.");
+        var maximum = key.Value == "Line.Sender.Template" ? 20
+            : key.Value.StartsWith("RichMenu.ChatBar.", StringComparison.Ordinal) ? 14 : 0;
+        if (maximum == 0) return;
+        var length = NamedTextFormatter.MaximumLength(text, churchNameLength);
+        if (length == 0 || length > maximum)
+            throw new ArgumentException("Override text exceeds the platform length limit.", nameof(text));
     }
 
     /// <summary>拒絕不成對 UTF-16 surrogate，防止不同輸出器修補字元造成發布後才改變識別或長度。</summary>

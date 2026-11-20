@@ -23,6 +23,8 @@ namespace SpeechMessageProducts.GoodShepherd.Core.Messaging;
 /// <summary>合併產品與共用固定資源的無狀態文字 catalog。</summary>
 public sealed class GoodShepherdTextCatalog : ITextCatalog
 {
+    private static readonly SystemTextTable ProductSystem =
+        SystemTextTable.FromRows(GoodShepherdTextData.Cultures, GoodShepherdTextData.Rows);
     private readonly SystemTextTable productSystem;
     private readonly TextCatalog product;
     private readonly TextCatalog shared;
@@ -38,10 +40,16 @@ public sealed class GoodShepherdTextCatalog : ITextCatalog
 #else
         if (overrides is null) throw new ArgumentNullException(nameof(overrides));
 #endif
-        productSystem = SystemTextTable.FromRows(GoodShepherdTextData.Cultures, GoodShepherdTextData.Rows);
+        productSystem = ProductSystem;
         product = new TextCatalog(productSystem, overrides);
         shared = new TextCatalog(new SystemTextTable(), overrides);
     }
+
+    /// <summary>以同一份產生器產品資源建立單筆與快照共用的覆寫驗證器。</summary>
+    /// <param name="longestChurchName">I18nCheck 核定的完整最長名稱樣本；驗證器只保存其長度。</param>
+    /// <returns>使用固定 GoodShepherd 資源且不持有 Host、快取或使用者狀態的驗證器。</returns>
+    public static ChurchTextOverrideValidator CreateOverrideValidator(string longestChurchName) =>
+        new(ProductSystem, longestChurchName);
 
     /// <summary>依穩定 key 選擇產品或共用資源，再以本次 scope 格式化具名參數。</summary>
     /// <param name="context">已由 Host 授權的組織／教會／產品與語系範圍。</param>

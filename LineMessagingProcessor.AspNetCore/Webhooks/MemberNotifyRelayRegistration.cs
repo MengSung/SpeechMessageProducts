@@ -19,6 +19,7 @@ using Microsoft.Xrm.Sdk;
 using Microsoft.Xrm.Sdk.Organization;
 using SpeechMessage.Hosting.Outbound;
 using SpeechMessageProducts.GoodShepherd.Core.Notifications;
+using SpeechMessage.Localization;
 using ToolUtilityNameSpace.Outbound;
 
 namespace LineMessagingProcessor.AspNetCore.Webhooks;
@@ -112,7 +113,8 @@ public sealed class MemberNotifyRelayHostFactory(IServiceScopeFactory scopes) : 
 }
 
 /// <summary>只存在單筆scope的代送handler；key/client僅屬本次Execute，完成後清理，不保存在欄位。</summary>
-public sealed class MemberNotifyRelayHandler(IOrganizationService sdk, IConfiguration configuration, IHttpClientFactory clients) : IOutboundTaskHandler, IDisposable
+public sealed class MemberNotifyRelayHandler(IOrganizationService sdk, IConfiguration configuration,
+    IHttpClientFactory clients, ITextCatalog? catalog = null) : IOutboundTaskHandler, IDisposable
 {
     private OutboundWorkItem? item; private int started;
     /// <summary>只允許factory綁定一次；payload未被當授權，Core執行時仍重驗來源。</summary>
@@ -134,7 +136,8 @@ public sealed class MemberNotifyRelayHandler(IOrganizationService sdk, IConfigur
         try
         {
             using var client = clients.CreateClient("MemberNotifyRelay");
-            await MemberNotifyRelay.ExecuteAsync(sdk, new LinePushClient(client), current.ChurchId, current.PayloadJson, key, ct).ConfigureAwait(false);
+            await MemberNotifyRelay.ExecuteAsync(sdk, new LinePushClient(client), current.ChurchId,
+                current.PayloadJson, key, ct, catalog, catalog is null ? "GoodShepherd" : "LineWebhook").ConfigureAwait(false);
         }
         catch (MemberNotifyRelayDeliveryException exception)
         {

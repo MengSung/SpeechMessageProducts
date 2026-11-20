@@ -47,12 +47,32 @@ public static class FeeNotificationService
         ArgumentNullException.ThrowIfNull(sdk);
         ArgumentNullException.ThrowIfNull(sink);
 #endif
-        return NotifyCoreAsync(sdk, new NoDelivery(), feeId, organizationId, sink, null, null, ct);
+        return NotifyCoreAsync(sdk, new NoDelivery(), feeId, organizationId, sink, null, null, null, "GoodShepherd", ct);
     }
 
     /// <summary>已解析route的Live入口；route固定0，來源教會重驗後才讀頻道並以feeId推播。回傳原傳輸結果，key由Host擁有及清零。</summary>
     public static Task<LinePushResult?> NotifyRouteAsync(IOrganizationService sdk, ILineMemberPushClient push, Guid feeId,
         Guid organizationId, int route, Guid expectedChurch, byte[] key, CancellationToken ct)
+        => NotifyRouteAsync(sdk, push, feeId, organizationId, route, expectedChurch, key, null, "GoodShepherd", ct);
+
+    /// <summary>
+    /// 由 Host 傳入已註冊的產品 catalog 與固定文字產品鍵；來源教會仍由正式 fee→contact→account 關聯重驗。
+    /// 文字產品值不是授權依據，只用來選擇本 Host 的覆寫快照分區；預設舊入口維持 GoodShepherd。
+    /// </summary>
+    /// <param name="sdk">Host 借用且在單次 relay 完成前持有的 SDK。</param>
+    /// <param name="push">本次通知所用的推播 client。</param>
+    /// <param name="feeId">已存在的收費單正式主鍵。</param>
+    /// <param name="organizationId">由 Host WhoAmI 取得的正式組織主鍵。</param>
+    /// <param name="route">封閉且目前固定為零的路由。</param>
+    /// <param name="expectedChurch">relay 工作列的教會範圍，須與來源重讀結果相符。</param>
+    /// <param name="key">Host 借用的解密 key，不由本服務清零。</param>
+    /// <param name="catalog">本 Host 的產品文字 catalog；null 時保留舊空覆寫行為。</param>
+    /// <param name="textProduct">Host 固定的文字快照產品分區。</param>
+    /// <param name="ct">單筆操作取消權杖。</param>
+    /// <returns>既有推播分類結果；正常拒絕仍回 null 或原分類。</returns>
+    public static Task<LinePushResult?> NotifyRouteAsync(IOrganizationService sdk, ILineMemberPushClient push, Guid feeId,
+        Guid organizationId, int route, Guid expectedChurch, byte[] key, ITextCatalog? catalog, string textProduct,
+        CancellationToken ct)
     {
 #if NETFRAMEWORK
         if (route != 0) throw new ArgumentOutOfRangeException(nameof(route));
@@ -60,12 +80,14 @@ public static class FeeNotificationService
         ArgumentOutOfRangeException.ThrowIfNotEqual(route, 0);
 #endif
         if (key is null || key.Length != 64) throw new ArgumentException("A token key is required.", nameof(key));
-        return NotifyCoreAsync(sdk, push, feeId, organizationId, null, key, expectedChurch, ct);
+        if (string.IsNullOrWhiteSpace(textProduct)) throw new ArgumentException("A fixed text product is required.", nameof(textProduct));
+        return NotifyCoreAsync(sdk, push, feeId, organizationId, null, key, expectedChurch, catalog, textProduct, ct);
     }
 
     /// <summary>兩模式共用收件者、組字及重試鍵；當次source在傳輸排空後釋放，來源不符不讀token。</summary>
     private static async Task<LinePushResult?> NotifyCoreAsync(IOrganizationService sdk, ILineMemberPushClient push, Guid feeId,
-        Guid organizationId, IShadowPushSink? sink, byte[]? key, Guid? expectedChurch, CancellationToken ct)
+        Guid organizationId, IShadowPushSink? sink, byte[]? key, Guid? expectedChurch, ITextCatalog? suppliedCatalog,
+        string textProduct, CancellationToken ct)
     {
 #if NET10_0_OR_GREATER
         ArgumentNullException.ThrowIfNull(sdk);
@@ -81,10 +103,10 @@ public static class FeeNotificationService
         var churchId = Lookup(contact, "parentcustomerid", "account");
         if (expectedChurch.HasValue && churchId != expectedChurch.Value) return null;
         using var source = new NotificationSource(sdk, key is not null);
-        var catalog = new GoodShepherdTextCatalog(new NoOverrides());
+        var catalog = suppliedCatalog ?? new GoodShepherdTextCatalog(new NoOverrides());
         var notifications = new MemberNotificationService(push,
             new MemberCultureResolver(new LocalizationOptions()), catalog);
-        var scope = new TextContext(churchId, "zh-TW", "zh-TW", organizationId.ToString("D"), "GoodShepherd");
+        var scope = new TextContext(churchId, "zh-TW", "zh-TW", organizationId.ToString("D"), textProduct);
         System.Collections.Generic.IReadOnlyList<ISendMessage> Compose(TextContext context)
         {
             // 姓名、金額與日期只在共用入口已重驗收件者後才解讀／組成訊息。

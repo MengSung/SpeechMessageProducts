@@ -35,13 +35,48 @@ public static class OverrideServiceCollectionExtensions
         Action<Exception, string> reportFailure)
     {
         ArgumentNullException.ThrowIfNull(services);
+        services.TryAddSingleton<SystemTextTable>();
+        return AddChurchTextOverridesCore(services,
+            new ChurchTextOverrideValidator(new SystemTextTable(), longestChurchName),
+            provider => new TextCatalog(provider.GetRequiredService<SystemTextTable>(),
+                provider.GetRequiredService<IChurchTextOverrideSnapshotProvider>()),
+            reportFailure, longestChurchName, isDefaultPolicy: true);
+    }
+
+    /// <summary>
+    /// 使用產品字典的 validator 與 catalog 註冊唯一快取 owner，避免產品鍵被錯當共享字典而拒絕合法覆寫。
+    /// Host 仍須先註冊唯一 singleton source；呼叫端委派只建純 catalog，不能捕捉 request 或外部資源。
+    /// </summary>
+    /// <param name="services">Host 擁有且尚未建置的服務集合，不在內部建立容器。</param>
+    /// <param name="validator">以實際產品 system table 建立的不可變覆寫驗證器。</param>
+    /// <param name="createCatalog">以本 Host 唯一 snapshot provider 建立產品 catalog。</param>
+    /// <param name="reportFailure">Host 共用的原例外通知轉接。</param>
+    /// <param name="registrationIdentity">固定產品註冊標記，用於拒絕不同 owner 政策重入。</param>
+    /// <returns>已註冊唯一覆寫來源、快取與 catalog 的原服務集合。</returns>
+    public static IServiceCollection AddChurchTextOverrides(this IServiceCollection services,
+        ChurchTextOverrideValidator validator, Func<IServiceProvider, ITextCatalog> createCatalog,
+        Action<Exception, string> reportFailure, string registrationIdentity)
+        => AddChurchTextOverridesCore(services, validator, createCatalog, reportFailure, registrationIdentity,
+            isDefaultPolicy: false);
+
+    private static IServiceCollection AddChurchTextOverridesCore(IServiceCollection services,
+        ChurchTextOverrideValidator validator, Func<IServiceProvider, ITextCatalog> createCatalog,
+        Action<Exception, string> reportFailure, string registrationIdentity, bool isDefaultPolicy)
+    {
+        ArgumentNullException.ThrowIfNull(services);
+        ArgumentNullException.ThrowIfNull(validator);
+        ArgumentNullException.ThrowIfNull(createCatalog);
         ArgumentNullException.ThrowIfNull(reportFailure);
+        if (string.IsNullOrWhiteSpace(registrationIdentity))
+            throw new ArgumentException("A fixed registration identity is required.", nameof(registrationIdentity));
         var sources = 0;
         foreach (var descriptor in services)
         {
             if (descriptor.ServiceType == typeof(Registration) && descriptor.ImplementationInstance is Registration existing)
             {
-                if (!string.Equals(existing.LongestName, longestChurchName, StringComparison.Ordinal)
+                if (!string.Equals(existing.Identity, registrationIdentity, StringComparison.Ordinal)
+                    || existing.IsDefaultPolicy != isDefaultPolicy
+                    || (!isDefaultPolicy && !ReferenceEquals(existing.Validator, validator))
                     || !ReferenceEquals(existing.Report, reportFailure))
                     throw new InvalidOperationException("Override services already have a different owner policy.");
                 return services;
@@ -59,21 +94,20 @@ public static class OverrideServiceCollectionExtensions
                 throw new InvalidOperationException("Override services already have an explicit owner.");
         }
         if (sources != 1) throw new InvalidOperationException("Exactly one explicit override source is required.");
-        // 在新增任何服務之前驗固定樣本，錯配置不能留下半套註冊；生成系統表無 I/O 或資源擁有權。
-        _ = new ChurchTextOverrideValidator(new SystemTextTable(), longestChurchName);
-        services.AddSingleton(new Registration(longestChurchName, reportFailure));
-        services.TryAddSingleton<SystemTextTable>();
-        services.AddSingleton(provider => new ChurchTextOverrideValidator(provider.GetRequiredService<SystemTextTable>(), longestChurchName));
+        services.AddSingleton(new Registration(registrationIdentity, validator, reportFailure, isDefaultPolicy));
+        services.AddSingleton(validator);
         services.AddSingleton(provider => new ChurchTextOverrideCache(provider.GetRequiredService<IChurchTextOverrideSource>(),
-            provider.GetRequiredService<ChurchTextOverrideValidator>(), reportFailure, provider.GetService<TimeProvider>()));
+            validator, reportFailure, provider.GetService<TimeProvider>()));
         services.AddSingleton<IChurchTextOverrideSnapshotProvider>(provider => provider.GetRequiredService<ChurchTextOverrideCache>());
-        services.AddSingleton<ITextCatalog>(provider => new TextCatalog(provider.GetRequiredService<SystemTextTable>(),
-            provider.GetRequiredService<IChurchTextOverrideSnapshotProvider>()));
+        services.AddSingleton(createCatalog);
         return services;
     }
 
-    /// <summary>純 Host 政策標記，不保存服務容器、request 或使用者；委派與樣本最長只隨容器存活。</summary>
-    /// <param name="LongestName">固定合成最長名稱樣本。</param>
+    /// <summary>純 Host 政策標記，只供同一容器比對註冊 owner，不保存 request 或使用者狀態。</summary>
+    /// <param name="Identity">固定產品註冊識別。</param>
+    /// <param name="Validator">唯一 cache 使用的產品字典驗證器。</param>
     /// <param name="Report">Host 提供的唯一共用 notifier 轉接。</param>
-    private sealed record Registration(string LongestName, Action<Exception, string> Report);
+    /// <param name="IsDefaultPolicy">是否為使用固定系統字典與最長名稱樣本的預設註冊路徑。</param>
+    private sealed record Registration(string Identity, ChurchTextOverrideValidator Validator,
+        Action<Exception, string> Report, bool IsDefaultPolicy);
 }

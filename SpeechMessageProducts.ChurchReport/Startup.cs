@@ -4,8 +4,9 @@
  * 目的與定位：應用程式啟動類別，負責配置服務和 HTTP 請求管道。 此類別定義了 ASP.NET Core 應用程式的啟動邏輯，包括依賴注入、路由配置等。
  *
  * 主要功能與流程：
- * 本檔宣告 Startup，於 Tenancy 產品註冊後建立 ChurchReport 使用的 GoodShepherdTextCatalog，
- * 並以無狀態空覆寫快照 provider 支援 P8-02 固定產品角色字典。
+ * 本檔宣告 Startup，於 Tenancy 產品註冊後依啟動期 Localization:ChurchOverrides:Enabled
+ * 開關註冊 ChurchReport 的 GoodShepherdTextCatalog；關閉時使用無狀態空 provider，
+ * 開啟時使用既有 ChurchReport Dataverse manager、覆寫快取與文字變更輪詢。
  * - 目前啟用的主題名稱（藍色、橘色、綠色、粉紅色、晨霧紫、月光藍、皇家紫金、勃根地金、陽光黃、珊瑚橘、行道靛紫）。
  * - 配置服務的方法。此方法由運行時呼叫，用於將服務添加到依賴注入容器中。 包括 HTTP 客戶端、快取、CRM 連接池、健康檢查、MVC 配置、身份驗證等服務的註冊。
  * - ToolUtility 明確借用原 host 的 Configuration 與固定 ChurchReport 產品鍵；不另建設定、容器或連線，維持 request scope 及既有 pool owner。
@@ -14,7 +15,8 @@
  *
  * 使用邊界與維護：
  * 本檔的前置條件、錯誤及資源責任以各型別／成員契約為準；此導讀不把呼叫參數視為授權，也不擴張被借入依賴的所有權。
- * 文字 catalog 與空 provider 都是 singleton 無狀態註冊；P8-03a 接入覆寫時須先移除這兩個服務，再註冊唯一覆寫 owner 與產品 catalog。
+ * 文字 catalog、空 provider 或覆寫 cache 均為 Host singleton；啟用時須維持唯一 source/cache owner，
+ * 並讓 Host 停止流程先排空輪詢，再由 DI 反向釋放 cache 與原有連線 manager。
  * 變更介面、資料格式、取消或清理順序時，須一併核對下列合作檔案及對應測試，不能只改目前檔案。
  */
 using ChurchReport.Services;
@@ -564,9 +566,7 @@ namespace ChurchReport
             services.AddScoped<ChurchReport.Services.PaymentNotificationService>();
             // 固定產品容器只註冊一次；Tenancy 借用 host 的設定與 logger，不擁有 request 或設定 provider。
             global::SpeechMessage.Tenancy.TenancyServiceCollectionExtensions.AddSpeechMessageTenancy(services, "ChurchReport");
-            services.AddSingleton<IChurchTextOverrideSnapshotProvider, ChurchReportEmptyTextOverrideSnapshotProvider>();
-            services.AddSingleton<ITextCatalog>(provider =>
-                new GoodShepherdTextCatalog(provider.GetRequiredService<IChurchTextOverrideSnapshotProvider>()));
+            ChurchTextOverrideRegistration.AddChurchReportChurchTextOverrides(services, Configuration);
             services.AddLineMessagingProcessor(options =>
             {
                 // 保留原 default-null→環境政策；明確空 default 不得冒用另一環境憑證。
