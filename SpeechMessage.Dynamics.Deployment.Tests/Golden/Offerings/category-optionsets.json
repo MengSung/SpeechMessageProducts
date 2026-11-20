@@ -1,0 +1,183 @@
+{
+  "languageCode": 1028,
+  "attributes": [
+    {
+      "Entity": "new_fee",
+      "Attribute": "new_category",
+      "RequiredLevel": "None",
+      "Options": [
+        {
+          "Value": 100000000,
+          "Label": "月定獻金"
+        },
+        {
+          "Value": 100000001,
+          "Label": "節期獻金"
+        },
+        {
+          "Value": 100000002,
+          "Label": "感恩獻金"
+        },
+        {
+          "Value": 100000003,
+          "Label": "對內獻金"
+        },
+        {
+          "Value": 100000004,
+          "Label": "對外獻金-本宗"
+        },
+        {
+          "Value": 100000005,
+          "Label": "慈善獻金"
+        },
+        {
+          "Value": 100000006,
+          "Label": "建築獻金"
+        },
+        {
+          "Value": 100000007,
+          "Label": "宣教基金"
+        },
+        {
+          "Value": 100000008,
+          "Label": "特別獻金"
+        },
+        {
+          "Value": 100000009,
+          "Label": "獎學獻金"
+        },
+        {
+          "Value": 100000010,
+          "Label": "禮拜獻金"
+        },
+        {
+          "Value": 100000011,
+          "Label": "利息收入"
+        },
+        {
+          "Value": 100000012,
+          "Label": "其他收入"
+        },
+        {
+          "Value": 100000013,
+          "Label": "借入款"
+        },
+        {
+          "Value": 100000014,
+          "Label": "補助金"
+        },
+        {
+          "Value": 100000015,
+          "Label": "專帳其他收入(利息)"
+        },
+        {
+          "Value": 100000016,
+          "Label": "償還借款準備金"
+        },
+        {
+          "Value": 100000017,
+          "Label": "聖餐獻金"
+        },
+        {
+          "Value": 100000018,
+          "Label": "松年大學"
+        },
+        {
+          "Value": 100000019,
+          "Label": "友愛基金"
+        },
+        {
+          "Value": 100000020,
+          "Label": "生日助學金"
+        },
+        {
+          "Value": 100000021,
+          "Label": "青年宣教基金"
+        },
+        {
+          "Value": 100000022,
+          "Label": "對外獻金-非本宗"
+        },
+        {
+          "Value": 100000023,
+          "Label": "週年獻金"
+        }
+      ]
+    },
+    {
+      "Entity": "new_dedication_booking",
+      "Attribute": "new_dedication_category",
+      "RequiredLevel": "None",
+      "Options": [
+        {
+          "Value": 100000000,
+          "Label": "月定獻金"
+        },
+        {
+          "Value": 100000001,
+          "Label": "節期獻金"
+        },
+        {
+          "Value": 100000002,
+          "Label": "感恩奉獻"
+        },
+        {
+          "Value": 100000003,
+          "Label": "對內獻金"
+        },
+        {
+          "Value": 100000004,
+          "Label": "對外獻金"
+        },
+        {
+          "Value": 100000005,
+          "Label": "慈善獻金"
+        },
+        {
+          "Value": 100000006,
+          "Label": "建築獻金"
+        },
+        {
+          "Value": 100000007,
+          "Label": "宣教獻金(聖餐)"
+        },
+        {
+          "Value": 100000008,
+          "Label": "特別奉獻"
+        },
+        {
+          "Value": 100000009,
+          "Label": "獎學獻金"
+        },
+        {
+          "Value": 100000010,
+          "Label": "禮拜獻金"
+        },
+        {
+          "Value": 100000011,
+          "Label": "利息收入"
+        },
+        {
+          "Value": 100000012,
+          "Label": "其他收入"
+        },
+        {
+          "Value": 100000013,
+          "Label": "借入款"
+        },
+        {
+          "Value": 100000014,
+          "Label": "補助款"
+        },
+        {
+          "Value": 100000015,
+          "Label": "專帳其他收入(利息)"
+        },
+        {
+          "Value": 100000017,
+          "Label": "聖餐獻金"
+        }
+      ]
+    }
+  ]
+}
