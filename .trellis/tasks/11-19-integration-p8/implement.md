@@ -21,7 +21,8 @@
 - [x] P8-01a 奉獻類別結構與轉換指令（2026-11-20；守門 commit bfc713f2；完整證據 `C:\smv\guard-p8-evidence\guard-bfc713f2-full-rerun.log`；實機 option labels／verify 狀態未查證，依離線單元契約不阻擋驗收）
 - [x] P8-01b ChurchReport 奉獻類別清單（2026-11-20；程式提交 97d260c1；完整守門 `C:\smv\guard-p8-evidence\guard-97d260c1-full.log`；離線單元驗收，未執行組織操作）
 - [x] P8-02 角色代碼與字典（2026-11-20；程式提交 `e85a5784`、回報與進度提交 `a1291979`；Core net10.0／net48 各 398/398、ChurchReport 669/669；完整守門 42 專案建置 0 錯誤、全方案測試 7,446 通過、Debug tracer 7/7、編碼 121 檔零問題、duplicate 42 專案 new/stale 皆 0、I18nCheck、檔案說明 1,852 檔零失敗、進度頁 28/28；證據 `C:\smv\guard-p8-evidence\guard-e85a5784-full.log`；分支推送與 `git ls-remote` 已核對 SHA `a12919798b1687503be73f29890796c75acf1d14`）
-- [ ] P8-01c goodshepherdback 轉換與核對（必做實機步驟已於 2026-11-20 20:54 完成並有 `C:\smv\guard-p8-evidence` 證據；待提交及完整守門通過後，更新一頁回報、標記 P8-01c／P8-01 done、推送並核對遠端 SHA。第二次 apply 的零筆數指無 lookup 更新批次；category alternate-key Upsert 仍會呼叫。）
+- [x] P8-01c goodshepherdback 轉換與核對（2026-11-20 21:46 Asia/Taipei；D8-6 migration/apply/verify/冪等性、指定 P8Live、off／verify=0／殘留0皆完成；程式提交 `4000b3f8f6e86d247ef31805bee49391909be76a` 唯一 guard-p8 完整 §8.1 全通過，證據 `C:\smv\guard-p8-evidence\guard-4000b3f8-full-rerun.log`。第二次 apply 的零筆數指無 lookup 更新批次；category alternate-key Upsert 仍會呼叫。回報及 DATA 已更新；待本收尾提交推送並核對遠端 SHA。）
+- [x] P8-01 整包驗收：P8-01a、P8-01b、P8-01c 均已驗收；P8-PROP-003 登錄五組 metadata 標籤差異，正式組織部署仍須先轉換並回填。
 - [ ] P8-03a 教會覆寫接線與設定服務
 - [ ] P8-03b 教會設定網頁
 - [ ] 遺留 L1 原因補齊與唯讀調查

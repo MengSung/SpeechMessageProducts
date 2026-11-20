@@ -15,12 +15,12 @@
 
 ## Acceptance Criteria
 
-- [ ] `Plan_SharedValueDifferentLabels_UsesFeeLabelAndRecordsDifference` exists and was observed failing before the implementation, then passes.
-- [ ] Same-field duplicate metadata values fail closed; cross-field shared values resolve using the fee label, and booking-only values keep their booking label.
-- [ ] Metadata fingerprints detect changes in either source field's labels.
-- [ ] The plan JSON/Markdown and P8-PROP-003 retain the shared value identity and the distinct booking label.
-- [ ] All P8-01c live requirements have safe, saved evidence; the organization ends off with verify=0 and no test residue.
-- [ ] Report conclusion, Trellis state, progress DATA, commit, guard evidence, and remote SHA agree.
+- [x] `Plan_SharedValueDifferentLabels_UsesFeeLabelAndRecordsDifference` exists and was observed failing before the implementation, then passes.
+- [x] Same-field duplicate metadata values fail closed; cross-field shared values resolve using the fee label, and booking-only values keep their booking label.
+- [x] Metadata fingerprints detect changes in either source field's labels.
+- [x] The plan JSON/Markdown and P8-PROP-003 retain the shared value identity and the distinct booking label.
+- [x] All P8-01c live requirements have safe, saved evidence; the organization ends off with verify=0 and no test residue.
+- [x] Report conclusion, Trellis state, progress DATA, code commit, and guard evidence agree; push SHA verification is recorded in the parent task immediately after push.
 
 ## Notes
 
