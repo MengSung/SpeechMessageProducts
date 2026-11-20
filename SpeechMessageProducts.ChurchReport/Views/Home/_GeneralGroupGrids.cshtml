@@ -5,6 +5,9 @@
 
     主要功能與流程：
     畫面輸入採用 ChurchReport.Models.ListSmallGroupWeeklyReport，欄位語意須與控制器組裝的模型一致。
+    會籍 lookup 由 PersonalController API 提供 D365 原始標籤 value、角色字典 text 及穩定 code；
+    AJAX 失敗時使用本頁伺服器端 RoleCatalog 序列化的有界備援，不在瀏覽器保存角色字面清單。
+    valueExpr 固定為 value，確保存檔仍送回既有 D365 標籤；顯示名稱不得作為角色身份或存檔值。
     本頁引用的控制器／動作包含 SmallGroup、LoadIntegrate、InsertPresentRecord、DeletePresentRecord、UpdateSmallGroupPresentRecord、
     NewPerson、LoadNewPersonFollowUp、InsertNewPresentRecord、DeleteNewPresentRecord、UpdateNewPresentRecord；
     實際網址及參數以頁內設定為準。
@@ -13,6 +16,8 @@
 
     使用邊界與維護：畫面僅呈現目前請求取得的資料；使用者輸入與元件傳回值仍須在伺服器驗證。
     修改模型、元素ID、路由或callback時，須同步檢查引用此頁的父頁／控制器；非同步回應不能覆寫較新畫面狀態。
+    角色文字只用伺服器已授權的完整教會 context 解析；無有效 account 範圍時僅顯示原始標籤，
+    本 partial 不持有跨使用者快取、Session、連線或背景工作。
     本段使用Razor註解，編譯後不會將維護說明或內部路徑傳到瀏覽器。
 *@
 @*
@@ -34,7 +39,15 @@
     ====================================================================================================
 *@
 @using ChurchReport.Models
+@using SpeechMessageProducts.GoodShepherd.Core.Members
+@using System.Linq
 @model ChurchReport.Models.ListSmallGroupWeeklyReport
+
+@{
+    var membershipStatusFallback = RoleCatalog.BuildFallbackItems(null, null)
+        .Select(item => new { value = item.Value, text = item.Text, code = item.Code });
+    var membershipStatusFallbackJson = System.Text.Json.JsonSerializer.Serialize(membershipStatusFallback);
+}
 
 @* IntegrateView 已在任何元件建立前載入協調器；此處只定義 DevExtreme adapter。 *@
 <script>
@@ -340,6 +353,8 @@
                                 .DataType(GridColumnDataType.String)
                                 .Lookup(lookup => lookup
                                     .DataSource(new JS("membershipStatusDataSource"))
+                                    .ValueExpr("value")
+                                    .DisplayExpr("text")
                                 );
 
                             // 信仰狀態
@@ -531,6 +546,8 @@
                                 .DataType(GridColumnDataType.String)
                                 .Lookup(lookup => lookup
                                     .DataSource(new JS("membershipStatusDataSource"))
+                                    .ValueExpr("value")
+                                    .DisplayExpr("text")
                                 );
 
                             // 信仰狀態
@@ -649,7 +666,7 @@
    JavaScript 區塊：動態載入會員身分與信仰狀態清單
    ================================================================================================ *@
 <script>
-    var membershipStatusDataSource = [];
+    var membershipStatusDataSource = @Html.Raw(membershipStatusFallbackJson);
     var spiritualIdentityDataSource = [];
     var visitDataSource = [];
     var contactImageEndpoint = '@Url.Action("GetContactImage", "Personal")';
@@ -1323,14 +1340,18 @@
             dataType: 'json',
             async: false,
             success: function (response) {
-                if (response.success && response.data) {
-                    membershipStatusDataSource = response.data;
+                if (response && response.items && response.items.length) {
+                    membershipStatusDataSource = response.items;
+                } else if (response && response.success && response.data) {
+                    membershipStatusDataSource = response.data.map(function (label) {
+                        return { value: label, text: label, code: '' };
+                    });
                     console.log('✅ [_GeneralGroupGrids] 成功載入會員身分清單:', membershipStatusDataSource);
                 }
             },
             error: function (xhr, status, error) {
                 console.error('❌ [_GeneralGroupGrids] 載入會員身分清單失敗:', error);
-                membershipStatusDataSource = ["牧師師母", "區牧", "小區長", "小組長", "副小組長", "核心同工", "小組組員", "未入組", "新朋友", "外教會", "結案"];
+                membershipStatusDataSource = @Html.Raw(membershipStatusFallbackJson);
             }
         });
 

@@ -362,4 +362,15 @@ ID (查詢您的LINE ID)
   <data name="Messaging.Failure.NotBound" xml:space="preserve"><value>未綁定 LINE</value></data>
   <data name="Messaging.Failure.ChurchMismatch" xml:space="preserve"><value>收件者教會不符</value></data>
   <data name="Messaging.Failure.Blocked" xml:space="preserve"><value>已封鎖或無法接收</value></data>
+  <data name="Role.PastorCouple" xml:space="preserve"><value>牧師師母</value></data>
+  <data name="Role.ZoneShepherd" xml:space="preserve"><value>區牧</value></data>
+  <data name="Role.ZoneLeader" xml:space="preserve"><value>小區長</value></data>
+  <data name="Role.GroupLeader" xml:space="preserve"><value>小組長</value></data>
+  <data name="Role.AssistantGroupLeader" xml:space="preserve"><value>副小組長</value></data>
+  <data name="Role.CoreWorker" xml:space="preserve"><value>核心同工</value></data>
+  <data name="Role.Member" xml:space="preserve"><value>小組組員</value></data>
+  <data name="Role.NotInGroup" xml:space="preserve"><value>未入組</value></data>
+  <data name="Role.Newcomer" xml:space="preserve"><value>新朋友</value></data>
+  <data name="Role.OtherChurch" xml:space="preserve"><value>外教會</value></data>
+  <data name="Role.Closed" xml:space="preserve"><value>結案</value></data>
 </root>

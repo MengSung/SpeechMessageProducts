@@ -93,5 +93,6 @@
   "文件/規劃設計書/實作計畫-3.5/驗收/P7情境/lessons/scenarios.json": "P7課程連結Plugin Create／Update及LessonQrCodeActivity的三筆合成LiveShadow來源；課程lookup參照先建立，會友與教會只借用空白共享列，活動使用固定synthetic字串輸入。沒有systemuser、fullname、new_lineid或不可建立statecode，未執行舊流程或實機寫入。",
   "文件/規劃設計書/實作計畫-3.5/驗收/P7情境/lessons/expected.json": "P7 LessonLinkPlugin及LessonQrCodeActivity各自的完整QR待辦固定期望，明列Plugin不含問卷而活動含問卷，使用record alias表達來源關聯；冪等識別及名稱只檢查欄位存在性。原Golden不變，檔案不是Live執行證據。",
   "文件/規劃設計書/實作計畫-3.5/驗收/P7情境/fees/scenarios.json": "P7 FeeAllotPlugin Create／Update及FeeAllotActivity的三筆合成LiveShadow來源；收費單、會友與教會依正式lookup參照建立，支付值全為合成金額，日期固定於核定台北測試日。共享contact保持空白，不含systemuser、fullname、new_lineid或不可建立statecode，不進行真付款。",
-  "文件/規劃設計書/實作計畫-3.5/驗收/P7情境/fees/expected.json": "P7撥款入列三個入口的固定期望，僅核對AllotQuery待辦封閉feeId與queryDate payload、教會、類型及狀態；動態冪等鍵與名稱使用欄位存在性比較。資料純合成且不建立真付款；原Golden不變，非實機證據。"
+  "文件/規劃設計書/實作計畫-3.5/驗收/P7情境/fees/expected.json": "P7撥款入列三個入口的固定期望，僅核對AllotQuery待辦封閉feeId與queryDate payload、教會、類型及狀態；動態冪等鍵與名稱使用欄位存在性比較。資料純合成且不建立真付款；原Golden不變，非實機證據。",
+  "SpeechMessageProducts.GoodShepherd.Core.Tests/Golden/Roles/customertypecode-options.json": "P8-02 唯讀 goodshepherdback contact.customertypecode 選項中繼資料的固定黃金快照，只保存 option value 與 LanguageCode 1028 原始 label，不含會友列、聯絡資訊、秘密或連線設定。Core 雙目標測試逐筆核對唯一 option 身分、標籤原文及角色精確對應；未符合完整字串的項目必須沒有角色代碼與權限。檔案由一次唯讀 metadata 查詢建立，不能按角色語意推測或手造標籤，也不能以空快照掩蓋來源證據缺失。"
 }

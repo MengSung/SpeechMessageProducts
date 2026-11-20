@@ -26,4 +26,15 @@ Keyword key 由系統表回退到中性文字，但本檔明確宣告的六個 K
   <data name="Messaging.Failure.NotBound" xml:space="preserve"><value>LINE is not linked</value></data>
   <data name="Messaging.Failure.ChurchMismatch" xml:space="preserve"><value>Recipient church does not match</value></data>
   <data name="Messaging.Failure.Blocked" xml:space="preserve"><value>Blocked or unable to receive</value></data>
+  <data name="Role.PastorCouple" xml:space="preserve"><value></value></data>
+  <data name="Role.ZoneShepherd" xml:space="preserve"><value></value></data>
+  <data name="Role.ZoneLeader" xml:space="preserve"><value></value></data>
+  <data name="Role.GroupLeader" xml:space="preserve"><value></value></data>
+  <data name="Role.AssistantGroupLeader" xml:space="preserve"><value></value></data>
+  <data name="Role.CoreWorker" xml:space="preserve"><value></value></data>
+  <data name="Role.Member" xml:space="preserve"><value></value></data>
+  <data name="Role.NotInGroup" xml:space="preserve"><value></value></data>
+  <data name="Role.Newcomer" xml:space="preserve"><value></value></data>
+  <data name="Role.OtherChurch" xml:space="preserve"><value></value></data>
+  <data name="Role.Closed" xml:space="preserve"><value></value></data>
 </root>

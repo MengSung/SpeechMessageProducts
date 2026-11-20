@@ -1,0 +1,44 @@
+{
+  "options": [
+    {
+      "value": 1,
+      "label": "\u5C0F\u7D44\u7D44\u54E1"
+    },
+    {
+      "value": 100000000,
+      "label": "\u65B0\u670B\u53CB"
+    },
+    {
+      "value": 100000001,
+      "label": "\u7D50\u6848"
+    },
+    {
+      "value": 100000002,
+      "label": "\u5168\u8077\u540C\u5DE5"
+    },
+    {
+      "value": 100000003,
+      "label": "\u5340\u9577"
+    },
+    {
+      "value": 100000004,
+      "label": "\u672A\u5165\u7D44"
+    },
+    {
+      "value": 100000006,
+      "label": "\u7267\u5E2B\u5E2B\u6BCD"
+    },
+    {
+      "value": 100000007,
+      "label": "\u5916\u6559\u6703"
+    },
+    {
+      "value": 100000008,
+      "label": "\u5C0F\u7D44\u9577"
+    },
+    {
+      "value": 100000009,
+      "label": "\u5BE6\u7FD2\u5C0F\u7D44\u9577"
+    }
+  ]
+}

@@ -1,0 +1,12 @@
+{
+  "id": "p8-02-role-code-catalog",
+  "title": "P8-02 角色代碼與字典",
+  "status": "in_progress",
+  "complexity": "M",
+  "risk": "medium",
+  "domain": "backend",
+  "currentPhase": "implementation",
+  "nextAction": "先建立 9 個指定測試並確認紅燈，再實作角色 catalog 與 API 相容投影",
+  "createdAt": "2026-11-20T00:00:00+08:00",
+  "branch": "1.0.0.11.Integration.P8.Worktree"
+}

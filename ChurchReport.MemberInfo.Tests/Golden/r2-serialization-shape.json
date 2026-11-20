@@ -6551,6 +6551,11 @@
     ]
   },
   {
+    "Type": "ChurchReport.ChurchReportEmptyTextOverrideSnapshotProvider",
+    "Newtonsoft": [],
+    "SystemTextJson": []
+  },
+  {
     "Type": "ChurchReport.Controllers.ApiControllers.SpiritLeaderLookupController",
     "Newtonsoft": [
       "ControllerContext",

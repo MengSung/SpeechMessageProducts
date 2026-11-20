@@ -6,6 +6,8 @@
  * 主要功能與流程：
  * 本檔宣告 OptionSetMetadataService。
  * - 取得指定實體的 OptionSet 對應表（顯示文字 → 值） 包含快取機制，避免頻繁查詢 Metadata
+ * - GetOptionSetOptions 提供角色清單專用的嚴格唯讀快照，只接受指定語系的 option label，
+ *   保留 metadata 順序及重複顯示文字，並以伺服器組織範圍分區快取。
  * - 根據 OptionSet 值取得顯示文字（反向查詢） ? 效能優化：快取反向對應表，避免每次呼叫都重建 Dictionary 原本每次呼叫都執行 mapping.ToDictionary() 建立新的反向字典，
  * 若一頁有 50 位成員，每人查 3-4 個欄位，就是 150-200 次多餘的 Dictionary 建構。 ? Session 安全：快取鍵為
  * "OptionSetReverse_{entityName}_{attributeName}" 內容為 Dictionary&lt;int, string&gt;（整數值 → 顯示文字）， 屬於 CRM Schema
@@ -29,6 +31,7 @@ using Microsoft.Xrm.Sdk;
 using Microsoft.Xrm.Sdk.Messages;
 using Microsoft.Xrm.Sdk.Metadata;
 using System;
+using System.Collections.ObjectModel;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
@@ -134,6 +137,68 @@ namespace ChurchReport.Services
                 _logger.LogError(ex, $"[OptionSetMetadataService] 取得 OptionSet 對應表失敗: {entityName}.{attributeName}");
                 return new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
             }
+        }
+
+        /// <summary>
+        /// 取得具完整指定語系標籤的唯讀 OptionSet 快照；不使用使用者語系、簡體中文或未知文字回退。
+        /// 快取以呼叫端提供的伺服器組織範圍、實體與欄位分區，避免不同組織共用 metadata。
+        /// </summary>
+        /// <param name="entityName">固定的 Dataverse 實體邏輯名稱。</param>
+        /// <param name="attributeName">固定的 Picklist 欄位邏輯名稱。</param>
+        /// <param name="organizationScope">由部署設定取得的伺服器組織範圍；不得由 request 提供。</param>
+        /// <returns>按 Dataverse 原始順序排列的 value／1028 label 唯讀清單；標籤相同的不同值均保留。</returns>
+        /// <exception cref="ArgumentException">任一範圍識別為空白。</exception>
+        /// <exception cref="InvalidOperationException">metadata 型別不符、選項重複或缺少繁體中文標籤。</exception>
+        public IReadOnlyList<KeyValuePair<int, string>> GetOptionSetOptions(
+            string entityName,
+            string attributeName,
+            string organizationScope)
+        {
+            if (string.IsNullOrWhiteSpace(entityName))
+                throw new ArgumentException("Entity logical name is required.", nameof(entityName));
+            if (string.IsNullOrWhiteSpace(attributeName))
+                throw new ArgumentException("Attribute logical name is required.", nameof(attributeName));
+            if (string.IsNullOrWhiteSpace(organizationScope))
+                throw new ArgumentException("Server organization scope is required.", nameof(organizationScope));
+
+            var cacheKey = $"OptionSetOptions|{organizationScope}|{entityName}|{attributeName}|1028";
+            if (_cache.TryGetValue(cacheKey, out IReadOnlyList<KeyValuePair<int, string>> cachedOptions)
+                && cachedOptions != null)
+                return cachedOptions;
+
+            var response = (RetrieveAttributeResponse)_organizationService.Execute(new RetrieveAttributeRequest
+            {
+                EntityLogicalName = entityName,
+                LogicalName = attributeName,
+                RetrieveAsIfPublished = true
+            });
+            if (!(response.AttributeMetadata is PicklistAttributeMetadata picklistMetadata)
+                || picklistMetadata.OptionSet?.Options == null
+                || picklistMetadata.OptionSet.Options.Count == 0)
+                throw new InvalidOperationException("OptionSet metadata is unavailable or is not a populated Picklist.");
+
+            var seenValues = new HashSet<int>();
+            var options = new List<KeyValuePair<int, string>>(picklistMetadata.OptionSet.Options.Count);
+            foreach (var option in picklistMetadata.OptionSet.Options)
+            {
+                if (!option.Value.HasValue || !seenValues.Add(option.Value.Value))
+                    throw new InvalidOperationException("OptionSet metadata contains a missing or duplicate option value.");
+
+                var labels = option.Label?.LocalizedLabels;
+                var label = labels?.FirstOrDefault(item => item.LanguageCode == 1028)?.Label;
+                if (string.IsNullOrWhiteSpace(label))
+                    throw new InvalidOperationException("OptionSet metadata is missing a LanguageCode 1028 label.");
+
+                options.Add(new KeyValuePair<int, string>(option.Value.Value, label));
+            }
+
+            IReadOnlyList<KeyValuePair<int, string>> snapshot =
+                new ReadOnlyCollection<KeyValuePair<int, string>>(options);
+            _cache.Set(
+                cacheKey,
+                snapshot,
+                new MemoryCacheEntryOptions().SetAbsoluteExpiration(TimeSpan.FromHours(CACHE_DURATION_HOURS)));
+            return snapshot;
         }
 
         /// <summary>

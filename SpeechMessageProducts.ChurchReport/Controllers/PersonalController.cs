@@ -4,7 +4,10 @@
  * 目的與定位：個人資訊管理控制器 處理個人資料維護、個人回報等功能
  *
  * 主要功能與流程：
- * 本檔宣告 PersonalController、MaintainContactFields。
+ * 本檔宣告 PersonalController、MaintainContactFields。GetMembershipStatusList 讀取 D365
+ * customertypecode metadata，保留舊 data 標籤清單並以 RoleCatalog 建立 value/text/code
+ * 投影；教會文字範圍只由伺服器登入 contact 的 account lookup 與部署組織設定組成，
+ * 缺少範圍便只回原始 D365 標籤。
  * - 建立背景工作專用的 DI scope。背景工作可能在 HTTP request 結束後仍執行， 因此不得捕獲 request scope 的 ToolUtility 或 CRM 連線；scope 由背景工作 擁有，
  * 並在工作結束時由 using 確定性釋放，以防止跨 request 資源洩漏。
  * - 建立個人資訊控制器。 控制器本身只持有目前 request 的服務；長時間執行的背景工作會透過 IServiceScopeFactory 建立獨立 scope，讓 ToolUtility 與 CRM
@@ -18,6 +21,7 @@
  *
  * 使用邊界與維護：
  * 控制器依賴及狀態限於其明確scope；採partial拆分時各檔共用同一實例，授權、Session及資料範圍須沿伺服器邊界驗證。
+ * 角色清單回應不含會友列，且每次於 request-local 候選中組裝；D365 label 保持提交值，字典 text 不參與權限判斷。metadata 缺失時使用明確標記、無角色代碼的固定顯示備援。
  * 外部連線及背景作業的owner依注入服務／明確工作入口決定；不可在控制器新增跨請求可變欄位或未追蹤的背景工作。
  * 可沿 SpeechMessageProducts.ChurchReport/Controllers/PersonalController.ImageUpload.cs 追查目前工作樹中的合作／使用位置。
  */
@@ -28,11 +32,15 @@ using ChurchReport.ViewModels;
 using DevExtreme.AspNet.Data;
 using DevExtreme.AspNet.Mvc;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Localization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Xrm.Sdk;
 using Microsoft.Xrm.Sdk.Query;
+using SpeechMessage.Localization;
+using SpeechMessageProducts.GoodShepherd.Core.Members;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -1430,8 +1438,10 @@ namespace ChurchReport.Controllers
         #region API - 取得會員身分清單 (動態從 OptionSet 取得)
 
         /// <summary>
-        /// 取得會員身分清單 (從 contact.customertypecode OptionSet 動態取得)
+        /// 取得 contact.customertypecode 清單，保留 D365 label 存檔值，另提供角色代碼與顯示文字。
         /// URL: /Personal/Api/GetMembershipStatusList
+        /// 文字覆寫範圍只取伺服器登入 contact 的教會與部署組織；本 action 不以文字標籤授權。
+        /// metadata 無法取得時回傳無角色代碼的標記備援，絕不以空 metadata 假裝成功。
         /// </summary>
         [HttpGet]
         [Route("/Personal/Api/GetMembershipStatusList")]
@@ -1439,43 +1449,114 @@ namespace ChurchReport.Controllers
         {
             try
             {
-                // ✅ 使用 OptionSetMetadataService 動態取得會員身分清單
                 var optionSetService = GetOptionSetMetadataService();
+                var configuration = HttpContext?.RequestServices.GetService<IConfiguration>();
+                var organization = configuration?["CrmConnection:Organization"];
+                if (string.IsNullOrWhiteSpace(organization))
+                    throw new InvalidOperationException("Server organization scope is unavailable.");
 
-                // 從 Dynamics 365 取得所有選項的對應表
-                var mapping = optionSetService.GetOptionSetMapping("contact", "customertypecode");
+                IReadOnlyList<KeyValuePair<int, string>> metadataOptions;
+                try
+                {
+                    metadataOptions = optionSetService.GetOptionSetOptions(
+                        "contact",
+                        "customertypecode",
+                        organization);
+                    if (metadataOptions.Count == 0)
+                        throw new InvalidOperationException("contact.customertypecode metadata is empty.");
+                }
+                catch (Exception exception)
+                {
+                    ChurchReport.Services.ChurchReportLineAdminNotificationService.ReportException(
+                        nameof(PersonalController) + "." + nameof(GetMembershipStatusList),
+                        exception);
+                    return BuildMembershipStatusFallback();
+                }
 
-                // 提取顯示文字清單
-                var statusList = mapping.Keys.ToList();
-
-                System.Diagnostics.Debug.WriteLine($"[GetMembershipStatusList] 取得 {statusList.Count} 個會員身分選項");
+                var statusList = metadataOptions.Select(option => option.Value).ToArray();
+                var roleCatalog = new RoleCatalog(
+                    metadataOptions.Select(option => new RoleMetadataOption(option.Key, option.Value)));
+                IReadOnlyList<RoleListItem> roleItems;
+                try
+                {
+                    roleItems = roleCatalog.BuildItems(
+                        TryCreateMembershipTextContext(),
+                        HttpContext?.RequestServices.GetService<ITextCatalog>());
+                }
+                catch (Exception exception)
+                {
+                    ChurchReport.Services.ChurchReportLineAdminNotificationService.ReportException(
+                        nameof(PersonalController) + "." + nameof(GetMembershipStatusList),
+                        exception);
+                    roleItems = roleCatalog.BuildItems(null, null);
+                }
+                var items = roleItems
+                    .Select(item => new { value = item.Value, text = item.Text, code = item.Code })
+                    .ToArray();
 
                 return Json(new
                 {
                     success = true,
                     data = statusList,
-                    count = statusList.Count
+                    items,
+                    count = statusList.Length
                 });
             }
-            catch (Exception ex)
+            catch (Exception exception)
             {
-                System.Diagnostics.Debug.WriteLine($"[GetMembershipStatusList] 錯誤: {ex.Message}");
-
-                // 備用硬編碼清單
-                var fallbackList = new System.Collections.Generic.List<string>
-                {
-                    "牧師師母", "區牧", "小區長", "小組長", "副小組長",
-                    "核心同工", "小組組員", "未入組", "新朋友", "外教會", "結案"
-                };
-
-                return Json(new
-                {
-                    success = true,
-                    data = fallbackList,
-                    count = fallbackList.Count,
-                    warning = "使用備用清單"
-                });
+                ChurchReport.Services.ChurchReportLineAdminNotificationService.ReportException(
+                    nameof(PersonalController) + "." + nameof(GetMembershipStatusList),
+                    exception);
+                return BuildMembershipStatusFallback();
             }
+        }
+
+        /// <summary>
+        /// 建立 metadata 無法取得時的相容回應；保留原 data 形狀，但不賦予任何角色代碼或權限身份。
+        /// </summary>
+        /// <returns>標記使用生成字典顯示備援且所有 code 為空的單次 JSON 回應。</returns>
+        private JsonResult BuildMembershipStatusFallback()
+        {
+            var fallbackItems = RoleCatalog.BuildFallbackItems(null, null);
+            var fallbackList = fallbackItems.Select(item => item.Value).ToArray();
+            var items = fallbackItems
+                .Select(item => new { value = item.Value, text = item.Text, code = item.Code })
+                .ToArray();
+
+            return Json(new
+            {
+                success = true,
+                data = fallbackList,
+                count = fallbackList.Length,
+                items,
+                warning = "使用伺服器角色備援清單"
+            });
+        }
+
+        /// <summary>
+        /// 只從本次已驗證登入 contact 的 account parentcustomerid 建立教會文字範圍；
+        /// 缺少 account、組織設定或有效 scope 時回傳 null，使 API 保留 D365 原始標籤。
+        /// </summary>
+        /// <returns>完整伺服器 scope 可用時的文字 context，否則為 null。</returns>
+        private TextContext TryCreateMembershipTextContext()
+        {
+            var loginContact = InMemoryContext?.PersonalInfomationModel?.m_LoginContact;
+            var churchReference = loginContact?.GetAttributeValue<EntityReference>("parentcustomerid");
+            if (churchReference is null
+                || !string.Equals(churchReference.LogicalName, "account", StringComparison.Ordinal)
+                || churchReference.Id == Guid.Empty)
+                return null;
+
+            var configuration = HttpContext?.RequestServices.GetService<IConfiguration>();
+            var organization = configuration?["CrmConnection:Organization"];
+            if (string.IsNullOrWhiteSpace(organization)) return null;
+
+            var culture = HttpContext?.Features.Get<IRequestCultureFeature>()?.RequestCulture.Culture.Name;
+            if (string.IsNullOrWhiteSpace(culture)) culture = "zh-TW";
+            var formatCulture = string.Equals(culture, "qps-ploc", StringComparison.OrdinalIgnoreCase)
+                ? "en-US"
+                : culture;
+            return new TextContext(churchReference.Id, culture, formatCulture, organization, "ChurchReport");
         }
 
         /// <summary>
