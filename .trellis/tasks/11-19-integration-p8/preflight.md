@@ -37,4 +37,8 @@
 
 2026-11-20 12:34 Asia/Taipei (UTC+08:00)：新會話依 §0.4 核對部署工具 User Secrets 必要鍵存在，並在記憶體內確認 endpoint 僅符合 `goodshepherdback` allowlist；未顯示或保存秘密值。唯讀 verify 結束碼 0，狀態符合 off，證據 `C:\smv\guard-p8-evidence\p8-01c-resume-verify-20261120.log`。P8-01c 仍缺 D34、SMV-TEST 殘留基線及遷移資料驗收，不宣稱單元結尾清理完成。
 
+2026-11-20 13:23 Asia/Taipei (UTC+08:00)：再次依 §0.4 先以 build 20 兩個 DLL 通過 `Test-PluginAssembly.ps1`，再執行唯讀 `verify --org goodshepherdback`；結束碼 0，狀態符合 `off`，原始安全摘要 `C:\smv\guard-p8-evidence\p8-01c-resume-verify-20261120-continue.log`。這是修正已查證 FileVersion 根因後的新操作，不受先前錯誤「verify 不得重試」結論限制。前述禁止重試文字已撤銷；此結果不等同 D34、`SMV-TEST-` 或 P8-01c 結尾清理已通過。
+
+2026-11-20 15:34 Asia/Taipei (UTC+08:00)：後續實機結果已更新 P8-01c 回報：兩個指定 lookup 欄結構完成 plan/apply/verify；組織稽核已開啟；15 個實體記錄與 workflow 殘留均為 0；唯讀 verify 符合 off。qrcodes live-check 到達 `LIVE-PREP-04`，只證明 D34 子檢查通過，整體 Live 未通過。migration plan 因五組共用選項值標籤衝突 fail closed，未執行資料轉換、冪等 apply 或指定 P8Live。最新證據位於 `C:\smv\guard-p8-evidence`；P8-01c／P8-01 仍未驗收，依 D8-26 接續 P8-03a。
+
 2026-11-20 12:16 Asia/Taipei (UTC+08:00)：一次性探針 DLL／原始碼檔仍位於忽略的 `artifacts/p8`；清理命令被工作區執行政策拒絕，未以其他執行器繞過。`.trellis/workspace/--help` 路徑已不存在。探針產物不加入提交；其清理狀態仍未完成。

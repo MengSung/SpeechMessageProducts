@@ -240,11 +240,11 @@ footer{margin-top:36px;color:var(--muted);font-size:12.5px;text-align:center}
  */
 const DATA = {
   "planVersion": "3.5",
-  "snapshot": "2026-11-20 12:23 Asia/Taipei (UTC+08:00)",
-  "lastUpdated": "2026-11-20T12:43:00+08:00",
+  "snapshot": "2026-11-20 15:34 Asia/Taipei (UTC+08:00)",
+  "lastUpdated": "2026-11-20T15:34:00+08:00",
   "branch": "1.0.0.11.Integration.P8.Worktree",
   "head": "4975f2b00e736964c09a934394f3f1efd0dc27ea",
-  "headline": "階段 8 2026-11-20 12:43 Asia/Taipei (UTC+08:00)：P8-02 已驗收；P8-01c 本次唯讀 verify 符合 off，但五組 metadata 標籤衝突、D34 與 SMV-TEST 基線缺證據，故仍未驗收並接續 P8-03a。",
+  "headline": "階段 8 2026-11-20 15:34 Asia/Taipei (UTC+08:00)：P8-02 已驗收；P8-01c 的 lookup 結構與組織稽核已完成，殘留盤點為 0 且 verify 符合 off；migration plan 因五組標籤衝突 fail closed，Live 未驗收，依 D8-26 接續 P8-03a。",
   "notices": [
     {
       "id": "plan-3.5-summary",
@@ -717,7 +717,8 @@ const DATA = {
         "2026-11-20 08:32 Asia/Taipei (UTC+08:00)：P8-02程式與驗收紀錄已推送；`git ls-remote origin 1.0.0.11.Integration.P8.Worktree` 回報 SHA `a12919798b1687503be73f29890796c75acf1d14`，與推送提交一致。",
         "2026-11-20 12:16 Asia/Taipei (UTC+08:00)：build 20 組件更新後唯讀 verify 成功，狀態符合 off；export-legacy 舊步驟／流程啟用數皆為0。ID-only 備份97筆；labels黃金檔41個選項，RequiredLevel均None，共享值中5個標籤不一致，migration plan fail closed；沒有套用lookup或資料回填。D34唯讀探針兩次失敗且writes=0，不重試同一條件；SMV-TEST殘留未確認。P8-01c仍進行中，細節見P8-01c-migration.md；上線前先轉換並回填已列於P8-上線前置清單.md。",
         "2026-11-20 12:23 Asia/Taipei (UTC+08:00)：P8-01c Deployment.Tests Release 1,029/1,029 通過；檔案說明 1,856 檔零失敗；進度頁契約 28/28 通過。這些離線證據不代表指定 P8Live 或奉獻資料遷移已驗收。",
-        "2026-11-20 12:43 Asia/Taipei (UTC+08:00)：新會話 User Secrets 必要鍵存在且 endpoint 在記憶體內符合 goodshepherdback allowlist；唯讀 verify 成功、符合 off，證據位於 C:\\smv\\guard-p8-evidence\\p8-01c-resume-verify-20261120.log。4975f2b0 在唯一 guard 的 §8.1 各命令成功、ProgressPage 28/28；transcript 僅留起訖與成功標記，沒有重跑。P8-01c 因 D34／SMV-TEST 基線及遷移缺項仍未驗收，按 D8-26 接續 P8-03a。"
+        "2026-11-20 12:43 Asia/Taipei (UTC+08:00)：新會話 User Secrets 必要鍵存在且 endpoint 在記憶體內符合 goodshepherdback allowlist；唯讀 verify 成功、符合 off，證據位於 C:\\smv\\guard-p8-evidence\\p8-01c-resume-verify-20261120.log。4975f2b0 在唯一 guard 的 §8.1 各命令成功、ProgressPage 28/28；transcript 僅留起訖與成功標記，沒有重跑。P8-01c 因遷移缺項仍未驗收，按 D8-26 接續 P8-03a。",
+        "2026-11-20 15:34 Asia/Taipei (UTC+08:00)：兩個 lookup 欄結構 plan/apply/verify 完成，組織稽核已開啟；唯讀殘留盤點 15 個實體記錄0、workflow0，verify 符合 off。qrcodes live-check 到達 LIVE-PREP-04；D34 子檢查依順序通過，但整體 Live 未通過。migration plan 因五組 metadata 標籤衝突 fail closed；未執行資料 migration、冪等 apply 或指定 P8Live。P8-01c 維持進行中，按 D8-26 接續 P8-03a。"
       ]
     }
   ],
@@ -1947,7 +1948,7 @@ const DATA = {
       "phaseId": "階段 8",
       "name": "P8-01c goodshepherdback 轉換與核對",
       "status": "active",
-      "note": "2026-11-20 12:43 Asia/Taipei (UTC+08:00)：P8-02完成後回頭執行；build 20組件更新後本次唯讀verify成功且符合off。labels黃金檔RequiredLevel均None，但5組共享值標籤不同，未apply。Deployment.Tests 1,029/1,029通過；D34探針兩次同條件失敗、SMV-TEST殘留未知；P8-01c尚未驗收，依D8-26接續P8-03a。"
+      "note": "2026-11-20 15:34 Asia/Taipei (UTC+08:00)：build 20組件verify符合off；指定兩個lookup結構已apply並verify，組織稽核已開啟；殘留盤點15個實體記錄0、workflow0。qrcodes live-check到達LIVE-PREP-04，僅D34子檢查通過，整體Live未驗收。migration plan因5組metadata標籤衝突fail closed，沒有資料apply、verify、冪等apply或指定P8Live；依D8-26維持進行中並接續P8-03a。"
     },
     {
       "id": "P8-03a",
@@ -2183,9 +2184,9 @@ const DATA = {
       "dod": [
         ["離線實作", "ok", "Deployment plan/apply/verify、schema lookup 與 Core 型別已完成本輪離線測試。"],
         ["指定測試", "ok", "16 個指定名稱存在；Deployment 1021/1021，Core net10.0 與 net48 各 391/391。"],
-        ["P8-01c 實機 metadata 與 verify", "ok", "build 20組件更新後唯讀verify成功，符合off；舊步驟／流程啟用0。"],
+        ["P8-01c 實機 metadata 與 verify", "ok", "build 20組件verify符合off；兩個lookup結構apply/verify成功，組織稽核已開啟；殘留盤點15個實體記錄0、workflow0。"],
         ["P8-01a 離線守門與提交", "ok", "bfc713f2 的完整 §8.1 守門全通過；P8-01a 收尾提交 50a9e87c、eda46dab。"],
-        ["P8-01c 遷移與收尾", "no", "5組共享選項值標籤衝突，未套用lookup或資料；D34兩次失敗、SMV-TEST殘留未知；單元未驗收。Deployment.Tests 1,029/1,029通過。詳見 P8-01c-migration.md 與 P8-上線前置清單.md。"]
+        ["P8-01c 遷移與收尾", "no", "5組共享選項值標籤衝突，migration plan fail closed；未執行資料migration、冪等apply或指定P8Live。qrcodes live-check到達LIVE-PREP-04，D34子檢查通過但整體Live未通過；殘留盤點0、verify符合off。單元未驗收。詳見 P8-01c-migration.md 與 P8-上線前置清單.md。"]
       ]
     }
   ],

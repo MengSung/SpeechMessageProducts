@@ -29,6 +29,8 @@
 
 ## 2026-11-20 續跑紀錄
 
+**續跑修正（2026-11-20 13:23 Asia/Taipei）：** 使用者指示 P8-01c 在 P8-02 後優先完成，之後才進 P8-03a。先前把 verify 列為不得重試的說法撤銷；build 20 排除已查證根因後，本次唯讀 verify 成功並符合 `off`，安全摘要見 `C:\smv\guard-p8-evidence\p8-01c-resume-verify-20261120-continue.log`。這不涵蓋 D34 或 `SMV-TEST-` 基線。D34 先前兩次例外未提供子檢查；先用既有核准唯讀程序及新分段診斷定位，不重跑完全相同探針。
+
 - 10:32 Asia/Taipei：以 `Test-PluginAssembly.ps1` 檢查目前 Plugins／Workflows 產物，兩者均回 `ok=true`；唯讀 `verify --org goodshepherdback` 結束碼 0，輸出狀態符合 catalog 預期。此為 build 20 根因修正後的新操作，不是相同條件重試。
 - 10:36 Asia/Taipei：`export-legacy --org goodshepherdback` 唯讀結果為啟用舊步驟 0、舊流程 0。
 - 10:42 Asia/Taipei：migration plan 在讀業務資料前因共用 option value 的 metadata labels 衝突而 fail closed。未以相同條件重試，未執行結構或資料 apply。
@@ -38,3 +40,7 @@
 - 11:12 Asia/Taipei：唯讀 `export-metadata --org goodshepherdback` 成功；snapshot 格式僅存選項值與 RequiredLevel，不含 labels。語系 1028；new_fee 24 值、new_dedication_booking 17 值，共享 17 值；RequiredLevel 均為 None。snapshot SHA-256 `E0F4498B97A70A2D33174AD1ADD77903115667DAC2E192F63ECC89DC63060A8B`。
 - 11:18 Asia/Taipei：同值異標籤與 D8-6 固定 `legacy-<值>` 的資料身份無法同時表達；未變更已核定代碼、未猜 labels、未 apply。登錄 P8-PROP-008，P8-01c 維持進行中並依 D8-26 接續後續單元。
 - 12:34 Asia/Taipei：新會話核對 User Secrets 必要鍵存在及 endpoint 符合 goodshepherdback allowlist 後，唯讀 `verify --org goodshepherdback` 成功，狀態符合 off；安全摘要存於 `C:\smv\guard-p8-evidence\p8-01c-resume-verify-20261120.log`。沒有組織寫入；D34 兩次同條件失敗與 SMV-TEST 數未知仍阻止實機遷移收尾，不重試相同 D34 操作，P8-01c 維持進行中。
+
+## 2026-11-20 續跑補記
+
+2026-11-20 15:34 Asia/Taipei (UTC+08:00)：完成兩個指定 lookup schema plan/apply/verify，組織稽核已開啟。唯讀盤點 15 個實體記錄 0、workflow 0；15:30 verify 符合 off。qrcodes live-check 在 `LIVE-PREP-04` 拒絕，依順序僅能判定 D34 子檢查通過，整體 Live 未通過。migration plan 因五組同值異標籤 fail closed，未執行 migration apply／verify、二次零寫入 apply 或指定 P8Live。P8-01c／P8-01 維持未驗收，依 D8-26 接續 P8-03a；證據詳列於父任務 `wp-reports/P8-01c-migration.md`。

@@ -25,15 +25,15 @@ P8-01c **進行中，未驗收**。兩個 Plugin DLL 已按 build 20 打包並�
 
 ## 已執行與未執行
 
-已完成 DLL 更新、唯讀 verify、舊項目匯出、ID-only 備份、RequiredLevel／labels 黃金檔及衝突檢測。未套用兩個 lookup 結構、未執行 migration apply／verify、未執行第二次零寫入 apply，也未執行 `OfferingCategories_Live_ListAndLookupResolve`。先前 `live-check` 在建立 seed 前因 `LIVE-PREP-06` 拒絕，不是本測試的替代證據。
+已完成 DLL 更新、唯讀 verify、舊項目匯出、ID-only 備份、RequiredLevel／labels 黃金檔及衝突檢測。2026-11-20 已將兩個指定 lookup 結構套用並 verify；組織稽核已開啟。未執行 migration apply／verify、第二次零寫入 apply，也未執行 `OfferingCategories_Live_ListAndLookupResolve`。先前 live-check 未通過，不是指定 P8Live 測試的替代證據。
 
-D34 唯讀探針兩次均在 `d34` 驗證階段以 `InvalidOperationException` 失敗，兩次記錄皆為 `writes=0`；依同一操作失敗兩次規則，不使用相同條件重試。`SMV-TEST-` 殘留數尚未取得，故不宣稱為 0。沒有新的切換操作；最新 verify 證實檢查時符合 `off` 目標，但不能代替尚未完成的 D34 及殘留清理證據。
+D34 的舊唯讀探針曾兩次失敗；其後不同的 qrcodes live-check 到達 `LIVE-PREP-04`（NoScenario），依程式檢查順序，此次 D34 子檢查通過，但整體 live-check 未通過。P6 唯讀 bridge 的測試身分與清理檢查成功。2026-11-20 15:34 唯讀殘留盤點顯示 15 個實體記錄 0、workflow 0、合計 0，組織稽核已開啟。15:30 verify 結束碼 0 且符合 `off`；以上不是指定 P8Live 或遷移驗收。
 
 ## 回復方式與後續
 
-既有 assembly 更新依原始 assembly 備份及 Deployment rollback 程序回復；ID 備份僅列受影響記錄身分。未套用 schema 或資料回填，故目前沒有新 lookup 或奉獻類別需要撤回。若日後完成轉換後回復，依原核定方式清空本次填入的 lookup 並停用本次新增類別。
+既有 assembly 更新依原始 assembly 備份及 Deployment rollback 程序回復；ID 備份僅列受影響記錄身分。若需回復已套用 schema，依結構工具的既定 rollback；若日後完成資料轉換後回復，依原核定方式清空本次填入的 lookup 並停用本次新增類別。
 
-依 08A §7.2，遷移身份規則本身不可行時記錄提案並繼續不受影響工作；P8-01c 與 P8-01 整包仍未驗收。`P8-上線前置清單.md` 已記錄部署新版 ChurchReport 前，必須先完成類別轉換及必要 lookup 回填。剩餘必做項目為取得有效 D34／測試殘留基線、核定能同時保留來源標籤與穩定類別身分的規格、套用及 verify 僅兩個 lookup、完成 migration plan/apply/verify、二次 apply 零寫入、指定 P8Live 測試與結尾清理。
+依 08A §7.2，遷移身份規則矛盾已記錄於 P8-PROP-008；依 D8-26 完成可行項目後繼續不受阻單元。P8-01c 與 P8-01 整包仍未驗收。`wp-reports/P8-上線前置清單.md` 已記錄部署新版 ChurchReport 前必須先完成類別轉換及必要 lookup 回填。未完成項目為解決五組同值異標籤與固定 `legacy-<選項值>` 身分規則的矛盾、migration plan/apply/verify、冪等第二次 apply，以及指定 P8Live 測試。
 
 ## 2026-11-20 續跑結果
 
@@ -42,3 +42,9 @@ D34 唯讀探針兩次均在 `d34` 驗證階段以 `InvalidOperationException` �
 同一續跑中，提交 `4975f2b00e736964c09a934394f3f1efd0dc27ea` 在唯一 guard `C:\smv\guard-p8` 的 §8.1 全部命令成功結束，包含 Release solution build、Release solution tests、Debug tracer、Changed 編碼、duplicate、I18n verify、檔案說明及 ProgressPage 28/28；結果記錄於 `C:\smv\guard-p8-evidence\guard-4975f2b0-full.log`。PowerShell transcript 只保留起訖與成功標記，未完整保存原生輸出；執行結果及所有後續檢查均成功，未為補 transcript 重跑守門。該 SHA 已推送，`git ls-remote` 與本機一致。
 
 唯讀 verify 成功只證明查詢當下狀態符合 `off`，不補足 D34 探針兩次同條件失敗、`SMV-TEST-` 數量未知、五組共享選項值標籤衝突及 migration apply／verify／冪等性／P8Live 缺證據。為避免在安全基線未完整確認及身份規格未解時寫入，本次不執行結構或資料 apply、不重試同條件 D34 探針；P8-01c 與 P8-01 整包維持未驗收，依 08A §7.2／D8-26 接續 P8-03a。此狀態不是 `SMV-TEST-` 殘留為零的證明。
+
+## 2026-11-20 續跑更正
+
+2026-11-20 13:23 Asia/Taipei (UTC+08:00)：依使用者更正，撤銷「verify 不得重試」及「先跳往 P8-03a」的過時結論。build 20 兩個 DLL 通過 `Test-PluginAssembly.ps1` 後，本次唯讀 verify 結束碼 0，狀態符合 `off`；證據 `C:\smv\guard-p8-evidence\p8-01c-resume-verify-20261120-continue.log`。這是已排除 FileVersion 根因後的新操作。本次未對組織寫入。下一步仍在 P8-01c：依核准唯讀程序定位 D34 前兩次探針失敗的子檢查、取得 `SMV-TEST-` 基線，並處理其餘 migration 前置；此處不宣稱 D34 或殘留為零。
+
+2026-11-20 15:34 Asia/Taipei (UTC+08:00)：完成兩個奉獻查閱欄的結構 plan/apply/verify，唯一 schema 差異為指定的兩欄；組織稽核已開啟。唯讀盤點 15 個實體、記錄 0、workflow 0、總殘留 0；15:30 verify 結束碼 0 且符合 off。qrcodes live-check 在 `LIVE-PREP-04` 拒絕，按檢查順序 D34 子檢查先前通過，但整體 Live 驗收未通過。P6 唯讀 bridge 確認測試身分與清理成功。15:31 migration plan 仍因 metadata labels 衝突 fail closed；未 migrate、未執行指定 P8Live、未完成冪等 apply。P8-01c／P8-01 維持未驗收；完整逐項證據見 `C:\smv\guard-p8-evidence\p8-01c-schema-plan-20261120.log`、`p8-01c-schema-apply-20261120.log`、`p8-01c-post-schema-verify-20261120.log`、`p8-01c-post-inventory-verify-20261120-153006.log`、`p8-01c-audit-residue-readonly-20261120-153408.log`、`p8-01c-migration-plan-20261120-153114.log`、`p8-01c-d34-qrcodes-readonly-20261120-143356.log`。
