@@ -4,8 +4,9 @@
  * 目的與定位：承接奉獻類別轉換的 CLI 語法及 Deployment 共同組織授權後的命令生命週期。
  * 主要功能與流程：嚴格解析唯一組織、plan／apply／verify互斥參數與artifact路徑；apply先取得有界寫鎖，
  * 各命令只借用一個connector lease，接著建立operation-local store並執行對應工作。
- * 參數只允許 plan、apply、verify 三種固定形態；先驗證組織名稱、互斥旗標、完整雜湊與
- * 該組織 artifacts 路徑，再取得 apply 專屬寫鎖及一個 connector lease。
+ * 參數只允許 plan、apply、verify、backup 四種固定形態；先驗證組織名稱、互斥旗標、完整雜湊與
+ * 固定 artifacts 路徑，再取得 apply 專屬寫鎖及一個 connector lease。backup 限定測試組織，
+ * 只讀前置欄位並將 ID-only 清冊以 CreateNew 寫到 artifacts/p8。
  * 組織身份由共同 catalog／ProductionGuard 與 server identity 核實，CLI 不接受 caller 提供
  * 教會 ID 作授權。Plan、SDK 分頁投影及 ExecuteMultiple 由各自有界元件負責。
  * 使用邊界與維護：所有檔案、SDK參照、候選計畫及操作紀錄只屬單次命令；lease先Dispose，寫鎖後釋放。
@@ -29,6 +30,7 @@ internal static class OfferingMigrationCli
     private const string PlanOption = "--plan";
     private const string ApplyOption = "--apply";
     private const string VerifyOption = "--verify";
+    private const string BackupOption = "--backup";
     private const string HashOption = "--plan-sha256";
 
     /// <summary>驗證完整命令語法後才取得寫鎖與唯一SDK租約，避免非法輸入觸發組織I/O。</summary>
@@ -62,6 +64,12 @@ internal static class OfferingMigrationCli
             var repositoryRoot = DeploymentCli.FindRepositoryRoot();
             var artifactsRoot = Path.GetFullPath(artifactRoot ?? Path.Combine(repositoryRoot, "artifacts", "d365"));
             var organizationRoot = Path.GetFullPath(Path.Combine(artifactsRoot, target.Name));
+            if (command.IsBackup && (target.Kind != "test"
+                || !string.Equals(target.Name, "goodshepherdback", StringComparison.Ordinal)))
+            {
+                output.WriteLine("Offering migration backup is restricted to the approved test organization.");
+                return 2;
+            }
             if (command.PlanPath is not null)
             {
                 if (!DeploymentCli.IsContainedPath(organizationRoot, command.PlanPath, out var planPath))
@@ -79,7 +87,7 @@ internal static class OfferingMigrationCli
             cancellationToken.ThrowIfCancellationRequested();
             using var lease = connector.Connect(target.Name);
             ProductionGuard.VerifyServer(lease.Service, target, cancellationToken);
-            return Execute(command, target, lease.Service, organizationRoot, output, cancellationToken);
+            return Execute(command, target, lease.Service, organizationRoot, repositoryRoot, output, cancellationToken);
         }
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
         {
@@ -97,10 +105,23 @@ internal static class OfferingMigrationCli
 
     /// <summary>執行已核定模式；此處集中保持單命令store與operation root的短生命週期。</summary>
     private static int Execute(OfferingMigrationCommand command, OrganizationDefinition target,
-        Microsoft.Xrm.Sdk.IOrganizationService service, string organizationRoot, TextWriter output,
+        Microsoft.Xrm.Sdk.IOrganizationService service, string organizationRoot, string repositoryRoot, TextWriter output,
         CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
+        if (command.IsBackup)
+        {
+            var backupRoot = Path.Combine(repositoryRoot, "artifacts", "p8");
+            Schema.SchemaDeploymentCli.EnsureNoLinks(backupRoot);
+            using var backupStore = new OfferingMigrationSdkStore(service, target, cancellationToken, backupOnly: true);
+            var records = backupStore.ReadBackupRecords();
+            var backupPath = OfferingMigrationBackupFiles.WriteNew(backupRoot, records,
+                backupStore.OrganizationId, DateTimeOffset.UtcNow, backupStore.OrganizationName);
+            output.WriteLine("Offering migration ID backup created; records="
+                + records.Count.ToString(CultureInfo.InvariantCulture) + "; file=" + Path.GetFileName(backupPath));
+            return 0;
+        }
+
         var operationRoot = DeploymentCli.CreateOperationDirectory(organizationRoot);
         using var store = new OfferingMigrationSdkStore(service, target, cancellationToken);
         if (command.IsVerify)
@@ -127,7 +148,7 @@ internal static class OfferingMigrationCli
         return 0;
     }
 
-    /// <summary>只接受三種互斥語法；重複、未知、空值或錯誤的組織都在connector前拒絕。</summary>
+    /// <summary>只接受plan、apply、verify或backup四種互斥語法；非法輸入在connector前拒絕。</summary>
     internal static bool TryParse(string[] args, string expectedOrganization, out OfferingMigrationCommand command)
     {
         command = default;
@@ -138,6 +159,7 @@ internal static class OfferingMigrationCli
         string? hash = null;
         var apply = false;
         var verify = false;
+        var backup = false;
         for (var index = 1; index < args.Length; index++)
         {
             var option = args[index];
@@ -145,6 +167,11 @@ internal static class OfferingMigrationCli
             if (option is ApplyOption or VerifyOption)
             {
                 if (option == ApplyOption) apply = true; else verify = true;
+                continue;
+            }
+            if (option == BackupOption)
+            {
+                backup = true;
                 continue;
             }
             if (option is not ("--org" or PlanOption or HashOption) || index + 1 >= args.Length
@@ -157,15 +184,17 @@ internal static class OfferingMigrationCli
         }
 
         if (!string.Equals(organization, expectedOrganization, StringComparison.Ordinal)
-            || apply && verify || planPath is not null && !apply
+            || (apply ? 1 : 0) + (verify ? 1 : 0) + (backup ? 1 : 0) > 1
+            || planPath is not null && !apply
             || hash is not null && !apply
             || apply && (planPath is null || !ValidHash(hash))
             || verify && (planPath is not null || hash is not null)
-            || !apply && !verify && (planPath is not null || hash is not null)
-            || seen.Count != (apply ? 4 : verify ? 2 : 1))
+            || backup && (planPath is not null || hash is not null)
+            || !apply && !verify && !backup && (planPath is not null || hash is not null)
+            || seen.Count != (apply ? 4 : verify || backup ? 2 : 1))
             return false;
 
-        command = new OfferingMigrationCommand(organization!, planPath, hash, apply, verify);
+        command = new OfferingMigrationCommand(organization!, planPath, hash, apply, verify, backup);
         return true;
     }
 
@@ -179,5 +208,6 @@ internal static class OfferingMigrationCli
 /// <param name="PlanSha256">使用者核對的原始plan檔SHA-256。</param>
 /// <param name="IsApply">是否以同組織寫鎖執行apply。</param>
 /// <param name="IsVerify">是否執行唯讀驗證。</param>
+/// <param name="IsBackup">是否讀取最小來源身份並建立遷移前備份。</param>
 internal readonly record struct OfferingMigrationCommand(
-    string Organization, string? PlanPath, string? PlanSha256, bool IsApply, bool IsVerify);
+    string Organization, string? PlanPath, string? PlanSha256, bool IsApply, bool IsVerify, bool IsBackup);

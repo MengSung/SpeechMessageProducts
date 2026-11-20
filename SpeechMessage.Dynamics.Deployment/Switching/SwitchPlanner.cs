@@ -1,10 +1,11 @@
 /*
 檔案整體說明
-目的與定位：階段7純值切換規劃器，從完整且已驗證的現況候選建立可審核、有序、無秘密的計畫。
+目的與定位：階段7純值切換規劃器，從完整且已驗證的現況候選建立可審核、有序、無秘密的計畫與唯讀差異。
 主要流程：驗DLL與正式Live證據、核對全部正式ID與新舊模組互斥，依唯一SwitchTarget計算設定／狀態操作。
 流程只要含未移植或dormant舊活動就整個KeepLegacy；超1MiB或暫停流程列Manual，不部分改寫。
+切換計畫要求本機及遠端DLL雜湊相同；唯讀verify允許雜湊不同並明確回報UpdateAssembly，不將它轉成組織狀態或寫入操作。
 資源與隔離：不建立SDK或解析秘密，資料只屬本次命令；候選先複製、結果唯讀發布，沒有共享可變狀態。
-失敗與驗證：固定安全錯誤不帶XAML；SwitchPlanTests以缺證據／缺DLL／混合引用及非法互斥驗fail closed。
+失敗與驗證：固定安全錯誤不帶XAML；SwitchPlanTests與SwitchCliTests以缺證據／DLL差異／混合引用及非法互斥驗fail closed。
 */
 using System;
 using System.Collections.Generic;
@@ -18,14 +19,22 @@ namespace SpeechMessage.Dynamics.Deployment.Switching;
 /// <summary>無副作用的完整計畫建構器；候選不代表授權，執行器仍須鎖內重讀來源及server身分。</summary>
 internal static class SwitchPlanner
 {
-    /// <summary>以原況與有效分級建立七類核定操作；所有檢查成功才發布，從不修改輸入候選。</summary>
-    internal static SwitchPlan Create(SwitchSnapshot source, string target)
+    /// <summary>
+    /// 以原況與有效分級建立核定操作；所有檢查成功才發布，從不修改輸入候選。
+    /// 預設拒絕DLL內容差異以保護切換plan；只有唯讀verify可明確允許差異並產生UpdateAssembly摘要，
+    /// 該摘要沒有遠端寫入效力，不能交給切換executor執行。
+    /// </summary>
+    /// <param name="source">reader完整取得且已脫離SDK資料列的單次組織快照。</param>
+    /// <param name="target">catalog或核准plan指定的off、shadow或live目標。</param>
+    /// <param name="allowAssemblyDifferences">僅供Verify將DLL內容差異列為UpdateAssembly；plan及switch呼叫必須維持預設false。</param>
+    /// <returns>所有驗證通過後發布的唯讀純值計畫，不含DLL本文、秘密或XAML。</returns>
+    internal static SwitchPlan Create(SwitchSnapshot source, string target, bool allowAssemblyDifferences = false)
     {
         ArgumentNullException.ThrowIfNull(source);
         var resources = new SwitchText();
         _ = SwitchTarget.Resolve(target, "live", false);
         var snapshot = JsonSerializer.Deserialize<SwitchSnapshot>(JsonSerializer.SerializeToUtf8Bytes(source)) ?? throw Invalid();
-        Validate(snapshot);
+        Validate(snapshot, allowAssemblyDifferences);
         var config = new List<SwitchOperation>();
         var disable = new List<SwitchOperation>();
         var legacy = new List<SwitchOperation>();
@@ -123,7 +132,11 @@ internal static class SwitchPlanner
         foreach (var old in snapshot.LegacySteps.Where(row => !mappedIds.Contains(row.Id)))
             legacy.Add(Operation("KeepLegacy", old.Id, "") with { Reason = resources["UnmappedStepReason"] });
         var body = target == "live" ? config.Concat(legacy).Concat(workflows) : workflows.Concat(legacy).Concat(config);
-        var operations = disable.Concat(body)
+        var assemblyUpdates = allowAssemblyDifferences
+            ? snapshot.Assemblies.Where(row => row.LocalSha256 != row.RemoteSha256)
+                .Select(row => Operation("UpdateAssembly", Guid.Empty, row.Name))
+            : Enumerable.Empty<SwitchOperation>();
+        var operations = assemblyUpdates.Concat(disable).Concat(body)
             .Concat(enable.OrderBy(row => row.Mode).ThenBy(row => row.Operation.Id).Select(row => row.Operation)).ToArray();
         if (operations.Count(op => op.Kind is not ("KeepLegacy" or "Manual")) > 4096) throw Invalid();
         var plan = new SwitchPlan(1, snapshot.Organization.Name, snapshot.ServerOrganizationId, snapshot.Organization.Kind,
@@ -140,7 +153,7 @@ internal static class SwitchPlanner
         if (approved is not null && (approved.SchemaVersion != 1 || approved.Organization != current.Organization.Name ||
             approved.ServerOrganizationId != current.ServerOrganizationId || approved.ManifestSha256 != current.ManifestSha256 ||
             approved.CatalogSha256 != current.CatalogSha256 || approved.Sha256 != Hash(approved with { Sha256 = "" }))) throw Invalid();
-        var plan = Create(current, approved?.TargetState ?? current.Organization.SwitchState);
+        var plan = Create(current, approved?.TargetState ?? current.Organization.SwitchState, allowAssemblyDifferences: true);
         return Array.AsReadOnly(plan.Operations.Where(operation => operation.Kind is not ("KeepLegacy" or "Manual")).ToArray());
     }
 
@@ -169,12 +182,13 @@ internal static class SwitchPlanner
     internal static string Hash<T>(T value) => Convert.ToHexString(SHA256.HashData(JsonSerializer.SerializeToUtf8Bytes(value)));
 
     /// <summary>所有步驟／流程正式ID須非空且集合內唯一；組件缺失、內容不同或未知種類fail closed。</summary>
-    private static void Validate(SwitchSnapshot snapshot)
+    private static void Validate(SwitchSnapshot snapshot, bool allowAssemblyDifferences)
     {
         if (snapshot.ServerOrganizationId == Guid.Empty || snapshot.Organization.Kind is not ("test" or "production") ||
             snapshot.Steps.Count > 256 || snapshot.Activities.Count > 256 || snapshot.LegacySteps.Count > 10000 || snapshot.Workflows.Count > 10000 ||
             snapshot.Assemblies.Count is < 1 or > 2 || snapshot.Assemblies.Select(row => row.Name).Distinct(StringComparer.Ordinal).Count() != snapshot.Assemblies.Count ||
-            snapshot.Assemblies.Any(row => string.IsNullOrEmpty(row.RemoteSha256) || row.LocalSha256 != row.RemoteSha256)) throw Invalid();
+            snapshot.Assemblies.Any(row => !ValidHash(row.LocalSha256) || !ValidHash(row.RemoteSha256) ||
+                !allowAssemblyDifferences && row.LocalSha256 != row.RemoteSha256)) throw Invalid();
         _ = SwitchTarget.Resolve(snapshot.Organization.SwitchState, "live", false);
         var ids = new HashSet<Guid>();
         foreach (var id in snapshot.Steps.Select(row => row.Id).Concat(snapshot.LegacySteps.Select(row => row.Id)))
@@ -195,6 +209,9 @@ internal static class SwitchPlanner
 
     /// <summary>固定空欄位初始化，避免可執行操作意外帶有前次流程的設定或活動引用。</summary>
     private static SwitchOperation Operation(string kind, Guid id, string module) => new(kind, id, module, false, "", "", Array.Empty<WorkflowActivityReplacement>(), "");
+
+    /// <summary>只接受完整SHA-256摘要，避免缺少遠端內容時被誤報成可執行的組件差異。</summary>
+    private static bool ValidHash(string value) => value is { Length: 64 } && value.All(char.IsAsciiHexDigit);
 
     /// <summary>固定錯誤不保存來源XAML、欄位值或credential，由CLI統一回報。</summary>
     private static InvalidDataException Invalid() => new("Switch plan precondition failed.");

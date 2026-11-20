@@ -69,6 +69,41 @@ public sealed class OfferingMigrationSdkStoreTests
         Assert.DoesNotContain(ContactId.ToString("D"), System.Text.Json.JsonSerializer.Serialize(plan), StringComparison.Ordinal);
     }
 
+    /// <summary>新lookup尚未部署時仍能唯讀備份可能回填的來源ID與教會ID，不讀類別或其他個資。</summary>
+    [Fact]
+    public void ReadBackupRecords_BeforeLookupSchemaExists_ReturnsOnlyEligibleIdentities()
+    {
+        var service = new SyntheticService(omitCategoryLookup: true);
+        service.Rows["account"].Add(new Entity("account", ChurchId));
+        service.Rows["contact"].Add(new Entity("contact", ContactId)
+            { ["parentcustomerid"] = new EntityReference("account", ChurchId) });
+        service.Rows["new_fee"].Add(new Entity("new_fee", FeeId)
+        {
+            ["new_category"] = new OptionSetValue(100000000),
+            ["new_contact_new_fee"] = new EntityReference("contact", ContactId),
+            ["new_name"] = "must not be queried"
+        });
+        service.Rows["new_fee"].Add(new Entity("new_fee", Guid.Parse("ffffffff-ffff-ffff-ffff-ffffffffffff"))
+        {
+            ["new_contact_new_fee"] = new EntityReference("contact", ContactId)
+        });
+
+        using var store = new OfferingMigrationSdkStore(service, Target, default, backupOnly: true);
+
+        var backup = store.ReadBackupRecords();
+
+        var entry = Assert.Single(backup);
+        Assert.Equal("new_fee", entry.Entity);
+        Assert.Equal(FeeId, entry.RecordId);
+        Assert.Equal(ChurchId, entry.ChurchId);
+        Assert.DoesNotContain(service.MetadataRequests, name => name == "new_offeringcategory");
+        Assert.All(service.Queries, query =>
+        {
+            Assert.DoesNotContain("new_offeringcategoryid", query.ColumnSet.Columns);
+            Assert.DoesNotContain("new_name", query.ColumnSet.Columns);
+        });
+    }
+
     /// <summary>server語系不是核定1028時在讀取業務列前拒絕，不以本機文化或標籤預設值代替。</summary>
     [Fact]
     public void Constructor_NonTraditionalChineseOrganizationLanguage_RejectedBeforeBusinessQueries()
@@ -149,6 +184,30 @@ public sealed class OfferingMigrationSdkStoreTests
         Assert.Equal(0, service.QueryCalls);
     }
 
+    /// <summary>ID-only備份不建立類別映射；舊欄標籤衝突不得阻止記錄可回復身份的唯讀盤點。</summary>
+    [Fact]
+    public void ReadBackupRecords_ConflictingOptionLabels_DoesNotRequireCategoryMapping()
+    {
+        var service = new SyntheticService(differentChoiceSets: true, conflictingSharedLabel: true,
+            omitCategoryLookup: true);
+        service.Rows["account"].Add(new Entity("account", ChurchId));
+        service.Rows["contact"].Add(new Entity("contact", ContactId)
+            { ["parentcustomerid"] = new EntityReference("account", ChurchId) });
+        service.Rows["new_fee"].Add(new Entity("new_fee", FeeId)
+        {
+            ["new_category"] = new OptionSetValue(100000000),
+            ["new_contact_new_fee"] = new EntityReference("contact", ContactId)
+        });
+
+        using var store = new OfferingMigrationSdkStore(service, Target, default, backupOnly: true);
+
+        var entry = Assert.Single(store.ReadBackupRecords());
+
+        Assert.Equal(new OfferingMigrationBackupEntry("new_fee", FeeId, ChurchId), entry);
+        Assert.DoesNotContain(service.MetadataRequests, name => name == "new_offeringcategory");
+        Assert.Equal(3, service.QueryCalls);
+    }
+
     /// <summary>查詢要求續頁但沒有cookie時拒絕部分結果；不把首頁資料當完整來源投影。</summary>
     [Fact]
     public void ReadSourceRecords_MoreRecordsWithoutCookie_Rejected()
@@ -221,7 +280,7 @@ public sealed class OfferingMigrationSdkStoreTests
 
     /// <summary>固定metadata helper每次產生全新ID與label物件，避免測試間共享可變SDK metadata。</summary>
     private static EntityMetadata Metadata(string logicalName, bool wrongFeeOptionType = false,
-        bool differentChoiceSets = false, bool conflictingSharedLabel = false)
+        bool differentChoiceSets = false, bool conflictingSharedLabel = false, bool omitCategoryLookup = false)
     {
         var attributes = new List<AttributeMetadata>();
         if (logicalName == "new_fee")
@@ -232,7 +291,8 @@ public sealed class OfferingMigrationSdkStoreTests
                     ? new[] { (100000000, "shared label"), (100000001, "fee-only label") }
                     : new[] { (100000000, "metadata label") }));
             attributes.Add(new LookupAttributeMetadata { LogicalName = "new_contact_new_fee", Targets = ContactTargets });
-            attributes.Add(new LookupAttributeMetadata { LogicalName = "new_offeringcategoryid", Targets = CategoryTargets });
+            if (!omitCategoryLookup)
+                attributes.Add(new LookupAttributeMetadata { LogicalName = "new_offeringcategoryid", Targets = CategoryTargets });
         }
         else if (logicalName == "new_dedication_booking")
         {
@@ -244,7 +304,8 @@ public sealed class OfferingMigrationSdkStoreTests
                 }
                 : new[] { (100000000, "metadata label") }));
             attributes.Add(new LookupAttributeMetadata { LogicalName = "new_contact_new_dedication_booking", Targets = ContactTargets });
-            attributes.Add(new LookupAttributeMetadata { LogicalName = "new_offeringcategoryid", Targets = CategoryTargets });
+            if (!omitCategoryLookup)
+                attributes.Add(new LookupAttributeMetadata { LogicalName = "new_offeringcategoryid", Targets = CategoryTargets });
         }
         else
         {
@@ -287,13 +348,16 @@ public sealed class OfferingMigrationSdkStoreTests
     {
         private readonly Dictionary<string, EntityMetadata> metadata;
 
-        internal SyntheticService(bool differentChoiceSets = false, bool conflictingSharedLabel = false)
+        internal SyntheticService(bool differentChoiceSets = false, bool conflictingSharedLabel = false,
+            bool omitCategoryLookup = false)
         {
             metadata = new Dictionary<string, EntityMetadata>(StringComparer.Ordinal)
             {
-                ["new_fee"] = Metadata("new_fee", differentChoiceSets: differentChoiceSets),
+                ["new_fee"] = Metadata("new_fee", differentChoiceSets: differentChoiceSets,
+                    omitCategoryLookup: omitCategoryLookup),
                 ["new_dedication_booking"] = Metadata("new_dedication_booking",
-                    differentChoiceSets: differentChoiceSets, conflictingSharedLabel: conflictingSharedLabel),
+                    differentChoiceSets: differentChoiceSets, conflictingSharedLabel: conflictingSharedLabel,
+                    omitCategoryLookup: omitCategoryLookup),
                 ["new_offeringcategory"] = Metadata("new_offeringcategory")
             };
         }
@@ -318,6 +382,10 @@ public sealed class OfferingMigrationSdkStoreTests
         };
         /// <summary>記錄指定alternate key的獨立SDK查詢，確保不依EntityMetadata.Keys附帶回應。</summary>
         internal List<(string Entity, string Key, bool RetrieveAsIfPublished)> KeyRequests { get; } = new();
+        /// <summary>記錄實際metadata請求，供備份模式證明不依賴尚未部署的category實體。</summary>
+        internal List<string> MetadataRequests { get; } = new();
+        /// <summary>保存查詢投影副本，只核對要求欄位且不保留呼叫端可變QueryExpression。</summary>
+        internal List<QueryExpression> Queries { get; } = new();
         /// <summary>Execute訊息呼叫次數，用於取消及dispose後不再使用服務的斷言。</summary>
         internal int ExecuteCalls { get; private set; }
         /// <summary>分頁查詢呼叫次數，錯誤語系／欄位型別不得開始業務讀取。</summary>
@@ -344,6 +412,7 @@ public sealed class OfferingMigrationSdkStoreTests
                 };
             if (request is RetrieveEntityRequest retrieve)
             {
+                MetadataRequests.Add(retrieve.LogicalName);
                 if (WrongFeeOptionType && retrieve.LogicalName == "new_fee")
                     metadata["new_fee"] = Metadata("new_fee", wrongFeeOptionType: true);
                 var entityMetadata = metadata[retrieve.LogicalName];
@@ -403,6 +472,7 @@ public sealed class OfferingMigrationSdkStoreTests
         {
             QueryCalls++;
             var expression = Assert.IsType<QueryExpression>(query);
+            Queries.Add(new QueryExpression(expression.EntityName) { ColumnSet = new ColumnSet(expression.ColumnSet.Columns.ToArray()) });
             Assert.Contains(expression.EntityName, Rows.Keys);
             var rows = Rows[expression.EntityName];
             var firstPage = expression.PageInfo.PageNumber == 1;

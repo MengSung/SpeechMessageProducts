@@ -18,6 +18,7 @@ QR 解析測試以連結的既有黃金檔逐欄比較新舊解析，Roslyn 僅�
     <Nullable>enable</Nullable>
     <IsPackable>false</IsPackable>
     <IsTestProject>true</IsTestProject>
+    <RunSettingsFilePath Condition="'$(VSTestTestCaseFilter)' == ''">$(MSBuildThisFileDirectory)P8Live.runsettings</RunSettingsFilePath>
     <!-- 套件版本由根目錄中央版本表統一；套件降版警告不得抑制。 -->
   </PropertyGroup>
   <ItemGroup>

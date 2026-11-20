@@ -1,9 +1,9 @@
 /*
 檔案整體說明
-目的與定位：P7 CLI的新切換語法與檔案發布契約；所有SDK與PE皆案例合成，不連D365、不讀真秘密。
-主要流程：先以非法組合驗零連線，再以真CLI plan產檔，檢查檔hash與Markdown固定章節及原指令相容。
+目的與定位：P7 CLI的新切換語法、部署差異驗證及檔案發布契約；所有SDK與PE皆案例合成，不連D365、不讀真秘密。
+主要流程：先以非法組合驗零連線，再以真CLI執行切換plan、verify及完整回復；檢查受管DLL雜湊差異可安全回報為UpdateAssembly，但切換plan仍拒絕未更新DLL。
 生命週期：案例獨占temp根、組態與租約，程序工作目錄由scope先還原再刪除；沒有背景工作或跨案狀態。
-失敗判準：缺hash仍建立連線、非法選項被忽略、plan輸出缺五段或金鑰實值出現都失敗，不能冒充實機證據。
+失敗判準：缺hash仍建立連線、非法選項被忽略、DLL差異被誤報成例外、plan輸出缺五段或金鑰實值出現都失敗，不能冒充實機證據。
 */
 using System;
 using System.IO;
@@ -64,6 +64,39 @@ public sealed class SwitchCliTests
         Assert.Contains("dormant", markdown, StringComparison.Ordinal);
         Assert.Contains("仍登錄的舊組件", markdown, StringComparison.Ordinal);
         Assert.Contains("核定書摘要", markdown, StringComparison.Ordinal);
+    }
+
+    /// <summary>遠端組件內容落後時，verify仍完整檢查切換狀態並回報UpdateAssembly差異，不將合法更新計畫包成InvalidDataException。</summary>
+    [Fact]
+    public void Verify_OnlyAssemblyUpdate_ReportsDifferenceWithoutException()
+    {
+        using var f = new Fixture();
+        using var scope = f.EnterCliRepository();
+        var manifest = f.Manifest with { Steps = new[] { f.Manifest.Steps[0] with
+            { Module = "attendance", Live = new StepLiveRegistration(), UnsecureConfig = "{\"mode\":\"Shadow\"}" } } };
+        var document = new RegistrationDocument { Assemblies = new[] { manifest } };
+        File.WriteAllText(Path.Combine(f.Root, "d365", "registration", "plugins.registration.json"),
+            JsonSerializer.Serialize(document, RegistrationManifestLoader.Json));
+        var catalogText = "{\"schemaVersion\":1,\"organizations\":[{\"name\":\"goodshepherdback\",\"kind\":\"test\",\"host\":\"synthetic.invalid\",\"switchState\":\"off\",\"tierOverrides\":[]}]}";
+        File.WriteAllText(Path.Combine(f.Root, "d365", "registration", "organizations.json"), catalogText);
+        var catalog = OrganizationCatalog.Parse(catalogText);
+        var dll = Path.Combine(f.Root, "artifacts", "plugins", manifest.AssemblyName + ".dll");
+        Directory.CreateDirectory(Path.GetDirectoryName(dll)!);
+        File.Copy(f.Emit(), dll);
+        var image = AssemblyCatalog.Read(dll, manifest);
+        f.Engine.Apply(f.Engine.Plan(manifest, image, Fixture.Organization), manifest, image);
+        f.Service.Rows.Single(row => row.LogicalName == "pluginassembly")["content"] =
+            Convert.ToBase64String(new byte[] { 1, 2, 3, 4 });
+        var connector = new ReadConnector(new SwitchSnapshotReaderTests.ReadService(f.Service));
+        using var output = new StringWriter();
+
+        var result = DeploymentCli.RunWithCatalog(new[] { "verify", "--org", Fixture.Organization }, catalog,
+            connector, output, exception => throw new InvalidOperationException("Unexpected CLI failure", exception), null);
+
+        Assert.Equal(1, result);
+        Assert.Contains("UpdateAssembly", output.ToString(), StringComparison.Ordinal);
+        Assert.DoesNotContain("Command failed", output.ToString(), StringComparison.Ordinal);
+        Assert.Equal(1, connector.Disposals);
     }
 
     /// <summary>同一真CLI從plan→switch→verify plan→rollback→verify off，直接讀回SDK狀態並檢查唯一log。</summary>

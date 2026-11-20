@@ -433,7 +433,8 @@ public sealed class LivePreparationDiagnosticsTests
     /// <summary>只提供單一可規劃的 Live 新步驟；組件與 ID 合成且資料不跨案例共用。</summary>
     private static SwitchSnapshot Snapshot() => new(
         new OrganizationDefinition("goodshepherdback", "test", "synthetic.invalid", "off"), Guid.NewGuid(),
-        "manifest", "catalog", "fingerprint", [new("New.Assembly", "same", "same")],
+        "manifest", "catalog", "fingerprint",
+        [new("New.Assembly", new string('A', 64), new string('A', 64))],
         [new(Guid.NewGuid(), new StepRegistration { Module = "care", Type = "New.Plugin", Entity = "task",
             Message = "Update", Live = new StepLiveRegistration(), UnsecureConfig = """{"mode":"Shadow"}""" },
             true, """{"mode":"Live"}""", null)], [], [], [], []);

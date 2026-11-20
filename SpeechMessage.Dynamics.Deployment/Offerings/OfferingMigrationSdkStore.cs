@@ -3,6 +3,9 @@
  *
  * 目的與定位：將一次Deployment命令借入的IOrganizationService投影為奉獻轉換器需要的純值，
  * 並提供唯一的Upsert與ExecuteMultiple寫入邊界。本類不建立或Dispose連線；lease由CLI唯一擁有。
+ * 遷移前備份模式只讀必要舊選項、付款人與可選直接教會欄，不合併跨欄位的類別標籤，
+ * 且不要求尚未部署的新lookup或類別實體；僅回傳可能回填來源的實體／正式ID／教會ID，
+ * 交由固定備份寫入器保存。一般plan/apply仍要求兩欄映射無歧義，標籤衝突時拒絕操作。
  * 初始化只讀核對server organization ID／uniqueName、基礎語言1028、兩個choice欄、來源欄位型別、
  * offeringcategory欄及account/contact必要lookup；選項值、標籤和兩欄RequiredLevel均來自server metadata。
  * 除建立plan外，apply會呼叫RecreatePlan，以原plan建立時間重新使用此同一份已核對的metadata、
@@ -61,6 +64,7 @@ internal sealed class OfferingMigrationSdkStore : IOfferingMigrationStore, IDisp
     private readonly string bookingRequiredLevel;
     private readonly string?[] directChurchAttributes;
     private readonly string metadataFingerprint;
+    private readonly bool backupOnly;
     private bool disposed;
 
     /// <summary>通過RetrieveCurrentOrganization與共同catalog核對的正式server組織ID。</summary>
@@ -77,12 +81,14 @@ internal sealed class OfferingMigrationSdkStore : IOfferingMigrationStore, IDisp
     /// <param name="service">由外層單次OrganizationLease借入的SDK服務。</param>
     /// <param name="target">OrganizationCatalog核准的唯一命令目標。</param>
     /// <param name="cancellationToken">由CLI owner提供的caller取消訊號。</param>
+    /// <param name="backupOnly">只建遷移前ID備份讀取器，不要求新lookup與類別結構已存在。</param>
     internal OfferingMigrationSdkStore(IOrganizationService service, OrganizationDefinition target,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken, bool backupOnly = false)
     {
         this.service = service ?? throw new ArgumentNullException(nameof(service));
         ArgumentNullException.ThrowIfNull(target);
         this.cancellationToken = cancellationToken;
+        this.backupOnly = backupOnly;
         cancellationToken.ThrowIfCancellationRequested();
         var current = Execute<RetrieveCurrentOrganizationResponse>(
             new RetrieveCurrentOrganizationRequest { AccessType = EndpointAccessType.Default }).Detail;
@@ -102,18 +108,24 @@ internal sealed class OfferingMigrationSdkStore : IOfferingMigrationStore, IDisp
         var metadata = new EntityMetadata[Sources.Length];
         for (var index = 0; index < Sources.Length; index++)
             metadata[index] = ReadEntityMetadata(Sources[index].Entity);
-        var categoryMetadata = ReadEntityMetadata(CategoryTable);
-        var categoryKey = ReadCategoryKeyMetadata();
         var feeOptions = ReadOptions(metadata[0], Sources[0].OptionAttribute, out feeRequiredLevel);
         var bookingOptions = ReadOptions(metadata[1], Sources[1].OptionAttribute, out bookingRequiredLevel);
-        options = MergeOptionSets(feeOptions, bookingOptions, feeRequiredLevel, bookingRequiredLevel);
+        // 備份只需舊欄位值及來源身份；不同欄位的同值異標籤不影響ID清冊，映射仍由遷移路徑拒絕。
+        options = backupOnly
+            ? Array.Empty<OfferingOption>()
+            : MergeOptionSets(feeOptions, bookingOptions, feeRequiredLevel, bookingRequiredLevel);
         directChurchAttributes = new string?[Sources.Length];
         for (var index = 0; index < Sources.Length; index++)
         {
-            ValidateSourceMetadata(metadata[index], Sources[index]);
+            ValidateSourceMetadata(metadata[index], Sources[index], requireCategoryLookup: !backupOnly);
             directChurchAttributes[index] = ReadOptionalDirectChurchAttribute(metadata[index]);
         }
-        ValidateCategoryMetadata(categoryMetadata, categoryKey);
+        if (!backupOnly)
+        {
+            var categoryMetadata = ReadEntityMetadata(CategoryTable);
+            var categoryKey = ReadCategoryKeyMetadata();
+            ValidateCategoryMetadata(categoryMetadata, categoryKey);
+        }
         metadataFingerprint = OfferingMigrationPlanner.FingerprintMetadata(
             options, OfferingMigrationCatalog.ScreenOptions, feeRequiredLevel, bookingRequiredLevel);
     }
@@ -122,6 +134,7 @@ internal sealed class OfferingMigrationSdkStore : IOfferingMigrationStore, IDisp
     internal OfferingMigrationPlan CreatePlan(IReadOnlyList<OfferingScreenOption> screenOptions)
     {
         ThrowIfDisposed();
+        if (backupOnly) throw new InvalidOperationException("Backup-only store cannot create migration plans.");
         var churches = ReadChurchIds();
         var records = ReadSourceRecords();
         return OfferingMigrationPlanner.Create(OrganizationId, OrganizationName, churches, options,
@@ -144,6 +157,7 @@ internal sealed class OfferingMigrationSdkStore : IOfferingMigrationStore, IDisp
     public IReadOnlyList<OfferingSourceRecord> ReadSourceRecords()
     {
         ThrowIfDisposed();
+        if (backupOnly) throw new InvalidOperationException("Backup-only store cannot read migration records.");
         var sourceEntities = new List<Entity>(MaximumRows);
         var contacts = new HashSet<Guid>();
         foreach (var source in Sources)
@@ -203,6 +217,66 @@ internal sealed class OfferingMigrationSdkStore : IOfferingMigrationStore, IDisp
             }
         }
         return Array.AsReadOnly(output.ToArray());
+    }
+
+    /// <summary>
+    /// 在新lookup尚未部署前讀取可能回填來源的最小身份；未設定舊選項或無法判定教會的列不會被備份，
+    /// 因為遷移不會回填這些列。查詢不讀名稱、付款內容或任何其他聯絡人欄位。
+    /// </summary>
+    /// <returns>唯讀且以來源實體及正式資料庫ID唯一識別的復原清冊。</returns>
+    internal IReadOnlyList<OfferingMigrationBackupEntry> ReadBackupRecords()
+    {
+        ThrowIfDisposed();
+        if (!backupOnly) throw new InvalidOperationException("Migration store cannot create pre-migration backups.");
+        var candidates = new List<(int SourceIndex, Entity Row, int Option)>();
+        var contacts = new HashSet<Guid>();
+        foreach (var source in Sources)
+        {
+            var sourceIndex = Array.IndexOf(Sources, source);
+            var columns = new List<string> { source.OptionAttribute, source.ContactAttribute };
+            if (directChurchAttributes[sourceIndex] is { } churchAttribute) columns.Add(churchAttribute);
+            foreach (var row in ReadRows(source.Entity, columns.ToArray(), MaximumRows - candidates.Count))
+            {
+                var option = ReadOptionValue(row, source.OptionAttribute);
+                if (option is null) continue;
+                var payer = row.GetAttributeValue<EntityReference>(source.ContactAttribute);
+                if (payer is not null)
+                {
+                    if (payer.LogicalName != "contact" || payer.Id == Guid.Empty)
+                        throw new InvalidDataException("Offering backup contact lookup is invalid.");
+                    contacts.Add(payer.Id);
+                }
+                candidates.Add((sourceIndex, row, option.Value));
+                if (candidates.Count > MaximumRows)
+                    throw new InvalidDataException("Offering backup exceeds its bounded row budget.");
+            }
+        }
+
+        var contactChurches = ReadContactChurches(contacts);
+        var backup = new List<OfferingMigrationBackupEntry>(candidates.Count);
+        foreach (var candidate in candidates)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            Guid? churchId = null;
+            var churchAttribute = directChurchAttributes[candidate.SourceIndex];
+            if (churchAttribute is not null
+                && candidate.Row.GetAttributeValue<EntityReference>(churchAttribute) is { } directChurch)
+            {
+                if (directChurch.LogicalName != "account" || directChurch.Id == Guid.Empty)
+                    throw new InvalidDataException("Offering backup direct church lookup is invalid.");
+                churchId = directChurch.Id;
+            }
+            else if (candidate.Row.GetAttributeValue<EntityReference>(
+                         Sources[candidate.SourceIndex].ContactAttribute) is { } payer
+                     && contactChurches.TryGetValue(payer.Id, out var payerChurch))
+            {
+                churchId = payerChurch;
+            }
+            if (churchId is { } resolvedChurch)
+                backup.Add(new OfferingMigrationBackupEntry(
+                    Sources[candidate.SourceIndex].Entity, candidate.Row.Id, resolvedChurch));
+        }
+        return Array.AsReadOnly(backup.ToArray());
     }
 
     /// <summary>使用正式替代索引鍵Upsert；只有Dataverse回傳的RecordId能用於後續業務列lookup。</summary>
@@ -445,14 +519,16 @@ internal sealed class OfferingMigrationSdkStore : IOfferingMigrationStore, IDisp
     }
 
     /// <summary>確認舊選項、付款人lookup與新增category lookup型別／目標，不依查閱顯示名推測。</summary>
-    private static void ValidateSourceMetadata(EntityMetadata metadata, SourceDefinition source)
+    private static void ValidateSourceMetadata(EntityMetadata metadata, SourceDefinition source,
+        bool requireCategoryLookup = true)
     {
         var option = metadata.Attributes.SingleOrDefault(item => item.LogicalName == source.OptionAttribute);
         var payer = metadata.Attributes.SingleOrDefault(item => item.LogicalName == source.ContactAttribute);
         var category = metadata.Attributes.SingleOrDefault(item => item.LogicalName == CategoryLookup);
         if (option is not PicklistAttributeMetadata
             || payer is not LookupAttributeMetadata payerLookup || !payerLookup.Targets.Contains("contact", StringComparer.Ordinal)
-            || category is not LookupAttributeMetadata categoryLookup || !categoryLookup.Targets.Contains(CategoryTable, StringComparer.Ordinal))
+            || requireCategoryLookup && (category is not LookupAttributeMetadata categoryLookup
+                || !categoryLookup.Targets.Contains(CategoryTable, StringComparer.Ordinal)))
             throw new InvalidDataException("Offering source metadata does not match the migration contract.");
     }
 

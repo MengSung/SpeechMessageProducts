@@ -84,7 +84,7 @@ public sealed class SwitchPlanTests
     public void SwitchPlan_AssemblyNotDeployedOrContentDiffers_Rejected()
     {
         var fixture = Fixture();
-        foreach (var remote in new[] { "", "different" })
+        foreach (var remote in new[] { "", new string('B', 64) })
             Assert.Throws<InvalidDataException>(() => SwitchPlanner.Create(fixture with
                 { Assemblies = Array.AsReadOnly(new[] { fixture.Assemblies[0] with { RemoteSha256 = remote } }) }, "live"));
     }
@@ -149,7 +149,7 @@ public sealed class SwitchPlanTests
             Legacy = new[] { new LegacyActivityReference { Assembly = "Old.Assembly", Type = "Old.Activity" } } };
         return new SwitchSnapshot(new OrganizationDefinition("synthetic", "test", "synthetic.invalid", "off"),
             Guid.Parse("00000000-0000-0000-0000-000000000002"), "manifest", "catalog", "fingerprint",
-            Array.AsReadOnly(new[] { new SwitchAssembly("New.Assembly", "same", "same") }),
+            Array.AsReadOnly(new[] { new SwitchAssembly("New.Assembly", new string('A', 64), new string('A', 64)) }),
             Array.AsReadOnly(new[] { new SwitchStep(Guid.Parse("00000000-0000-0000-0000-000000000003"), step, false, "{\"mode\":\"Shadow\"}", null) }),
             Array.AsReadOnly(new[] { new SwitchActivity(activity, "New.Assembly") }),
             Array.AsReadOnly(new[] { new SwitchLegacyStep(oldId, "Old.Assembly", "Old.Plugin", true) }),

@@ -3,9 +3,10 @@
 目的與定位：P7切換完整現況唯讀投影，借用已授權SDK，將正式server ID、兩DLL、步驟、舊metadata及流程納入同一候選。
 主要流程：WhoAmI核非空組織ID，沿原DeploymentEngine驗註冊與images，僅容許state/config差異；穩定身份找唯一step。
 設定只接受manifest的Shadow/Live兩種模板，未知內容拒絕，不把可能含秘密的unsecure原文放log；secure只查lookup。
+DLL已部署內容雜湊可與本機不同，唯讀verify會將差異交由planner標示UpdateAssembly；真正切換plan仍由planner要求兩邊內容完全相符。
 舊資料沿LegacyRegistrationExporter有界分頁；流程完整原字串保留至命令／本機log，總16MiB，超單份1MiB列Manual。
 資源與隔離：不建立連線、不擁有SDK、不快取；同步呼叫前後檢查取消，client逾時由外層lease設定。所有純值集合唯讀發布。
-驗證：SwitchSnapshotReaderTests用合成SDK驗Live差異非DLL差異、原XAML指紋及未知設定拒絕；不宣稱任何實機結果。
+驗證：SwitchSnapshotReaderTests與SwitchCliTests用合成SDK驗Live差異、DLL雜湊差異、原XAML指紋及未知設定拒絕；不宣稱任何實機結果。
 */
 using System;
 using System.Collections.Generic;
@@ -44,7 +45,7 @@ internal static class SwitchSnapshotReader
             var image = images.Single(row => row.Name == manifest.AssemblyName);
             var engine = new DeploymentEngine(service, directory, TimeProvider.System, _ => throw Invalid(), catalog);
             var registration = engine.Plan(manifest, image, organization.Name);
-            if (registration.Operations.Any(operation => operation.Kind is not ("UpdateStepConfiguration" or "UpdateStepState"))) throw Invalid();
+            if (registration.Operations.Any(operation => operation.Kind is not ("UpdateAssembly" or "UpdateStepConfiguration" or "UpdateStepState"))) throw Invalid();
             fingerprints.Add(registration.Fingerprint);
             var assembly = reader.Read("pluginassembly", ["name", "content"], "name", [manifest.AssemblyName]).SingleOrDefault() ?? throw Invalid();
             var content = assembly.GetAttributeValue<string>("content") ?? "";
@@ -53,7 +54,6 @@ internal static class SwitchSnapshotReader
             try { remoteHash = Convert.ToHexString(SHA256.HashData(Convert.FromBase64String(content))); }
             catch (FormatException) { throw Invalid(); }
             assemblies.Add(new SwitchAssembly(image.Name, image.Sha256, remoteHash));
-            if (remoteHash != image.Sha256) throw Invalid();
             var types = reader.Related("plugintype", ["typename", "pluginassemblyid"], "pluginassemblyid", [assembly.Id]).ToArray();
             if (types.GroupBy(row => row.GetAttributeValue<string>("typename"), StringComparer.Ordinal).Any(group => group.Count() > 1)) throw Invalid();
             foreach (var item in manifest.Steps.Where(row => row.Module != "diagnostics"))

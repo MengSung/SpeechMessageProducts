@@ -2,11 +2,12 @@
  * 檔案整體說明
  *
  * 目的與定位：保護奉獻類別轉換 CLI 的共同入口路由及連線前命令識別。
- * 主要功能與流程：以正式CLI入口送入plan、apply與verify語法，確認命令分流後才會呼叫connector。
+ * 主要功能與流程：以正式CLI入口送入plan、apply、verify與backup語法，確認命令分流後才會呼叫connector。
  * 測試經正式 DeploymentCli 與 organizations 白名單，但 connector 只會拋出本測試專用故障，
  * 不建立 OrganizationLease、不建立 Dataverse client、不呼叫任何組織。
- * 決定性斷言：合法 plan 語法必須抵達 connector 邊界；connector 故障原型別必須回報，
- * 證明命令未被舊 Plugin 命令 parser 當成未知命令。此測試不代表 plan 或 SDK adapter 已完成。
+ * 故障注入包含固定connector拒絕與backup旗標互斥錯誤；決定性斷言是合法plan／backup語法
+ * 必須抵達connector邊界、原例外型別保留，錯誤混用或非核定組織在連線前拒絕。
+ * 這些離線測試不代表plan、備份讀取或SDK adapter已對實際組織完成。
  * 使用邊界與維護：StringWriter 與例外集合均由單一測試持有；測試不開檔、不讀 secrets、
  * 不啟動 task、timer 或背景工作，結束即釋放所有測試物件。
  */
@@ -32,6 +33,8 @@ public sealed class OfferingMigrationCliTests
     };
     private static readonly string[] VerifyArguments =
         { "migrate-offering-categories", "--verify", "--org", "goodshepherdback" };
+    private static readonly string[] BackupArguments =
+        { "migrate-offering-categories", "--backup", "--org", "goodshepherdback" };
     private static readonly string[] MutuallyExclusiveArguments =
         { "migrate-offering-categories", "--org", "goodshepherdback", "--verify", "--apply" };
     private static readonly string[] DuplicateArguments =
@@ -50,6 +53,20 @@ public sealed class OfferingMigrationCliTests
 
         Assert.False(OfferingMigrationCli.TryParse(MutuallyExclusiveArguments, "goodshepherdback", out _));
         Assert.False(OfferingMigrationCli.TryParse(DuplicateArguments, "goodshepherdback", out _));
+    }
+
+    /// <summary>備份模式只接受核定組織與單一旗標，不能和apply或verify混用。</summary>
+    [Fact]
+    public void Parse_BackupFlag_IsExclusiveAndBoundToApprovedOrganization()
+    {
+        Assert.True(OfferingMigrationCli.TryParse(BackupArguments, "goodshepherdback", out var backup));
+        Assert.True(backup.IsBackup);
+        Assert.False(backup.IsApply);
+        Assert.False(backup.IsVerify);
+        Assert.False(OfferingMigrationCli.TryParse(
+            ["migrate-offering-categories", "--backup", "--verify", "--org", "goodshepherdback"],
+            "goodshepherdback", out _));
+        Assert.False(OfferingMigrationCli.TryParse(BackupArguments, "other-org", out _));
     }
 
     /// <summary>合法plan命令應抵達唯一connector；合成連線故障被安全處理且不建立真實服務。</summary>
@@ -72,6 +89,28 @@ public sealed class OfferingMigrationCliTests
         Assert.Equal(1, connector.Attempts);
         Assert.Single(reported);
         Assert.IsType<SyntheticConnectorBoundaryException>(reported[0]);
+        Assert.DoesNotContain("Synthetic connector boundary", output.ToString(), StringComparison.Ordinal);
+    }
+
+    /// <summary>backup旗標通過共同Deployment授權與奉獻CLI分流，但在合成connector邊界停止。</summary>
+    [Fact]
+    public void Run_BackupCommand_RoutesThroughApprovedTestOrganizationGate()
+    {
+        var connector = new RejectingConnector();
+        using var output = new StringWriter();
+        var reported = new List<Exception>();
+
+        var result = DeploymentCli.Run(
+            BackupArguments,
+            connector,
+            output,
+            reported.Add,
+            Path.GetTempPath(),
+            cancellationToken: default);
+
+        Assert.Equal(1, result);
+        Assert.Equal(1, connector.Attempts);
+        Assert.IsType<SyntheticConnectorBoundaryException>(Assert.Single(reported));
         Assert.DoesNotContain("Synthetic connector boundary", output.ToString(), StringComparison.Ordinal);
     }
 
