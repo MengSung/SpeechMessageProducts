@@ -98,7 +98,8 @@ public sealed class OfferingMigrationFileTests
                 new OfferingCategoryPlan(Guid.Parse("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"),
                     "legacy-100000000", "十一奉獻", 1, 100000000, 1, "None")
             },
-            0, Array.Empty<string>(), 1, Fingerprint, Fingerprint, "None", "Unknown");
+            0, Array.Empty<string>(), 1, Fingerprint, Fingerprint, "None", "Unknown",
+            Array.Empty<OfferingLabelDifference>());
 
     /// <summary>只擁有測試建立的唯一暫存目錄，Dispose確定移除其內檔案。</summary>
     private sealed class TemporaryDirectory : IDisposable

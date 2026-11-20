@@ -21,6 +21,10 @@
 
 ## 2026-11-20 續跑更新
 
+2026-11-20 20:15 Asia/Taipei (UTC+08:00)：使用者明確更正既有 ChurchReport 開發設定不屬 §7.3(3)，只檢查本階段新提交有無秘密；並核定 D8-6 跨欄同值異標籤規則。先前把 metadata 差異視為停止 migration 的結論已更正；排除已查證根因後再執行 verify 屬條件改變的新操作，並非相同條件重試。此更正不表示 P8-01c 已完成，仍須實際完成資料 migration、P8Live 與結尾清理。
+
+2026-11-20 20:54 Asia/Taipei (UTC+08:00)：P8-01c 已依 D8-6 完成 migration plan/apply/verify、第二次 apply（operation JSONL 0 bytes，無 lookup 更新批次；類別 alternate-key Upsert 仍會呼叫）、指定 P8Live 1/1、D34 子檢查、off verify=0 及殘留基線核對。組織步驟已完成；repo commit、完整守門、回報、驗收標記與推送仍待執行。
+
 2026-11-20 10:45 Asia/Taipei (UTC+08:00)：以下結果取代上表中「目前狀態尚無紀錄」的歷史盤點文字；不代表 P8-01c 已驗收。
 
 | 項目 | 本次續跑結果 | 後續 |

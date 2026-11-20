@@ -25,10 +25,11 @@
     "11-20-p8-01c-offering-category-migration",
     "11-20-p8-02-role-code-catalog",
     "11-20-11-20-p8-03a-church-settings-overrides",
-    "11-20-p8-01c-resume-completion"
+    "11-20-p8-01c-resume-completion",
+    "11-20-p8-01c-d8-6-label-resolution"
   ],
   "parent": null,
   "relatedFiles": [],
-  "notes": "2026-11-20 18:42 Asia/Taipei (UTC+08:00)：P8-01c build20 assembly更新與off verify、lookup schema核對、ID-only備份、稽核與舊項目核對完成；metadata labels歧義使migration plan/verify fail closed，依D8-26將P8-01c及P8-01整包縮減驗收。P8-PROP-008列為新版ChurchReport部署前置；下一單元依固定順序接續P8-03a。階段8繼續進行中。",
+  "notes": "2026-11-20 20:54 Asia/Taipei (UTC+08:00)：18:42 的 P8-01c／P8-01 縮減驗收結論已於 20:15 依使用者核定 D8-6 更正。goodshepherdback 必做 migration、兩次 verify、第二次 apply 無 lookup 更新批次、指定 P8Live、D34 子檢查、off verify=0 與殘留基線 0 均已完成；待本次程式提交及唯一 guard-p8 完整守門後，補齊一頁回報、標驗收及推送核 SHA，再依固定順序續 P8-03a。既有使用者接受的 Development 設定不屬 §7.3(3)，不讀取、不修改、不記值；只檢查本階段新增差異是否含秘密。"
   "meta": {}
 }

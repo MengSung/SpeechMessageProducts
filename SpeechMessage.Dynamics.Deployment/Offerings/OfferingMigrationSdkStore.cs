@@ -5,7 +5,8 @@
  * 並提供唯一的Upsert與ExecuteMultiple寫入邊界。本類不建立或Dispose連線；lease由CLI唯一擁有。
  * 遷移前備份模式只讀必要舊選項、付款人與可選直接教會欄，不合併跨欄位的類別標籤，
  * 且不要求尚未部署的新lookup或類別實體；僅回傳可能回填來源的實體／正式ID／教會ID，
- * 交由固定備份寫入器保存。一般plan/apply仍要求兩欄映射無歧義，標籤衝突時拒絕操作。
+ * 交由固定備份寫入器保存。一般plan/apply在各choice欄內拒絕重複值；跨欄共享值採fee欄標籤，
+ * 並將不同的booking欄標籤納入plan與metadata fingerprint以供覆核及漂移檢查。
  * 初始化只讀核對server organization ID／uniqueName、基礎語言1028、兩個choice欄、來源欄位型別、
  * offeringcategory欄及account/contact必要lookup；選項值、標籤和兩欄RequiredLevel均來自server metadata。
  * 除建立plan外，apply會呼叫RecreatePlan，以原plan建立時間重新使用此同一份已核對的metadata、
@@ -110,7 +111,7 @@ internal sealed class OfferingMigrationSdkStore : IOfferingMigrationStore, IDisp
             metadata[index] = ReadEntityMetadata(Sources[index].Entity);
         var feeOptions = ReadOptions(metadata[0], Sources[0].OptionAttribute, out feeRequiredLevel);
         var bookingOptions = ReadOptions(metadata[1], Sources[1].OptionAttribute, out bookingRequiredLevel);
-        // 備份只需舊欄位值及來源身份；不同欄位的同值異標籤不影響ID清冊，映射仍由遷移路徑拒絕。
+        // 備份只需舊欄位值及來源身份；標籤選擇只影響一般plan，不影響ID清冊。
         options = backupOnly
             ? Array.Empty<OfferingOption>()
             : MergeOptionSets(feeOptions, bookingOptions, feeRequiredLevel, bookingRequiredLevel);
@@ -470,7 +471,10 @@ internal sealed class OfferingMigrationSdkStore : IOfferingMigrationStore, IDisp
         return key;
     }
 
-    /// <summary>兩舊欄位必須是局部choice；每個值需有唯一1028標籤，RequiredLevel未知時明確保留Unknown。</summary>
+    /// <summary>
+    /// 單一舊欄位必須是local choice；該欄每個值只允許出現一次且需有唯一1028標籤。
+    /// 跨欄同值的label差異由MergeOptionSets處理，不混淆兩欄各自的metadata唯一性。
+    /// </summary>
     private static System.Collections.ObjectModel.ReadOnlyCollection<(int Value, string Label)> ReadOptions(
         EntityMetadata entity, string attribute, out string requiredLevel)
     {
@@ -494,8 +498,9 @@ internal sealed class OfferingMigrationSdkStore : IOfferingMigrationStore, IDisp
     }
 
     /// <summary>
-    /// 合併兩個來源各自的choice值；不同欄位允許有不同值，但同一數值的繁中標籤若衝突必須拒絕，
-    /// 避免依任意來源覆蓋顯示名稱。各欄位RequiredLevel仍由plan分別保存，不以類別投影取代。
+    /// 合併兩個來源各自的choice值。共享值以fee欄位標籤作canonical名稱，並保存不同的booking標籤；
+    /// booking-only值沿用booking標籤。ReadOptions已各自拒絕欄內重複值，因此此處只處理跨欄聯集。
+    /// 各欄位RequiredLevel仍由plan分別保存，不以類別投影取代。
     /// </summary>
     private static System.Collections.ObjectModel.ReadOnlyCollection<OfferingOption> MergeOptionSets(
         System.Collections.ObjectModel.ReadOnlyCollection<(int Value, string Label)> fee,
@@ -509,11 +514,11 @@ internal sealed class OfferingMigrationSdkStore : IOfferingMigrationStore, IDisp
         {
             if (merged.TryGetValue(option.Value, out var existing))
             {
-                if (!string.Equals(existing.Label, option.Label, StringComparison.Ordinal))
-                    throw new InvalidDataException("Offering source option labels conflict for a shared value.");
+                merged[option.Value] = existing with { BookingLabel = option.Label };
                 continue;
             }
-            merged.Add(option.Value, new OfferingOption(option.Value, option.Label, bookingLevel));
+            merged.Add(option.Value, new OfferingOption(option.Value, option.Label, bookingLevel,
+                BookingLabel: option.Label, HasFeeOption: false));
         }
         return Array.AsReadOnly(merged.Values.OrderBy(option => option.Value).ToArray());
     }

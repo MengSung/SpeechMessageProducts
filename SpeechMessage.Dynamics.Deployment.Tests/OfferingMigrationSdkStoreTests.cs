@@ -6,7 +6,8 @@
  * ExecuteMultiple批次結果與Dispose後的借用服務釋放行為。
  * SyntheticService 僅回應固定的組織身份、1028語系、三個核定實體metadata及本測試列出的查詢／寫入，
  * 未列入白名單的SDK操作一律拒絕；測試不建立Connector、不讀秘密、不連Dataverse。
- * 故障注入包含錯誤語系、錯誤choice型別、不完整分頁、重複資料庫ID、ExecuteMultiple fault及caller取消。
+ * 故障注入包含錯誤語系、錯誤choice型別、不完整分頁、重複資料庫ID、跨欄同值異標籤、
+ * ExecuteMultiple fault及caller取消；差異metadata必須完整保留於人工審核plan。
  * 決定性斷言包含付款人parentcustomerid必須是account、Upsert只接受SDK回傳正式ID、
  * 批次錯碼只輸出數字碼、取消前不進SDK，以及Dispose後不再呼叫借入服務。
  * 使用邊界與維護：每案服務、store與合成集合皆由測試持有；store只借用服務，Dispose先清除其參照，
@@ -173,11 +174,61 @@ public sealed class OfferingMigrationSdkStoreTests
             });
     }
 
-    /// <summary>兩來源對同一choice值若標籤衝突，建構時拒絕避免以任一來源覆蓋權威文字。</summary>
+    /// <summary>
+    /// 跨欄同值異標籤只產生一個legacy類別，名稱固定採fee欄位標籤，並在plan Markdown
+    /// 明列booking標籤差異；同時保護資料列仍依正式選項值而非名稱識別。
+    /// </summary>
     [Fact]
-    public void Constructor_ConflictingLabelsForSharedChoiceValue_Rejected()
+    public void Plan_SharedValueDifferentLabels_UsesFeeLabelAndRecordsDifference()
     {
         var service = new SyntheticService(differentChoiceSets: true, conflictingSharedLabel: true);
+        service.Rows["account"].Add(new Entity("account", ChurchId));
+        service.Rows["contact"].Add(new Entity("contact", ContactId)
+            { ["parentcustomerid"] = new EntityReference("account", ChurchId) });
+        service.Rows["new_fee"].Add(new Entity("new_fee", FeeId)
+        {
+            ["new_category"] = new OptionSetValue(100000000),
+            ["new_contact_new_fee"] = new EntityReference("contact", ContactId)
+        });
+        service.Rows["new_dedication_booking"].Add(new Entity("new_dedication_booking", Guid.NewGuid())
+        {
+            ["new_dedication_category"] = new OptionSetValue(100000000),
+            ["new_contact_new_dedication_booking"] = new EntityReference("contact", ContactId)
+        });
+        service.Rows["new_dedication_booking"].Add(new Entity("new_dedication_booking", Guid.NewGuid())
+        {
+            ["new_dedication_category"] = new OptionSetValue(100000002),
+            ["new_contact_new_dedication_booking"] = new EntityReference("contact", ContactId)
+        });
+        using var store = new OfferingMigrationSdkStore(service, Target, default);
+        var plan = store.CreatePlan(Array.Empty<OfferingScreenOption>());
+        var directory = Path.Combine(Path.GetTempPath(), "p8-offering-labels-" + Guid.NewGuid().ToString("N"));
+        Directory.CreateDirectory(directory);
+
+        try
+        {
+            var category = Assert.Single(plan.Categories.Where(item => item.LegacyOptionValue == 100000000));
+            Assert.Equal("legacy-100000000", category.Code);
+            Assert.Equal("shared label", category.Name);
+            var bookingOnly = Assert.Single(plan.Categories.Where(item => item.LegacyOptionValue == 100000002));
+            Assert.Equal("booking-only label", bookingOnly.Name);
+            OfferingMigrationFiles.WritePlan(directory, plan);
+            var markdown = File.ReadAllText(Path.Combine(directory, "offering-plan.md"));
+            Assert.Contains("## 標籤差異", markdown, StringComparison.Ordinal);
+            Assert.Contains("shared label", markdown, StringComparison.Ordinal);
+            Assert.Contains("conflicting shared label", markdown, StringComparison.Ordinal);
+        }
+        finally
+        {
+            Directory.Delete(directory, recursive: true);
+        }
+    }
+
+    /// <summary>單一metadata欄內同一選項值重複時拒絕store，避免不唯一的值標籤配對進入plan。</summary>
+    [Fact]
+    public void Constructor_DuplicateOptionValueWithinField_Rejected()
+    {
+        var service = new SyntheticService(duplicateFeeChoiceValue: true);
 
         Assert.Throws<InvalidDataException>(() => new OfferingMigrationSdkStore(service, Target, default));
 
@@ -280,14 +331,17 @@ public sealed class OfferingMigrationSdkStoreTests
 
     /// <summary>固定metadata helper每次產生全新ID與label物件，避免測試間共享可變SDK metadata。</summary>
     private static EntityMetadata Metadata(string logicalName, bool wrongFeeOptionType = false,
-        bool differentChoiceSets = false, bool conflictingSharedLabel = false, bool omitCategoryLookup = false)
+        bool differentChoiceSets = false, bool conflictingSharedLabel = false, bool omitCategoryLookup = false,
+        bool duplicateFeeChoiceValue = false)
     {
         var attributes = new List<AttributeMetadata>();
         if (logicalName == "new_fee")
         {
             attributes.Add(wrongFeeOptionType
                 ? new StringAttributeMetadata { LogicalName = "new_category", MaxLength = 100 }
-                : Choice("new_category", differentChoiceSets
+                : Choice("new_category", duplicateFeeChoiceValue
+                    ? new[] { (100000000, "shared label"), (100000000, "duplicate shared label") }
+                    : differentChoiceSets
                     ? new[] { (100000000, "shared label"), (100000001, "fee-only label") }
                     : new[] { (100000000, "metadata label") }));
             attributes.Add(new LookupAttributeMetadata { LogicalName = "new_contact_new_fee", Targets = ContactTargets });
@@ -349,12 +403,13 @@ public sealed class OfferingMigrationSdkStoreTests
         private readonly Dictionary<string, EntityMetadata> metadata;
 
         internal SyntheticService(bool differentChoiceSets = false, bool conflictingSharedLabel = false,
-            bool omitCategoryLookup = false)
+            bool omitCategoryLookup = false, bool duplicateFeeChoiceValue = false)
         {
             metadata = new Dictionary<string, EntityMetadata>(StringComparer.Ordinal)
             {
                 ["new_fee"] = Metadata("new_fee", differentChoiceSets: differentChoiceSets,
-                    omitCategoryLookup: omitCategoryLookup),
+                    omitCategoryLookup: omitCategoryLookup,
+                    duplicateFeeChoiceValue: duplicateFeeChoiceValue),
                 ["new_dedication_booking"] = Metadata("new_dedication_booking",
                     differentChoiceSets: differentChoiceSets, conflictingSharedLabel: conflictingSharedLabel,
                     omitCategoryLookup: omitCategoryLookup),

@@ -186,6 +186,7 @@ internal static class OfferingMigrationExecutor
     private static bool PlanContentMatches(OfferingMigrationPlan supplied, OfferingMigrationPlan current) =>
         supplied.Categories is not null
         && supplied.UnmatchedScreenLabels is not null
+        && supplied.LabelDifferences is not null
         && supplied.OrganizationId == current.OrganizationId
         && string.Equals(supplied.Organization, current.Organization, StringComparison.Ordinal)
         && supplied.UnresolvedChurchRecordCount == current.UnresolvedChurchRecordCount
@@ -195,7 +196,8 @@ internal static class OfferingMigrationExecutor
         && string.Equals(supplied.FeeCategoryRequiredLevel, current.FeeCategoryRequiredLevel, StringComparison.Ordinal)
         && string.Equals(supplied.BookingCategoryRequiredLevel, current.BookingCategoryRequiredLevel, StringComparison.Ordinal)
         && supplied.Categories.SequenceEqual(current.Categories)
-        && supplied.UnmatchedScreenLabels.SequenceEqual(current.UnmatchedScreenLabels, StringComparer.Ordinal);
+        && supplied.UnmatchedScreenLabels.SequenceEqual(current.UnmatchedScreenLabels, StringComparer.Ordinal)
+        && supplied.LabelDifferences.SequenceEqual(current.LabelDifferences);
 
     /// <summary>固定比對64字元ASCII十六進位雜湊，不以長度或大小寫正規化替代完整檔案雜湊。</summary>
     private static bool ValidHash(string value) => value is { Length: 64 } && value.All(char.IsAsciiHexDigit);

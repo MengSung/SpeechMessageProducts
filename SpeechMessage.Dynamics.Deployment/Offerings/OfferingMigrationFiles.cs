@@ -3,7 +3,7 @@
  *
  * 目的與定位：提供奉獻類別轉換的plan嚴格讀取、安全輸出及單次apply操作紀錄。
  * 主要功能與流程：先驗證組織artifact路徑及輸入格式，再用單次檔案快照計算SHA；輸出以暫存檔完整flush後發布。
- * Plan只存組織伺服器身份、選項標籤、RequiredLevel、彙總筆數與穩定摘要，不含業務列主鍵、
+ * Plan只存組織伺服器身份、canonical選項標籤、跨欄標籤差異、RequiredLevel、彙總筆數與穩定摘要，不含業務列主鍵、
  * 付款人、credential或SDK物件。apply對輸入plan使用固定4MiB上限、嚴格JSON、重複欄位拒絕，
  * 並以原始檔案SHA-256供使用者核對；hash只保護完整性，不代表簽章或寫入授權。
  * 每個輸出檔在operation專屬目錄以CreateNew建立暫存檔，UTF-8無BOM、CRLF、Flush(true)、
@@ -126,6 +126,16 @@ internal static class OfferingMigrationFiles
         text.AppendLine("## 未對應畫面標籤");
         if (plan.UnmatchedScreenLabels.Count == 0) text.AppendLine("- 無");
         else foreach (var label in plan.UnmatchedScreenLabels) text.AppendLine("- " + label);
+        text.AppendLine();
+        text.AppendLine("## 標籤差異");
+        if (plan.LabelDifferences.Count == 0) text.AppendLine("- 無");
+        else
+            foreach (var difference in plan.LabelDifferences)
+                text.AppendLine("- 選項值 " + difference.Value.ToString(System.Globalization.CultureInfo.InvariantCulture)
+                    + "；類別名稱採 `new_fee.new_category` 標籤「" + difference.FeeLabel
+                    + "」；`new_dedication_booking.new_dedication_category` 標籤為「"
+                    + difference.BookingLabel + "」；代碼仍為 `legacy-"
+                    + difference.Value.ToString(System.Globalization.CultureInfo.InvariantCulture) + "`");
         return text.ToString();
     }
 

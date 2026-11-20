@@ -4,7 +4,8 @@
  * 目的與定位：驗證 P8 奉獻類別轉換計畫的純資料規則；使用合成教會、選項中繼資料與正式記錄 ID，
  * 不連接 D365、不讀取 User Secrets，也不把離線成功冒充組織驗收。
  * 主要流程：將來源列依教會與舊選項數值分組，將目前畫面名稱以中繼資料標籤精確映射，
- * 再驗證同名不同值保留、沒有教會的列只計數、名稱來自 metadata 而非程式碼對照。
+ * 再驗證同名不同值保留、共享值差異標籤按fee欄命名並留存、沒有教會的列只計數、
+ * 名稱來自metadata而非程式碼對照，且fingerprint包含兩欄的存在狀態及原始標籤。
  * 故障與決定性斷言：注入相同／相似標籤但不同數值、未對應畫面名稱、沒有教會的來源列，
  * 並以大量教會乘目前選項觸發候選容量上限；斷言計畫不合併正式身份、不捏造資料值、
  * 來源摘要由穩定ID決定、超量時不發布部分plan。
@@ -95,6 +96,24 @@ public sealed class OfferingMigrationPlannerTests
         Assert.Equal(100000042, category.LegacyOptionValue);
     }
 
+    /// <summary>fee-only、共享同標籤、共享異標籤及booking-only metadata都必須有不同fingerprint。</summary>
+    [Fact]
+    public void FingerprintMetadata_IncludesBothChoiceFieldsAndLabels()
+    {
+        var feeOnly = new OfferingOption(100000042, "fee label", "None");
+        var sharedSame = new OfferingOption(100000042, "fee label", "None", "fee label");
+        var sharedDifferent = new OfferingOption(100000042, "fee label", "None", "booking label");
+        var bookingOnly = new OfferingOption(100000042, "booking label", "None", "booking label",
+            HasFeeOption: false);
+        var fingerprints = new[]
+        {
+            Fingerprint(feeOnly), Fingerprint(sharedSame),
+            Fingerprint(sharedDifferent), Fingerprint(bookingOnly)
+        };
+
+        Assert.Equal(fingerprints.Length, fingerprints.Distinct(StringComparer.Ordinal).Count());
+    }
+
     /// <summary>畫面現有名稱與已使用選項值取聯集；metadata精確匹配的目前選項即使尚未使用也納入每間教會計畫。</summary>
     [Fact]
     public void Plan_IncludesCurrentlyOfferedOptions()
@@ -152,6 +171,9 @@ public sealed class OfferingMigrationPlannerTests
         OfferingMigrationPlanner.Create(Guid.Parse("cccccccc-cccc-cccc-cccc-cccccccccccc"), "synthetic-org",
             churches, metadata, records, screenOptions,
             DateTimeOffset.Parse("2026-11-19T12:00:00Z", CultureInfo.InvariantCulture));
+
+    private static string Fingerprint(OfferingOption option) =>
+        OfferingMigrationPlanner.FingerprintMetadata(new[] { option }, Array.Empty<OfferingScreenOption>());
 
     private static OfferingSourceRecord Record(Guid id, string entity, Guid? church, int optionValue) =>
         new(id, entity, church, optionValue);

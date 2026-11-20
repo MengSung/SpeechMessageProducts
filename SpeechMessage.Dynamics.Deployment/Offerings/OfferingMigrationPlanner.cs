@@ -3,15 +3,16 @@
  *
  * 目的與定位：Deployment 奉獻類別遷移的純資料計畫核心，將已完整讀取的組織選項 metadata、
  * 教會身份與收費／預約來源摘要轉成單次命令 plan；本檔不連線、不寫入、不讀秘密。
- * 主要流程：先驗證組織身份、教會 ID、metadata 選項值與來源列正式主鍵；以metadata標籤
+ * 主要流程：先驗證組織身份、教會 ID、metadata 選項值與來源列正式主鍵；以canonical metadata標籤
  * 精確對照固定畫面選項，並集結每教會已使用選項與已對照畫面選項；代碼以選項值生成，
+ * new_fee欄位存在時名稱採該欄1028標籤；共享值的booking不同標籤另存於plan差異清單，
  * 同名不同值保留。無法對照的畫面標籤及無法解析教會的來源列各自明確計數／列出。
  * 不變條件與生命週期：來源摘要依 entity／正式 row ID／教會／舊選項穩定排序，不包含可變 lookup，
  * 供 apply 重驗來源漂移與中斷續跑；不輸出原始主鍵清單、不依名稱作唯一性。候選只在單次呼叫存活，
  * 使用邊界與維護：組織、選項、來源列與畫面對照均有明確數量上限；類別候選總量最多50000，
  * 超量在發布plan前拒絕，避免教會×選項展開形成無界記憶體與plan檔案。候選僅存在單次呼叫，
  * 不保留SDK Entity、request、Session、credential、快取或背景資源。
- * 失敗與驗證：重複或空正式 ID、未知實體、重複選項值、模糊標籤或不完整組織身份均拒絕整份 plan；
+ * 失敗與驗證：重複或空正式 ID、未知實體、單欄重複選項值、模糊畫面標籤或不完整組織身份均拒絕整份 plan；
  * OfferingMigrationPlannerTests 用合成資料驗證分組、metadata文字、同名保留、畫面選項聯集及缺教會處理。
  */
 using System;
@@ -25,8 +26,15 @@ using System.Text;
 
 namespace SpeechMessage.Dynamics.Deployment.Offerings;
 
-/// <summary>由組織choice metadata投影的單一正式選項；label是server標籤，非程式碼預設名稱。</summary>
-internal sealed record OfferingOption(int Value, string Label, string RequiredLevel);
+/// <summary>
+/// 由組織choice metadata投影的單一正式選項。Label是遷移採用的server標籤；
+/// HasFeeOption與BookingLabel保留兩個來源欄位的存在狀態及原始標籤，供metadata漂移核對。
+/// </summary>
+internal sealed record OfferingOption(int Value, string Label, string RequiredLevel, string? BookingLabel = null,
+    bool HasFeeOption = true);
+
+/// <summary>同值跨欄標籤差異；不改變legacy代碼或新增第二筆類別。</summary>
+internal sealed record OfferingLabelDifference(int Value, string FeeLabel, string BookingLabel);
 
 /// <summary>目前畫面提供的固定標籤及原有順序；只供Deployment plan精確映射，不供ChurchReport執行期消費。</summary>
 internal sealed record OfferingScreenOption(string Label, int SortOrder);
@@ -43,7 +51,8 @@ internal sealed record OfferingCategoryPlan(Guid ChurchId, string Code, string N
 internal sealed record OfferingMigrationPlan(Guid OrganizationId, string Organization, DateTimeOffset CreatedUtc,
     IReadOnlyList<OfferingCategoryPlan> Categories, int UnresolvedChurchRecordCount,
     IReadOnlyList<string> UnmatchedScreenLabels, int SourceRecordCount, string SourceFingerprint,
-    string MetadataFingerprint, string FeeCategoryRequiredLevel, string BookingCategoryRequiredLevel);
+    string MetadataFingerprint, string FeeCategoryRequiredLevel, string BookingCategoryRequiredLevel,
+    IReadOnlyList<OfferingLabelDifference> LabelDifferences);
 
 /// <summary>以完整唯讀輸入建立單次遷移候選，身份和文字均不由呼叫端名稱或程式碼對照猜測。</summary>
 internal static class OfferingMigrationPlanner
@@ -97,6 +106,10 @@ internal static class OfferingMigrationPlanner
         {
             if (option is null || option.Value < 100_000_000 || string.IsNullOrWhiteSpace(option.Label)
                 || option.Label.Length > 300 || option.Label.Any(char.IsControl)
+                || option.BookingLabel is { } bookingLabel
+                    && (string.IsNullOrWhiteSpace(bookingLabel) || bookingLabel.Length > 300
+                        || bookingLabel.Any(char.IsControl))
+                || !option.HasFeeOption && option.BookingLabel is null
                 || string.IsNullOrWhiteSpace(option.RequiredLevel) || option.RequiredLevel.Length > 64
                 || !optionsByValue.TryAdd(option.Value, option))
                 throw Invalid();
@@ -145,6 +158,12 @@ internal static class OfferingMigrationPlanner
         }
 
         var categories = new List<OfferingCategoryPlan>();
+        var labelDifferences = optionsByValue.Values
+            .Where(option => option.HasFeeOption && option.BookingLabel is not null
+                && !string.Equals(option.Label, option.BookingLabel, StringComparison.Ordinal))
+            .OrderBy(option => option.Value)
+            .Select(option => new OfferingLabelDifference(option.Value, option.Label, option.BookingLabel!))
+            .ToArray();
         foreach (var church in churches.OrderBy(id => id))
         {
             var values = new HashSet<int>(resolvedCounts.Keys.Where(key => key.Church == church).Select(key => key.Option));
@@ -167,7 +186,8 @@ internal static class OfferingMigrationPlanner
             new ReadOnlyCollection<OfferingCategoryPlan>(categories),
             unresolvedChurchCount, new ReadOnlyCollection<string>(unmatched), records.Count, Fingerprint(records),
             FingerprintMetadata(metadataOptions, screenOptions, feeCategoryRequiredLevel, bookingCategoryRequiredLevel),
-            feeCategoryRequiredLevel, bookingCategoryRequiredLevel);
+            feeCategoryRequiredLevel, bookingCategoryRequiredLevel,
+            new ReadOnlyCollection<OfferingLabelDifference>(labelDifferences));
     }
 
     /// <summary>以操作區域的穩定身份序列計算雜湊；不納入會因成功回填而改變的lookup欄。</summary>
@@ -199,6 +219,8 @@ internal static class OfferingMigrationPlanner
             {
                 writer.Write(option.Value);
                 writer.Write(option.Label);
+                writer.Write(option.HasFeeOption);
+                writer.Write(option.BookingLabel ?? string.Empty);
                 writer.Write(option.RequiredLevel);
             }
             writer.Write(-1);
