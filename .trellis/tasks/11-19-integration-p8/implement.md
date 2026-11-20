@@ -14,8 +14,8 @@
 - [ ] P8-00 開工切換與前置缺項檢查
 - [x] P8-01a 奉獻類別結構與轉換指令（2026-11-20；守門 commit bfc713f2；完整證據 `C:\smv\guard-p8-evidence\guard-bfc713f2-full-rerun.log`；實機 option labels／verify 狀態未查證，依離線單元契約不阻擋驗收）
 - [x] P8-01b ChurchReport 奉獻類別清單（2026-11-20；程式提交 97d260c1；完整守門 `C:\smv\guard-p8-evidence\guard-97d260c1-full.log`；離線單元驗收，goodshepherdback 狀態未查證且不再重試）
-- [ ] P8-01c goodshepherdback 轉換與核對（2026-11-20 04:46 Asia/Taipei (UTC+08:00)：未驗收；既有兩次唯讀 verify 均 InvalidDataException，依 08A §7.3 不再重試且停止實機操作；回報 `P8-01c-migration.md`，依 §7.2 接續 P8-02）
-- [ ] P8-02 角色代碼與字典
+- [x] P8-02 角色代碼與字典（2026-11-20；程式提交 `e85a5784`；Core net10.0／net48 各 398/398、ChurchReport 669/669；完整守門 42 專案建置 0 錯誤、全方案測試 7,446 通過、Debug tracer 7/7、編碼 121 檔零問題、duplicate 42 專案 new/stale 皆 0、I18nCheck、檔案說明 1,852 檔零失敗、進度頁 28/28；證據 `C:\smv\guard-p8-evidence\guard-e85a5784-full.log`；紀錄型收尾／推送待完成）
+- [ ] P8-01c goodshepherdback 轉換與核對（使用者最新續跑順序：先完成 P8-02，再依 08A §5 執行本單元。操作前以 `SpeechMessagePackagePlugin=true`、`SpeechMessageBuildNumber=20` 重打包兩個 Plugin DLL，通過 `Test-PluginAssembly.ps1`，再唯讀執行 `verify --org goodshepherdback`。先前 `InvalidDataException` 根因為 DLL FileVersion 仍為 1.0.0.1、組織版本為 1.0.0.19；已排除根因後屬條件改變的新操作，不計為相同條件重試。依使用者更正及 08A D8-2、§7.2、§7.3(2) 繼續；未取得新證據前不得宣稱 verify 通過或狀態為 off）
 - [ ] P8-03a 教會覆寫接線與設定服務
 - [ ] P8-03b 教會設定網頁
 - [ ] 遺留 L1 原因補齊與唯讀調查

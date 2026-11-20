@@ -240,11 +240,11 @@ footer{margin-top:36px;color:var(--muted);font-size:12.5px;text-align:center}
  */
 const DATA = {
   "planVersion": "3.5",
-  "snapshot": "2026-11-20 04:45 Asia/Taipei (UTC+08:00)",
-  "lastUpdated": "2026-11-20T04:45:38+08:00",
+  "snapshot": "2026-11-20 08:24 Asia/Taipei (UTC+08:00)",
+  "lastUpdated": "2026-11-20T08:24:00+08:00",
   "branch": "1.0.0.11.Integration.P8.Worktree",
-  "head": "e32284c1d78e79c9ca608a8acc5159d6d4901b46",
-  "headline": "階段 8 2026-11-20 04:45 Asia/Taipei (UTC+08:00)：P8-01a、P8-01b 離線單元已驗收；P8-01 總包仍進行中，接續 P8-01c 可離線部分；實機狀態未查證。",
+  "head": "e85a5784e78773b8bccadeb0f97232cb82d8aebe",
+  "headline": "階段 8 2026-11-20 08:24 Asia/Taipei (UTC+08:00)：P8-02 角色代碼離線單元已驗收；下一步依核定 build 20 流程續做 P8-01c，goodshepherdback 實機狀態尚未查證。",
   "notices": [
     {
       "id": "plan-3.5-summary",
@@ -702,8 +702,8 @@ const DATA = {
       "phaseId": "階段 8",
       "level": "info",
       "title": "P8 進度摘要",
-      "body": "2026-11-20 04:45 Asia/Taipei (UTC+08:00)：P8-00、P8-01a、P8-01b 離線工作均已驗收。P8-01b 指定 ChurchReport／Core 測試與完整 §8.1 守門通過；程式提交 97d260c1、回報提交 e32284c1，遠端 SHA 已核對一致。P8-01 總包仍進行中，接續 P8-01c 可離線部分；實機作業依兩次 verify 失敗停止重試，goodshepherdback 的 off／verify=0／殘留狀態未查證，沒有本單元組織寫入。",
-      "lastUpdated": "2026-11-20T04:45:38+08:00",
+      "body": "2026-11-20 08:24 Asia/Taipei (UTC+08:00)：P8-00、P8-01a、P8-01b 與 P8-02 離線單元已驗收。P8-02 程式提交 e85a5784；完整 §8.1 守門 42 專案建置成功、7,446 個測試通過、其他靜態與文件檢查全綠。依使用者更正，下一步回頭執行 P8-01c：build 20 重打包、assembly 檢查及 goodshepherdback 唯讀 verify 後才開始實機轉換；目前未取得 verify=0 或 off 證據。",
+      "lastUpdated": "2026-11-20T08:24:00+08:00",
       "steps": [
         "2026-11-19 20:01 Asia/Taipei (UTC+08:00)：起點與分支核對為 6a37f16ba111943eb023c14dea3c9a006a0f0a5c、1.0.0.11.Integration.P8.Worktree；P8 分支遠端尚不存在，依 08A 首次推送延至 P8-01a 驗收後。",
         "2026-11-19 20:01 Asia/Taipei (UTC+08:00)：P7 最末完整守門基準 Release 7341、Debug tracer 7；Deployment.Tests 977 僅為候選檢查點；註冊清冊 live 12／pass 1／dormant 21；CJK 專案 count 合計 3764。",
@@ -712,7 +712,8 @@ const DATA = {
         "2026-11-19 20:43 Asia/Taipei (UTC+08:00)：P8-00 提交 29740bf5；C:\\smv\\guard-p8 Release 建置0錯誤（65警告）、全方案 Release 測試0失敗、Debug tracer 7/7、編碼21檔0問題、重複程式42專案新增0、I18nCheck、檔案說明1826檔0失敗、進度頁28/28全通過。守門摘要與準備紀錄位於 artifacts/p8/guard-29740bf5-*.log。",
         "2026-11-19 23:41 Asia/Taipei (UTC+08:00)：P8-01a 指定16個測試名均存在；Deployment Release 1016/1016、Core Release net10.0 391/391、net48 391/391。新增兩組SDK合成測試：不同choice值集合紅燈後改為按值聯集；同值標籤衝突拒絕。先前metadata投影摘要為new_fee 24值、dedication booking 18值、RequiredLevel均None，但labels與原始snapshot未取得；本輪唯讀verify再回InvalidDataException，累計兩次，沒有off／verify=0證據。P8-01a不驗收，依D8-26記缺項並續行；沒有組織寫入。",
         "2026-11-20 01:07 Asia/Taipei (UTC+08:00)：依08A §5 P8-01a離線完成條件及00 §7.1，16個指定測試存在並通過，Deployment 1021、Core net10.0／net48各391；guard-p8完整守門對bfc713f2重跑全通過（Release建置0警告／錯誤、全方案測試0失敗、Debug tracer 7/7、編碼50檔0問題、duplicate 42專案new/stale皆0、I18nCheck、檔案說明1842檔0失敗、進度頁28/28）。完整log與prepare log在C:\\smv\\guard-p8-evidence\\guard-bfc713f2-*-rerun.log；收尾提交50a9e87c。原始option labels與verify=0仍未查證，不能作為此離線單元阻擋；不再重試兩次失敗的verify，沒有組織寫入。",
-        "2026-11-20 04:45 Asia/Taipei (UTC+08:00)：P8-01b ChurchReport 奉獻類別清單離線驗收；ChurchReport 660/660、Core net10.0與net48各391/391。97d260c1完整§8.1守門通過：Release建置0錯誤（65警告）、全方案測試零失敗、Debug tracer 7/7、編碼95檔零問題、duplicate 42專案新增0、I18nCheck、檔案說明1845檔零失敗、進度頁28/28。守門完整記錄 C:\\smv\\guard-p8-evidence\\guard-97d260c1-full.log；回報提交e32284c1已推送，ls-remote SHA一致。沒有組織連線或寫入；goodshepherdback狀態未查證，既有兩次verify失敗不再重試。"
+        "2026-11-20 04:45 Asia/Taipei (UTC+08:00)：P8-01b ChurchReport 奉獻類別清單離線驗收；ChurchReport 660/660、Core net10.0與net48各391/391。97d260c1完整§8.1守門通過：Release建置0錯誤（65警告）、全方案測試零失敗、Debug tracer 7/7、編碼95檔零問題、duplicate 42專案新增0、I18nCheck、檔案說明1845檔零失敗、進度頁28/28。守門完整記錄 C:\\smv\\guard-p8-evidence\\guard-97d260c1-full.log；回報提交e32284c1已推送，ls-remote SHA一致。沒有組織連線或寫入；goodshepherdback狀態未查證，既有兩次verify失敗不再重試。",
+        "2026-11-20 08:19 Asia/Taipei (UTC+08:00)：P8-02 角色代碼與字典完成；Core Release net10.0／net48各398/398、ChurchReport 669/669。程式提交e85a5784的唯一guard完整§8.1結果：42專案建置0錯誤、全方案測試7,446通過、Debug tracer 7/7、編碼121檔0問題、duplicate 42專案新增0、I18nCheck、檔案說明1852檔0失敗、進度頁28/28。守門證據位於 C:\\smv\\guard-p8-evidence\\guard-e85a5784-full.log；僅唯讀 metadata，沒有查詢會友列或執行組織寫入。下一步回頭 P8-01c，實機狀態仍待 build 20 重打包及 verify 查證。"
       ]
     }
   ],
@@ -891,9 +892,9 @@ const DATA = {
       "id": "階段 8",
       "name": "收尾、偽語系驗收、教會設定網頁",
       "planned": "3～4 個工作天",
-      "actual": "2026-11-20 04:45 Asia/Taipei (UTC+08:00)：P8-00、P8-01a、P8-01b 離線工作已驗收；P8-01 總包進行中，接續 P8-01c 可離線部分。實機狀態未查證且不得重試 verify；階段 8 實際用時持續累計。",
+      "actual": "2026-11-20 08:24 Asia/Taipei (UTC+08:00)：P8-00、P8-01a、P8-01b、P8-02離線單元已驗收；P8-01總包待回頭完成P8-01c。下一步依使用者更正執行 build 20 打包、Test-PluginAssembly與goodshepherdback唯讀verify；實機狀態尚未查證，階段8實際用時持續累計。",
       "current": true,
-      "done": 0,
+      "done": 1,
       "active": 1
     }
   ],
@@ -1864,13 +1865,13 @@ const DATA = {
       "id": "P8-02",
       "phaseId": "階段 8",
       "name": "角色名稱改為字典＋教會覆寫",
-      "status": "todo",
       "deps": "—",
       "live": "無",
       "timebox": "1 天",
-      "doneAt": "",
-      "commit": "",
-      "note": "權限判斷一律用代碼"
+      "doneAt": "2026-11-20 08:19 Asia/Taipei (UTC+08:00)",
+      "commit": "e85a5784",
+      "status": "done",
+      "note": "Core 398/398×2、ChurchReport 669/669；完整守門42專案通過，報告 P8-02.md；推送與遠端核對待收尾提交"
     },
     {
       "id": "P8-03",
