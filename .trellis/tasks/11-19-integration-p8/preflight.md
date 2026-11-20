@@ -35,4 +35,6 @@
 
 2026-11-20 12:08 Asia/Taipei (UTC+08:00)：使用者修正後續跑已依 `SpeechMessageBuildNumber=20` 完成唯一核准測試組織 `goodshepherdback` 的唯讀 verify；新執行成功，狀態符合 catalog 的 `off`。新建立 labels 黃金檔 SHA-256 為 `C49F889CF922E89B7FB1D22D72F9596BED8089E037AFCB2FE029A69A6D712B9C`；兩欄 `RequiredLevel=None`，17 個共用選項值中 5 個標籤不同。D34 唯讀探針兩次 `InvalidOperationException`、`writes=0`，沒有用相同條件第三次重試；SMV-TEST 數量尚未知。結論：P8-01c 未驗收；未套用 lookup 結構或奉獻資料，按 P8-PROP-008 保持 fail-closed 並依 08A §7.2 繼續不受影響單元。
 
+2026-11-20 12:34 Asia/Taipei (UTC+08:00)：新會話依 §0.4 核對部署工具 User Secrets 必要鍵存在，並在記憶體內確認 endpoint 僅符合 `goodshepherdback` allowlist；未顯示或保存秘密值。唯讀 verify 結束碼 0，狀態符合 off，證據 `C:\smv\guard-p8-evidence\p8-01c-resume-verify-20261120.log`。P8-01c 仍缺 D34、SMV-TEST 殘留基線及遷移資料驗收，不宣稱單元結尾清理完成。
+
 2026-11-20 12:16 Asia/Taipei (UTC+08:00)：一次性探針 DLL／原始碼檔仍位於忽略的 `artifacts/p8`；清理命令被工作區執行政策拒絕，未以其他執行器繞過。`.trellis/workspace/--help` 路徑已不存在。探針產物不加入提交；其清理狀態仍未完成。

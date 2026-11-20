@@ -37,3 +37,4 @@
 - 不宣稱本次結束時 D34、`SMV-TEST-` 殘留、lookup verify 或 off 清理均已完成；前次 `live-check` 在 `LIVE-PREP-06` 寫入前拒絕。
 - 11:12 Asia/Taipei：唯讀 `export-metadata --org goodshepherdback` 成功；snapshot 格式僅存選項值與 RequiredLevel，不含 labels。語系 1028；new_fee 24 值、new_dedication_booking 17 值，共享 17 值；RequiredLevel 均為 None。snapshot SHA-256 `E0F4498B97A70A2D33174AD1ADD77903115667DAC2E192F63ECC89DC63060A8B`。
 - 11:18 Asia/Taipei：同值異標籤與 D8-6 固定 `legacy-<值>` 的資料身份無法同時表達；未變更已核定代碼、未猜 labels、未 apply。登錄 P8-PROP-008，P8-01c 維持進行中並依 D8-26 接續後續單元。
+- 12:34 Asia/Taipei：新會話核對 User Secrets 必要鍵存在及 endpoint 符合 goodshepherdback allowlist 後，唯讀 `verify --org goodshepherdback` 成功，狀態符合 off；安全摘要存於 `C:\smv\guard-p8-evidence\p8-01c-resume-verify-20261120.log`。沒有組織寫入；D34 兩次同條件失敗與 SMV-TEST 數未知仍阻止實機遷移收尾，不重試相同 D34 操作，P8-01c 維持進行中。

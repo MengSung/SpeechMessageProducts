@@ -2,7 +2,7 @@
   "id": "p8-01c-offering-category-migration",
   "name": "p8-01c-offering-category-migration",
   "title": "P8-01c goodshepherdback 奉獻類別轉換與核對",
-  "description": "依 08A §5 P8-01c 執行 goodshepherdback 奉獻類別轉換與核對。build 20 DLL 檢查、assembly 更新及唯讀 verify 已成功；ID-only 備份與選項 labels/RequiredLevel 黃金檔已建立。遷移 plan 因 17 個共用值中 5 個 metadata 標籤不同而 fail closed；D34 探針兩次 InvalidOperationException 且 writes=0，SMV-TEST 數量未確認。未執行 schema/data apply 或 P8Live，依 D8-26 保持進行中並記錄未完成條件後接續後續單元。",
+  "description": "依 08A §5 P8-01c 執行 goodshepherdback 奉獻類別轉換與核對。build 20 DLL 檢查、assembly 更新及唯讀 verify 已成功；本次 2026-11-20 12:34 新會話 verify 再次唯讀成功並符合 off。ID-only 備份與選項 labels/RequiredLevel 黃金檔已建立。遷移 plan 因 17 個共用值中 5 個 metadata 標籤不同而 fail closed；D34 探針兩次 InvalidOperationException 且 writes=0，SMV-TEST 數量未確認。未執行 schema/data apply 或 P8Live，依 D8-26 保持進行中並記錄未完成條件後接續後續單元。",
   "status": "in_progress",
   "dev_type": null,
   "scope": null,

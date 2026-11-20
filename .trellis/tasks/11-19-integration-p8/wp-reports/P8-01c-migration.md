@@ -34,3 +34,11 @@ D34 唯讀探針兩次均在 `d34` 驗證階段以 `InvalidOperationException` �
 既有 assembly 更新依原始 assembly 備份及 Deployment rollback 程序回復；ID 備份僅列受影響記錄身分。未套用 schema 或資料回填，故目前沒有新 lookup 或奉獻類別需要撤回。若日後完成轉換後回復，依原核定方式清空本次填入的 lookup 並停用本次新增類別。
 
 依 08A §7.2，遷移身份規則本身不可行時記錄提案並繼續不受影響工作；P8-01c 與 P8-01 整包仍未驗收。`P8-上線前置清單.md` 已記錄部署新版 ChurchReport 前，必須先完成類別轉換及必要 lookup 回填。剩餘必做項目為取得有效 D34／測試殘留基線、核定能同時保留來源標籤與穩定類別身分的規格、套用及 verify 僅兩個 lookup、完成 migration plan/apply/verify、二次 apply 零寫入、指定 P8Live 測試與結尾清理。
+
+## 2026-11-20 續跑結果
+
+2026-11-20 12:34 Asia/Taipei (UTC+08:00)：本次新會話先核對部署工具 User Secrets 必要鍵存在，並在記憶體內確認 URL 符合 `goodshepherdback` allowlist；沒有顯示或保存任何秘密值。唯讀 `dotnet run --project SpeechMessage.Dynamics.Deployment -c Release --no-build -- verify --org goodshepherdback` 結束碼 0，輸出 `Switch state matches the expected target.`；本次沒有組織寫入。證據為 `C:\smv\guard-p8-evidence\p8-01c-resume-verify-20261120.log`。
+
+同一續跑中，提交 `4975f2b00e736964c09a934394f3f1efd0dc27ea` 在唯一 guard `C:\smv\guard-p8` 的 §8.1 全部命令成功結束，包含 Release solution build、Release solution tests、Debug tracer、Changed 編碼、duplicate、I18n verify、檔案說明及 ProgressPage 28/28；結果記錄於 `C:\smv\guard-p8-evidence\guard-4975f2b0-full.log`。PowerShell transcript 只保留起訖與成功標記，未完整保存原生輸出；執行結果及所有後續檢查均成功，未為補 transcript 重跑守門。該 SHA 已推送，`git ls-remote` 與本機一致。
+
+唯讀 verify 成功只證明查詢當下狀態符合 `off`，不補足 D34 探針兩次同條件失敗、`SMV-TEST-` 數量未知、五組共享選項值標籤衝突及 migration apply／verify／冪等性／P8Live 缺證據。為避免在安全基線未完整確認及身份規格未解時寫入，本次不執行結構或資料 apply、不重試同條件 D34 探針；P8-01c 與 P8-01 整包維持未驗收，依 08A §7.2／D8-26 接續 P8-03a。此狀態不是 `SMV-TEST-` 殘留為零的證明。
