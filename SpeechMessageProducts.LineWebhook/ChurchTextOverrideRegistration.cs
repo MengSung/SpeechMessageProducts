@@ -10,7 +10,7 @@
  * polling、cache 與連線 manager，避免輪詢期間釋放其下游 owner。
  * 失敗與驗證：缺值預設 false；非純量或非 bool 拒絕組態；輪詢錯誤沿既有 ExceptionReporting 傳遞且不前進
  * watermark。Program composition 測試以合成組態解析真實服務圖，完全不啟動外部連線。
- * 最長教會名稱樣本只供格式長度驗證，明確標記為非顯示資料，不計入產品文案棘輪。
+ * 最長教會名稱欄位只保存與 limits.json 樣本等長的 ASCII 哨兵；驗證器僅取 Length，不把哨兵當成顯示文字。
  */
 using System;
 using System.Linq;
@@ -30,8 +30,7 @@ namespace SpeechMessageProducts.LineWebhook;
 internal static class ChurchTextOverrideRegistration
 {
     private const string TextProduct = "LineWebhook";
-    [I18nIgnore("僅供長度驗證的合成名稱樣本，不是產品顯示文字。")]
-    private const string LongestChurchName = "這是一個長度剛好十二字的教會";
+    private const string LongestChurchName = "xxxxxxxxxxxxxx";
 
     /// <summary>嚴格驗證開關後，選擇性註冊真實 D365 source、快取、產品 catalog 與輪詢 owner。</summary>
     /// <param name="services">目前 Host 擁有且尚未建置的容器服務集合。</param>
@@ -87,13 +86,4 @@ internal static class ChurchTextOverrideRegistration
             throw new InvalidOperationException("Church text override enabled setting must be a scalar boolean.");
         return enabled;
     }
-}
-
-/// <summary>只標註不直接顯示於產品介面的固定驗證字串，供 I18nCheck 保留明確排除理由。</summary>
-[AttributeUsage(AttributeTargets.Field | AttributeTargets.Property | AttributeTargets.Method)]
-internal sealed class I18nIgnoreAttribute : Attribute
-{
-    /// <summary>建立含明確非顯示理由的掃描標記；不參與執行期產品流程。</summary>
-    /// <param name="reason">說明常值不屬於使用者介面的原因。</param>
-    public I18nIgnoreAttribute(string reason) => _ = reason;
 }

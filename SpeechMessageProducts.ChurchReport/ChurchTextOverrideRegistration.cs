@@ -11,7 +11,7 @@
  * 此檔不保存 request、使用者、credential 或連線租約；disable 時不建 source、cache 或 polling。
  * 失敗與驗證：缺值關閉，非 bool／複合節點拒絕啟動；錯誤透過既有 ExceptionReporting 傳遞原例外。
  * Composition 測試使用合成組態驗證服務圖，不解析任何 D365 連線或執行實機。
- * 最長教會名稱樣本只供格式長度驗證，明確標記為非顯示資料，不計入產品文案棘輪。
+ * 最長教會名稱欄位只保存與 limits.json 樣本等長的 ASCII 哨兵；驗證器僅取 Length，不把哨兵當成顯示文字。
  */
 using System;
 using System.Linq;
@@ -31,8 +31,7 @@ namespace ChurchReport;
 internal static class ChurchTextOverrideRegistration
 {
     private const string TextProduct = "ChurchReport";
-    [I18nIgnore("僅供長度驗證的合成名稱樣本，不是產品顯示文字。")]
-    private const string LongestChurchName = "這是一個長度剛好十二字的教會";
+    private const string LongestChurchName = "xxxxxxxxxxxxxx";
 
     /// <summary>驗證開關並註冊唯一文字 provider；啟用時來源與輪詢共用原有部署 manager。</summary>
     /// <param name="services">已由 Startup 組裝中的 Host 服務集合。</param>
@@ -90,13 +89,4 @@ internal static class ChurchTextOverrideRegistration
             throw new InvalidOperationException("Church text override enabled setting must be a scalar boolean.");
         return enabled;
     }
-}
-
-/// <summary>只標註不直接顯示於產品介面的固定驗證字串，供 I18nCheck 保留明確排除理由。</summary>
-[AttributeUsage(AttributeTargets.Field | AttributeTargets.Property | AttributeTargets.Method)]
-internal sealed class I18nIgnoreAttribute : Attribute
-{
-    /// <summary>建立含明確非顯示理由的掃描標記；不參與執行期產品流程。</summary>
-    /// <param name="reason">說明常值不屬於使用者介面的原因。</param>
-    public I18nIgnoreAttribute(string reason) => _ = reason;
 }
