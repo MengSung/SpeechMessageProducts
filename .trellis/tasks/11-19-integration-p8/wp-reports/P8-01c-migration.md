@@ -4,7 +4,7 @@
 
 ## 結果
 
-P8-01c **進行中，未驗收**。兩個 Plugin DLL 已按 build 20 打包並通過 `Test-PluginAssembly.ps1`；組織上的 Plugin／Workflow assembly 更新只包含 `UpdateAssembly`。2026-11-20 12:07 對唯一核准測試組織 `goodshepherdback` 執行唯讀 `verify` 成功，輸出 `Switch state matches the expected target.`；組織清冊的目標狀態是 `off`。2026-11-20 11:49 `export-legacy` 顯示啟用舊步驟 0、舊流程 0。這些結果不等同本單元結尾清理驗收。
+P8-01c **依 D8-26 縮減驗收**。兩個 Plugin DLL 已按 build 20 打包並通過 `Test-PluginAssembly.ps1`；組織上的 Plugin／Workflow assembly 更新只包含 `UpdateAssembly`。2026-11-20 15:30 對唯一核准測試組織 `goodshepherdback` 執行唯讀 `verify` 成功，狀態符合 `off`。15:34 殘留盤點 15 個實體記錄 0、workflow 0。縮減項與上線前置見本報告末段。
 
 唯讀 ID 備份 `artifacts/p8/offering-backup-20261120-024252161.json` 共 97 筆（`new_fee` 96、`new_dedication_booking` 1），僅含來源實體、記錄 ID 與教會 ID，沒有姓名或業務本文，保留在本機且不提交。
 
@@ -33,7 +33,7 @@ D34 的舊唯讀探針曾兩次失敗；其後不同的 qrcodes live-check 到�
 
 既有 assembly 更新依原始 assembly 備份及 Deployment rollback 程序回復；ID 備份僅列受影響記錄身分。若需回復已套用 schema，依結構工具的既定 rollback；若日後完成資料轉換後回復，依原核定方式清空本次填入的 lookup 並停用本次新增類別。
 
-依 08A §7.2，遷移身份規則矛盾已記錄於 P8-PROP-008；依 D8-26 完成可行項目後繼續不受阻單元。P8-01c 與 P8-01 整包仍未驗收。`wp-reports/P8-上線前置清單.md` 已記錄部署新版 ChurchReport 前必須先完成類別轉換及必要 lookup 回填。未完成項目為解決五組同值異標籤與固定 `legacy-<選項值>` 身分規則的矛盾、migration plan/apply/verify、冪等第二次 apply，以及指定 P8Live 測試。
+依 08A §7.2，遷移身份規則矛盾已記錄於 P8-PROP-008；依 D8-26，P8-01c 與 P8-01 整包以縮減驗收結案。`wp-reports/P8-上線前置清單.md` 已記錄部署新版 ChurchReport 前必須先完成類別轉換及必要 lookup 回填。縮減項目為解決五組同值異標籤與固定 `legacy-<選項值>` 身分規則的矛盾、資料 migration/apply/verify、冪等第二次 apply，以及指定 P8Live 與整體 Live 驗收。
 
 ## 2026-11-20 續跑結果
 

@@ -241,10 +241,10 @@ footer{margin-top:36px;color:var(--muted);font-size:12.5px;text-align:center}
 const DATA = {
   "planVersion": "3.5",
   "snapshot": "2026-11-20 16:39 Asia/Taipei (UTC+08:00)",
-  "lastUpdated": "2026-11-20T16:39:00+08:00",
+  "lastUpdated": "2026-11-20T18:42:00+08:00",
   "branch": "1.0.0.11.Integration.P8.Worktree",
   "head": "4975f2b00e736964c09a934394f3f1efd0dc27ea",
-  "headline": "階段 8 2026-11-20 16:39 Asia/Taipei (UTC+08:00)：P8-02 角色映射依最新修正覆核完成；依新指示回到 P8-01c 重跑指定遷移步驟，P8-01 尚未驗收。",
+  "headline": "階段 8 2026-11-20 18:42 Asia/Taipei (UTC+08:00)：P8-01c 依標籤身份衝突縮減驗收；依固定順序接續 P8-03a，階段 8 尚未完成。",
   "notices": [
     {
       "id": "plan-3.5-summary",
@@ -702,8 +702,8 @@ const DATA = {
       "phaseId": "階段 8",
       "level": "info",
       "title": "P8 進度摘要",
-      "body": "2026-11-20 16:39 Asia/Taipei (UTC+08:00)：P8-02 角色標籤對照依最新修正覆核，僅精確匹配 metadata。遵照使用者新順序，P8-01c 已回到進行中，將重新執行 build 20 核對、兩個 lookup 結構與 migration 指定步驟；既有五組共用值標籤衝突仍 fail closed，不猜測或寫入資料。15:52 的縮減驗收只作歷史紀錄，不代表本次回頭單元已完成。P8-03a 已建立但待 P8-01 驗收後續行；階段 8 尚未完成。",
-      "lastUpdated": "2026-11-20T16:39:00+08:00",
+      "body": "2026-11-20 18:42 Asia/Taipei (UTC+08:00)：P8-01c 已重跑 build 20 assembly 更新、off verify、lookup schema plan/verify、ID-only 備份及舊項目核對。migration plan/verify 因五組共用 option value 的 metadata label 不一致 fail closed；不猜測、不寫資料，依 D8-26 將 P8-01c 與 P8-01 整包縮減驗收。指定 P8Live 未執行；新版 ChurchReport 上線前必須先核定 P8-PROP-008 並完成轉換回填。固定順序接續 P8-03a；階段 8 尚未完成。",
+      "lastUpdated": "2026-11-20T18:42:00+08:00",
       "steps": [
         "2026-11-19 20:01 Asia/Taipei (UTC+08:00)：起點與分支核對為 6a37f16ba111943eb023c14dea3c9a006a0f0a5c、1.0.0.11.Integration.P8.Worktree；P8 分支遠端尚不存在，依 08A 首次推送延至 P8-01a 驗收後。",
         "2026-11-19 20:01 Asia/Taipei (UTC+08:00)：P7 最末完整守門基準 Release 7341、Debug tracer 7；Deployment.Tests 977 僅為候選檢查點；註冊清冊 live 12／pass 1／dormant 21；CJK 專案 count 合計 3764。",
@@ -720,7 +720,8 @@ const DATA = {
         "2026-11-20 12:43 Asia/Taipei (UTC+08:00)：新會話 User Secrets 必要鍵存在且 endpoint 在記憶體內符合 goodshepherdback allowlist；唯讀 verify 成功、符合 off，證據位於 C:\\smv\\guard-p8-evidence\\p8-01c-resume-verify-20261120.log。4975f2b0 在唯一 guard 的 §8.1 各命令成功、ProgressPage 28/28；transcript 僅留起訖與成功標記，沒有重跑。P8-01c 因遷移缺項仍未驗收，按 D8-26 接續 P8-03a。",
         "2026-11-20 15:34 Asia/Taipei (UTC+08:00)：兩個 lookup 欄結構 plan/apply/verify 完成，組織稽核已開啟；唯讀殘留盤點 15 個實體記錄0、workflow0，verify 符合 off。qrcodes live-check 到達 LIVE-PREP-04；D34 子檢查依順序通過，但整體 Live 未通過。migration plan 因五組 metadata 標籤衝突 fail closed；未執行資料 migration、冪等 apply 或指定 P8Live。P8-01c 尚待依 D8-26 做縮減驗收登錄。",
         "2026-11-20 15:52 Asia/Taipei (UTC+08:00)：P8-01c 當時依 D8-26 縮減驗收；已完成項為 build 20 assembly 核對、兩個 lookup 欄結構 plan/apply/verify、組織稽核開啟、15 個實體與 workflow 殘留 0、verify 符合 off。縮減項為五組標籤衝突後的 migration plan/apply/verify、冪等第二次 apply、指定 P8Live 與整體 Live。此歷史結論已由 2026-11-20 16:39 使用者新指示取代，P8-01c 回到進行中。",
-        "2026-11-20 16:39 Asia/Taipei (UTC+08:00)：依使用者更正重做 P8-02 對照回報；固定順序回到 P8-01c，先前 15:52 縮減驗收不作本次完成依據。P8-03a 已建 Trellis 子任務並有紅燈測試草稿，待 P8-01 整包驗收後續行。"
+        "2026-11-20 16:39 Asia/Taipei (UTC+08:00)：依使用者更正重做 P8-02 對照回報；固定順序回到 P8-01c，先前 15:52 縮減驗收不作本次完成依據。P8-03a 已建 Trellis 子任務並有紅燈測試草稿，待 P8-01 整包驗收後續行。",
+        "2026-11-20 18:42 Asia/Taipei (UTC+08:00)：build 20 兩個 assembly plan 各僅 UpdateAssembly，apply 後 verify 符合 off；lookup schema plan additions=0、verify 無差異，keys Active。新 ID-only 備份97筆，SHA-256 8F940F3EEB6C08B67677A3D6F78167FBC50D0BBE33C2ED50E9FFB7A059F99758；RequiredLevel兩欄None。五組共用 option value labels 不同，migration plan/verify fail closed，未寫奉獻資料、未執行指定 P8Live；結尾 off verify 成功，舊步驟／流程0/0，最近完整殘留盤點仍為0。P8-01c及整包依D8-26縮減驗收，決策與部署前置見P8-decisions.md、P8-01c-migration.md及P8-上線前置清單.md。下一單元P8-03a。原始證據僅存 C:\\smv\\guard-p8-evidence。"
       ]
     }
   ],
@@ -1866,7 +1867,7 @@ const DATA = {
       "timebox": "1 天",
       "doneAt": "",
       "commit": "",
-      "note": "2026-11-20 16:39 Asia/Taipei (UTC+08:00)：回到 P8-01c 按使用者新指示重做；先前 15:52 縮減驗收保留為歷史，不作本次 P8-01 完成依據。P8-01a/b 原驗收仍有效；P8-01c 待 build 20、結構、遷移、核對與收尾重驗後再決定完整或縮減驗收。"
+      "note": "2026-11-20 18:42 Asia/Taipei (UTC+08:00)：P8-01a/b原驗收仍有效；P8-01c已依build20、結構核對及off收尾完成縮減驗收。metadata五組同值異標籤使migration plan/verify fail closed；未apply、未作指定P8Live。P8-PROP-008列為新版ChurchReport部署阻擋與上線前回填要求。"
     },
     {
       "id": "P8-02",
@@ -1949,15 +1950,16 @@ const DATA = {
       "id": "P8-01c",
       "phaseId": "階段 8",
       "name": "P8-01c goodshepherdback 轉換與核對",
-      "status": "active",
-      "note": "2026-11-20 16:39 Asia/Taipei (UTC+08:00)：依使用者新指示回到本單元；15:52 的 D8-26 縮減驗收仍保留歷史，但不代表本次重新執行已完成。新的核對若仍遇五組共用 option value metadata labels 衝突，必須維持 fail closed 並如實依 D8-26 記錄。"
+      "status": "done",
+      "doneAt": "2026-11-20 18:42 Asia/Taipei (UTC+08:00)",
+      "note": "2026-11-20 18:42 Asia/Taipei (UTC+08:00)：build20 assembly更新與off verify通過；lookup schema plan additions=0、verify無差異；ID-only備份97筆；RequiredLevel=None；舊步驟／流程0/0。metadata五組同值異標籤令migration plan/verify fail closed，依D8-26縮減驗收；未apply、未跑指定P8Live。回報P8-01c-migration.md；上線阻擋P8-PROP-008。"
     },
     {
       "id": "P8-03a",
       "phaseId": "階段 8",
       "name": "P8-03a 教會覆寫接線與設定服務",
       "status": "todo",
-      "note": "2026-11-20 16:39 Asia/Taipei (UTC+08:00)：Trellis 子任務與紅燈測試草稿已建立；依使用者最新順序，待 P8-01 整包驗收後續行。"
+      "note": "2026-11-20 18:42 Asia/Taipei (UTC+08:00)：P8-01依D8-26縮減驗收後，按固定順序接續本單元；既有Trellis子任務與紅燈測試草稿保留。"
     },
     {
       "id": "P8-03b",
@@ -2188,7 +2190,7 @@ const DATA = {
         ["指定測試", "ok", "16 個指定名稱存在；Deployment 1021/1021，Core net10.0 與 net48 各 391/391。"],
         ["P8-01c 實機 metadata 與 verify", "ok", "build 20組件verify符合off；兩個lookup結構apply/verify成功，組織稽核已開啟；殘留盤點15個實體記錄0、workflow0。"],
         ["P8-01a 離線守門與提交", "ok", "bfc713f2 的完整 §8.1 守門全通過；P8-01a 收尾提交 50a9e87c、eda46dab。"],
-        ["P8-01c 遷移與收尾（續作中）", "no", "依使用者新指示回到本單元，15:52的縮減驗收只保留歷史；重新完成build 20、結構、migration、逐段核對、verify、冪等apply及收尾後再決定完整或縮減驗收。"]
+        ["P8-01c 遷移與收尾（縮減驗收）", "ok", "build20 assembly apply/off verify、lookup schema plan/verify、ID-only備份、稽核與舊項目核對完成；五組同值異標籤令migration plan/verify fail closed，未apply及未執行P8Live；依D8-26登錄P8-PROP-008。"]
       ]
     }
   ],
