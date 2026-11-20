@@ -240,11 +240,11 @@ footer{margin-top:36px;color:var(--muted);font-size:12.5px;text-align:center}
  */
 const DATA = {
   "planVersion": "3.5",
-  "snapshot": "2026-11-20 08:24 Asia/Taipei (UTC+08:00)",
-  "lastUpdated": "2026-11-20T08:24:00+08:00",
+  "snapshot": "2026-11-20 08:32 Asia/Taipei (UTC+08:00)",
+  "lastUpdated": "2026-11-20T08:32:00+08:00",
   "branch": "1.0.0.11.Integration.P8.Worktree",
-  "head": "e85a5784e78773b8bccadeb0f97232cb82d8aebe",
-  "headline": "階段 8 2026-11-20 08:24 Asia/Taipei (UTC+08:00)：P8-02 角色代碼離線單元已驗收；下一步依核定 build 20 流程續做 P8-01c，goodshepherdback 實機狀態尚未查證。",
+  "head": "a12919798b1687503be73f29890796c75acf1d14",
+  "headline": "階段 8 2026-11-20 08:32 Asia/Taipei (UTC+08:00)：P8-02 角色代碼離線單元已驗收並推送核 SHA；下一步依核定 build 20 流程續做 P8-01c，goodshepherdback 實機狀態尚未查證。",
   "notices": [
     {
       "id": "plan-3.5-summary",
@@ -702,8 +702,8 @@ const DATA = {
       "phaseId": "階段 8",
       "level": "info",
       "title": "P8 進度摘要",
-      "body": "2026-11-20 08:24 Asia/Taipei (UTC+08:00)：P8-00、P8-01a、P8-01b 與 P8-02 離線單元已驗收。P8-02 程式提交 e85a5784；完整 §8.1 守門 42 專案建置成功、7,446 個測試通過、其他靜態與文件檢查全綠。依使用者更正，下一步回頭執行 P8-01c：build 20 重打包、assembly 檢查及 goodshepherdback 唯讀 verify 後才開始實機轉換；目前未取得 verify=0 或 off 證據。",
-      "lastUpdated": "2026-11-20T08:24:00+08:00",
+      "body": "2026-11-20 08:32 Asia/Taipei (UTC+08:00)：P8-00、P8-01a、P8-01b 與 P8-02 離線單元已驗收。P8-02 程式提交 e85a5784、紀錄提交 a1291979，分支遠端 SHA 已核對一致；完整 §8.1 守門 42 專案建置成功、7,446 個測試通過、其他靜態與文件檢查全綠。依使用者更正，下一步回頭執行 P8-01c：build 20 重打包、assembly 檢查及 goodshepherdback 唯讀 verify 後才開始實機轉換；目前未取得 verify=0 或 off 證據。",
+      "lastUpdated": "2026-11-20T08:32:00+08:00",
       "steps": [
         "2026-11-19 20:01 Asia/Taipei (UTC+08:00)：起點與分支核對為 6a37f16ba111943eb023c14dea3c9a006a0f0a5c、1.0.0.11.Integration.P8.Worktree；P8 分支遠端尚不存在，依 08A 首次推送延至 P8-01a 驗收後。",
         "2026-11-19 20:01 Asia/Taipei (UTC+08:00)：P7 最末完整守門基準 Release 7341、Debug tracer 7；Deployment.Tests 977 僅為候選檢查點；註冊清冊 live 12／pass 1／dormant 21；CJK 專案 count 合計 3764。",
@@ -713,7 +713,8 @@ const DATA = {
         "2026-11-19 23:41 Asia/Taipei (UTC+08:00)：P8-01a 指定16個測試名均存在；Deployment Release 1016/1016、Core Release net10.0 391/391、net48 391/391。新增兩組SDK合成測試：不同choice值集合紅燈後改為按值聯集；同值標籤衝突拒絕。先前metadata投影摘要為new_fee 24值、dedication booking 18值、RequiredLevel均None，但labels與原始snapshot未取得；本輪唯讀verify再回InvalidDataException，累計兩次，沒有off／verify=0證據。P8-01a不驗收，依D8-26記缺項並續行；沒有組織寫入。",
         "2026-11-20 01:07 Asia/Taipei (UTC+08:00)：依08A §5 P8-01a離線完成條件及00 §7.1，16個指定測試存在並通過，Deployment 1021、Core net10.0／net48各391；guard-p8完整守門對bfc713f2重跑全通過（Release建置0警告／錯誤、全方案測試0失敗、Debug tracer 7/7、編碼50檔0問題、duplicate 42專案new/stale皆0、I18nCheck、檔案說明1842檔0失敗、進度頁28/28）。完整log與prepare log在C:\\smv\\guard-p8-evidence\\guard-bfc713f2-*-rerun.log；收尾提交50a9e87c。原始option labels與verify=0仍未查證，不能作為此離線單元阻擋；不再重試兩次失敗的verify，沒有組織寫入。",
         "2026-11-20 04:45 Asia/Taipei (UTC+08:00)：P8-01b ChurchReport 奉獻類別清單離線驗收；ChurchReport 660/660、Core net10.0與net48各391/391。97d260c1完整§8.1守門通過：Release建置0錯誤（65警告）、全方案測試零失敗、Debug tracer 7/7、編碼95檔零問題、duplicate 42專案新增0、I18nCheck、檔案說明1845檔零失敗、進度頁28/28。守門完整記錄 C:\\smv\\guard-p8-evidence\\guard-97d260c1-full.log；回報提交e32284c1已推送，ls-remote SHA一致。沒有組織連線或寫入；goodshepherdback狀態未查證，既有兩次verify失敗不再重試。",
-        "2026-11-20 08:19 Asia/Taipei (UTC+08:00)：P8-02 角色代碼與字典完成；Core Release net10.0／net48各398/398、ChurchReport 669/669。程式提交e85a5784的唯一guard完整§8.1結果：42專案建置0錯誤、全方案測試7,446通過、Debug tracer 7/7、編碼121檔0問題、duplicate 42專案新增0、I18nCheck、檔案說明1852檔0失敗、進度頁28/28。守門證據位於 C:\\smv\\guard-p8-evidence\\guard-e85a5784-full.log；僅唯讀 metadata，沒有查詢會友列或執行組織寫入。下一步回頭 P8-01c，實機狀態仍待 build 20 重打包及 verify 查證。"
+        "2026-11-20 08:19 Asia/Taipei (UTC+08:00)：P8-02 角色代碼與字典完成；Core Release net10.0／net48各398/398、ChurchReport 669/669。程式提交e85a5784的唯一guard完整§8.1結果：42專案建置0錯誤、全方案測試7,446通過、Debug tracer 7/7、編碼121檔0問題、duplicate 42專案新增0、I18nCheck、檔案說明1852檔0失敗、進度頁28/28。守門證據位於 C:\\smv\\guard-p8-evidence\\guard-e85a5784-full.log；僅唯讀 metadata，沒有查詢會友列或執行組織寫入。下一步回頭 P8-01c，實機狀態仍待 build 20 重打包及 verify 查證。",
+        "2026-11-20 08:32 Asia/Taipei (UTC+08:00)：P8-02程式與驗收紀錄已推送；`git ls-remote origin 1.0.0.11.Integration.P8.Worktree` 回報 SHA `a12919798b1687503be73f29890796c75acf1d14`，與推送提交一致。"
       ]
     }
   ],
@@ -1871,7 +1872,7 @@ const DATA = {
       "doneAt": "2026-11-20 08:19 Asia/Taipei (UTC+08:00)",
       "commit": "e85a5784",
       "status": "done",
-      "note": "Core 398/398×2、ChurchReport 669/669；完整守門42專案通過，報告 P8-02.md；推送與遠端核對待收尾提交"
+      "note": "Core 398/398×2、ChurchReport 669/669；完整守門42專案通過，報告 P8-02.md；分支 SHA a1291979 已推送並核對"
     },
     {
       "id": "P8-03",
