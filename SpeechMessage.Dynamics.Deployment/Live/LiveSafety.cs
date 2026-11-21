@@ -23,22 +23,42 @@ namespace SpeechMessage.Dynamics.Deployment.Live;
 internal sealed class LiveSafety(IOrganizationService service, Func<string, string> secret) : IDisposable
 {
     private readonly LineChannelUsageReader usage = new();
-    /// <summary>先驗權威測試身分，再逐個 Channel 驗解密後 token；不把空清單當通過。</summary>
-    internal ShadowVerifiedIdentity Verify(CancellationToken token)
+    /// <summary>
+    /// 先驗權威測試身分，再逐個 Channel 驗解密後 token；不把空清單當通過。
+    /// 失敗摘要附呼叫端目前模組，讓安全子檢查可與該次 Live 準備／執行記錄對應。
+    /// </summary>
+    /// <param name="token">只取消本次驗證的呼叫端 token。</param>
+    /// <param name="module">由部署清單選出的模組識別；沒有模組脈絡的獨立離線呼叫可為null。</param>
+    internal ShadowVerifiedIdentity Verify(CancellationToken token, string? module = null)
     {
-        var identity = ShadowTestIdentity.Verify(service, secret("TestLineUserId"), secret("ShadowTestChurchId"), secret("ShadowTestContactId"), token);
-        var key = Convert.FromBase64String(secret("TokenKey"));
+        var identity = LivePreparationFailure.Capture(LivePreparationReason.Safety, module, null, null, null,
+            () => ShadowTestIdentity.Verify(service, secret("TestLineUserId"), secret("ShadowTestChurchId"),
+                secret("ShadowTestContactId"), token), token, "D34-TEST-IDENTITY");
+        var key = LivePreparationFailure.Capture(LivePreparationReason.Safety, module, null, null, null,
+            () => Convert.FromBase64String(secret("TokenKey")), token, "CONFIG-TOKEN-KEY");
         try
         {
-            if (key.Length != 64) throw Invalid();
+            if (key.Length != 64)
+                throw new LivePreparationFailure(LivePreparationReason.Safety, module, inner: Invalid(),
+                    subCheckId: "CONFIG-TOKEN-KEY");
             var query = new QueryExpression("new_linechannel") { ColumnSet = new ColumnSet("new_accesstokenencrypted"), TopCount = 101 };
-            var response = service.RetrieveMultiple(query);
+            var response = LivePreparationFailure.Capture(LivePreparationReason.Safety, module, null, null, null,
+                () => service.RetrieveMultiple(query), token, "D34-CHANNEL-INVENTORY");
             token.ThrowIfCancellationRequested();
             if (response.MoreRecords || response.Entities.Count is < 1 or > 100 ||
                 response.Entities.Any(row => row.Id == Guid.Empty || row.LogicalName != "new_linechannel") ||
-                response.Entities.Select(row => row.Id).Distinct().Count() != response.Entities.Count) throw Invalid();
+                response.Entities.Select(row => row.Id).Distinct().Count() != response.Entities.Count)
+                throw new LivePreparationFailure(LivePreparationReason.Safety, module, inner: Invalid(),
+                    subCheckId: "D34-CHANNEL-INVENTORY");
             foreach (var channel in response.Entities)
-                if (ChannelTokenProtector.Unprotect(channel.GetAttributeValue<string>("new_accesstokenencrypted"), key) != secret("TestChannelToken")) throw Invalid();
+            {
+                var matches = LivePreparationFailure.Capture(LivePreparationReason.Safety, module, null, null, null,
+                    () => ChannelTokenProtector.Unprotect(channel.GetAttributeValue<string>("new_accesstokenencrypted"), key) ==
+                        secret("TestChannelToken"), token, "D34-CHANNEL-TOKENS");
+                if (!matches)
+                    throw new LivePreparationFailure(LivePreparationReason.Safety, module, inner: Invalid(),
+                        subCheckId: "D34-CHANNEL-TOKENS");
+            }
             return identity;
         }
         finally { Array.Clear(key); }

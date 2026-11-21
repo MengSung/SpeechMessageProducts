@@ -1,8 +1,8 @@
 /*
 檔案整體說明
 目的與定位：P7觀察期唯讀計數reader，依核定step/type與UTC時間窗計系統作業、trace、待辦及流程失敗，不輸出記錄內容。
-主要流程：先驗正式ID與唯一type對照，再有界讀取最少欄位，全部成功組裝安全純值；trace關閉或權限不足明示無資料。
-安全與隔離：借入SDK先包ReadOnlyOrganizationService；回傳不包含GUID、名稱、錯誤本文、payload或credential，只含type／數量。
+主要流程：先驗正式ID與唯一type對照，再有界讀取最少欄位，全部成功組裝安全純值；trace例外按Plugin型別及解析出的例外型別分組，關閉或權限不足明示無資料。
+安全與隔離：借入SDK先包ReadOnlyOrganizationService；回傳不包含GUID、名稱、錯誤本文、payload或credential，只含型別識別與數量。
 資源生命週期：候選列只存活本次同步Read，取消在每頁前後檢查；不持有cache、背景task、timer或獨立連線。
 失敗與驗證：分頁／重複／超量或必要狀態缺漏fail closed，不當空結果；ObservationReaderTests驗counts與敏感sentinel零輸出。
 */
@@ -24,12 +24,18 @@ internal sealed record ObservationStepCount(string Type, int Failed, int Waiting
 /// <summary>一類型／狀態待辦的安全計數。</summary>
 /// <param name="Type">選項值。</param><param name="State">狀態選項值。</param><param name="Count">筆數。</param>
 internal sealed record ObservationTaskCount(int Type, int State, int Count);
+/// <summary>一種Plugin型別與例外型別組合的trace安全計數，不保存任何trace本文。</summary>
+/// <param name="PluginType">經安全字元檢查的Plugin完整型別，無法確認時為固定未知標籤。</param>
+/// <param name="ExceptionType">從例外本文首行解析並驗證的CLR型別，無法確認時為固定未知標籤。</param>
+/// <param name="Count">符合查詢時間窗的例外筆數。</param>
+internal sealed record ObservationTraceExceptionCount(string PluginType, string ExceptionType, int Count);
 /// <summary>觀察安全報告，不包含正式記錄身分或任何欄位本文。</summary>
 /// <param name="SinceUtc">UTC查詢下限。</param><param name="Steps">新組件系統作業counts。</param><param name="TraceAvailable">當下trace可用與否。</param>
-/// <param name="TraceExceptions">不可用為null，查詢成功且空才為0。</param><param name="Tasks">待辦counts。</param>
+/// <param name="TraceExceptions">不可用為null，查詢成功且空才為0。</param><param name="TraceExceptionGroups">例外型別與Plugin型別的有序安全計數。</param><param name="Tasks">待辦counts。</param>
 /// <param name="OldestWaitingMinutes">最舊等待分鐘，沒有等待為null。</param><param name="WorkflowFailures">已改指流程失敗數。</param><param name="MutualExclusionPassed">D7-7當下結果。</param>
 internal sealed record ObservationReport(DateTimeOffset SinceUtc, IReadOnlyList<ObservationStepCount> Steps, bool TraceAvailable,
-    int? TraceExceptions, IReadOnlyList<ObservationTaskCount> Tasks, double? OldestWaitingMinutes, int WorkflowFailures, bool MutualExclusionPassed)
+    int? TraceExceptions, IReadOnlyList<ObservationTraceExceptionCount> TraceExceptionGroups,
+    IReadOnlyList<ObservationTaskCount> Tasks, double? OldestWaitingMinutes, int WorkflowFailures, bool MutualExclusionPassed)
 {
     /// <summary>只根據可用計數判斷；trace無資料不能宣稱沒有新增錯誤。</summary>
     public bool NoNewErrors => TraceAvailable && TraceExceptions == 0 && Steps.All(row => row.Failed == 0) &&
@@ -67,21 +73,57 @@ internal static class ObservationReader
         cancellationToken.ThrowIfCancellationRequested();
         var available = Option(organization, "plugintracelogsetting") != 0;
         int? exceptions = null;
+        IReadOnlyList<ObservationTraceExceptionCount> exceptionGroups = Array.Empty<ObservationTraceExceptionCount>();
         if (available)
         {
             try
             {
                 var types = steps.Select(row => row.Type).Concat(activityTypes ?? Array.Empty<string>()).ToHashSet(StringComparer.Ordinal);
-                exceptions = reader.Read("plugintracelog", ["typename", "createdon", "exceptiondetails"])
-                    .Count(row => AtOrAfter(row, sinceUtc) && types.Contains(row.GetAttributeValue<string>("typename") ?? "") &&
-                        !string.IsNullOrWhiteSpace(row.GetAttributeValue<string>("exceptiondetails")));
+                var traces = reader.Read("plugintracelog", ["typename", "createdon", "exceptiondetails"])
+                    .Where(row => AtOrAfter(row, sinceUtc) && types.Contains(row.GetAttributeValue<string>("typename") ?? "") &&
+                        !string.IsNullOrWhiteSpace(row.GetAttributeValue<string>("exceptiondetails")))
+                    .Select(row => (PluginType: SafePluginType(row.GetAttributeValue<string>("typename")),
+                        ExceptionType: SafeExceptionType(row.GetAttributeValue<string>("exceptiondetails"))))
+                    .ToArray();
+                exceptions = traces.Length;
+                exceptionGroups = Array.AsReadOnly(traces.GroupBy(row => (row.PluginType, row.ExceptionType))
+                    .OrderBy(group => group.Key.PluginType, StringComparer.Ordinal)
+                    .ThenBy(group => group.Key.ExceptionType, StringComparer.Ordinal)
+                    .Select(group => new ObservationTraceExceptionCount(group.Key.PluginType, group.Key.ExceptionType, group.Count()))
+                    .ToArray());
             }
             catch (FaultException<OrganizationServiceFault> failure) when (failure.Detail?.ErrorCode is unchecked((int)0x80040220) or unchecked((int)0x80048306)) { available = false; exceptions = null; }
         }
         var workflows = workflowIds.ToHashSet();
         var workflowFailures = jobs.Count(row => row.GetAttributeValue<EntityReference>("owningextensionid") is { LogicalName: "workflow" } reference &&
             workflows.Contains(reference.Id) && Failed(row));
-        return new ObservationReport(sinceUtc, Array.AsReadOnly(counts), available, exceptions, Array.AsReadOnly(tasks), oldest, workflowFailures, mutualExclusionPassed);
+        return new ObservationReport(sinceUtc, Array.AsReadOnly(counts), available, exceptions, exceptionGroups,
+            Array.AsReadOnly(tasks), oldest, workflowFailures, mutualExclusionPassed);
+    }
+
+    /// <summary>外部trace欄位只接受bounded CLR型別字元；任意文字不回傳給報告消費端。</summary>
+    private static string SafePluginType(string? value) => IsSafeTypeName(value) ? value! : "(unknown-plugin)";
+
+    /// <summary>僅解析例外本文第一行冒號前的型別token；訊息、stack及其餘本文不進入報告。</summary>
+    private static string SafeExceptionType(string? value)
+    {
+        if (string.IsNullOrEmpty(value)) return "(unknown-exception)";
+        var firstLineEnd = value.IndexOfAny(['\r', '\n']);
+        var firstLine = firstLineEnd < 0 ? value.AsSpan() : value.AsSpan(0, firstLineEnd);
+        var separator = firstLine.IndexOf(':');
+        if (separator <= 0) return "(unknown-exception)";
+        var candidate = firstLine[..separator].Trim();
+        return IsSafeTypeName(candidate) ? candidate.ToString() : "(unknown-exception)";
+    }
+
+    /// <summary>CLR型別標籤限長並限字元，避免把自由本文或控制字元投影進診斷。</summary>
+    private static bool IsSafeTypeName(ReadOnlySpan<char> value)
+    {
+        if (value.IsEmpty || value.Length > 512 || !char.IsAsciiLetter(value[0])) return false;
+        foreach (var character in value)
+            if (!(char.IsAsciiLetterOrDigit(character) || character is '.' or '_' or '+' or '`' or '[' or ']' or ',' or '&' or '*'))
+                return false;
+        return true;
     }
 
     /// <summary>平台成功status30與失敗31／32；非完成作業不計失敗，但另列waiting。</summary>

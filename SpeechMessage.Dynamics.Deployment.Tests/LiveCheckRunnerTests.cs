@@ -9,8 +9,10 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.ServiceModel;
 using System.Threading;
 using System.Text.Json;
+using Microsoft.Xrm.Sdk;
 using SpeechMessage.Dynamics.Deployment;
 using SpeechMessage.Dynamics.Deployment.Live;
 using SpeechMessage.Dynamics.Deployment.Shadow;
@@ -84,6 +86,38 @@ public sealed class LiveCheckRunnerTests
         else Assert.Throws<InvalidOperationException>(() => new LiveCheckRunner(runtime).Run(Organization(), "care", new[] { Scenario() }));
         Assert.True(runtime.Round.Cleaned); Assert.True(runtime.Round.Verified); Assert.True(runtime.Round.Disposed);
         Assert.False(runtime.Round.CleanupTokenCancelled);
+        Assert.Equal(1, runtime.Trace);
+    }
+
+    /// <summary>
+    /// trigger階段注入含敏感本文的Dataverse fault，安全摘要須含數字碼、固定階段及實體邏輯名稱；
+    /// 同時驗證seed清理、殘留確認、Dispose與trace還原仍完成，不連線且不記錄業務內容。
+    /// </summary>
+    [Fact]
+    public void LiveCheck_DataverseFault_ReportsFaultCodeStageAndEntity()
+    {
+        const string sensitiveBody = "SENSITIVE-DATAVERSE-FAULT-BODY";
+        var runtime = new Runtime();
+        runtime.Round.TriggerFailure = () => throw new FaultException<OrganizationServiceFault>(
+            new OrganizationServiceFault
+            {
+                ErrorCode = unchecked((int)0x80040265),
+                Message = sensitiveBody,
+                TraceText = sensitiveBody
+            });
+
+        var failure = Assert.Throws<LiveCheckFailure>(() =>
+            new LiveCheckRunner(runtime).Run(Organization(), "care", [Scenario()]));
+        using var writer = new StringWriter();
+        DeploymentCli.WriteSupplementalFailureDiagnostics(failure, writer);
+
+        Assert.Contains("stage=trigger", writer.ToString(), StringComparison.Ordinal);
+        Assert.Contains("entity=task", writer.ToString(), StringComparison.Ordinal);
+        Assert.Contains("0x80040265", writer.ToString(), StringComparison.Ordinal);
+        Assert.DoesNotContain(sensitiveBody, writer.ToString(), StringComparison.Ordinal);
+        Assert.True(runtime.Round.Cleaned);
+        Assert.True(runtime.Round.Verified);
+        Assert.True(runtime.Round.Disposed);
         Assert.Equal(1, runtime.Trace);
     }
     /// <summary>

@@ -36,6 +36,25 @@ namespace SpeechMessage.Dynamics.Deployment.Tests;
 public sealed class LivePreparationDiagnosticsTests
 {
     /// <summary>
+    /// 注入測試Channel token不符，要求LIVE-PREP-03輸出固定子檢查ID且絕不輸出token或SDK本文；
+    /// 使用本案記憶體SDK，不連D365、不保存秘密，驗證失敗由安全診斷包裝回傳。
+    /// </summary>
+    [Fact]
+    public void LivePrep_SafetyFailure_ReportsSubCheckId()
+    {
+        var service = new SafetyService { WrongChannelToken = true };
+        var failure = Assert.Throws<LivePreparationFailure>(() =>
+            new LiveSafety(service, service.Secret).Verify(CancellationToken.None));
+        using var writer = new StringWriter();
+
+        DeploymentCli.WriteSupplementalFailureDiagnostics(failure, writer);
+
+        Assert.Contains("LIVE-PREP-03", writer.ToString(), StringComparison.Ordinal);
+        Assert.Contains("subcheck=D34-CHANNEL-TOKENS", writer.ToString(), StringComparison.Ordinal);
+        Assert.DoesNotContain(SafetyService.Sentinel, writer.ToString(), StringComparison.Ordinal);
+    }
+
+    /// <summary>
     /// 真CLI在來源、連線與快照三個不同邊界故障時須報不同碼；前兩項在租約前，
     /// 快照失敗則必須先歸還唯一lease再報告。固定來源複製既有合成P7 JSON，無真組織I/O。
     /// </summary>
@@ -96,6 +115,7 @@ public sealed class LivePreparationDiagnosticsTests
         Assert.Same(original, DeploymentCli.ExceptionForReporting(failure));
     }
 
+
     /// <summary>內部逾時不是caller正常取消；必須保留原例外及固定原因，不能回130假稱使用者取消。</summary>
     [Fact]
     public void LivePreparation_InternalCancellation_IsFailureAndOriginalIsReported()
@@ -151,6 +171,15 @@ public sealed class LivePreparationDiagnosticsTests
                 break;
             case 11: file = file with { Basis = "unsupported" }; break;
         }
+        if (code == 9)
+        {
+            var rejected = InvokeCasesWithOutput(snapshot, [file], service, "care");
+            Assert.Equal(1, rejected.ExitCode);
+            Assert.Contains("LIVE-PREP-09", rejected.Output, StringComparison.Ordinal);
+            Assert.Equal(0, service.Writes);
+            return;
+        }
+
         var failure = Invoke(snapshot, file, service);
         using var writer = new StringWriter();
         DeploymentCli.WriteSupplementalFailureDiagnostics(failure, writer);
@@ -220,12 +249,55 @@ public sealed class LivePreparationDiagnosticsTests
             Trigger = Json("""{"inputs":{"AnniversaryKind":"Birthday"}}""")
         };
 
-        var failure = Invoke(snapshot, file, service);
-        using var writer = new StringWriter();
-        DeploymentCli.WriteSupplementalFailureDiagnostics(failure, writer);
+        var result = InvokeCasesWithOutput(snapshot, [file], service, "care");
 
-        Assert.Contains("LIVE-PREP-09", writer.ToString(), StringComparison.Ordinal);
-        Assert.DoesNotContain("LIVE-PREP-11", writer.ToString(), StringComparison.Ordinal);
+        Assert.Equal(1, result.ExitCode);
+        Assert.Contains("LIVE-PREP-09", result.Output, StringComparison.Ordinal);
+        Assert.DoesNotContain("LIVE-PREP-11", result.Output, StringComparison.Ordinal);
+        Assert.Equal(0, service.Writes);
+    }
+
+    /// <summary>
+    /// 活動因缺少已核實的Workflow輸入繫結而拒絕時，同模組Plugin仍須進入獨立準備路徑。
+    /// 使用合成SDK計數metadata讀取，故障注入發生於活動準備，決定性斷言是Plugin後續仍觸及metadata；
+    /// 不執行真連線或SDK寫入，亦不把此離線結果當成Live通過證據。
+    /// </summary>
+    [Fact]
+    public void LivePrep_RejectedActivity_DoesNotBlockSameModuleSteps()
+    {
+        const string oldType = "Old.Activity";
+        const string oldAssembly = "Old.Assembly";
+        var activity = new ActivityRegistration
+        {
+            Module = "care",
+            Type = "New.Activity",
+            Live = new LiveRegistration(),
+            Legacy = [new LegacyActivityReference { Assembly = oldAssembly, Type = oldType }]
+        };
+        var snapshot = Snapshot() with
+        {
+            Activities = [new(activity, "New.Assembly")],
+            LegacyActivities = [new(oldAssembly, oldType)]
+        };
+        var activityFile = ActivityScenario() with
+        {
+            Basis = "unsupported",
+            Entrypoint = oldType,
+            Trigger = Json("""{"inputs":{"AnniversaryKind":"Birthday"}}""")
+        };
+        var pluginFile = Scenario();
+        var service = new SafetyService
+        {
+            WorkflowXml = "<Activity><Node AssemblyQualifiedName=\"Old.Activity, Old.Assembly\" /></Activity>",
+            WorkflowState = 0,
+            MetadataFault = true
+        };
+
+        var output = InvokeCasesWithOutput(snapshot, [activityFile, pluginFile], service, "care");
+
+        Assert.Contains("LIVE-PREP-09", output.Output, StringComparison.Ordinal);
+        Assert.Contains("LIVE-PREP-08", output.Output, StringComparison.Ordinal);
+        Assert.True(service.MetadataReads > 0);
         Assert.Equal(0, service.Writes);
     }
 
@@ -246,10 +318,19 @@ public sealed class LivePreparationDiagnosticsTests
             Activities = [new(new ActivityRegistration { Module = "care", Type = "New.Activity", Live = new LiveRegistration(),
                 Legacy = [new LegacyActivityReference { Assembly = "Old.Assembly", Type = "Old.Activity" }] }, "New.Assembly")] };
         var service = new SafetyService { WorkflowXml = xml, WorkflowState = state };
-        var failure = Invoke(snapshot, ActivityScenario() with { Basis = "unsupported" }, service);
-        using var writer = new StringWriter();
-        DeploymentCli.WriteSupplementalFailureDiagnostics(failure, writer);
-        Assert.Contains(state == 0 ? "LIVE-PREP-09" : "LIVE-PREP-02", writer.ToString(), StringComparison.Ordinal);
+        if (state == 0)
+        {
+            var rejected = InvokeCasesWithOutput(snapshot, [ActivityScenario() with { Basis = "unsupported" }], service, "care");
+            Assert.Equal(1, rejected.ExitCode);
+            Assert.Contains("LIVE-PREP-09", rejected.Output, StringComparison.Ordinal);
+        }
+        else
+        {
+            var failure = Invoke(snapshot, ActivityScenario() with { Basis = "unsupported" }, service);
+            using var writer = new StringWriter();
+            DeploymentCli.WriteSupplementalFailureDiagnostics(failure, writer);
+            Assert.Contains("LIVE-PREP-02", writer.ToString(), StringComparison.Ordinal);
+        }
         Assert.Equal(0, service.Writes);
     }
 
@@ -424,10 +505,59 @@ public sealed class LivePreparationDiagnosticsTests
     {
         using var writer = new StringWriter();
         var method = typeof(DeploymentCli).GetMethod("RunPreparedLive", BindingFlags.NonPublic | BindingFlags.Static)!;
+        using var directory = new InvocationDirectory();
         var wrapper = Assert.Throws<TargetInvocationException>(() => method.Invoke(null,
-            [snapshot.Organization, module, files, Path.GetTempPath(), Path.GetTempPath(),
+            [snapshot.Organization, module, files, directory.Root, directory.Operation,
                 service, snapshot, writer, (Func<string, string>)service.Secret, token]));
         return wrapper.InnerException!;
+    }
+
+    /// <summary>
+    /// 保留真實RunPreparedLive輸出及其最終故障，驗證先前活動拒絕與後續Plugin準備結果都可診斷。
+    /// writer由測試獨占，反射只呼叫產品入口；例外本文僅經安全投影，不輸出合成SDK訊息。
+    /// </summary>
+    private static (int? ExitCode, string Output) InvokeCasesWithOutput(SwitchSnapshot snapshot, IReadOnlyList<ShadowFileCase> files,
+        SafetyService service, string module, CancellationToken token = default)
+    {
+        using var writer = new StringWriter();
+        var method = typeof(DeploymentCli).GetMethod("RunPreparedLive", BindingFlags.NonPublic | BindingFlags.Static)!;
+        using var directory = new InvocationDirectory();
+        try
+        {
+            var exitCode = Assert.IsType<int>(method.Invoke(null,
+                [snapshot.Organization, module, files, directory.Root, directory.Operation,
+                    service, snapshot, writer, (Func<string, string>)service.Secret, token]));
+            return (exitCode, writer.ToString());
+        }
+        catch (TargetInvocationException wrapper) when (wrapper.InnerException is not null)
+        {
+            DeploymentCli.WriteSupplementalFailureDiagnostics(wrapper.InnerException, writer);
+            if (writer.ToString().Length == 0)
+                throw new Xunit.Sdk.XunitException(wrapper.InnerException.GetType().FullName);
+            return (null, writer.ToString());
+        }
+    }
+
+    /// <summary>
+    /// 每次反射呼叫都取得獨立 repository／operation 目錄，避免固定 live-check.json 與其他測試或舊檔碰撞；
+    /// 本物件獨占建立的暫存樹，Dispose 在成功、產品拒絕與測試失敗時都遞迴清除，不觸碰共用暫存根。
+    /// </summary>
+    private sealed class InvocationDirectory : IDisposable
+    {
+        internal string Root { get; } = Path.Combine(Path.GetTempPath(), "p8-live-preparation-" + Guid.NewGuid().ToString("N"));
+        internal string Operation { get; }
+
+        internal InvocationDirectory()
+        {
+            Directory.CreateDirectory(Root);
+            Operation = Path.Combine(Root, "operation");
+            Directory.CreateDirectory(Operation);
+        }
+
+        public void Dispose()
+        {
+            if (Directory.Exists(Root)) Directory.Delete(Root, recursive: true);
+        }
     }
 
     /// <summary>只提供單一可規劃的 Live 新步驟；組件與 ID 合成且資料不跨案例共用。</summary>
@@ -477,11 +607,13 @@ public sealed class LivePreparationDiagnosticsTests
         private readonly byte[] key = new byte[64];
         internal bool WrongIdentity { get; set; }
         internal bool MetadataFault { get; set; }
+        internal bool WrongChannelToken { get; set; }
         internal bool WorkflowFault { get; set; }
         internal string? WorkflowXml { get; set; }
         internal int WorkflowState { get; set; }
         internal int Writes { get; private set; }
         internal int WhoAmICalls { get; private set; }
+        internal int MetadataReads { get; private set; }
 
         /// <summary>測試秘密只在案例內存；固定全零 key 僅供合成加解密，絕非部署設定。</summary>
         internal string Secret(string name) => name switch
@@ -499,7 +631,8 @@ public sealed class LivePreparationDiagnosticsTests
                 "contact" => new EntityCollection(new List<Entity> { new("contact", contact)
                     { ["parentcustomerid"] = new EntityReference("account", church) } }),
                 "new_linechannel" => new EntityCollection(new List<Entity> { new("new_linechannel", Guid.NewGuid())
-                    { ["new_accesstokenencrypted"] = ChannelTokenProtector.Protect(Sentinel, key) } }),
+                    { ["new_accesstokenencrypted"] = ChannelTokenProtector.Protect(
+                        WrongChannelToken ? "SENTINEL-WRONG-CHANNEL-TOKEN" : Sentinel, key) } }),
                 "workflow" => WorkflowRows(), _ => throw new NotSupportedException()
             };
         }
@@ -522,6 +655,7 @@ public sealed class LivePreparationDiagnosticsTests
                 return new RetrieveCurrentOrganizationResponse { Results = { ["Detail"] = new OrganizationDetail
                     { UniqueName = WrongIdentity ? "other" : "goodshepherdback", OrganizationId = Guid.NewGuid() } } };
             var metadataRequest = Assert.IsType<RetrieveEntityRequest>(request);
+            MetadataReads++;
             if (MetadataFault) throw new FaultException<OrganizationServiceFault>(new OrganizationServiceFault
                 { ErrorCode = unchecked((int)0x80040265), Message = Sentinel, TraceText = Sentinel });
             var name = metadataRequest.LogicalName;

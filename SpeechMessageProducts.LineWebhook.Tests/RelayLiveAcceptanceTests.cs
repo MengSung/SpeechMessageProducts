@@ -9,7 +9,8 @@
  * 資源與隔離：fixture擁有控制SDK、DI容器、設定根、HTTP client與key；每筆worker使用新scope SDK，
  * 金鑰只從User Secrets進記憶體，finally清零且不輸出任何憑證或回應本文；查詢有界，未知值拒絕。
  * 主機設定由fixture持有至worker停止及DI scope釋放之後，例外退出不能提前關閉在用設定。
- * 驗證證據只輸出筆數、狀態、用量差與零殘留；實機執行需明確Category篩選，離線不冒稱成功。
+ * 驗證證據只輸出筆數、狀態、用量差與零殘留；前置失敗另輸出固定原因碼，不回顯例外本文。
+ * 實機執行需明確Category篩選，離線不冒稱成功。
  */
 using System.Net.Http.Headers;
 using System.Text;
@@ -60,6 +61,21 @@ public sealed class RelayLiveAcceptanceTests(ITestOutputHelper output)
         Assert.False(OwnsRecord(payload, Guid.NewGuid()));
         Assert.False(OwnsRecord(JObject.Parse("{\"recordId\":\"invalid\"}"), id));
     }
+    /// <summary>合成含敏感本文的前置例外，斷言固定原因碼可見而訊息本文不外洩；不建立fixture或連線。</summary>
+    [Fact]
+    public void RelayPrecheck_Failure_ReportsReasonCode()
+    {
+        const string sensitiveBody = "SENSITIVE-PRECHECK-MESSAGE";
+        var summary = FormatPrecheckFailure(new InvalidOperationException(sensitiveBody));
+
+        Assert.Contains("P7LIVE-PRECHECK-FAILED", summary, StringComparison.Ordinal);
+        Assert.DoesNotContain(sensitiveBody, summary, StringComparison.Ordinal);
+    }
+
+    /// <summary>集中格式化安全前置摘要；輸出只含固定碼與例外型別，不保留或回傳例外物件及本文。</summary>
+    private static string FormatPrecheckFailure(Exception exception) =>
+        "P7LIVE-PRECHECK-FAILED type=" + exception.GetType().Name + "; details suppressed.";
+
     /// <summary>只驗正式來源ID，不以文字標記替代資料列身分；未知或畸形值拒絕刪除。</summary>
     private static bool OwnsRecord(JObject payload, Guid id) =>
         payload["recordId"] is { Type: JTokenType.String } token &&
@@ -99,7 +115,12 @@ public sealed class RelayLiveAcceptanceTests(ITestOutputHelper output)
                 idempotencyKey = $"{church:N}-100000003-{DeterministicGuid.Create("notify.relay.v1", 3, fee, 1, 0, instance):N}";
                 sdk = OpenSdk(); VerifySafety();
             }
-            catch { (sdk as IDisposable)?.Dispose(); Array.Clear(key); http.Dispose(); ((IDisposable)configuration).Dispose(); throw new InvalidOperationException("P7 live setup failed; sensitive details suppressed."); }
+            catch (Exception exception)
+            {
+                output.WriteLine(FormatPrecheckFailure(exception));
+                (sdk as IDisposable)?.Dispose(); Array.Clear(key); http.Dispose(); ((IDisposable)configuration).Dispose();
+                throw new InvalidOperationException("P7 live setup failed; sensitive details suppressed.");
+            }
         }
         /// <summary>無其他工作與D34安全才寫測試資料，所有候選識別在Create前已落ownership。</summary>
         internal async Task RunAsync()
@@ -144,7 +165,7 @@ public sealed class RelayLiveAcceptanceTests(ITestOutputHelper output)
             }
             catch (Exception exception)
             {
-                output.WriteLine("P7 live failure type={0}; details suppressed.", exception.GetType().Name);
+                output.WriteLine(FormatPrecheckFailure(exception));
                 throw new InvalidOperationException("P7 relay live acceptance failed; consult safe operation evidence.");
             }
             finally { await CleanupAsync(); }

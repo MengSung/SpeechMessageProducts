@@ -13,6 +13,7 @@ inner 的保留期間與原命令失敗相同，不另保存服務或 delegate�
 */
 using System;
 using System.Globalization;
+using System.Linq;
 using System.Threading;
 using SpeechMessage.Dynamics.Deployment.Shadow;
 
@@ -60,14 +61,15 @@ internal sealed class LivePreparationFailure : Exception
 {
     /// <summary>建立單行有界摘要；null 代表該關卡尚未選到情境或別名，不能猜測。</summary>
     internal LivePreparationFailure(LivePreparationReason reason, string? module, string? scenario = null,
-        string? alias = null, string? entity = null, Exception? inner = null)
+        string? alias = null, string? entity = null, Exception? inner = null, string? subCheckId = null)
         : base("Live preparation rejected this operation.", inner)
     {
         SafeSummary = "LIVE-PREP-" + ((int)reason).ToString("D2", CultureInfo.InvariantCulture) +
             " module=" + ShadowSeedCreateException.EscapeDiagnosticAlias(module) +
             "; scenario=" + ShadowSeedCreateException.EscapeDiagnosticAlias(scenario) +
             "; alias=" + ShadowSeedCreateException.EscapeDiagnosticAlias(alias) +
-            "; entity=" + ShadowSeedCreateException.EscapeDiagnosticAlias(entity);
+            "; entity=" + ShadowSeedCreateException.EscapeDiagnosticAlias(entity) +
+            (IsSafeSubCheckId(subCheckId) ? "; subcheck=" + subCheckId : "");
     }
 
     /// <summary>僅可列印此安全摘要；最大四個64字元來源識別經可見跳脫，不含原錯誤本文。</summary>
@@ -78,12 +80,16 @@ internal sealed class LivePreparationFailure : Exception
     /// delegate 同步返回後即不保留；既有 owner 的 finally 與原始 SDK fault 完全保留。
     /// </summary>
     internal static T Capture<T>(LivePreparationReason reason, string? module, string? scenario,
-        string? alias, string? entity, Func<T> operation, CancellationToken callerToken)
+        string? alias, string? entity, Func<T> operation, CancellationToken callerToken, string? subCheckId = null)
     {
         callerToken.ThrowIfCancellationRequested();
         try { return operation(); }
         catch (OperationCanceledException) when (callerToken.IsCancellationRequested) { throw; }
         catch (LivePreparationFailure) { throw; }
-        catch (Exception failure) { throw new LivePreparationFailure(reason, module, scenario, alias, entity, failure); }
+        catch (Exception failure) { throw new LivePreparationFailure(reason, module, scenario, alias, entity, failure, subCheckId); }
     }
+
+    /// <summary>子檢查只允許固定ASCII代碼字元，避免把設定值或SDK本文誤當識別寫入摘要。</summary>
+    private static bool IsSafeSubCheckId(string? value) => value is { Length: > 0 and <= 48 } &&
+        value.All(character => character is >= 'A' and <= 'Z' or >= '0' and <= '9' or '-');
 }

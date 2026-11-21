@@ -1,7 +1,7 @@
 /*
 檔案整體說明
 目的與定位：P7教會語系預設值的窄範圍plan/apply核心，僅補account已綁Channel的四個空白欄位，從不覆蓋已有設定。
-主要流程：有界讀取正式ID／Channel及四欄候選，完整驗證後產只含ID與待補欄位名的計畫；apply重算server與指紋。
+主要流程：有界讀取正式ID／Channel及四欄候選，完整驗證後產只含ID與待補欄位名的計畫；apply重算server與指紋，寫入fault只保留列狀態及固定欄位更新旗標供安全診斷。
 安全與回復：計畫不含教會名稱或原欄位值，只存摘要；每次更新前重讀空白及版本，先flush精確備份再送SDK。
 失敗／取消反序恢復本次attempted欄位，使用None token；原例外與清理失敗聚合，不能假稱回復成功。
 資源與隔離：SDK與server讀取委派由單命令lease借入，備份stream同步flush後關閉；無static mutable、跨組織cache或背景工作。
@@ -30,6 +30,26 @@ internal sealed record ChurchDefaultsEntry(Guid Id, IReadOnlyList<string> Fields
 internal sealed record ChurchDefaultsPlan(int SchemaVersion, string Organization, Guid ServerOrganizationId, string Fingerprint,
     IReadOnlyList<ChurchDefaultsEntry> Entries, string Sha256);
 
+/// <summary>單次apply更新失敗的安全脈絡；只保留目標列狀態、四欄更新旗標與原例外，不保存欄位值或SDK本文。</summary>
+internal sealed class ChurchDefaultsApplyFailure : Exception
+{
+    /// <summary>由apply前讀回的statecode；缺失或型別不符時為null。</summary>
+    internal int? StateCode { get; }
+
+    /// <summary>固定四欄的IsValidForUpdate值；metadata缺失明確保存為null。</summary>
+    internal IReadOnlyDictionary<string, bool?> UpdateValidity { get; }
+
+    /// <summary>建立單一命令範圍的診斷包裝，保留原始SDK fault供既有數字碼投影使用。</summary>
+    internal ChurchDefaultsApplyFailure(int? stateCode, IReadOnlyDictionary<string, bool?> updateValidity,
+        Exception innerException)
+        : base("Church defaults update failed.", innerException)
+    {
+        StateCode = stateCode;
+        UpdateValidity = new System.Collections.ObjectModel.ReadOnlyDictionary<string, bool?>(
+            updateValidity.ToDictionary(pair => pair.Key, pair => pair.Value, StringComparer.Ordinal));
+    }
+}
+
 /// <summary>一次已授權命令的defaults核心；呼叫端寫入前須共同ProductionGuard及同組織獨占寫鎖。</summary>
 internal sealed class ChurchDefaults(IOrganizationService service, string directory, Func<Guid> serverId)
 {
@@ -52,7 +72,8 @@ internal sealed class ChurchDefaults(IOrganizationService service, string direct
     }
 
     /// <summary>嚴格hash與鎖內重算一致才寫；每筆SDK前保存attempted欄位，不覆蓋並行新增的非空白值。</summary>
-    internal void Apply(ChurchDefaultsPlan approved, string reviewedHash, CancellationToken cancellationToken = default)
+    internal void Apply(ChurchDefaultsPlan approved, string reviewedHash,
+        IReadOnlyDictionary<string, bool?>? updateValidity = null, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(approved);
         if (approved.SchemaVersion != 1 || approved.Sha256 != reviewedHash || approved.Sha256 != SwitchPlanner.Hash(approved with { Sha256 = "" })) throw Invalid();
@@ -65,7 +86,8 @@ internal sealed class ChurchDefaults(IOrganizationService service, string direct
             foreach (var entry in approved.Entries)
             {
                 cancellationToken.ThrowIfCancellationRequested();
-                var row = service.Retrieve("account", entry.Id, new ColumnSet(Fields.Append("new_linechannelid").Append("versionnumber").ToArray()));
+                var row = service.Retrieve("account", entry.Id,
+                    new ColumnSet(Fields.Append("new_linechannelid").Append("versionnumber").Append("statecode").ToArray()));
                 ValidateChannel(row);
                 if (entry.Fields.Any(field => !Fields.Contains(field, StringComparer.Ordinal) || !string.IsNullOrWhiteSpace(row.GetAttributeValue<string>(field)))) throw Invalid();
                 var before = entry.Fields.ToDictionary(field => field, field => (string?)row.GetAttributeValue<string>(field), StringComparer.Ordinal);
@@ -79,6 +101,13 @@ internal sealed class ChurchDefaults(IOrganizationService service, string direct
                     // 官方版本衝突代表本次更新未送達；不可回復他人剛寫入且恰好等於預設的值。
                     attempted.RemoveAt(attempted.Count - 1);
                     throw;
+                }
+                catch (FaultException<OrganizationServiceFault> failure)
+                {
+                    var stateCode = row.Attributes.TryGetValue("statecode", out var stateValue)
+                        ? stateValue switch { OptionSetValue option => option.Value, int number => number, _ => (int?)null }
+                        : null;
+                    throw new ChurchDefaultsApplyFailure(stateCode, SafeUpdateValidity(updateValidity), failure);
                 }
                 cancellationToken.ThrowIfCancellationRequested();
             }
@@ -106,6 +135,12 @@ internal sealed class ChurchDefaults(IOrganizationService service, string direct
             throw;
         }
     }
+
+    /// <summary>固定順序複製診斷metadata；呼叫端未提供或欄位缺漏時顯示unknown而不猜測。</summary>
+    private static System.Collections.ObjectModel.ReadOnlyDictionary<string, bool?> SafeUpdateValidity(IReadOnlyDictionary<string, bool?>? metadata) =>
+        new System.Collections.ObjectModel.ReadOnlyDictionary<string, bool?>(
+            Fields.ToDictionary(field => field, field => metadata is not null && metadata.TryGetValue(field, out var value)
+                ? value : null, StringComparer.Ordinal));
 
     /// <summary>完整有界分頁查詢；無Channel列不讀取，重複ID／錯lookup／超量拒絕，不發布部分結果。</summary>
     private Entity[] Read(CancellationToken cancellationToken)

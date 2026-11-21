@@ -1,7 +1,7 @@
 /*
 檔案整體說明
 目的與定位：P7觀察唯讀計數契約，以合成系統作業／trace／待辦保護輸出隱私與不可用資料語意。
-主要流程：真reader只能取核定metadata及counts，SDK列含敏感sentinel但回傳JSON不能含名稱、GUID或本文。
+主要流程：真reader只能取核定metadata及counts，追蹤例外以安全型別與Plugin型別計數；SDK列含敏感sentinel但回傳JSON不能含名稱、GUID或本文。
 資源與隔離：每案獨占假SDK，無網路、真組織或秘密；使用唯讀裝飾器的八個入口防止觀察路徑意外寫入。
 決定性斷言：精確數量、trace unavailable不是0、production觀察可用且所有寫入為0，不把離線結果當實機。
 */
@@ -64,5 +64,52 @@ public sealed class ObservationReaderTests
         var report = ObservationReader.Read(service, "test", org, now.AddMinutes(-1), now, Array.Empty<ObservationStep>(), Array.Empty<Guid>(), true);
         Assert.Equal(available, report.TraceAvailable);
         Assert.Equal(available ? 0 : (int?)null, report.TraceExceptions);
+    }
+
+    /// <summary>
+    /// 注入兩種例外型別與兩個Plugin型別，報告依型別組合計數且絕不保留trace本文；
+    /// 合成唯讀SDK由本測試獨占，斷言trace rows不造成寫入。
+    /// </summary>
+    [Fact]
+    public void Observe_TraceExceptions_ReportsTypeNameCountsWithoutMessages()
+    {
+        const string sensitiveBody = "SENSITIVE-TRACE-MESSAGE";
+        using var service = new MemoryOrganization();
+        var organizationId = Guid.NewGuid();
+        var now = DateTimeOffset.Parse("2026-11-21T03:00:00Z", System.Globalization.CultureInfo.InvariantCulture);
+        service.Seed(new Entity("organization", organizationId)
+        {
+            ["plugintracelogsetting"] = new OptionSetValue(2)
+        });
+        service.Seed(new Entity("plugintracelog", Guid.NewGuid())
+        {
+            ["typename"] = "Synthetic.PluginA",
+            ["createdon"] = now.UtcDateTime,
+            ["exceptiondetails"] = "System.InvalidOperationException: " + sensitiveBody
+        });
+        service.Seed(new Entity("plugintracelog", Guid.NewGuid())
+        {
+            ["typename"] = "Synthetic.PluginA",
+            ["createdon"] = now.UtcDateTime,
+            ["exceptiondetails"] = "System.InvalidOperationException: another private message"
+        });
+        service.Seed(new Entity("plugintracelog", Guid.NewGuid())
+        {
+            ["typename"] = "Synthetic.PluginB",
+            ["createdon"] = now.UtcDateTime,
+            ["exceptiondetails"] = "System.TimeoutException: private timeout message"
+        });
+
+        var report = ObservationReader.Read(service, "test", organizationId, now.AddMinutes(-1), now,
+            Array.Empty<ObservationStep>(), Array.Empty<Guid>(), true, ["Synthetic.PluginA", "Synthetic.PluginB"]);
+        var json = JsonSerializer.Serialize(report);
+
+        Assert.Contains("System.InvalidOperationException", json, StringComparison.Ordinal);
+        Assert.Contains("Synthetic.PluginA", json, StringComparison.Ordinal);
+        Assert.Contains("System.TimeoutException", json, StringComparison.Ordinal);
+        Assert.Contains("Synthetic.PluginB", json, StringComparison.Ordinal);
+        Assert.DoesNotContain(sensitiveBody, json, StringComparison.Ordinal);
+        Assert.DoesNotContain("private message", json, StringComparison.Ordinal);
+        Assert.Empty(service.Writes);
     }
 }

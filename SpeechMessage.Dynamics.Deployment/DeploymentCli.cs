@@ -56,6 +56,9 @@ namespace SpeechMessage.Dynamics.Deployment;
 /// </summary>
 internal static partial class DeploymentCli
 {
+    private static readonly string[] ChurchDefaultsDiagnosticFields =
+        { "new_defaultlanguage", "new_enabledlanguages", "new_timezone", "new_countrycode" };
+
     private const string OrganizationOption = "--org";
     private const string PlanOption = "--plan";
     private const string FromOption = "--from";
@@ -453,6 +456,26 @@ internal static partial class DeploymentCli
                     continue;
                 }
 
+                if (current is LiveCheckFailure liveCheckFailure)
+                {
+                    output.WriteLine(liveCheckFailure.SafeSummary);
+                    if (liveCheckFailure.InnerException is not null)
+                        WriteDataverseFaultCodes(liveCheckFailure.InnerException, output);
+                    continue;
+                }
+
+                if (current is ChurchDefaultsApplyFailure defaultsFailure)
+                {
+                    output.WriteLine("Church defaults apply context: entity=account; statecode=" +
+                        (defaultsFailure.StateCode?.ToString(CultureInfo.InvariantCulture) ?? "unknown") +
+                        "; " + string.Join("; ", ChurchDefaultsDiagnosticFields.Select(field => field + ":IsValidForUpdate=" +
+                            (defaultsFailure.UpdateValidity.TryGetValue(field, out var valid)
+                                ? valid?.ToString().ToLowerInvariant() ?? "unknown"
+                                : "unknown"))));
+                    if (defaultsFailure.InnerException is not null) pending.Push(defaultsFailure.InnerException);
+                    continue;
+                }
+
                 if (current is ShadowSeedCreateException seedFailure)
                 {
                     output.WriteLine(seedFailure.SafeSummary);
@@ -497,7 +520,7 @@ internal static partial class DeploymentCli
     internal static Exception ExceptionForReporting(Exception exception)
     {
         // 只拆已知識別包裝，不展開 Aggregate，原故障與清理失敗的共同身分保持不變。
-        for (var depth = 0; depth < 16 && exception is ShadowSeedCreateException or LivePreparationFailure &&
+        for (var depth = 0; depth < 16 && exception is ShadowSeedCreateException or LivePreparationFailure or LiveCheckFailure or ChurchDefaultsApplyFailure &&
             exception.InnerException is not null; depth++) exception = exception.InnerException;
         return exception;
     }

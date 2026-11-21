@@ -5,6 +5,8 @@
 D34失敗使用LIVE-PREP-03安全摘要；實際欄位沿用ShadowComparer精確比較，推播以測試Channel的前後用量核對。
 資源與隔離：runtime 由命令借用，round 是每個情境的唯一 owner；finally 即使取消也以
 None token 清理、驗證殘留及 Dispose。追蹤原值在最外層恢復，原失敗與清理失敗皆保留。
+Dataverse fault只附固定階段與scenario核定observe的實體邏輯名稱及數字碼；可索引集合直接索引，
+不讀fault本文，cleanup fault另標cleanup階段且仍完成後續finally釋放。
 輸出只含固定情境代號、型別、筆數及安全差異位置，沒有原始記錄、秘密或跨命令快取。
 驗證方式：離線故障注入涵蓋取消、欄位差異、推播差異及待辦清理；實機證據另由演練產生。
 */
@@ -13,9 +15,29 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Runtime.ExceptionServices;
+using System.ServiceModel;
 using System.Threading;
+using Microsoft.Xrm.Sdk;
 using SpeechMessage.Dynamics.Deployment.Shadow;
 namespace SpeechMessage.Dynamics.Deployment.Live;
+
+/// <summary>
+/// Live單案SDK故障的安全識別包裝，只保留操作階段、實體邏輯名稱及原始fault供數字碼投影。
+/// 原例外僅隨本次命令持有，不讀取或輸出Message、TraceText、Data及任何記錄欄位。
+/// </summary>
+internal sealed class LiveCheckFailure : Exception
+{
+    /// <summary>建立受限摘要；stage及entity由runner固定選取，不接受使用者資料作診斷欄位。</summary>
+    internal LiveCheckFailure(string stage, string entity, FaultException<OrganizationServiceFault> inner)
+        : base("Live check operation failed.", inner)
+    {
+        SafeSummary = "LIVE-CHECK stage=" + stage + "; entity=" +
+            ShadowSeedCreateException.EscapeDiagnosticAlias(entity);
+    }
+
+    /// <summary>唯一可列印的文字摘要；不含原始例外本文或記錄識別。</summary>
+    internal string SafeSummary { get; }
+}
 
 /// <summary>單次命令的已核定情境；Expected 是套用寫入後的最終快照，不是意圖清單。</summary>
 internal sealed record LiveCheckScenario(string Name, string Type, string Module, string Tier, bool Enabled,
@@ -94,17 +116,24 @@ internal sealed class LiveCheckRunner(ILiveCheckRuntime runtime)
                 }
                 var roundFailures = new List<Exception>();
                 ILiveCheckRound? round = null;
+                var stage = "safety-before-seed";
                 try
                 {
                     VerifySafety(runtime, scenario, cancellationToken);
+                    stage = "usage-before-seed";
                     var before = runtime.ReadUsage(cancellationToken);
                     round = runtime.CreateRound(scenario);
+                    stage = "seed";
                     round.Seed(cancellationToken);
+                    stage = "safety-after-seed";
                     VerifySafety(runtime, scenario, cancellationToken);
+                    stage = "trigger";
                     round.Trigger(cancellationToken);
+                    stage = "readback";
                     var observed = round.Observe(TimeSpan.FromSeconds(60), cancellationToken);
                     var comparison = ShadowComparer.CompareFinalStates(observed.Expected ?? scenario.Expected, observed.Actual,
                         scenario.Observe, observed.Aliases, scenario.Volatile);
+                    stage = "usage-after-readback";
                     var after = runtime.ReadUsage(cancellationToken);
                     var delta = checked(after - before);
                     if (before < 0 || after < before || observed.TaskEvidenceCount < 0)
@@ -113,11 +142,17 @@ internal sealed class LiveCheckRunner(ILiveCheckRuntime runtime)
                         comparison.IsEqual && delta == scenario.ExpectedPushes ? "pass" : "difference",
                         comparison, delta, observed.TaskEvidenceCount));
                 }
+                catch (FaultException<OrganizationServiceFault> failure)
+                {
+                    var entity = scenario.Observe.Count == 0 ? "unknown" : scenario.Observe[0].Entity;
+                    roundFailures.Add(new LiveCheckFailure(stage, entity, failure));
+                }
                 catch (Exception failure) { roundFailures.Add(failure); }
                 finally
                 {
                     if (round is not null)
                     {
+                        stage = "cleanup";
                         Attempt(() => round.Cleanup(CancellationToken.None), roundFailures);
                         Attempt(() => round.VerifyNoRemaining(CancellationToken.None), roundFailures);
                         Attempt(round.Dispose, roundFailures);

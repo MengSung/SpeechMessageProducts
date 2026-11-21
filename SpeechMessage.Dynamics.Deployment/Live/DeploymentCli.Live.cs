@@ -21,6 +21,8 @@ using System.Text.Json;
 using System.Threading;
 using Microsoft.Crm.Sdk.Messages;
 using Microsoft.Xrm.Sdk;
+using Microsoft.Xrm.Sdk.Messages;
+using Microsoft.Xrm.Sdk.Metadata;
 using SpeechMessage.Dynamics.Deployment.Live;
 using SpeechMessage.Dynamics.Deployment.Shadow;
 using SpeechMessage.Dynamics.Deployment.Switching;
@@ -128,8 +130,8 @@ internal static partial class DeploymentCli
                     Schema.SchemaFiles.RejectDuplicateProperties(json.RootElement);
                     var plan = JsonSerializer.Deserialize<ChurchDefaultsPlan>(bytes, DocumentJson) ?? throw InvalidLive();
                     if (plan.Organization != target.Name) throw InvalidLive();
-                    ValidateDefaultsMetadata(lease.Service, token);
-                    engine.Apply(plan, plan.Sha256, token);
+                    var updateValidity = ValidateDefaultsMetadata(lease.Service, token);
+                    engine.Apply(plan, plan.Sha256, updateValidity, token);
                 }
                 output.WriteLine("Church defaults completed; existing values were preserved."); return 0;
             }
@@ -185,12 +187,13 @@ internal static partial class DeploymentCli
         if (legacyEnabled) throw new LivePreparationFailure(LivePreparationReason.LegacyEnabled, module);
         using var safety = new LiveSafety(service, name => ResolveRequiredSecret(target.Name, name, secretReader));
         var identity = LivePreparationFailure.Capture(LivePreparationReason.Safety, module, null, null, null,
-            () => safety.Verify(token), token);
+            () => safety.Verify(token, module), token);
         var selected = files.Where(file => file.LiveShadow).ToArray();
         if (selected.Length == 0) throw new LivePreparationFailure(LivePreparationReason.NoScenario, module);
         var prepared = new Dictionary<LiveCheckScenario, ShadowSdkPreparedScenario>();
         var activities = new Dictionary<LiveCheckScenario, LiveActivityTemplate>();
         var scenarios = new List<LiveCheckScenario>();
+        var rejectedActivity = false;
         foreach (var file in selected)
         {
             token.ThrowIfCancellationRequested();
@@ -229,7 +232,10 @@ internal static partial class DeploymentCli
                         activity.Registration.Legacy.Any(old => WorkflowRepointer.SameReference(reference, old.Assembly, old.Type))))
                     .OrderBy(item => item.Row.Id).ToArray(), token);
                 if (workflows.Length == 0) throw PreparationFailure(LivePreparationReason.ActivityTemplate, module, file);
-                throw PreparationFailure(LivePreparationReason.ActivityInputs, module, file);
+                var failure = PreparationFailure(LivePreparationReason.ActivityInputs, module, file);
+                rejectedActivity = true;
+                output.WriteLine(failure.SafeSummary);
+                continue;
             }
             var churchAlias = file.Church.GetProperty("alias").GetString()!;
             var contacts = file.Seed.EnumerateArray().Where(row => row.GetProperty("entity").GetString() == "contact" &&
@@ -274,7 +280,7 @@ internal static partial class DeploymentCli
         Schema.SchemaDeploymentCli.EnsureNoLinks(liveRoot);
         WriteDocumentContent(liveRoot, DateTimeOffset.UtcNow.ToString("yyyyMMdd-HHmmss-fffffff", CultureInfo.InvariantCulture) + "-" + module + ".md", text);
         WriteDocumentFile(operation, "live-check.json", JsonSerializer.Serialize(result, DocumentJson));
-        output.WriteLine("Live check completed after cleanup; see the safe report."); return result.Passed ? 0 : 1;
+        output.WriteLine("Live check completed after cleanup; see the safe report."); return result.Passed && !rejectedActivity ? 0 : 1;
     }
     /// <summary>準備故障只取明列的目標識別；活動用固定record seed，不讀欄位值或記錄ID。</summary>
     private static LivePreparationFailure PreparationFailure(LivePreparationReason reason, string module, ShadowFileCase file, Exception? inner = null)
@@ -311,15 +317,30 @@ internal static partial class DeploymentCli
     }
 
     /// <summary>寫入前核四欄確為可更新字串及長度；核心另以官方 RowVersion 防並行覆寫。</summary>
-    private static void ValidateDefaultsMetadata(IOrganizationService service, CancellationToken token)
+    private static System.Collections.ObjectModel.ReadOnlyDictionary<string, bool?> ValidateDefaultsMetadata(IOrganizationService service, CancellationToken token)
     {
         var metadata = new ShadowSdkMetadata(service, DefaultsEntityNames, token);
         _ = metadata.ConvertFields("account", JsonSerializer.SerializeToElement(new {
             new_defaultlanguage = "zh-TW", new_enabledlanguages = "zh-TW", new_timezone = "Asia/Taipei", new_countrycode = "TW" }), false,
             (_, _) => throw InvalidLive());
+        token.ThrowIfCancellationRequested();
+        var response = service.Execute(new RetrieveEntityRequest
+        {
+            LogicalName = "account",
+            EntityFilters = EntityFilters.Attributes
+        }) as RetrieveEntityResponse;
+        var entity = response?.EntityMetadata;
+        if (entity?.Attributes is null) throw InvalidLive();
+        var attributes = entity.Attributes.Where(attribute => attribute.LogicalName is
+                "new_defaultlanguage" or "new_enabledlanguages" or "new_timezone" or "new_countrycode")
+            .ToDictionary(attribute => attribute.LogicalName!, attribute => attribute.IsValidForUpdate, StringComparer.Ordinal);
+        if (attributes.Count != 4) throw InvalidLive();
+        return new System.Collections.ObjectModel.ReadOnlyDictionary<string, bool?>(attributes);
     }
     /// <summary>安全計數的文字投影，不列記錄內容或正式ID。</summary>
     private static string ObservationMarkdown(ObservationReport report) => LiveText.Get("Trace") + (report.TraceAvailable ? report.TraceExceptions?.ToString(CultureInfo.InvariantCulture) : LiveText.Get("Unavailable")) +
+        "\r\n" + string.Join("\r\n", report.TraceExceptionGroups.Select(row => "TraceException plugin=" + row.PluginType +
+            "; type=" + row.ExceptionType + "; count=" + row.Count.ToString(CultureInfo.InvariantCulture))) +
         "\r\n" + string.Join("\r\n", report.Steps.Select(row => row.Type + " " + LiveText.Get("Failed") + row.Failed.ToString(CultureInfo.InvariantCulture) + " " + LiveText.Get("Waiting") + row.Waiting.ToString(CultureInfo.InvariantCulture))) +
         "\r\n" + string.Join("\r\n", report.Tasks.Select(row => row.Type.ToString(CultureInfo.InvariantCulture) + " " + LiveText.Get("TaskState") + row.State.ToString(CultureInfo.InvariantCulture) + " " + LiveText.Get("TaskCount") + row.Count.ToString(CultureInfo.InvariantCulture))) +
         "\r\n" + LiveText.Get("WorkflowFailures") + report.WorkflowFailures.ToString(CultureInfo.InvariantCulture) + "\r\n" + LiveText.Get("MutualExclusion") + report.MutualExclusionPassed +
