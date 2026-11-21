@@ -24,7 +24,7 @@
 - [x] P8-01c goodshepherdback 轉換與核對（2026-11-20 21:46 Asia/Taipei；D8-6 migration/apply/verify/冪等性、指定 P8Live、off／verify=0／殘留0皆完成；程式提交 `4000b3f8f6e86d247ef31805bee49391909be76a` 唯一 guard-p8 完整 §8.1 全通過，證據 `C:\smv\guard-p8-evidence\guard-4000b3f8-full-rerun.log`。第二次 apply 的零筆數指無 lookup 更新批次；category alternate-key Upsert 仍會呼叫。回報及 DATA 已更新；待本收尾提交推送並核對遠端 SHA。）
 - [x] P8-01 整包驗收：P8-01a、P8-01b、P8-01c 均已驗收；P8-PROP-003 登錄五組 metadata 標籤差異，正式組織部署仍須先轉換並回填。
 - [x] P8-03a 教會覆寫接線與設定服務（2026-11-21 00:08 Asia/Taipei (UTC+08:00)；程式提交 `9850d0ab`、`27cd4eb6`；18 個指定測試同名存在並通過，Core net10.0／net48 各 411、ChurchReport 671、LineWebhook 130；完整 §8.1 守門通過，42 專案 Release 建置 0 錯誤、全方案測試 0 失敗、Debug tracer 7/7、編碼 170 檔零問題、重複程式 groups/new/stale 皆 0、I18nCheck、檔案說明 1,866 檔零失敗、ProgressPage 28/28；證據 `C:\smv\guard-p8-evidence\guard-27cd4eb6-full.log`；回報 `wp-reports/P8-03a-教會覆寫接線與設定服務.md`；全程離線，未連 D365／LINE。）
-- [x] P8-03b 教會設定網頁（2026-11-21；程式提交 `b648dd77`；唯一 `C:\smv\guard-p8` 完整 §8.1 守門全通過，報告 `wp-reports/P8-03b-教會設定網頁.md`；本收尾提交推送後核對遠端 SHA）
+- [x] P8-03b 教會設定網頁（2026-11-21；程式提交 `b648dd77`；唯一 `C:\smv\guard-p8` 完整 §8.1 守門全通過；收尾提交 `b64902d71941f668f825d37c63a43beb1b6d12ea` 已推送並以 `git ls-remote` 核對；報告 `wp-reports/P8-03b-教會設定網頁.md`）
 - [ ] 遺留 L1 原因補齊與唯讀調查
 - [ ] 遺留 L2 Workflow 流程樣板工具
 - [ ] 遺留 L3 Live 補驗與分級定案
