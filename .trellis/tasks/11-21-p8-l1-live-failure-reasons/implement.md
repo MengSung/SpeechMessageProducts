@@ -15,3 +15,7 @@
 - 不連正式組織，不在 goodshepherdback 寫入資料或變更狀態。
 - 不建立另一個 guard clone、工作樹或一次性診斷 probe。
 - 不執行 CCG／外部審查；僅於階段末依核定執行一次 ClaudeOnly。
+
+## 續跑狀態
+
+2026-11-21 12:18 Asia/Taipei (UTC+08:00)：L1 未達完成條件，不得封存。缺口及證據見 `wp-reports/P8-L1-狀態與證據.md`；依 08A D8-26 維持 `in_progress`，固定順序先續 L2。未來回到 L1 時，須補足 Relay 測試專案／行為與可驗證測試先紅證據；不能把文件更正當作免除 08A 驗收。

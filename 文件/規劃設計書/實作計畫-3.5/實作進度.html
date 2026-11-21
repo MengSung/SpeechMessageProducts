@@ -240,11 +240,11 @@ footer{margin-top:36px;color:var(--muted);font-size:12.5px;text-align:center}
  */
 const DATA = {
   "planVersion": "3.5",
-  "snapshot": "2026-11-21 11:49 Asia/Taipei (UTC+08:00)",
-  "lastUpdated": "2026-11-21T11:49:00+08:00",
+  "snapshot": "2026-11-21 12:18 Asia/Taipei (UTC+08:00)",
+  "lastUpdated": "2026-11-21T12:18:00+08:00",
   "branch": "1.0.0.11.Integration.P8.Worktree",
-  "head": "96602923ce38639f6ae7db7cf780a9018586e1a0",
-  "headline": "階段 8 2026-11-21 11:49 Asia/Taipei (UTC+08:00)：P8-03 驗收後修正及推送紀錄更正已完成；遠端 SHA 核對與 P8-03 報告一致，接續遺留 L1。",
+  "head": "4ed8a87236ee79ed9896845b527acc64ae18832d",
+  "headline": "階段 8 2026-11-21 12:18 Asia/Taipei (UTC+08:00)：P8-03 已完成且本機／遠端為 4ed8a872；L1 證據盤點後仍未驗收，依 D8-26 維持進行中並續 L2。",
   "notices": [
     {
       "id": "plan-3.5-summary",
@@ -702,8 +702,8 @@ const DATA = {
       "phaseId": "階段 8",
       "level": "info",
       "title": "P8 進度摘要",
-      "body": "2026-11-21 11:49 Asia/Taipei (UTC+08:00)：P8-01、P8-02、P8-03 均維持已驗收；P8-03 驗收後修正 c8d088fe 的 Area Razor 發佈、Terms 冷快取預覽及 Area view discovery 三項測試先紅後綠，ChurchReport Release 693/693，唯一 guard-p8 完整 §8.1 通過。先前暫緩推送狀態已依使用者最新指示更正並以獨立文件提交 `96602923` 登錄。P8 分支正在同步，狀態以本次 `git ls-remote` 核對為準。P8-01c 依 D8-6 已完成 goodshepherdback 遷移、指定 P8Live 1/1，結尾 off／verify=0／殘留0；正式組織部署新版 ChurchReport 前仍須完成類別轉換與 lookup 回填。階段 8 尚未完成。",
-      "lastUpdated": "2026-11-21T11:49:00+08:00",
+      "body": "2026-11-21 12:18 Asia/Taipei (UTC+08:00)：P8-01、P8-02、P8-03 維持已驗收；P8-03 fix `c8d088fe` 的三項先紅後綠與完整 guard PASS 已有證據。本次重新核對 P8 分支本機與 `git ls-remote` 均為 `4ed8a87236ee79ed9896845b527acc64ae18832d`。L1 六項同名測試雖存在，但 Relay 測試位於 LineWebhook.Tests 且未覆蓋 Deployment 前置失敗路徑；六項先紅證據缺失。R7 目前證據不足、R9 去向無法確認、church-defaults 欄位狀態證據不足，因此 L1 未驗收且維持進行中；詳見 `wp-reports/P8-L1-狀態與證據.md`。goodshepherdback 最新唯讀狀態確認 off；階段 8 尚未完成。",
+      "lastUpdated": "2026-11-21T12:18:00+08:00",
       "steps": [
         "2026-11-19 20:01 Asia/Taipei (UTC+08:00)：起點與分支核對為 6a37f16ba111943eb023c14dea3c9a006a0f0a5c、1.0.0.11.Integration.P8.Worktree；P8 分支遠端尚不存在，依 08A 首次推送延至 P8-01a 驗收後。",
         "2026-11-19 20:01 Asia/Taipei (UTC+08:00)：P7 最末完整守門基準 Release 7341、Debug tracer 7；Deployment.Tests 977 僅為候選檢查點；註冊清冊 live 12／pass 1／dormant 21；CJK 專案 count 合計 3764。",
@@ -725,7 +725,8 @@ const DATA = {
         "2026-11-20 21:46 Asia/Taipei (UTC+08:00)：P8-01c 的 goodshepherdback 遷移、冪等檢查、P8Live 及 off／verify=0／殘留0全部通過；程式提交4000b3f8唯一guard-p8完整§8.1全通過。首次守門一次 QR 解碼失敗已保留原始紀錄；同案100次單測與整體Release測試重跑全通過，未修改或放寬測試。回報P8-01c-migration.md；報告／DATA收尾提交待推送並核對遠端SHA，下一單元P8-03a。證據只存C:\\smv\\guard-p8-evidence。",
         "2026-11-21 00:08 Asia/Taipei (UTC+08:00)：P8-03a 的 18 個指定測試同名存在並通過；Core net10.0／net48 各 411、ChurchReport 671、LineWebhook 130。程式提交 `9850d0ab` 與 `27cd4eb6` 的唯一 guard-p8 完整 §8.1 通過：42 專案 Release 建置 0 錯誤、全方案測試 0 失敗、Debug tracer 7/7、Changed 編碼 170 檔零問題、重複程式 groups/new/stale 皆 0、I18nCheck、檔案說明 1,866 檔零失敗、進度頁 28/28。證據 `C:\\smv\\guard-p8-evidence\\guard-27cd4eb6-full.log`；全程離線，未連 D365／LINE。報告 `P8-03a-教會覆寫接線與設定服務.md`；下一單元 P8-03b。",
         "2026-11-21 11:14 Asia/Taipei (UTC+08:00)：P8-03 驗收後修正提交 c8d088fe；Area Razor 發佈、Terms 冷快取與 Area view discovery 三測先紅後綠，ChurchReport Release 693/693、R2 Debug／Release 各 2/2；唯一 guard-p8 完整 §8.1 結束碼 0。推送會連帶發布未驗收 L1 祖先 c819da1e，故按執行清單 §5 暫緩，遠端仍為 10cd19a6；接續 L1。",
-        "2026-11-21 11:39 Asia/Taipei (UTC+08:00)：上述暫緩推送狀態已被更正；P8 分支推送完成，`git ls-remote` 核對遠端 SHA `6f68c68c062486b513ca2426731326c7bf0bdc4a` 與本機一致，P8-03 回報與決策已同步修訂。"
+        "2026-11-21 11:39 Asia/Taipei (UTC+08:00)：上述暫緩推送狀態已被更正；P8 分支推送完成，`git ls-remote` 核對遠端 SHA `6f68c68c062486b513ca2426731326c7bf0bdc4a` 與本機一致，P8-03 回報與決策已同步修訂。此遠端核對 SHA 後續已被 2026-11-21 12:18 Asia/Taipei (UTC+08:00) 的本機／遠端重核 `4ed8a87236ee79ed9896845b527acc64ae18832d` 更正。",
+        "2026-11-21 12:18 Asia/Taipei (UTC+08:00)：L1 六個測試名稱均存在；Relay 測試歸屬及覆蓋與 08A 指定不符，六項紅燈原始證據未找到。Deployment Release 保存輸出 1036/1036；12:18 唯讀 observe 同 since trace 0 筆，而 09:56 為 2 筆 unknown-exception，R7 不能分類、R9 去向無法確認；church-defaults plan 無 row state／IsValidForUpdate。L1 保持未驗收／進行中，詳見 `wp-reports/P8-L1-狀態與證據.md`；P8 分支遠端 SHA 為 `4ed8a87236ee79ed9896845b527acc64ae18832d`。"
       ]
     }
   ],
@@ -1895,7 +1896,7 @@ const DATA = {
       "timebox": "1 天",
       "doneAt": "2026-11-21 08:36 Asia/Taipei (UTC+08:00)",
       "commit": "c8d088fe11c9b45565dd0e149f98b8b2e04ed480",
-      "note": "2026-11-21 11:39 Asia/Taipei (UTC+08:00)：P8-03a、P8-03b 原驗收及獨立驗收後修正均完成。修正提交 `c8d088fe` 三測先紅後綠、ChurchReport Release 693/693、R2 Debug／Release 各 2/2、唯一 guard-p8 完整 §8.1 通過；目前分支已推送，遠端 SHA `6f68c68c062486b513ca2426731326c7bf0bdc4a` 與本機一致。先前暫緩推送狀態已依使用者最新指示更正。報告 `wp-reports/P8-03b-教會設定網頁.md`；本次修正全程離線。"
+      "note": "2026-11-21 11:39 Asia/Taipei (UTC+08:00)：P8-03a、P8-03b 原驗收及獨立驗收後修正均完成。修正提交 `c8d088fe` 三測先紅後綠、ChurchReport Release 693/693、R2 Debug／Release 各 2/2、唯一 guard-p8 完整 §8.1 通過；當時遠端 SHA 為 `6f68c68c062486b513ca2426731326c7bf0bdc4a`。該 SHA 已被 2026-11-21 12:18 Asia/Taipei (UTC+08:00) 重核的本機／遠端 SHA `4ed8a87236ee79ed9896845b527acc64ae18832d` 更正。報告 `wp-reports/P8-03b-教會設定網頁.md`；本次修正全程離線。"
     },
     {
       "id": "P8-04",
@@ -1977,8 +1978,8 @@ const DATA = {
       "id": "遺留 L1",
       "phaseId": "階段 8",
       "name": "遺留 L1 原因補齊與唯讀調查",
-      "status": "todo",
-      "note": "2026-11-19 20:43 Asia/Taipei (UTC+08:00)：依 08A 固定順序待執行。"
+      "status": "active",
+      "note": "2026-11-21 12:18 Asia/Taipei (UTC+08:00)：已做六測名稱／專案／覆蓋、Release、唯讀調查與guard證據盤點；因Relay測試不符08A指定範圍、紅燈證據缺失及調查資料不足，L1未驗收、維持進行中。詳見 `wp-reports/P8-L1-狀態與證據.md`；依D8-26續 L2。"
     },
     {
       "id": "遺留 L2",
