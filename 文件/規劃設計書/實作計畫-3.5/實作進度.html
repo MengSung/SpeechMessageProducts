@@ -240,11 +240,11 @@ footer{margin-top:36px;color:var(--muted);font-size:12.5px;text-align:center}
  */
 const DATA = {
   "planVersion": "3.5",
-  "snapshot": "2026-11-21 20:36 Asia/Taipei (UTC+08:00)",
-  "lastUpdated": "2026-11-21T20:36:00+08:00",
+  "snapshot": "2026-11-21 20:48 Asia/Taipei (UTC+08:00)",
+  "lastUpdated": "2026-11-21T20:48:00+08:00",
   "branch": "1.0.0.11.Integration.P8.Worktree",
-  "head": "c4511ca335b3960803b0f481562954cbda0dc886",
-  "headline": "階段 8 2026-11-21 20:36 Asia/Taipei (UTC+08:00)：依 08A 修訂 1 執行，保留三大產品基礎必做，GoodShepherdBack 專屬實機移至上線前作業。",
+  "head": "35680dd984da847db6a2be6d36eb59d168832ddb",
+  "headline": "階段 8 2026-11-21 20:48 Asia/Taipei (UTC+08:00)：L1 依修訂 1 已驗收（縮減）；未解調查與證據缺口明列為上線前作業，階段仍進行中。",
   "notices": [
     {
       "id": "plan-3.5-summary",
@@ -702,9 +702,10 @@ const DATA = {
       "phaseId": "階段 8",
       "level": "info",
       "title": "P8 進度摘要",
-      "body": "2026-11-21 20:36 Asia/Taipei (UTC+08:00)：階段 8 依修訂 1 執行；三大產品共用基礎的隔離、授權、API／SDK、Webhook、代送、生命週期與相容性驗收不縮減，GoodShepherdBack 專屬 L1／L2／L3 實機工作移至上線前作業或依核定縮減結案。P8-04a、P8-04b 與 P8-05 必做及最終守門、ClaudeOnly、回報仍待完成；目前尚未結案。",
-      "lastUpdated": "2026-11-21T20:36:00+08:00",
+      "body": "2026-11-21 20:48 Asia/Taipei (UTC+08:00)：階段 8 依修訂 1 執行；L1 已驗收（縮減），原因碼程式保留，Relay 專案／行為差異、紅燈證據缺口與 R7／R9／church-defaults 調查不確定性均列上線前作業，不標為技術通過。三大產品共用基礎的隔離、授權、API／SDK、Webhook、代送、生命週期與相容性驗收不縮減；L2 離線部分收斂中，P8-04a、P8-04b、P8-05、最終守門、ClaudeOnly 與回報仍待完成，階段尚未結案。",
+      "lastUpdated": "2026-11-21T20:48:00+08:00",
       "steps": [
+        "2026-11-21 20:48 Asia/Taipei (UTC+08:00)：L1 依使用者核定修訂 1 已驗收（縮減）；原因碼程式為 c819da1e。Relay 測試專案／行為不符、六項先紅輸出缺失及 R7／R9／church-defaults 調查不確定性均明列為上線前作業。L1 原提交早於 P8-03 fix，且 L2 提交 88f806bc 先於本次 L1 結案紀錄；保留此順序偏差，不改寫歷史。完整證據見 wp-reports/P8-L1-狀態與證據.md。",
         "2026-11-19 20:01 Asia/Taipei (UTC+08:00)：起點與分支核對為 6a37f16ba111943eb023c14dea3c9a006a0f0a5c、1.0.0.11.Integration.P8.Worktree；P8 分支遠端尚不存在，依 08A 首次推送延至 P8-01a 驗收後。",
         "2026-11-19 20:01 Asia/Taipei (UTC+08:00)：P7 最末完整守門基準 Release 7341、Debug tracer 7；Deployment.Tests 977 僅為候選檢查點；註冊清冊 live 12／pass 1／dormant 21；CJK 專案 count 合計 3764。",
         "2026-11-19 20:01 Asia/Taipei (UTC+08:00)：唯讀 verify --org goodshepherdback 一次以 InvalidDataException 結束，未取得目前狀態；未重試、未寫入組織，不記作 verify=0。",
@@ -1982,8 +1983,8 @@ const DATA = {
       "id": "遺留 L1",
       "phaseId": "階段 8",
       "name": "遺留 L1 原因補齊與唯讀調查",
-      "status": "active",
-      "note": "2026-11-21 12:18 Asia/Taipei (UTC+08:00)：已做六測名稱／專案／覆蓋、Release、唯讀調查與guard證據盤點；因Relay測試不符08A指定範圍、紅燈證據缺失及調查資料不足，L1未驗收、維持進行中。詳見 `wp-reports/P8-L1-狀態與證據.md`；依D8-26續 L2。"
+      "status": "done",
+      "note": "2026-11-21 20:48 Asia/Taipei (UTC+08:00)：依修訂1已驗收（縮減）。原因碼程式沿用c819da1e；Relay測試專案／行為差異、紅燈證據缺失、R7目前證據不足、R9去向無法確認、church-defaults目前證據不足均列上線前作業，不宣稱技術通過。歷史順序偏差及Trellis archive自動產生的非P8-L1本機提交35680dd9如實揭露；詳見wp-reports/P8-L1-狀態與證據.md。"
     },
     {
       "id": "遺留 L2",
