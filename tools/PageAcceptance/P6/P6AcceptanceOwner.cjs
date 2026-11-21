@@ -13,70 +13,12 @@
 'use strict';
 const fs = require('node:fs/promises');
 const path = require('node:path');
-const os = require('node:os');
-const { spawn, spawnSync } = require('node:child_process');
+const { spawnSync } = require('node:child_process');
 const { randomBytes } = require('node:crypto');
-const { createFixtureBridge } = require('./P6FixtureBridge.cjs');
+const { createFixtureBridge } = require('../Shared/FixtureBridge.cjs');
+const { readSettings, startHost } = require('../Shared/DevelopmentHost.cjs');
 const { createRoundFixture, readRoundFixture } = require('./P6Fixtures.cjs');
 const { runBrowserRound, normalize, compareRounds } = require('./Run-P6PageAcceptance.cjs');
-
-/** 以精確鍵名讀取User Secrets，不對終端或檔案輸出任何值，JSON root在本次呼叫後釋放。 */
-async function readSettings() {
-  const filename = path.join(process.env.APPDATA || path.join(os.homedir(), 'AppData', 'Roaming'),
-    'Microsoft', 'UserSecrets', 'SpeechMessage.Dynamics.Deployment.P0', 'secrets.json');
-  const bytes = await fs.readFile(filename);
-  if (bytes.length > 1024 * 1024) throw new Error('P6_SECRETS_BOUND');
-  const values = JSON.parse(bytes.toString('utf8').replace(/^\uFEFF/, ''));
-  const flattened = {};
-  function visit(value, prefix = '') {
-    for (const [key, item] of Object.entries(value)) {
-      const name = prefix ? prefix + ':' + key : key;
-      if (item && typeof item === 'object') visit(item, name); else flattened[name] = item;
-    }
-  }
-  visit(values);
-  const prefix = 'Deployment:Organizations:goodshepherdback:';
-  const churchId = flattened[prefix + 'ShadowTestChurchId'];
-  const contactId = flattened[prefix + 'ShadowTestContactId'];
-  const lineUserId = flattened[prefix + 'TestLineUserId'];
-  if (![churchId, contactId].every(x => typeof x === 'string' && /^[0-9a-f-]{36}$/i.test(x))
-      || typeof lineUserId !== 'string' || !lineUserId) throw new Error('P6_TEST_IDENTITY_MISSING');
-  const day = new Date();
-  day.setHours(0, 0, 0, 0); day.setDate(day.getDate() - day.getDay());
-  const sunday = day.toISOString();
-  bytes.fill(0);
-  return { churchId, contactId, lineUserId, sunday, testToken: flattened[prefix + 'TestChannelToken'] };
-}
-
-/** 啟動固定組件，不用shell與launch profile，原始Host輸出不落檔；等待有界並驗證啟動訊號。 */
-async function startHost(root, port) {
-  const product = path.join(root, 'SpeechMessageProducts.ChurchReport');
-  const assembly = path.join(product, 'bin', 'Release', 'net10.0', 'SpeechMessageProducts.ChurchReport.dll');
-  const env = { ...process.env, DOTNET_ENVIRONMENT: 'Development', ASPNETCORE_ENVIRONMENT: 'Development',
-    ASPNETCORE_URLS: `http://localhost:${port}`, ExceptionNotifications__SendLine: 'false' };
-  delete env.SPEECHMESSAGE_R2_WRITE_GOLDEN;
-  const child = spawn('dotnet', [assembly], { cwd: product, env, windowsHide: true, stdio: ['ignore', 'pipe', 'pipe'] });
-  let listening = false, rejected = false, closed = false;
-  const scan = chunk => { const text = chunk.toString('utf8'); if (text.includes('Now listening on:')) listening = true;
-    if (text.includes('Development 測試憑證必須來自 User Secrets')) rejected = true; };
-  child.stdout.on('data', scan); child.stderr.on('data', scan);
-  const exited = new Promise(resolve => child.once('close', code => { closed = true; resolve(code); }));
-  child.once('error', () => { rejected = true; });
-  async function stop() {
-    if (!closed) child.kill();
-    let timer;
-    try {
-      await Promise.race([exited, new Promise((_, reject) => {
-        timer = setTimeout(() => reject(new Error('P6_HOST_DRAIN_TIMEOUT')), 30000);
-      })]);
-    } finally { clearTimeout(timer); }
-  }
-  const deadline = Date.now() + 60000;
-  while (Date.now() < deadline && !closed && !rejected && !listening)
-    await new Promise(resolve => setTimeout(resolve, 200));
-  if (!listening || rejected) { await stop(); throw new Error('P6_HOST_START_FAILED'); }
-  return { stop, origin: `http://localhost:${port}` };
-}
 
 /** 固定commit及工作樹檢查，不讀憑證；起點工作樹存在未提交來源即拒絕。 */
 function checkBaseline(root) {

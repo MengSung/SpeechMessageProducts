@@ -98,4 +98,6 @@
   "文件/規劃設計書/實作計畫-3.5/驗收/P7情境/fees/expected.json": "P7撥款入列三個入口的固定期望，僅核對AllotQuery待辦封閉feeId與queryDate payload、教會、類型及狀態；動態冪等鍵與名稱使用欄位存在性比較。資料純合成且不建立真付款；原Golden不變，非實機證據。",
   "SpeechMessageProducts.GoodShepherd.Core.Tests/Golden/Roles/customertypecode-options.json": "P8-02 唯讀 goodshepherdback contact.customertypecode 選項中繼資料的固定黃金快照，只保存 option value 與 LanguageCode 1028 原始 label，不含會友列、聯絡資訊、秘密或連線設定。Core 雙目標測試逐筆核對唯一 option 身分、標籤原文及角色精確對應；未符合完整字串的項目必須沒有角色代碼與權限。檔案由一次唯讀 metadata 查詢建立，不能按角色語意推測或手造標籤，也不能以空快照掩蓋來源證據缺失。",
   "SpeechMessage.Dynamics.Deployment.Tests/Golden/Offerings/category-optionsets.json": "P8-01a／P8-01c goodshepherdback 的奉獻欄位選項集 metadata 黃金快照，保存語系 1028、new_fee.new_category 與 new_dedication_booking.new_dedication_category 的 RequiredLevel、選項值及各自原始標籤，不含業務記錄或秘密。離線測試使用它驗證依組織標籤生成類別及 RequiredLevel 分支；兩欄同值異標籤不得合併、任選或猜測，衝突時遷移必須 fail closed。"
+  ,
+  "tools/PseudoLocaleAudit/audit-urls.json": "P8-04a 偽語系瀏覽器稽核唯一固定案例清單，限制於 localhost 的 ChurchSettings 名詞、奉獻類別、稽核頁與匿名 403 情境，並登記依 I6 排除的舊頁與 LIFF 範圍；runner 只讀取這份清單，不接受任意 URL，不保存登入資訊、cookie、頁面原文或個資。"
 }

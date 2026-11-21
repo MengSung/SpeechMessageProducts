@@ -1,10 +1,12 @@
 /*
  * 檔案整體說明
- * 目的與定位：階段6頁面驗收的單一SDK資料owner，只連部署白名單goodshepherdback。
- * 主要功能與流程：以逐行JSON標準輸入處理本輪合成fixture；Create先登記自行產生的ID，Update／Delete／
+ * 目的與定位：P6與P8頁面驗收共用的單一SDK資料owner，只連部署白名單goodshepherdback。
+ * 主要功能與流程：以嚴格UTF-8逐行JSON標準輸入處理本輪合成fixture；Create先登記自行產生的ID，Update／Delete／
  * Retrieve只接受本程序已登記ID，拒絕更改既有會員。Query只列本程序ID，不接受任意FetchXML。
  * 使用邊界與維護：組態與連線租約在Main持有，最多128筆記錄、256次命令，每行64KiB；finally逆序清理
  * 已建立記錄並Dispose租約／組態、解除組件解析。失敗只輸出固定類型，不回原例外或秘密。
+ * 偽語系租約僅能讀寫User Secrets綁定的測試教會new_enabledlanguages：保存原值、只追加qps-ploc，
+ * 回讀確認後才回報；結束時確認欄位仍等於本程序寫入值才還原，避免覆蓋外部並行變更。
  * prepareSecrets只在核定後使用：原始Host秘密以DPAPI CurrentUser備份到repo外，驗證後
  * 直接由記憶體寫入測試token至指定User Secrets；finally逐位元組還原或刪除原本不存在的檔案。
  * 保留受保護備份作復原證據，restore失敗明標，不修改產品安全守門。
@@ -40,11 +42,15 @@ internal static class P6FixtureOwner
     /// <summary>有界命令迴圈；SDK同步操作返回前不釋放租約，所有成功建立的資料在EOF逆序刪除。</summary>
     internal static int Main()
     {
+        Console.InputEncoding=new UTF8Encoding(false,true);
+        Console.OutputEncoding=new UTF8Encoding(false);
         var bin=Path.GetFullPath(Path.Combine(Environment.CurrentDirectory,"SpeechMessage.Dynamics.Deployment/bin/Release/net10.0"));
         Assembly? Resolve(AssemblyLoadContext c,AssemblyName n){var p=Path.Combine(bin,n.Name+".dll");return File.Exists(p)?c.LoadFromAssemblyPath(p):null;}
         var context=AssemblyLoadContext.Default;context.Resolving+=Resolve;
         object? configuration=null,lease=null;IOrganizationService? sdk=null;var owned=new List<Owned>();var exit=0;
         string? secretsPath=null,backupPath=null;byte[]? originalSecrets=null;bool originalExisted=false,secretsChanged=false;
+        Guid testChurchId=Guid.Empty;string? originalEnabledLanguages=null,leasedEnabledLanguages=null;
+        bool pseudoLocaleLeaseActive=false,pseudoLocaleRestored=true;
         try
         {
             var assembly=context.LoadFromAssemblyPath(Path.Combine(bin,"SpeechMessage.Dynamics.Deployment.dll"));
@@ -58,6 +64,7 @@ internal static class P6FixtureOwner
             const string prefix="Deployment:Organizations:goodshepherdback:";
             string Setting(string key)=>(string?)indexer.GetValue(configuration,new object[]{prefix+key})??throw new InvalidDataException("Test setting missing.");
             var churchId=Guid.Parse(Setting("ShadowTestChurchId"));
+            testChurchId=churchId;
             var contactId=Guid.Parse(Setting("ShadowTestContactId"));
             assembly.GetType("SpeechMessage.Dynamics.Deployment.Shadow.ShadowTestIdentity",true)!
                 .GetMethod("Verify",flags)!.Invoke(null,new object[]{sdk,Setting("TestLineUserId"),churchId.ToString(),contactId.ToString(),CancellationToken.None});
@@ -105,6 +112,48 @@ internal static class P6FixtureOwner
                         File.WriteAllText(secretsPath,values.ToJsonString(),new UTF8Encoding(false));
                         Console.WriteLine("{\"ok\":true,\"backupProtected\":true,\"backupVerified\":true}");continue;
                     }
+                    if(operation=="leasePseudoLocale")
+                    {
+                        if(pseudoLocaleLeaseActive)throw new InvalidDataException("Pseudo locale lease already active.");
+                        var account=sdk.Retrieve("account",churchId,new ColumnSet("new_enabledlanguages"));
+                        originalEnabledLanguages=account.GetAttributeValue<string>("new_enabledlanguages")??string.Empty;
+                        var enabled=originalEnabledLanguages.Split(',',StringSplitOptions.RemoveEmptyEntries|StringSplitOptions.TrimEntries);
+                        var alreadyEnabled=enabled.Any(x=>string.Equals(x,"qps-ploc",StringComparison.OrdinalIgnoreCase));
+                        leasedEnabledLanguages=alreadyEnabled?originalEnabledLanguages:
+                            (string.IsNullOrWhiteSpace(originalEnabledLanguages)?"qps-ploc":originalEnabledLanguages.TrimEnd()+",qps-ploc");
+                        if(!alreadyEnabled)
+                        {
+                            leasedEnabledLanguages=string.IsNullOrWhiteSpace(originalEnabledLanguages)
+                                ?"qps-ploc":originalEnabledLanguages.TrimEnd()+",qps-ploc";
+                            pseudoLocaleLeaseActive=true;
+                            pseudoLocaleRestored=false;
+                            var update=new Entity("account",churchId){["new_enabledlanguages"]=leasedEnabledLanguages};
+                            sdk.Update(update);
+                            var verify=sdk.Retrieve("account",churchId,new ColumnSet("new_enabledlanguages"))
+                                .GetAttributeValue<string>("new_enabledlanguages")??string.Empty;
+                            if(!string.Equals(verify,leasedEnabledLanguages,StringComparison.Ordinal))
+                                throw new InvalidDataException("Pseudo locale lease verification failed.");
+                        }
+                        Console.WriteLine(JsonSerializer.Serialize(new{ok=true,enabled=true,changed=!alreadyEnabled}));continue;
+                    }
+                    if(operation=="restorePseudoLocale")
+                    {
+                        if(pseudoLocaleLeaseActive)
+                        {
+                            var account=sdk.Retrieve("account",churchId,new ColumnSet("new_enabledlanguages"));
+                            var current=account.GetAttributeValue<string>("new_enabledlanguages")??string.Empty;
+                            if(!string.Equals(current,leasedEnabledLanguages,StringComparison.Ordinal))
+                                throw new InvalidDataException("Pseudo locale lease changed outside owner.");
+                            sdk.Update(new Entity("account",churchId){["new_enabledlanguages"]=originalEnabledLanguages});
+                            var verify=sdk.Retrieve("account",churchId,new ColumnSet("new_enabledlanguages"))
+                                .GetAttributeValue<string>("new_enabledlanguages")??string.Empty;
+                            if(!string.Equals(verify,originalEnabledLanguages,StringComparison.Ordinal))
+                                throw new InvalidDataException("Pseudo locale restore verification failed.");
+                            pseudoLocaleLeaseActive=false;
+                        }
+                        pseudoLocaleRestored=true;
+                        Console.WriteLine("{\"ok\":true,\"restored\":true}");continue;
+                    }
                     if(operation=="addMember")
                     {
                         var listId=Guid.Parse(request.GetProperty("listId").GetString()!);
@@ -130,8 +179,13 @@ internal static class P6FixtureOwner
                         var name=request.GetProperty("entity").GetString()!;
                         if(!new[]{"contact","list","new_disciple_lessons","new_stor_lessons","new_meeting_statistics","new_group_present_weekly_report","new_present_record"}.Contains(name))throw new InvalidDataException("Entity rejected.");
                         var metadata=(RetrieveEntityResponse)sdk.Execute(new RetrieveEntityRequest{LogicalName=name,EntityFilters=EntityFilters.Attributes});
-                        var rows=metadata.EntityMetadata.Attributes.Where(a=>a.IsValidForCreate==true)
-                            .Select(a=>new {name=a.LogicalName,type=a.AttributeType?.ToString(),targets=(a as LookupAttributeMetadata)?.Targets});
+                        var rows=metadata.EntityMetadata.Attributes.Where(a=>
+                                name=="contact"
+                                    ? a.LogicalName=="new_church_jobtitle"
+                                    : a.IsValidForCreate==true)
+                            .Select(a=>new {name=a.LogicalName,type=a.AttributeType?.ToString(),
+                                isValidForCreate=a.IsValidForCreate,isValidForUpdate=a.IsValidForUpdate,
+                                targets=(a as LookupAttributeMetadata)?.Targets});
                         Console.WriteLine(JsonSerializer.Serialize(new{ok=true,attributes=rows}));continue;
                     }
                     if(operation=="finish")break;
@@ -150,7 +204,19 @@ internal static class P6FixtureOwner
                         Console.WriteLine(JsonSerializer.Serialize(new{ok=true,id}));continue;
                     }
                     if(!owned.Contains(item))throw new InvalidDataException("Unowned ID rejected.");
-                    if(operation=="update"){sdk.Update(ReadEntity(request,entity,id,owned,churchId,contactId));Console.WriteLine("{\"ok\":true}");continue;}
+                    if(operation=="update")
+                    {
+                        var update=ReadEntity(request,entity,id,owned,churchId,contactId);
+                        sdk.Update(update);
+                        if(entity=="contact"&&update.Contains("new_church_jobtitle"))
+                        {
+                            var persisted=sdk.Retrieve("contact",id,new ColumnSet("new_church_jobtitle"))
+                                .GetAttributeValue<string>("new_church_jobtitle");
+                            var matches=string.Equals(persisted,update.GetAttributeValue<string>("new_church_jobtitle"),StringComparison.Ordinal);
+                            Console.WriteLine(JsonSerializer.Serialize(new{ok=true,roleValuePersisted=matches}));continue;
+                        }
+                        Console.WriteLine("{\"ok\":true}");continue;
+                    }
                     if(operation=="retrieve")
                     {
                         var fields=request.GetProperty("fields").EnumerateArray().Select(x=>x.GetString()!).ToArray();
@@ -172,6 +238,26 @@ internal static class P6FixtureOwner
         finally
         {
             var remaining=0;
+            if(pseudoLocaleLeaseActive)
+            {
+                try
+                {
+                    var account=sdk!.Retrieve("account",testChurchId,new ColumnSet("new_enabledlanguages"));
+                    var current=account.GetAttributeValue<string>("new_enabledlanguages")??string.Empty;
+                    if(string.Equals(current,leasedEnabledLanguages,StringComparison.Ordinal))
+                    {
+                        sdk.Update(new Entity("account",testChurchId){["new_enabledlanguages"]=originalEnabledLanguages});
+                        var verify=sdk.Retrieve("account",testChurchId,new ColumnSet("new_enabledlanguages"))
+                            .GetAttributeValue<string>("new_enabledlanguages")??string.Empty;
+                        if(!string.Equals(verify,originalEnabledLanguages,StringComparison.Ordinal))
+                            throw new InvalidDataException("Pseudo locale restore verification failed.");
+                    }
+                    else if(!string.Equals(current,originalEnabledLanguages,StringComparison.Ordinal))
+                        throw new InvalidDataException("Pseudo locale lease changed outside owner.");
+                    pseudoLocaleLeaseActive=false;pseudoLocaleRestored=true;
+                }
+                catch{pseudoLocaleRestored=false;exit=1;}
+            }
             if(sdk is not null)foreach(var item in owned.AsEnumerable().Reverse())
             {
                 // ID先由此程序自行產生；即使Create失敗亦只嘗試清理該ID，絕不按名稱刪既有資料。
@@ -201,7 +287,8 @@ internal static class P6FixtureOwner
             if(originalSecrets is not null)Array.Clear(originalSecrets);
             try{(lease as IDisposable)?.Dispose();}catch{exit=1;}
             try{(configuration as IDisposable)?.Dispose();}catch{exit=1;}
-            context.Resolving-=Resolve;Console.WriteLine(JsonSerializer.Serialize(new{cleanup=true,remaining,secretsRestored,backupProtected=backupPath is not null}));
+            context.Resolving-=Resolve;Console.WriteLine(JsonSerializer.Serialize(new{cleanup=exit==0,remaining,secretsRestored,
+                pseudoLocaleRestored,backupProtected=backupPath is not null}));
         }
         return exit;
     }

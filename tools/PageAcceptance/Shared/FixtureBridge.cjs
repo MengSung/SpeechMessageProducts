@@ -1,11 +1,12 @@
 /*
  * 檔案整體說明
- * 目的與定位：供階段6 Node頁面驗收借用的SDK子程序橋接；編譯既有P6FixtureOwner來源
+ * 目的與定位：供P6與P8頁面驗收共用的SDK子程序橋接；編譯既有P6FixtureOwner來源
  * 至ignored artifacts，不建立csproj、不安裝套件，不把資料或秘密寫進編譯參數。
  * 主要流程：讀本機SDK與reference pack位置，借用既有Deployment輸出參考；序列JSON
  * 命令經stdin/stdout管線傳遞，最多128KiB回應／512KiB診斷，超量即拒絕。不轉送原始
  * stderr或SDK錯誤本文，只回固定狀態；生命週期owner必須finally呼叫close等清理結果。
  * 使用邊界與維護：只有Deployment白名單goodshepherdback；本模組不讀憑證或既有會員資料。
+ * 每次驗收建立獨立子程序與狀態，不跨案例共享SDK連線、fixture或秘密。
  * 子程序擁有SDK連線與本輪資料，finish/EOF會逆序刪除並驗證；close先關stdin等待清理，
  * 所有失敗路徑也有界drain；只有超時才終止，再確認close，不能將kill當成秘密已還原。
  * 未收到remaining=0與secretsRestored=true必須明列未確認，不得將未知狀態當成已清理。
@@ -137,9 +138,11 @@ async function createFixtureBridge(root, runtime = {}) {
         lines.close(); queue.length = 0;
       }
       const result = { cleanup: cleanup?.cleanup === true, remaining: cleanup?.remaining ?? null,
-        secretsRestored: cleanup?.secretsRestored === true, backupProtected: cleanup?.backupProtected === true, ...drained };
+        secretsRestored: cleanup?.secretsRestored === true,
+        pseudoLocaleRestored: cleanup?.pseudoLocaleRestored === true,
+        backupProtected: cleanup?.backupProtected === true, ...drained };
       if (protocolFailed || !result.cleanup || result.remaining !== 0 || !result.secretsRestored
-          || !result.processExited || result.drainTimedOut) {
+          || !result.pseudoLocaleRestored || !result.processExited || result.drainTimedOut) {
         const error = new Error('P6_FIXTURE_CLEANUP_FAILED');
         error.cleanup = result;
         throw error;

@@ -1,0 +1,36 @@
+{
+  "schemaVersion": 1,
+  "originPolicy": "http://localhost",
+  "cases": [
+    {
+      "id": "terms",
+      "path": "/ChurchSettings/Terms",
+      "access": "admin"
+    },
+    {
+      "id": "offering-categories",
+      "path": "/ChurchSettings/OfferingCategories",
+      "access": "admin"
+    },
+    {
+      "id": "audit",
+      "path": "/ChurchSettings/Audit",
+      "access": "admin"
+    },
+    {
+      "id": "forbidden",
+      "path": "/ChurchSettings/Terms",
+      "access": "non-admin"
+    }
+  ],
+  "exclusions": [
+    {
+      "scope": "既有 ChurchReport 舊頁",
+      "reason": "依 08A 修訂 1 引用的 I6，本次只驗收 ChurchSettings 管理頁面，不擴大到既有頁面。"
+    },
+    {
+      "scope": "LIFF",
+      "reason": "依 I6，LIFF 舊頁不屬 ChurchSettings 管理介面偽語系驗收範圍。"
+    }
+  ]
+}

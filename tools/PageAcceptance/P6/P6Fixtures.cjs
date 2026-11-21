@@ -1,26 +1,30 @@
 /*
  * 檔案整體說明
- * 目的與定位：建立階段6四情境專用的合成資料與對照欄位，不讀取既有會友帳密。
+ * 目的與定位：建立階段6四情境及共用頁面驗收所需的合成資料與對照欄位，不讀取既有會友帳密。
  * 主要流程：以當次記憶體隨機帳密新增登入會友及小組，課程／週報／出席資料只參考
  * 核定測試教會與測試聯絡人，預先建立出席避免產品另建未追蹤記錄；兩輪使用相同值、
  * 不同正式ID，以ID映射做唯一身分正規化。回讀只含當次擁有的明列欄位。
  * 使用邊界與維護：SDK bridge唯一擁有資料並在reset／close逆序清理；本模組不Dispose租約、
  * 不保存cookie或token、不將登入帳密寫檔／輸出。不改任何既有contact的LINE綁定。
- * 規格與維護：欄位由goodshepherdback唯讀metadata核對，日期為同輪固定值；故障立即
+ * 規格與維護：欄位由goodshepherdback唯讀metadata核對，日期為同輪固定值；只有呼叫端明確提供測試職稱／語系時才設定該欄位。
+ * 管理職稱在所有 fixture 與名單關聯組裝完成後，才對本輪 owned contact 以 Update 寫入；
+ * 最後寫入避免後續 fixture 初始化改動測試授權欄位，且限制寫入範圍；
+ * P6預設情境不變。故障立即
  * 交上層finally清理，不重試Create，不以刪除同名資料清理、不偽造簽到成功。
  */
 'use strict';
 const { randomUUID } = require('node:crypto');
 
 /** 每輪獨立ID與相同合成內容；login帳密由上層建立並只保存在記憶體。 */
-async function createRoundFixture(bridge, settings, credentials) {
+async function createRoundFixture(bridge, settings, credentials, { churchJobTitle = null, preferredLanguage = null } = {}) {
   const ids = Object.fromEntries(['login', 'group', 'lesson', 'stor', 'meeting', 'weekly', 'present'].map(x => [x, randomUUID()]));
   const lookup = (entity, id) => ({ lookup: entity, id });
   const create = (entity, id, fields) => bridge.request({ operation: 'create', entity, id, fields });
   const date = { date: settings.sunday };
   await create('contact', ids.login, {
     lastname: 'P6 Page Acceptance', parentcustomerid: lookup('account', settings.churchId),
-    new_app_acount: credentials.account, new_app_pass: credentials.password
+    new_app_acount: credentials.account, new_app_pass: credentials.password,
+    ...(preferredLanguage ? { new_preferredlanguage: preferredLanguage } : {})
   });
   await create('list', ids.group, {
     listname: 'P6 Page Acceptance Group', createdfromcode: { option: 2 }, type: false,
@@ -54,6 +58,15 @@ async function createRoundFixture(bridge, settings, credentials) {
     new_list_new_present_record: lookup('list', ids.group),
     new_group_present_this_week: 0, new_happy_present: 0, new_sunday_present_this_week: 0
   });
+  if (churchJobTitle) {
+    const roleUpdate = await bridge.request({
+      operation: 'update',
+      entity: 'contact',
+      id: ids.login,
+      fields: { new_church_jobtitle: churchJobTitle }
+    });
+    if (roleUpdate.roleValuePersisted === false) throw new Error('P8_ADMIN_ROLE_WRITE_UNVERIFIED');
+  }
   return {
     ids, account: credentials.account, password: credentials.password, displayName: 'P6 Acceptance', lineUserId: settings.lineUserId,
     lessonQr: ids.lesson + '_1_On', meetingUnderscoreQr: ids.meeting + '_1_On',

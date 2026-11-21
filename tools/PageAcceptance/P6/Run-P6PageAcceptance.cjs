@@ -13,9 +13,9 @@
  */
 'use strict';
 const path = require('node:path');
-const os = require('node:os');
 const fs = require('node:fs/promises');
 const { isDeepStrictEqual } = require('node:util');
+const { launchEdge } = require('../Shared/EdgeBrowser.cjs');
 
 /** 只接受localhost測試站，禁止腳本被用來操作正式站或任意遠端網址。 */
 function requireLocalOrigin(value) {
@@ -50,8 +50,7 @@ function compareRounds(before, after) {
 async function runBrowserRound({ origin, fixture, outputDirectory, label, skipLogin = false }) {
   origin = requireLocalOrigin(origin);
   if (!['before', 'after'].includes(label)) throw new Error('P6_INVALID_ROUND');
-  const playwright = require(path.join(os.homedir(), '.speechmessage', 'playwright', 'node_modules', 'playwright-core'));
-  const browser = await playwright.chromium.launch({ channel: 'msedge', headless: true });
+  const browser = await launchEdge({ headless: true });
   let context;
   try {
     context = await browser.newContext({ viewport: { width: 1280, height: 900 }, locale: 'zh-TW', timezoneId: 'Asia/Taipei' });
