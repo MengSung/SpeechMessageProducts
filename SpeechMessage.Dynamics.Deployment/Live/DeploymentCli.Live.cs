@@ -1,11 +1,11 @@
 /*
 檔案整體說明
-目的與定位：P7 三個工具的主 CLI 分部，沿共同 ProductionGuard，再嚴格核選項、固定路徑及同組織寫鎖。
-主要流程：observe 包唯讀 SDK 並發布純計數；church-defaults 只讀計畫或同 buffer 核 SHA 後套用；
-live-check 只在 test 組織，按即時 metadata 核啟用及模式、D34、準備情境後交唯一 runner。
+目的與定位：P7 Live、觀察、教會預設與工作流程形狀工具的主 CLI 分部，沿共同 ProductionGuard，再嚴格核選項、固定路徑及同組織寫鎖。
+主要流程：observe 與 workflow-shape 包唯讀 SDK；前者只發布計數，後者只輸出已脫敏停用流程結構；
+church-defaults 只讀計畫或同 buffer 核 SHA 後套用；live-check 只在 test 組織，依即時 metadata、D34 與情境準備後交唯一 runner。
 安全與隔離：每命令獨占 lease，SDK 歸還後才釋放寫鎖；manifest/catalog handle 全程只讀持有，
 檔案固定在本組織 artifacts。計畫有界、拒未知／重複欄位，不接受命令列秘密或任意輸出位置。
-資源與失敗：HTTP safety owner 在 SDK 前 Dispose，所有真失敗在 lease 釋放後交共同告警，
+資源與失敗：讀取工具不得呼叫任何寫入 SDK API；HTTP safety owner 在 SDK 前 Dispose，所有真失敗在 lease 釋放後交共同告警，
 seed 識別包裝會還原原始例外供 reporter 分類；安全摘要可攜帶固定 alias 脈絡，不含欄位值。
 準備失敗以不可重編 LIVE-PREP 原因碼定位，只列模組／情境／alias／實體；不把準備失敗當比對差異。
 正常 caller 取消回130；Live 只用本輪正式 ID 清理，不改任何步驟。
@@ -45,7 +45,7 @@ internal static partial class DeploymentCli
             {
                 var key = args[index];
                 if (key == "--apply") { if (apply || args[0] != "church-defaults") return 2; apply = true; continue; }
-                if (key is not ("--org" or "--module" or "--scenario-root" or "--since" or "--plan" or "--plan-sha256") ||
+                if (key is not ("--org" or "--module" or "--scenario-root" or "--since" or "--plan" or "--plan-sha256" or "--activity-type") ||
                     index + 1 >= args.Length || string.IsNullOrWhiteSpace(args[index + 1]) || args[index + 1].StartsWith("--", StringComparison.Ordinal) ||
                     !options.TryAdd(key, args[++index])) return 2;
             }
@@ -59,6 +59,7 @@ internal static partial class DeploymentCli
                 "church-defaults" => apply ? Exactly("--org", "--plan", "--plan-sha256") &&
                     options["--plan-sha256"].Length == 64 && options["--plan-sha256"].All(char.IsAsciiHexDigit) : Exactly("--org"),
                 "live-check" => target.Kind == "test" && Exactly("--org", "--module", "--scenario-root"),
+                "workflow-shape" => target.Kind == "test" && Exactly("--org", "--activity-type"),
                 _ => false
             };
             if (!valid) return 2;
@@ -135,7 +136,7 @@ internal static partial class DeploymentCli
                 }
                 output.WriteLine("Church defaults completed; existing values were preserved."); return 0;
             }
-            var service = args[0] == "observe" ? new ReadOnlyOrganizationService(lease.Service) : lease.Service;
+            var service = args[0] is "observe" or "workflow-shape" ? new ReadOnlyOrganizationService(lease.Service) : lease.Service;
             SwitchSnapshot ReadSnapshot()
             {
                 var document = RegistrationManifestLoader.LoadDocument(repository);
@@ -160,6 +161,47 @@ internal static partial class DeploymentCli
                 WriteDocumentFile(operation, "observe.md", ObservationMarkdown(observed));
                 output.WriteLine("Observation counts written; unavailable trace is not zero."); return observed.NoNewErrors ? 0 : 1;
             }
+            if (args[0] == "workflow-shape")
+            {
+                var activityType = options["--activity-type"];
+                var activity = snapshot.Activities.SingleOrDefault(item =>
+                    string.Equals(item.Registration.Type, activityType, StringComparison.Ordinal));
+                if (activity is null || activity.Registration.Legacy.Count == 0)
+                    throw new InvalidDataException("No registered legacy activity is available for shape capture.");
+
+                (SwitchWorkflow Workflow, string Shape) selected;
+                try
+                {
+                    var requestedLegacy = activity.Registration.Legacy
+                        .Select(item => new WorkflowActivityReference(item.Assembly, item.Type))
+                        .ToArray();
+                    selected = SelectWorkflowShapeSource(snapshot.Workflows, snapshot.LegacyActivities, requestedLegacy);
+                }
+                catch (InvalidDataException)
+                {
+                    var counts = CountWorkflowShapeCandidates(snapshot.Workflows, snapshot.LegacyActivities);
+                    output.WriteLine(
+                        $"Workflow-shape safe counts: snapshot={counts.Total}; notEnabled={counts.NotEnabled}; " +
+                        $"projectableUniqueLegacyMatch={counts.ProjectableUniqueLegacyMatch}; " +
+                        $"withFixedBinding={counts.WithFixedBinding}; withRecordFieldBinding={counts.WithRecordFieldBinding}; " +
+                        $"withBothBindingKinds={counts.WithBothBindingKinds}; " +
+                        $"legacyCatalogEntries={counts.LegacyCatalogEntries}; " +
+                        $"identityPresent={counts.IdentityPresent}; typeMatched={counts.TypeMatched}; " +
+                        $"assemblyMatched={counts.AssemblyMatched}; reversedMatched={counts.ReversedMatched}; " +
+                        $"registeredLegacyMatch={counts.RegisteredLegacyMatch}.");
+                    var requestedLegacy = activity.Registration.Legacy
+                        .Select(item => new WorkflowActivityReference(item.Assembly, item.Type))
+                        .ToArray();
+                    var diagnostic = SelectWorkflowShapeDiagnosticSource(
+                        snapshot.Workflows, snapshot.LegacyActivities, requestedLegacy);
+                    WriteDocumentFile(operation, "workflow-shape-diagnostic.xml", diagnostic.Shape + "\r\n");
+                    output.WriteLine("Sanitized diagnostic projection written; it is not an acceptance golden.");
+                    return 0;
+                }
+                WriteDocumentFile(operation, "activity-reference-shape.xml", selected.Shape + "\r\n");
+                output.WriteLine("Disabled legacy workflow shape projected; source values and identifiers were redacted.");
+                return 0;
+            }
             return RunPreparedLive(target, options["--module"], files!, repository, operation, lease.Service, snapshot, output, secretReader, token);
         }
         catch (OperationCanceledException) when (token.IsCancellationRequested) { output.WriteLine("Command cancelled."); return 130; }
@@ -170,6 +212,168 @@ internal static partial class DeploymentCli
             output.WriteLine("Live tooling command failed; sensitive details suppressed."); return 1;
         }
     }
+    /// <summary>
+    /// 從同一份完整 SwitchSnapshot 選取停用舊流程，避免再次查詢造成兩份 metadata 快照不一致。
+    /// 僅接受目前指定新活動明確對應的舊型別，且含兩種輸入繫結形狀的唯一候選；依正式流程 ID 排序使取樣可重現。
+    /// </summary>
+    /// <param name="workflows">由本命令唯一唯讀 snapshot 取得的完整流程集合。</param>
+    /// <param name="legacyActivities">同一 snapshot 所核對的舊自訂活動 catalog。</param>
+    /// <param name="requestedActivities">目前指定新活動在 registration 中明確宣告的舊活動映射。</param>
+    /// <returns>來源流程與已脫敏結構；原始 XAML 不會離開此方法，也不會寫入檔案。</returns>
+    /// <exception cref="InvalidDataException">沒有符合條件的停用流程或輸入集合無效。</exception>
+    internal static (SwitchWorkflow Workflow, string Shape) SelectWorkflowShapeSource(
+        IReadOnlyList<SwitchWorkflow> workflows,
+        IReadOnlyList<WorkflowActivityReference> legacyActivities,
+        IReadOnlyList<WorkflowActivityReference> requestedActivities)
+    {
+        ArgumentNullException.ThrowIfNull(workflows);
+        ArgumentNullException.ThrowIfNull(legacyActivities);
+        ArgumentNullException.ThrowIfNull(requestedActivities);
+        if (requestedActivities.Count == 0 || requestedActivities.Any(requested =>
+            !legacyActivities.Any(registered =>
+                string.Equals(registered.Type, requested.Type, StringComparison.Ordinal) &&
+                string.Equals(registered.Assembly, requested.Assembly, StringComparison.OrdinalIgnoreCase))))
+            throw new InvalidDataException("Requested legacy activity mapping is not registered.");
+
+        foreach (var workflow in workflows.Where(item => item.State != 1).OrderBy(item => item.Id))
+        {
+            try
+            {
+                var shape = WorkflowActivityShapeProjector.ProjectLegacyActivity(workflow.Xaml, requestedActivities);
+                if (shape is not null && shape.Contains("[FIXED_VALUE]", StringComparison.Ordinal) &&
+                    shape.Contains("[RECORD_FIELD]", StringComparison.Ordinal))
+                    return (workflow, shape);
+            }
+            catch (InvalidDataException)
+            {
+                // 不輸出或保留候選本文；逐筆跳過後只回傳 catalog 命中的安全投影。
+            }
+        }
+
+        throw new InvalidDataException("No disabled legacy activity workflow is available for shape capture.");
+    }
+
+    /// <summary>
+    /// 取得指定新活動映射之任一停用舊流程的脫敏結構，供診斷未達 golden 條件時檢視格式。
+    /// 結果只寫入明確標示為 diagnostic 的檔名，不可用作驗收 golden 或推定兩種 binding 均已取得。
+    /// </summary>
+    /// <param name="workflows">同一唯讀 snapshot 的流程集合。</param>
+    /// <param name="legacyActivities">同一 snapshot 的完整舊活動 catalog。</param>
+    /// <param name="requestedActivities">指定新活動 registration 明列的舊活動映射。</param>
+    /// <returns>第一個依流程 ID 排序且唯一命中指定舊活動的安全投影。</returns>
+    /// <exception cref="InvalidDataException">映射未登錄或沒有可投影的停用舊流程。</exception>
+    internal static (SwitchWorkflow Workflow, string Shape) SelectWorkflowShapeDiagnosticSource(
+        IReadOnlyList<SwitchWorkflow> workflows,
+        IReadOnlyList<WorkflowActivityReference> legacyActivities,
+        IReadOnlyList<WorkflowActivityReference> requestedActivities)
+    {
+        ArgumentNullException.ThrowIfNull(workflows);
+        ArgumentNullException.ThrowIfNull(legacyActivities);
+        ArgumentNullException.ThrowIfNull(requestedActivities);
+        if (requestedActivities.Count == 0 || requestedActivities.Any(requested =>
+            !legacyActivities.Any(registered =>
+                string.Equals(registered.Type, requested.Type, StringComparison.Ordinal) &&
+                string.Equals(registered.Assembly, requested.Assembly, StringComparison.OrdinalIgnoreCase))))
+            throw new InvalidDataException("Requested legacy activity mapping is not registered.");
+
+        foreach (var workflow in workflows.Where(item => item.State != 1).OrderBy(item => item.Id))
+        {
+            try
+            {
+                var shape = WorkflowActivityShapeProjector.ProjectLegacyActivity(workflow.Xaml, requestedActivities);
+                if (shape is not null)
+                    return (workflow, shape);
+            }
+            catch (InvalidDataException)
+            {
+                // 僅略過不合格來源；不輸出 parser 訊息或來源 XML。
+            }
+        }
+
+        throw new InvalidDataException("No disabled legacy activity workflow is available for diagnostic projection.");
+    }
+
+    /// <summary>
+    /// 產生不含流程ID、名稱、XAML或業務資料的選樣診斷計數，供唯讀命令定位結構與catalog差異。
+    /// 無法安全投影的候選只計入未啟用總數，不保留 parser 例外或來源內容。
+    /// </summary>
+    /// <param name="workflows">同一命令已核對的流程 snapshot。</param>
+    /// <param name="legacyActivities">同一 snapshot 的舊自訂活動 catalog。</param>
+    /// <returns>流程結構計數與身份存在、型別、組件、方向、完整命中的數量。</returns>
+    internal static (
+        int Total,
+        int NotEnabled,
+        int ProjectableUniqueLegacyMatch,
+        int WithFixedBinding,
+        int WithRecordFieldBinding,
+        int WithBothBindingKinds,
+        int LegacyCatalogEntries,
+        int IdentityPresent,
+        int TypeMatched,
+        int AssemblyMatched,
+        int ReversedMatched,
+        int RegisteredLegacyMatch)
+        CountWorkflowShapeCandidates(
+            IReadOnlyList<SwitchWorkflow> workflows,
+            IReadOnlyList<WorkflowActivityReference> legacyActivities)
+    {
+        ArgumentNullException.ThrowIfNull(workflows);
+        ArgumentNullException.ThrowIfNull(legacyActivities);
+        var notEnabled = 0;
+        var projectableUniqueLegacyMatch = 0;
+        var withFixedBinding = 0;
+        var withRecordFieldBinding = 0;
+        var withBothBindingKinds = 0;
+        var identityPresent = 0;
+        var typeMatched = 0;
+        var assemblyMatched = 0;
+        var reversedMatched = 0;
+        var registeredLegacyMatch = 0;
+        foreach (var workflow in workflows)
+        {
+            if (workflow.State == 1 || string.IsNullOrWhiteSpace(workflow.Xaml))
+                continue;
+            notEnabled++;
+            try
+            {
+                var shape = WorkflowActivityShapeProjector.ProjectLegacyActivity(workflow.Xaml, legacyActivities);
+                if (shape is not null)
+                {
+                    projectableUniqueLegacyMatch++;
+                    var hasFixedBinding = shape.Contains("[FIXED_VALUE]", StringComparison.Ordinal);
+                    var hasRecordFieldBinding = shape.Contains("[RECORD_FIELD]", StringComparison.Ordinal);
+                    if (hasFixedBinding) withFixedBinding++;
+                    if (hasRecordFieldBinding) withRecordFieldBinding++;
+                    if (hasFixedBinding && hasRecordFieldBinding) withBothBindingKinds++;
+                }
+                var match = WorkflowActivityShapeProjector.CompareLegacyActivityIdentity(workflow.Xaml, legacyActivities);
+                if (match.HasIdentity) identityPresent++;
+                if (match.TypeMatched) typeMatched++;
+                if (match.AssemblyMatched) assemblyMatched++;
+                if (match.ReversedMatched) reversedMatched++;
+                if (match.RegisteredMatch) registeredLegacyMatch++;
+            }
+            catch (InvalidDataException)
+            {
+                // 只發布計數；不保留或回顯來源 XML 與 parser 診斷。
+            }
+        }
+
+        return (
+            workflows.Count,
+            notEnabled,
+            projectableUniqueLegacyMatch,
+            withFixedBinding,
+            withRecordFieldBinding,
+            withBothBindingKinds,
+            legacyActivities.Count,
+            identityPresent,
+            typeMatched,
+            assemblyMatched,
+            reversedMatched,
+            registeredLegacyMatch);
+    }
+
     /// <summary>整批現況核對及情境準備成功後才允許任何 seed，dormant 明列未檢查。</summary>
     private static int RunPreparedLive(OrganizationDefinition target, string module, IReadOnlyList<ShadowFileCase> files,
         string repository, string operation, IOrganizationService service, SwitchSnapshot snapshot,

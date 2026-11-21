@@ -27,7 +27,7 @@
 - [x] P8-03b 教會設定網頁（2026-11-21；程式提交 `b648dd77`；唯一 `C:\smv\guard-p8` 完整 §8.1 守門全通過；收尾提交 `b64902d71941f668f825d37c63a43beb1b6d12ea` 已推送並以 `git ls-remote` 核對；報告 `wp-reports/P8-03b-教會設定網頁.md`）
 - [x] P8-03 驗收後修正（2026-11-21 11:14 Asia/Taipei (UTC+08:00)；`c8d088fe11c9b45565dd0e149f98b8b2e04ed480` 修正 Area Razor 發佈、Terms 冷快取及 Area view discovery；三項先紅後綠、ChurchReport Release 693/693、R2 Debug／Release 各 2/2；唯一 guard-p8 完整 §8.1 結束碼 0，證據 `C:\smv\guard-p8-evidence\guard-c8d088fe-full.log`。報告已追加事後修正段。11:14 暫緩推送的決定已被 2026-11-21 11:39 Asia/Taipei (UTC+08:00) 依使用者最新指示更正；修正與推送核對紀錄已分別提交，11:39 遠端 SHA `6f68c68c062486b513ca2426731326c7bf0bdc4a` 後續於 2026-11-21 12:18 Asia/Taipei (UTC+08:00) 被重核 SHA `4ed8a87236ee79ed9896845b527acc64ae18832d` 更正為目前本機／遠端一致值。守門清理事故另記 P8-decisions。）
 - [ ] 遺留 L1 原因補齊與唯讀調查（2026-11-21 12:18 Asia/Taipei (UTC+08:00)：維持進行中、未驗收。五項指定測試在 Deployment.Tests；Relay 同名測試落在 LineWebhook.Tests 且只覆蓋 formatter，不符合 08A 指定專案／行為；六項紅燈原始證據未找到。Deployment Release 有保存的 1036/1036 通過輸出，12:03 較新執行 exit 0 但數字未存；12:18 observe 取得同 since trace 0 筆，09:56 為 2 筆 unknown-exception，R7 目前證據不足、R9 去向無法確認；church-defaults plan 未提供 row state／IsValidForUpdate，證據不足。詳見 `wp-reports/P8-L1-狀態與證據.md`、`wp-reports/P8-decisions.md` 與 `C:\smv\guard-p8-evidence`；依 D8-26 保持 active 並續 L2，不宣稱驗收。）
-- [ ] 遺留 L2 Workflow 流程樣板工具
+- [ ] 遺留 L2 Workflow 流程樣板工具（2026-11-21 20:24 Asia/Taipei (UTC+08:00)：進行中、未驗收。全情境樹遞迴掃描回歸先紅後綠；`WorkflowTemplate` 篩選 6/6、Deployment Release 1,059/1,059。完整 P7 情境樹六案映射，AppointmentSigningActivity Workflow 情境仍缺。20:25 唯讀 shape 摘要為唯一候選20、輸入 record-field 11、已辨識 fixed-value 0、雙繫結0；診斷不是 golden。十項指定測試仍三案同名、七案缺失；XAML 產生／probe lifecycle／PREP-09／10、實機與安全完整 guard 未完成；20:15 最新 verify exit 1、僅 UpdateAssembly，不宣稱 `off`／`verify=0`。詳見 L2 回報與 P8-decisions。）
 - [ ] 遺留 L3 Live 補驗與分級定案
 - [ ] P8-04a 偽語系稽核工具與網頁修正
 - [ ] P8-04b 假語系驗收腳本、教會自訂及 A/B 隔離
@@ -36,7 +36,21 @@
 
 ## 每單元執行守則
 
+2026-11-21 17:53 Asia/Taipei (UTC+08:00)：遺留 L2 繼續進行中、未驗收。新會話唯讀 verify exit 1、僅 `UpdateAssembly`，摘要 `C:\smv\guard-p8-evidence\p8-l2-resume-verify-20261121-1753.log`；不 apply、不宣稱 `off`／`verify=0`。Repo 搜尋沒有找到可替代的核定真實 XAML golden；現有 Appointment 情境是 Plugin，沒有 AppointmentSigningActivity Workflow 案例，因此不猜測固定值 binding 或 EntityReference 輸入格式。十案只有兩案同名存在，L2 必做仍缺，狀態／決策／進度已同步，依 D8-26 在單元未到期前繼續可驗證工作。
+
+2026-11-21 18:29 Asia/Taipei (UTC+08:00)：L2 投影器先紅後綠修正 OutArgument 誤分類；重新唯讀查詢仍為 20 個候選、11 個 InArgument record-field、0 個 fixed-value／雙繫結。完整 Deployment Release 1056/1056。舊計數判斷已在原回報處更正；XAML golden、builder、十案中八案、probe lifecycle、七活動情境、實機與完整 guard 仍未完成，L2 維持未驗收並繼續。
+
 逐單元依 08A §5 讀取清單、建立 Trellis 子任務、執行指定測試紅燈與綠燈、補文件說明、提交、在 `C:\smv\guard-p8` 完成完整 00 §8.1 守門、寫一頁回報、驗收、推送及 `git ls-remote` 核對，最後只更新進度頁 DATA。若單元依 D8-26 縮減或未能驗收，清楚記錄未完成條件並按固定順序繼續。
+
+2026-11-21 20:15 Asia/Taipei (UTC+08:00)：L2 續跑唯讀 `verify --org goodshepherdback` exit 1、唯一差異 `UpdateAssembly`；未 apply，不宣稱 `off`／`verify=0`。證據 `C:\smv\guard-p8-evidence\p8-l2-resume-verify-20261121-2015.log` SHA-256 `7BF132F5387AF37110F75EED70391135F58B489366244D3D2B37FE40C8D6B433`。狀態與缺口詳見 L2 子任務、一頁回報及 `P8-decisions.md`；L2 繼續進行中、未驗收。
+
+2026-11-21 20:24 Asia/Taipei (UTC+08:00)：續核既有 20:25 唯讀 workflow-shape 輸出；唯一候選20、輸入 record-field 11、fixed-value 0、雙繫結0。脫敏診斷仍非 golden，SHA-256 與完整缺口見 L2 回報及 `P8-decisions.md`。沒有新的組織查詢或寫入；L2 維持進行中、未驗收。
+
+2026-11-21 19:29 Asia/Taipei (UTC+08:00)：strong-name 指定測試先紅後綠；完整 Deployment Release 1,058/1,058。十項指定案例目前三案同名、七案缺失，L2 維持 active、未驗收；具體紅綠與差異見 `wp-reports/P8-L2-workflow-template.md`。
+
+2026-11-21 19:50 Asia/Taipei (UTC+08:00)：全 P7 情境樹遞迴掃描測試先紅後綠；完整樹確認六個核定案例及 Appointment Workflow 案例缺失，未新增情境；WorkflowTemplate 篩選6/6、Deployment Release 1,059/1,059。舊投影有 OutArgument 誤分類，不升格 golden；L2 維持未驗收，詳見一頁回報與 P8-decisions。
+
+2026-11-21 19:05 Asia/Taipei (UTC+08:00)：遺留 L2 續跑完整 Deployment Release 通過 1,057/1,057；ProgressPage 28/28、檔案說明 1,890 檔零失敗、`git diff --check` exit 0，並逐 byte 核對 18 份自有變更檔。證據雜湊及逐項缺口見 `wp-reports/P8-L2-workflow-template.md`。08A 十案缺八案、沒有合格 golden、builder 未輸出 XAML、probe lifecycle／七活動完整 inputs／實機／`off`／`verify=0`／零殘留與安全完整 guard 未完成；L2 維持 active、未驗收，依 D8-26 繼續，不把局部綠燈當驗收。
 
 ## 終止條件
 

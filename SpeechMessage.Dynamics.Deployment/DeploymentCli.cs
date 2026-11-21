@@ -163,7 +163,7 @@ internal static partial class DeploymentCli
             return Channels.ChannelProvisioningCli.Run(args, target, connector, output, report,
                 secretInput, artifactRoot, secretReader, writeLockTimeout, cancellationToken);
 
-        if (args[0] is "live-check" or "observe" or "church-defaults")
+        if (args[0] is "live-check" or "observe" or "church-defaults" or "workflow-shape")
             return RunLiveCommands(args, target, catalog, connector, output, report, artifactRoot, secretReader, writeLockTimeout, cancellationToken);
 
         if (args[0] == "migrate-offering-categories")
@@ -771,6 +771,7 @@ internal static partial class DeploymentCli
         output.WriteLine("          shadow --org goodshepherdback --module <module> --scenario-root <fixed-module-golden-directory>");
         output.WriteLine("          live-check --org <test-name> --module <module> --scenario-root <fixed-golden-directory>");
         output.WriteLine("          observe --org <name> --since <UTC-time-Z>");
+        output.WriteLine("          workflow-shape --org <test-name> --activity-type <registered-type> (read-only; sanitized output)");
         output.WriteLine("          church-defaults --org <name> [--apply --plan <file> --plan-sha256 <sha256>]");
         output.WriteLine("          ui-export --org <test-name> | ui-import --org <name> --from <archive>");
         output.WriteLine("          export-legacy --org <name> (read-only; test stops on enabled legacy, production reports counts)");

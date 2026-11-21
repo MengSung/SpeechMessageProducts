@@ -5,7 +5,8 @@
  * 不把多組件清單縮成第一筆。主入口負責白名單、組織寫鎖、租約及原始例外回報。
  * 主要功能與流程：逐一讀取固定 artifacts/plugins/<AssemblyName>.dll，以完整映像集合
  * 呼叫 Plan／Apply／Verify／Export／Rollback。計畫與備份索引固定為 plan.json、
- * backup.json；以 CreateNew 暫存、Flush(true)、關檔及禁止覆寫的 Move 發布。
+ * backup.json；共用 writer 亦只允許核定的 Live 摘要、L2 脫敏 XML golden 與非驗收診斷投影檔名，
+ * 以 CreateNew 暫存、Flush(true)、關檔及禁止覆寫的 Move 發布。
  * 信任邊界與失敗處理：輸入最多四 MiB、深度三十二，拒絕未知及重複欄位；
  * 組織必須與命令相同，所有索引引用都須位於同組織根且祖先不可為 link／junction。
  * 核心不提供套用前備份回呼，因此先 Export 並發布可回復索引，再呼叫 Apply；
@@ -132,7 +133,7 @@ internal static partial class DeploymentCli
     /// </summary>
     private static void WriteDocumentFile(string directory, string name, string content)
     {
-        if (name is not ("plan.json" or "plan.md" or "backup.json" or "switch-plan.json" or "switch-plan.md" or "legacy-before.json" or "church-defaults-plan.json" or "church-defaults-plan.md" or "observe.json" or "observe.md" or "live-check.json"))
+        if (name is not ("plan.json" or "plan.md" or "backup.json" or "switch-plan.json" or "switch-plan.md" or "legacy-before.json" or "church-defaults-plan.json" or "church-defaults-plan.md" or "observe.json" or "observe.md" or "live-check.json" or "activity-reference-shape.xml" or "workflow-shape-diagnostic.xml"))
             throw new InvalidDataException("Document name is invalid.");
         WriteDocumentContent(directory, name, content);
     }

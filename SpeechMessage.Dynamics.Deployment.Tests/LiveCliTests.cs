@@ -32,6 +32,8 @@ public sealed class LiveCliTests
     [InlineData("church-defaults --org goodshepherdback --apply --plan unused --plan-sha256 wrong")]
     [InlineData("live-check --org goodshepherdback --module care")]
     [InlineData("live-check --org goodshepherdback --module care --module care --scenario-root unused")]
+    [InlineData("workflow-shape --org goodshepherdback")]
+    [InlineData("workflow-shape --org goodshepherdback --activity-type Unknown.Activity --extra value")]
     public void LiveCli_InvalidArguments_ZeroConnect(string text)
     {
         using var output = new StringWriter(); var connector = new Connector(null);
