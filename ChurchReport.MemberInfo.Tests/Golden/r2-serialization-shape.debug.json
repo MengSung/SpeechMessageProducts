@@ -6414,6 +6414,35 @@
     "SystemTextJson": []
   },
   {
+    "Type": "AspNetCoreGeneratedDocument.Views_Shared_Components_ChurchSettingsNav_Default",
+    "Newtonsoft": [
+      "BodyContent",
+      "Component",
+      "Context",
+      "DiagnosticSource",
+      "Html",
+      "HtmlEncoder",
+      "IsLayoutBeingRendered",
+      "Json",
+      "Layout",
+      "Model",
+      "ModelExpressionProvider",
+      "Output",
+      "Path",
+      "PreviousSectionWriters",
+      "SectionWriters",
+      "TempData",
+      "Url",
+      "User",
+      "ViewBag",
+      "ViewContext",
+      "ViewData"
+    ],
+    "SystemTextJson": [
+      "unsupported:System.InvalidOperationException"
+    ]
+  },
+  {
     "Type": "AspNetCoreGeneratedDocument.Views_Shared_Components_MemberInfoNav_Default",
     "Newtonsoft": [
       "BodyContent",
@@ -7015,6 +7044,169 @@
     ],
     "SystemTextJson": [
       "unsupported:System.InvalidOperationException"
+    ]
+  },
+  {
+    "Type": "ChurchReport.Areas.ChurchSettings.ChurchSettingsAccess",
+    "Newtonsoft": [],
+    "SystemTextJson": []
+  },
+  {
+    "Type": "ChurchReport.Areas.ChurchSettings.ChurchSettingsCacheInvalidator",
+    "Newtonsoft": [],
+    "SystemTextJson": []
+  },
+  {
+    "Type": "ChurchReport.Areas.ChurchSettings.ChurchSettingsController",
+    "Newtonsoft": [
+      "ControllerContext",
+      "HttpContext",
+      "MetadataProvider",
+      "ModelBinderFactory",
+      "ModelState",
+      "ObjectValidator",
+      "ProblemDetailsFactory",
+      "Request",
+      "Response",
+      "RouteData",
+      "TempData",
+      "Url",
+      "User",
+      "ViewBag",
+      "ViewData"
+    ],
+    "SystemTextJson": [
+      "ControllerContext",
+      "HttpContext",
+      "MetadataProvider",
+      "ModelBinderFactory",
+      "ModelState",
+      "ObjectValidator",
+      "ProblemDetailsFactory",
+      "Request",
+      "Response",
+      "RouteData",
+      "TempData",
+      "Url",
+      "User",
+      "ViewBag",
+      "ViewData"
+    ]
+  },
+  {
+    "Type": "ChurchReport.Areas.ChurchSettings.ChurchSettingsNavViewComponent",
+    "Newtonsoft": [
+      "HttpContext",
+      "ModelState",
+      "Request",
+      "RouteData",
+      "TempData",
+      "Url",
+      "User",
+      "UserClaimsPrincipal",
+      "ViewBag",
+      "ViewComponentContext",
+      "ViewContext",
+      "ViewData",
+      "ViewEngine"
+    ],
+    "SystemTextJson": [
+      "unsupported:System.InvalidOperationException"
+    ]
+  },
+  {
+    "Type": "ChurchReport.Areas.ChurchSettings.ChurchSettingsRequestScope",
+    "Newtonsoft": [
+      "Church",
+      "ContactId",
+      "TextContext"
+    ],
+    "SystemTextJson": [
+      "Church",
+      "ContactId",
+      "TextContext"
+    ]
+  },
+  {
+    "Type": "ChurchReport.Areas.ChurchSettings.ChurchSettingsSystemClock",
+    "Newtonsoft": [
+      "UtcNow"
+    ],
+    "SystemTextJson": [
+      "UtcNow"
+    ]
+  },
+  {
+    "Type": "ChurchReport.Areas.ChurchSettings.ChurchSettingsTermOverride",
+    "Newtonsoft": [
+      "ChurchId",
+      "Culture",
+      "Id",
+      "Key",
+      "Text"
+    ],
+    "SystemTextJson": [
+      "ChurchId",
+      "Culture",
+      "Id",
+      "Key",
+      "Text"
+    ]
+  },
+  {
+    "Type": "ChurchReport.Areas.ChurchSettings.ChurchTermRow",
+    "Newtonsoft": [
+      "Culture",
+      "Key",
+      "OverrideText",
+      "Preview",
+      "SystemText"
+    ],
+    "SystemTextJson": [
+      "Culture",
+      "Key",
+      "OverrideText",
+      "Preview",
+      "SystemText"
+    ]
+  },
+  {
+    "Type": "ChurchReport.Areas.ChurchSettings.ChurchTermsPageModel",
+    "Newtonsoft": [
+      "Keys",
+      "Overrides"
+    ],
+    "SystemTextJson": [
+      "Keys",
+      "Overrides"
+    ]
+  },
+  {
+    "Type": "ChurchReport.Areas.ChurchSettings.DataverseChurchSettingsStore",
+    "Newtonsoft": [],
+    "SystemTextJson": []
+  },
+  {
+    "Type": "ChurchReport.Areas.ChurchSettings.DataverseChurchSettingsStore\u002BPendingAuditChange",
+    "Newtonsoft": [
+      "ActorId",
+      "After",
+      "Before",
+      "ChangedOnUtc",
+      "ChurchId",
+      "Field",
+      "Id",
+      "TargetRecordId"
+    ],
+    "SystemTextJson": [
+      "ActorId",
+      "After",
+      "Before",
+      "ChangedOnUtc",
+      "ChurchId",
+      "Field",
+      "Id",
+      "TargetRecordId"
     ]
   },
   {

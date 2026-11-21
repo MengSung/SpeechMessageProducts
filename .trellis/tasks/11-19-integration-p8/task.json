@@ -26,10 +26,11 @@
     "11-20-p8-02-role-code-catalog",
     "11-20-11-20-p8-03a-church-settings-overrides",
     "11-20-p8-01c-resume-completion",
-    "11-20-p8-01c-d8-6-label-resolution"
+    "11-20-p8-01c-d8-6-label-resolution",
+    "11-21-p8-03b-church-settings-web"
   ],
   "parent": null,
   "relatedFiles": [],
-  "notes": "2026-11-20 20:54 Asia/Taipei (UTC+08:00)：18:42 的 P8-01c／P8-01 縮減驗收結論已於 20:15 依使用者核定 D8-6 更正。goodshepherdback 必做 migration、兩次 verify、第二次 apply 無 lookup 更新批次、指定 P8Live、D34 子檢查、off verify=0 與殘留基線 0 均已完成；待本次程式提交及唯一 guard-p8 完整守門後，補齊一頁回報、標驗收及推送核 SHA，再依固定順序續 P8-03a。既有使用者接受的 Development 設定不屬 §7.3(3)，不讀取、不修改、不記值；只檢查本階段新增差異是否含秘密。"
+  "notes": "2026-11-20 20:54 Asia/Taipei (UTC+08:00)：18:42 的 P8-01c／P8-01 縮減驗收結論已於 20:15 依使用者核定 D8-6 更正。goodshepherdback 必做 migration、兩次 verify、第二次 apply 無 lookup 更新批次、指定 P8Live、D34 子檢查、off verify=0 與殘留基線 0 均已完成；待本次程式提交及唯一 guard-p8 完整守門後，補齊一頁回報、標驗收及推送核 SHA，再依固定順序續 P8-03a。既有使用者接受的 Development 設定不屬 §7.3(3)，不讀取、不修改、不記值；只檢查本階段新增差異是否含秘密。 2026-11-21 00:36 Asia/Taipei (UTC+08:00)：為維持 Trellis 階段8父子關聯，修復既有父任務 task.json children 陣列的 JSON 語法缺逗號；變更僅修復序列化語法，已驗證父任務與子任務可解析及連結。",
   "meta": {}
 }

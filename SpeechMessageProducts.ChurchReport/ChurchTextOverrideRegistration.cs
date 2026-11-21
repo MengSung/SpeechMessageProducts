@@ -45,6 +45,8 @@ internal static class ChurchTextOverrideRegistration
             services.AddSingleton<IChurchTextOverrideSnapshotProvider, ChurchReportEmptyTextOverrideSnapshotProvider>();
             services.AddSingleton<ITextCatalog>(provider =>
                 new GoodShepherdTextCatalog(provider.GetRequiredService<IChurchTextOverrideSnapshotProvider>()));
+            services.AddSingleton<ISystemTextCatalog>(provider =>
+                (ISystemTextCatalog)provider.GetRequiredService<ITextCatalog>());
             return;
         }
 
@@ -73,6 +75,8 @@ internal static class ChurchTextOverrideRegistration
                     ToolUtilityNameSpace.Diagnostics.ExceptionReporting.Report(exception, operation, token)));
         services.AddSingleton<IHostedService>(provider =>
             provider.GetRequiredService<TextChangePollingService>());
+        services.AddSingleton<ISystemTextCatalog>(provider =>
+            (ISystemTextCatalog)provider.GetRequiredService<ITextCatalog>());
     }
 
     /// <summary>只接受純量 bool；缺少值固定關閉，任何無法解析或複合節點均拒絕啟動。</summary>

@@ -1,0 +1,16 @@
+@*
+檔案整體說明
+
+目的與定位：呈現 ChurchSettingsNavViewComponent 傳入的伺服器授權布林值與本地化導覽連結。
+主要功能與流程：只有 model 為 true 時輸出固定 `/ChurchSettings/Terms` 入口；文字由
+ChurchSettingsText 依 request UI culture 解析，不接受使用者提供的 URL、標籤或教會 ID。
+使用邊界與維護：此連結只是導覽便利性，三個頁面及所有 POST 仍由 Controller 每次重新授權；
+本檢視不保存 Session、快取、連線或背景工作。更新後執行 ChurchReport Release 建置、
+Nav_ChurchSettingsLink_OnlyForAdmin 測試及檔案文件／CRLF 檢查。
+*@
+@using ChurchReport.Areas.ChurchSettings
+@model bool
+@if (Model)
+{
+    <li><a href="/ChurchSettings/Terms">@ChurchSettingsText.GetText("ChurchSettings.NavigationTitle")</a></li>
+}

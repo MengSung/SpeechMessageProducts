@@ -1,0 +1,54 @@
+@*
+檔案整體說明
+
+目的與定位：呈現 ChurchSettings Controller 依目前登入者授權教會載入的白名單詞彙、教會覆寫與預覽。
+主要流程：Controller 先重新驗證管理員與 account scope，再把有限的純值模型交給本檢視；每個儲存或還原
+表單都帶 antiforgery token，提交後回到伺服器重新授權。固定文字來自 ChurchSettingsText，動態欄位由
+Razor 預設 HTML encoder 輸出，不使用 Html.Raw 或手工 JSON。
+使用邊界與維護：本檢視不接受或輸出可授權教會的欄位，不保存 Session、快取、連線或背景工作。
+表單值只在當次回應中存活，跨請求隔離由 Controller 與核心服務負責；修改後需以 ChurchReport 建置、
+指定測試及檔案文件／CRLF 檢查驗證。
+*@
+@model ChurchTermsPageModel
+<h1>@ChurchSettingsText.GetText("ChurchSettings.TermsTitle")</h1>
+<table class="table">
+    <thead>
+        <tr>
+            <th>@ChurchSettingsText.GetText("ChurchSettings.Key")</th>
+            <th>@ChurchSettingsText.GetText("ChurchSettings.SystemText")</th>
+            <th>@ChurchSettingsText.GetText("ChurchSettings.Culture")</th>
+            <th>@ChurchSettingsText.GetText("ChurchSettings.ChurchOverride")</th>
+            <th>@ChurchSettingsText.GetText("ChurchSettings.Preview")</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+    @foreach (var key in Model.Keys)
+    {
+        var row = Model.Overrides.FirstOrDefault(item => string.Equals(item.Key, key, StringComparison.Ordinal));
+        <tr>
+            <td>@key</td>
+            <td>@(row?.SystemText ?? string.Empty)</td>
+            <td>
+                <form method="post" action="/ChurchSettings/Terms/Save">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="key" value="@key" />
+                    <input name="culture" value="@(row?.Culture ?? "zh-TW")" maxlength="16" />
+                    <textarea name="text" maxlength="2000">@(row?.OverrideText ?? string.Empty)</textarea>
+                    <button type="submit">@ChurchSettingsText.GetText("ChurchSettings.Save")</button>
+                </form>
+            </td>
+            <td>@(row?.OverrideText ?? string.Empty)</td>
+            <td>@(row?.Preview ?? string.Empty)</td>
+            <td>
+                <form method="post" action="/ChurchSettings/Terms/Reset">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="key" value="@key" />
+                    <input type="hidden" name="culture" value="@(row?.Culture ?? "zh-TW")" />
+                    <button type="submit">@ChurchSettingsText.GetText("ChurchSettings.Reset")</button>
+                </form>
+            </td>
+        </tr>
+    }
+    </tbody>
+</table>

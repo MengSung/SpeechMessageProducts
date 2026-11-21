@@ -1,0 +1,28 @@
+@*
+檔案整體說明
+
+目的與定位：呈現核心服務已驗證的單一授權教會最近最多 200 筆設定稽核純值。
+主要流程：Controller 每次 GET 重新解析登入 contact 與 account scope，store 先以教會條件查詢，
+核心服務驗證正式稽核 ID、UTC 時間、唯一性與 200 筆上限後才交給本檢視；actor 只顯示 D365 顯示名稱。
+輸出由 Razor 預設 HTML encoder 處理，不輸出帳號、contact ID、SDK Entity 或未驗證 raw HTML。
+使用邊界與維護：模型只在當次回應使用，不保存 Session、快取、CRM 連線或背景工作，跨教會隔離由
+Controller、store 與核心服務共同維持。修改後執行 ChurchReport 建置、指定隔離測試及文件／編碼檢查。
+*@
+@model System.Collections.Generic.IReadOnlyList<SpeechMessageProducts.GoodShepherd.Core.Settings.ChurchSettingsAuditRecord>
+<h1>@ChurchSettingsText.GetText("ChurchSettings.AuditTitle")</h1>
+@if (Model.Count == 0)
+{
+    <p>@ChurchSettingsText.GetText("ChurchSettings.NoRecords")</p>
+}
+else
+{
+    <table class="table">
+        <thead><tr><th>@ChurchSettingsText.GetText("ChurchSettings.ChangedOn")</th><th>@ChurchSettingsText.GetText("ChurchSettings.Record")</th><th>@ChurchSettingsText.GetText("ChurchSettings.Field")</th><th>@ChurchSettingsText.GetText("ChurchSettings.Before")</th><th>@ChurchSettingsText.GetText("ChurchSettings.After")</th><th>@ChurchSettingsText.GetText("ChurchSettings.Actor")</th></tr></thead>
+        <tbody>
+        @foreach (var record in Model)
+        {
+            <tr data-audit-id="@record.Id"><td>@record.ChangedOnUtc</td><td>@record.TargetRecordId</td><td>@record.Field</td><td>@record.Before</td><td>@record.After</td><td>@record.ActorDisplayName</td></tr>
+        }
+        </tbody>
+    </table>
+}

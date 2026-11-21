@@ -122,6 +122,7 @@ public sealed class ChurchSettingsService
         foreach (var row in rows)
         {
             if (row is null || row.Id == Guid.Empty || row.ChurchId != church.Id
+                || row.TargetRecordId == Guid.Empty
                 || row.ChangedOnUtc.Kind != DateTimeKind.Utc || !identities.Add(row.Id))
                 throw new InvalidOperationException("The audit store returned an invalid church-scoped candidate.");
             candidate.Add(row);

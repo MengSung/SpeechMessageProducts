@@ -1,0 +1,44 @@
+@*
+檔案整體說明
+
+目的與定位：呈現 Controller 依目前登入者重新授權的單一教會奉獻類別清單與編輯表單。
+主要流程：服務端先以正式 category ID 建立列身分，再以 Razor 輸出名稱、排序、會計代碼、舊選項值及狀態；
+新增表單不包含 church ID，伺服器由 AuthorizedChurch 決定範圍，更新表單使用正式資料庫 ID 並再次驗證歸屬。
+所有寫入表單帶 antiforgery token，輸入值由預設 HTML encoder 輸出。
+使用邊界與維護：同名不同 ID 的類別必須保留，不得在檢視層以名稱合併或覆蓋；本檔不持有 Session、
+快取、CRM 連線或背景工作。修改後執行 ChurchReport 建置、指定隔離測試及文件／編碼檢查。
+*@
+@model System.Collections.Generic.IReadOnlyList<OfferingCategory>
+<h1>@ChurchSettingsText.GetText("ChurchSettings.OfferingCategoriesTitle")</h1>
+<form method="post" action="/ChurchSettings/OfferingCategories/Save">
+    @Html.AntiForgeryToken()
+    <label>@ChurchSettingsText.GetText("ChurchSettings.CategoryName") <input name="name" maxlength="100" required /></label>
+    <label>@ChurchSettingsText.GetText("ChurchSettings.SortOrder") <input name="sortOrder" type="number" min="0" value="0" required /></label>
+    <label>@ChurchSettingsText.GetText("ChurchSettings.AccountingCode") <input name="accountingCode" maxlength="50" /></label>
+    <label>@ChurchSettingsText.GetText("ChurchSettings.LegacyOptionValue") <input name="legacyOptionValue" type="number" /></label>
+    <button type="submit">@ChurchSettingsText.GetText("ChurchSettings.AddCategory")</button>
+</form>
+<table class="table">
+    <thead><tr><th>@ChurchSettingsText.GetText("ChurchSettings.CategoryName")</th><th>@ChurchSettingsText.GetText("ChurchSettings.SortOrder")</th><th>@ChurchSettingsText.GetText("ChurchSettings.AccountingCode")</th><th>@ChurchSettingsText.GetText("ChurchSettings.LegacyOptionValue")</th><th>@ChurchSettingsText.GetText("ChurchSettings.IsActive")</th><th></th></tr></thead>
+    <tbody>
+    @foreach (var category in Model)
+    {
+        <tr data-category-id="@category.Id">
+            <td>
+                <form method="post" action="/ChurchSettings/OfferingCategories/Save">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="id" value="@category.Id" />
+                    <input name="name" value="@category.Name" maxlength="100" required />
+                    <input name="sortOrder" type="number" min="0" value="@category.SortOrder" required />
+                    <input name="accountingCode" value="@category.AccountingCode" maxlength="50" />
+                    <input name="legacyOptionValue" type="number" value="@category.LegacyOptionValue" />
+                    <input name="isActive" type="checkbox" value="true" checked="@category.IsActive" />
+                    <button type="submit">@ChurchSettingsText.GetText("ChurchSettings.Save")</button>
+                </form>
+            </td>
+            <td>@category.SortOrder</td><td>@category.AccountingCode</td><td>@category.LegacyOptionValue</td>
+            <td>@(category.IsActive ? ChurchSettingsText.GetText("ChurchSettings.IsActive") : string.Empty)</td><td>@category.Code</td>
+        </tr>
+    }
+    </tbody>
+</table>

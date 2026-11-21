@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+檔案整體說明
+
+目的與定位：保存 ChurchSettings Area 所有固定繁體中文介面文字，是該 Area 的唯一文字來源。
+主要功能與流程：I18nCheck 由此產生英文空殼及 qps-ploc，供同目錄 ChurchSettingsTextData 編譯進組件；
+頁面依目前已解析的 request culture 取得對應資源，使用者輸入不會回寫或改變本檔。
+使用邊界與維護：鍵為穩定資源 ID，不放組織名稱、帳密、使用者資料或教會覆寫；本檔不執行授權、
+資料查詢或文化選擇。新增或修改文案須執行 I18nCheck 生成比對與資源驗證。
+失敗與驗證：重複鍵、長度超限或參數契約錯誤由 I18nCheck 拒絕；本資源不代表網頁實機驗收。
+-->
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="ChurchSettings.NavigationTitle" xml:space="preserve"><value>教會設定</value></data>
+  <data name="ChurchSettings.Forbidden" xml:space="preserve"><value>沒有權限檢視此頁面。</value></data>
+  <data name="ChurchSettings.TermsTitle" xml:space="preserve"><value>教會名詞</value></data>
+  <data name="ChurchSettings.OfferingCategoriesTitle" xml:space="preserve"><value>奉獻類別</value></data>
+  <data name="ChurchSettings.AuditTitle" xml:space="preserve"><value>修改紀錄</value></data>
+  <data name="ChurchSettings.SystemText" xml:space="preserve"><value>系統文字</value></data>
+  <data name="ChurchSettings.ChurchOverride" xml:space="preserve"><value>教會用語</value></data>
+  <data name="ChurchSettings.Preview" xml:space="preserve"><value>預覽</value></data>
+  <data name="ChurchSettings.Save" xml:space="preserve"><value>儲存</value></data>
+  <data name="ChurchSettings.Reset" xml:space="preserve"><value>還原預設</value></data>
+  <data name="ChurchSettings.Culture" xml:space="preserve"><value>語系</value></data>
+  <data name="ChurchSettings.Key" xml:space="preserve"><value>詞彙鍵</value></data>
+  <data name="ChurchSettings.CategoryName" xml:space="preserve"><value>類別名稱</value></data>
+  <data name="ChurchSettings.SortOrder" xml:space="preserve"><value>排序</value></data>
+  <data name="ChurchSettings.AccountingCode" xml:space="preserve"><value>會計科目</value></data>
+  <data name="ChurchSettings.LegacyOptionValue" xml:space="preserve"><value>舊選項值</value></data>
+  <data name="ChurchSettings.IsActive" xml:space="preserve"><value>啟用</value></data>
+  <data name="ChurchSettings.ChangedOn" xml:space="preserve"><value>修改時間</value></data>
+  <data name="ChurchSettings.Record" xml:space="preserve"><value>記錄</value></data>
+  <data name="ChurchSettings.Field" xml:space="preserve"><value>欄位</value></data>
+  <data name="ChurchSettings.Before" xml:space="preserve"><value>修改前</value></data>
+  <data name="ChurchSettings.After" xml:space="preserve"><value>修改後</value></data>
+  <data name="ChurchSettings.Actor" xml:space="preserve"><value>修改者</value></data>
+  <data name="ChurchSettings.AddCategory" xml:space="preserve"><value>新增類別</value></data>
+  <data name="ChurchSettings.NoRecords" xml:space="preserve"><value>目前沒有資料</value></data>
+</root>

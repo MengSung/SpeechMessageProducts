@@ -21,7 +21,7 @@ using SpeechMessageProducts.GoodShepherd.Core.Resources;
 namespace SpeechMessageProducts.GoodShepherd.Core.Messaging;
 
 /// <summary>合併產品與共用固定資源的無狀態文字 catalog。</summary>
-public sealed class GoodShepherdTextCatalog : ITextCatalog
+public sealed class GoodShepherdTextCatalog : ITextCatalog, ISystemTextCatalog
 {
     private static readonly SystemTextTable ProductSystem =
         SystemTextTable.FromRows(GoodShepherdTextData.Cultures, GoodShepherdTextData.Rows);
@@ -68,4 +68,10 @@ public sealed class GoodShepherdTextCatalog : ITextCatalog
             return product.GetText(context, key, args);
         return shared.GetText(context, key, args);
     }
+
+    /// <summary>只從 GoodShepherd 固定產品資源讀取系統原文，不套用任何教會覆寫。</summary>
+    /// <param name="culture">本次已由呼叫端解析的文字語系；未知語系依固定系統表回退繁中。</param>
+    /// <param name="key">由產品程式碼指定的固定資源鍵。</param>
+    /// <returns>產品資源的原文；缺少鍵時保留系統表的 KeyNotFoundException。</returns>
+    public string GetText(string? culture, TextKey key) => productSystem.GetText(culture, key);
 }

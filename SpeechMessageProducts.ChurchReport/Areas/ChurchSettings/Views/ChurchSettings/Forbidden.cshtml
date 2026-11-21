@@ -1,0 +1,13 @@
+@*
+檔案整體說明
+
+目的與定位：呈現 ChurchSettings Area 對未授權或沒有有效教會的要求所回傳之 HTTP 403 說明。
+主要功能與流程：Controller 先以當次登入者資料重新判定權限，拒絕時設定 403 並傳入 ChurchSettingsText
+產生的固定資源文字；本檢視只顯示該字串，不呼叫認證 challenge、不轉址，也不讀取 request 教會識別。
+使用邊界與維護：模型是單次回應的固定文字，不含個資、SDK Entity、Session、連線或共享狀態；
+Razor 預設 HTML 編碼保持開啟。調整拒絕文案須同步資源生成，並以 action 測試確認 403 且沒有 Location。
+*@
+@model string
+<main role="alert">
+    <h1>@Model</h1>
+</main>

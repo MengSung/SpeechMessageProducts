@@ -56,6 +56,21 @@ public sealed class RoleCatalogTests
         Assert.Equal("實習小組長", displayName!.Invoke(null, new object[] { roleCode, context, catalog }));
     }
 
+    /// <summary>系統原文介面只讀固定產品資源，不得被同 scope 的教會覆寫污染。</summary>
+    [Fact]
+    public void SystemTextCatalog_ReturnsOriginalDespiteChurchOverride()
+    {
+        var context = new TextContext(Guid.Parse("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"),
+            "zh-TW", "zh-TW", "SyntheticOrg", "ChurchReport");
+        var row = new ChurchTextOverride(Guid.Parse("bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb"),
+            context.ChurchId, new TextKey("Role.Member"), "zh-TW", "教會自訂顯示");
+        var catalog = new GoodShepherdTextCatalog(
+            new SnapshotProvider(new ChurchTextOverrideSnapshot(context, new[] { row })));
+        Assert.IsAssignableFrom<ISystemTextCatalog>(catalog);
+        Assert.Equal("小組組員", catalog.GetText("zh-TW", new TextKey("Role.Member")));
+        Assert.Equal("教會自訂顯示", catalog.GetText(context, new TextKey("Role.Member")));
+    }
+
     /// <summary>同一 option value 在教會改名後仍解析成同一代碼，角色身分不得由顯示文字決定。</summary>
     [Fact]
     public void RolePermission_IndependentOfDisplayName()

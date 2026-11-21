@@ -20,9 +20,27 @@ namespace SpeechMessageProducts.GoodShepherd.Core.Settings;
 /// <summary>覆寫 upsert 的純值投影，替代索引鍵固定為教會、穩定鍵與語系。</summary>
 public sealed record ChurchTextOverrideWrite(Guid ChurchId, string Key, string Culture, string Text);
 
-/// <summary>最近一次設定修改的有限純值稽核列，不含 SDK、request 或登入工作階段參考。</summary>
-public sealed record ChurchSettingsAuditRecord(Guid Id, Guid ChurchId, DateTime ChangedOnUtc,
-    string Field, string Before, string After, string ActorDisplayName);
+/// <summary>
+/// 最近一次設定修改的有限純值稽核列；Id 是 Audit＋欄位組成的穩定列身分，
+/// TargetRecordId 指向被修改的正式資料列，且不含 SDK、request 或登入工作階段參考。
+/// </summary>
+/// <param name="Id">同一 Audit 修改多欄時仍唯一且可重讀的顯示列身分。</param>
+/// <param name="ChurchId">伺服器已授權的教會範圍。</param>
+/// <param name="TargetRecordId">Dataverse audit objectid 指向的被修改資料列正式 ID。</param>
+/// <param name="ChangedOnUtc">來源 audit 建立時間，必須為 UTC。</param>
+/// <param name="Field">允許顯示的欄位名稱。</param>
+/// <param name="Before">受長度限制且已投影的舊純值。</param>
+/// <param name="After">受長度限制且已投影的新純值。</param>
+/// <param name="ActorDisplayName">僅限 D365 顯示名稱，找不到時為空字串。</param>
+public sealed record ChurchSettingsAuditRecord(
+    Guid Id,
+    Guid ChurchId,
+    Guid TargetRecordId,
+    DateTime ChangedOnUtc,
+    string Field,
+    string Before,
+    string After,
+    string ActorDisplayName);
 
 /// <summary>提供本次服務操作所需的 UTC 時刻；實作不得回傳 local 或 unspecified 時間。</summary>
 public interface IChurchSettingsClock

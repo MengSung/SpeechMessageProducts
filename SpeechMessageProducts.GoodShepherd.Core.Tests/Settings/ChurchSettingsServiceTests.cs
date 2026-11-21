@@ -191,7 +191,8 @@ public sealed class ChurchSettingsServiceTests
         var store = new SettingsStore
         {
             AuditRows = Enumerable.Range(0, 250).Select(index =>
-                new ChurchSettingsAuditRecord(GuidFrom(index + 1), ChurchId, DateTime.UtcNow.AddMinutes(-index),
+                new ChurchSettingsAuditRecord(GuidFrom(index + 1), ChurchId, GuidFrom(index + 1000),
+                    DateTime.UtcNow.AddMinutes(-index),
                     "new_name", "舊名", "新名", "管理員")).ToArray()
         };
         var service = CreateService(store, new CacheInvalidator());

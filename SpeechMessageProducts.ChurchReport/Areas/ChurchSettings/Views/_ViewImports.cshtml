@@ -1,0 +1,12 @@
+@*
+檔案整體說明
+
+目的與定位：提供 ChurchSettings Area 檢視共用的型別命名空間，避免各頁重複完整型別名稱。
+主要功能與流程：ASP.NET Core Razor 編譯時匯入教會設定頁面模型、奉獻類別與核心稽核純值；
+本檔不輸出 HTML，也不執行資料存取、授權或本地化。
+使用邊界與維護：匯入僅影響同 Area 檢視的編譯名稱解析，不擴張型別可見性或伺服器權限。
+修改後以 ChurchReport Release 建置、Area 頁面契約測試及檔案文件／CRLF 檢查驗證。
+*@
+@using ChurchReport.Areas.ChurchSettings
+@using SpeechMessageProducts.GoodShepherd.Core.Offerings
+@using SpeechMessageProducts.GoodShepherd.Core.Settings

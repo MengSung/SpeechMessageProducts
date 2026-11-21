@@ -17,6 +17,8 @@
  * 本檔的前置條件、錯誤及資源責任以各型別／成員契約為準；此導讀不把呼叫參數視為授權，也不擴張被借入依賴的所有權。
  * 文字 catalog、空 provider 或覆寫 cache 均為 Host singleton；啟用時須維持唯一 source/cache owner，
  * 並讓 Host 停止流程先排空輪詢，再由 DI 反向釋放 cache 與原有連線 manager。
+ * ChurchSettings 的授權、store 與設定服務則為 request scope；每個 action 重新查核 contact，
+ * 不沿用導覽或 Session 的授權結果。
  * 變更介面、資料格式、取消或清理順序時，須一併核對下列合作檔案及對應測試，不能只改目前檔案。
  */
 using ChurchReport.Services;
@@ -567,6 +569,7 @@ namespace ChurchReport
             // 固定產品容器只註冊一次；Tenancy 借用 host 的設定與 logger，不擁有 request 或設定 provider。
             global::SpeechMessage.Tenancy.TenancyServiceCollectionExtensions.AddSpeechMessageTenancy(services, "ChurchReport");
             ChurchTextOverrideRegistration.AddChurchReportChurchTextOverrides(services, Configuration);
+            ChurchReport.Areas.ChurchSettings.ChurchSettingsRegistration.AddChurchSettings(services, Configuration);
             services.AddLineMessagingProcessor(options =>
             {
                 // 保留原 default-null→環境政策；明確空 default 不得冒用另一環境憑證。
