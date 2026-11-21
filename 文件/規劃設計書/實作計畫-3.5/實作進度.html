@@ -240,11 +240,11 @@ footer{margin-top:36px;color:var(--muted);font-size:12.5px;text-align:center}
  */
 const DATA = {
   "planVersion": "3.5",
-  "snapshot": "2026-11-21 08:40 Asia/Taipei (UTC+08:00)",
-  "lastUpdated": "2026-11-21T08:40:36+08:00",
+  "snapshot": "2026-11-21 11:14 Asia/Taipei (UTC+08:00)",
+  "lastUpdated": "2026-11-21T11:14:00+08:00",
   "branch": "1.0.0.11.Integration.P8.Worktree",
-  "head": "b648dd77f182549a80523aaf0d3ddba619271a47",
-  "headline": "階段 8 2026-11-21 08:40 Asia/Taipei (UTC+08:00)：P8-03b 完成完整守門並驗收，收尾 SHA 已推送核對；P8-03 總包已完成，整體 82／84 包完成，階段 8 尚未完成。",
+  "head": "c8d088fe11c9b45565dd0e149f98b8b2e04ed480",
+  "headline": "階段 8 2026-11-21 11:14 Asia/Taipei (UTC+08:00)：P8-03 驗收後修正已測試及完整守門；推送因分支含未驗收 L1 祖先而暫緩。P8-03 維持完成，整體 82／84 包完成，接續遺留 L1。",
   "notices": [
     {
       "id": "plan-3.5-summary",
@@ -702,8 +702,8 @@ const DATA = {
       "phaseId": "階段 8",
       "level": "info",
       "title": "P8 進度摘要",
-      "body": "2026-11-21 00:16 Asia/Taipei (UTC+08:00)：P8-01a、P8-01b、P8-01c、P8-02 與 P8-03a 已驗收。P8-03a 的 18 個指定測試、全方案 Release 測試、Debug tracer、編碼、重複程式、I18nCheck、文件說明及進度頁守門全通過；未連 D365／LINE。P8-01c 依 D8-6 已完成 goodshepherdback 遷移、指定 P8Live 1/1，結尾 off／verify=0／殘留0。五組 fee／booking 標籤差異列於 P8-PROP-003；新版 ChurchReport 部署前仍須逐一完成正式組織類別轉換與 lookup 回填。接續 P8-03b；階段8尚未完成。",
-      "lastUpdated": "2026-11-21T00:16:00+08:00",
+      "body": "2026-11-21 11:14 Asia/Taipei (UTC+08:00)：P8-01、P8-02、P8-03 均維持已驗收；P8-03 驗收後修正 c8d088fe 的 Area Razor 發佈、Terms 冷快取預覽及 Area view discovery 三項測試先紅後綠，ChurchReport Release 693/693，唯一 guard-p8 完整 §8.1 通過。推送暫緩，因分支含尚未驗收的 L1 祖先 c819da1e；遠端 SHA 仍為 10cd19a6，接續 L1。P8-01c 依 D8-6 已完成 goodshepherdback 遷移、指定 P8Live 1/1，結尾 off／verify=0／殘留0；正式組織部署新版 ChurchReport 前仍須完成類別轉換與 lookup 回填。階段 8 尚未完成。",
+      "lastUpdated": "2026-11-21T11:14:00+08:00",
       "steps": [
         "2026-11-19 20:01 Asia/Taipei (UTC+08:00)：起點與分支核對為 6a37f16ba111943eb023c14dea3c9a006a0f0a5c、1.0.0.11.Integration.P8.Worktree；P8 分支遠端尚不存在，依 08A 首次推送延至 P8-01a 驗收後。",
         "2026-11-19 20:01 Asia/Taipei (UTC+08:00)：P7 最末完整守門基準 Release 7341、Debug tracer 7；Deployment.Tests 977 僅為候選檢查點；註冊清冊 live 12／pass 1／dormant 21；CJK 專案 count 合計 3764。",
@@ -723,7 +723,8 @@ const DATA = {
         "2026-11-20 16:39 Asia/Taipei (UTC+08:00)：依使用者更正重做 P8-02 對照回報；固定順序回到 P8-01c，先前 15:52 縮減驗收不作本次完成依據。P8-03a 已建 Trellis 子任務並有紅燈測試草稿，待 P8-01 整包驗收後續行。",
         "2026-11-20 18:42 Asia/Taipei (UTC+08:00)：build 20 兩個 assembly plan 各僅 UpdateAssembly，apply 後 verify 符合 off；lookup schema plan additions=0、verify 無差異，keys Active。新 ID-only 備份97筆，SHA-256 8F940F3EEB6C08B67677A3D6F78167FBC50D0BBE33C2ED50E9FFB7A059F99758；RequiredLevel兩欄None。五組共用 option value labels 不同，migration plan/verify fail closed，未寫奉獻資料、未執行指定 P8Live；結尾 off verify 成功，舊步驟／流程0/0，最近完整殘留盤點仍為0。P8-01c及整包依D8-26縮減驗收，決策與部署前置見P8-decisions.md、P8-01c-migration.md及P8-上線前置清單.md。下一單元P8-03a。此縮減驗收結論已被 2026-11-20 20:15 更正，P8-01c 改依 D8-6 完成全部必做與 P8Live 後驗收。原始證據僅存 C:\\smv\\guard-p8-evidence。",
         "2026-11-20 21:46 Asia/Taipei (UTC+08:00)：P8-01c 的 goodshepherdback 遷移、冪等檢查、P8Live 及 off／verify=0／殘留0全部通過；程式提交4000b3f8唯一guard-p8完整§8.1全通過。首次守門一次 QR 解碼失敗已保留原始紀錄；同案100次單測與整體Release測試重跑全通過，未修改或放寬測試。回報P8-01c-migration.md；報告／DATA收尾提交待推送並核對遠端SHA，下一單元P8-03a。證據只存C:\\smv\\guard-p8-evidence。",
-        "2026-11-21 00:08 Asia/Taipei (UTC+08:00)：P8-03a 的 18 個指定測試同名存在並通過；Core net10.0／net48 各 411、ChurchReport 671、LineWebhook 130。程式提交 `9850d0ab` 與 `27cd4eb6` 的唯一 guard-p8 完整 §8.1 通過：42 專案 Release 建置 0 錯誤、全方案測試 0 失敗、Debug tracer 7/7、Changed 編碼 170 檔零問題、重複程式 groups/new/stale 皆 0、I18nCheck、檔案說明 1,866 檔零失敗、進度頁 28/28。證據 `C:\\smv\\guard-p8-evidence\\guard-27cd4eb6-full.log`；全程離線，未連 D365／LINE。報告 `P8-03a-教會覆寫接線與設定服務.md`；下一單元 P8-03b。"
+        "2026-11-21 00:08 Asia/Taipei (UTC+08:00)：P8-03a 的 18 個指定測試同名存在並通過；Core net10.0／net48 各 411、ChurchReport 671、LineWebhook 130。程式提交 `9850d0ab` 與 `27cd4eb6` 的唯一 guard-p8 完整 §8.1 通過：42 專案 Release 建置 0 錯誤、全方案測試 0 失敗、Debug tracer 7/7、Changed 編碼 170 檔零問題、重複程式 groups/new/stale 皆 0、I18nCheck、檔案說明 1,866 檔零失敗、進度頁 28/28。證據 `C:\\smv\\guard-p8-evidence\\guard-27cd4eb6-full.log`；全程離線，未連 D365／LINE。報告 `P8-03a-教會覆寫接線與設定服務.md`；下一單元 P8-03b。",
+        "2026-11-21 11:14 Asia/Taipei (UTC+08:00)：P8-03 驗收後修正提交 c8d088fe；Area Razor 發佈、Terms 冷快取與 Area view discovery 三測先紅後綠，ChurchReport Release 693/693、R2 Debug／Release 各 2/2；唯一 guard-p8 完整 §8.1 結束碼 0。推送會連帶發布未驗收 L1 祖先 c819da1e，故按執行清單 §5 暫緩，遠端仍為 10cd19a6；接續 L1。"
       ]
     }
   ],
@@ -1892,8 +1893,8 @@ const DATA = {
       "live": "無",
       "timebox": "1 天",
       "doneAt": "2026-11-21 08:36 Asia/Taipei (UTC+08:00)",
-      "commit": "b648dd77",
-      "note": "2026-11-21 08:40 Asia/Taipei (UTC+08:00)：P8-03a、P8-03b 均驗收，P8-03 總包 done。P8-03b 12 個指定／新增測試通過；唯一 guard-p8 完整 §8.1 全通過，程式提交 `b648dd77`；收尾提交 `b64902d7` 推送並核對遠端 SHA；報告 `wp-reports/P8-03b-教會設定網頁.md`。全程離線。"
+      "commit": "c8d088fe11c9b45565dd0e149f98b8b2e04ed480",
+      "note": "2026-11-21 11:14 Asia/Taipei (UTC+08:00)：P8-03a、P8-03b 原驗收及獨立驗收後修正均完成。原程式提交 `b648dd77`、收尾 `b64902d7` 已推送核對；事後修正 `c8d088fe` 三測先紅後綠、ChurchReport Release 693/693、R2 Debug／Release 各 2/2、唯一 guard-p8 完整 §8.1 通過。推送修正暫緩，分支含未驗收 L1 祖先 `c819da1e`；遠端仍為 `10cd19a6`。報告 `wp-reports/P8-03b-教會設定網頁.md`。本次修正全程離線。"
     },
     {
       "id": "P8-04",
