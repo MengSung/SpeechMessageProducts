@@ -3,7 +3,7 @@
 
 目的與定位：保護P5-13舊專案去向清冊與受版控程式的退役通知端點邊界；測試只讀目前工作樹，不載入舊DLL、不建立D365或LINE連線，不將來源移植誤稱實機相容。
 
-主要功能與流程：獨立列出核定36個專案，核對清冊完整唯一、指定不移植理由、共用程式庫目的及雙向註冊legacy對照。以Git取得受版控程式檔，檢查退役Notify主機；合成惡例驗證偵測器確實能攔截端點。
+主要功能與流程：獨立列出核定36個專案，核對清冊完整唯一、指定不移植理由、共用程式庫目的及雙向註冊legacy對照。以Git取得受版控程式檔，另取得工作樹明確刪除清單；只略過Git確認已刪除的路徑，其他缺檔仍失敗，存在的來源照常檢查退役Notify主機；合成惡例驗證偵測器確實能攔截端點。
 
 使用邊界與維護：每案JsonDocument由using釋放，候選屬單次測試，沒有共用可變狀態、秘密或快取。Git子程序由本案唯一擁有，30秒取消時Kill整個樹並等待退出；雙管線同時讀取後排空、最後Dispose，不遺留背景工作。錯誤只回固定分類或相對路徑，不回顯來源本文；不掃父工作樹。新增去向必須有真實承接證據，不能捏造舊註冊。
 */
@@ -103,7 +103,7 @@ public sealed class LegacyDispositionTests
         }
     }
 
-    /// <summary>版控程式禁止退役端點；合成惡例須能偵測，Git失敗不能當零命中。</summary>
+    /// <summary>版控程式禁止退役端點；合成惡例須能偵測，Git失敗不能當零命中，且僅可略過Git確認已刪除的檔案。</summary>
     [Fact]
     public async Task Source_NoLineNotifyEndpoint()
     {
@@ -139,14 +139,50 @@ public sealed class LegacyDispositionTests
         var extensions = new HashSet<string>(".cs|.cshtml|.js|.ts|.ps1|.py|.cjs|.mjs|.jsx|.tsx|.razor|.html|.htm|.vb|.fs|.fsi|.sh|.bat|.cmd|.php|.java|.go|.cpp|.h|.sql|.css|.vue|.svelte".Split('|'), StringComparer.OrdinalIgnoreCase);
         var files = (await output).Split('\0', StringSplitOptions.RemoveEmptyEntries)
             .Where(x => extensions.Contains(Path.GetExtension(x))).ToArray();
+        var deleted = await GetGitDeletedPathsAsync(root);
         Assert.True(files.Length > 100);
         foreach (var relative in files)
         {
             var path = Path.GetFullPath(Path.Combine(root, relative));
             Assert.StartsWith(root + Path.DirectorySeparatorChar, path, StringComparison.OrdinalIgnoreCase);
-            Assert.True(File.Exists(path), "Tracked source missing: " + relative);
+            if (!File.Exists(path))
+            {
+                Assert.Contains(relative, deleted);
+                continue;
+            }
+
             Assert.False(pattern.IsMatch(File.ReadAllText(path)), "Retired notification endpoint: " + relative);
         }
+    }
+
+    /// <summary>取得Git明確辨識的工作樹刪除路徑；程序失敗時測試不得把缺檔當成安全略過。</summary>
+    private static async Task<HashSet<string>> GetGitDeletedPathsAsync(string root)
+    {
+        using var process = new Process
+        {
+            StartInfo = new ProcessStartInfo("git")
+            {
+                WorkingDirectory = root, UseShellExecute = false, CreateNoWindow = true,
+                RedirectStandardOutput = true, RedirectStandardError = true,
+                StandardOutputEncoding = System.Text.Encoding.UTF8, StandardErrorEncoding = System.Text.Encoding.UTF8,
+            },
+        };
+        process.StartInfo.ArgumentList.Add("ls-files");
+        process.StartInfo.ArgumentList.Add("--deleted");
+        process.StartInfo.ArgumentList.Add("-z");
+        Assert.True(process.Start());
+        var output = process.StandardOutput.ReadToEndAsync();
+        var error = process.StandardError.ReadToEndAsync();
+        using var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(30));
+        try { await process.WaitForExitAsync(timeout.Token); }
+        finally
+        {
+            if (!process.HasExited) process.Kill(entireProcessTree: true);
+            await process.WaitForExitAsync(CancellationToken.None);
+            await Task.WhenAll(output, error);
+        }
+        Assert.Equal(0, process.ExitCode);
+        return (await output).Split('\0', StringSplitOptions.RemoveEmptyEntries).ToHashSet(StringComparer.Ordinal);
     }
 
     /// <summary>以新JsonDocument借用單次清冊內容，呼叫案負責using釋放。</summary>

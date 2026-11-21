@@ -43,8 +43,8 @@ public sealed class ActivityInputContractReaderTests
         contract = contract with { PublicKeyToken = "0123456789abcdef" };
         using var validRequiredOnly = JsonDocument.Parse("""{"InputParameter":"value"}""");
         using var validWithOptional = JsonDocument.Parse("""{"InputParameter":"value","Count":2,"ExecutionMode":"Live"}""");
-        WorkflowTemplateBuilder.ValidateInputs(contract, Inputs(validRequiredOnly.RootElement));
-        WorkflowTemplateBuilder.ValidateInputs(contract, Inputs(validWithOptional.RootElement));
+        ActivityInputContractValidator.ValidateInputs(contract, Inputs(validRequiredOnly.RootElement));
+        ActivityInputContractValidator.ValidateInputs(contract, Inputs(validWithOptional.RootElement));
         using var exclusive = new FileStream(fixture.Path, FileMode.Open, FileAccess.ReadWrite, FileShare.None);
         Assert.True(exclusive.Length > 0);
         VerifyPackagedActivityContractsWhenRequested();
@@ -63,11 +63,11 @@ public sealed class ActivityInputContractReaderTests
         using var mistyped = JsonDocument.Parse("""{"InputParameter":42}""");
 
         Assert.Throws<InvalidDataException>(() =>
-            WorkflowTemplateBuilder.ValidateInputs(contract, Inputs(unknown.RootElement)));
+            ActivityInputContractValidator.ValidateInputs(contract, Inputs(unknown.RootElement)));
         Assert.Throws<InvalidDataException>(() =>
-            WorkflowTemplateBuilder.ValidateInputs(contract, Inputs(missingRequired.RootElement)));
+            ActivityInputContractValidator.ValidateInputs(contract, Inputs(missingRequired.RootElement)));
         Assert.Throws<InvalidDataException>(() =>
-            WorkflowTemplateBuilder.ValidateInputs(contract, Inputs(mistyped.RootElement)));
+            ActivityInputContractValidator.ValidateInputs(contract, Inputs(mistyped.RootElement)));
     }
 
     /// <summary>只接受固定新版 Workflows 組件身份與完整強式名稱 token，避免產生弱名稱活動參照。</summary>
@@ -83,13 +83,13 @@ public sealed class ActivityInputContractReaderTests
             inputs);
 
         Assert.Throws<InvalidDataException>(() =>
-            WorkflowTemplateBuilder.ValidateInputs(contract, new Dictionary<string, JsonElement>(StringComparer.Ordinal)));
+            ActivityInputContractValidator.ValidateInputs(contract, new Dictionary<string, JsonElement>(StringComparer.Ordinal)));
 
         var signedContract = contract with { PublicKeyToken = "0123456789abcdef" };
         Assert.Equal(
             "SpeechMessage.Dynamics.Workflows.QrCodes.MeetingScanCountActivity, SpeechMessage.Dynamics.Workflows, Version=1.0.0.0, Culture=neutral, PublicKeyToken=0123456789abcdef",
-            WorkflowTemplateBuilder.AssemblyQualifiedActivityName(signedContract));
-        WorkflowTemplateBuilder.ValidateInputs(
+            ActivityInputContractValidator.AssemblyQualifiedActivityName(signedContract));
+        ActivityInputContractValidator.ValidateInputs(
             signedContract,
             new Dictionary<string, JsonElement>(StringComparer.Ordinal));
     }
@@ -251,7 +251,7 @@ public sealed class ActivityInputContractReaderTests
 
                 var contract = ActivityInputContractReader.Read(
                     artifactPath, "SpeechMessage.Dynamics.Workflows", matches[0]);
-                WorkflowTemplateBuilder.ValidateInputs(contract, Inputs(inputElement));
+                ActivityInputContractValidator.ValidateInputs(contract, Inputs(inputElement));
                 matchedActivities.Add(matches[0]);
                 matchedScenarioCount++;
                 output.WriteLine($"{matches[0]}|scenario={scenario.GetProperty("name").GetString()}|inputContract=pass");
