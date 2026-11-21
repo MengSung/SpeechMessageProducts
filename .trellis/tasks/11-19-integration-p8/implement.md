@@ -27,7 +27,7 @@
 - [x] P8-03b 教會設定網頁（2026-11-21；程式提交 `b648dd77`；唯一 `C:\smv\guard-p8` 完整 §8.1 守門全通過；收尾提交 `b64902d71941f668f825d37c63a43beb1b6d12ea` 已推送並以 `git ls-remote` 核對；報告 `wp-reports/P8-03b-教會設定網頁.md`）
 - [x] P8-03 驗收後修正（2026-11-21 11:14 Asia/Taipei (UTC+08:00)；`c8d088fe11c9b45565dd0e149f98b8b2e04ed480` 修正 Area Razor 發佈、Terms 冷快取及 Area view discovery；三項先紅後綠、ChurchReport Release 693/693、R2 Debug／Release 各 2/2；唯一 guard-p8 完整 §8.1 結束碼 0，證據 `C:\smv\guard-p8-evidence\guard-c8d088fe-full.log`。報告已追加事後修正段。11:14 暫緩推送的決定已被 2026-11-21 11:39 Asia/Taipei (UTC+08:00) 依使用者最新指示更正；修正與推送核對紀錄已分別提交，11:39 遠端 SHA `6f68c68c062486b513ca2426731326c7bf0bdc4a` 後續於 2026-11-21 12:18 Asia/Taipei (UTC+08:00) 被重核 SHA `4ed8a87236ee79ed9896845b527acc64ae18832d` 更正為目前本機／遠端一致值。守門清理事故另記 P8-decisions。）
 - [x] 遺留 L1 原因補齊與唯讀調查（2026-11-21 20:48 Asia/Taipei (UTC+08:00)：依使用者核定 08A 修訂 1「已驗收（縮減）」。程式成果沿用 `c819da1e`；Relay 測試實際在 LineWebhook.Tests 且僅覆蓋 formatter、六項先紅原始輸出未找到；R7 目前證據不足、R9 去向無法確認、church-defaults 目前證據不足，均列上線前作業，不宣稱技術通過。L1 原提交早於 P8-03 fix，且 L2 提交 `88f806bc` 先於本結案紀錄，歷史順序偏差保留揭露。Trellis archive 自動建立非 `P8-L1` 提交 `35680dd9`，本機未推送，未改寫；後續以 `P8-L1` 提交本結案紀錄。詳見 `wp-reports/P8-L1-狀態與證據.md`。）
-- [ ] 遺留 L2 Workflow 流程樣板工具（2026-11-21 20:24 Asia/Taipei (UTC+08:00)：進行中、未驗收。全情境樹遞迴掃描回歸先紅後綠；`WorkflowTemplate` 篩選 6/6、Deployment Release 1,059/1,059。完整 P7 情境樹六案映射，AppointmentSigningActivity Workflow 情境仍缺。20:25 唯讀 shape 摘要為唯一候選20、輸入 record-field 11、已辨識 fixed-value 0、雙繫結0；診斷不是 golden。十項指定測試仍三案同名、七案缺失；XAML 產生／probe lifecycle／PREP-09／10、實機與安全完整 guard 未完成；20:15 最新 verify exit 1、僅 UpdateAssembly，不宣稱 `off`／`verify=0`。詳見 L2 回報與 P8-decisions。）
+- [x] 遺留 L2 離線活動輸入契約與身份檢核（2026-11-21 22:32 Asia/Taipei (UTC+08:00) 完成證據核對；21:34 僅為修訂 1 範圍核定時間，已於 22:37 更正。依核定範圍縮減結案：保留可編譯、有測試且全方案 Release 通過的 PE input contract、shape projector、strong-name／輸入驗證及相關 CLI／測試；單元 Release 7,535/7,535，完整守門 checkout `477c8136147d7168ebc8faf869a8e1761004db93` 的 23 個測試目標 7,542/7,542、Debug tracer 7/7、ProgressPage 28/28、文件說明 1,891 檔零失敗。證據 `C:\smv\guard-p8-evidence\guard-477c8136-full.log`、`guard-477c8136-full-output.log`。真實 XAML golden、builder、完整十案、PREP-09／10、新流程 lifecycle、Appointment 情境及 goodshepherdback 實機移至好牧人 9.1 上線前作業；七活動維持 dormant，LiveActivityProbe 與 registration tier/evidence 不變。最新可核證 verify 為 20:15 exit 1、僅 UpdateAssembly，不宣稱 `off`／`verify=0`。細節見 `wp-reports/P8-L2-workflow-template.md`。）
 - [ ] 遺留 L3 Live 補驗與分級定案
 - [ ] P8-04a 偽語系稽核工具與網頁修正
 - [ ] P8-04b 假語系驗收腳本、教會自訂及 A/B 隔離
@@ -51,6 +51,8 @@
 2026-11-21 19:50 Asia/Taipei (UTC+08:00)：全 P7 情境樹遞迴掃描測試先紅後綠；完整樹確認六個核定案例及 Appointment Workflow 案例缺失，未新增情境；WorkflowTemplate 篩選6/6、Deployment Release 1,059/1,059。舊投影有 OutArgument 誤分類，不升格 golden；L2 維持未驗收，詳見一頁回報與 P8-decisions。
 
 2026-11-21 19:05 Asia/Taipei (UTC+08:00)：遺留 L2 續跑完整 Deployment Release 通過 1,057/1,057；ProgressPage 28/28、檔案說明 1,890 檔零失敗、`git diff --check` exit 0，並逐 byte 核對 18 份自有變更檔。證據雜湊及逐項缺口見 `wp-reports/P8-L2-workflow-template.md`。08A 十案缺八案、沒有合格 golden、builder 未輸出 XAML、probe lifecycle／七活動完整 inputs／實機／`off`／`verify=0`／零殘留與安全完整 guard 未完成；L2 維持 active、未驗收，依 D8-26 繼續，不把局部綠燈當驗收。
+
+2026-11-21 21:34 Asia/Taipei (UTC+08:00)：上述 L2 未驗收狀態已依 08A 修訂 1 的核定範圍改為預定縮減結案；原時間戳不代表當時已完成測試或守門。此結論已於 2026-11-21 22:37 Asia/Taipei (UTC+08:00) 更正：21:50 全方案 Release 為 7,535/7,535；22:21 完整守門通過，22:32 保存的同 SHA 逐命令輸出為 7,542/7,542。XAML golden／builder、完整十案、PREP-09／10、新 probe lifecycle、七活動完整情境及實機明確列入好牧人 9.1 上線前作業；七活動維持 dormant，LiveActivityProbe 與 registration tier/evidence 不變。最新可核證 verify 仍為 20:15 exit 1、唯一 UpdateAssembly，不宣稱 off／verify=0。完整證據見 `wp-reports/P8-L2-workflow-template.md`。
 
 ## 終止條件
 

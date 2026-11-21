@@ -240,11 +240,11 @@ footer{margin-top:36px;color:var(--muted);font-size:12.5px;text-align:center}
  */
 const DATA = {
   "planVersion": "3.5",
-  "snapshot": "2026-11-21 20:48 Asia/Taipei (UTC+08:00)",
-  "lastUpdated": "2026-11-21T20:48:00+08:00",
+  "snapshot": "2026-11-21 22:45 Asia/Taipei (UTC+08:00)",
+  "lastUpdated": "2026-11-21T22:45:00+08:00",
   "branch": "1.0.0.11.Integration.P8.Worktree",
   "head": "d998baea",
-  "headline": "階段 8 2026-11-21 20:48 Asia/Taipei (UTC+08:00)：L1 依修訂 1 已驗收（縮減）；未解調查與證據缺口明列為上線前作業，階段仍進行中。",
+  "headline": "階段 8 2026-11-21 22:45 Asia/Taipei (UTC+08:00)：L1、L2 依修訂 1 縮減結案；L2 全方案 Release 7,535/7,535、完整守門 7,542/7,542 通過，紀錄檢查 28/28；XAML 樣板與實機列上線前作業。",
   "notices": [
     {
       "id": "plan-3.5-summary",
@@ -702,9 +702,11 @@ const DATA = {
       "phaseId": "階段 8",
       "level": "info",
       "title": "P8 進度摘要",
-      "body": "2026-11-21 20:48 Asia/Taipei (UTC+08:00)：階段 8 依修訂 1 執行；L1 已驗收（縮減），原因碼程式保留，Relay 專案／行為差異、紅燈證據缺口與 R7／R9／church-defaults 調查不確定性均列上線前作業，不標為技術通過。三大產品共用基礎的隔離、授權、API／SDK、Webhook、代送、生命週期與相容性驗收不縮減；L2 離線部分收斂中，P8-04a、P8-04b、P8-05、最終守門、ClaudeOnly 與回報仍待完成，階段尚未結案。",
-      "lastUpdated": "2026-11-21T20:48:00+08:00",
+      "body": "2026-11-21 22:45 Asia/Taipei (UTC+08:00)：階段 8 依修訂 1 執行；L1、L2 均依核定範圍縮減結案，L1 原因碼成果保留，Relay 專案／行為差異、紅燈證據缺口與 R7／R9／church-defaults 不確定性仍列上線前作業；L2 離線 PE input contract、shape projector、strong-name／輸入驗證及 CLI／測試全方案 Release 7,535/7,535，完整 §8.1 守門 23 個目標 7,542/7,542 通過，紀錄同步後 ProgressPage 測試 28/28 通過。21:34 僅為範圍核定時間，已於 22:37 更正；Workflow XAML builder、完整十案、probe lifecycle、Appointment 情境及實機移至好牧人 9.1 上線前作業，七活動維持 dormant。三大產品共用基礎的隔離、授權、API／SDK、Webhook、代送、生命週期與相容性驗收不縮減；L3、P8-04a、P8-04b、P8-05、最終守門、ClaudeOnly 與終點回報仍待完成，階段尚未結案。",
+      "lastUpdated": "2026-11-21T22:45:00+08:00",
       "steps": [
+        "2026-11-21 22:37 Asia/Taipei (UTC+08:00)：更正 L2 時間記錄：21:34 是範圍核定而非完成；21:50 全方案 Release 7,535/7,535，22:21 完整 §8.1 守門通過，22:32 保存逐命令輸出 7,542/7,542、Debug tracer 7/7、ProgressPage 28/28、文件說明 1,891 檔零失敗。守門證據見 `C:\\smv\\guard-p8-evidence\\guard-477c8136-full.log` 與 `guard-477c8136-full-output.log`；L2 回報已同步更正。",
+        "2026-11-21 21:34 Asia/Taipei (UTC+08:00)：此時間是依修訂 1 核定 L2 縮減範圍，不是測試／守門完成時間；原結案時間表述已於 2026-11-21 22:37 Asia/Taipei (UTC+08:00) 更正。",
         "2026-11-21 20:48 Asia/Taipei (UTC+08:00)：L1 依使用者核定修訂 1 已驗收（縮減）；原因碼程式為 c819da1e。Relay 測試專案／行為不符、六項先紅輸出缺失及 R7／R9／church-defaults 調查不確定性均明列為上線前作業。L1 原提交早於 P8-03 fix，且 L2 提交 88f806bc 先於本次 L1 結案紀錄；保留此順序偏差，不改寫歷史。完整證據見 wp-reports/P8-L1-狀態與證據.md。",
         "2026-11-19 20:01 Asia/Taipei (UTC+08:00)：起點與分支核對為 6a37f16ba111943eb023c14dea3c9a006a0f0a5c、1.0.0.11.Integration.P8.Worktree；P8 分支遠端尚不存在，依 08A 首次推送延至 P8-01a 驗收後。",
         "2026-11-19 20:01 Asia/Taipei (UTC+08:00)：P7 最末完整守門基準 Release 7341、Debug tracer 7；Deployment.Tests 977 僅為候選檢查點；註冊清冊 live 12／pass 1／dormant 21；CJK 專案 count 合計 3764。",
@@ -1990,8 +1992,8 @@ const DATA = {
       "id": "遺留 L2",
       "phaseId": "階段 8",
       "name": "遺留 L2 Workflow 流程樣板工具",
-      "status": "active",
-      "note": "2026-11-21 20:24 Asia/Taipei (UTC+08:00)：L2進行中、未驗收；全 P7 情境樹掃描回歸先紅後綠，WorkflowTemplate篩選6/6，完整Deployment Release 1,059/1,059。十項指定案例目前三案同名、七案缺失；build 22六個既有情境契約通過，AppointmentSigningActivity缺核定Workflow情境而未驗證。20:25唯讀shape摘要候選20、record-field 11、已辨識fixed-value 0、雙繫結0；診斷不是golden。新XAML與probe lifecycle、實機及殘留清理均未完成。最新可核證verify為20:15 exit 1、僅UpdateAssembly；未 apply，不宣稱`off`／`verify=0`。安全完整守門未驗證；詳見 `wp-reports/P8-L2-workflow-template.md`。"
+      "status": "done",
+      "note": "2026-11-21 22:37 Asia/Taipei (UTC+08:00)：依 08A 修訂 1 縮減結案；21:34 為範圍核定時間。離線 PE input contract、shape projector、strong-name／輸入驗證及 CLI／測試全方案 Release 7,535/7,535；完整 §8.1 守門 23 個目標 7,542/7,542 通過。真實 golden、XAML builder、完整十案、PREP-09／10、新流程 lifecycle、Appointment 情境及實機明列好牧人 9.1 上線前作業；七活動維持 dormant，LiveActivityProbe 與 registration tier/evidence 未改。最新 verify 20:15 exit 1、唯一 UpdateAssembly，不宣稱 `off`／`verify=0`。詳見 `wp-reports/P8-L2-workflow-template.md`。"
     },
     {
       "id": "遺留 L3",
@@ -2843,9 +2845,9 @@ const DATA = {
       "id": "P7-PROP-007",
       "problem": "2026-11-19 13:08 Asia/Taipei (UTC+08:00)：Live測試工具尚未支援Workflow活動樣板建立及XAML參數繫結驗證；本次七個活動為使用者特別核定例外。",
       "evidence": "本輪LIVE-PREP-09離線原因碼路徑與使用者核定紀錄；活動tier與空白Live evidence見plugins.registration.json。",
-      "proposal": "活動（Workflow）的 Live 測試工具需支援流程樣板建立（LIVE-PREP-09）。使用者確認未來產品會沿用 Workflow，列為後續階段必做項目；完成後補驗 7 個 dormant 活動。",
-      "impact": "後續階段必做；完成後補驗ContactAnniversaryActivity、LessonQrCodeActivity、AppointmentSigningActivity、MeetingQrCodeActivity、MeetingScanCountActivity、PersonalQrCodeActivity、FeeAllotActivity。",
-      "status": "2026-11-19 20:01 Asia/Taipei (UTC+08:00)：階段 8 遺留 L2 執行；工具支援 Workflow 樣板並依結果補驗七個 dormant 活動。2026-11-21 17:11 Asia/Taipei (UTC+08:00)：L2 仍未驗收；六個既有情境 inputs 通過 build 22 契約單項，Appointment 情境與 XAML golden／probe lifecycle／實機仍缺。2026-11-21 17:35 Asia/Taipei (UTC+08:00)：另確認 AppointmentSigningActivity 必要 EntityReference 輸入目前無情境且 builder 不支援；不猜測補值，L2 繼續未驗收。2026-11-21 18:42 Asia/Taipei (UTC+08:00)：巢狀 InArgument Value 分類先紅後綠，唯讀 shape 仍沒有 fixed-value／雙繫結 golden；L2 維持未驗收。2026-11-21 19:05 Asia/Taipei (UTC+08:00)：完整Deployment Release 1,057/1,057、ProgressPage 28/28與文件檢查通過，但八項指定測試、合格golden、builder XAML、新流程生命週期及實機清理仍缺，狀態不變。2026-11-21 19:14 Asia/Taipei (UTC+08:00)：build 22七活動metadata檢查1/1，六個核定情境通過、Appointment情境未驗證；L2仍未驗收。2026-11-21 19:29 Asia/Taipei (UTC+08:00)：strong-name指定測試先紅後綠，WorkflowTemplate篩選5/5、完整Deployment Release 1,058/1,058；八項指定案例仍缺，golden／XAML builder／probe lifecycle／實機尚未完成，L2未驗收。2026-11-21 19:50 Asia/Taipei (UTC+08:00)：全情境樹遞迴掃描先紅後綠，WorkflowTemplate 6/6、Deployment Release 1,059/1,059；完整情境仍缺Appointment、舊投影不符合golden、指定測試僅3/10，實機及新probe lifecycle未完成，L2維持未驗收。2026-11-21 20:03 Asia/Taipei (UTC+08:00)：狀態摘要及歷史同步本輪 19:50 證據；L2 仍未驗收。2026-11-21 20:24 Asia/Taipei (UTC+08:00)：20:25唯讀shape摘要仍無已辨識fixed-value或雙繫結；診斷不是golden，L2維持未驗收。詳見 `wp-reports/P8-L2-workflow-template.md`。"
+      "proposal": "離線部分完成；樣板產生與實機移至上線前作業（好牧人 9.1）。",
+      "impact": "好牧人 9.1 上線前作業；依核准的上線前計畫補驗ContactAnniversaryActivity、LessonQrCodeActivity、AppointmentSigningActivity、MeetingQrCodeActivity、MeetingScanCountActivity、PersonalQrCodeActivity、FeeAllotActivity。",
+      "status": "2026-11-19 20:01 Asia/Taipei (UTC+08:00)：階段 8 遺留 L2 執行；工具支援 Workflow 樣板並依結果補驗七個 dormant 活動。2026-11-21 17:11 Asia/Taipei (UTC+08:00)：L2 仍未驗收；六個既有情境 inputs 通過 build 22 契約單項，Appointment 情境與 XAML golden／probe lifecycle／實機仍缺。2026-11-21 17:35 Asia/Taipei (UTC+08:00)：另確認 AppointmentSigningActivity 必要 EntityReference 輸入目前無情境且 builder 不支援；不猜測補值，L2 繼續未驗收。2026-11-21 18:42 Asia/Taipei (UTC+08:00)：巢狀 InArgument Value 分類先紅後綠，唯讀 shape 仍沒有 fixed-value／雙繫結 golden；L2 維持未驗收。2026-11-21 19:05 Asia/Taipei (UTC+08:00)：完整Deployment Release 1,057/1,057、ProgressPage 28/28與文件檢查通過，但八項指定測試、合格golden、builder XAML、新流程生命週期及實機清理仍缺，狀態不變。2026-11-21 19:14 Asia/Taipei (UTC+08:00)：build 22七活動metadata檢查1/1，六個核定情境通過、Appointment情境未驗證；L2仍未驗收。2026-11-21 19:29 Asia/Taipei (UTC+08:00)：strong-name指定測試先紅後綠，WorkflowTemplate篩選5/5、完整Deployment Release 1,058/1,058；八項指定案例仍缺，golden／XAML builder／probe lifecycle／實機尚未完成，L2未驗收。2026-11-21 19:50 Asia/Taipei (UTC+08:00)：全情境樹遞迴掃描先紅後綠，WorkflowTemplate 6/6、Deployment Release 1,059/1,059；完整情境仍缺Appointment、舊投影不符合golden、指定測試僅3/10，實機及新probe lifecycle未完成，L2維持未驗收。2026-11-21 20:03 Asia/Taipei (UTC+08:00)：狀態摘要及歷史同步本輪 19:50 證據；L2 仍未驗收。2026-11-21 20:24 Asia/Taipei (UTC+08:00)：20:25唯讀shape摘要仍無已辨識fixed-value或雙繫結；診斷不是golden，L2維持未驗收。2026-11-21 21:34 Asia/Taipei (UTC+08:00)：上述未驗收結論已由 08A 修訂 1 取代；L2 離線部分縮減結案，全方案 Release 7,535/7,535。真實 golden、XAML builder、完整十案、PREP-09／10、新 probe lifecycle、Appointment 情境與實機移至好牧人 9.1 上線前作業，七活動維持 dormant；詳見 `wp-reports/P8-L2-workflow-template.md`。"
     },
     {
       "id": "P8-PROP-001",
