@@ -240,11 +240,11 @@ footer{margin-top:36px;color:var(--muted);font-size:12.5px;text-align:center}
  */
 const DATA = {
   "planVersion": "3.5",
-  "snapshot": "2026-11-21 22:45 Asia/Taipei (UTC+08:00)",
-  "lastUpdated": "2026-11-21T22:45:00+08:00",
+  "snapshot": "2026-11-21 23:01 Asia/Taipei (UTC+08:00)",
+  "lastUpdated": "2026-11-21T23:01:00+08:00",
   "branch": "1.0.0.11.Integration.P8.Worktree",
-  "head": "d998baea",
-  "headline": "階段 8 2026-11-21 22:45 Asia/Taipei (UTC+08:00)：L1、L2 依修訂 1 縮減結案；L2 全方案 Release 7,535/7,535、完整守門 7,542/7,542 通過，紀錄檢查 28/28；XAML 樣板與實機列上線前作業。",
+  "head": "a22a553f",
+  "headline": "階段 8 2026-11-21 23:01 Asia/Taipei (UTC+08:00)：L1、L2 依修訂 1 縮減結案；L3 範圍處置已記錄、Live 未執行且清冊不變；P8-04a、P8-04b、P8-05 與整體驗收續行。",
   "notices": [
     {
       "id": "plan-3.5-summary",
@@ -254,6 +254,7 @@ const DATA = {
       "lastUpdated": "2026-11-09T12:57:05+08:00",
       "body": "2026-11-09 12:57 Asia/Taipei (UTC+08:00)：3.5 生效與 P3-00 切換完成；固定 guard f65f6d73 的 Release 4976／4976、Debug tracer 7／7、進度頁 28／28 全通過；P2 首次推送已 ls-remote 核對、P3 已快轉。設計 v3.4 不變，P3 包均未開始。",
       "steps": [
+        "2026-11-21 22:54 Asia/Taipei (UTC+08:00)：遺留 L3 依修訂 1 不執行 Live 切換、模組檢查或回復；registration tier/evidence/reason 原樣保留。部署工具阻止無 Live evidence 項目切入正式組織，延後不造成部署風險；實機補驗移至好牧人 9.1 上線前作業。詳見 `wp-reports/P8-L3-live-recheck.md`。",
         "2026-11-07 21:10 Asia/Taipei (UTC+08:00)：設計 v3.4（Word、保姆級圖解、drawio、討論紀錄）放在 E: 規劃資料夾與 repo 的 方案整合NET10升級與國際化_v3.4\\。",
         "2026-11-07 21:10 Asia/Taipei (UTC+08:00)：本頁取代 實作計畫-3.3\\實作進度.html 作為現行進度頁；3.3 的頁面與測試在 P2-00 封存時一併處理，歷史保留在本頁最下方。",
         "2026-11-07 21:10 Asia/Taipei (UTC+08:00)：工作包總數由 83 改為 84：P2-01 的 R2 清零移到 P6-07（範圍移動，不是新增）；P2-09 拆 a／b 仍計 1 包。",
@@ -702,8 +703,8 @@ const DATA = {
       "phaseId": "階段 8",
       "level": "info",
       "title": "P8 進度摘要",
-      "body": "2026-11-21 22:45 Asia/Taipei (UTC+08:00)：階段 8 依修訂 1 執行；L1、L2 均依核定範圍縮減結案，L1 原因碼成果保留，Relay 專案／行為差異、紅燈證據缺口與 R7／R9／church-defaults 不確定性仍列上線前作業；L2 離線 PE input contract、shape projector、strong-name／輸入驗證及 CLI／測試全方案 Release 7,535/7,535，完整 §8.1 守門 23 個目標 7,542/7,542 通過，紀錄同步後 ProgressPage 測試 28/28 通過。21:34 僅為範圍核定時間，已於 22:37 更正；Workflow XAML builder、完整十案、probe lifecycle、Appointment 情境及實機移至好牧人 9.1 上線前作業，七活動維持 dormant。三大產品共用基礎的隔離、授權、API／SDK、Webhook、代送、生命週期與相容性驗收不縮減；L3、P8-04a、P8-04b、P8-05、最終守門、ClaudeOnly 與終點回報仍待完成，階段尚未結案。",
-      "lastUpdated": "2026-11-21T22:45:00+08:00",
+      "body": "2026-11-21 23:01 Asia/Taipei (UTC+08:00)：階段 8 依修訂 1 執行；L1、L2 均依核定範圍縮減結案，L1 原因碼成果保留，Relay 專案／行為差異、紅燈證據缺口與 R7／R9／church-defaults 不確定性仍列上線前作業；L2 離線 PE input contract、shape projector、strong-name／輸入驗證及 CLI／測試全方案 Release 7,535/7,535，完整 §8.1 守門 23 個目標 7,542/7,542 通過，紀錄同步後 ProgressPage 測試 28/28 通過。21:34 僅為範圍核定時間，已於 22:37 更正；Workflow XAML builder、完整十案、probe lifecycle、Appointment 情境及實機移至好牧人 9.1 上線前作業，七活動維持 dormant。L3 範圍處置已記錄，Live 未執行且 registration 清冊不變；其模組實機仍列上線前作業。三大產品共用基礎的隔離、授權、API／SDK、Webhook、代送、生命週期與相容性驗收不縮減；P8-04a、P8-04b、P8-05、最終守門、ClaudeOnly 與終點回報仍待完成，階段尚未結案。",
+      "lastUpdated": "2026-11-21T23:01:00+08:00",
       "steps": [
         "2026-11-21 22:37 Asia/Taipei (UTC+08:00)：更正 L2 時間記錄：21:34 是範圍核定而非完成；21:50 全方案 Release 7,535/7,535，22:21 完整 §8.1 守門通過，22:32 保存逐命令輸出 7,542/7,542、Debug tracer 7/7、ProgressPage 28/28、文件說明 1,891 檔零失敗。守門證據見 `C:\\smv\\guard-p8-evidence\\guard-477c8136-full.log` 與 `guard-477c8136-full-output.log`；L2 回報已同步更正。",
         "2026-11-21 21:34 Asia/Taipei (UTC+08:00)：此時間是依修訂 1 核定 L2 縮減範圍，不是測試／守門完成時間；原結案時間表述已於 2026-11-21 22:37 Asia/Taipei (UTC+08:00) 更正。",
@@ -1999,8 +2000,8 @@ const DATA = {
       "id": "遺留 L3",
       "phaseId": "階段 8",
       "name": "遺留 L3 Live 補驗與分級定案",
-      "status": "todo",
-      "note": "2026-11-19 20:43 Asia/Taipei (UTC+08:00)：依 08A 固定順序待執行。"
+      "status": "done",
+      "note": "2026-11-21 22:54 Asia/Taipei (UTC+08:00)：依 goal-objective.md 修訂 1 完成本階段範圍處置；Live 實機未執行，移至好牧人 9.1 上線前作業。registration 清冊 tier/evidence/reason 未改；不代表 Live 通過或組織狀態驗收。詳見 `wp-reports/P8-L3-live-recheck.md`。"
     },
     {
       "id": "P8-04a",
@@ -2845,8 +2846,8 @@ const DATA = {
       "id": "P7-PROP-007",
       "problem": "2026-11-19 13:08 Asia/Taipei (UTC+08:00)：Live測試工具尚未支援Workflow活動樣板建立及XAML參數繫結驗證；本次七個活動為使用者特別核定例外。",
       "evidence": "本輪LIVE-PREP-09離線原因碼路徑與使用者核定紀錄；活動tier與空白Live evidence見plugins.registration.json。",
-      "proposal": "離線部分完成；樣板產生與實機移至上線前作業（好牧人 9.1）。",
-      "impact": "好牧人 9.1 上線前作業；依核准的上線前計畫補驗ContactAnniversaryActivity、LessonQrCodeActivity、AppointmentSigningActivity、MeetingQrCodeActivity、MeetingScanCountActivity、PersonalQrCodeActivity、FeeAllotActivity。",
+      "proposal": "離線部分完成；樣板產生與七個 dormant 活動的實機補驗移至好牧人 9.1 上線前作業。",
+      "impact": "好牧人 9.1 上線前作業；七個 dormant 活動與 L3 模組均須依核准計畫補驗，不代表 P8 已完成 Live 驗收。",
       "status": "2026-11-19 20:01 Asia/Taipei (UTC+08:00)：階段 8 遺留 L2 執行；工具支援 Workflow 樣板並依結果補驗七個 dormant 活動。2026-11-21 17:11 Asia/Taipei (UTC+08:00)：L2 仍未驗收；六個既有情境 inputs 通過 build 22 契約單項，Appointment 情境與 XAML golden／probe lifecycle／實機仍缺。2026-11-21 17:35 Asia/Taipei (UTC+08:00)：另確認 AppointmentSigningActivity 必要 EntityReference 輸入目前無情境且 builder 不支援；不猜測補值，L2 繼續未驗收。2026-11-21 18:42 Asia/Taipei (UTC+08:00)：巢狀 InArgument Value 分類先紅後綠，唯讀 shape 仍沒有 fixed-value／雙繫結 golden；L2 維持未驗收。2026-11-21 19:05 Asia/Taipei (UTC+08:00)：完整Deployment Release 1,057/1,057、ProgressPage 28/28與文件檢查通過，但八項指定測試、合格golden、builder XAML、新流程生命週期及實機清理仍缺，狀態不變。2026-11-21 19:14 Asia/Taipei (UTC+08:00)：build 22七活動metadata檢查1/1，六個核定情境通過、Appointment情境未驗證；L2仍未驗收。2026-11-21 19:29 Asia/Taipei (UTC+08:00)：strong-name指定測試先紅後綠，WorkflowTemplate篩選5/5、完整Deployment Release 1,058/1,058；八項指定案例仍缺，golden／XAML builder／probe lifecycle／實機尚未完成，L2未驗收。2026-11-21 19:50 Asia/Taipei (UTC+08:00)：全情境樹遞迴掃描先紅後綠，WorkflowTemplate 6/6、Deployment Release 1,059/1,059；完整情境仍缺Appointment、舊投影不符合golden、指定測試僅3/10，實機及新probe lifecycle未完成，L2維持未驗收。2026-11-21 20:03 Asia/Taipei (UTC+08:00)：狀態摘要及歷史同步本輪 19:50 證據；L2 仍未驗收。2026-11-21 20:24 Asia/Taipei (UTC+08:00)：20:25唯讀shape摘要仍無已辨識fixed-value或雙繫結；診斷不是golden，L2維持未驗收。2026-11-21 21:34 Asia/Taipei (UTC+08:00)：上述未驗收結論已由 08A 修訂 1 取代；L2 離線部分縮減結案，全方案 Release 7,535/7,535。真實 golden、XAML builder、完整十案、PREP-09／10、新 probe lifecycle、Appointment 情境與實機移至好牧人 9.1 上線前作業，七活動維持 dormant；詳見 `wp-reports/P8-L2-workflow-template.md`。"
     },
     {

@@ -62,3 +62,9 @@
 | 時間（Asia/Taipei） | 單元 | 遇到的選擇 | 選了什麼 | 依據 | 怎麼回復 |
 |---|---|---|---|---|---|
 | 2026-11-21 22:37 Asia/Taipei (UTC+08:00) | 遺留 L2 | 21:34 的縮減結案敘述早於該單元最後全方案 Release，且回報仍稱完整守門待執行 | 將 21:34 改述為範圍核定時間，實際縮減結案證據時間記為 22:32；保存的 L2 Release 輸出為 7,535/7,535（檔名含 `20261121-2150`，實際檔案修改時間 21:31，不以檔名推定執行時間）；22:21 完整 §8.1 守門對 `477c8136147d7168ebc8faf869a8e1761004db93` 通過，22:32 逐命令輸出合計 23 個測試目標 7,542/7,542、Debug tracer 7/7、ProgressPage 28/28、文件說明 1,891 檔零失敗 | 核定的 goal-objective.md 修訂 1；守門 transcript SHA-256 `D7A98FADFCB88D0BE86C9A9B022890DEBC3DD779F3D9D85FE8AC141DEBA20ED5`；完整輸出 SHA-256 `7D1003DF99428E214E5FB91FC8CFB3BE5CDA6532408F79FD41DFC0D649941F23`；L2 Release SHA-256 `DABF2986589CC372881E00881A402B1160DA90C3EF017CED87FD815FEC5BEC31` | 不重跑同 SHA 完整守門、不改寫 Git 歷史；區分 L2 單元 Release 與 22:21 guard 的 7,542/7,542，更新報告、封存子任務、父清單與進度 DATA |
+
+### 2026-11-21 22:45 Asia/Taipei (UTC+08:00)：遺留 L3 移至上線前作業
+
+| 時間（Asia/Taipei） | 單元 | 遇到的選擇 | 選了什麼 | 依據 | 怎麼回復 |
+|---|---|---|---|---|---|
+| 2026-11-21 22:45 Asia/Taipei (UTC+08:00) | 遺留 L3 | 原 08A L3 流程要求切換與逐模組 Live 檢查，但核定修訂 1 指定 L3 不做 | 不執行組織切換、live-check、rollback 或清冊更新；只將 L3 與七個 dormant Workflow 活動列入好牧人 9.1 上線前作業。理由為沒有 Live evidence 的項目不能切入正式組織，延後不產生正式部署風險；保持 registration tier/evidence/reason 不變 | 使用者核定 goal-objective.md 修訂 1 的 C 節；L3 章節限定本單元只改紀錄 | 不改組織或清冊；上線前按核准程序補做，並在每一實機單元結束確認 `off`、`verify=0`、殘留 0 |
