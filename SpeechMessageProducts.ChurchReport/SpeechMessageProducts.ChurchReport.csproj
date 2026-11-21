@@ -8,6 +8,7 @@
 專案參考包含Line.Messaging.csproj、SpeechMessage.Tenancy.csproj、SpeechMessage.Hosting.csproj、LineMessagingProcessor.csproj、LineMessagingProcessor.AspNetCore.csproj、LineMessagingProcessor.Workflows.csproj、ToolUtility.csproj、SpeechMessage.Payments.csproj、SpeechMessage.Payments.AspNetCore.csproj、SpeechMessage.Payments.Workflows.csproj、LineMessagingProcessor.RichMenus.csproj、SpeechMessageProducts.GoodShepherd.Core.csproj；不能新增反向相依或將主機狀態引入純核心。GoodShepherd.Core 只提供純 QR 內容解析，不接管產品簽到或資料存取。
 
 使用邊界與維護：修改前先核對引用此檔的專案、頁面、腳本或CI步驟，保留既有參數、輸出及失敗結束碼。
+Area Razor 檔案必須隨 Web SDK 一併編譯與發佈；限制 glob 不得只選取 Views 目錄本身而漏掉 .cshtml。
 涉及寫入、外部命令或暫存資源時，依本檔實際實作的owner及清理路徑處理；說明不能取代執行前的範圍驗證。
 -->
 <Project ToolsVersion="15.0" Sdk="Microsoft.NET.Sdk.Web">
@@ -44,7 +45,7 @@
     <PublishReadyToRun>true</PublishReadyToRun>
   </PropertyGroup>
   <ItemGroup>
-    <Content Include="wwwroot\**\*;Views\**\*;Areas\**\Views;appsettings.json;appsettings.Production.json;web.config">
+    <Content Include="wwwroot\**\*;Views\**\*;Areas\**\*.cshtml;appsettings.json;appsettings.Production.json;web.config">
       <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
     </Content>
     <Compile Remove="文件\佈署規劃\**" />

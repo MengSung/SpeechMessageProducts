@@ -20,6 +20,151 @@
     "SystemTextJson": []
   },
   {
+    "Type": "AspNetCoreGeneratedDocument.Areas_ChurchSettings_Views_ChurchSettings_Audit",
+    "Newtonsoft": [
+      "BodyContent",
+      "Component",
+      "Context",
+      "DiagnosticSource",
+      "Html",
+      "HtmlEncoder",
+      "IsLayoutBeingRendered",
+      "Json",
+      "Layout",
+      "Model",
+      "ModelExpressionProvider",
+      "Output",
+      "Path",
+      "PreviousSectionWriters",
+      "SectionWriters",
+      "TempData",
+      "Url",
+      "User",
+      "ViewBag",
+      "ViewContext",
+      "ViewData"
+    ],
+    "SystemTextJson": [
+      "unsupported:System.InvalidOperationException"
+    ]
+  },
+  {
+    "Type": "AspNetCoreGeneratedDocument.Areas_ChurchSettings_Views_ChurchSettings_Forbidden",
+    "Newtonsoft": [
+      "BodyContent",
+      "Component",
+      "Context",
+      "DiagnosticSource",
+      "Html",
+      "HtmlEncoder",
+      "IsLayoutBeingRendered",
+      "Json",
+      "Layout",
+      "Model",
+      "ModelExpressionProvider",
+      "Output",
+      "Path",
+      "PreviousSectionWriters",
+      "SectionWriters",
+      "TempData",
+      "Url",
+      "User",
+      "ViewBag",
+      "ViewContext",
+      "ViewData"
+    ],
+    "SystemTextJson": [
+      "unsupported:System.InvalidOperationException"
+    ]
+  },
+  {
+    "Type": "AspNetCoreGeneratedDocument.Areas_ChurchSettings_Views_ChurchSettings_OfferingCategories",
+    "Newtonsoft": [
+      "BodyContent",
+      "Component",
+      "Context",
+      "DiagnosticSource",
+      "Html",
+      "HtmlEncoder",
+      "IsLayoutBeingRendered",
+      "Json",
+      "Layout",
+      "Model",
+      "ModelExpressionProvider",
+      "Output",
+      "Path",
+      "PreviousSectionWriters",
+      "SectionWriters",
+      "TempData",
+      "Url",
+      "User",
+      "ViewBag",
+      "ViewContext",
+      "ViewData"
+    ],
+    "SystemTextJson": [
+      "unsupported:System.InvalidOperationException"
+    ]
+  },
+  {
+    "Type": "AspNetCoreGeneratedDocument.Areas_ChurchSettings_Views_ChurchSettings_Terms",
+    "Newtonsoft": [
+      "BodyContent",
+      "Component",
+      "Context",
+      "DiagnosticSource",
+      "Html",
+      "HtmlEncoder",
+      "IsLayoutBeingRendered",
+      "Json",
+      "Layout",
+      "Model",
+      "ModelExpressionProvider",
+      "Output",
+      "Path",
+      "PreviousSectionWriters",
+      "SectionWriters",
+      "TempData",
+      "Url",
+      "User",
+      "ViewBag",
+      "ViewContext",
+      "ViewData"
+    ],
+    "SystemTextJson": [
+      "unsupported:System.InvalidOperationException"
+    ]
+  },
+  {
+    "Type": "AspNetCoreGeneratedDocument.Areas_ChurchSettings_Views__ViewImports",
+    "Newtonsoft": [
+      "BodyContent",
+      "Component",
+      "Context",
+      "DiagnosticSource",
+      "Html",
+      "HtmlEncoder",
+      "IsLayoutBeingRendered",
+      "Json",
+      "Layout",
+      "Model",
+      "ModelExpressionProvider",
+      "Output",
+      "Path",
+      "PreviousSectionWriters",
+      "SectionWriters",
+      "TempData",
+      "Url",
+      "User",
+      "ViewBag",
+      "ViewContext",
+      "ViewData"
+    ],
+    "SystemTextJson": [
+      "unsupported:System.InvalidOperationException"
+    ]
+  },
+  {
     "Type": "AspNetCoreGeneratedDocument.Views_Authentication_LineIdLoginView",
     "Newtonsoft": [
       "BodyContent",

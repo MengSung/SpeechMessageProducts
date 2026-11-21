@@ -1,25 +1,30 @@
 /*
  * 檔案整體說明
  *
- * 目的與定位：保護 P8-03b 教會設定 Area 的 HTTP 授權、教會範圍、輸出編碼、CSRF 與本地化契約。
+ * 目的與定位：保護 P8-03b 教會設定 Area 的授權、教會範圍、檢視發佈／探索、
+ * 覆寫快照載入順序、輸出編碼、CSRF 與本地化契約。
  *
  * 主要功能與流程：
- * 每個測試從測試輸出目錄尋找方案根目錄，再檢查 ChurchSettings Area 的入口與
- * 對應資源／啟動政策；案例名稱與 08A §5 P8-03b 的十個核定名稱一致。
- * 測試刻意先於產品實作建立，首輪應因 Area 尚不存在而失敗；實作後確認同一組斷言轉綠。
+ * 每個測試從測試輸出目錄尋找方案根目錄，並以合成登入者、真實記憶體覆寫快取、
+ * MVC Razor view engine 及 dotnet msbuild 的 Content 項目評估，檢查 Area 的實際執行契約。
+ * MSBuild 子程序設有逾時與終止路徑，輸出只解析專案項目，不啟動 Web Host 或外部連線。
  *
  * 使用邊界與維護：
- * 本檔為離線來源契約測試，不建立 ASP.NET Host、不連線 D365／LINE，也不宣稱實機結果。
- * 測試只讀目前工作樹文字，不保存登入狀態、教會資料或外部資源；尋找不到方案根目錄時明確失敗。
- * 更新契約時須維持測試名稱，並確保檢查的是實際授權與資料範圍，而非只驗證導覽隱藏。
+ * 本檔為離線整合契約測試，不連線 D365／LINE，也不宣稱實機結果。每個 fixture 僅保存
+ * 固定合成身份和本案例資料；測試 owner 釋放 MVC provider、MSBuild 子程序及非同步快取，
+ * 不保留跨案例登入、教會 scope 或來源工作。更新契約時須維持核定測試名稱，並驗證實際
+ * 發佈項目、Area view discovery 與 Terms GET 的覆寫結果，而非只檢查設定文字或屬性。
  */
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Security.Claims;
+using System.Text;
 using System.Text.Encodings.Web;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Text.RegularExpressions;
@@ -28,9 +33,18 @@ using ChurchReport.Areas.ChurchSettings;
 using FluentAssertions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Abstractions;
+using Microsoft.AspNetCore.Mvc.Controllers;
+using Microsoft.AspNetCore.Mvc.Infrastructure;
+using Microsoft.AspNetCore.Mvc.Razor;
+using Microsoft.AspNetCore.Mvc.ViewEngines;
+using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Microsoft.Xrm.Sdk;
 using SpeechMessage.Localization;
+using SpeechMessage.Tenancy;
 using SpeechMessageProducts.GoodShepherd.Core.Messaging;
 using SpeechMessageProducts.GoodShepherd.Core.Offerings;
 using SpeechMessageProducts.GoodShepherd.Core.Settings;
@@ -58,6 +72,169 @@ public sealed class ChurchSettingsControllerContractTests
         var result = await fixture.Controller.SaveTerm("Role.Member", "zh-TW", "合成文字");
 
         AssertForbiddenResult(fixture.Controller, result);
+    }
+
+    /// <summary>
+    /// 保護 GET 執行順序：從全新、尚未載入的教會覆寫快取呼叫 Terms action，
+    /// action 必須先載入完整授權 scope，再讓正式 catalog 解析並顯示該教會覆寫文字。
+    /// 離線來源只回傳固定合成列；決定性斷言是 GET 回傳頁面、預覽為覆寫值且來源恰讀一次。
+    /// </summary>
+    [Fact]
+    public async Task Terms_Get_LoadsOverrideSnapshotBeforePreview()
+    {
+        var churchId = Guid.Parse("22222222-2222-2222-2222-222222222222");
+        var source = new TermsPreviewOverrideSource(churchId, "載入後的教會覆寫");
+        await using var cache = new ChurchTextOverrideCache(
+            source,
+            GoodShepherdTextCatalog.CreateOverrideValidator("這是一個長度剛好十二字的教會"),
+            static (_, _) => { });
+        var catalog = new GoodShepherdTextCatalog(cache);
+        using var fixture = new ControllerFixture(
+            jobTitle: "牧養主任",
+            churchId,
+            overrideCache: cache,
+            textCatalog: catalog,
+            systemTextCatalog: catalog);
+
+        var result = await fixture.Controller.Terms();
+
+        var pageModel = result.Should().BeOfType<ViewResult>().Which.Model!;
+        var rows = ((System.Collections.IEnumerable)pageModel.GetType()
+            .GetProperty("Overrides")!.GetValue(pageModel)!).Cast<object>().ToArray();
+        var member = Assert.Single(rows.Where(row =>
+            (string)row.GetType().GetProperty("Key")!.GetValue(row)! == "Role.Member"));
+        Assert.Equal("載入後的教會覆寫",
+            member.GetType().GetProperty("Preview")!.GetValue(member));
+        source.Reads.Should().Be(1);
+    }
+
+    /// <summary>
+    /// 保護發佈契約：以 MSBuild 對正式 ChurchReport 專案執行 Content 項目評估，
+    /// 並驗證 Area 下實際展開的 Terms.cshtml 帶有發佈複製中繼資料，而非比對 csproj 文字。
+    /// dotnet 子程序只載入專案，不啟動網站或連外；測試 owner 在逾時時終止整個程序樹。
+    /// </summary>
+    [Fact]
+    public async Task Publish_AreaRazorViews_IncludedInPublishOutput()
+    {
+        var projectPath = Path.Combine(
+            RepositoryRoot, "SpeechMessageProducts.ChurchReport", "SpeechMessageProducts.ChurchReport.csproj");
+        var startInfo = new ProcessStartInfo("dotnet")
+        {
+            WorkingDirectory = RepositoryRoot,
+            RedirectStandardOutput = true,
+            RedirectStandardError = true,
+            UseShellExecute = false,
+            CreateNoWindow = true
+        };
+        startInfo.ArgumentList.Add("msbuild");
+        startInfo.ArgumentList.Add(projectPath);
+        startInfo.ArgumentList.Add("-nologo");
+        startInfo.ArgumentList.Add("-getItem:Content");
+        startInfo.ArgumentList.Add("-property:Configuration=Release");
+
+        using var process = Process.Start(startInfo);
+        process.Should().NotBeNull("the installed dotnet SDK must evaluate the Web project");
+        using var timeout = new CancellationTokenSource(TimeSpan.FromMinutes(2));
+        var outputTask = ReadBoundedProcessOutputAsync(process!.StandardOutput, process, timeout.Token);
+        var errorTask = ReadBoundedProcessOutputAsync(process.StandardError, process, timeout.Token);
+        try
+        {
+            await process.WaitForExitAsync(timeout.Token);
+        }
+        catch (OperationCanceledException)
+        {
+            process.Kill(entireProcessTree: true);
+            await process.WaitForExitAsync();
+            throw new TimeoutException("MSBuild Content evaluation exceeded its two-minute test budget.");
+        }
+
+        var output = await outputTask;
+        var error = await errorTask;
+        process.ExitCode.Should().Be(0, error);
+        using var evaluation = JsonDocument.Parse(output, new JsonDocumentOptions { MaxDepth = 8 });
+        var content = evaluation.RootElement.GetProperty("Items").GetProperty("Content");
+        var areaView = content.EnumerateArray().SingleOrDefault(item =>
+            item.GetProperty("Identity").GetString()?
+                .Replace('\\', '/')
+                .Equals("Areas/ChurchSettings/Views/ChurchSettings/Terms.cshtml",
+                    StringComparison.OrdinalIgnoreCase) == true);
+
+        areaView.ValueKind.Should().Be(JsonValueKind.Object,
+            "the evaluated project must contain the actual ChurchSettings Terms view");
+        areaView.GetProperty("CopyToPublishDirectory").GetString()
+            .Should().Be("PreserveNewest");
+    }
+
+    /// <summary>
+    /// 以固定字元預算排空子程序輸出；超量即終止整個程序樹，避免建置診斷無界保留記憶體。
+    /// 呼叫端同時排空 stdout／stderr，並在逾時或結束時等待程序及兩個讀取工作完成。
+    /// </summary>
+    private static async Task<string> ReadBoundedProcessOutputAsync(
+        StreamReader reader,
+        Process process,
+        CancellationToken cancellationToken)
+    {
+        const int maximumCharacters = 16 * 1024 * 1024;
+        var buffer = new char[8192];
+        var output = new StringBuilder(capacity: 64 * 1024);
+        while (true)
+        {
+            var count = await reader.ReadAsync(buffer.AsMemory(), cancellationToken).ConfigureAwait(false);
+            if (count == 0) return output.ToString();
+            if (output.Length > maximumCharacters - count)
+            {
+                if (!process.HasExited)
+                {
+                    try { process.Kill(entireProcessTree: true); }
+                    catch (InvalidOperationException) { }
+                }
+                throw new InvalidDataException("MSBuild output exceeded the bounded test budget.");
+            }
+            output.Append(buffer, 0, count);
+        }
+    }
+
+    /// <summary>
+    /// 保護 MVC Area view discovery：使用正式 ChurchReport compiled application part、
+    /// Area route values 與 CompositeViewEngine 查找 Terms，斷言命中的實際 Razor view 路徑。
+    /// 測試只建立短生命週期離線 service provider，不執行 Host、不建立外部連線。
+    /// </summary>
+    [Fact]
+    public void Area_Views_ResolvedUnderChurchSettingsArea()
+    {
+        var services = new ServiceCollection();
+        services.AddLogging();
+        using var diagnosticListener = new DiagnosticListener("ChurchSettingsViewDiscoveryTest");
+        services.AddSingleton(diagnosticListener);
+        services.AddSingleton<DiagnosticSource>(diagnosticListener);
+        services.AddControllersWithViews()
+            .AddApplicationPart(typeof(ChurchSettingsController).Assembly);
+        using var provider = services.BuildServiceProvider();
+        var controllerAction = provider.GetRequiredService<IActionDescriptorCollectionProvider>()
+            .ActionDescriptors.Items
+            .OfType<ControllerActionDescriptor>()
+            .Single(descriptor =>
+                descriptor.ControllerTypeInfo.AsType() == typeof(ChurchSettingsController)
+                && descriptor.ActionName == nameof(ChurchSettingsController.Terms));
+        controllerAction.RouteValues.Should().ContainKey("area")
+            .WhoseValue.Should().Be("ChurchSettings");
+        var routeData = new RouteData();
+        routeData.Values["area"] = controllerAction.RouteValues["area"];
+        routeData.Values["controller"] = controllerAction.ControllerName;
+        routeData.Values["action"] = controllerAction.ActionName;
+        var actionContext = new ActionContext(
+            new DefaultHttpContext { RequestServices = provider },
+            routeData,
+            controllerAction);
+        var engine = provider.GetRequiredService<ICompositeViewEngine>();
+
+        var result = engine.FindView(actionContext, "Terms", isMainPage: false);
+
+        result.Success.Should().BeTrue(
+            "the compiled Area view must be discoverable from the ChurchSettings area route");
+        result.View.Should().NotBeNull();
+        ((RazorView)result.View!).RazorPage.Path.Replace('\\', '/')
+            .Should().Be("/Areas/ChurchSettings/Views/ChurchSettings/Terms.cshtml");
     }
 
     /// <summary>請求夾帶其他教會識別不得覆蓋登入 contact 的伺服器端教會。</summary>
@@ -169,6 +346,16 @@ public sealed class ChurchSettingsControllerContractTests
         postActions.Should().NotBeEmpty();
         postActions.Where(method =>
             method.GetCustomAttribute<ValidateAntiForgeryTokenAttribute>() is null).Should().BeEmpty();
+    }
+
+    /// <summary>Controller 必須宣告實際 View 所屬 Area，否則 Razor 只搜尋非 Area 位置。</summary>
+    [Fact]
+    public void Controller_DeclaresChurchSettingsArea()
+    {
+        var area = typeof(ChurchSettingsController).GetCustomAttribute<AreaAttribute>();
+
+        area.Should().NotBeNull();
+        area!.RouteValue.Should().Be("ChurchSettings");
     }
 
     /// <summary>ChurchSettings 所有使用者可見固定文字皆由該 Area 的資源檔提供。</summary>
@@ -337,7 +524,10 @@ public sealed class ChurchSettingsControllerContractTests
             IReadOnlyList<OfferingCategory>? categories = null,
             IReadOnlyList<ChurchSettingsAuditRecord>? auditRecords = null,
             bool allowAuthorizedWrites = false,
-            IReadOnlyList<ChurchSettingsTermOverride>? termOverrides = null)
+            IReadOnlyList<ChurchSettingsTermOverride>? termOverrides = null,
+            ChurchTextOverrideCache? overrideCache = null,
+            ITextCatalog? textCatalog = null,
+            ISystemTextCatalog? systemTextCatalog = null)
         {
             var service = DispatchProxy.Create<IOrganizationService, ChurchSettingsSdkProxy>();
             sdk = (ChurchSettingsSdkProxy)(object)service;
@@ -353,7 +543,8 @@ public sealed class ChurchSettingsControllerContractTests
             var access = new ChurchSettingsAccess(
                 service,
                 configuration,
-                new MemberCultureResolver(new LocalizationOptions(allowPseudoLocale: true)));
+                new MemberCultureResolver(new LocalizationOptions(allowPseudoLocale: true)),
+                overrideCache);
             Access = access;
             SettingsStore = new ControllerSettingsStore(categories, auditRecords, termOverrides);
             var settings = new ChurchSettingsService(
@@ -361,8 +552,8 @@ public sealed class ChurchSettingsControllerContractTests
                 new ControllerCacheInvalidator(allowAuthorizedWrites),
                 GoodShepherdTextCatalog.CreateOverrideValidator("這是一個長度剛好十二字的教會"),
                 new ControllerClock());
-            var textCatalog = DispatchProxy.Create<ITextCatalog, ControllerTextCatalogProxy>();
-            var systemTextCatalog = DispatchProxy.Create<ISystemTextCatalog, ControllerSystemTextCatalogProxy>();
+            textCatalog ??= DispatchProxy.Create<ITextCatalog, ControllerTextCatalogProxy>();
+            systemTextCatalog ??= DispatchProxy.Create<ISystemTextCatalog, ControllerSystemTextCatalogProxy>();
             Controller = new ChurchSettingsController(
                 access, settings, SettingsStore, SettingsStore, textCatalog, systemTextCatalog)
             {
@@ -390,6 +581,33 @@ public sealed class ChurchSettingsControllerContractTests
         {
             sdk.ContactJobTitle = null;
             sdk.ChurchId = null;
+        }
+    }
+
+    /// <summary>
+    /// 只為 Terms GET 提供一筆固定合成覆寫並計數；不保存 TextContext、使用者或外部資源，
+    /// 讓未先載入快照的 catalog 呼叫以正式 cache 契約明確失敗。
+    /// </summary>
+    private sealed class TermsPreviewOverrideSource(Guid churchId, string text) : IChurchTextOverrideSource
+    {
+        internal int Reads { get; private set; }
+
+        public Task<IReadOnlyList<ChurchTextOverride>> ReadAsync(
+            TextContext context,
+            CancellationToken cancellationToken)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            Reads++;
+            IReadOnlyList<ChurchTextOverride> rows =
+            [
+                new ChurchTextOverride(
+                    Guid.Parse("77777777-7777-7777-7777-777777777777"),
+                    churchId,
+                    new TextKey("Role.Member"),
+                    "zh-TW",
+                    text)
+            ];
+            return Task.FromResult(rows);
         }
     }
 

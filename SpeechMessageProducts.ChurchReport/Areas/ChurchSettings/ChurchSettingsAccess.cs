@@ -11,6 +11,9 @@
  * SDK service 由 Host scoped owner 管理，本類只借用；取消沿用 RequestAborted，查詢失敗不授權。
  * 失敗與驗證：未登入、claim 無效、CRM 查無 contact、非 Church 權限、account 關聯無效或
  * 缺少固定部署組織時回傳 null，由 Controller 統一回 403；離線測試驗證 claims 與範圍契約。
+ * 文字快取載入：EnsureTextScopeLoadedAsync 只在已授權 scope 之後呼叫，讀 account 的 new_textchangedon
+ * 並交由 Host 擁有的 ChurchTextOverrideCache 載入該教會快照（cache 為 null 代表覆寫功能停用，無副作用）；
+ * ChurchTextOverrideCache.GetSnapshot 對未載入 scope 會拒絕，所以預覽文字前必須先呼叫。本類不擁有也不釋放 cache。
  */
 using System;
 using System.Threading;
@@ -22,6 +25,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Xrm.Sdk;
 using Microsoft.Xrm.Sdk.Query;
 using SpeechMessage.Localization;
+using SpeechMessage.Tenancy;
 using SpeechMessageProducts.GoodShepherd.Core.Settings;
 
 namespace ChurchReport.Areas.ChurchSettings;
@@ -38,18 +42,44 @@ public sealed class ChurchSettingsAccess
     private readonly IOrganizationService organizationService;
     private readonly IConfiguration configuration;
     private readonly IMemberCultureResolver cultureResolver;
+    private readonly ChurchTextOverrideCache? overrideCache;
 
     /// <summary>借用目前 HTTP scope 的 CRM service 與啟動組態；不擁有或釋放連線。</summary>
     /// <param name="organizationService">由 ToolUtility 在本 request 提供的 scoped Dataverse 服務。</param>
     /// <param name="configuration">Host 啟動組態，只讀取固定部署組織名稱。</param>
+    /// <param name="cultureResolver">解析會友文字語系。</param>
+    /// <param name="overrideCache">覆寫啟用時由 Host singleton 擁有的快取；停用時為 null。</param>
     public ChurchSettingsAccess(
         IOrganizationService organizationService,
         IConfiguration configuration,
-        IMemberCultureResolver cultureResolver)
+        IMemberCultureResolver cultureResolver,
+        ChurchTextOverrideCache? overrideCache = null)
     {
+        this.overrideCache = overrideCache;
         this.organizationService = organizationService ?? throw new ArgumentNullException(nameof(organizationService));
         this.configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
         this.cultureResolver = cultureResolver ?? throw new ArgumentNullException(nameof(cultureResolver));
+    }
+
+    /// <summary>
+    /// 為已授權 scope 載入該教會的覆寫快照，使同步 TextCatalog 之後能讀到；覆寫停用時不做任何事。
+    /// </summary>
+    /// <param name="scope">本 request 已重新驗證的 scope，教會 ID 不來自 request 輸入。</param>
+    /// <param name="cancellationToken">只取消本次呼叫的等待。</param>
+    /// <returns>快照載入完成；來源失敗且無舊快照時拋出原例外。</returns>
+    internal async Task EnsureTextScopeLoadedAsync(
+        ChurchSettingsRequestScope scope,
+        CancellationToken cancellationToken)
+    {
+        ArgumentNullException.ThrowIfNull(scope);
+        if (overrideCache is null) return;
+        cancellationToken.ThrowIfCancellationRequested();
+        var account = organizationService.Retrieve("account", scope.Church.Id, new ColumnSet("new_textchangedon"));
+        // 缺值使用固定 epoch；cache 版本只前進，既有較新的版本不會被回退。
+        var stamp = account?.GetAttributeValue<DateTime?>("new_textchangedon") is { } changed
+            ? (changed.Kind == DateTimeKind.Utc ? changed : changed.ToUniversalTime())
+            : DateTime.UnixEpoch;
+        await overrideCache.LoadAsync(scope.TextContext, stamp, cancellationToken).ConfigureAwait(false);
     }
 
     /// <summary>

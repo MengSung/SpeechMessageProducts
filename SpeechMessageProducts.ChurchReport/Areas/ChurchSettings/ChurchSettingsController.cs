@@ -5,6 +5,8 @@
  * 主要流程：每個 GET 與 POST 均重新解析 ChurchSettingsAccess；只有登入 contact 的伺服器資料
  * 證明其為全教會管理員且 parentcustomerid 指向有效 account 時，才使用該 account 執行查詢／寫入。
  * 覆寫與類別寫入委派給 GoodShepherd.Core ChurchSettingsService，動態輸出交由 Razor 預設編碼。
+ * AreaAttribute 是 View 的路由根源，不可移除，否則 MVC 只會搜尋非 Area View 位置。
+ * Terms 在讀取預覽文字前必須先 EnsureTextScopeLoadedAsync，否則 cache 會因 scope 未載入而拒絕。
  * 使用邊界與維護：Controller、ViewModel 與 Entity 僅屬單次 request；不讀 Session、不快取授權，
  * 不接受 request church ID、不持有 connection owner。每個寫入 POST 都有 antiforgery 驗證，
  * RequestAborted 只控制本次呼叫。稽核及類別結果必須在 store 端先限定本教會並受 200 筆上限約束。
@@ -23,6 +25,7 @@ using SpeechMessageProducts.GoodShepherd.Core.Settings;
 namespace ChurchReport.Areas.ChurchSettings;
 
 /// <summary>提供本教會可編輯詞彙、奉獻類別與稽核紀錄的 MVC action。</summary>
+[Area("ChurchSettings")]
 [Route("ChurchSettings")]
 public sealed class ChurchSettingsController : Controller
 {
@@ -57,6 +60,7 @@ public sealed class ChurchSettingsController : Controller
         var scope = await ResolveScopeAsync().ConfigureAwait(false);
         if (scope is null) return ForbiddenAccess();
 
+        await access.EnsureTextScopeLoadedAsync(scope, HttpContext.RequestAborted).ConfigureAwait(false);
         var keys = new ChurchTermWhitelist().Keys;
         var saved = await termReader.ReadTermOverridesAsync(
                 scope.Church.Id, HttpContext.RequestAborted)
