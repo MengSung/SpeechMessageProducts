@@ -1,12 +1,12 @@
 {
   "id": "integration-p7",
   "title": "階段7測試組織演練與階段審查",
-  "status": "in_progress",
+  "status": "completed",
   "complexity": "L",
   "risk": "high",
   "domain": "backend",
   "currentPhase": "implementation",
-  "nextAction": "前置B固定guard八項通過；收尾驗收與首次推送後接前置C-a。單模型（使用者指定 ClaudeOnly）。",
+  "nextAction": "階段 7 已結案；依階段 8 收尾整理封存",
   "createdAt": "2026-11-17T12:43:48+08:00",
   "branch": "1.0.0.11.Integration.P7.Worktree"
 }

@@ -240,11 +240,11 @@ footer{margin-top:36px;color:var(--muted);font-size:12.5px;text-align:center}
  */
 const DATA = {
   "planVersion": "3.5",
-  "snapshot": "2026-11-21 00:16 Asia/Taipei (UTC+08:00)",
-  "lastUpdated": "2026-11-21T00:16:00+08:00",
+  "snapshot": "2026-11-21 08:36 Asia/Taipei (UTC+08:00)",
+  "lastUpdated": "2026-11-21T08:36:03+08:00",
   "branch": "1.0.0.11.Integration.P8.Worktree",
-  "head": "27cd4eb6dfc402c1ac05d8faeb29763a4fcda2d5",
-  "headline": "階段 8 2026-11-21 00:16 Asia/Taipei (UTC+08:00)：P8-03a 已完成並通過完整守門；接續 P8-03b，階段 8 尚未完成。",
+  "head": "b648dd77f182549a80523aaf0d3ddba619271a47",
+  "headline": "階段 8 2026-11-21 08:36 Asia/Taipei (UTC+08:00)：P8-03b 完成完整守門並驗收；P8-03 總包已完成，整體 82／84 包完成，階段 8 尚未完成。",
   "notices": [
     {
       "id": "plan-3.5-summary",
@@ -902,10 +902,10 @@ const DATA = {
       "id": "階段 8",
       "name": "收尾、偽語系驗收、教會設定網頁",
       "planned": "3～4 個工作天",
-      "actual": "2026-11-21 00:16 Asia/Taipei (UTC+08:00)：P8-00、P8-01（含 a/b/c）、P8-02 與 P8-03a 已驗收；P8-03 總包續由 P8-03b 完成，階段 8 尚未完成。",
+      "actual": "2026-11-21 08:36 Asia/Taipei (UTC+08:00)：P8-03b 完成完整守門並驗收；P8-03a、P8-03b 均完成，P8-03 總包已驗收，整體 82／84 包完成。程式提交 b648dd77；完整守門證據 C:\\smv\\guard-p8-evidence\\guard-b648dd77-full.log；回報 wp-reports/P8-03b-教會設定網頁.md。接續遺留 L1；階段 8 尚未完成。前次狀態：2026-11-21 00:16 已驗收 P8-00、P8-01（含 a/b/c）、P8-02 與 P8-03a。",
       "current": true,
-      "done": 2,
-      "active": 1
+      "done": 3,
+      "active": 0
     }
   ],
   "wps": [
@@ -1887,13 +1887,13 @@ const DATA = {
       "id": "P8-03",
       "phaseId": "階段 8",
       "name": "教會設定網頁",
-      "status": "active",
+      "status": "done",
       "deps": "P8-01、P8-02",
       "live": "無",
       "timebox": "1 天",
-      "doneAt": "",
-      "commit": "",
-      "note": "2026-11-21 00:16 Asia/Taipei (UTC+08:00)：P8-03a 已驗收；18 個指定測試通過，完整 §8.1 守門通過，報告 `P8-03a-教會覆寫接線與設定服務.md`。程式提交 `9850d0ab`、`27cd4eb6`；全程離線。P8-03 總包待 P8-03b。"
+      "doneAt": "2026-11-21 08:36 Asia/Taipei (UTC+08:00)",
+      "commit": "b648dd77",
+      "note": "2026-11-21 08:36 Asia/Taipei (UTC+08:00)：P8-03a、P8-03b 均驗收，P8-03 總包 done。P8-03b 兩個新增測試與 08A 指定測試通過；唯一 guard-p8 完整 §8.1 全通過，報告 `wp-reports/P8-03b-教會設定網頁.md`。程式提交 `b648dd77`；全程離線。"
     },
     {
       "id": "P8-04",
@@ -1968,8 +1968,8 @@ const DATA = {
       "id": "P8-03b",
       "phaseId": "階段 8",
       "name": "P8-03b 教會設定網頁",
-      "status": "todo",
-      "note": "2026-11-19 20:43 Asia/Taipei (UTC+08:00)：依 08A 固定順序待執行。"
+      "status": "done",
+      "note": "2026-11-21 08:36 Asia/Taipei (UTC+08:00)：指定測試及完整 §8.1 守門全通過；三頁、管理員授權、403、CSRF/XSS、本地化與管理員導覽完成。回報 `wp-reports/P8-03b-教會設定網頁.md`；程式提交 `b648dd77`。"
     },
     {
       "id": "遺留 L1",
@@ -2183,23 +2183,7 @@ const DATA = {
       "note": "2026-11-19 17:45 Asia/Taipei (UTC+08:00)：R5b/R6/R7/R8/R9依核定縮減範圍完成；33項總表live12/pass1/dormant21。七個Workflow活動因核定LIVE-PREP-09維持dormant，care/qrcodes未檢查；其餘未解及延後項目列於P8以後待驗證清單。D7-22依核定範圍未執行並依P7-PROP-005列人工步驟；P7-PROP-007列後續必做。ClaudeOnly審查標記「單模型（使用者指定 ClaudeOnly）」已完成，High文案已修正；提交552bdbcf完整guard八項通過並已推送，ls-remote核對相同SHA。"
     }
   ],
-  "active": [
-    {
-      "id": "P8-03",
-      "phaseId": "階段 8",
-      "name": "P8-03 教會設定",
-      "startedAt": "補記 2026-11-20 22:12 Asia/Taipei (UTC+08:00)（原任務啟動時間未記錄）",
-      "timebox": "1 天",
-      "next": "完成 P8-03a 的紅燈／綠燈測試與服務接線，再依序進入 P8-03b。",
-      "dod": [
-        ["Trellis 任務與核定需求", "ok", "P8-03a Trellis 子任務與 18 個精確測試名稱已建立；依 08A §4.3、§5 離線執行。"],
-        ["指定測試先紅後綠", "no", "18 個測試雖已宣告，先紅後綠證據與全部通過仍待完成。"],
-        ["Core、ChurchReport、LineWebhook 整合與生命週期", "no", "授權教會隔離、實際來源接線、輪詢 drain／Dispose 及兩個 Core target 尚待驗證。"],
-        ["完整 Release 驗證與文件", "no", "完整方案測試、文件說明、位元組檢查及唯一 guard-p8 完整守門尚待完成。"],
-        ["P8-03a 回報、驗收與推送", "no", "須完成必做項目後提交、守門、回報、標驗收及遠端 SHA 核對。"]
-      ]
-    }
-  ],
+  "active": [],
   "gates": [
     {
       "item": "方案建置（Release）",
