@@ -57,6 +57,12 @@
 | 2026-11-21 21:34 Asia/Taipei (UTC+08:00) | 遺留 L2 | 真實雙繫結 XAML golden、樣板產生、新流程 lifecycle、完整十案及 9.1 實機未完成時，如何依修訂後目標結案 | 只驗收可編譯、有離線覆蓋且全方案 Release 通過的 input contract、shape projector、strong-name／輸入驗證及 CLI／測試；未完成 builder 留在使用者 evidence，不提交。七活動維持 dormant，未改 `LiveActivityProbe` 或 registration tier/evidence；所有實機缺口明列好牧人 9.1 上線前作業 | 使用者 2026-11-21 核定 08A 修訂 1 的 B 節與完成定義；全方案 Release 7,535/7,535 原始輸出 `C:\smv\guard-p8-evidence\p8-l2-full-solution-release-final-20261121-2150.log` | 未連組織、未改 tier/evidence；日後僅在正式上線前作業核准且具備真實契約及回復計畫時補做 |
 | 2026-11-21 21:34 Asia/Taipei (UTC+08:00) | P8-REV 守門前置 | Guard clone 清理前，P3 四個被忽略 task 副本是否已完整備份 | 補齊四個 task 的 evidence 副本，未覆寫既有相同內容；共 210 個 evidence 檔逐檔與來源核對 SHA-256，完整 manifest 位於 `%USERPROFILE%\.speechmessage\evidence\p3-task-copies\copy-manifest.json` | 使用者核定目標「P8-REV 第 0 步第 3 點」及正式 guard 清理前置 | 主工作樹四個 P3 task 資料夾不變；日後以 manifest 驗證副本，未刪除任何來源證據 |
 
+### 2026-11-22 07:41 Asia/Taipei (UTC+08:00)：更正 L2 builder 範圍
+
+| 時間（Asia/Taipei） | 單元 | 遇到的選擇 | 選了什麼 | 依據 | 怎麼回復 |
+|---|---|---|---|---|---|
+| 2026-11-22 07:41 Asia/Taipei (UTC+08:00) | 遺留 L2 | `88f806bc` 實際提交了修訂 1 明定不提交的未完成 `WorkflowTemplateBuilder.cs` | 保留歷史不改寫；將 HEAD 檔案另存至 `%USERPROFILE%\.speechmessage\evidence\p8-l2-wip\WorkflowTemplateBuilder.cs`，SHA-256 `CB2A9D0CF3D49A69F67B6418FE26ADE339CF2514E17329FDD130052B05D039FF`，以 `P8-L2 fix:` 後續提交移除追蹤檔；既有日期版備份與 diff 不覆寫 | 使用者核定的 P8 修訂 1 B 節；封存 L2 task 的 PRD／implement 明定 builder 不提交 | 原始內容保留在使用者 evidence 目錄且已核對 SHA-256；本次為範圍與紀錄修正，不代表 L2 重驗收、完整 guard 或已推送 |
+
 ### 2026-11-21 22:37 Asia/Taipei (UTC+08:00)：更正 L2 結案時間與守門證據
 
 | 時間（Asia/Taipei） | 單元 | 遇到的選擇 | 選了什麼 | 依據 | 怎麼回復 |
