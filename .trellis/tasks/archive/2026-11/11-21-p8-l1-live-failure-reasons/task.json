@@ -21,6 +21,6 @@
   "children": [],
   "parent": "11-19-integration-p8",
   "relatedFiles": [],
-  "notes": "2026-11-21 12:18 Asia/Taipei (UTC+08:00)：維持 in_progress，L1 未驗收。RelayPrecheck_Failure_ReportsReasonCode 實際在 LineWebhook.Tests 且只驗 formatter，與 08A 指定的 Deployment.Tests／前置失敗覆蓋不符；六項紅燈輸出未找到。R7 同 since observe 由 2 筆 unknown-exception 變為 0，無法分類；R9 去向無法確認；church-defaults plan 無 row state／IsValidForUpdate。詳 wp-reports/P8-L1-狀態與證據.md。依 D8-26 記錄必做缺口並續 L2，不把 L1 標完成。",
+  "notes": "2026-11-21 20:48 Asia/Taipei (UTC+08:00)：依使用者核定的 08A 修訂 1 已驗收（縮減），原因碼成果沿用 c819da1e。RelayPrecheck_Failure_ReportsReasonCode 位於 LineWebhook.Tests 且只驗 formatter；六項先紅原始輸出未找到；R7 目前證據不足、R9 去向無法確認、church-defaults 目前證據不足，均非技術通過，列好牧人 9.1 上線前作業。歷史提交／發布順序偏差照實保留，詳 wp-reports/P8-L1-狀態與證據.md。2026-11-21 22:11 Asia/Taipei (UTC+08:00)：守門 Changed 編碼檢查發現本 task JSON 缺檔尾 CRLF；本次僅修正檔案格式與過時 notes，不改 L1 程式或既有歷史。",
   "meta": {}
 }
