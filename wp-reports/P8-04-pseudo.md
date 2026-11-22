@@ -78,3 +78,9 @@ Release 指定測試 7/7 通過：`P8CustomizationIsolationTests` 的 Production
 ### 2026-11-22 16:32 Asia/Taipei (UTC+08:00)：Production OS 啟動再次確認為環境限制
 
 依既有失敗條件未重試相同 OS 子程序；核准的本機 `Start-Process` 路徑再次在應用程序啟動前被執行政策拒絕，未建立 Host、未連組織、未寫入資料。保存 `C:\smv\guard-p8-evidence\p8-04b-production-host-pseudo-20261122-1632-policy.log`；因此只採用既有真實 LineWebhook 組合根測試，仍不宣稱 OS 層第 1 步完成。
+
+### 2026-11-22 17:05 Asia/Taipei (UTC+08:00)：P8Live 偽語系繳費代送補驗
+
+新增並執行 `RelayLiveAcceptanceTests.Pseudo_Step3_FeeNotifyWithin60s_PseudoAndFormatted`（`Category=P8Live`）兩次；第二次在加強 finally 語系回復後 Release 1/1 通過，耗時 2 分 05 秒。案例只對核准 goodshepherdback 的測試會友建立 qps-ploc 語系租約，建立 `SMV-TEST-P8-Relay-` 收費單與代送待辦，主機 worker 在 60 秒內完成，最後回復會友原語系並清理收費單／待辦；輸出保存於 `C:\smv\guard-p8-evidence\p8-04b-p8live-pseudo-feenotify-20261122-rerun.log`。其後唯讀 `verify --org goodshepherdback` 結束碼 0、狀態符合 off，保存於 `C:\smv\guard-p8-evidence\p8-04b-post-p8live-verify-20261122.log`。
+
+此補驗證明 qps-ploc 收費通知的真實主機代送與語系租約回復；LINE API 不提供收件本文回讀，因此訊息括號、金額與日期格式仍以最新離線 7/7 的正式組合證據判定，沒有把 Channel 用量差冒稱為本文內容證據。P8-04b 尚缺 P8 專用教會覆寫的主機實機步驟，以及 Production OS 子程序啟動證據，維持未驗收。

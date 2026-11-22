@@ -1,6 +1,7 @@
 /*
  * 檔案整體說明
- * 目的與定位：P7唯一測試組織代送實機驗收，Category=P7Live由一般runsettings排除。
+ * 目的與定位：P7／P8唯一測試組織代送實機驗收，Category=P7Live與P8Live
+ * 由一般runsettings排除；P8Live另驗證 qps-ploc 語系租約的回復。
  * 主要流程：只讀Deployment User Secrets，先核固定HTTPS服務與server uniqueName，再驗D34唯一
  * 測試綁定及全Channel均為測試token；確認沒有其他待辦，建立本次SMV-TEST-fee與第四類待辦。
  * 先等待兩分鐘確認測試IIS未認領，再啟動本機正式註冊的唯一代送worker，60秒內完成、用量+1。
@@ -40,6 +41,20 @@ public sealed class RelayLiveAcceptanceTests(ITestOutputHelper output)
     public async Task Live_Relay_PushesOnceToTestContact()
     {
         await using var f = new LiveOwner(output);
+        await f.RunAsync();
+    }
+
+    /// <summary>
+    /// 在核准測試組織暫時套用 qps-ploc 後執行真正的 FeeNotify 主機代送，
+    /// 驗證語系租約可回復、工作在 60 秒內完成且實機清理不留測試資料。
+    /// LINE 訊息本文由離線組合測試保存決定性格式證據；本案不把用量差
+    /// 誤稱為本文回讀。
+    /// </summary>
+    [Fact]
+    [Trait("Category", "P8Live")]
+    public async Task Pseudo_Step3_FeeNotifyWithin60s_PseudoAndFormatted()
+    {
+        await using var f = new LiveOwner(output, pseudoLocale: true);
         await f.RunAsync();
     }
     /// <summary>註冊檔的映像type不是CLR型別；故意混入PreImage，安全盤點只能取步驟／活動與legacy的完整CLR名稱。</summary>
@@ -94,16 +109,21 @@ public sealed class RelayLiveAcceptanceTests(ITestOutputHelper output)
         private readonly Guid church, contact, fee = Guid.NewGuid(), instance = Guid.NewGuid();
         private readonly string idempotencyKey;
         private Guid? task;
-        private readonly string marker = "SMV-TEST-P7-Relay-" + Guid.NewGuid().ToString("N");
+        private readonly string marker;
+        private readonly bool pseudoLocale;
+        private string? originalPreferredLanguage;
+        private bool preferredLanguageAttempted;
         private ServiceProvider? provider; private OutboundTaskWorker? worker;
         private IConfigurationRoot? hostConfiguration;
         private readonly HttpClient http = new(new HttpClientHandler { UseCookies = false, AllowAutoRedirect = false }) { Timeout = TimeSpan.FromSeconds(15) };
         private readonly string root;
         private bool feeAttempted;
         /// <summary>建構只讀固定User Secrets與端點，失敗立即釋放已建立owner；不在錯誤回顯值。</summary>
-        internal LiveOwner(ITestOutputHelper output)
+        internal LiveOwner(ITestOutputHelper output, bool pseudoLocale = false)
         {
             this.output = output;
+            this.pseudoLocale = pseudoLocale;
+            marker = (pseudoLocale ? "SMV-TEST-P8-Relay-" : "SMV-TEST-P7-Relay-") + Guid.NewGuid().ToString("N");
             configuration = new ConfigurationBuilder().AddUserSecrets("SpeechMessage.Dynamics.Deployment.P0").Build();
             key = []; sdk = null!;
             try
@@ -125,12 +145,25 @@ public sealed class RelayLiveAcceptanceTests(ITestOutputHelper output)
         /// <summary>無其他工作與D34安全才寫測試資料，所有候選識別在Create前已落ownership。</summary>
         internal async Task RunAsync()
         {
-            var directory = Path.Combine(root, "artifacts", "p7", "relay-live-" + DateTime.UtcNow.ToString("yyyyMMdd-HHmmss", System.Globalization.CultureInfo.InvariantCulture)); Directory.CreateDirectory(directory);
+            var directory = Path.Combine(root, "artifacts", pseudoLocale ? "p8" : "p7",
+                "relay-live-" + DateTime.UtcNow.ToString("yyyyMMdd-HHmmss", System.Globalization.CultureInfo.InvariantCulture)); Directory.CreateDirectory(directory);
             var ownership = Path.Combine(directory, "ownership.json");
             void Save() => File.WriteAllText(ownership, new JObject { ["feeId"] = fee, ["taskId"] = task, ["marker"] = marker, ["idempotencyKey"] = idempotencyKey }.ToString(), new UTF8Encoding(false));
             Save();
             try
             {
+                if (pseudoLocale)
+                {
+                    var current = sdk.Retrieve("contact", contact, new ColumnSet("new_preferredlanguage"));
+                    if (current.Id != contact || current.LogicalName != "contact")
+                        throw new InvalidOperationException("P8 pseudo contact identity rejected.");
+                    originalPreferredLanguage = current.GetAttributeValue<string>("new_preferredlanguage");
+                    preferredLanguageAttempted = true;
+                    sdk.Update(new Entity("contact", contact) { ["new_preferredlanguage"] = "qps-ploc" });
+                    var changed = sdk.Retrieve("contact", contact, new ColumnSet("new_preferredlanguage"));
+                    if (!string.Equals(changed.GetAttributeValue<string>("new_preferredlanguage"), "qps-ploc", StringComparison.Ordinal))
+                        throw new InvalidOperationException("P8 pseudo language lease was not applied.");
+                }
                 var pending = sdk.RetrieveMultiple(new QueryExpression("new_outboundtask") { TopCount = 2, ColumnSet = new ColumnSet(false) });
                 if (pending.MoreRecords || pending.Entities.Count != 0) throw new InvalidOperationException("P7 requires empty outbound baseline.");
                 var row = new Entity("new_fee", fee) { ["new_name"] = marker, ["new_contact_new_fee"] = new EntityReference("contact", contact), ["new_pay_date"] = DateTime.UtcNow, ["new_fee_really_paid"] = new Money(100), ["new_pay_way"] = new OptionSetValue(100000000) };
@@ -224,6 +257,19 @@ public sealed class RelayLiveAcceptanceTests(ITestOutputHelper output)
         /// <summary>停止並排空worker後按精確正式ID及本次marker核對／刪除；未知來源不得刪。</summary>
         private async Task CleanupAsync()
         {
+            try
+            {
+                await CleanupCoreAsync();
+            }
+            finally
+            {
+                await RestorePreferredLanguageAsync();
+            }
+        }
+
+        /// <summary>執行共用測試資料與worker清理；語系回復由外層finally獨立擁有。</summary>
+        private async Task CleanupCoreAsync()
+        {
             if (worker is not null) { await worker.StopAsync(CancellationToken.None); worker = null; }
             if (provider is not null) { await provider.DisposeAsync(); provider = null; }
             // 設定是worker與scoped handler的借用依賴；只有停止及scope釋放成功後才能關閉。
@@ -255,6 +301,18 @@ public sealed class RelayLiveAcceptanceTests(ITestOutputHelper output)
                 if (sdk.RetrieveMultiple(q).Entities.Count != 0) throw new InvalidOperationException("P7 cleanup residue detected.");
             }
             output.WriteLine("Cleanup: test fees=0; relay tasks=0; worker stopped and scoped resources disposed.");
+        }
+
+        /// <summary>不論前段資料清理成功與否都回復本次 qps-ploc 租約，避免測試偏好殘留。</summary>
+        private Task RestorePreferredLanguageAsync()
+        {
+            if (!preferredLanguageAttempted) return Task.CompletedTask;
+            sdk.Update(new Entity("contact", contact) { ["new_preferredlanguage"] = originalPreferredLanguage });
+            var restored = sdk.Retrieve("contact", contact, new ColumnSet("new_preferredlanguage"));
+            if (!string.Equals(restored.GetAttributeValue<string>("new_preferredlanguage"), originalPreferredLanguage, StringComparison.Ordinal))
+                throw new InvalidOperationException("P8 pseudo language restore failed.");
+            preferredLanguageAttempted = false;
+            return Task.CompletedTask;
         }
         /// <summary>finally即使Run失敗仍重做精確清理，最後關閉所有資源及清key。</summary>
         public async ValueTask DisposeAsync()
