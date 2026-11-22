@@ -3,12 +3,12 @@
  *
  * 目的與定位：驗證 P8-04b 16.4 第 2 步的正式 LineWebhook 收件、簽章、
  * bounded queue、dispatcher、GoodShepherd 核心與 reply 傳輸組合。
- * 
+ *
  * 主要功能與流程：以正式 Program composition 啟動只綁 loopback ephemeral port
  * 的 Kestrel Host，使用測試專用 HMAC 簽章送入兩筆合成文字事件。scope resolver
  * 提供固定合成 Contact 與 qps-ploc scope；LINE reply 的 named HttpClient 由測試
  * handler 接收，僅擷取回覆文字，不開啟外部 socket、不保存 reply token 或憑證。
- * 
+ *
  * 使用邊界與維護：signature verifier、queue、dispatcher、領域 handler 與 reply
  * sender 均由正式 Host 擁有；測試只替換不可信外部資料來源與最後的 HTTP transport。
  * Contact、事件、測試 HMAC key、Host、HTTP request/response、queue worker 及 scope
