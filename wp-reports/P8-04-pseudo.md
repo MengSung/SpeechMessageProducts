@@ -56,3 +56,8 @@
 ### 2026-11-22 13:25 Asia/Taipei (UTC+08:00)：16.4 第 2 步離線正式收件組合補測
 
 Pseudo_Step2_KeywordsRecognized_AllSegmentsBracketed Release 1/1 通過；真 Kestrel、正式 HMAC 驗簽、有界 queue、dispatcher、入站 letter Upsert、qps-ploc 關鍵字及 Reply HTTP transport 均由測試組合執行，回覆文字逐段含 qps-ploc 括號。測試輸入使用 qps-ploc 對應的 SERVICE、REPORT、?? 關鍵字；主日出席與 Report 依現行契約不產生 Reply，唯一 Help Reply 作為回覆文字斷言。此為離線組合證據，不取代 goodshepherdback LINE 實機。
+
+### 2026-11-22 13:30 Asia/Taipei (UTC+08:00)：P8-04b 最新完整守門結果
+
+以唯一 C:\smv\guard-p8 checkout 2ed809d14 執行 §8.1；Release build 0 錯誤，已保存的 Release 全方案測試輸出中多個測試專案完成且通過，但 SpeechMessage.Hosting.Tests 後續未在時間盒內結束，依前次同類 hang 取證後中止。C:\smv\guard-p8-evidence\guard-2ed809d1-full.log 沒有 PASS 標記，因此本次仍不得宣稱完整守門通過；P8-04b 維持未驗收，未推送本輪提交。guard 工作樹保持乾淨。
+
