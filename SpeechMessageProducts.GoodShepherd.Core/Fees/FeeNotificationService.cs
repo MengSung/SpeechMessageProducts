@@ -4,7 +4,8 @@
  * Shadow只記摘要、絕不讀token；Live由Host借入key，重驗來源教會後才推播。
  * 主要流程：以正式 fee→contact→account 決定來源教會，交 MemberNotificationService
  * 重讀收件者並驗綁定／歸屬，再讀來源教會語系、名稱與正式頻道關聯；使用共用入口
- * 組字、server sender 及安全摘要。費用若含 new_offeringcategoryid，另以同教會有界類別快照
+ * 組字、server sender 及安全摘要；文字scope沿用代送Host提供的server UniqueName，不以WhoAmI
+ * GUID替代部署組織分區。費用若含 new_offeringcategoryid，另以同教會有界類別快照
  * 核對正式 ID、教會歸屬與啟用狀態後採用資料庫名稱；缺 lookup 的舊資料維持原 OptionSet 標籤回退。
  * Shadow頻道查詢完全不投影token；Live沿共用LineRecipientQueries讀加密封包。
  * 使用邊界與維護：SDK 只借用當次平台服務；收件source為呼叫區域owner，只有Live讀加密封包，
@@ -51,13 +52,15 @@ public static class FeeNotificationService
         ArgumentNullException.ThrowIfNull(sdk);
         ArgumentNullException.ThrowIfNull(sink);
 #endif
-        return NotifyCoreAsync(sdk, new NoDelivery(), feeId, organizationId, sink, null, null, null, "GoodShepherd", ct);
+        return NotifyCoreAsync(sdk, new NoDelivery(), feeId, organizationId, sink, null, null, null,
+            "GoodShepherd", organizationId.ToString("D"), ct);
     }
 
     /// <summary>已解析route的Live入口；route固定0，來源教會重驗後才讀頻道並以feeId推播。回傳原傳輸結果，key由Host擁有及清零。</summary>
     public static Task<LinePushResult?> NotifyRouteAsync(IOrganizationService sdk, ILineMemberPushClient push, Guid feeId,
         Guid organizationId, int route, Guid expectedChurch, byte[] key, CancellationToken ct)
-        => NotifyRouteAsync(sdk, push, feeId, organizationId, route, expectedChurch, key, null, "GoodShepherd", ct);
+        => NotifyRouteAsync(sdk, push, feeId, organizationId, route, expectedChurch, key, null,
+            "GoodShepherd", organizationId.ToString("D"), ct);
 
     /// <summary>
     /// 由 Host 傳入已註冊的產品 catalog 與固定文字產品鍵；來源教會仍由正式 fee→contact→account 關聯重驗。
@@ -72,11 +75,12 @@ public static class FeeNotificationService
     /// <param name="key">Host 借用的解密 key，不由本服務清零。</param>
     /// <param name="catalog">本 Host 的產品文字 catalog；null 時保留舊空覆寫行為。</param>
     /// <param name="textProduct">Host 固定的文字快照產品分區。</param>
+    /// <param name="textOrganization">由 Host 從伺服器組織回應取得的部署組織分區名稱。</param>
     /// <param name="ct">單筆操作取消權杖。</param>
     /// <returns>既有推播分類結果；正常拒絕仍回 null 或原分類。</returns>
     public static Task<LinePushResult?> NotifyRouteAsync(IOrganizationService sdk, ILineMemberPushClient push, Guid feeId,
         Guid organizationId, int route, Guid expectedChurch, byte[] key, ITextCatalog? catalog, string textProduct,
-        CancellationToken ct)
+        string textOrganization, CancellationToken ct)
     {
 #if NETFRAMEWORK
         if (route != 0) throw new ArgumentOutOfRangeException(nameof(route));
@@ -85,13 +89,16 @@ public static class FeeNotificationService
 #endif
         if (key is null || key.Length != 64) throw new ArgumentException("A token key is required.", nameof(key));
         if (string.IsNullOrWhiteSpace(textProduct)) throw new ArgumentException("A fixed text product is required.", nameof(textProduct));
-        return NotifyCoreAsync(sdk, push, feeId, organizationId, null, key, expectedChurch, catalog, textProduct, ct);
+        if (string.IsNullOrWhiteSpace(textOrganization))
+            throw new ArgumentException("A server organization text scope is required.", nameof(textOrganization));
+        return NotifyCoreAsync(sdk, push, feeId, organizationId, null, key, expectedChurch, catalog,
+            textProduct, textOrganization, ct);
     }
 
     /// <summary>兩模式共用收件者、組字及重試鍵；當次source在傳輸排空後釋放，來源不符不讀token。</summary>
     private static async Task<LinePushResult?> NotifyCoreAsync(IOrganizationService sdk, ILineMemberPushClient push, Guid feeId,
         Guid organizationId, IShadowPushSink? sink, byte[]? key, Guid? expectedChurch, ITextCatalog? suppliedCatalog,
-        string textProduct, CancellationToken ct)
+        string textProduct, string textOrganization, CancellationToken ct)
     {
 #if NET10_0_OR_GREATER
         ArgumentNullException.ThrowIfNull(sdk);
@@ -111,7 +118,7 @@ public static class FeeNotificationService
         var catalog = suppliedCatalog ?? new GoodShepherdTextCatalog(new NoOverrides());
         var notifications = new MemberNotificationService(push,
             new MemberCultureResolver(new LocalizationOptions()), catalog);
-        var scope = new TextContext(churchId, "zh-TW", "zh-TW", organizationId.ToString("D"), textProduct);
+        var scope = new TextContext(churchId, "zh-TW", "zh-TW", textOrganization, textProduct);
         System.Collections.Generic.IReadOnlyList<ISendMessage> Compose(TextContext context)
         {
             // 姓名、金額與日期只在共用入口已重驗收件者後才解讀／組成訊息。

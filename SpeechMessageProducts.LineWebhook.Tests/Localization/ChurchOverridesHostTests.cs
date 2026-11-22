@@ -5,7 +5,8 @@
  * FeeNotify 範本消費與輪詢停止時的資源釋放順序；所有案例完全離線。
  * 主要流程：以合成 IConfiguration、DI provider、可控 source/polling 與 FeeNotify 資料替身
  * 建立主機組合，檢查缺省關閉、無效布林拒絕、啟用時取代 Empty provider、A/B 文字隔離，
- * 並觀察 Stop/Drain → cache Dispose → manager Dispose 的實際事件序列。
+ * 並觀察 Stop/Drain → cache Dispose → manager Dispose 的實際事件序列；FeeNotify回歸
+ * 使用與LineWebhook部署一致的server organization uniqueName，避免GUID與覆寫來源分區不一致。
  * 使用邊界與維護：不建立 ToolUtility manager、D365 SDK、LINE client 或真實連線；
  * 每個 Host、source、cache、timer 與探針均由單一案例擁有並在 finally/await using 清理。
  * 故障與決定性斷言：分別注入無效設定、輪詢阻塞及 A/B 覆寫，證明設定拒絕啟動、
@@ -327,8 +328,9 @@ internal sealed class FeeNotifyOverrideTestComposition : IAsyncDisposable
     private static readonly Guid ChannelId = Guid.Parse("abababab-abab-abab-abab-abababababab");
     private static readonly Guid CategoryId = Guid.Parse("edededed-eded-eded-eded-edededededed");
     private static readonly Guid OrganizationId = Guid.Parse("cdcdcdcd-cdcd-cdcd-cdcd-cdcdcdcdcdcd");
+    private const string OrganizationName = "goodshepherdback";
     private readonly byte[] key = Enumerable.Range(0, 64).Select(value => (byte)value).ToArray();
-    private readonly TextContext context = new(ChurchId, "zh-TW", "zh-TW", OrganizationId.ToString("D"), "LineWebhook");
+    private readonly TextContext context = new(ChurchId, "zh-TW", "zh-TW", OrganizationName, "LineWebhook");
     private readonly ChurchTextOverrideCache cache;
     private readonly GoodShepherdTextCatalog catalog;
     private readonly RelaySdk sdk;
@@ -356,7 +358,7 @@ internal sealed class FeeNotifyOverrideTestComposition : IAsyncDisposable
             ["route"] = 0
         }.ToString(Newtonsoft.Json.Formatting.None);
         await MemberNotifyRelay.ExecuteAsync(sdk, Push, ChurchId, payload, key, CancellationToken.None,
-            passCatalog ? catalog : null, "LineWebhook");
+            passCatalog ? catalog : null, "LineWebhook", OrganizationName);
     }
 
     /// <summary>排空唯讀 cache owner，再清除本案例的合成解密 key 與資料來源參照。</summary>

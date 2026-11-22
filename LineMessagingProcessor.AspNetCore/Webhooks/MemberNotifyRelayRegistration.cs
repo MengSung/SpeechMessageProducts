@@ -2,7 +2,7 @@
 檔案整體說明
 目的與定位：P7 MemberNotifyRelay唯一Host接線；缺省停用，只認領第四種待辦，不覆蓋付款／QR服務。
 主要流程：啟動時嚴格讀布林開關；每次store操作自有scope，handler每筆自有async scope。
-以同SDK的server組織metadata選TokenKey，沿WebhookScopeResolver共用讀取／清理契約；
+以同SDK的server組織metadata選TokenKey，並傳遞UniqueName作文字覆寫scope；沿WebhookScopeResolver共用讀取／清理契約；
 缺key失敗，不推播。實際通知委派Core重讀來源及組字，HTTP使用無cookie／redirect有界client。
 資源與隔離：singleton只存scope factory；每筆client/key/SDK活至ExecuteAsync排空，finally清零key、
 釋放client，lease再Dispose scope。沒有static可變資料、cache、timer或脫離owner的Task。
@@ -137,7 +137,8 @@ public sealed class MemberNotifyRelayHandler(IOrganizationService sdk, IConfigur
         {
             using var client = clients.CreateClient("MemberNotifyRelay");
             await MemberNotifyRelay.ExecuteAsync(sdk, new LinePushClient(client), current.ChurchId,
-                current.PayloadJson, key, ct, catalog, catalog is null ? "GoodShepherd" : "LineWebhook").ConfigureAwait(false);
+                current.PayloadJson, key, ct, catalog, catalog is null ? "GoodShepherd" : "LineWebhook",
+                response.Detail.UniqueName).ConfigureAwait(false);
         }
         catch (MemberNotifyRelayDeliveryException exception)
         {

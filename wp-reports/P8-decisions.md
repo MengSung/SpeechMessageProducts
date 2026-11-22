@@ -106,6 +106,7 @@
 
 | 時間（Asia/Taipei） | 單元 | 遇到的選擇 | 選了什麼 | 依據 | 怎麼回復 |
 |---|---|---|---|---|---|
+| 2026-11-22 16:30 Asia/Taipei (UTC+08:00) | P8-04b／全方案 Release | 全方案測試使用 LineWebhook 測試專案預設 runsettings；該檔只排除 PaymentsLive、P7Live，未排除 P8Live，故無 Category filter 的全方案測試包含 P8Live | 如實登錄操作篩選偏差；LineWebhook 141/141 通過但不列為 §E 第5步驗收，且不重複執行該一般 qps-ploc 案例。測試完成後立即唯讀 verify，狀態符合預期目標；逐項殘留數未保存，不猜數字。固定 guard 會清理含使用者保護副本的 ignored／未追蹤資料，故未執行、不稱守門通過 | `SpeechMessageProducts.LineWebhook.Tests/PaymentsLive.runsettings`；本機測試輸出 `C:\smv\guard-p8-evidence\p8-04b-local-release-tests-eac65089-20261122-1622.log`；後續唯讀 verify `p8-04b-unintended-solution-live-test-postverify-20261122-1626.log`；08A D8-22、00 §8.2 與既有清理事故紀錄 | 不重跑相同 P8Live 案例；P8-04b 維持未驗收，保留全方案本機結果與篩選偏差；只有安全的正式 guard 路徑才可覆蓋守門證據 |
 | 2026-11-22 16:08 Asia/Taipei (UTC+08:00) | P8-04b | FeeNotify 是否繼續只使用 legacy OptionSet 標籤，忽略已轉換的自訂類別 lookup | 以費用的正式 `new_offeringcategoryid` 讀取來源教會有界類別快照；僅當資料庫 ID、教會及啟用狀態相符才使用資料庫名稱，錯誤 lookup 拒絕通知，無 lookup 的舊列維持原回退。有效、跨教會及停用三案連同 P8CustomizationIsolationTests Release 9/9 通過；屬離線證據，沒有冒稱 §E 第 5 步實機完成 | 08A D8-20、D8-26；Release 完整輸出 `C:\smv\guard-p8-evidence\p8-04b-fee-category-override-release-20261122-1608.log` | P8-04b 保持進行中；設定頁寫入後的 LineWebhook 主機 A/B 驗證與實際代送仍待完成 |
 | 2026-11-22 15:34 Asia/Taipei (UTC+08:00) | P8-04b | 原 14:45 回報把網頁 A／B 與一般 qps-ploc 代送證據擴大稱為 LINE 教會覆寫驗收 | 更正為 P8-04b 未驗收；§E 第 5 步要求 `ChurchSettingsService` 更新 A 後由 LineWebhook 主機組合於 60 秒內驗證 A 新文字、B 不變並實際代送，既有 P8Live 未覆蓋此情境。指定離線測試已改走 `SaveOverrideAsync`，Release 6/6 通過，但不替代實機。修訂 1 §E 第 1 步只要求列測試名稱，OS 子程序限制不再列為必做缺口。 | 08A 修訂 1 §E；本地 Release 輸出：指定測試 1/1、`P8CustomizationIsolationTests` 6/6；保留原 14:45 原文並標示更正 | 不改寫已推送歷史；P8-04b 保持 active，按 D8-26 繼續補必做實機／主機證據 |
 | 2026-11-22 15:50 Asia/Taipei (UTC+08:00) | P8-04b | 是否以最新離線全組測試更新證據 | `P8CustomizationIsolationTests` Release 6/6 已重跑並保存當次輸出；結果仍只代表離線隔離／偽語系契約，不改變缺少 P8Live §E 第 5 步的狀態 | `C:\smv\guard-p8-evidence\p8-04b-isolation-release-20261122-1550.log` | 保持 P8-04b active；不以離線結果替代主機／實機覆寫驗證 |
@@ -116,3 +117,10 @@
 | 2026-11-22 17:05 Asia/Taipei (UTC+08:00) | P8-04b | P8 專用 qps-ploc FeeNotify 是否可在 goodshepherdback 以既有 relay 路徑補驗 | 新增 `Category=P8Live` 案例，暫存並回復測試會友原語系；第二次 Release 1/1、清理與後續 verify off=0。因 LINE API 無收件本文回讀，括號／金額／日期格式仍只引用離線正式組合測試，不冒稱收到本文可直接核對 | 08A §4.5、D8-20、D8-26；`C:\smv\guard-p8-evidence\p8-04b-p8live-pseudo-feenotify-20261122-rerun.log`、`p8-04b-post-p8live-verify-20261122.log` | 保留離線格式證據與實機代送證據；覆寫主機實機與 OS 啟動缺口繼續列出 |
 
 | 2026-11-22 14:45 Asia/Taipei (UTC+08:00) | P8-04a／P8-04b | 守門首次因單一取消競態測試偶發失敗，且 Production OS 子程序受本機執行政策拒絕 | 先以相同 SHA 單獨重跑確認測試為 1/1，再以唯一 `C:\smv\guard-p8` 重用 checkout 完成 `guard-be35b30f-full-final.log`，所有步驟 `GUARD_RESULT=0`；依 D8-20 採 Production 組合根、固定時鐘、正式離線組合與 goodshepherdback P8Live／網頁 A/B 的可重現替代證據，保留 OS 限制不冒稱成功 | D8-20、D8-26、§7.1 第 1～4 條；不改系統設定、不連正式組織 | goodshepherdback 已回到 off、verify=0、測試資料 0；替代證據與原始拒絕輸出均保留 |
+
+
+### 2026-11-22 18:45 Asia/Taipei (UTC+08:00)：P8-04b 文字 scope 根因修正與收尾
+
+| 時間（Asia/Taipei） | 單元 | 遇到的選擇 | 選了什麼 | 依據 | 怎麼回復 |
+|---|---|---|---|---|---|
+| 2026-11-22 18:45 Asia/Taipei (UTC+08:00) | P8-04b | LineWebhook 代送的文字覆寫 scope 以 WhoAmI GUID 建立，與部署組織名稱來源不一致，導致教會覆寫主機案例失敗 | 先保留紅證據，再讓 Host 傳遞同次伺服器組織回應的 `UniqueName`，Relay／FeeNotify 使用文字 scope；P8Live Release 1/1 通過，post-live verify exit 0、狀態 off。固定 guard 不執行，因正式流程會清理受保護副本；本機 build／指定測試證據只記為本機驗證 | 條件已改變的新操作；只連 goodshepherdback；守門資料夾規則 | 若後續取得不會清理受保護副本的正式守門路徑，再補驗；目前依 D8-26 記錄未驗證並繼續 |

@@ -4,7 +4,8 @@
  * 第四類待辦，不讀金鑰或呼叫LINE。Host用相同領域規則重讀來源並送出通知。
  * 主要流程：以正式來源關聯推導教會，固定四欄kind/recordId/message/route不收文字；
  * 活動依流程執行個體產穩定事件ID，外送沿activityId。資料庫唯一鍵提供跨程序防重。
- * Host嚴格解析封閉payload，先重驗來源教會，再以server WhoAmI的組織ID呼叫共用規則；
+ * Host嚴格解析封閉payload，先重驗來源教會，再以server WhoAmI組織ID處理平台資料，並將同次
+ * server RetrieveCurrentOrganization回應的UniqueName傳至LineWebhook文字覆寫scope；
  * 各規則解密前再次核對來源。成功／永久拒絕完成，429／5xx／傳輸故障交typed例外。
  * 資源與隔離：SDK、push及key只借用至單筆await排空；Host擁有transport期限及key清零。
  * store使用using清借用參照，payload、Entity與結果皆操作局部，不保存跨教會static
@@ -90,9 +91,19 @@ public static class MemberNotifyRelay
     }
 
     /// <summary>解析封閉四欄並重讀來源，教會不符不解密；借用key至通知排空，不清理caller所有的key或SDK。</summary>
+    /// <param name="sdk">已授權組織的借用SDK；每筆來源與組織身分均在本次作業重新核對。</param>
+    /// <param name="push">當次借用的推播client，不由本方法Dispose。</param>
+    /// <param name="churchId">待辦所屬教會正式識別，須與來源關聯相符。</param>
+    /// <param name="payloadJson">封閉四欄且有界的代送工作本文，不作為授權依據。</param>
+    /// <param name="tokenKey">呼叫端持有的解密金鑰；只借用至通知完成，不在本方法清零。</param>
+    /// <param name="ct">單筆代送取消權杖。</param>
+    /// <param name="catalog">選用的產品文字catalog；空值維持原預設行為。</param>
+    /// <param name="textProduct">固定產品文字分區。</param>
+    /// <param name="textOrganization">由Host伺服器組織回應提供的文字scope；省略時保留WhoAmI GUID相容行為。</param>
+    /// <returns>等待通知組字及傳輸排空完成；真實傳輸故障以原分類回傳。</returns>
     public static async Task ExecuteAsync(IOrganizationService sdk, ILineMemberPushClient push, Guid churchId,
         string payloadJson, byte[] tokenKey, CancellationToken ct, ITextCatalog? catalog = null,
-        string textProduct = "GoodShepherd")
+        string textProduct = "GoodShepherd", string? textOrganization = null)
     {
 #if NETFRAMEWORK
         if (sdk is null) throw new ArgumentNullException(nameof(sdk));
@@ -118,6 +129,9 @@ public static class MemberNotifyRelay
         ct.ThrowIfCancellationRequested();
         if (sdk.Execute(new WhoAmIRequest()) is not WhoAmIResponse who || who.OrganizationId == Guid.Empty)
             throw new InvalidOperationException("Server organization identity is unavailable.");
+        var textOrganizationScope = textOrganization ?? who.OrganizationId.ToString("D");
+        if (string.IsNullOrWhiteSpace(textOrganizationScope))
+            throw new ArgumentException("A server organization text scope is required.", nameof(textOrganization));
         ct.ThrowIfCancellationRequested();
         LinePushResult? result;
         switch (kind)
@@ -128,7 +142,7 @@ public static class MemberNotifyRelay
                 result = await AppointmentSigningRule.NotifyRouteAsync(sdk, push, recordId, who.OrganizationId, route, null, tokenKey, churchId, ct).ConfigureAwait(false); break;
             case MemberNotifyRelayKind.FeeNotify:
                 result = await FeeNotificationService.NotifyRouteAsync(sdk, push, recordId, who.OrganizationId,
-                    route, churchId, tokenKey, catalog, textProduct, ct).ConfigureAwait(false); break;
+                    route, churchId, tokenKey, catalog, textProduct, textOrganizationScope, ct).ConfigureAwait(false); break;
             default:
                 await OutboundLetterRecords.SendAsync(sdk, push, recordId, who.OrganizationId, churchId, tokenKey, ct).ConfigureAwait(false); return;
         }

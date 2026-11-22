@@ -1,6 +1,6 @@
 # P8-04 偽語系驗收與教會自訂
 
-**目前結論：P8-04a 已驗收；P8-04b 未驗收。** P8-04a 於 2026-11-22 00:21 Asia/Taipei (UTC+08:00) 以 Development ChurchReport 與 Edge 實際開啟四頁，四頁 HTTP 與偽語系稽核均符合契約；清理完成、User Secrets 還原、Host／Browser 關閉，結果檔 SHA-256 為 `8384439BBCA13AFA6960D7A02CF6DB2AF6F76B9ABBC0638D372A65AC753C7E7A`。P8-04b 尚缺 08A 修訂 1 §E 第 5 步的 LINE 主機／實機教會覆寫驗證及實際代送。
+**目前結論（2026-11-22 18:45 Asia/Taipei (UTC+08:00)）：P8-04a 與 P8-04b 均已完成必做驗收；固定 guard 未驗證。** P8-04a 於 2026-11-22 00:21 Asia/Taipei (UTC+08:00) 以 Development ChurchReport 與 Edge 實際開啟四頁，四頁 HTTP 與偽語系稽核均符合契約；清理完成、User Secrets 還原、Host／Browser 關閉，結果檔 SHA-256 為 `8384439BBCA13AFA6960D7A02CF6DB2AF6F76B9ABBC0638D372A65AC753C7E7A`。P8-04b 的 §E 第 5 步已由核准測試組織的 P8Live 1/1 證據完成；固定 guard 因清理風險未執行，另列未驗證，不宣稱 PASS。
 
 | 必做項目 | 證據 | 狀態 |
 |---|---|---|
@@ -20,7 +20,7 @@
 
 ## P8-04b 教會自訂與 A／B 隔離（現況更正：2026-11-22 11:17 Asia/Taipei (UTC+08:00)）
 
-**目前結論：P8-04b 未驗收。** 離線契約測試通過；11:52 網頁 A／B 自訂子步成功，含類別新增、停用讀回、覆寫還原與 owner 清理。修訂 1 §E 第 1 步所需 Production＋qps-ploc 拒絕啟動測試名稱已列，組合根拒絕案例亦有離線證據；OS 子程序啟動不是修訂 1 必做。§E 第 5 步的 LINE 教會覆寫主機／實機及實際代送仍缺，故 P8-04b 未驗收。
+**歷史結論（已於 2026-11-22 18:45 Asia/Taipei (UTC+08:00) 更正）：P8-04b 未驗收。** 離線契約測試通過；11:52 網頁 A／B 自訂子步成功，含類別新增、停用讀回、覆寫還原與 owner 清理。修訂 1 §E 第 1 步所需 Production＋qps-ploc 拒絕啟動測試名稱已列，組合根拒絕案例亦有離線證據；OS 子程序啟動不是修訂 1 必做。§E 第 5 步的 LINE 教會覆寫主機／實機及實際代送仍缺，故 P8-04b 未驗收。
 
 以下 09:14 的結果保留為歷史 A／B 頁面讀回證據。原 2026-11-22 11:17 曾因 `CUSTOMIZATION_CATEGORY_FIND_ROW_FAILED`、`categoryInactive=false` 判定停用未證明；該結論已於 12:04 依 11:52 新摘要更正：`p8-04b-customization-live-20261122-exact-unmapped-role.log` 回報 `aWithin60s=true`、`bUnaffected=true`、`cleaned=true`。執行程式只有在測試類別停用並讀回、原覆寫恢復、Bridge 殘留為 0、Secrets 還原及 owner 關閉都成功時才回報 `cleaned=true`。11:54 唯讀狀態核對符合預期，證據 `p8-04b-post-customization-verify-20261122-1210.log`。此修正只涵蓋網頁自訂子步，不能代替 LINE 或其他 16.4 步驟。
 
@@ -111,3 +111,18 @@ Release 指定測試 7/7 通過：`P8CustomizationIsolationTests` 的 Production
 LineWebhook FeeNotify 現在讀取費用的 `new_offeringcategoryid`，並以來源教會的有界類別快照核對資料庫 ID、教會歸屬與啟用狀態；有效 lookup 使用類別資料庫名稱，沒有 lookup 的舊資料保留原 OptionSet 標籤，錯誤 lookup fail closed。`Relay_FeeNotify_UsesChurchOverrideTemplate`、`Relay_FeeNotify_CrossChurchOfferingCategory_FailsClosed`、`Relay_FeeNotify_InactiveOfferingCategory_FailsClosed` 與 `P8CustomizationIsolationTests` 合計 Release 9/9 通過，完整輸出保存於 `C:\smv\guard-p8-evidence\p8-04b-fee-category-override-release-20261122-1608.log`。
 
 此結果只證明離線組合及錯誤範圍拒絕；尚未完成設定頁寫入後的 LineWebhook 主機 A/B 實機覆寫通知及實際代送，P8-04b 維持未驗收。本輪完整守門尚未執行，舊 SHA 的守門不涵蓋本次程式修改。
+
+### 2026-11-22 16:30 Asia/Taipei (UTC+08:00)：本機全方案重驗與 P8Live 篩選偏差
+
+本機工作樹 Release 建置 exit 0、0 錯誤、65 個警告；`dotnet test SpeechMessageProducts.sln -c Release --no-build` exit 0，22 個測試目標共 7,551/7,551 通過。完整輸出分別保存於 `C:\smv\guard-p8-evidence\p8-04b-local-release-build-eac65089-20261122-1620.log`、`p8-04b-local-release-tests-eac65089-20261122-1622.log`。這是本機驗證，不是固定 guard 的乾淨 checkout §8.1。
+
+測試專案預設 `PaymentsLive.runsettings` 排除 `PaymentsLive`、`P7Live`，但沒有排除 `P8Live`；因此全方案命令實際包含 `RelayLiveAcceptanceTests` 的 P8Live 測試，未依規定明確指定 Category。測試目標結果 141/141 通過；該輸出未保存 P8Live 個案的逐項輸出與實際殘留數，故記為執行篩選偏差，不列作 P8-04b §E 第 5 步驗收。測試程序結束後，唯讀 `verify --org goodshepherdback` exit 0 並回報狀態符合預期目標，證據 `C:\smv\guard-p8-evidence\p8-04b-unintended-solution-live-test-postverify-20261122-1626.log`；本報告不補寫未保存的殘留數，也不以這次一般 qps-ploc 測試取代教會覆寫案例。
+
+本機補充 §8.1 檢查於 2026-11-22 16:35 Asia/Taipei (UTC+08:00) 完成：Debug tracer 7/7；Changed 編碼 261 檔、issues 0；duplicate scan 42 專案／1566 檔、groups/new/stale 0；I18nCheck 通過；ProgressPage 28/28；檔案說明 1902/1902。完整單項輸出在 `C:\smv\guard-p8-evidence\p8-04b-local-debug-tracer-eac65089-20261122.log`、`p8-04b-local-encoding-changed-eac65089-20261122-rerun.log`、`p8-04b-local-duplicate-eac65089-20261122.log`、`p8-04b-local-i18ncheck-eac65089-20261122.log`；這些仍是主工作樹檢查，不是正式 guard。Changed 編碼初檢發現的 Trellis `design.md` 換行問題已正規化，複檢 issues 0。
+
+
+### 2026-11-22 18:45 Asia/Taipei (UTC+08:00)：§E 第 5 步完成與範圍修正
+
+P8Live `Customization_Step5_LineOverrideWithin60s_ChurchBUnaffected` 以 Release 1/1 通過，保存輸出 `C:\smv\guard-p8-evidence\p8-04b-customization-live-orgscopefix-20261122-1832.log`。測試透過 ChurchSettingsService 寫入 A，LineWebhook 主機使用伺服器回應的 `UniqueName` 作文字 scope，完成 A 新詞／類別、B 不變及一次實際代送；先前以 WhoAmI GUID 作文字 scope 的失敗已查明並修正，保留紅綠證據。測試 finally 清理覆寫、類別停用、臨時資料及待辦；後續唯讀 `verify --org goodshepherdback` exit 0、狀態符合 `off`，證據 `C:\smv\guard-p8-evidence\p8-04b-customization-postlive-verify-orgscopefix-20261122-1845.log`。
+
+本次程式修正後的固定 `C:\smv\guard-p8` §8.1 未執行：正式流程含 `git clean -ffdx`，可能清理使用者保留副本；依守門資料夾決策不得執行，故記為未驗證，不把既有舊 SHA 守門結果套用到本次修改。工作樹本機 build exit 0、指定 ChurchOverridesHostTests 7/7 通過，輸出 `p8-04b-postscopefix-build-20261122-1908.log`、`p8-04b-postscopefix-tests-20261122-1908.log`。
