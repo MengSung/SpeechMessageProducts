@@ -60,3 +60,7 @@ Pseudo_Step2_KeywordsRecognized_AllSegmentsBracketed Release 1/1 通過；真 Ke
 ### 2026-11-22 13:30 Asia/Taipei (UTC+08:00)：P8-04b 最新完整守門結果
 
 以唯一 C:\smv\guard-p8 checkout 2ed809d14 執行 §8.1；Release build 0 錯誤，已保存的 Release 全方案測試輸出中多個測試專案完成且通過，但 SpeechMessage.Hosting.Tests 後續未在時間盒內結束，依前次同類 hang 取證後中止。C:\smv\guard-p8-evidence\guard-2ed809d1-full.log 沒有 PASS 標記，因此本次仍不得宣稱完整守門通過；P8-04b 維持未驗收，未推送本輪提交。guard 工作樹保持乾淨。
+
+### 2026-11-22 15:00 Asia/Taipei (UTC+08:00)：P8-04b 完整守門重跑通過
+
+唯一 C:\smv\guard-p8 對提交 4152847c 的 §8.1 已全部通過：Release build 0 錯誤；Release 全方案測試 0 失敗（Hosting 165、LineWebhook 138 等均保存於守門輸出）；Debug tracer 7/7；文字編碼 256 檔 0 問題；duplicate projects=42、files=1566、new=0、stale=0；I18nCheck、檔案說明 1902/1902、進度頁 28/28 均通過。證據 C:\smv\guard-p8-evidence\guard-f4152847-full.log。這只證明守門，不改變 16.4 LINE 實機缺口；P8-04b 仍未驗收。
