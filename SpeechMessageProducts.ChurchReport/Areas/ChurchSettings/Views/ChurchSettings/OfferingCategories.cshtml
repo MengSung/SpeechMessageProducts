@@ -33,6 +33,7 @@
                     <input name="accountingCode" value="@category.AccountingCode" maxlength="50" />
                     <input name="legacyOptionValue" type="number" value="@category.LegacyOptionValue" />
                     <input name="isActive" type="checkbox" value="true" checked="@category.IsActive" />
+                    <input name="isActive" type="hidden" value="false" />
                     <button type="submit">@ChurchSettingsText.GetText("ChurchSettings.Save")</button>
                 </form>
             </td>

@@ -280,6 +280,26 @@ public sealed class ChurchSettingsControllerContractTests
             .Should().Be("&lt;script&gt;alert(1)&lt;/script&gt;");
     }
 
+    /// <summary>
+    /// 保護奉獻類別停用契約：未勾選 checkbox 時仍須送出明確 false，避免 MVC 將缺值
+    /// 綁定成 action 的 true 預設值。以實際 Razor 表單欄位順序做離線回歸檢查。
+    /// </summary>
+    [Fact]
+    public void OfferingCategories_UncheckedActiveFlag_SubmitsFalseValue()
+    {
+        var viewPath = Path.Combine(AreaPath, "Views", "ChurchSettings", "OfferingCategories.cshtml");
+        var view = Read(viewPath);
+        const string checkbox = "<input name=\"isActive\" type=\"checkbox\" value=\"true\"";
+        const string hiddenFalse = "<input name=\"isActive\" type=\"hidden\" value=\"false\" />";
+
+        var checkboxIndex = view.IndexOf(checkbox, StringComparison.Ordinal);
+        var hiddenFalseIndex = view.IndexOf(hiddenFalse, StringComparison.Ordinal);
+
+        checkboxIndex.Should().BeGreaterThanOrEqualTo(0);
+        hiddenFalseIndex.Should().BeGreaterThan(checkboxIndex,
+            "checked=true must precede the fallback false value for MVC's first-value binding");
+    }
+
     /// <summary>非管理員的 GET 頁面同樣拒絕，避免只保護寫入端點。</summary>
     [Fact]
     public async Task Get_NonAdmin_Forbidden()
