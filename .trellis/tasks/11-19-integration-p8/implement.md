@@ -31,7 +31,7 @@
 - [x] 遺留 L3 Live 補驗範圍處置（2026-11-21 22:45 Asia/Taipei (UTC+08:00)：依 goal-objective.md 修訂 1 不執行 Live 切換／補驗；因無 Live evidence 的項目不能切入正式組織，延後不產生部署風險。`plugins.registration.json` 的 tier/evidence/reason 保持原樣；七個 dormant Workflow 活動與 L3 模組實機移至好牧人 9.1 上線前作業。此為範圍處置完成，不代表 Live 通過或組織狀態驗收。詳見 `wp-reports/P8-L3-live-recheck.md`。）
 - [x] P8-04a 偽語系稽核工具與網頁修正（2026-11-22 14:45 Asia/Taipei；四頁實機 0／0、PseudoAudit／P6 lifecycle 通過；`guard-be35b30f-full-final.log` 完整守門 `GUARD_RESULT=0`。）
 - [x] P8-04b 偽語系驗收腳本、教會自訂及 A/B 隔離（2026-11-22 18:45 Asia/Taipei (UTC+08:00)；P8Live `Customization_Step5_LineOverrideWithin60s_ChurchBUnaffected` Release 1/1 通過，驗證 ChurchSettingsService 寫入 A、LineWebhook 主機 A 新詞／類別、B 不變及一次代送；post-live verify exit 0、狀態 off。固定 guard 因清理受保護副本風險未驗證，詳見 `wp-reports/P8-04-pseudo.md`。）
-- [ ] P8-05 收尾清理與「之後再說」
+- [x] P8-05 收尾清理與「之後再說」（2026-11-22 19:05 Asia/Taipei (UTC+08:00)：離線必做與清單完成；四個 `artifacts\p8` 一次性探針未追蹤檔刪除遭本機執行政策阻擋，已如實記錄於 `wp-reports/P8-05-closeout.md` 與 `P8-decisions.md`，未繞過政策。）
 - [ ] 整體驗收表、ClaudeOnly 階段審查、終點回報、上線前置清單與 AGENTS 終點文字
 
 ## 每單元執行守則

@@ -39,3 +39,7 @@
 - `artifacts/p8` 的一次性 D34／SMV-TEST 探針檔已不列為 P8-05 產物；本單元只保留必要的 `encoding-all.json` 報告。
 - 本單元沒有新增秘密、沒有連線組織、沒有修改守門 clone。
 - 完整 Release 建置／測試與守門依 `C:\smv\guard-p8-evidence\guard-f4152847-full.log`；該證據支持本單元前置的全方案綠燈，但不替代 P8-04b 尚缺的實機步驟。
+
+### 2026-11-22 19:05 Asia/Taipei (UTC+08:00)：一次性探針清理受執行政策阻擋
+
+依 P8-05 指示確認 `artifacts\p8` 仍有 `D34ReadOnlyDiagnostic.cs`／`.dll` 與 `SmvTestResidueProbe.cs`／`.dll` 四個一次性探針，四檔均未被 Git 追蹤。嘗試以 PowerShell `Remove-Item -LiteralPath` 逐檔刪除時遭本機執行政策阻擋，未繞過政策、未改動檔案；故清理項目記為「未完成／環境限制」，並保留原檔供後續使用者處理。
