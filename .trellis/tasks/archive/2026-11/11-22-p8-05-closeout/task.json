@@ -1,0 +1,12 @@
+{
+  "id": "11-22-p8-05-closeout",
+  "title": "P8-05 收尾清理與之後再說清單",
+  "status": "completed",
+  "complexity": "M",
+  "risk": "medium",
+  "domain": "release",
+  "currentPhase": "completed",
+  "nextAction": "封存 P8-05 任務並提交單元文件",
+  "createdAt": "2026-11-22T15:10:00+08:00",
+  "branch": "1.0.0.11.Integration.P8.Worktree"
+}
