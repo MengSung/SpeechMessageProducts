@@ -5,6 +5,7 @@
 使用邊界與維護：SDK 由事件 scope 擁有，本類不保存 Entity、使用者或憑證；同步 I/O 前後查取消且等待操作排空，transport deadline 屬主機。例外不吞掉、不另建 notifier；資料列以正式 ID 驗證，更新須 rowversion，避免併行覆寫。測試以窄假 SDK 驗證參數與實際異動，不代表實機。
 */
 using System;
+using System.Collections.Generic;
 using System.Threading;
 using Microsoft.Xrm.Sdk;
 using SpeechMessage.Localization;
@@ -40,7 +41,7 @@ public sealed class WebhookTextHandler
     /// 群組／聊天室文字則由 Host 呼叫下方多來源 overload。
     /// </summary>
     public WebhookBusinessResult Handle(IOrganizationService service, WebhookActor actor, string description, CancellationToken ct) =>
-        Handle(service, actor, null, actor.UserId, description, ct);
+        Handle(service, actor, null, actor.UserId, description, "zh-TW", Array.Empty<string>(), ct);
 
     /// <summary>
     /// 執行一筆已授權訊息；actor 負責 CRM 授權，display source 僅供需要顯示名稱的
@@ -52,10 +53,38 @@ public sealed class WebhookTextHandler
         Entity? displayContact,
         string displaySourceId,
         string description,
+        CancellationToken ct) =>
+        Handle(service, actor, displayContact, displaySourceId, description, "zh-TW", Array.Empty<string>(), ct);
+
+    /// <summary>
+    /// 依目前已授權事件 scope 的文化選擇關鍵字表；文化只決定比對順序，不改變 actor、教會或 SDK 授權。
+    /// 文化清單由 scope 建立時複製，呼叫期間只讀，不寫入 handler 欄位或跨事件快取。
+    /// </summary>
+    /// <param name="service">本事件借入的 SDK。</param>
+    /// <param name="actor">Host 已授權的單一 actor。</param>
+    /// <param name="displayContact">可選的已驗證顯示 Contact。</param>
+    /// <param name="displaySourceId">已驗證的顯示來源識別。</param>
+    /// <param name="description">本次 bounded 訊息本文。</param>
+    /// <param name="memberCulture">resolver 依會友偏好及教會政策解析的語系。</param>
+    /// <param name="churchCultures">本教會啟用語系的 detached 清單。</param>
+    /// <param name="ct">本事件取消 token。</param>
+    /// <returns>依核定業務規則產生的單事件結果。</returns>
+    public WebhookBusinessResult Handle(
+        IOrganizationService service,
+        WebhookActor actor,
+        Entity? displayContact,
+        string displaySourceId,
+        string description,
+        string memberCulture,
+        IReadOnlyList<string> churchCultures,
         CancellationToken ct)
     {
         ct.ThrowIfCancellationRequested();
-        var intent = keywordCatalog.TryMatch("zh-TW", Array.Empty<string>(), description, out var matchedIntent)
+        if (string.IsNullOrWhiteSpace(memberCulture) || memberCulture.Length > 128)
+            throw new ArgumentException("A bounded resolved member culture is required.", nameof(memberCulture));
+        if (churchCultures is null || churchCultures.Count > 64)
+            throw new ArgumentException("Enabled church cultures must be present and bounded.", nameof(churchCultures));
+        var intent = keywordCatalog.TryMatch(memberCulture, churchCultures, description, out var matchedIntent)
             ? matchedIntent
             : "Unknown";
         if (intent == "Registration") return new WebhookBusinessResult(WebhookBusinessStatus.Rejected, "RegistrationExcluded");

@@ -59,6 +59,8 @@ public sealed class WebhookDispatcher(
                         scope.DisplayContact,
                         scope.DisplaySourceId,
                         message.Text,
+                        scope.MemberCulture,
+                        scope.EnabledCultures,
                         cancellationToken), cancellationToken).ConfigureAwait(false);
                 }
                 else RecordDisposition("Webhook.UnboundTextIgnored", "Webhook text dispatch requires a bound contact.");

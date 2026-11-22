@@ -240,11 +240,11 @@ footer{margin-top:36px;color:var(--muted);font-size:12.5px;text-align:center}
  */
 const DATA = {
   "planVersion": "3.5",
-  "snapshot": "2026-11-21 23:01 Asia/Taipei (UTC+08:00)",
-  "lastUpdated": "2026-11-21T23:01:00+08:00",
+  "snapshot": "2026-11-22 12:18 Asia/Taipei (UTC+08:00)",
+  "lastUpdated": "2026-11-22T12:18:00+08:00",
   "branch": "1.0.0.11.Integration.P8.Worktree",
-  "head": "a22a553f",
-  "headline": "階段 8 2026-11-22 08:34 Asia/Taipei (UTC+08:00)：P8-04a 四頁實機稽核完成但完整 guard 未完成；依 D8-26 繼續 P8-04b。",
+  "head": "9e16bcba",
+  "headline": "階段 8 2026-11-22 12:18 Asia/Taipei (UTC+08:00)：P8-04a guard 未完成；P8-04b 網頁 A/B 子步通過但 16.4 未完成，維持 82／84，不宣稱驗收。",
   "notices": [
     {
       "id": "plan-3.5-summary",
@@ -703,9 +703,12 @@ const DATA = {
       "phaseId": "階段 8",
       "level": "info",
       "title": "P8 進度摘要",
-      "body": "2026-11-21 23:01 Asia/Taipei (UTC+08:00)：階段 8 依修訂 1 執行；L1、L2 均依核定範圍縮減結案，L1 原因碼成果保留，Relay 專案／行為差異、紅燈證據缺口與 R7／R9／church-defaults 不確定性仍列上線前作業；L2 離線 PE input contract、shape projector、strong-name／輸入驗證及 CLI／測試全方案 Release 7,535/7,535，完整 §8.1 守門 23 個目標 7,542/7,542 通過，紀錄同步後 ProgressPage 測試 28/28 通過。21:34 僅為範圍核定時間，已於 22:37 更正；Workflow XAML builder、完整十案、probe lifecycle、Appointment 情境及實機移至好牧人 9.1 上線前作業，七活動維持 dormant。L3 範圍處置已記錄，Live 未執行且 registration 清冊不變；其模組實機仍列上線前作業。三大產品共用基礎的隔離、授權、API／SDK、Webhook、代送、生命週期與相容性驗收不縮減；P8-04a、P8-04b、P8-05、最終守門、ClaudeOnly 與終點回報仍待完成，階段尚未結案。",
-      "lastUpdated": "2026-11-21T23:01:00+08:00",
+      "body": "2026-11-22 12:18 Asia/Taipei (UTC+08:00)：階段 8 依修訂 1 執行；已核定縮減範圍的 L1、L2 與 L3 處置保留既有證據。P8-04a 四頁實機 0／0，但完整 guard 未完成；P8-04b 離線測試通過、11:52 goodshepherdback 網頁 A/B 自訂與 cleanup 子步成功，11:54 唯讀狀態核對符合預期。Production 組合根拒絕偽語系測試通過；OS 子程序啟動遭本機執行政策拒絕，未驗證。16.4 第 2～4、6 步與 LINE 實機尚未完成，完整守門未完成。P8-04、P8-05、整體驗收、ClaudeOnly 與終點回報未完成，階段尚未結案，工作包維持 82／84。",
+      "lastUpdated": "2026-11-22T12:18:00+08:00",
       "steps": [
+        "2026-11-22 12:18 Asia/Taipei (UTC+08:00)：PseudoAudit rules＋lifecycle 30/30、P6 lifecycle 4/4、ProgressPage 28/28、文件說明 1,901 檔零失敗；證據分別保存於 `C:\\smv\\guard-p8-evidence\\p8-04b-pseudo-audit-node-20261122-1220.log`、`p8-04b-p6-lifecycle-20261122-1220.log`、`p8-04b-progress-page-20261122-1220.log`、`p8-04b-file-documentation-20261122-1220.log`。Production 組合根偽語系拒絕測試 1/1；OS 子程序啟動因本機執行政策未執行。P8-04b 仍未驗收。",
+        "2026-11-22 12:04 Asia/Taipei (UTC+08:00)：較新 11:52 goodshepherdback 網頁 A/B 自訂摘要 `aWithin60s=true`、`bUnaffected=true`、`cleaned=true`，依 cleanup 契約含測試類別停用讀回、覆寫／秘密／資源回復；11:54 唯讀狀態核對符合預期。此為網頁子步通過，不代表 16.4 LINE 實機或 P8-04b 整包驗收。",
+        "2026-11-22 11:22 Asia/Taipei (UTC+08:00)：P8-04b 最新網頁摘要 `p8-04b-customization-live-20261122-111704-post-response-sync.log` 顯示類別停用定位失敗、`categoryInactive=false`；沒有 POST rejection 證據，不能推定 9.1 拒絕一般 Update。`p8-04b-postlive-verify-20261122-111831.log` 唯讀 verify 符合預期。角色／範本還原與資源關閉有摘要證據，但類別清理、LINE 實機及 16.4 第 1～4、6 步未完成；P8-04b 未驗收，總數維持 82／84。",
         "2026-11-21 22:37 Asia/Taipei (UTC+08:00)：更正 L2 時間記錄：21:34 是範圍核定而非完成；21:50 全方案 Release 7,535/7,535，22:21 完整 §8.1 守門通過，22:32 保存逐命令輸出 7,542/7,542、Debug tracer 7/7、ProgressPage 28/28、文件說明 1,891 檔零失敗。守門證據見 `C:\\smv\\guard-p8-evidence\\guard-477c8136-full.log` 與 `guard-477c8136-full-output.log`；L2 回報已同步更正。",
         "2026-11-21 21:34 Asia/Taipei (UTC+08:00)：此時間是依修訂 1 核定 L2 縮減範圍，不是測試／守門完成時間；原結案時間表述已於 2026-11-21 22:37 Asia/Taipei (UTC+08:00) 更正。",
         "2026-11-21 20:48 Asia/Taipei (UTC+08:00)：L1 依使用者核定修訂 1 已驗收（縮減）；原因碼程式為 c819da1e。Relay 測試專案／行為不符、六項先紅輸出缺失及 R7／R9／church-defaults 調查不確定性均明列為上線前作業。L1 原提交早於 P8-03 fix，且 L2 提交 88f806bc 先於本次 L1 結案紀錄；保留此順序偏差，不改寫歷史。完整證據見 wp-reports/P8-L1-狀態與證據.md。",
@@ -913,10 +916,10 @@ const DATA = {
       "id": "階段 8",
       "name": "收尾、偽語系驗收、教會設定網頁",
       "planned": "3～4 個工作天",
-      "actual": "2026-11-21 08:40 Asia/Taipei (UTC+08:00)：P8-03b 完成完整守門並驗收；P8-03a、P8-03b 均完成，P8-03 總包已驗收，整體 82／84 包完成。程式提交 b648dd77；收尾提交 b64902d71941f668f825d37c63a43beb1b6d12ea 已推送並以 git ls-remote 核對；完整守門證據 C:\\smv\\guard-p8-evidence\\guard-b648dd77-full.log；回報 wp-reports/P8-03b-教會設定網頁.md。接續遺留 L1；階段 8 尚未完成。前次狀態：2026-11-21 00:16 已驗收 P8-00、P8-01（含 a/b/c）、P8-02 與 P8-03a。",
+      "actual": "2026-11-22 12:18 Asia/Taipei (UTC+08:00)：P8-04a／P8-04b 仍未驗收，總計 82／84；P8-04b 網頁 A/B 子步通過，16.4 實機與 LINE 尚缺，完整守門待處理。歷史：2026-11-21 08:40 P8-03b 完成完整守門與驗收；P8-03a、P8-03b 已完成，程式提交 b648dd77、收尾提交 b64902d71941f668f825d37c63a43beb1b6d12ea 已推送核對，證據 `C:\\smv\\guard-p8-evidence\\guard-b648dd77-full.log`。",
       "current": true,
       "done": 3,
-      "active": 0
+      "active": 1
     }
   ],
   "wps": [
@@ -1910,13 +1913,13 @@ const DATA = {
       "id": "P8-04",
       "phaseId": "階段 8",
       "name": "偽語系全面驗收",
-      "status": "todo",
+      "status": "active",
       "deps": "P8-03",
       "live": "有",
       "timebox": "1 天",
       "doneAt": "",
       "commit": "",
-      "note": "未包住的中文 0、截斷元素 0"
+      "note": "2026-11-22 12:18 Asia/Taipei (UTC+08:00)：P8-04a 四頁實機稽核 0／0，但完整守門未完成。P8-04b 離線測試通過、網頁 A/B 子步成功；Production 組合根拒絕偽語系測試通過，OS 子程序啟動未驗證，16.4 第 2～4、6 步與 LINE 實機尚缺。總包仍 82／84，見 `wp-reports/P8-04-pseudo.md`。"
     },
     {
       "id": "P8-05",
@@ -2014,8 +2017,8 @@ const DATA = {
       "id": "P8-04b",
       "phaseId": "階段 8",
       "name": "P8-04b 偽語系驗收腳本、教會自訂與隔離驗收",
-      "status": "todo",
-      "note": "2026-11-19 20:43 Asia/Taipei (UTC+08:00)：依 08A 固定順序待執行。"
+      "status": "active",
+      "note": "2026-11-22 12:18 Asia/Taipei (UTC+08:00)：PseudoAudit 30/30、P6 lifecycle 4/4、Production 組合根拒絕測試 1/1；11:52 goodshepherdback 網頁 A/B 自訂與 cleanup 子步成功，11:54 唯讀狀態符合預期。OS 子程序啟動未驗證；16.4 第 2～4、6 步、LINE 實機與完整守門未完成，P8-04b 未驗收。"
     },
     {
       "id": "整體驗收",
@@ -2194,7 +2197,21 @@ const DATA = {
       "note": "2026-11-19 17:45 Asia/Taipei (UTC+08:00)：R5b/R6/R7/R8/R9依核定縮減範圍完成；33項總表live12/pass1/dormant21。七個Workflow活動因核定LIVE-PREP-09維持dormant，care/qrcodes未檢查；其餘未解及延後項目列於P8以後待驗證清單。D7-22依核定範圍未執行並依P7-PROP-005列人工步驟；P7-PROP-007列後續必做。ClaudeOnly審查標記「單模型（使用者指定 ClaudeOnly）」已完成，High文案已修正；提交552bdbcf完整guard八項通過並已推送，ls-remote核對相同SHA。"
     }
   ],
-  "active": [],
+  "active": [
+    {
+      "id": "P8-04",
+      "startedAt": "補記 2026-11-22 12:04 Asia/Taipei (UTC+08:00)（原開始時間未記錄）",
+      "timebox": "1 天；依 D8-26 持續處理必做缺口",
+      "next": "先完成 P8-04b 16.4 必做與 LINE 實機，並取得 P8-04a 安全完整守門證據；全部有證據後才驗收與推送。",
+      "dod": [
+        ["P8-04a 稽核與 P6／PseudoAudit 指定測試", "no", "四頁實機 0／0 已有證據；完整 guard 未完成，不能驗收。"],
+        ["P8-04b A／B 隔離與設定頁新增、停用類別", "no", "11:52 網頁子步摘要 aWithin60s／bUnaffected／cleaned 均為 true，含停用讀回與清理；16.4 及 LINE 實機仍未完成。"],
+        ["16.4 六步及 LINE 實機結果", "no", "Production 組合根偽語系拒絕測試 1/1；OS 子程序啟動未驗證，第 2～4、6 步與 LINE 實機仍未完成。"],
+        ["測試組織回復 off、verify=0、殘留 0", "no", "最近唯讀狀態符合預期；完整殘留盤點與本單元收尾證據仍待完成。"],
+        ["完整守門、報告、提交、推送與遠端 SHA 核對", "no", "P8-04a／P8-04b 尚未完成守門及單元收尾。"]
+      ]
+    }
+  ],
   "gates": [
     {
       "item": "方案建置（Release）",

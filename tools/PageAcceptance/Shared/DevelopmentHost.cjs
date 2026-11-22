@@ -49,15 +49,29 @@ async function readSettings() {
   }
 }
 
+/** 建立單次測試 Host 環境；除明確要求外，不覆寫既有啟動設定。 */
+function buildDevelopmentHostEnvironment(port, {
+  allowPseudoLocale = false,
+  enableChurchOverrides = false
+} = {}, inherited = process.env) {
+  const env = { ...inherited,
+    DOTNET_ENVIRONMENT: 'Development',
+    ASPNETCORE_ENVIRONMENT: 'Development',
+    ASPNETCORE_URLS: `http://localhost:${port}`,
+    ExceptionNotifications__SendLine: 'false',
+    Localization__AllowPseudoLocale: allowPseudoLocale ? 'true' : 'false'
+  };
+  if (enableChurchOverrides) env.Localization__ChurchOverrides__Enabled = 'true';
+  delete env.SPEECHMESSAGE_R2_WRITE_GOLDEN;
+  return env;
+}
+
 /** 啟動固定 Development 組件；輸出只用於辨識成功啟動，不保留原始主機文字。 */
-async function startHost(root, port, { allowPseudoLocale = false } = {}) {
+async function startHost(root, port, { allowPseudoLocale = false, enableChurchOverrides = false } = {}) {
   if (!Number.isInteger(port) || port < 1024 || port > 65535) throw new Error('P6_HOST_PORT_INVALID');
   const product = path.join(root, 'SpeechMessageProducts.ChurchReport');
   const assembly = path.join(product, 'bin', 'Release', 'net10.0', 'SpeechMessageProducts.ChurchReport.dll');
-  const env = { ...process.env, DOTNET_ENVIRONMENT: 'Development', ASPNETCORE_ENVIRONMENT: 'Development',
-    ASPNETCORE_URLS: `http://localhost:${port}`, ExceptionNotifications__SendLine: 'false',
-    Localization__AllowPseudoLocale: allowPseudoLocale ? 'true' : 'false' };
-  delete env.SPEECHMESSAGE_R2_WRITE_GOLDEN;
+  const env = buildDevelopmentHostEnvironment(port, { allowPseudoLocale, enableChurchOverrides });
   const child = spawn('dotnet', [assembly], { cwd: product, env, windowsHide: true, stdio: ['ignore', 'pipe', 'pipe'] });
   let listening = false, rejected = false, closed = false, exitCode = null;
   const scan = chunk => {
@@ -94,4 +108,4 @@ async function startHost(root, port, { allowPseudoLocale = false } = {}) {
   return { stop, origin: `http://localhost:${port}` };
 }
 
-module.exports = { readSettings, startHost };
+module.exports = { buildDevelopmentHostEnvironment, readSettings, startHost };

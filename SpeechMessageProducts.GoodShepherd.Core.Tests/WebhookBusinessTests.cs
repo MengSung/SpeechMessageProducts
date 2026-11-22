@@ -23,6 +23,9 @@ namespace SpeechMessageProducts.GoodShepherd.Core.Tests;
 /// <summary>以窄假 CRM 驗證真正領域入口；不使用會直接回成功的業務 sink。</summary>
 public sealed class WebhookBusinessTests
 {
+    private static readonly string[] PseudoEnabledCultures = { "zh-TW", "qps-ploc" };
+    private static readonly string[] TraditionalEnabledCultures = { "zh-TW" };
+    private static readonly string[] ExpectedCultureSequence = { "qps-ploc", "zh-TW" };
     /// <summary>
     /// 以已驗收 routing.json 逐筆驗證 GoodShepherd catalog；主機預設 zh-TW 仍保留
     /// 舊 matcher 的大小寫、全形與前後空白結果，Unknown 必須確定不命中。
@@ -90,6 +93,40 @@ public sealed class WebhookBusinessTests
         Assert.Equal(WebhookBusinessStatus.Ignored, second.Status);
         Assert.Equal("UnknownText", second.Code);
         Assert.Equal(2, catalog.Calls);
+    }
+
+    /// <summary>同一事件傳入已解析的偽語系與教會語系，handler 必須原樣交給注入 catalog 且不保存到下一事件。</summary>
+    [Fact]
+    public void WebhookTextHandler_UsesResolvedMemberCultureForKeywordResolution()
+    {
+        var catalog = new CultureRecordingKeywordCatalog();
+        var handler = new WebhookTextHandler(new ChurchClock(), catalog);
+        var sdk = new BusinessSdk();
+
+        var pseudoResult = handler.Handle(
+            sdk,
+            sdk.Actor,
+            null,
+            sdk.Actor.UserId,
+            "Help",
+            "qps-ploc",
+            PseudoEnabledCultures,
+            CancellationToken.None);
+        var defaultResult = handler.Handle(
+            sdk,
+            sdk.Actor,
+            null,
+            sdk.Actor.UserId,
+            "Help",
+            "zh-TW",
+            TraditionalEnabledCultures,
+            CancellationToken.None);
+
+        Assert.Equal(WebhookBusinessStatus.ReplyPending, pseudoResult.Status);
+        Assert.Equal(WebhookBusinessStatus.ReplyPending, defaultResult.Status);
+        Assert.Equal(ExpectedCultureSequence, catalog.MemberCultures);
+        Assert.Equal(PseudoEnabledCultures, catalog.ChurchCultures[0]);
+        Assert.Equal(TraditionalEnabledCultures, catalog.ChurchCultures[1]);
     }
 
     /// <summary>Golden 每個變體都經正式過渡 resolver；保持排序、大小寫及原 matcher 的相容差異。</summary>
@@ -302,6 +339,28 @@ public sealed class WebhookBusinessTests
             var current = results[Math.Min(index++, results.Length - 1)];
             intentCode = current.Intent;
             return current.Matched;
+        }
+    }
+
+    /// <summary>記錄每次解析收到的文化副本，確認它們只屬目前呼叫且沒有被 handler 跨事件保存。</summary>
+    private sealed class CultureRecordingKeywordCatalog : IKeywordCatalog
+    {
+        /// <summary>每次呼叫的會友語系純值。</summary>
+        internal List<string> MemberCultures { get; } = new();
+        /// <summary>逐次複製收到的啟用文化，避免測試保存 handler 的可變參照。</summary>
+        internal List<string[]> ChurchCultures { get; } = new();
+
+        /// <summary>只記錄本案例輸入並回傳固定 Help 意圖，不執行 I/O 或保存 request。</summary>
+        public bool TryMatch(
+            string memberCulture,
+            IReadOnlyList<string> churchCultures,
+            string input,
+            out string intentCode)
+        {
+            MemberCultures.Add(memberCulture);
+            ChurchCultures.Add(churchCultures.ToArray());
+            intentCode = "Help";
+            return true;
         }
     }
 

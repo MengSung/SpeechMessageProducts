@@ -26,7 +26,7 @@ public static partial class WebhookServiceRegistration
         services.TryAddSingleton<IMemberCultureResolver>(_ => new MemberCultureResolver(new LocalizationOptions()));
         services.TryAddSingleton<IChurchTextOverrideSnapshotProvider, EmptyWebhookTextOverrideSnapshotProvider>();
         services.TryAddSingleton<GoodShepherdTextCatalog>();
-        services.AddScoped<IWebhookScopeResolver, WebhookScopeResolver>();
+        services.TryAddScoped<IWebhookScopeResolver, WebhookScopeResolver>();
         services.AddScoped<WebhookTextHandler>();
         services.AddHttpClient<WebhookHttpAdapter>(client => client.Timeout = System.Threading.Timeout.InfiniteTimeSpan)
             .ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler

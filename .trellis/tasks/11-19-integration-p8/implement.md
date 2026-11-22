@@ -30,7 +30,7 @@
 - [x] 遺留 L2 離線活動輸入契約與身份檢核（2026-11-21 22:32 Asia/Taipei (UTC+08:00) 完成證據核對；21:34 僅為修訂 1 範圍核定時間，已於 22:37 更正。依核定範圍縮減結案：保留可編譯、有測試且全方案 Release 通過的 PE input contract、shape projector、strong-name／輸入驗證及相關 CLI／測試；單元 Release 7,535/7,535，完整守門 checkout `477c8136147d7168ebc8faf869a8e1761004db93` 的 23 個測試目標 7,542/7,542、Debug tracer 7/7、ProgressPage 28/28、文件說明 1,891 檔零失敗。證據 `C:\smv\guard-p8-evidence\guard-477c8136-full.log`、`guard-477c8136-full-output.log`。真實 XAML golden、builder、完整十案、PREP-09／10、新流程 lifecycle、Appointment 情境及 goodshepherdback 實機移至好牧人 9.1 上線前作業；七活動維持 dormant，LiveActivityProbe 與 registration tier/evidence 不變。最新可核證 verify 為 20:15 exit 1、僅 UpdateAssembly，不宣稱 `off`／`verify=0`。細節見 `wp-reports/P8-L2-workflow-template.md`。）
 - [x] 遺留 L3 Live 補驗範圍處置（2026-11-21 22:45 Asia/Taipei (UTC+08:00)：依 goal-objective.md 修訂 1 不執行 Live 切換／補驗；因無 Live evidence 的項目不能切入正式組織，延後不產生部署風險。`plugins.registration.json` 的 tier/evidence/reason 保持原樣；七個 dormant Workflow 活動與 L3 模組實機移至好牧人 9.1 上線前作業。此為範圍處置完成，不代表 Live 通過或組織狀態驗收。詳見 `wp-reports/P8-L3-live-recheck.md`。）
 - [ ] P8-04a 偽語系稽核工具與網頁修正（實機四頁已通過；唯一 guard 對 `565072ed` 執行至 SpeechMessage.Hosting.Tests 未完成，尚無 PASS 證據，維持未驗收。）
-- [ ] P8-04b 假語系驗收腳本、教會自訂及 A/B 隔離
+- [ ] P8-04b 偽語系驗收腳本、教會自訂及 A/B 隔離（2026-11-22 12:18 Asia/Taipei (UTC+08:00)：PseudoAudit 30/30、P6 lifecycle 4/4、ProgressPage 28/28、文件說明 1,901 檔零失敗；11:52 goodshepherdback 網頁 A/B 自訂子步 `aWithin60s=true`、`bUnaffected=true`、`cleaned=true`，11:54 唯讀狀態核對符合預期。Production 組合根拒絕偽語系案例 1/1；OS 子程序啟動未驗證，16.4 第 2～4、6 步與 LINE 實機仍未完成，完整守門未完成，P8-04b 未驗收。詳見 `wp-reports/P8-04-pseudo.md`。）
 - [ ] P8-05 收尾清理與「之後再說」
 - [ ] 整體驗收表、ClaudeOnly 階段審查、終點回報、上線前置清單與 AGENTS 終點文字
 

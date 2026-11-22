@@ -4,7 +4,8 @@
  * 目的與定位：驗證階段 8 P8-04b 的教會自訂、偽語系訊息、固定時鐘及跨教會隔離契約。
  * 本檔只使用正式的 Localization、Tenancy、GoodShepherd Core 與 LineWebhook 產品
  * 組合元件，資料來源是本測試獨佔的記憶體替身；不連 D365、LINE、瀏覽器或任何正式
- * 組織。測試所建立的快取、來源、catalog 及合成訊息均由案例 owner 在 finally／
+ * 組織；Production 組合根案例只用記憶體設定確認偽語系在 Host 建置前遭拒。
+ * 測試所建立的快取、來源、catalog 及合成訊息均由案例 owner 在 finally／
  * await using 中排空並 Dispose，不把會友、token、request 或連線狀態留在跨案例狀態。
  *
  * 主要流程：先以 A／B 教會和 zh-TW／qps-ploc 交錯載入 1,000 次，驗證文字與格式
@@ -23,6 +24,9 @@ using System.Globalization;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Hosting;
 using SpeechMessage.Localization;
 using SpeechMessage.Tenancy;
 using SpeechMessageProducts.GoodShepherd.Core.Fees;
@@ -35,6 +39,33 @@ namespace SpeechMessageProducts.LineWebhook.Tests.Localization;
 public sealed class P8CustomizationIsolationTests
 {
     private static readonly string[] EnabledCultures = ["zh-TW", "qps-ploc"];
+
+    /// <summary>以 Production LineWebhook 組合根注入偽語系並確認拒絕發生於 Host 建置前；不建立外部服務。</summary>
+    [Fact]
+    public void Pseudo_ProductionLineWebhookComposition_RejectsBeforeHostBuild()
+    {
+        var builder = WebApplication.CreateBuilder(new WebApplicationOptions
+        {
+            Args = Array.Empty<string>(),
+            EnvironmentName = Environments.Production,
+            ContentRootPath = AppContext.BaseDirectory
+        });
+        builder.Configuration.AddInMemoryCollection(new Dictionary<string, string?>
+        {
+            ["Localization:AllowPseudoLocale"] = "true",
+            ["ExceptionNotifications:SendLine"] = "false"
+        });
+
+        try
+        {
+            Assert.Throws<InvalidOperationException>(() =>
+                global::SpeechMessageProducts.LineWebhook.Program.BuildApplication(builder));
+        }
+        finally
+        {
+            ((IDisposable)builder.Configuration).Dispose();
+        }
+    }
 
     /// <summary>交錯執行 A／B 教會與兩種語系各 1,000 次，驗證快照隔離、容量上限及 owner 排空。</summary>
     [Fact]

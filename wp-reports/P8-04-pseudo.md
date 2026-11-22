@@ -18,9 +18,11 @@
 
 **後續：** 依 D8-26 可繼續 P8-04b，但 P8-04a 必須在完成唯一 guard 並核對推送後才可標 done；本階段尚未結案。
 
-## P8-04b 教會自訂與 A／B 隔離（2026-11-22 09:14 Asia/Taipei (UTC+08:00)）
+## P8-04b 教會自訂與 A／B 隔離（現況更正：2026-11-22 11:17 Asia/Taipei (UTC+08:00)）
 
-**目前結論：離線必做與網頁 A／B 教會自訂實機驗收通過；P8-04b 尚未驗收，LINE／其餘 16.4 步驟及完整守門仍未完成。**
+**目前結論：P8-04b 未驗收。** 離線測試通過；11:52 網頁 A／B 自訂子步成功，含類別新增、停用讀回、覆寫還原與 owner 清理。16.4 第 1 步的本機 Production 組合根拒絕偽語系測試通過，但 OS 子程序實際啟動遭本機執行政策拒絕；16.4 仍未完成，LINE 實機與第 2、3、4、6 步缺證，完整守門尚未通過。
+
+以下 09:14 的結果保留為歷史 A／B 頁面讀回證據。原 2026-11-22 11:17 曾因 `CUSTOMIZATION_CATEGORY_FIND_ROW_FAILED`、`categoryInactive=false` 判定停用未證明；該結論已於 12:04 依 11:52 新摘要更正：`p8-04b-customization-live-20261122-exact-unmapped-role.log` 回報 `aWithin60s=true`、`bUnaffected=true`、`cleaned=true`。執行程式只有在測試類別停用並讀回、原覆寫恢復、Bridge 殘留為 0、Secrets 還原及 owner 關閉都成功時才回報 `cleaned=true`。11:54 唯讀狀態核對符合預期，證據 `p8-04b-post-customization-verify-20261122-1210.log`。此修正只涵蓋網頁自訂子步，不能代替 LINE 或其他 16.4 步驟。
 
 | 必做項目 | 證據 | 狀態 |
 |---|---|---|
@@ -29,11 +31,28 @@
 | 偽語系繳費通知 | `Pseudo_Step3_FeeNotifyWithin60s_PseudoAndFormatted`；正式 `FeeNotificationRule`、qps-ploc／en-US 格式文化，無實機推播 | 通過（離線） |
 | LINE 覆寫 A／B 隔離 | `Customization_Step5_LineOverrideWithin60s_ChurchBUnaffected`；正式 `ChurchTextOverrideCache`／`GoodShepherdTextCatalog`，60 秒內發布 | 通過（離線） |
 | 固定時鐘兩教會時區 | `Pseudo_Step6_FixedClockTwoChurchTimeZones_SameOutput`；固定 UTC 重跑結果穩定、時區差異明確 | 通過 |
-| 網頁自訂腳本與 finally 清理 | `tools/PseudoLocaleAudit/Run-CustomizationCheck.cjs`；`p8-04b-customization-live-20261122-091440.log`：A 管理員改角色、新增類別、改通知範本，A 讀回、B 未串接、finally 清理完成；生命週期測試新增臨時教會中途失敗清理案，14/14 通過 | 通過（實機） |
-| goodshepherdback 網頁實機：改角色、新增類別、停用類別、A/B 不串 | `p8-04b-customization-live-20261122-091440.log`：只連 goodshepherdback，A／B 管理員登入、角色／類別／範本讀回、B 未串接、最後清理布林均通過 | 通過（網頁實機） |
+| 網頁自訂腳本與 finally 清理 | 11:52 `p8-04b-customization-live-20261122-exact-unmapped-role.log`：`aWithin60s=true`、`bUnaffected=true`、`cleaned=true`；依當次程式碼，清理成功含類別停用讀回、覆寫還原、Bridge 殘留 0、Secrets 與 owner 清理 | 通過（網頁子步） |
+| goodshepherdback 網頁實機：改角色、新增類別、停用類別、A/B 不串 | 11:52 摘要成功；A/B 驗收後由 finally 停用測試類別並回讀、清理完成。11:54 唯讀狀態核對符合預期 | 通過（網頁子步）；不代表 16.4 全部通過 |
 | build 22 適用外掛 | `p8-04b-build22-20261122-084938.log`、`p8-04b-build22-20261122-084938-assembly.log`；兩 DLL `Test-PluginAssembly.ps1` 結束碼 0 | 通過 |
-| 組織回復 | `p8-04b-plugin-verify-20261122-085351.log`：verify 結束碼 0、狀態符合預期；沒有新增測試資料可清理 | 通過 |
+| 組織部署狀態 | `p8-04b-plugin-verify-20261122-085351.log` 與 `p8-04b-postlive-verify-20261122-111831.log`：唯讀 verify 符合預期 | 通過；不代表資料清理完成 |
+| 16.4 第 1 步 Production 偽語系拒絕 | 既有 `SpeechMessage.Hosting.Tests.StartupGuardsTests.Production_rejects_pseudo_locale_configuration` 1/1；新增 `P8CustomizationIsolationTests.Pseudo_ProductionLineWebhookComposition_RejectsBeforeHostBuild` 1/1，保存於 `C:\smv\guard-p8-evidence\p8-04b-host-composition-and-isolation-20261122-1218.log`。一次性 OS 子程序啟動命令遭本機執行政策拒絕，應用程序未啟動 | 本機組合根測試通過；OS 子程序啟動未驗證，第 1 步未完成 |
 
-本輪只連核准的 goodshepherdback；沒有連正式組織。已在 `P6FixtureOwner` 增加僅供本輪使用、以本輪產生 ID 擁有的臨時 account／contact 建立命令；登入、頁面操作、A／B 讀回與 finally 刪除均由 `Run-CustomizationCheck.cjs` 完成，原始輸出只保存非敏感布林摘要。此結果只證明網頁自訂步驟，不代替 LINE 實機、16.4 第 1～4、6 步或完整守門。
+本輪只連核准的 goodshepherdback，沒有連正式組織。11:52 A/B 子步摘要與當時 cleanup 實作證明測試類別停用並讀回、角色／範本還原、Secrets 還原及 owner 關閉；`remaining=0` 是 fixture bridge 暫存資料清理結果。16.4 的實機 LINE 步驟仍未執行。原始輸出均留在 `C:\smv\guard-p8-evidence`，不含未遮罩例外本文。
 
-**驗證摘要：** `dotnet test SpeechMessageProducts.LineWebhook.Tests` Release 136/136；PseudoLocaleAudit rules＋lifecycle 14/14；文件說明 1,901 檔 0 失敗；`git diff --check` 通過。完整 guard 尚未對本提交執行；本段不得宣稱 P8-04b 或 P8-04a 已驗收。
+**最新離線驗證摘要（2026-11-22 12:18 Asia/Taipei (UTC+08:00)）：** PseudoAudit rules＋lifecycle 30/30（`p8-04b-pseudo-audit-node-20261122-1220.log`）；P6 lifecycle 4/4（`p8-04b-p6-lifecycle-20261122-1220.log`）；文件說明 1,901 檔零失敗（`p8-04b-file-documentation-20261122-1220.log`）；ProgressPage 28/28（`p8-04b-progress-page-20261122-1220.log`）。這些不代表完整 guard 或 P8-04b 驗收。網頁子步已通過；16.4 第 1 步 OS 子程序啟動未驗證，第 2～4、6 步、LINE 實機及完整守門仍待完成。
+
+### 2026-11-22 11:17 Asia/Taipei (UTC+08:00)：停用診斷與實機失敗（已於 12:04 更正結論）
+
+當時舊瀏覽器流程等待 navigation，無法安全區分 POST rejection 與讀回失敗；改為等待精確的 OfferingCategories/Save POST response、僅記錄固定 HTTP 狀態碼，之後另行 GET 讀回。11:17 的診斷輸出曾回報尋列失敗，因此當時正確地不推定 9.1 拒絕一般 Update。該執行結果已由 11:52 的新操作取代；舊輸出保留不改寫，詳見下方 12:04 更正。
+
+### 2026-11-22 12:04 Asia/Taipei (UTC+08:00)：P8-04b 網頁子步證據更正
+
+較新的 `p8-04b-customization-live-20261122-exact-unmapped-role.log` 回報 `aWithin60s=true`、`bUnaffected=true`、`cleaned=true`；當前 cleanup 契約只有在類別停用後讀回、A 覆寫還原、Bridge 殘留 0、Secrets 還原及 Host／Browser／Bridge 關閉均成功時才會給出成功。`p8-04b-post-customization-verify-20261122-1210.log` 的唯讀狀態核對符合預期。這只確認 08A §4.5 網頁 A／B 自訂子步；LINE 實機及 16.4 第 1～4、6 步仍缺，故 P8-04b 未驗收。
+
+### 2026-11-22 12:18 Asia/Taipei (UTC+08:00)：16.4 第 1 步的安全替代驗證
+
+既有 Production 啟動政策測試 `Production_rejects_pseudo_locale_configuration` Release 1/1；新增的真實 LineWebhook `Program.BuildApplication` Production 組合根案例以合成偽語系設定確認 Host 建置前拒絕，Release 1/1。LineWebhook Release 建置 0 警告／錯誤。一次性 OS 子程序啟動命令遭本機執行政策拒絕，未啟動應用程序；未重試相同命令，因此不能宣稱完成 16.4 第 1 步。組合根案例及 P8CustomizationIsolation 6/6 輸出見 `C:\smv\guard-p8-evidence\p8-04b-host-composition-and-isolation-20261122-1218.log`。
+
+### 2026-11-22 13:25 Asia/Taipei (UTC+08:00)：16.4 第 2 步離線正式收件組合補測
+
+Pseudo_Step2_KeywordsRecognized_AllSegmentsBracketed Release 1/1 通過；真 Kestrel、正式 HMAC 驗簽、有界 queue、dispatcher、入站 letter Upsert、qps-ploc 關鍵字及 Reply HTTP transport 均由測試組合執行，回覆文字逐段含 qps-ploc 括號。測試輸入使用 qps-ploc 對應的 SERVICE、REPORT、?? 關鍵字；主日出席與 Report 依現行契約不產生 Reply，唯一 Help Reply 作為回覆文字斷言。此為離線組合證據，不取代 goodshepherdback LINE 實機。

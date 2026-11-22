@@ -40,7 +40,7 @@ internal sealed class WebhookSignatureTestHost : IAsyncDisposable
 
     /// <summary>從合成組態建立正式組合；成功後設定根交 Host，失敗由本建構式清理。</summary>
     internal WebhookSignatureTestHost(Dictionary<string, string?>? configuration = null,
-        Action<IServiceCollection>? configureServices = null)
+        Action<IServiceCollection>? configureServices = null, bool useBoundedQueue = false)
     {
         var root = new DirectoryInfo(AppContext.BaseDirectory);
         while (root is not null && !File.Exists(Path.Combine(root.FullName, "SpeechMessageProducts.sln"))) root = root.Parent;
@@ -57,7 +57,8 @@ internal sealed class WebhookSignatureTestHost : IAsyncDisposable
             builder.WebHost.UseKestrel().UseUrls("http://127.0.0.1:0");
             builder.Configuration.AddInMemoryCollection(configuration ?? CreateConfiguration());
             builder.Services.AddSingleton<IWebhookEventDeduplicator>(_ => Dedupe);
-            builder.Services.AddSingleton<IWebhookEventQueue>(_ => Queue);
+            if (!useBoundedQueue)
+                builder.Services.AddSingleton<IWebhookEventQueue>(_ => Queue);
             configureServices?.Invoke(builder.Services);
             App = Program.BuildApplication(builder);
         }

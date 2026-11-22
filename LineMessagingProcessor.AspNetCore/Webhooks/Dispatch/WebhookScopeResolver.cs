@@ -46,9 +46,10 @@ public sealed class ResolvedWebhookScope
         string churchName = "Church",
         string memberCulture = "zh-TW",
         string formatCulture = "zh-TW",
-        string? senderIconUrl = null)
+        string? senderIconUrl = null,
+        IReadOnlyList<string>? enabledCultures = null)
         : this(service, organizationId, churchId, channelId, sourceId, sourceId, timeZone, accessToken, contact, contact,
-            organizationName, churchName, memberCulture, formatCulture, senderIconUrl)
+            organizationName, churchName, memberCulture, formatCulture, senderIconUrl, enabledCultures)
     {
     }
 
@@ -71,7 +72,8 @@ public sealed class ResolvedWebhookScope
         string churchName = "Church",
         string memberCulture = "zh-TW",
         string formatCulture = "zh-TW",
-        string? senderIconUrl = null)
+        string? senderIconUrl = null,
+        IReadOnlyList<string>? enabledCultures = null)
     {
         Service = service ?? throw new ArgumentNullException(nameof(service));
         if (organizationId == Guid.Empty || churchId == Guid.Empty || !WebhookOptions.IsValidChannelId(channelId) ||
@@ -100,6 +102,7 @@ public sealed class ResolvedWebhookScope
         MemberCulture = memberCulture;
         FormatCulture = formatCulture;
         SenderIconUrl = senderIconUrl;
+        EnabledCultures = CopyEnabledCultures(enabledCultures);
     }
     /// <summary>已通過組織核對的借用 SDK，由 queue 的 DI scope 釋放。</summary>
     public IOrganizationService Service { get; }
@@ -117,6 +120,8 @@ public sealed class ResolvedWebhookScope
     public string TimeZone { get; }
     /// <summary>由部署 mapping 驗證的組織名稱，只供文字 scope，不是資料存取權。</summary>
     public string OrganizationName { get; }
+    /// <summary>resolver 從已授權教會資料取得並複製的啟用語系列表，只供本事件的關鍵字語言順序。</summary>
+    public IReadOnlyList<string> EnabledCultures { get; }
     /// <summary>由該教會正式資料讀出的 bounded 名稱，只供 sender／letter 顯示。</summary>
     public string ChurchName { get; }
     /// <summary>由會員偏好與教會啟用政策解析出的本次文字語系。</summary>
@@ -133,6 +138,21 @@ public sealed class ResolvedWebhookScope
     internal string AccessToken { get; }
     /// <summary>建立本次回覆／letter 使用的不可變文字 scope，不保存 request 或 catalog 參數。</summary>
     internal TextContext TextContext => new(ChurchId, MemberCulture, FormatCulture, OrganizationName, "GoodShepherd");
+    /// <summary>複製有界語系列表，避免保留 CRM locale collection 或可變呼叫端陣列。</summary>
+    private static IReadOnlyList<string> CopyEnabledCultures(IReadOnlyList<string>? cultures)
+    {
+        if (cultures is null) return Array.AsReadOnly(new[] { "zh-TW" });
+        if (cultures.Count > 64) throw new InvalidOperationException("Webhook culture scope exceeds its bounded count.");
+        var copy = new string[cultures.Count];
+        for (var index = 0; index < cultures.Count; index++)
+        {
+            var culture = cultures[index];
+            if (string.IsNullOrWhiteSpace(culture) || culture.Length > 128)
+                throw new InvalidOperationException("Webhook culture scope is invalid.");
+            copy[index] = culture;
+        }
+        return Array.AsReadOnly(copy);
+    }
     /// <summary>只有真正綁定 Contact 才能建立領域 actor；後續核心仍複核綁定。</summary>
     internal WebhookActor Actor() => Contact is null ? throw new InvalidOperationException("A bound actor is required.") : new WebhookActor(OrganizationId, ChannelId, ChurchId, Contact.Id, SourceId, TimeZone);
     /// <summary>委派核心固定長度十六進位格式檢查；授權仍由本 resolver 的組織／教會綁定流程完成。</summary>
@@ -207,7 +227,8 @@ public sealed class WebhookScopeResolver(
                 church.ChurchName,
                 memberCulture,
                 formatCulture,
-                ReadSenderIcon(mapping));
+                ReadSenderIcon(mapping),
+                church.Locales.EnabledCultures);
         }
         finally { Array.Clear(key); }
     }
