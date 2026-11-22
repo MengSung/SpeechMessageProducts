@@ -70,3 +70,11 @@ Pseudo_Step2_KeywordsRecognized_AllSegmentsBracketed Release 1/1 通過；真 Ke
 `SpeechMessageProducts.LineWebhook.Tests.RelayLiveAcceptanceTests.Live_Relay_PushesOnceToTestContact` 以 Release、`Category=P7Live` 在 goodshepherdback 通過 1/1，耗時 2 分 10 秒；保存輸出 `C:\smv\guard-p8-evidence\p8-04b-p7live-relay-20261122.log`。測試實際建立並清理測試收費單與代送待辦，主機 worker 完成一次代送，attempts=0、測試 Channel 用量差為 1，finally 清理 fees=0、relay tasks=0。這證明核准測試組織的主機代送與資源清理路徑；因該既有案例不是 qps-ploc P8 專用案例，不能把它改稱 16.4 第 3 步偽語系通知通過。其後唯讀 `verify --org goodshepherdback` 通過，狀態符合 off，輸出保存於 `C:\smv\guard-p8-evidence\p8-04b-post-p7live-verify-20261122.log`。
 
 目前 P8-04b 必做缺口仍是：P8 專用 qps-ploc 實機通知的格式證據、16.4 第 1 步 OS 子程序啟動、以及第 6 步的正式固定時鐘組合；離線／替代證據已逐項標明，不冒充實機通過。
+
+### 2026-11-22 16:25 Asia/Taipei (UTC+08:00)：P8-04b 指定離線測試重跑
+
+Release 指定測試 7/7 通過：`P8CustomizationIsolationTests` 的 Production 組合根拒絕、A/B 混合隔離 1,000 次、偽語系第 2 步、第 3 步、第 5 步、第 6 步，以及 `PseudoWebhookDispatchAcceptanceTests.Pseudo_Step2_KeywordsRecognized_AllSegmentsBracketed`。原始輸出保存於 `C:\smv\guard-p8-evidence\p8-04b-required-offline-20261122-1625.log`。這是最新離線結果，不改寫仍缺少的 P8 專用 qps-ploc 實機通知證據。
+
+### 2026-11-22 16:32 Asia/Taipei (UTC+08:00)：Production OS 啟動再次確認為環境限制
+
+依既有失敗條件未重試相同 OS 子程序；核准的本機 `Start-Process` 路徑再次在應用程序啟動前被執行政策拒絕，未建立 Host、未連組織、未寫入資料。保存 `C:\smv\guard-p8-evidence\p8-04b-production-host-pseudo-20261122-1632-policy.log`；因此只採用既有真實 LineWebhook 組合根測試，仍不宣稱 OS 層第 1 步完成。
