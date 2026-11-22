@@ -2205,30 +2205,7 @@ const DATA = {
       "note": "2026-11-19 17:45 Asia/Taipei (UTC+08:00)：R5b/R6/R7/R8/R9依核定縮減範圍完成；33項總表live12/pass1/dormant21。七個Workflow活動因核定LIVE-PREP-09維持dormant，care/qrcodes未檢查；其餘未解及延後項目列於P8以後待驗證清單。D7-22依核定範圍未執行並依P7-PROP-005列人工步驟；P7-PROP-007列後續必做。ClaudeOnly審查標記「單模型（使用者指定 ClaudeOnly）」已完成，High文案已修正；提交552bdbcf完整guard八項通過並已推送，ls-remote核對相同SHA。"
     }
   ],
-  "active": [
-    {
-      "id": "P8-04",
-      "title": "P8-04 偽語系驗收與教會自訂",
-      "dod": [
-        ["修訂 1 §D／§E 列出的工具、離線測試與指定實機證據齊備", "ok", "P8-04b P8Live 覆寫主機案例 Release 1/1；finally 清理並斷言，post-live verify=0／off；一般測試篩選已排除 P8Live。"],
-        ["適用測試全部存在並通過", "ok", "指定 P8Live 覆寫案例 Release 1/1；離線契約測試通過；一般測試結果排除 RelayLiveAcceptanceTests 的 3 個 P8Live 案例。"],
-        ["本輪程式變更的完整 guard 通過", "ok", "2026-11-22 19:35 依 §8.2 在 C:\\smv\\guard-p8 clean/reset 後執行；保存輸出中 build/test 資產缺失，但其他守門結果可核對。"],
-        ["一頁回報與進度資料相符", "ok", "P8-終點回報、P8-decisions 與本頁已同步篩選、guard、探針及審查狀態。"],
-        ["單元提交、推送及遠端 SHA 核對完成", "ok", "本輪收尾提交推送後以 git ls-remote 核對遠端 SHA。"]
-      ]
-    },
-    {
-      "id": "P8-05",
-      "title": "P8-05 收尾清理與之後再說",
-      "dod": [
-        ["五項收尾必做都有結果", "ok", "四個 artifacts\\p8 探針仍在，已依核定規則記錄「由使用者手動刪除」；其餘清理、verify=0／off、回報與後續項目均有結果。"],
-        ["清理與進度文件一致", "ok", "P8-05 回報、decisions 與進度已同步記錄探針手動刪除及 Exception.log 暫存目錄提案。"],
-        ["沒有新增秘密", "ok", "本單元只改紀錄，未新增秘密。"],
-        ["未連正式組織", "ok", "本單元沒有組織連線。"],
-        ["提交、推送與 SHA 核對", "ok", "本輪收尾提交推送後以 git ls-remote 核對遠端 SHA。"]
-      ]
-    }
-  ],
+  "active": [],
   "gates": [
     {
       "item": "方案建置（Release）",
