@@ -396,6 +396,107 @@ public sealed class ChurchSettingsControllerContractTests
         }
     }
 
+    /// <summary>
+    /// 使用正式 DI 容器驗證 scoped filter 的建構接點；不建立 Host 或外部連線，
+    /// 避免直接 new 的測試掩蓋 Development ValidateOnBuild 無法使用非公開建構子的失敗。
+    /// provider 與 scope 均由本案同步釋放，合成 access 仍由 fixture 擁有。
+    /// </summary>
+    [Fact]
+    public void CultureFilter_DependencyInjection_CanConstructScopedFilter()
+    {
+        using var fixture = new ControllerFixture(jobTitle: "牧養主任", churchId: null);
+        var services = new ServiceCollection();
+        services.AddScoped<ChurchSettingsAccess>(_ => fixture.Access);
+        services.AddScoped<ChurchSettingsCultureFilter>();
+        using var provider = services.BuildServiceProvider(new ServiceProviderOptions
+        {
+            ValidateOnBuild = true,
+            ValidateScopes = true
+        });
+        using var scope = provider.CreateScope();
+        scope.ServiceProvider.GetRequiredService<ChurchSettingsCultureFilter>().Should().NotBeNull();
+    }
+
+    /// <summary>
+    /// 保護 ChurchSettings 一次請求內的語系套用與還原：管理員 A 使用 qps-ploc 後，
+    /// 管理員 B 的下一個 zh-TW request 必須維持中文資源且 ambient culture 回復原值。
+    /// 透過同一個 resource filter 與合成 CRM 回應執行，不啟動 Host 或外部連線。
+    /// </summary>
+    [Fact]
+    public async Task CultureFilter_QpsPlocThenZhTw_UsesRequestCultureAndRestoresAmbientState()
+    {
+        using var fixture = new ControllerFixture(
+            jobTitle: "牧養主任",
+            churchId: Guid.Parse("22222222-2222-2222-2222-222222222222"),
+            preferredLanguage: "qps-ploc",
+            enabledCultures: "zh-TW,qps-ploc");
+        var filter = new ChurchSettingsCultureFilter(fixture.Access);
+        var previousCulture = System.Globalization.CultureInfo.CurrentCulture;
+        var previousUiCulture = System.Globalization.CultureInfo.CurrentUICulture;
+
+        var pseudoText = await RenderCultureAsync(filter, fixture.Controller.HttpContext);
+        fixture.SetPreferredLanguage("zh-TW");
+        var zhTwContext = new DefaultHttpContext { User = fixture.Controller.HttpContext.User };
+        var zhTwText = await RenderCultureAsync(filter, zhTwContext);
+
+        pseudoText.Should().StartWith("［").And.EndWith("］");
+        zhTwText.Should().Be("教會名詞");
+        System.Globalization.CultureInfo.CurrentCulture.Should().Be(previousCulture);
+        System.Globalization.CultureInfo.CurrentUICulture.Should().Be(previousUiCulture);
+    }
+
+    /// <summary>
+    /// 403 不可因權限不足而丟失已解析的登入者語系；只有教會／語系無法解析時才回退繁中。
+    /// 使用非管理員與無教會兩種合成 CRM 狀態，並斷言 resource filter 不建立授權 scope。
+    /// </summary>
+    [Fact]
+    public async Task CultureFilter_ForbiddenUsesMemberCulture_AndFallsBackWhenUnavailable()
+    {
+        using var forbiddenFixture = new ControllerFixture(
+            jobTitle: "會計",
+            churchId: Guid.Parse("22222222-2222-2222-2222-222222222222"),
+            preferredLanguage: "qps-ploc",
+            enabledCultures: "zh-TW,qps-ploc");
+        var filter = new ChurchSettingsCultureFilter(forbiddenFixture.Access);
+        string? forbiddenText = null;
+        await filter.InvokeAsync(forbiddenFixture.Controller.HttpContext, () =>
+        {
+            forbiddenText = ChurchSettingsText.GetText("ChurchSettings.Forbidden");
+            forbiddenFixture.Controller.HttpContext.Items[ChurchSettingsRequestResolution.ItemKey]
+                .Should().BeOfType<ChurchSettingsRequestResolution>().Which.Scope.Should().BeNull();
+            return Task.CompletedTask;
+        });
+
+        using var missingChurchFixture = new ControllerFixture(
+            jobTitle: "牧養主任",
+            churchId: null,
+            preferredLanguage: "qps-ploc",
+            enabledCultures: "zh-TW,qps-ploc");
+        string? fallbackText = null;
+        await new ChurchSettingsCultureFilter(missingChurchFixture.Access)
+            .InvokeAsync(missingChurchFixture.Controller.HttpContext, () =>
+            {
+                fallbackText = ChurchSettingsText.GetText("ChurchSettings.Forbidden");
+                return Task.CompletedTask;
+            });
+
+        forbiddenText.Should().StartWith("［").And.EndWith("］");
+        fallbackText.Should().Be("沒有權限檢視此頁面。");
+    }
+
+    private static async Task<string> RenderCultureAsync(
+        ChurchSettingsCultureFilter filter,
+        HttpContext httpContext)
+    {
+        string? text = null;
+        await filter.InvokeAsync(httpContext, () =>
+        {
+            text = ChurchSettingsText.GetText("ChurchSettings.TermsTitle");
+            return Task.CompletedTask;
+        });
+        return text ?? throw new InvalidOperationException("The synthetic request did not render its resource text.");
+    }
+
     /// <summary>Production 啟動政策必須沿用共用本地化驗證並拒絕 qps-ploc。</summary>
     [Fact]
     public void ChurchSettings_ProductionRejectsQpsPloc()
@@ -527,12 +628,16 @@ public sealed class ChurchSettingsControllerContractTests
             IReadOnlyList<ChurchSettingsTermOverride>? termOverrides = null,
             ChurchTextOverrideCache? overrideCache = null,
             ITextCatalog? textCatalog = null,
-            ISystemTextCatalog? systemTextCatalog = null)
+            ISystemTextCatalog? systemTextCatalog = null,
+            string preferredLanguage = "zh-TW",
+            string enabledCultures = "zh-TW")
         {
             var service = DispatchProxy.Create<IOrganizationService, ChurchSettingsSdkProxy>();
             sdk = (ChurchSettingsSdkProxy)(object)service;
             sdk.ContactJobTitle = jobTitle;
             sdk.ChurchId = churchId;
+            sdk.PreferredLanguage = preferredLanguage;
+            sdk.EnabledCultures = enabledCultures;
 
             var configuration = new ConfigurationBuilder()
                 .AddInMemoryCollection(new[]
@@ -576,6 +681,7 @@ public sealed class ChurchSettingsControllerContractTests
         internal ChurchSettingsController Controller { get; }
         internal ChurchSettingsAccess Access { get; }
         internal ControllerSettingsStore SettingsStore { get; }
+        internal void SetPreferredLanguage(string culture) => sdk.PreferredLanguage = culture;
 
         public void Dispose()
         {
@@ -617,6 +723,8 @@ public sealed class ChurchSettingsControllerContractTests
         internal static readonly Guid ContactId = Guid.Parse("11111111-1111-1111-1111-111111111111");
         internal string? ContactJobTitle { get; set; }
         internal Guid? ChurchId { get; set; }
+        internal string PreferredLanguage { get; set; } = "zh-TW";
+        internal string EnabledCultures { get; set; } = "zh-TW";
 
         protected override object? Invoke(System.Reflection.MethodInfo? targetMethod, object?[]? args)
         {
@@ -629,14 +737,15 @@ public sealed class ChurchSettingsControllerContractTests
                     return new Entity("account", accountId)
                     {
                         ["new_defaultlanguage"] = "zh-TW",
-                        ["new_enabledlanguages"] = "zh-TW"
+                        ["new_enabledlanguages"] = EnabledCultures
                     };
                 }
                 if (entityName == "contact")
                 {
                     var contact = new Entity("contact", ContactId)
                     {
-                        ["new_church_jobtitle"] = ContactJobTitle
+                        ["new_church_jobtitle"] = ContactJobTitle,
+                        ["new_preferredlanguage"] = PreferredLanguage
                     };
                     if (ChurchId is { } churchId)
                         contact["parentcustomerid"] = new EntityReference("account", churchId);

@@ -1,7 +1,7 @@
 /*
  * 檔案整體說明
  *
- * 目的與定位：在 ChurchReport Host 組合根註冊 ChurchSettings 的 request-scoped 授權與儲存服務。
+ * 目的與定位：在 ChurchReport Host 組合根註冊 ChurchSettings 的 request-scoped 授權、語系 filter 與儲存服務。
  * 主要流程：每個 MVC scope 建立 Access、Dataverse store、UTC clock 與核心設定服務；快取失效器
  * 只借用啟用中的既有 ChurchTextOverrideCache，不另建或擁有 cache。偽語系政策只讀啟動設定快照。
  * 使用邊界與維護：所有 CRM facade 維持 ToolUtility 原有 scoped owner；不把 scoped 依賴捕獲到 singleton，
@@ -36,6 +36,7 @@ internal static class ChurchSettingsRegistration
             new MemberCultureResolver(new LocalizationOptions(
                 allowPseudoLocale: configuration.GetValue<bool>("Localization:AllowPseudoLocale"))));
         services.AddScoped<ChurchSettingsAccess>();
+        services.AddScoped<ChurchSettingsCultureFilter>();
         services.AddScoped<IChurchSettingsStore, DataverseChurchSettingsStore>();
         services.AddScoped<IChurchSettingsTermReader>(provider =>
             (IChurchSettingsTermReader)provider.GetRequiredService<IChurchSettingsStore>());

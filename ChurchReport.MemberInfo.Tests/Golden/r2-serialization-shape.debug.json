@@ -7239,6 +7239,20 @@
     ]
   },
   {
+    "Type": "ChurchReport.Areas.ChurchSettings.ChurchSettingsCultureFilter",
+    "Newtonsoft": [],
+    "SystemTextJson": []
+  },
+  {
+    "Type": "ChurchReport.Areas.ChurchSettings.ChurchSettingsCultureFilter\u002B\u003C\u003Ec__DisplayClass2_0\u002B\u003C\u003COnResourceExecutionAsync\u003Eb__0\u003Ed",
+    "Newtonsoft": [
+      "\u003C\u003E1__state",
+      "\u003C\u003E4__this",
+      "\u003C\u003Et__builder"
+    ],
+    "SystemTextJson": []
+  },
+  {
     "Type": "ChurchReport.Areas.ChurchSettings.ChurchSettingsNavViewComponent",
     "Newtonsoft": [
       "HttpContext",
@@ -7257,6 +7271,19 @@
     ],
     "SystemTextJson": [
       "unsupported:System.InvalidOperationException"
+    ]
+  },
+  {
+    "Type": "ChurchReport.Areas.ChurchSettings.ChurchSettingsRequestResolution",
+    "Newtonsoft": [
+      "FormatCulture",
+      "Scope",
+      "TextCulture"
+    ],
+    "SystemTextJson": [
+      "FormatCulture",
+      "Scope",
+      "TextCulture"
     ]
   },
   {

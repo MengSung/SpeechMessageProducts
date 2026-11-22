@@ -10,6 +10,8 @@
  * 使用邊界與維護：Controller、ViewModel 與 Entity 僅屬單次 request；不讀 Session、不快取授權，
  * 不接受 request church ID、不持有 connection owner。每個寫入 POST 都有 antiforgery 驗證，
  * RequestAborted 只控制本次呼叫。稽核及類別結果必須在 store 端先限定本教會並受 200 筆上限約束。
+ * 語系生命週期：ChurchSettingsCultureFilter 在完整 MVC resource pipeline 套用已解析文化，controller
+ * 從 HttpContext.Items 重用同次授權結果，避免第二次 CRM 讀取；filter finally 負責還原 ambient culture。
  * 失敗與驗證：無法建立授權 scope 回 403；輸入檢查與核心領域規則共用 ChurchSettingsService；
  * Dataverse 例外沿既有錯誤處理傳遞。測試採離線合成資料，不代表 D365 實機驗收。
  */
@@ -27,6 +29,7 @@ namespace ChurchReport.Areas.ChurchSettings;
 /// <summary>提供本教會可編輯詞彙、奉獻類別與稽核紀錄的 MVC action。</summary>
 [Area("ChurchSettings")]
 [Route("ChurchSettings")]
+[ServiceFilter(typeof(ChurchSettingsCultureFilter))]
 public sealed class ChurchSettingsController : Controller
 {
     private readonly ChurchSettingsAccess access;
@@ -169,8 +172,13 @@ public sealed class ChurchSettingsController : Controller
         return View("Audit", records);
     }
 
-    private Task<ChurchSettingsRequestScope?> ResolveScopeAsync() =>
-        access.ResolveAsync(User, HttpContext.RequestAborted);
+    private Task<ChurchSettingsRequestScope?> ResolveScopeAsync()
+    {
+        if (HttpContext.Items.TryGetValue(ChurchSettingsRequestResolution.ItemKey, out var value)
+            && value is ChurchSettingsRequestResolution resolution)
+            return Task.FromResult(resolution.Scope);
+        return access.ResolveAsync(User, HttpContext.RequestAborted);
+    }
 
     /// <summary>為固定通知範本提供非個資的範例參數；其他白名詞均不需要格式化參數。</summary>
     private static TextArg[] GetPreviewArguments(string key) =>
