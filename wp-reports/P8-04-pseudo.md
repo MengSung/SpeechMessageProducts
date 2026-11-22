@@ -70,4 +70,3 @@ Pseudo_Step2_KeywordsRecognized_AllSegmentsBracketed Release 1/1 通過；真 Ke
 `SpeechMessageProducts.LineWebhook.Tests.RelayLiveAcceptanceTests.Live_Relay_PushesOnceToTestContact` 以 Release、`Category=P7Live` 在 goodshepherdback 通過 1/1，耗時 2 分 10 秒；保存輸出 `C:\smv\guard-p8-evidence\p8-04b-p7live-relay-20261122.log`。測試實際建立並清理測試收費單與代送待辦，主機 worker 完成一次代送，attempts=0、測試 Channel 用量差為 1，finally 清理 fees=0、relay tasks=0。這證明核准測試組織的主機代送與資源清理路徑；因該既有案例不是 qps-ploc P8 專用案例，不能把它改稱 16.4 第 3 步偽語系通知通過。其後唯讀 `verify --org goodshepherdback` 通過，狀態符合 off，輸出保存於 `C:\smv\guard-p8-evidence\p8-04b-post-p7live-verify-20261122.log`。
 
 目前 P8-04b 必做缺口仍是：P8 專用 qps-ploc 實機通知的格式證據、16.4 第 1 步 OS 子程序啟動、以及第 6 步的正式固定時鐘組合；離線／替代證據已逐項標明，不冒充實機通過。
-
