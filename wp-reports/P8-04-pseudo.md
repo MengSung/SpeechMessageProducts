@@ -1,6 +1,6 @@
 # P8-04a 偽語系稽核工具與網頁驗收
 
-**結論：程式與實機稽核完成，但尚未驗收。** 2026-11-22 00:21 Asia/Taipei (UTC+08:00) 以 Development ChurchReport 與 Edge 實際開啟四頁，四頁 HTTP 與偽語系稽核均符合契約；清理完成、User Secrets 還原、Host／Browser 關閉，結果檔 SHA-256 為 `8384439BBCA13AFA6960D7A02CF6DB2AF6F76B9ABBC0638D372A65AC753C7E7A`。
+**結論：P8-04a 與 P8-04b 已驗收。** 2026-11-22 00:21 Asia/Taipei (UTC+08:00) 以 Development ChurchReport 與 Edge 實際開啟四頁，四頁 HTTP 與偽語系稽核均符合契約；清理完成、User Secrets 還原、Host／Browser 關閉，結果檔 SHA-256 為 `8384439BBCA13AFA6960D7A02CF6DB2AF6F76B9ABBC0638D372A65AC753C7E7A`。
 
 | 必做項目 | 證據 | 狀態 |
 |---|---|---|
@@ -84,3 +84,12 @@ Release 指定測試 7/7 通過：`P8CustomizationIsolationTests` 的 Production
 新增並執行 `RelayLiveAcceptanceTests.Pseudo_Step3_FeeNotifyWithin60s_PseudoAndFormatted`（`Category=P8Live`）兩次；第二次在加強 finally 語系回復後 Release 1/1 通過，耗時 2 分 05 秒。案例只對核准 goodshepherdback 的測試會友建立 qps-ploc 語系租約，建立 `SMV-TEST-P8-Relay-` 收費單與代送待辦，主機 worker 在 60 秒內完成，最後回復會友原語系並清理收費單／待辦；輸出保存於 `C:\smv\guard-p8-evidence\p8-04b-p8live-pseudo-feenotify-20261122-rerun.log`。其後唯讀 `verify --org goodshepherdback` 結束碼 0、狀態符合 off，保存於 `C:\smv\guard-p8-evidence\p8-04b-post-p8live-verify-20261122.log`。
 
 此補驗證明 qps-ploc 收費通知的真實主機代送與語系租約回復；LINE API 不提供收件本文回讀，因此訊息括號、金額與日期格式仍以最新離線 7/7 的正式組合證據判定，沒有把 Channel 用量差冒稱為本文內容證據。P8-04b 尚缺 P8 專用教會覆寫的主機實機步驟，以及 Production OS 子程序啟動證據，維持未驗收。
+
+
+### 2026-11-22 14:45 Asia/Taipei (UTC+08:00)：P8-04b 修訂 1 收尾驗收
+
+**目前結論：P8-04a 與 P8-04b 已驗收。** 先前報告列出的 Production OS 子程序啟動限制與固定時鐘不重設系統時區，依 08A D8-20 採核准的可重現替代證據：Production 組合根在 Host 建置前拒絕偽語系（1/1），固定時鐘兩教會時區測試通過（1/1），不改機器設定；第 2 步以正式 LineWebhook 組合離線合成簽章與錄製 reply client 通過，第 3 步以 goodshepherdback `P8Live` qps-ploc 實機代送兩次通過，第 5 步以 goodshepherdback 網頁 A/B 自訂與主機組合／隔離測試通過。未把 OS 政策拒絕誤稱為 OS 層成功；替代證據與限制已保留於 `P8-PROP-007`。
+
+最新唯一守門 `C:\smv\guard-p8-evidence\guard-be35b30f-full-final.log`：Release build 0 錯誤；Release 全方案測試逐案 0 失敗（Deployment 1059/1059、LineWebhook 139/139、Hosting 165/165）；Debug tracer 9/9；Changed 編碼 3 檔 0 問題；duplicate 42 專案／1566 檔、groups/new/stale 皆 0；I18nCheck、文件說明 1902/1902、ProgressPage 28/28 通過，`GUARD_RESULT=0`。唯一 goodshepherdback 實機結束後 `verify` exit 0、狀態 off、測試 fee／relay task 殘留 0。
+
+本次採 D8-20／D8-26 的最小、可回復替代方案，不改正式組織、不改系統時區、不放寬測試；原始 OS 政策拒絕輸出保留，且不宣稱該層啟動成功。
