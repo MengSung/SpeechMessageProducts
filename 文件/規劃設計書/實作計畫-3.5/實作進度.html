@@ -240,11 +240,11 @@ footer{margin-top:36px;color:var(--muted);font-size:12.5px;text-align:center}
  */
 const DATA = {
   "planVersion": "3.5",
-  "snapshot": "2026-11-22 16:20 Asia/Taipei (UTC+08:00)",
-  "lastUpdated": "2026-11-22T16:20:00+08:00",
+  "snapshot": "2026-11-22 16:35 Asia/Taipei (UTC+08:00)",
+  "lastUpdated": "2026-11-22T16:35:00+08:00",
   "branch": "1.0.0.11.Integration.P8.Worktree",
-  "head": "2998782a",
-  "headline": "階段 8 2026-11-22 16:20 Asia/Taipei (UTC+08:00)：P8-05 收尾完成；P8-04 仍有 16.4 實機缺口，總計 83／84，未宣稱階段結案。",
+  "head": "28e47375",
+  "headline": "階段 8 2026-11-22 16:35 Asia/Taipei (UTC+08:00)：P8-05 收尾完成；P8-04b 最新離線 7/7、代送補證 1/1，但 P8 專用實機缺口仍在，總計 83／84。",
   "notices": [
     {
       "id": "plan-3.5-summary",
@@ -703,9 +703,10 @@ const DATA = {
       "phaseId": "階段 8",
       "level": "info",
       "title": "P8 進度摘要",
-      "body": "2026-11-22 16:20 Asia/Taipei (UTC+08:00)：階段 8 依修訂 1 執行；P8-05 五項收尾必做完成並已提交 `4fd3d3c4`。P8-04a 四頁實機 0／0 且後續完整守門已通過；P8-04b 離線測試、網頁 A/B 自訂與核准測試組織代送補證已保存，但 P8 專用 qps-ploc 實機通知、OS 子程序啟動與固定時鐘組合仍有缺口，P8-04 維持 active／未驗收。整體驗收、ClaudeOnly 與終點回報未完成，工作包為 83／84。",
-      "lastUpdated": "2026-11-22T16:20:00+08:00",
+      "body": "2026-11-22 16:35 Asia/Taipei (UTC+08:00)：P8-05 五項收尾必做完成；P8-04a 四頁實機 0／0 且後續完整守門已通過。P8-04b 最新指定離線測試 7/7，核准測試組織既有代送實機 1/1 且清理與 verify off 通過；但 P8 專用 qps-ploc 實機通知、Production OS 子程序啟動與固定時鐘組合仍缺，維持 active／未驗收。整體驗收、ClaudeOnly 與終點回報未完成，工作包為 83／84。",
+      "lastUpdated": "2026-11-22T16:35:00+08:00",
       "steps": [
+        "2026-11-22 16:25 Asia/Taipei (UTC+08:00)：P8-04b 指定離線測試 7/7 通過；16:32 Production OS 啟動仍在應用程序啟動前遭本機執行政策拒絕，未重試相同條件。證據 `C:\\smv\\guard-p8-evidence\\p8-04b-required-offline-20261122-1625.log`、`p8-04b-production-host-pseudo-20261122-1632-policy.log`。",
         "2026-11-22 16:12 Asia/Taipei (UTC+08:00)：P7Live 代送實機 1/1，主機完成一次代送、attempts=0、用量差1、fees/tasks清理0；其後 goodshepherdback verify exit 0 且狀態 off。此為補充代送證據，不冒稱 P8 qps-ploc 第3步。證據 `C:\\smv\\guard-p8-evidence\\p8-04b-p7live-relay-20261122.log`、`p8-04b-post-p7live-verify-20261122.log`。",
         "2026-11-22 12:18 Asia/Taipei (UTC+08:00)：PseudoAudit rules＋lifecycle 30/30、P6 lifecycle 4/4、ProgressPage 28/28、文件說明 1,901 檔零失敗；證據分別保存於 `C:\\smv\\guard-p8-evidence\\p8-04b-pseudo-audit-node-20261122-1220.log`、`p8-04b-p6-lifecycle-20261122-1220.log`、`p8-04b-progress-page-20261122-1220.log`、`p8-04b-file-documentation-20261122-1220.log`。Production 組合根偽語系拒絕測試 1/1；OS 子程序啟動因本機執行政策未執行。P8-04b 仍未驗收。",
         "2026-11-22 12:04 Asia/Taipei (UTC+08:00)：較新 11:52 goodshepherdback 網頁 A/B 自訂摘要 `aWithin60s=true`、`bUnaffected=true`、`cleaned=true`，依 cleanup 契約含測試類別停用讀回、覆寫／秘密／資源回復；11:54 唯讀狀態核對符合預期。此為網頁子步通過，不代表 16.4 LINE 實機或 P8-04b 整包驗收。",
