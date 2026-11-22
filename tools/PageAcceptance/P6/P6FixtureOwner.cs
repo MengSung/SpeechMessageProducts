@@ -154,6 +154,53 @@ internal static class P6FixtureOwner
                         pseudoLocaleRestored=true;
                         Console.WriteLine("{\"ok\":true,\"restored\":true}");continue;
                     }
+                    if(operation=="createTemporaryChurch")
+                    {
+                        if(owned.Count>=128)throw new InvalidDataException("Owner bound rejected.");
+                        var temporaryChurchId=Guid.Parse(request.GetProperty("id").GetString()!);
+                        var churchItem=new Owned("account",temporaryChurchId);
+                        if(owned.Contains(churchItem))throw new InvalidDataException("Existing owner ID rejected.");
+                        var preexisting=new QueryExpression("account"){ColumnSet=new ColumnSet(false),TopCount=1};
+                        preexisting.Criteria.AddCondition("accountid",ConditionOperator.Equal,temporaryChurchId);
+                        if(sdk.RetrieveMultiple(preexisting).Entities.Count!=0)throw new InvalidDataException("Existing account ID rejected.");
+                        owned.Add(churchItem);
+                        sdk.Create(new Entity("account",temporaryChurchId)
+                        {
+                            ["name"]="SMV-TEST-P8-04b",
+                            ["new_defaultlanguage"]="zh-TW",
+                            ["new_enabledlanguages"]="zh-TW"
+                        });
+                        Console.WriteLine(JsonSerializer.Serialize(new{ok=true,created=true,id=temporaryChurchId}));continue;
+                    }
+                    if(operation=="createAdmin")
+                    {
+                        if(owned.Count>=128)throw new InvalidDataException("Owner bound rejected.");
+                        var parentId=Guid.Parse(request.GetProperty("churchId").GetString()!);
+                        var parent=new Owned("account",parentId);
+                        if(parentId!=churchId&&!owned.Contains(parent))
+                            throw new InvalidDataException("Admin church scope rejected.");
+                        var adminId=Guid.Parse(request.GetProperty("id").GetString()!);
+                        var adminItem=new Owned("contact",adminId);
+                        if(owned.Contains(adminItem))throw new InvalidDataException("Existing owner ID rejected.");
+                        var preexisting=new QueryExpression("contact"){ColumnSet=new ColumnSet(false),TopCount=1};
+                        preexisting.Criteria.AddCondition("contactid",ConditionOperator.Equal,adminId);
+                        if(sdk.RetrieveMultiple(preexisting).Entities.Count!=0)throw new InvalidDataException("Existing contact ID rejected.");
+                        var account=request.GetProperty("account").GetString();
+                        var password=request.GetProperty("password").GetString();
+                        if(string.IsNullOrWhiteSpace(account)||string.IsNullOrWhiteSpace(password))
+                            throw new InvalidDataException("Admin credential input rejected.");
+                        owned.Add(adminItem);
+                        sdk.Create(new Entity("contact",adminId)
+                        {
+                            ["lastname"]="SMV-TEST-P8-04b",
+                            ["parentcustomerid"]=new EntityReference("account",parentId),
+                            ["new_app_acount"]=account,
+                            ["new_app_pass"]=password,
+                            ["new_church_jobtitle"]="牧師傳道",
+                            ["new_preferredlanguage"]="zh-TW"
+                        });
+                        Console.WriteLine(JsonSerializer.Serialize(new{ok=true,created=true,id=adminId}));continue;
+                    }
                     if(operation=="addMember")
                     {
                         var listId=Guid.Parse(request.GetProperty("listId").GetString()!);

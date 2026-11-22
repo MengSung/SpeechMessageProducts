@@ -86,3 +86,18 @@
 | 時間（Asia/Taipei） | 單元 | 遇到的選擇 | 選了什麼 | 依據 | 怎麼回復 |
 |---|---|---|---|---|---|
 | 2026-11-22 08:34 Asia/Taipei (UTC+08:00) | P8-04a | 唯一 `C:\smv\guard-p8` 對 `565072ed` 的 Release 全方案測試在 `SpeechMessage.Hosting.Tests` 約 220 秒仍未結束；測試摘要顯示 7,373 通過但命令被取消，沒有完整守門 PASS | 不把部分通過當成 guard PASS；保存未完成 transcript，補跑 Hosting hang diagnostic 仍未取得結果，並依 D8-26 保留未驗收狀態、繼續下一單元 | 00 §8.1 必須完整通過；使用者要求不能以未保存／部分數字宣稱成功，D8-26 允許繼續但不等於驗收 | 不清理 guard、不刪除未追蹤資料、不改測試；後續在條件明確改變後重用同一 guard 補驗 |
+
+### 2026-11-22 09:00 Asia/Taipei (UTC+08:00)：P8-04b 離線完成、實機自訂證據缺口
+
+| 時間（Asia/Taipei） | 單元 | 遇到的選擇 | 選了什麼 | 依據 | 怎麼回復 |
+|---|---|---|---|---|---|
+| 2026-11-22 09:00 Asia/Taipei (UTC+08:00) | P8-04b | 實機第 5 步需要建立／刪除臨時 B 教會及管理員；現有 P6 fixture owner 只允許 contact、list 等本輪資料，不允許 account 寫入 | 不修改既有 owner 的組織白名單、不用既有教會冒充 B、不把離線測試或空 runtime 當實機證據；完成五項離線測試與自訂腳本的 finally 清理測試，P8-04b 保持進行中並記錄實機缺口 | 08A §4.5、D8-20、D8-26、使用者要求不以替代操作冒充實機結果 | 後續只使用經核准且能明確擁有／刪除 account 的 Deployment fixture 流程；在取得實機證據前不標 done、不更新 84/84 為完成 |
+| 2026-11-22 08:53 Asia/Taipei (UTC+08:00) | P8-04b | build 22 後 goodshepherdback verify 仍顯示 UpdateAssembly | 依核准流程重新 plan，使用最新時間戳 plan.json 的絕對路徑 apply；再 verify 結束碼 0，狀態符合預期 | 08A D8-2、D8-20；失敗後先核對 plan 路徑與本機／組織狀態，條件改變後再試，不盲目重試 | 保存 `p8-04b-plugin-plan-20261122-085050.log`、`p8-04b-plugin-apply-retry-20261122-085239.log`、`p8-04b-plugin-verify-20261122-085351.log`；未連正式組織 |
+
+### 2026-11-22 09:14 Asia/Taipei (UTC+08:00)：P8-04b 實機 account owner 已補齊
+
+| 時間（Asia/Taipei） | 單元 | 遇到的選擇 | 選了什麼 | 依據 | 怎麼回復 |
+|---|---|---|---|---|---|
+| 2026-11-22 09:14 Asia/Taipei (UTC+08:00) | P8-04b | 原 P6 fixture owner 不允許 account 寫入，無法完成第 5 步的臨時 B 教會 | 以本輪隨機 ID 建立、明確登記 owner 的臨時 account 與管理員 contact；只允許 parent account 為 ShadowTestChurchId 或該 owner account；Bridge reset／close 逆序刪除並回讀 remaining=0 | 08A §4.5 第 5 步、D8-20、最小可回復範圍；不使用既有教會冒充 B | `p8-04b-customization-live-20261122-091107.log`：A／B 網頁自訂、A 讀回、B 未串接、清理完成；不把該結果升格為 LINE 或完整 P8-04b 驗收 |
+| 2026-11-22 09:14 Asia/Taipei (UTC+08:00) | P8-04b | 頁面 input 的 value 不會出現在 innerText，原腳本以列文字尋找新類別造成假陰性 | 以 data-category-id 列及 input value 定位，不放寬功能斷言 | 實際 DOM 行為；只修測試工具的選擇器 | 同一測試組織重跑成功，原始摘要只保存非敏感布林結果 |
+| 2026-11-22 09:14 Asia/Taipei (UTC+08:00) | P8-04b | 清理路徑曾需同時覆蓋「尚未建立 A session」與 reset 失敗情境 | cleanup 對所有已建立 Browser Context、Browser、Host 及 SDK bridge 均採 finally 排空；reset 失敗不會被 return 覆蓋 | 資源生命週期與跨 session 隔離規則 | `p8-04b-customization-live-20261122-091440.log`：A／B 建立、A 讀回、B 未串接、清理完成 |

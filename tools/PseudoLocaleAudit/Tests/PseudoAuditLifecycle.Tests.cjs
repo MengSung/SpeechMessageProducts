@@ -17,6 +17,7 @@ const {
   classifyLoginTransportFailure,
   summarizeLoginResponse
 } = require('../Run-PseudoLocaleAudit.cjs');
+const { runCustomizationCheck } = require('../Run-CustomizationCheck.cjs');
 const { createRoundFixture } = require('../../PageAcceptance/P6/P6Fixtures.cjs');
 const pages = PAGE_CASES;
 
@@ -128,4 +129,47 @@ test('PseudoAuditLifecycle_CleanupFailure_NeverReportsSuccess', async () => {
     }
   }), error => error.code === 'PSEUDO_AUDIT_CLEANUP_FAILED');
   assert.equal(cleaned, 1);
+});
+
+test('CustomizationLifecycle_TemporaryChurchFailure_AlwaysCleansBAndAdmins', async () => {
+  const events = [];
+  await assert.rejects(
+    runCustomizationCheck({
+      churchA: 'church-a',
+      runtime: {
+        async createTemporaryChurch() {
+          events.push('church-b.create');
+          return { id: 'church-b', created: true };
+        },
+        async createAdmin(churchId) {
+          events.push(`admin.create:${churchId}`);
+          return { id: `admin-${churchId}`, created: true };
+        },
+        async loginAsAdmin() {
+          events.push('login');
+          return { authenticated: true };
+        },
+        async applyCustomization() {
+          events.push('customize');
+          throw new Error('synthetic customization failure');
+        },
+        async readCustomizedState() {
+          throw new Error('must not read after customize failure');
+        },
+        async cleanup(input) {
+          events.push(`cleanup:${input.churchB}:${input.adminB}`);
+          return { remaining: 0, secretsRestored: true };
+        }
+      }
+    }),
+    error => error.code === 'CUSTOMIZATION_OPERATION_FAILED'
+  );
+  assert.deepEqual(events, [
+    'church-b.create',
+    'admin.create:church-a',
+    'admin.create:church-b',
+    'login',
+    'customize',
+    'cleanup:church-b:admin-church-b'
+  ]);
 });
