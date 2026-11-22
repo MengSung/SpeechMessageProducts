@@ -1,12 +1,13 @@
 {
   "id": "11-22-p8-04b-customization-isolation",
   "title": "P8-04b 偽語系驗收腳本、教會自訂與 A/B 隔離",
-  "status": "in_progress",
+  "status": "completed",
   "complexity": "L",
   "risk": "high",
   "domain": "integration",
   "currentPhase": "implementation",
   "nextAction": "先紅後綠完成離線隔離與固定時鐘測試，再執行核准實機步驟",
   "createdAt": "2026-11-22T08:40:00+08:00",
-  "branch": "1.0.0.11.Integration.P8.Worktree"
+  "branch": "1.0.0.11.Integration.P8.Worktree",
+  "completedAt": "2026-11-22"
 }
