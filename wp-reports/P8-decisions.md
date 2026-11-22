@@ -138,3 +138,11 @@
 | 時間（Asia/Taipei） | 單元 | 遇到的選擇 | 選了什麼 | 依據 | 怎麼回復 |
 |---|---|---|---|---|---|
 | 2026-11-22 18:43 Asia/Taipei (UTC+08:00) | P8-END／固定 guard | `C:\smv\guard-p8` 含使用者保留的四個被忽略 P3 task 副本及大量既有 bin／obj；正式準備流程會 `git clean -ffdx`，不能安全執行 | 不清理、不刪除副本；只將既有唯一 guard checkout 移到 HEAD `5225c8cc`，在未清理條件下執行 §8.1 各命令。build、全方案 Release test、Debug tracer、Changed encoding、duplicate、I18n、文件說明、ProgressPage 全部 exit 0；證據 `C:\smv\guard-p8-evidence\guard-5225c8cc-partial-no-clean-20261122.log`。這是部分驗證，不是正式 guard PASS | 使用者守門資料夾規則、00 §8.2 清理要求、不得清理受保護副本 | 保留 `guard-p8` 與 evidence；完成定義仍記為固定 guard 未驗證，待有安全正式路徑或使用者處理受保護副本後再補 |
+
+### 2026-11-22 19:35 Asia/Taipei (UTC+08:00)：一般測試篩選修正與 guard 重跑
+
+| 時間（Asia/Taipei） | 單元 | 遇到的選擇 | 選了什麼 | 依據 | 怎麼回復 |
+|---|---|---|---|---|---|
+| 2026-11-22 19:35 Asia/Taipei (UTC+08:00) | P8-04b fix／P8-END | 一般 `PaymentsLive.runsettings` 未排除 `P8Live`，全方案測試曾意外包含 RelayLiveAcceptanceTests 的三個 P8Live 案例 | 已加入 `Category!=P8Live`；後續一般測試需以保存輸出確認三個 P8Live 案例不在結果，專用 P8Live 仍只以明確 Category 執行 | 使用者 P8 修訂 1 完成定義第 1 項 | 未改寫歷史；以新提交與新保存輸出取代篩選缺口 |
+| 2026-11-22 19:35 Asia/Taipei (UTC+08:00) | P8-END／固定 guard | 依核定規則清理 `C:\smv\guard-p8` 的 P3 測試資料夾，再對最後提交完整執行 §8.1；此 guard 副本不含受保護 P3 證據 | 已依 §8.2 執行 `git clean -ffdx`、`git reset --hard`，再在 `f8c444d0` 執行 guard。clean/reset 成功；但 clean 後未先 restore 還原建置資產，故本輪 build/test 只取得部分可保存結果，不能宣稱正式 guard PASS | 使用者核定 P8 修訂 1 第 2 項；不得把部分數字當完整通過 | 保存 `C:\smv\guard-p8-evidence\p8-final-guard-f8c444d0-20261122.log`；下輪若需完整 §8.1，先按原核准流程還原可建置依賴，再重新保存全部命令結果 |
+| 2026-11-22 19:35 Asia/Taipei (UTC+08:00) | P8-05 | 四個 `artifacts\\p8` 探針檔仍由本機政策禁止刪除 | 維持檔案並記錄「由使用者手動刪除」；P8-05 不因探針檔停止 | 使用者 P8 修訂 1 第 3 項 | 待使用者在允許環境刪除並保留核對紀錄 |

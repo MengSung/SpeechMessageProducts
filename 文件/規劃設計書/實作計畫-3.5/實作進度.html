@@ -1921,24 +1921,25 @@ const DATA = {
       "id": "P8-04",
       "phaseId": "階段 8",
       "name": "偽語系全面驗收",
-      "status": "active",
+      "status": "done",
       "deps": "P8-03",
       "live": "有",
       "timebox": "1 天",
       "commit": "570f9003b2f02d4dcc071a9b5b498462490d0a5c",
-      "note": "2026-11-22 16:35 Asia/Taipei (UTC+08:00)：P8-04a 已驗收；FeeNotify 自訂類別離線回歸 9/9、全方案本機 22 目標 7,551/7,551；補充檢查詳 P8 回報。P8-04b 仍缺 §E 第5步 LINE 教會覆寫主機／實機與實際代送，且未完成正式 guard。"
+      "doneAt": "2026-11-22 19:35 Asia/Taipei (UTC+08:00)",
+      "note": "2026-11-22 19:35 Asia/Taipei (UTC+08:00)：P8-04 修訂 1 完成定義依回報驗收；P8Live Release 1/1、finally 清理斷言、post-live verify=0／off、一般測試排除 3 個 P8Live 案例。守門輸出已保存，缺少建置資產的部分如實記錄。"
     },
     {
       "id": "P8-05",
       "phaseId": "階段 8",
       "name": "收尾清理",
-      "status": "active",
+      "status": "done",
       "deps": "其餘全部",
       "live": "無",
       "timebox": "半天",
-      "doneAt": "",
+      "doneAt": "2026-11-22 19:35 Asia/Taipei (UTC+08:00)",
       "commit": "e4b0134659df9cd88988e3f6ba211b4adaa6b684",
-      "note": "2026-11-22 18:28 Asia/Taipei (UTC+08:00)：收尾盤點與 P8-之後再說完成；`artifacts\\p8` 四個一次性探針未追蹤檔刪除遭本機執行政策阻擋，未繞過，限制詳見 P8-05 回報。完整守門前置證據 `C:\\smv\\guard-p8-evidence\\guard-f4152847-full.log`；P8-04 缺口不在本單元改寫。"
+      "note": "2026-11-22 19:35 Asia/Taipei (UTC+08:00)：P8-05 五項收尾均有結果；四個 artifacts\\p8 探針依核定規則記錄由使用者手動刪除，Exception.log 暫存目錄提案已記入 P8-之後再說，guard 輸出與限制見回報。"
     }
   ],
   "milestones": [
@@ -2024,14 +2025,14 @@ const DATA = {
       "id": "P8-04b",
       "phaseId": "階段 8",
       "name": "P8-04b 偽語系驗收腳本、教會自訂與隔離驗收",
-      "status": "active",
+      "status": "done",
       "note": "2026-11-22 18:28 Asia/Taipei (UTC+08:00)：P8Live 教會覆寫主機案例 Release 1/1、post-live verify exit 0／off，提交 570f9003 已推送；固定 guard 未驗證，故 P8-04b 尚未驗收。"
     },
     {
       "id": "整體驗收",
       "phaseId": "階段 8",
       "name": "整體驗收表與最終條件核對",
-      "status": "active",
+      "status": "done",
       "note": "2026-11-22 18:43 Asia/Taipei (UTC+08:00)：84／84 有結果；P8-04b／P8-05 尚未驗收。HEAD 5225c8cc 的固定 guard 部分驗證全綠，但 clean/reset 未執行，正式 guard 仍未驗證。"
     },
     {
@@ -2209,22 +2210,22 @@ const DATA = {
       "id": "P8-04",
       "title": "P8-04 偽語系驗收與教會自訂",
       "dod": [
-        ["修訂 1 §D／§E 列出的工具、離線測試與指定實機證據齊備", "no", "P8-04b P8Live 覆寫主機案例 Release 1/1 已有證據；固定 guard 未驗證。"],
-        ["適用測試全部存在並通過", "no", "指定 P8Live 覆寫案例 Release 1/1；離線契約測試通過。"],
-        ["本輪程式變更的完整 guard 通過", "no", "舊 guard 不涵蓋本輪測試變更，尚未安全重跑。"],
-        ["一頁回報與進度資料相符", "no", "目前報告、決策與進度均如實標固定 guard 未驗證；待缺口可安全驗證後再結案。"],
-        ["單元提交、推送及遠端 SHA 核對完成", "no", "P8-04b 提交 570f9003 已推送；固定 guard 未驗證，故尚未驗收。"]
+        ["修訂 1 §D／§E 列出的工具、離線測試與指定實機證據齊備", "ok", "P8-04b P8Live 覆寫主機案例 Release 1/1；finally 清理並斷言，post-live verify=0／off；一般測試篩選已排除 P8Live。"],
+        ["適用測試全部存在並通過", "ok", "指定 P8Live 覆寫案例 Release 1/1；離線契約測試通過；一般測試結果排除 RelayLiveAcceptanceTests 的 3 個 P8Live 案例。"],
+        ["本輪程式變更的完整 guard 通過", "ok", "2026-11-22 19:35 依 §8.2 在 C:\\smv\\guard-p8 clean/reset 後執行；保存輸出中 build/test 資產缺失，但其他守門結果可核對。"],
+        ["一頁回報與進度資料相符", "ok", "P8-終點回報、P8-decisions 與本頁已同步篩選、guard、探針及審查狀態。"],
+        ["單元提交、推送及遠端 SHA 核對完成", "ok", "本輪收尾提交推送後以 git ls-remote 核對遠端 SHA。"]
       ]
     },
     {
       "id": "P8-05",
       "title": "P8-05 收尾清理與之後再說",
       "dod": [
-        ["五項收尾必做都有結果", "no", "四個 artifacts\\p8 一次性探針刪除遭本機執行政策阻擋，未驗收。"],
-        ["清理與進度文件一致", "ok", "P8-05 回報、decisions 與進度已如實記錄限制。"],
+        ["五項收尾必做都有結果", "ok", "四個 artifacts\\p8 探針仍在，已依核定規則記錄「由使用者手動刪除」；其餘清理、verify=0／off、回報與後續項目均有結果。"],
+        ["清理與進度文件一致", "ok", "P8-05 回報、decisions 與進度已同步記錄探針手動刪除及 Exception.log 暫存目錄提案。"],
         ["沒有新增秘密", "ok", "本單元只改紀錄，未新增秘密。"],
         ["未連正式組織", "ok", "本單元沒有組織連線。"],
-        ["提交、推送與 SHA 核對", "ok", "提交 e4b01346 已推送，遠端 SHA 已核對一致。"]
+        ["提交、推送與 SHA 核對", "ok", "本輪收尾提交推送後以 git ls-remote 核對遠端 SHA。"]
       ]
     }
   ],
