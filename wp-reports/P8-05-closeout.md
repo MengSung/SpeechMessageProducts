@@ -39,7 +39,7 @@
 
 - `artifacts/p8` 的一次性 D34／SMV-TEST 探針檔仍存在，未被 Git 追蹤；刪除遭執行政策阻擋，不能改寫為範圍外或已清理。本單元只把必要的 `encoding-all.json` 列為保留報告。
 - 本單元沒有新增秘密、沒有連線組織、沒有修改守門 clone。
-- 完整 Release 建置／測試與守門依 `C:\smv\guard-p8-evidence\guard-f4152847-full.log`；該 log 的實際覆蓋 SHA 為 `f4152847c`，不涵蓋後續 `eac65089`、`570f9003`、`e4b01346` 或本次文件修改，只能支持前置全方案綠燈，不能作為目前 HEAD 的完整 guard。
+- 前置完整 Release／守門 `guard-f4152847-full.log` 的 SHA 為 `f4152847c`，不涵蓋後續修改；本次 HEAD 的未清理部分驗證 `guard-5225c8cc-partial-no-clean-20261122.log` 各命令 exit 0，但因未執行 clean/reset 不能稱完整 guard。
 
 ### 2026-11-22 18:28 Asia/Taipei (UTC+08:00)：補記一次性探針清理受執行政策阻擋
 

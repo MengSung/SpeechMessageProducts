@@ -131,3 +131,10 @@
 | 時間（Asia/Taipei） | 單元 | 遇到的選擇 | 選了什麼 | 依據 | 怎麼回復 |
 |---|---|---|---|---|---|
 | 2026-11-22 18:28 Asia/Taipei (UTC+08:00) | P8-05 | `artifacts\p8` 四個未追蹤一次性探針檔需刪除，但逐檔 `Remove-Item` 被本機執行政策阻擋 | 不繞過政策；如實記錄四檔仍存在，P8-05 清理項目標示未完成／環境限制，其餘收尾證據保留 | 使用者明定被執行政策擋住就記錄，不得繞過 | 後續由使用者在允許的清理環境刪除；本階段不再用替代命令規避政策 |
+
+
+### 2026-11-22 18:43 Asia/Taipei (UTC+08:00)：固定 guard 安全部分驗證
+
+| 時間（Asia/Taipei） | 單元 | 遇到的選擇 | 選了什麼 | 依據 | 怎麼回復 |
+|---|---|---|---|---|---|
+| 2026-11-22 18:43 Asia/Taipei (UTC+08:00) | P8-END／固定 guard | `C:\smv\guard-p8` 含使用者保留的四個被忽略 P3 task 副本及大量既有 bin／obj；正式準備流程會 `git clean -ffdx`，不能安全執行 | 不清理、不刪除副本；只將既有唯一 guard checkout 移到 HEAD `5225c8cc`，在未清理條件下執行 §8.1 各命令。build、全方案 Release test、Debug tracer、Changed encoding、duplicate、I18n、文件說明、ProgressPage 全部 exit 0；證據 `C:\smv\guard-p8-evidence\guard-5225c8cc-partial-no-clean-20261122.log`。這是部分驗證，不是正式 guard PASS | 使用者守門資料夾規則、00 §8.2 清理要求、不得清理受保護副本 | 保留 `guard-p8` 與 evidence；完成定義仍記為固定 guard 未驗證，待有安全正式路徑或使用者處理受保護副本後再補 |
