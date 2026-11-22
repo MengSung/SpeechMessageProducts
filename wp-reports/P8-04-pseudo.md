@@ -64,3 +64,10 @@ Pseudo_Step2_KeywordsRecognized_AllSegmentsBracketed Release 1/1 通過；真 Ke
 ### 2026-11-22 15:00 Asia/Taipei (UTC+08:00)：P8-04b 完整守門重跑通過
 
 唯一 C:\smv\guard-p8 對提交 4152847c 的 §8.1 已全部通過：Release build 0 錯誤；Release 全方案測試 0 失敗（Hosting 165、LineWebhook 138 等均保存於守門輸出）；Debug tracer 7/7；文字編碼 256 檔 0 問題；duplicate projects=42、files=1566、new=0、stale=0；I18nCheck、檔案說明 1902/1902、進度頁 28/28 均通過。證據 C:\smv\guard-p8-evidence\guard-f4152847-full.log。這只證明守門，不改變 16.4 LINE 實機缺口；P8-04b 仍未驗收。
+
+### 2026-11-22 16:12 Asia/Taipei (UTC+08:00)：核准測試組織代送實機補證
+
+`SpeechMessageProducts.LineWebhook.Tests.RelayLiveAcceptanceTests.Live_Relay_PushesOnceToTestContact` 以 Release、`Category=P7Live` 在 goodshepherdback 通過 1/1，耗時 2 分 10 秒；保存輸出 `C:\smv\guard-p8-evidence\p8-04b-p7live-relay-20261122.log`。測試實際建立並清理測試收費單與代送待辦，主機 worker 完成一次代送，attempts=0、測試 Channel 用量差為 1，finally 清理 fees=0、relay tasks=0。這證明核准測試組織的主機代送與資源清理路徑；因該既有案例不是 qps-ploc P8 專用案例，不能把它改稱 16.4 第 3 步偽語系通知通過。其後唯讀 `verify --org goodshepherdback` 通過，狀態符合 off，輸出保存於 `C:\smv\guard-p8-evidence\p8-04b-post-p7live-verify-20261122.log`。
+
+目前 P8-04b 必做缺口仍是：P8 專用 qps-ploc 實機通知的格式證據、16.4 第 1 步 OS 子程序啟動、以及第 6 步的正式固定時鐘組合；離線／替代證據已逐項標明，不冒充實機通過。
+
