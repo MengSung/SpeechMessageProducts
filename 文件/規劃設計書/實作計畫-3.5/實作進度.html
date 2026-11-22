@@ -240,11 +240,11 @@ footer{margin-top:36px;color:var(--muted);font-size:12.5px;text-align:center}
  */
 const DATA = {
   "planVersion": "3.5",
-  "snapshot": "2026-11-22 18:45 Asia/Taipei (UTC+08:00)",
-  "lastUpdated": "2026-11-22T18:45:00+08:00",
+  "snapshot": "2026-11-22 18:28 Asia/Taipei (UTC+08:00)",
+  "lastUpdated": "2026-11-22T18:28:00+08:00",
   "branch": "1.0.0.11.Integration.P8.Worktree",
-  "head": "e4b01346",
-  "headline": "階段 8 2026-11-22 18:45 Asia/Taipei (UTC+08:00)：84／84；P8-04b 必做已驗收，固定 guard 未驗證，整體收尾未完成。",
+  "head": "8c0b4a61",
+  "headline": "階段 8 2026-11-22 18:28 Asia/Taipei (UTC+08:00)：84／84 有結果；P8-04b／P8-05 尚未驗收，固定 guard 未驗證、探針清理受政策阻擋。",
   "notices": [
     {
       "id": "plan-3.5-summary",
@@ -1932,13 +1932,13 @@ const DATA = {
       "id": "P8-05",
       "phaseId": "階段 8",
       "name": "收尾清理",
-      "status": "done",
+      "status": "active",
       "deps": "其餘全部",
       "live": "無",
       "timebox": "半天",
-      "doneAt": "2026-11-22 19:05 Asia/Taipei (UTC+08:00)",
+      "doneAt": "",
       "commit": "e4b0134659df9cd88988e3f6ba211b4adaa6b684",
-      "note": "2026-11-22 19:05 Asia/Taipei (UTC+08:00)：五項收尾必做與 P8-之後再說完成；`artifacts\\p8` 四個一次性探針未追蹤檔刪除遭本機執行政策阻擋，未繞過，限制詳見 P8-05 回報。完整守門前置證據 `C:\\smv\\guard-p8-evidence\\guard-f4152847-full.log`；P8-04 缺口不在本單元改寫。"
+      "note": "2026-11-22 18:28 Asia/Taipei (UTC+08:00)：收尾盤點與 P8-之後再說完成；`artifacts\\p8` 四個一次性探針未追蹤檔刪除遭本機執行政策阻擋，未繞過，限制詳見 P8-05 回報。完整守門前置證據 `C:\\smv\\guard-p8-evidence\\guard-f4152847-full.log`；P8-04 缺口不在本單元改寫。"
     }
   ],
   "milestones": [
@@ -2024,22 +2024,22 @@ const DATA = {
       "id": "P8-04b",
       "phaseId": "階段 8",
       "name": "P8-04b 偽語系驗收腳本、教會自訂與隔離驗收",
-      "status": "done",
-      "note": "2026-11-22 18:45 Asia/Taipei (UTC+08:00)：P8Live 教會覆寫主機案例 Release 1/1，post-live verify exit 0、off；固定 guard 未驗證，整體驗收與終點回報待完成。"
+      "status": "active",
+      "note": "2026-11-22 18:28 Asia/Taipei (UTC+08:00)：P8Live 教會覆寫主機案例 Release 1/1、post-live verify exit 0／off，提交 570f9003 已推送；固定 guard 未驗證，故 P8-04b 尚未驗收。"
     },
     {
       "id": "整體驗收",
       "phaseId": "階段 8",
       "name": "整體驗收表與最終條件核對",
       "status": "active",
-      "note": "2026-11-22 19:15 Asia/Taipei (UTC+08:00)：84／84 已有單元結果；正在逐項核對固定 guard、探針清理、goodshepherdback 狀態、審查與終點條件，尚未結案。"
+      "note": "2026-11-22 18:28 Asia/Taipei (UTC+08:00)：84／84 有結果；P8-04b／P8-05 尚未驗收，正在核對固定 guard、探針清理、goodshepherdback 狀態與終點條件。"
     },
     {
       "id": "專案終點",
       "phaseId": "階段 8",
       "name": "實作計畫 3.5 專案終點回報與停止",
       "status": "todo",
-      "note": "2026-11-22 19:15 Asia/Taipei (UTC+08:00)：尚未符合階段 8 完成定義；固定 guard 未驗證、一次性探針清理受政策阻擋，終點回報與最後 ClaudeOnly 階段審查待整體核對後執行。"
+      "note": "2026-11-22 18:28 Asia/Taipei (UTC+08:00)：尚未符合階段 8 完成定義；固定 guard 未驗證、一次性探針清理受政策阻擋，終點回報待缺口處置。"
     },
     {
       "id": "M-P0-REVIEW",
@@ -2209,11 +2209,22 @@ const DATA = {
       "id": "P8-04",
       "title": "P8-04 偽語系驗收與教會自訂",
       "dod": [
-        ["修訂 1 §D／§E 列出的工具、離線測試與指定實機證據齊備", "no", "P8-04b §E 第5步 LINE 覆寫主機／實機及實際代送尚缺。"],
-        ["適用測試全部存在並通過", "no", "離線契約測試通過；指定 P8Live 覆寫案例尚不存在。"],
+        ["修訂 1 §D／§E 列出的工具、離線測試與指定實機證據齊備", "no", "P8-04b P8Live 覆寫主機案例 Release 1/1 已有證據；固定 guard 未驗證。"],
+        ["適用測試全部存在並通過", "no", "指定 P8Live 覆寫案例 Release 1/1；離線契約測試通過。"],
         ["本輪程式變更的完整 guard 通過", "no", "舊 guard 不涵蓋本輪測試變更，尚未安全重跑。"],
-        ["一頁回報與進度資料相符", "no", "目前報告如實標未驗收，待必做完成後提交驗收回報。"],
-        ["單元提交、推送及遠端 SHA 核對完成", "no", "P8-04b 未驗收，依規則尚未提交／推送。"]
+        ["一頁回報與進度資料相符", "no", "目前報告、決策與進度均如實標固定 guard 未驗證；待缺口可安全驗證後再結案。"],
+        ["單元提交、推送及遠端 SHA 核對完成", "no", "P8-04b 提交 570f9003 已推送；固定 guard 未驗證，故尚未驗收。"]
+      ]
+    },
+    {
+      "id": "P8-05",
+      "title": "P8-05 收尾清理與之後再說",
+      "dod": [
+        ["五項收尾必做都有結果", "no", "四個 artifacts\\p8 一次性探針刪除遭本機執行政策阻擋，未驗收。"],
+        ["清理與進度文件一致", "ok", "P8-05 回報、decisions 與進度已如實記錄限制。"],
+        ["沒有新增秘密", "ok", "本單元只改紀錄，未新增秘密。"],
+        ["未連正式組織", "ok", "本單元沒有組織連線。"],
+        ["提交、推送與 SHA 核對", "ok", "提交 e4b01346 已推送，遠端 SHA 已核對一致。"]
       ]
     }
   ],

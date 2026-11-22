@@ -1,9 +1,10 @@
 # P8-05 收尾清理與之後再說
 
-**結論：P8-05 的五項離線必做已完成；本單元可驗收。** 2026-11-22 16:05 Asia/Taipei (UTC+08:00) 完成盤點、保留決策、編碼盤點與後續清單。P8-04b 的實機 LINE／16.4 缺口仍由 P8-04b 報告如實揭露，本報告不把其他單元缺口改寫成 P8-05 通過。
+**結論：P8-05 部分完成；一次性探針清理遭執行政策阻擋，本單元不可標為已驗收。** 2026-11-22 16:05 Asia/Taipei (UTC+08:00) 完成盤點、保留決策、編碼盤點與後續清單；清理限制於 2026-11-22 18:28 Asia/Taipei (UTC+08:00) 補記。P8-04b 的實機證據已另列；本報告不把固定 guard 或探針清理限制改寫成 P8-05 通過。
 
 | 必做項目 | 證據與結果 | 狀態 |
 |---|---|---|
+| 一次性探針清理 | `D34ReadOnlyDiagnostic.cs`／`.dll`、`SmvTestResidueProbe.cs`／`.dll` 均確認未追蹤；逐檔刪除遭本機執行政策阻擋，未繞過 | 未完成／環境限制 |
 | `[Obsolete]` 逐一處理 | F20 清單中的 `Line.Messaging` 公開 SDK 成員保留（外部相容介面）；`SpeechMessage.Payments`、`SpeechMessage.Payments.AspNetCore`、`SpeechMessage.Payments.Workflows` 成員仍有相容呼叫面或屬公開模型，保留；ChurchReport 的 `ContextDictionary`、`DonationPaymentManager`、`FeeList`、`HappyGroupDataManager` 仍有呼叫點或相容建構面，保留。未發現可安全刪除且零呼叫的 F20 成員。 | 通過 |
 | 設定開關 | `Localization:ChurchOverrides:Enabled`、`Messaging:NotifyRelay:Enabled` 是部署開關，保留；`LineWebhook:EnableLegacyCallback` 是相容路由部署開關，保留；ChurchReport 既有付款／例外／套件設定不是本次可安全刪除的過渡旗標，未改動。 | 通過 |
 | `/api/callback` | 依 D8-28 保留相容路由；正式 Webhook 網址尚未核定，列入「上線後再說」及 `P7-LATER-001`／`P5-PROP-011`。 | 通過 |
@@ -36,10 +37,10 @@
 
 ## 完成後處置
 
-- `artifacts/p8` 的一次性 D34／SMV-TEST 探針檔已不列為 P8-05 產物；本單元只保留必要的 `encoding-all.json` 報告。
+- `artifacts/p8` 的一次性 D34／SMV-TEST 探針檔仍存在，未被 Git 追蹤；刪除遭執行政策阻擋，不能改寫為範圍外或已清理。本單元只把必要的 `encoding-all.json` 列為保留報告。
 - 本單元沒有新增秘密、沒有連線組織、沒有修改守門 clone。
-- 完整 Release 建置／測試與守門依 `C:\smv\guard-p8-evidence\guard-f4152847-full.log`；該證據支持本單元前置的全方案綠燈，但不替代 P8-04b 尚缺的實機步驟。
+- 完整 Release 建置／測試與守門依 `C:\smv\guard-p8-evidence\guard-f4152847-full.log`；該 log 的實際覆蓋 SHA 為 `f4152847c`，不涵蓋後續 `eac65089`、`570f9003`、`e4b01346` 或本次文件修改，只能支持前置全方案綠燈，不能作為目前 HEAD 的完整 guard。
 
-### 2026-11-22 19:05 Asia/Taipei (UTC+08:00)：一次性探針清理受執行政策阻擋
+### 2026-11-22 18:28 Asia/Taipei (UTC+08:00)：補記一次性探針清理受執行政策阻擋
 
 依 P8-05 指示確認 `artifacts\p8` 仍有 `D34ReadOnlyDiagnostic.cs`／`.dll` 與 `SmvTestResidueProbe.cs`／`.dll` 四個一次性探針，四檔均未被 Git 追蹤。嘗試以 PowerShell `Remove-Item -LiteralPath` 逐檔刪除時遭本機執行政策阻擋，未繞過政策、未改動檔案；故清理項目記為「未完成／環境限制」，並保留原檔供後續使用者處理。
