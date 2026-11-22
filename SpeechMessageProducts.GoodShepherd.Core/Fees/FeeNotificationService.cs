@@ -4,7 +4,9 @@
  * Shadow只記摘要、絕不讀token；Live由Host借入key，重驗來源教會後才推播。
  * 主要流程：以正式 fee→contact→account 決定來源教會，交 MemberNotificationService
  * 重讀收件者並驗綁定／歸屬，再讀來源教會語系、名稱與正式頻道關聯；使用共用入口
- * 組字、server sender 及安全摘要。Shadow頻道查詢完全不投影token；Live沿共用LineRecipientQueries讀加密封包。
+ * 組字、server sender 及安全摘要。費用若含 new_offeringcategoryid，另以同教會有界類別快照
+ * 核對正式 ID、教會歸屬與啟用狀態後採用資料庫名稱；缺 lookup 的舊資料維持原 OptionSet 標籤回退。
+ * Shadow頻道查詢完全不投影token；Live沿共用LineRecipientQueries讀加密封包。
  * 使用邊界與維護：SDK 只借用當次平台服務；收件source為呼叫區域owner，只有Live讀加密封包，
  * await 排空後 Dispose 清 SDK 參照。訊息、context、姓名只留至本次通知結束，
  * 無 static 個資、Session、快取、Timer、queue 或脫離呼叫的工作。任何真失敗原樣
@@ -12,6 +14,7 @@
  * 證明的只有 Shadow 行為，實機追蹤依 D5-19 延後。
  */
 using System;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Line.Messaging;
@@ -20,6 +23,7 @@ using Microsoft.Xrm.Sdk;
 using Microsoft.Xrm.Sdk.Query;
 using SpeechMessage.Localization;
 using SpeechMessageProducts.GoodShepherd.Core.Messaging;
+using SpeechMessageProducts.GoodShepherd.Core.Offerings;
 using SpeechMessageProducts.GoodShepherd.Core.Notifications;
 using ToolUtilityNameSpace.LineRecipients;
 
@@ -97,11 +101,12 @@ public static class FeeNotificationService
         if (feeId == Guid.Empty || organizationId == Guid.Empty)
             throw new ArgumentException("A fee and organization identity are required.");
         var fee = Read(sdk, "new_fee", feeId, ct, "new_contact_new_fee", "new_pay_date",
-            "new_category", "new_pay_way", "new_others", "new_fee_really_paid");
+            "new_category", "new_offeringcategoryid", "new_pay_way", "new_others", "new_fee_really_paid");
         var contactId = Lookup(fee, "new_contact_new_fee", "contact");
         var contact = Read(sdk, "contact", contactId, ct, "parentcustomerid", "fullname");
         var churchId = Lookup(contact, "parentcustomerid", "account");
         if (expectedChurch.HasValue && churchId != expectedChurch.Value) return null;
+        var categoryName = ResolveOfferingCategoryName(sdk, fee, churchId);
         using var source = new NotificationSource(sdk, key is not null);
         var catalog = suppliedCatalog ?? new GoodShepherdTextCatalog(new NoOverrides());
         var notifications = new MemberNotificationService(push,
@@ -118,7 +123,7 @@ public static class FeeNotificationService
                 throw new InvalidOperationException("Fee payment amount is unavailable.");
             var text = FeeNotificationRule.Compose(catalog, context, Text(contact, "fullname", "", 100), utc,
                 timeZone, Option(fee, "new_category"), Option(fee, "new_pay_way"),
-                Text(fee, "new_others", "", 2000), amount.Value);
+                Text(fee, "new_others", "", 2000), amount.Value, categoryName);
             return new ISendMessage[] { new TextMessage(string.Empty) { Text = text } };
         }
         return sink is not null
@@ -142,6 +147,27 @@ public static class FeeNotificationService
         row.Attributes.TryGetValue(field, out var value) && value is EntityReference reference &&
         reference.Id != Guid.Empty && reference.LogicalName == table && reference.KeyAttributes.Count == 0
             ? reference.Id : throw new InvalidOperationException("Fee notification scope is unavailable.");
+
+    /// <summary>只採用已讀取且啟用中的同教會正式類別；錯誤 lookup 拒絕通知，不退回其他教會或舊標籤。</summary>
+    /// <param name="sdk">本次 relay 借用且仍由外層 scope 擁有的 Dataverse facade。</param>
+    /// <param name="fee">已核對正式 ID 的單筆費用；Entity 只在本次通知持有。</param>
+    /// <param name="churchId">由 fee→contact→account 關聯取得的正式教會 ID。</param>
+    /// <returns>同教會啟用類別名稱；舊列未填 lookup 時為 null。</returns>
+    private static string? ResolveOfferingCategoryName(IOrganizationService sdk, Entity fee, Guid churchId)
+    {
+        if (!fee.Attributes.TryGetValue("new_offeringcategoryid", out var value) || value is null)
+            return null;
+        if (value is not EntityReference reference || reference.Id == Guid.Empty
+            || !string.Equals(reference.LogicalName, "new_offeringcategory", StringComparison.Ordinal)
+            || reference.KeyAttributes.Count != 0)
+            throw new InvalidOperationException("Fee offering category lookup is invalid.");
+
+        var category = OfferingCategoryReader.Read(sdk, churchId).Categories
+            .SingleOrDefault(candidate => candidate.Id == reference.Id);
+        if (category is null || !category.IsActive || category.ChurchId != churchId)
+            throw new InvalidOperationException("Fee offering category does not belong to the source church.");
+        return category.Name;
+    }
 
     /// <summary>選填文字可缺省；錯誤型別或超量直接拒絕，不回顯來源內容。</summary>
     private static string Text(Entity row, string field, string fallback, int maximum) =>

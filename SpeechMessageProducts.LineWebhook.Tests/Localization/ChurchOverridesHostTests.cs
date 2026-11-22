@@ -100,8 +100,31 @@ public sealed class ChurchOverridesHostTests
         await using var fixture = new FeeNotifyOverrideTestComposition();
         await fixture.ExecuteAsync(passCatalog: true);
 
-        Assert.Contains("費用覆寫", Assert.Single(fixture.Push.Messages), StringComparison.Ordinal);
+        var message = Assert.Single(fixture.Push.Messages);
+        Assert.Contains("費用覆寫", message, StringComparison.Ordinal);
+        Assert.Contains("新自訂類別", message, StringComparison.Ordinal);
         Assert.Equal(FeeNotifyOverrideTestComposition.ChurchId, fixture.Push.Church);
+    }
+
+    /// <summary>費用 lookup 指向其他教會時，通知流程必須拒絕推播且不得回退舊選項標籤。</summary>
+    [Fact]
+    public async Task Relay_FeeNotify_CrossChurchOfferingCategory_FailsClosed()
+    {
+        await using var fixture = new FeeNotifyOverrideTestComposition(
+            categoryChurchId: Guid.Parse("abababab-abab-abab-abab-abababababab"));
+
+        await Assert.ThrowsAsync<InvalidOperationException>(() => fixture.ExecuteAsync(passCatalog: true));
+        Assert.Empty(fixture.Push.Messages);
+    }
+
+    /// <summary>費用 lookup 指向停用類別時，通知流程必須拒絕推播並保持安全失敗。</summary>
+    [Fact]
+    public async Task Relay_FeeNotify_InactiveOfferingCategory_FailsClosed()
+    {
+        await using var fixture = new FeeNotifyOverrideTestComposition(categoryIsActive: false);
+
+        await Assert.ThrowsAsync<InvalidOperationException>(() => fixture.ExecuteAsync(passCatalog: true));
+        Assert.Empty(fixture.Push.Messages);
     }
 }
 
@@ -302,6 +325,7 @@ internal sealed class FeeNotifyOverrideTestComposition : IAsyncDisposable
     private static readonly Guid FeeId = Guid.Parse("eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee");
     private static readonly Guid ContactId = Guid.Parse("ffffffff-ffff-ffff-ffff-ffffffffffff");
     private static readonly Guid ChannelId = Guid.Parse("abababab-abab-abab-abab-abababababab");
+    private static readonly Guid CategoryId = Guid.Parse("edededed-eded-eded-eded-edededededed");
     private static readonly Guid OrganizationId = Guid.Parse("cdcdcdcd-cdcd-cdcd-cdcd-cdcdcdcdcdcd");
     private readonly byte[] key = Enumerable.Range(0, 64).Select(value => (byte)value).ToArray();
     private readonly TextContext context = new(ChurchId, "zh-TW", "zh-TW", OrganizationId.ToString("D"), "LineWebhook");
@@ -311,13 +335,13 @@ internal sealed class FeeNotifyOverrideTestComposition : IAsyncDisposable
     internal RelayPush Push { get; } = new();
 
     /// <summary>建立完整合成資料圖；token、SDK、cache 只由本案例持有，不建立網路或真實組織連線。</summary>
-    internal FeeNotifyOverrideTestComposition()
+    internal FeeNotifyOverrideTestComposition(Guid? categoryChurchId = null, bool categoryIsActive = true)
     {
         cache = new ChurchTextOverrideCache(new FeeTemplateSource(),
             GoodShepherdTextCatalog.CreateOverrideValidator("這是一個長度剛好十二字的教會"),
             static (_, _) => { });
         catalog = new GoodShepherdTextCatalog(cache);
-        sdk = new RelaySdk(key);
+        sdk = new RelaySdk(key, categoryChurchId ?? ChurchId, categoryIsActive);
     }
 
     /// <summary>沿封閉四欄 payload 執行真正 Relay 分派；false 用於驗證未傳 catalog 時的預設文案。</summary>
@@ -368,7 +392,7 @@ internal sealed class FeeNotifyOverrideTestComposition : IAsyncDisposable
         private bool disposed;
 
         /// <summary>建立費用、聯絡人、教會與加密頻道列；解密 key 不會離開案例 owner。</summary>
-        internal RelaySdk(byte[] tokenKey)
+        internal RelaySdk(byte[] tokenKey, Guid categoryChurchId, bool categoryIsActive)
         {
             rows = new Dictionary<(string, Guid), Entity>
             {
@@ -377,6 +401,7 @@ internal sealed class FeeNotifyOverrideTestComposition : IAsyncDisposable
                     ["new_contact_new_fee"] = new EntityReference("contact", ContactId),
                     ["new_pay_date"] = new DateTime(2026, 11, 20, 0, 0, 0, DateTimeKind.Utc),
                     ["new_category"] = new OptionSetValue(100000000),
+                    ["new_offeringcategoryid"] = new EntityReference("new_offeringcategory", CategoryId),
                     ["new_pay_way"] = new OptionSetValue(100000004),
                     ["new_others"] = "合成說明",
                     ["new_fee_really_paid"] = new Microsoft.Xrm.Sdk.Money(100m)
@@ -399,6 +424,14 @@ internal sealed class FeeNotifyOverrideTestComposition : IAsyncDisposable
                 [("new_linechannel", ChannelId)] = new Entity("new_linechannel", ChannelId)
                 {
                     ["new_accesstokenencrypted"] = ChannelTokenProtector.Protect("synthetic", tokenKey)
+                },
+                [("new_offeringcategory", CategoryId)] = new Entity("new_offeringcategory", CategoryId)
+                {
+                    ["new_accountid"] = new EntityReference("account", categoryChurchId),
+                    ["new_code"] = "custom-test",
+                    ["new_name"] = "新自訂類別",
+                    ["new_sortorder"] = 0,
+                    ["statecode"] = new OptionSetValue(categoryIsActive ? 0 : 1)
                 }
             };
         }
@@ -435,9 +468,21 @@ internal sealed class FeeNotifyOverrideTestComposition : IAsyncDisposable
         /// <summary>Relay 不應移除關聯，任何意外寫入都使離線測試失敗。</summary>
         public void Disassociate(string entityName, Guid id, Relationship relationship, EntityReferenceCollection relatedEntities) =>
             throw new InvalidOperationException("Unexpected synthetic disassociate.");
-        /// <summary>FeeNotify 不使用集合查詢；意外操作立即失敗。</summary>
-        public EntityCollection RetrieveMultiple(QueryBase query) =>
-            throw new InvalidOperationException("Unexpected synthetic query.");
+        /// <summary>只提供 OfferingCategoryReader 的同教會類別快照；不接受未預期查詢或跨教會結果。</summary>
+        public EntityCollection RetrieveMultiple(QueryBase query)
+        {
+            if (disposed || query is not QueryExpression expression
+                || expression.EntityName != "new_offeringcategory"
+                || !expression.Criteria.Conditions.Any(condition =>
+                    condition.AttributeName == "new_accountid"
+                    && condition.Operator == ConditionOperator.Equal
+                    && condition.Values.Count == 1
+                    && condition.Values[0] is Guid churchId
+                    && churchId == ChurchId))
+                throw new InvalidOperationException("Unexpected synthetic category query.");
+            var category = rows[("new_offeringcategory", CategoryId)];
+            return new EntityCollection([category]);
+        }
         /// <summary>本案例唯一 SDK owner 釋放合成資料參照且阻止後續讀取。</summary>
         public void Dispose() { disposed = true; rows.Clear(); }
     }

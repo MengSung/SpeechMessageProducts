@@ -31,9 +31,10 @@ public static class FeeNotificationRule
     /// <param name="payWay">退役付款方式 OptionSet 整數。</param>
     /// <param name="others">其他說明，最多兩千字，不修剪。</param>
     /// <param name="amount">實收 decimal 金額，中點取偶數後維持舊整數文字。</param>
+    /// <param name="categoryName">呼叫端已依正式 lookup 與教會範圍驗證的新類別名稱；null 時沿用舊 OptionSet 字典標籤。</param>
     /// <returns>含 CRLF 的完整有界訊息，無任何 token 或 LINE ID。</returns>
     public static string Compose(ITextCatalog catalog, TextContext context, string name, DateTime payDateUtc,
-        string timeZone, int category, int payWay, string others, decimal amount)
+        string timeZone, int category, int payWay, string others, decimal amount, string? categoryName = null)
     {
 #if NET10_0_OR_GREATER
         ArgumentNullException.ThrowIfNull(catalog);
@@ -44,14 +45,19 @@ public static class FeeNotificationRule
 #endif
         if (name is null || name.Length > 100 || others is null || others.Length > 2000)
             throw new ArgumentException("Fee notification text exceeds its bounded budget.");
+        if (categoryName is { } suppliedCategoryName
+            && (string.IsNullOrWhiteSpace(suppliedCategoryName) || suppliedCategoryName.Length > 200))
+            throw new ArgumentException("The validated offering category name is invalid.", nameof(categoryName));
         var local = new ChurchClock().ToChurchTime(payDateUtc, timeZone);
         var culture = CultureInfo.GetCultureInfo(context.FormatCulture);
         var categoryIndex = category is >= 100000000 and <= 100000017 ? category - 100000000 : 0;
         var payIndex = payWay is >= 100000000 and <= 100000008 ? payWay - 100000000 : 4;
+        var categoryText = categoryName
+            ?? catalog.GetText(context, new TextKey("Fees.Category.C" + categoryIndex.ToString(CultureInfo.InvariantCulture)));
         return catalog.GetText(context, new TextKey("Fees.Notify.Template"),
             new TextArg("member", name),
             new TextArg("date", local.ToString("d", culture)),
-            new TextArg("category", catalog.GetText(context, new TextKey("Fees.Category.C" + categoryIndex.ToString(CultureInfo.InvariantCulture)))),
+            new TextArg("category", categoryText),
             new TextArg("others", others),
             new TextArg("payway", catalog.GetText(context, new TextKey("Fees.PayWay.P" + payIndex.ToString(CultureInfo.InvariantCulture)))),
             new TextArg("amount", Convert.ToInt32(amount).ToString(culture)));

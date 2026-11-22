@@ -240,11 +240,11 @@ footer{margin-top:36px;color:var(--muted);font-size:12.5px;text-align:center}
  */
 const DATA = {
   "planVersion": "3.5",
-  "snapshot": "2026-11-22 16:35 Asia/Taipei (UTC+08:00)",
-  "lastUpdated": "2026-11-22T14:45:00+08:00",
+  "snapshot": "2026-11-22 16:11 Asia/Taipei (UTC+08:00)",
+  "lastUpdated": "2026-11-22T16:11:00+08:00",
   "branch": "1.0.0.11.Integration.P8.Worktree",
-  "head": "be35b30f",
-  "headline": "階段 8 2026-11-22 14:45 Asia/Taipei (UTC+08:00)：P8-04a、P8-04b、P8-05 已驗收，總計 84／84；接續整體驗收與階段收尾。",
+  "head": "dbbc8b47",
+  "headline": "階段 8 2026-11-22 15:34 Asia/Taipei (UTC+08:00)：83／84；P8-04b 進行中，LINE 教會覆寫主機／實機驗收尚缺。",
   "notices": [
     {
       "id": "plan-3.5-summary",
@@ -703,9 +703,13 @@ const DATA = {
       "phaseId": "階段 8",
       "level": "info",
       "title": "P8 進度摘要",
-      "body": "2026-11-22 14:45 Asia/Taipei (UTC+08:00)：P8-04a、P8-04b 與 P8-05 已驗收，P8-04b 依 D8-20 採可重現替代證據；唯一 guard `GUARD_RESULT=0`，goodshepherdback 回到 off、verify=0、殘留0。總計 84／84；接續整體驗收、ClaudeOnly 與終點回報。",
-      "lastUpdated": "2026-11-22T14:45:00+08:00",
+      "body": "2026-11-22 16:11 Asia/Taipei (UTC+08:00)：P8-04a、P8-05 與先前已驗收單元維持完成，總計 83／84；FeeNotify 自訂類別有效／跨教會／停用回歸及 P8CustomizationIsolationTests Release 合計 9/9 通過。P8-04b 仍缺 §E 第 5 步 LINE 教會覆寫主機／實機驗收，且本輪完整守門未完成；整體驗收與終點回報未完成。",
+      "lastUpdated": "2026-11-22T16:11:00+08:00",
       "steps": [
+        "2026-11-22 16:08 Asia/Taipei (UTC+08:00)：FeeNotify 正式讀取 `new_offeringcategoryid`，核對同教會資料庫 ID 與啟用狀態；跨教會與停用 lookup fail closed。三個 FeeNotify relay 案例加 P8CustomizationIsolationTests Release 9/9；輸出 `C:\\smv\\guard-p8-evidence\\p8-04b-fee-category-override-release-20261122-1608.log`。此為離線證據，不能取代 §E 第5步 P8Live 覆寫代送。",
+        "2026-11-22 15:34 Asia/Taipei (UTC+08:00)：更正 14:45 把一般 qps-ploc 代送與網頁 A/B 子步擴大為 LINE 教會覆寫驗收的錯誤結論。`Customization_Step5_LineOverrideWithin60s_ChurchBUnaffected` 改經 `ChurchSettingsService.SaveOverrideAsync`，A 新快照與 B 不變、upsert→touch→scope invalidation 證據 Release 1/1；`P8CustomizationIsolationTests` Release 6/6。§E 第5步 LineWebhook 主機／實機覆寫及實際代送仍缺，P8-04b active；整體驗收與專案終點 todo。",
+        "2026-11-22 15:48 Asia/Taipei (UTC+08:00)：改名後離線測試 `Customization_Step5_LineOverrideWithin60s_ChurchBUnaffected_OfflineServiceContract` Release 1/1 通過；只確認 ChurchSettingsService、override cache 的離線 A/B 契約，不替代 P8Live §E 第5步。ProgressPage 契約測試發現 active 清單缺少 P8-04，已補列為進行中；未改測試。",
+        "2026-11-22 15:50 Asia/Taipei (UTC+08:00)：`P8CustomizationIsolationTests` Release 6/6 通過，完整輸出 `C:\\smv\\guard-p8-evidence\\p8-04b-isolation-release-20261122-1550.log`。這是離線證據，不代表 P8Live 覆寫代送或完整守門完成。",
         "2026-11-22 16:25 Asia/Taipei (UTC+08:00)：P8-04b 指定離線測試 7/7 通過；16:32 Production OS 啟動仍在應用程序啟動前遭本機執行政策拒絕，未重試相同條件。證據 `C:\\smv\\guard-p8-evidence\\p8-04b-required-offline-20261122-1625.log`、`p8-04b-production-host-pseudo-20261122-1632-policy.log`。",
         "2026-11-22 16:12 Asia/Taipei (UTC+08:00)：P7Live 代送實機 1/1，主機完成一次代送、attempts=0、用量差1、fees/tasks清理0；其後 goodshepherdback verify exit 0 且狀態 off。此為補充代送證據，不冒稱 P8 qps-ploc 第3步。證據 `C:\\smv\\guard-p8-evidence\\p8-04b-p7live-relay-20261122.log`、`p8-04b-post-p7live-verify-20261122.log`。",
         "2026-11-22 12:18 Asia/Taipei (UTC+08:00)：PseudoAudit rules＋lifecycle 30/30、P6 lifecycle 4/4、ProgressPage 28/28、文件說明 1,901 檔零失敗；證據分別保存於 `C:\\smv\\guard-p8-evidence\\p8-04b-pseudo-audit-node-20261122-1220.log`、`p8-04b-p6-lifecycle-20261122-1220.log`、`p8-04b-progress-page-20261122-1220.log`、`p8-04b-file-documentation-20261122-1220.log`。Production 組合根偽語系拒絕測試 1/1；OS 子程序啟動因本機執行政策未執行。P8-04b 仍未驗收。",
@@ -918,10 +922,10 @@ const DATA = {
       "id": "階段 8",
       "name": "收尾、偽語系驗收、教會設定網頁",
       "planned": "3～4 個工作天",
-      "actual": "2026-11-22 14:45 Asia/Taipei (UTC+08:00)：P8-04a／P8-04b／P8-05 驗收完成，總計 84／84；P8-04b 依 D8-20 採替代證據，唯一 guard `GUARD_RESULT=0`，goodshepherdback off／verify=0／殘留0。歷史：2026-11-21 P8-03 完成。",
+      "actual": "2026-11-22 15:34 Asia/Taipei (UTC+08:00)：P8-04a 與 P8-05 已驗收，P8-04b 進行中，總計 83／84；設定服務離線 A/B 測試通過，§E 第5步 LINE 教會覆寫主機／實機未完成，整體驗收與終點未開始。歷史：2026-11-21 P8-03 完成。",
       "current": true,
-      "done": 5,
-      "active": 0
+      "done": 4,
+      "active": 1
     }
   ],
   "wps": [
@@ -1915,13 +1919,12 @@ const DATA = {
       "id": "P8-04",
       "phaseId": "階段 8",
       "name": "偽語系全面驗收",
-      "status": "done",
+      "status": "active",
       "deps": "P8-03",
       "live": "有",
       "timebox": "1 天",
-      "doneAt": "2026-11-22 14:45 Asia/Taipei (UTC+08:00)",
       "commit": "be35b30f13aca276eaaaafea07cc5efb0262bfe0",
-      "note": "2026-11-22 14:45 Asia/Taipei (UTC+08:00)：P8-04a／P8-04b 依 D8-20 替代證據完成；四頁 0／0、離線與 P8Live／網頁 A/B 證據、唯一 guard `GUARD_RESULT=0`、goodshepherdback off／verify=0／殘留0。OS 子程序執行政策限制保留於 P8-PROP-007，不冒稱 OS 層成功。"
+      "note": "2026-11-22 16:08 Asia/Taipei (UTC+08:00)：P8-04a 已驗收；FeeNotify 自訂類別有效／跨教會／停用回歸與 P8CustomizationIsolationTests Release 9/9。P8-04b 仍缺 §E 第5步 LINE 教會覆寫主機／實機與實際代送；完整守門未驗證。"
     },
     {
       "id": "P8-05",
@@ -2019,22 +2022,22 @@ const DATA = {
       "id": "P8-04b",
       "phaseId": "階段 8",
       "name": "P8-04b 偽語系驗收腳本、教會自訂與隔離驗收",
-      "status": "done",
-      "note": "2026-11-22 14:45 Asia/Taipei (UTC+08:00)：D8-20 替代證據完成；離線 7/7、P8Live qps-ploc 代送 1/1 重跑、網頁 A/B cleanup、Production 組合根拒絕 1/1、固定時鐘 1/1；完整 guard `GUARD_RESULT=0`。OS 子程序原始政策限制保留於 P8-PROP-007。"
+      "status": "active",
+      "note": "2026-11-22 16:08 Asia/Taipei (UTC+08:00)：離線 FeeNotify 類別 lookup 與 P8CustomizationIsolationTests 合計 Release 9/9；網頁 A/B 子步既有證據保留。§E 第5步 LINE 主機／實機教會覆寫及實際代送仍未完成；不以舊 P8Live 一般繳費代送替代。"
     },
     {
       "id": "整體驗收",
       "phaseId": "階段 8",
       "name": "整體驗收表與最終條件核對",
       "status": "todo",
-      "note": "2026-11-19 20:43 Asia/Taipei (UTC+08:00)：依 08A 固定順序待執行。"
+      "note": "2026-11-22 15:34 Asia/Taipei (UTC+08:00)：等待 P8-04b、P8-05 完成後，依 08A §6 逐項核對整體證據。"
     },
     {
       "id": "專案終點",
       "phaseId": "階段 8",
       "name": "實作計畫 3.5 專案終點回報與停止",
       "status": "todo",
-      "note": "2026-11-19 20:01 Asia/Taipei (UTC+08:00)：依 08A §4.8 名稱對照表登錄；整體驗收、階段審查及終點文件尚未完成。"
+      "note": "2026-11-22 15:34 Asia/Taipei (UTC+08:00)：尚未符合階段 8 完成定義；終點回報、最後 ClaudeOnly 階段審查與最終遠端核對待整體驗收後執行。"
     },
     {
       "id": "M-P0-REVIEW",
@@ -2200,6 +2203,17 @@ const DATA = {
     }
   ],
   "active": [
+    {
+      "id": "P8-04",
+      "title": "P8-04 偽語系驗收與教會自訂",
+      "dod": [
+        ["修訂 1 §D／§E 列出的工具、離線測試與指定實機證據齊備", "no", "P8-04b §E 第5步 LINE 覆寫主機／實機及實際代送尚缺。"],
+        ["適用測試全部存在並通過", "no", "離線契約測試通過；指定 P8Live 覆寫案例尚不存在。"],
+        ["本輪程式變更的完整 guard 通過", "no", "舊 guard 不涵蓋本輪測試變更，尚未安全重跑。"],
+        ["一頁回報與進度資料相符", "no", "目前報告如實標未驗收，待必做完成後提交驗收回報。"],
+        ["單元提交、推送及遠端 SHA 核對完成", "no", "P8-04b 未驗收，依規則尚未提交／推送。"]
+      ]
+    }
   ],
   "gates": [
     {

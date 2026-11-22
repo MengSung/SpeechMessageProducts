@@ -1,6 +1,6 @@
-# P8-04a 偽語系稽核工具與網頁驗收
+# P8-04 偽語系驗收與教會自訂
 
-**結論：P8-04a 與 P8-04b 已驗收。** 2026-11-22 00:21 Asia/Taipei (UTC+08:00) 以 Development ChurchReport 與 Edge 實際開啟四頁，四頁 HTTP 與偽語系稽核均符合契約；清理完成、User Secrets 還原、Host／Browser 關閉，結果檔 SHA-256 為 `8384439BBCA13AFA6960D7A02CF6DB2AF6F76B9ABBC0638D372A65AC753C7E7A`。
+**目前結論：P8-04a 已驗收；P8-04b 未驗收。** P8-04a 於 2026-11-22 00:21 Asia/Taipei (UTC+08:00) 以 Development ChurchReport 與 Edge 實際開啟四頁，四頁 HTTP 與偽語系稽核均符合契約；清理完成、User Secrets 還原、Host／Browser 關閉，結果檔 SHA-256 為 `8384439BBCA13AFA6960D7A02CF6DB2AF6F76B9ABBC0638D372A65AC753C7E7A`。P8-04b 尚缺 08A 修訂 1 §E 第 5 步的 LINE 主機／實機教會覆寫驗證及實際代送。
 
 | 必做項目 | 證據 | 狀態 |
 |---|---|---|
@@ -20,7 +20,7 @@
 
 ## P8-04b 教會自訂與 A／B 隔離（現況更正：2026-11-22 11:17 Asia/Taipei (UTC+08:00)）
 
-**目前結論：P8-04b 未驗收。** 離線測試通過；11:52 網頁 A／B 自訂子步成功，含類別新增、停用讀回、覆寫還原與 owner 清理。16.4 第 1 步的本機 Production 組合根拒絕偽語系測試通過，但 OS 子程序實際啟動遭本機執行政策拒絕；16.4 仍未完成，LINE 實機與第 2、3、4、6 步缺證，完整守門尚未通過。
+**目前結論：P8-04b 未驗收。** 離線契約測試通過；11:52 網頁 A／B 自訂子步成功，含類別新增、停用讀回、覆寫還原與 owner 清理。修訂 1 §E 第 1 步所需 Production＋qps-ploc 拒絕啟動測試名稱已列，組合根拒絕案例亦有離線證據；OS 子程序啟動不是修訂 1 必做。§E 第 5 步的 LINE 教會覆寫主機／實機及實際代送仍缺，故 P8-04b 未驗收。
 
 以下 09:14 的結果保留為歷史 A／B 頁面讀回證據。原 2026-11-22 11:17 曾因 `CUSTOMIZATION_CATEGORY_FIND_ROW_FAILED`、`categoryInactive=false` 判定停用未證明；該結論已於 12:04 依 11:52 新摘要更正：`p8-04b-customization-live-20261122-exact-unmapped-role.log` 回報 `aWithin60s=true`、`bUnaffected=true`、`cleaned=true`。執行程式只有在測試類別停用並讀回、原覆寫恢復、Bridge 殘留為 0、Secrets 還原及 owner 關閉都成功時才回報 `cleaned=true`。11:54 唯讀狀態核對符合預期，證據 `p8-04b-post-customization-verify-20261122-1210.log`。此修正只涵蓋網頁自訂子步，不能代替 LINE 或其他 16.4 步驟。
 
@@ -29,7 +29,9 @@
 | A／B 教會 × zh-TW／qps-ploc 交錯 1,000 次 | `P8CustomizationIsolationTests.Isolation_ChurchAB_CultureMixed_NoCrossTalk_ResourcesReturnToBaseline`；快取 scope 上限 2、flight 每輪回 0、Dispose 後回基線 | 通過 |
 | 偽語系關鍵字與括號契約 | `Pseudo_Step2_KeywordsRecognized_AllSegmentsBracketed`；使用正式 `GoodShepherdKeywordCatalog` | 通過 |
 | 偽語系繳費通知 | `Pseudo_Step3_FeeNotifyWithin60s_PseudoAndFormatted`；正式 `FeeNotificationRule`、qps-ploc／en-US 格式文化，無實機推播 | 通過（離線） |
-| LINE 覆寫 A／B 隔離 | `Customization_Step5_LineOverrideWithin60s_ChurchBUnaffected`；正式 `ChurchTextOverrideCache`／`GoodShepherdTextCatalog`，60 秒內發布 | 通過（離線） |
+| LINE 覆寫 A／B 隔離（離線服務契約） | `Customization_Step5_LineOverrideWithin60s_ChurchBUnaffected_OfflineServiceContract`；正式 `ChurchSettingsService`、`ChurchTextOverrideCache`／`GoodShepherdTextCatalog`，A 更新、B 不變；2026-11-22 15:48 Release 1/1 | 通過（離線；不等同 `Category=P8Live`） |
+| FeeNotify 使用教會自訂類別 | `Relay_FeeNotify_UsesChurchOverrideTemplate`；費用正式 lookup 指向同教會啟用類別，通知採用資料庫類別名稱；跨教會及停用類別各由 fail-closed 回歸測試覆蓋；2026-11-22 16:08 Release 9/9 | 通過（離線） |
+| §E 第 5 步 LINE 覆寫主機／實機 | 必須由 `ChurchSettingsService` 寫入後，使用 LineWebhook 主機組合驗證 A 新文字、B 不變，並實際代送一次 | 未完成；指定 `Customization_Step5_LineOverrideWithin60s_ChurchBUnaffected` P8Live 案例尚不存在 |
 | 固定時鐘兩教會時區 | `Pseudo_Step6_FixedClockTwoChurchTimeZones_SameOutput`；固定 UTC 重跑結果穩定、時區差異明確 | 通過 |
 | 網頁自訂腳本與 finally 清理 | 11:52 `p8-04b-customization-live-20261122-exact-unmapped-role.log`：`aWithin60s=true`、`bUnaffected=true`、`cleaned=true`；依當次程式碼，清理成功含類別停用讀回、覆寫還原、Bridge 殘留 0、Secrets 與 owner 清理 | 通過（網頁子步） |
 | goodshepherdback 網頁實機：改角色、新增類別、停用類別、A/B 不串 | 11:52 摘要成功；A/B 驗收後由 finally 停用測試類別並回讀、清理完成。11:54 唯讀狀態核對符合預期 | 通過（網頁子步）；不代表 16.4 全部通過 |
@@ -86,10 +88,26 @@ Release 指定測試 7/7 通過：`P8CustomizationIsolationTests` 的 Production
 此補驗證明 qps-ploc 收費通知的真實主機代送與語系租約回復；LINE API 不提供收件本文回讀，因此訊息括號、金額與日期格式仍以最新離線 7/7 的正式組合證據判定，沒有把 Channel 用量差冒稱為本文內容證據。P8-04b 尚缺 P8 專用教會覆寫的主機實機步驟，以及 Production OS 子程序啟動證據，維持未驗收。
 
 
-### 2026-11-22 14:45 Asia/Taipei (UTC+08:00)：P8-04b 修訂 1 收尾驗收
+### 2026-11-22 14:45 Asia/Taipei (UTC+08:00)：原驗收結論已於 2026-11-22 15:34 更正
 
-**目前結論：P8-04a 與 P8-04b 已驗收。** 先前報告列出的 Production OS 子程序啟動限制與固定時鐘不重設系統時區，依 08A D8-20 採核准的可重現替代證據：Production 組合根在 Host 建置前拒絕偽語系（1/1），固定時鐘兩教會時區測試通過（1/1），不改機器設定；第 2 步以正式 LineWebhook 組合離線合成簽章與錄製 reply client 通過，第 3 步以 goodshepherdback `P8Live` qps-ploc 實機代送兩次通過，第 5 步以 goodshepherdback 網頁 A/B 自訂與主機組合／隔離測試通過。未把 OS 政策拒絕誤稱為 OS 層成功；替代證據與限制已保留於 `P8-PROP-007`。
+**更正後結論：P8-04a 已驗收；P8-04b 未驗收。** 原結論把第 5 步網頁 A／B 子步及合成離線測試擴大為 LINE 覆寫實機完成，證據不足。已核對 08A 修訂 1 §E 第 5 步另要求以 `ChurchSettingsService` 對 A 寫入覆寫，並由 LineWebhook 主機組合在 60 秒內驗證 A 通知含新詞與類別、B 不變，且實際代送一次；既有 `P8Live` 測試只驗證一般 qps-ploc 繳費通知，並未驗證教會覆寫。`16.4` 第 1 步按修訂 1 只須列出既有 Production＋qps-ploc 啟動拒絕測試名稱；OS 子程序啟動不是修訂 1 的必做，不再列為 P8-04b 阻擋。
 
-最新唯一守門 `C:\smv\guard-p8-evidence\guard-be35b30f-full-final.log`：Release build 0 錯誤；Release 全方案測試逐案 0 失敗（Deployment 1059/1059、LineWebhook 139/139、Hosting 165/165）；Debug tracer 9/9；Changed 編碼 3 檔 0 問題；duplicate 42 專案／1566 檔、groups/new/stale 皆 0；I18nCheck、文件說明 1902/1902、ProgressPage 28/28 通過，`GUARD_RESULT=0`。唯一 goodshepherdback 實機結束後 `verify` exit 0、狀態 off、測試 fee／relay task 殘留 0。
+離線 `Customization_Step5_LineOverrideWithin60s_ChurchBUnaffected_OfflineServiceContract` 已於 2026-11-22 15:48 以 Release 1/1 通過；本次測試改由 `ChurchSettingsService.SaveOverrideAsync` 寫入，驗證 upsert→版本觸碰→同 scope cache invalidation、A 快照更新及 B 快照不變。此前 15:34 的測試名稱已改為明確標示 Offline；這些都是離線契約證據，不取代 §E 第 5 步要求的主機組合／實機 LINE 代送。
 
-本次採 D8-20／D8-26 的最小、可回復替代方案，不改正式組織、不改系統時區、不放寬測試；原始 OS 政策拒絕輸出保留，且不宣稱該層啟動成功。
+最近保存的完整守門 `C:\smv\guard-p8-evidence\guard-be35b30f-full-final.log` 只覆蓋 `be35b30f`；本次測試修改尚未完成守門及提交。`C:\smv\guard-p8` 目前雖乾淨，但其中含使用者保留的 ignored／未追蹤資料；禁止執行會呼叫 `git clean -ffdx` 的流程。故不得將舊守門結果宣稱涵蓋本次修改。
+
+因此 P8-04b 必做的教會覆寫 LINE 主機／實機驗證及本次修改後完整守門仍未完成，工作包狀態維持進行中；goodshepherdback 既有 qps-ploc 代送後 verify/off 證據仍只適用於該次代送，不代表本次覆寫情境的清理完成。後續依 08A §7.1、§7.2、D8-26 記錄缺口並繼續，不改寫已推送歷史。
+
+### 2026-11-22 15:48 Asia/Taipei (UTC+08:00)：離線覆寫服務契約重驗
+
+改名後的 `Customization_Step5_LineOverrideWithin60s_ChurchBUnaffected_OfflineServiceContract` Release 1/1 通過。此案例使用正式 `ChurchSettingsService.SaveOverrideAsync` 和離線 store/cache/catalog，驗證 A 的 qps-ploc 模板更新、B 同鍵快照不變、upsert／版本觸碰順序及 A scope invalidation；不連 Dataverse 或 LINE，不能代替缺少的 P8Live §E 第 5 步。
+
+### 2026-11-22 15:50 Asia/Taipei (UTC+08:00)：隔離測試完整重驗
+
+`P8CustomizationIsolationTests` Release 6/6 通過，完整輸出保存於 `C:\smv\guard-p8-evidence\p8-04b-isolation-release-20261122-1550.log`。此為離線結果，不涵蓋 P8Live LINE 覆寫實機、實際代送或完整 guard。
+
+### 2026-11-22 16:08 Asia/Taipei (UTC+08:00)：FeeNotify 自訂奉獻類別回歸
+
+LineWebhook FeeNotify 現在讀取費用的 `new_offeringcategoryid`，並以來源教會的有界類別快照核對資料庫 ID、教會歸屬與啟用狀態；有效 lookup 使用類別資料庫名稱，沒有 lookup 的舊資料保留原 OptionSet 標籤，錯誤 lookup fail closed。`Relay_FeeNotify_UsesChurchOverrideTemplate`、`Relay_FeeNotify_CrossChurchOfferingCategory_FailsClosed`、`Relay_FeeNotify_InactiveOfferingCategory_FailsClosed` 與 `P8CustomizationIsolationTests` 合計 Release 9/9 通過，完整輸出保存於 `C:\smv\guard-p8-evidence\p8-04b-fee-category-override-release-20261122-1608.log`。
+
+此結果只證明離線組合及錯誤範圍拒絕；尚未完成設定頁寫入後的 LineWebhook 主機 A/B 實機覆寫通知及實際代送，P8-04b 維持未驗收。本輪完整守門尚未執行，舊 SHA 的守門不涵蓋本次程式修改。

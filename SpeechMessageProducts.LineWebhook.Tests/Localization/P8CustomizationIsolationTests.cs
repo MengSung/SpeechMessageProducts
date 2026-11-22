@@ -31,6 +31,8 @@ using SpeechMessage.Localization;
 using SpeechMessage.Tenancy;
 using SpeechMessageProducts.GoodShepherd.Core.Fees;
 using SpeechMessageProducts.GoodShepherd.Core.Messaging;
+using SpeechMessageProducts.GoodShepherd.Core.Offerings;
+using SpeechMessageProducts.GoodShepherd.Core.Settings;
 using Xunit;
 
 namespace SpeechMessageProducts.LineWebhook.Tests.Localization;
@@ -39,6 +41,7 @@ namespace SpeechMessageProducts.LineWebhook.Tests.Localization;
 public sealed class P8CustomizationIsolationTests
 {
     private static readonly string[] EnabledCultures = ["zh-TW", "qps-ploc"];
+    private static readonly string[] OverrideSaveOperations = ["upsert", "touch"];
 
     /// <summary>以 Production LineWebhook 組合根注入偽語系並確認拒絕發生於 Host 建置前；不建立外部服務。</summary>
     [Fact]
@@ -126,19 +129,30 @@ public sealed class P8CustomizationIsolationTests
 
     /// <summary>改寫 A 的覆寫後於 60 秒內發布新模板，B 的同鍵快照維持原文。</summary>
     [Fact]
-    public async Task Customization_Step5_LineOverrideWithin60s_ChurchBUnaffected()
+    public async Task Customization_Step5_LineOverrideWithin60s_ChurchBUnaffected_OfflineServiceContract()
     {
         await using var fixture = new CustomizationFixture();
         var before = DateTime.UtcNow;
         await fixture.LoadAsync(fixture.ContextA, fixture.ContextB, 0);
-        fixture.SetTemplate(fixture.ContextA, "A 新模板 {member} {date} {category} {others} {payway} {amount}");
-        Assert.True(fixture.Cache.Invalidate(fixture.ContextA, before.AddSeconds(1)));
-        await fixture.Cache.LoadAsync(fixture.ContextA, before.AddSeconds(1));
+        await fixture.Settings.SaveOverrideAsync(
+            new AuthorizedChurch(fixture.ContextA.ChurchId),
+            fixture.ContextA,
+            "Fees.Notify.Template",
+            "qps-ploc",
+            "［A 新模板 {member} {date} {category} {others} {payway} {amount}ǂ］");
+        await fixture.Cache.LoadAsync(fixture.ContextA, fixture.SettingsChangedOnUtc);
         var elapsed = DateTime.UtcNow - before;
 
         Assert.True(elapsed <= TimeSpan.FromSeconds(60));
-        Assert.Contains("A 新模板", fixture.ReadTemplate(fixture.ContextA), StringComparison.Ordinal);
-        Assert.Contains("敬收", fixture.ReadTemplate(fixture.ContextB), StringComparison.Ordinal);
+        Assert.Contains("A 新模板", fixture.ReadTemplate(fixture.ContextA.WithCultures("qps-ploc", "en-US")),
+            StringComparison.Ordinal);
+        Assert.Contains("敬收", fixture.ReadTemplate(fixture.ContextB.WithCultures("qps-ploc", "en-US")),
+            StringComparison.Ordinal);
+        Assert.DoesNotContain("A 新模板",
+            fixture.ReadTemplate(fixture.ContextB.WithCultures("qps-ploc", "en-US")), StringComparison.Ordinal);
+        Assert.Equal(OverrideSaveOperations, fixture.SettingsOperations);
+        Assert.Single(fixture.InvalidatedScopes);
+        Assert.True(fixture.InvalidatedScopes[0].HasSameScope(fixture.ContextA));
     }
 
     /// <summary>以兩個明確教會時區重跑相同固定輸入，結果只依時區參數而不依賴主機時區。</summary>
@@ -163,6 +177,8 @@ public sealed class P8CustomizationIsolationTests
     private sealed class CustomizationFixture : IDisposable, IAsyncDisposable
     {
         private readonly OverrideSource source = new();
+        private readonly SettingsStoreFake SettingsStore;
+        private readonly CacheInvalidatorFake CacheInvalidator;
         internal readonly TextContext ContextA = new(Guid.Parse("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"),
             "zh-TW", "zh-TW", "SyntheticOrg", "LineWebhook");
         internal readonly TextContext ContextB = new(Guid.Parse("bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb"),
@@ -180,7 +196,20 @@ public sealed class P8CustomizationIsolationTests
                 GoodShepherdTextCatalog.CreateOverrideValidator("這是一個長度剛好十二字的教會"),
                 static (_, _) => { }, maximumScopes: 2);
             Catalog = new GoodShepherdTextCatalog(Cache);
+            SettingsStore = new SettingsStoreFake(source);
+            CacheInvalidator = new CacheInvalidatorFake(Cache);
+            Settings = new ChurchSettingsService(
+                SettingsStore,
+                CacheInvalidator,
+                GoodShepherdTextCatalog.CreateOverrideValidator("這是一個長度剛好十二字的教會"),
+                new FixedClock(new DateTime(2026, 11, 22, 0, 1, 0, DateTimeKind.Utc)));
         }
+
+        /// <summary>本測試 scope 的正式領域服務；儲存、版本觸碰與 cache invalidation 順序由其擁有。</summary>
+        internal ChurchSettingsService Settings { get; }
+        internal DateTime SettingsChangedOnUtc => SettingsStore.ChangedOnUtc;
+        internal IReadOnlyList<string> SettingsOperations => SettingsStore.Operations;
+        internal List<TextContext> InvalidatedScopes => CacheInvalidator.InvalidatedScopes;
 
         /// <summary>建立兩個完整 scope 的快照；版本採明確 UTC 且每次只前進。</summary>
         internal async Task LoadAsync(TextContext a, TextContext b, int generation)
@@ -197,12 +226,9 @@ public sealed class P8CustomizationIsolationTests
         internal string ReadTemplate(TextContext context)
         {
             var snapshot = Cache.GetSnapshot(context);
-            Assert.True(snapshot.TryGetText("zh-TW", new TextKey("Fees.Notify.Template"), out var text));
+            Assert.True(snapshot.TryGetText(context.TextCulture, new TextKey("Fees.Notify.Template"), out var text));
             return text;
         }
-
-        /// <summary>更新來源純值；必須由呼叫端先 Invalidate 再 Load 才能發布。</summary>
-        internal void SetTemplate(TextContext context, string template) => source.SetTemplate(context, template);
 
         /// <summary>以固定 UTC、明確教會時區及偽語系格式化一則通知。</summary>
         internal string ComposeFee(TextContext context, DateTime utc, string timeZone) =>
@@ -225,18 +251,22 @@ public sealed class P8CustomizationIsolationTests
         /// <summary>依完整教會 scope 產生文字覆寫，不以顯示文字作識別或跨教會 fallback。</summary>
         private sealed class OverrideSource : IChurchTextOverrideSource
         {
-            private readonly Dictionary<Guid, (string Role, string Template)> values = new();
+            private readonly Dictionary<Guid, (string Role, string Template, string? PseudoTemplate)> values = new();
             private int sequence;
 
             /// <summary>更新單一教會的純值候選。</summary>
             internal void Set(TextContext context, string role) =>
-                values[context.ChurchId] = (role, "敬收 {member} 奉獻\r\n日期 : {date}\r\n類別 : {category}  {others}\r\n付款方式: {payway}\r\n金額 : {amount}");
+                values[context.ChurchId] = (role,
+                    "敬收 {member} 奉獻\r\n日期 : {date}\r\n類別 : {category}  {others}\r\n付款方式: {payway}\r\n金額 : {amount}",
+                    null);
 
-            /// <summary>只替換單一教會的通知模板，另一教會資料不會被碰觸。</summary>
-            internal void SetTemplate(TextContext context, string template)
+            /// <summary>只替換儲存 port 指定教會與語系的模板，其他 scope 和語系保持原值。</summary>
+            internal void Upsert(ChurchTextOverrideWrite value)
             {
-                var current = values[context.ChurchId];
-                values[context.ChurchId] = (current.Role, template);
+                var current = values[value.ChurchId];
+                values[value.ChurchId] = value.Culture == "qps-ploc"
+                    ? (current.Role, current.Template, value.Text)
+                    : (current.Role, value.Text, current.PseudoTemplate);
             }
 
             /// <summary>每次回傳 detached rows，並同時提供繁中與偽語系以驗證文化隔離。</summary>
@@ -254,7 +284,8 @@ public sealed class P8CustomizationIsolationTests
                         new TextKey("Fees.Notify.Template"), "zh-TW", value.Template),
                     new(GuidFrom(Interlocked.Increment(ref sequence)), context.ChurchId,
                         new TextKey("Fees.Notify.Template"), "qps-ploc",
-                        "［敬收 {member} 奉獻\r\n日期 : {date}\r\n類別 : {category} {others}\r\n付款方式: {payway}\r\n金額 : {amount}ǂ］")
+                        value.PseudoTemplate
+                            ?? "［敬收 {member} 奉獻\r\n日期 : {date}\r\n類別 : {category} {others}\r\n付款方式: {payway}\r\n金額 : {amount}ǂ］")
                 ];
                 return Task.FromResult(rows);
             }
@@ -266,6 +297,69 @@ public sealed class P8CustomizationIsolationTests
                 BitConverter.GetBytes(value).CopyTo(bytes, 12);
                 return new Guid(bytes);
             }
+        }
+
+        /// <summary>記錄設定服務的持久化順序，並將覆寫純值交給同一教會來源。</summary>
+        private sealed class SettingsStoreFake(OverrideSource source) : IChurchSettingsStore
+        {
+            internal List<string> Operations { get; } = [];
+            internal DateTime ChangedOnUtc { get; private set; }
+
+            public Task UpsertOverrideAsync(ChurchTextOverrideWrite value, CancellationToken cancellationToken)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                source.Upsert(value);
+                Operations.Add("upsert");
+                return Task.CompletedTask;
+            }
+
+            public Task RemoveOverrideAsync(Guid churchId, string key, string culture, CancellationToken cancellationToken) =>
+                throw new NotSupportedException();
+
+            public Task TouchTextChangedOnAsync(Guid churchId, DateTime changedOnUtc, CancellationToken cancellationToken)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                ChangedOnUtc = changedOnUtc;
+                Operations.Add("touch");
+                return Task.CompletedTask;
+            }
+
+            public Task<IReadOnlyList<OfferingCategory>> ReadCategoriesAsync(Guid churchId, CancellationToken cancellationToken) =>
+                throw new NotSupportedException();
+
+            public Task<bool> CategoryCodeExistsAsync(Guid churchId, string code, CancellationToken cancellationToken) =>
+                throw new NotSupportedException();
+
+            public Task<Guid> AddCategoryAsync(Guid churchId, string code, string name, int sortOrder,
+                string? accountingCode, int? legacyOptionValue, CancellationToken cancellationToken) =>
+                throw new NotSupportedException();
+
+            public Task UpdateCategoryAsync(Guid churchId, Guid id, string name, int sortOrder,
+                string? accountingCode, int? legacyOptionValue, bool isActive, CancellationToken cancellationToken) =>
+                throw new NotSupportedException();
+
+            public Task<IReadOnlyList<ChurchSettingsAuditRecord>> ReadAuditAsync(
+                Guid churchId, int maximum, CancellationToken cancellationToken) =>
+                throw new NotSupportedException();
+        }
+
+        /// <summary>只把已持久化 A scope 的版本失效，並保留實際快取 owner 供案例最後排空。</summary>
+        private sealed class CacheInvalidatorFake(ChurchTextOverrideCache cache) : IChurchSettingsCacheInvalidator
+        {
+            internal List<TextContext> InvalidatedScopes { get; } = [];
+
+            public void Invalidate(TextContext context, DateTime changedOnUtc)
+            {
+                if (!cache.Invalidate(context, changedOnUtc))
+                    throw new InvalidOperationException("The synthetic cache rejected the newer settings version.");
+                InvalidatedScopes.Add(context);
+            }
+        }
+
+        /// <summary>提供不變的 UTC 測試時刻，不建立或擁有計時器。</summary>
+        private sealed class FixedClock(DateTime utcNow) : IChurchSettingsClock
+        {
+            public DateTime UtcNow { get; } = utcNow;
         }
     }
 }
