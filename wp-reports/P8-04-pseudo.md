@@ -60,4 +60,3 @@ Pseudo_Step2_KeywordsRecognized_AllSegmentsBracketed Release 1/1 通過；真 Ke
 ### 2026-11-22 13:30 Asia/Taipei (UTC+08:00)：P8-04b 最新完整守門結果
 
 以唯一 C:\smv\guard-p8 checkout 2ed809d14 執行 §8.1；Release build 0 錯誤，已保存的 Release 全方案測試輸出中多個測試專案完成且通過，但 SpeechMessage.Hosting.Tests 後續未在時間盒內結束，依前次同類 hang 取證後中止。C:\smv\guard-p8-evidence\guard-2ed809d1-full.log 沒有 PASS 標記，因此本次仍不得宣稱完整守門通過；P8-04b 維持未驗收，未推送本輪提交。guard 工作樹保持乾淨。
-
