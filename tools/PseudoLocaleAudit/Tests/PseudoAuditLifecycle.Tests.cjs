@@ -13,8 +13,41 @@
 const assert = require('node:assert/strict');
 const { test } = require('node:test');
 const { runPseudoAudit, PAGE_CASES } = require('../PseudoAuditLifecycle.cjs');
+const {
+  classifyLoginTransportFailure,
+  summarizeLoginResponse
+} = require('../Run-PseudoLocaleAudit.cjs');
 const { createRoundFixture } = require('../../PageAcceptance/P6/P6Fixtures.cjs');
 const pages = PAGE_CASES;
+
+test('PseudoAudit_LoginDiagnostics_StoresOnlyStatusAndBooleanFacts', () => {
+  const summary = summarizeLoginResponse(200, '登入機密姓名 成功!', ['.ChurchReport.Auth']);
+
+  assert.deepEqual(summary, {
+    loginHttpStatus: 200,
+    loginResponseAccepted: true,
+    authenticationCookiePresent: true
+  });
+  assert.equal(JSON.stringify(summary).includes('機密姓名'), false);
+  assert.deepEqual(
+    summarizeLoginResponse(401, '帳號或密碼錯誤', []),
+    {
+      loginHttpStatus: 401,
+      loginResponseAccepted: false,
+      authenticationCookiePresent: false
+    }
+  );
+});
+
+test('PseudoAudit_LoginTransportFailure_UsesFixedNonSensitiveCategory', () => {
+  assert.equal(
+    classifyLoginTransportFailure(Object.assign(new Error('secret response body'), {
+      code: 'PSEUDO_AUDIT_PAGE_TIMEOUT'
+    })),
+    'timeout'
+  );
+  assert.equal(classifyLoginTransportFailure(new Error('private URL and credentials')), 'request-error');
+});
 
 test('PseudoAudit_RouteManifest_UsesActualRoutesAndForbiddenContext', () => {
   assert.equal(require('../audit-urls.json').schemaVersion, 1);

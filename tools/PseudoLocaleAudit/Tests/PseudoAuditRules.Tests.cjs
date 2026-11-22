@@ -11,7 +11,11 @@
 'use strict';
 const assert = require('node:assert/strict');
 const { test } = require('node:test');
-const { countUnwrappedChinese, isClippedText } = require('../PseudoAuditRules.cjs');
+const {
+  countUnwrappedChinese,
+  isClippedText,
+  shouldInspectTextNode
+} = require('../PseudoAuditRules.cjs');
 
 test('PseudoAudit_UnwrappedCjkCharacters_AreCounted', () => {
   assert.equal(countUnwrappedChinese('教會［名詞］新朋友'), 5);
@@ -40,4 +44,9 @@ test('PseudoAudit_VerticalClipping_IsDetectedWhenHorizontalAxisCanScroll', () =>
     scrollWidth: 240, clientWidth: 120, scrollHeight: 40, clientHeight: 20,
     overflowX: 'auto', overflowY: 'hidden'
   }), true);
+});
+
+test('PseudoAudit_DynamicDataMarkedByView_IsExcludedFromResourceCopyAudit', () => {
+  assert.equal(shouldInspectTextNode({ pseudoLocaleExempt: 'dynamic' }), false);
+  assert.equal(shouldInspectTextNode({ pseudoLocaleExempt: null }), true);
 });

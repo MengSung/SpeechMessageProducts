@@ -21,7 +21,7 @@ else
         <tbody>
         @foreach (var record in Model)
         {
-            <tr data-audit-id="@record.Id"><td>@record.ChangedOnUtc</td><td>@record.TargetRecordId</td><td>@record.Field</td><td>@record.Before</td><td>@record.After</td><td>@record.ActorDisplayName</td></tr>
+            <tr data-audit-id="@record.Id" data-pseudo-locale-exempt="dynamic"><td>@record.ChangedOnUtc</td><td>@record.TargetRecordId</td><td>@record.Field</td><td>@record.Before</td><td>@record.After</td><td>@record.ActorDisplayName</td></tr>
         }
         </tbody>
     </table>

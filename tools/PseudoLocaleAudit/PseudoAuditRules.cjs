@@ -32,6 +32,12 @@ function countUnwrappedChinese(value) {
   return count;
 }
 
+/** 只排除檢視明確標示的動態資料；固定頁面文案仍必須通過偽語系包覆稽核。 */
+function shouldInspectTextNode(metadata) {
+  if (!metadata || typeof metadata !== 'object') throw new TypeError('PSEUDO_AUDIT_METADATA_INVALID');
+  return metadata.pseudoLocaleExempt !== 'dynamic';
+}
+
 /** 只把 hidden／clip 邊界外溢列為裁切；auto／scroll 的內容可由使用者捲動檢視。 */
 function isClippedText(metrics) {
   if (!metrics || typeof metrics !== 'object') throw new TypeError('PSEUDO_AUDIT_GEOMETRY_INVALID');
@@ -48,4 +54,4 @@ function isClippedText(metrics) {
   return horizontalClipped || verticalClipped || ellipsisClipped;
 }
 
-module.exports = { countUnwrappedChinese, isClippedText };
+module.exports = { countUnwrappedChinese, isClippedText, shouldInspectTextNode };

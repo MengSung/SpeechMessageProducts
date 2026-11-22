@@ -2,7 +2,7 @@
  * 檔案整體說明
  * 目的與定位：執行 P8-04a 固定四案例的 Development ChurchReport／Edge 偽語系頁面驗收。
  * 主要流程：以 Shared owner 讀取核准測試識別、建立 D34 驗證過的 SDK fixture bridge、暫借 User Secrets 測試 token、建立一次性管理員會友並啟動 localhost Host；登入只存在管理員瀏覽器 Context，匿名 403 案使用另一個全新 Context。逐頁只將文字節點的 CJK 包覆計數及實際裁切計數傳回，頁面原文只短暫保留在量測程序記憶體，不寫報告；截圖遮罩可變資料欄位。
- * 輸入輸出：工作樹根目錄固定取自工具位置，不接受命令列 URL、組織或登入值。輸出目錄只含固定路徑、HTTP 狀態、數量、資源清理狀態及遮罩截圖；錯誤只輸出固定代碼。
+ * 輸入輸出：工作樹根目錄固定取自工具位置，不接受命令列 URL、組織或登入值。輸出目錄只含固定路徑、HTTP 狀態、登入契約布林摘要、數量、資源清理狀態及遮罩截圖；不保存登入回應本文，錯誤只輸出固定代碼。
  * 資源與隔離：本次呼叫是 Browser、Context、Host、SDK fixture 與秘密租約的唯一 owner；finally 依序關 Context／Browser、Host，再由 bridge 逆序刪除本輪資料及還原 User Secrets。所有等待有界；任何清理狀態未知即非零結束，不宣稱零殘留。
  * 使用邊界與驗證：只允許 localhost ChurchReport Development 與部署白名單 goodshepherdback，絕不連正式組織。離線規則與 lifecycle 測試不等同實機通過；只有結果檔顯示四頁完成、未包覆中文與裁切均為零，且清理成功，才可驗收。
  */
@@ -12,7 +12,10 @@ const fs = require('node:fs/promises');
 const path = require('node:path');
 const { randomBytes } = require('node:crypto');
 const { PAGE_CASES, runPseudoAudit } = require('./PseudoAuditLifecycle.cjs');
-const { countUnwrappedChinese, isClippedText } = require('./PseudoAuditRules.cjs');
+const {
+  countUnwrappedChinese,
+  isClippedText
+} = require('./PseudoAuditRules.cjs');
 const { readSettings, startHost } = require('../PageAcceptance/Shared/DevelopmentHost.cjs');
 const { createFixtureBridge } = require('../PageAcceptance/Shared/FixtureBridge.cjs');
 const { launchEdge } = require('../PageAcceptance/Shared/EdgeBrowser.cjs');
@@ -28,6 +31,21 @@ function safeTimestamp() {
   return new Date().toISOString().replaceAll(':', '-');
 }
 
+function summarizeLoginResponse(status, message, cookieNames) {
+  return {
+    loginHttpStatus: Number.isInteger(status) ? status : null,
+    loginResponseAccepted: typeof message === 'string' && message.endsWith('成功!'),
+    authenticationCookiePresent: Array.isArray(cookieNames)
+      && cookieNames.includes('.ChurchReport.Auth')
+  };
+}
+
+function classifyLoginTransportFailure(error) {
+  return error?.code === 'PSEUDO_AUDIT_PAGE_TIMEOUT' || error?.name === 'TimeoutError'
+    ? 'timeout'
+    : 'request-error';
+}
+
 async function createRuntime(root) {
   let settings;
   let credentials;
@@ -38,6 +56,7 @@ async function createRuntime(root) {
   let adminPage;
   const contexts = [];
   let fixture;
+  let nonAdminCredentials;
   let secretsPrepared = false;
   let pseudoLocalePrepared = false;
   let origin = 'http://localhost:5168';
@@ -48,6 +67,11 @@ async function createRuntime(root) {
     adminJobTitleMatches: false,
     adminCultureMatches: false,
     adminChurchMatches: false,
+    browserSetupStage: null,
+    loginHttpStatus: null,
+    loginResponseAccepted: false,
+    loginTransportFailure: null,
+    loginFailureStage: null,
     authenticationCookiePresent: false
   };
   const evidenceRoot = path.join(root, 'artifacts', 'p8', 'pseudo-audit-' + safeTimestamp());
@@ -87,6 +111,14 @@ async function createRuntime(root) {
           churchJobTitle: '牧師傳道',
           preferredLanguage: 'qps-ploc'
         });
+        nonAdminCredentials = {
+          account: 'P8-Audit-NonAdmin-' + randomBytes(12).toString('hex'),
+          password: randomBytes(24).toString('base64url')
+        };
+        await createRoundFixture(bridge, settings, nonAdminCredentials, {
+          churchJobTitle: '會計',
+          preferredLanguage: 'qps-ploc'
+        });
         const adminRecord = await bridge.request({
           operation: 'retrieve',
           entity: 'contact',
@@ -99,31 +131,54 @@ async function createRuntime(root) {
         if (!preflight.adminJobTitleMatches || !preflight.adminCultureMatches || !preflight.adminChurchMatches)
           throw fixedFailure('PSEUDO_AUDIT_ADMIN_FIXTURE_INVALID');
         preflight.adminFixtureVerified = true;
+        preflight.browserSetupStage = 'host-start';
         host = await startHost(root, 5168, { allowPseudoLocale: true });
         origin = host.origin;
+        preflight.browserSetupStage = 'edge-launch';
         browser = await launchEdge({ headless: true });
+        preflight.browserSetupStage = 'context-create';
         adminContext = await browser.newContext({
           viewport: { width: 1440, height: 1000 },
           locale: 'qps-ploc',
           timezoneId: 'Asia/Taipei'
         });
         contexts.push(adminContext);
+        preflight.browserSetupStage = 'page-create';
         adminPage = await adminContext.newPage();
+        preflight.browserSetupStage = 'page-timeout';
         adminPage.setDefaultTimeout(20000);
-        const login = await timed(() => adminContext.request.post(host.origin + '/Authentication/ProcessLogin', {
-          form: { Account: credentials.account, Password: credentials.password }
-        }));
+        preflight.browserSetupStage = 'login-init';
+        let login;
+        preflight.loginFailureStage = 'request';
+        try {
+          login = await timed(() => adminContext.request.post(host.origin + '/Authentication/ProcessLogin', {
+            form: { Account: credentials.account, Password: credentials.password }
+          }));
+        } catch (error) {
+          preflight.loginTransportFailure = classifyLoginTransportFailure(error);
+          throw fixedFailure('PSEUDO_AUDIT_LOGIN_FAILED');
+        }
+        preflight.loginFailureStage = 'response-status';
+        Object.assign(preflight, summarizeLoginResponse(login.status(), null, []));
         if (!login.ok()) throw fixedFailure('PSEUDO_AUDIT_LOGIN_FAILED');
+        preflight.loginFailureStage = 'response-json';
         let payload;
         try { payload = await login.json(); } catch { throw fixedFailure('PSEUDO_AUDIT_LOGIN_FAILED'); }
-        if (typeof payload?.message !== 'string' || !payload.message.endsWith('成功!'))
-          throw fixedFailure('PSEUDO_AUDIT_LOGIN_FAILED');
+        preflight.loginFailureStage = 'authentication-cookie';
         const authenticationCookies = await adminContext.cookies(host.origin);
-        if (!authenticationCookies.some(cookie => cookie.name === '.ChurchReport.Auth'))
+        Object.assign(preflight, summarizeLoginResponse(
+          login.status(), payload?.message, authenticationCookies.map(cookie => cookie.name)));
+        if (!preflight.loginResponseAccepted)
+          throw fixedFailure('PSEUDO_AUDIT_LOGIN_FAILED');
+        if (!preflight.authenticationCookiePresent)
           throw fixedFailure('PSEUDO_AUDIT_AUTH_COOKIE_MISSING');
-        preflight.authenticationCookiePresent = true;
+        preflight.loginFailureStage = 'complete';
         return { authenticated: true, ...preflight };
       } catch (error) {
+        if (preflight.loginFailureStage === null)
+          preflight.loginFailureStage = 'pre-login-setup';
+        if (error?.message === 'P6_HOST_START_FAILED')
+          throw fixedFailure('PSEUDO_AUDIT_HOST_START_FAILED');
         if (error?.code?.startsWith('PSEUDO_AUDIT_')) throw error;
         throw fixedFailure('PSEUDO_AUDIT_LOGIN_FAILED');
       }
@@ -143,6 +198,14 @@ async function createRuntime(root) {
           contexts.push(context);
           page = await context.newPage();
           page.setDefaultTimeout(20000);
+          const login = await timed(() => context.request.post(origin + '/Authentication/ProcessLogin', {
+            form: { Account: nonAdminCredentials.account, Password: nonAdminCredentials.password }
+          }));
+          if (login.status() !== 200) throw fixedFailure('PSEUDO_AUDIT_NON_ADMIN_LOGIN_FAILED');
+          let payload;
+          try { payload = await login.json(); } catch { throw fixedFailure('PSEUDO_AUDIT_NON_ADMIN_LOGIN_FAILED'); }
+          if (typeof payload?.message !== 'string' || !payload.message.endsWith('成功!'))
+            throw fixedFailure('PSEUDO_AUDIT_NON_ADMIN_LOGIN_FAILED');
         }
         const url = new URL(pageCase.path, origin);
         const response = await timed(() => page.goto(url.href, { waitUntil: 'domcontentloaded' }));
@@ -169,6 +232,7 @@ async function createRuntime(root) {
             if (!text.trim()) continue;
             const element = node.parentElement;
             if (!element) continue;
+            if (element.closest('[data-pseudo-locale-exempt="dynamic"]')) continue;
             const style = getComputedStyle(element);
             if (style.display === 'none' || style.visibility === 'hidden' || element.getClientRects().length === 0) continue;
             const box = element;
@@ -249,6 +313,7 @@ async function createRuntime(root) {
         bridge = undefined;
       }
       credentials = undefined;
+      nonAdminCredentials = undefined;
       if (settings) {
         settings.lineUserId = '';
         settings.testToken = '';
@@ -324,4 +389,4 @@ async function main() {
 }
 
 if (require.main === module) main();
-module.exports = { createRuntime };
+module.exports = { classifyLoginTransportFailure, createRuntime, summarizeLoginResponse };
