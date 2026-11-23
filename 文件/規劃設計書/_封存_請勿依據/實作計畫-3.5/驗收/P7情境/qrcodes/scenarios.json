@@ -1,0 +1,49 @@
+{
+  "module": "qrcodes",
+  "cases": [
+    {
+      "name": "meeting-image-task",
+      "church": { "alias": "church-a", "organizationName": "synthetic-qrcodes", "timeZone": "Asia/Taipei", "culture": "zh-TW" },
+      "seed": [
+        { "alias": "church-a", "entity": "account", "fields": {} },
+        { "alias": "p7-test-contact", "entity": "contact", "fields": {} },
+        { "alias": "record", "entity": "new_meeting_statistics", "fields": {} },
+        { "alias": "person", "entity": "contact", "fields": { "lastname": "Synthetic Member", "parentcustomerid": { "ref": "church-a", "entity": "account" } } },
+        { "alias": "attendance", "entity": "new_present_record", "fields": { "new_meeting_statistics_new_present_re": { "ref": "record", "entity": "new_meeting_statistics" }, "new_contact_new_present_record": { "ref": "person", "entity": "contact" }, "new_name": "SMV-TEST-present", "new_sunday_first_qr_on_time": "2026-11-19T00:00:00Z" } }
+      ],
+      "trigger": { "project": "SpeechMessage.Dynamics.Workflows", "type": "SundayQrCodeWorkflow.QrCodeWorkflow", "activity": true, "depth": 1, "inputs": { "InputParameter": "synthetic" } },
+      "now": "2026-11-19T00:00:00Z",
+      "volatile": [ "new_idempotencykey", "new_name" ],
+      "liveShadow": true,
+      "observe": [ { "alias": "record", "entity": "new_meeting_statistics", "fields": [ "new_name" ] } ]
+    },
+    {
+      "name": "scan-count-empty",
+      "church": { "alias": "church-a", "organizationName": "synthetic-qrcodes", "timeZone": "Asia/Taipei", "culture": "zh-TW" },
+      "seed": [
+        { "alias": "church-a", "entity": "account", "fields": {} },
+        { "alias": "p7-test-contact", "entity": "contact", "fields": {} },
+        { "alias": "record", "entity": "new_meeting_statistics", "fields": {} }
+      ],
+      "trigger": { "project": "SpeechMessage.Dynamics.Workflows", "type": "CalculateQrCodeScanNumberWorkflow.CalculateQrCodeScanNumberWorkflow", "activity": true, "depth": 1, "inputs": { "InputParameter": "synthetic" } },
+      "now": "2026-11-19T00:00:00Z",
+      "volatile": [],
+      "liveShadow": true,
+      "observe": [ { "alias": "record", "entity": "new_meeting_statistics", "fields": [ "new_sunday_first_qr_on_number", "new_sunday_second_qr_on_number", "new_saturday_worship_on_number", "new_yongmen_on_number", "new_prayer_meeting_qr_on_number", "new_child_on_number", "new_big_disciple_qr_on_number", "new_leadership_small_lecture_qr_on_number", "new_leaders_gather_qr_on_number", "new_sunday_first_qr_off_number", "new_sunday_second_qr_off_number", "new_saturday_worship_off_number", "new_yongmen_off_number", "new_prayer_meeting_qr_off_number", "new_child_off_number", "new_big_disciple_qr_off_number", "new_leadership_small_lecture_qr_off_number", "new_leaders_gather_qr_off_number", "new_1_sign_on_number", "new_1_sign_off_number", "new_2_sign_on_number", "new_2_sign_off_number", "new_3_sign_on_number", "new_3_sign_off_number", "new_4_sign_on_number", "new_4_sign_off_number", "new_5_sign_on_number", "new_5_sign_off_number", "new_6_sign_on_number", "new_6_sign_off_number", "new_7_sign_on_number", "new_7_sign_off_number", "new_8_sign_on_number", "new_8_sign_off_number", "new_9_sign_on_number", "new_9_sign_off_number", "new_10_sign_on_number", "new_10_sign_off_number" ] } ]
+    },
+    {
+      "name": "personal-image-task",
+      "church": { "alias": "church-a", "organizationName": "synthetic-qrcodes", "timeZone": "Asia/Taipei", "culture": "zh-TW" },
+      "seed": [
+        { "alias": "church-a", "entity": "account", "fields": {} },
+        { "alias": "p7-test-contact", "entity": "contact", "fields": {} },
+        { "alias": "record", "entity": "contact", "fields": { "lastname": "SMV-TEST-Personal", "parentcustomerid": { "ref": "church-a", "entity": "account" } } }
+      ],
+      "trigger": { "project": "SpeechMessage.Dynamics.Workflows", "type": "PersonalQrCodeWorkflow.PersonalQrCodeWorkflowClass", "activity": true, "depth": 1, "inputs": { "InputParameter": "synthetic" } },
+      "now": "2026-11-19T00:00:00Z",
+      "volatile": [ "new_idempotencykey", "new_name" ],
+      "liveShadow": true,
+      "observe": [ { "alias": "record", "entity": "contact", "fields": [ "lastname" ] } ]
+    }
+  ]
+}

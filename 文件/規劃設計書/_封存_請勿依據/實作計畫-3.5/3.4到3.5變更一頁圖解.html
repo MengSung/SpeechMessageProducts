@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<!--
+  實作計畫 3.4 → 3.5 變更一頁圖解（2026-11-09）
+  給使用者核定 3.5 時看的靜態頁；不載入外部資源、不含任何秘密。
+  內容以同資料夾 00_總覽與執行規則.md §13 為準，兩者不一致時以 md 為準。
+-->
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>實作計畫 3.4 → 3.5 變更一頁圖解</title>
+<style>
+  :root {
+    --bg: #f7f7f5; --card: #ffffff; --ink: #1f2328; --muted: #5b636e; --line: #d9dde3;
+    --done: #2f7d4f; --done-bg: #e6f3eb; --next: #1f5fae; --next-bg: #e5eefa;
+    --warn: #9a5b00; --warn-bg: #fdf1dc; --old: #8a3b3b; --old-bg: #f8e7e7;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink);
+         font: 15px/1.65 "Microsoft JhengHei", "PingFang TC", "Noto Sans TC", sans-serif; }
+  main { max-width: 1080px; margin: 0 auto; padding: 28px 20px 60px; }
+  h1 { font-size: 26px; margin: 0 0 4px; }
+  h2 { font-size: 19px; margin: 36px 0 12px; padding-bottom: 6px; border-bottom: 1px solid var(--line); }
+  .sub { color: var(--muted); margin: 0 0 20px; }
+  .grid3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+  .grid2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; }
+  @media (max-width: 760px) { .grid3, .grid2 { grid-template-columns: 1fr; } }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 16px 18px; }
+  .card h3 { margin: 0 0 6px; font-size: 16px; }
+  .num { display: inline-block; width: 26px; height: 26px; border-radius: 50%; background: var(--next);
+         color: #fff; text-align: center; line-height: 26px; font-weight: 700; margin-right: 6px; font-size: 14px; }
+  .muted { color: var(--muted); }
+  .stages { display: grid; grid-template-columns: repeat(9, 1fr); gap: 6px; }
+  .stage { border-radius: 8px; padding: 10px 6px; text-align: center; font-size: 13px; border: 1px solid var(--line); background: var(--card); }
+  .stage b { display: block; font-size: 15px; }
+  .stage.done { background: var(--done-bg); border-color: #b9dcc6; color: var(--done); }
+  .stage.next { background: var(--next-bg); border-color: #b5cbea; color: var(--next); outline: 2px solid var(--next); }
+  @media (max-width: 760px) { .stages { grid-template-columns: repeat(3, 1fr); } }
+  .bar { height: 12px; border-radius: 6px; background: #e4e7eb; overflow: hidden; margin: 12px 0 4px; }
+  .bar span { display: block; height: 100%; width: 50%; background: var(--done); }
+  .flow { display: flex; align-items: stretch; gap: 8px; flex-wrap: wrap; }
+  .step { flex: 1 1 150px; background: var(--card); border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; font-size: 14px; }
+  .step.you { background: var(--warn-bg); border-color: #f0d29c; }
+  .arrow { align-self: center; color: var(--muted); font-size: 20px; }
+  .tag { display: inline-block; font-size: 12px; padding: 1px 8px; border-radius: 10px; margin-right: 4px; vertical-align: 1px; }
+  .tag.prop { background: var(--next-bg); color: var(--next); }
+  .tag.new { background: var(--warn-bg); color: var(--warn); }
+  .tag.tidy { background: #eceef1; color: var(--muted); }
+  details { background: var(--card); border: 1px solid var(--line); border-radius: 8px; margin: 8px 0; }
+  details[open] { border-color: #b5cbea; }
+  summary { cursor: pointer; padding: 10px 14px; list-style: none; }
+  summary::-webkit-details-marker { display: none; }
+  summary::before { content: "▸"; color: var(--muted); margin-right: 8px; }
+  details[open] summary::before { content: "▾"; }
+  details .body { padding: 0 16px 12px 36px; font-size: 14px; }
+  .vs { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  @media (max-width: 760px) { .vs { grid-template-columns: 1fr; } }
+  .old { background: var(--old-bg); border-color: #e6c3c3; }
+  .new { background: var(--done-bg); border-color: #b9dcc6; }
+  table { width: 100%; border-collapse: collapse; background: var(--card); font-size: 14px; }
+  th, td { border: 1px solid var(--line); padding: 7px 10px; text-align: left; vertical-align: top; }
+  th { background: #f0f2f4; }
+  code { background: #eef0f3; padding: 1px 5px; border-radius: 4px; font-size: 13px; }
+  .todo li { margin: 6px 0; }
+</style>
+</head>
+<body>
+<main>
+  <h1>實作計畫 3.4 → 3.5：改了什麼</h1>
+  <p class="sub">2026-11-09｜精簡改版：範圍（84 個工作包）、架構、設計 v3.4 都不變，只把階段 2 學到的東西寫回計畫。</p>
+
+  <div class="grid3">
+    <div class="card"><h3><span class="num">1</span>寫回已核定的提案</h3>
+      PROP-002～007 原本只記在進度頁，現在全部寫進計畫正文，Codex 照計畫做就好，不必再翻進度頁。</div>
+    <div class="card"><h3><span class="num">2</span>收斂階段 2</h3>
+      階段 2 已驗收，原本好幾頁的規格收成一頁摘要；實機才發現的平台限制寫進附錄，後面的階段不會再踩。</div>
+    <div class="card"><h3><span class="num">3</span>不再卡在實機前一步</h3>
+      每個階段一開工，Codex 先把需要你提供的東西一次列清楚。P2-12 就是因為少了兩個秘密，等了好幾個小時。</div>
+  </div>
+
+  <h2>目前進度：84 包完成 42 包</h2>
+  <div class="bar"><span></span></div>
+  <p class="muted" style="margin:0 0 12px">P0 18 包、P1 12 包、P2 12 包已驗收；剩 42 包。P2 實際約 2.0 天（原估 10～13 天）。</p>
+  <div class="stages">
+    <div class="stage done"><b>0</b>準備守門<br>✓</div>
+    <div class="stage done"><b>1</b>基礎層<br>✓</div>
+    <div class="stage done"><b>2</b>共用送訊<br>✓</div>
+    <div class="stage next"><b>3</b>Webhook<br>下一步</div>
+    <div class="stage"><b>4</b>金流</div>
+    <div class="stage"><b>5</b>Plugin 重建</div>
+    <div class="stage"><b>6</b>ChurchReport</div>
+    <div class="stage"><b>7</b>D365 切換</div>
+    <div class="stage"><b>8</b>收尾驗收</div>
+  </div>
+
+  <h2>新規則一：階段開工的「前置缺項檢查」</h2>
+  <div class="flow">
+    <div class="step"><b>① 階段開工</b><br>第一個工作包開始時做一次，半小時內完成</div>
+    <div class="arrow">→</div>
+    <div class="step"><b>② 唯讀核對</b><br>秘密只看「有沒有」，不讀內容；主機、權限實際試一次</div>
+    <div class="arrow">→</div>
+    <div class="step you"><b>③ 一頁清單給你</b><br>缺什麼、怎麼做，附可直接貼上的一行指令</div>
+    <div class="arrow">→</div>
+    <div class="step you"><b>④ 你回「好了」</b><br>一次處理完，不會一件一件來問</div>
+    <div class="arrow">→</div>
+    <div class="step"><b>⑤ 開始實機</b><br>等你的期間，Codex 先做不需要這些的離線工作</div>
+  </div>
+  <p class="muted">階段 3 的清單預計會有：DMZ 測試主機（IIS、HTTPS 憑證）、Codex 操作測試主機的權限、測試主機 SQL。</p>
+
+  <h2>新規則二：乾淨驗證固定用一個資料夾</h2>
+  <div class="vs">
+    <div class="card old"><h3>3.4（舊）</h3>
+      每個提交都在 <code>C:\smv\&lt;編號&gt;</code> 建一份新的複本來驗證。每份約 0.8 GB，P2 期間累積到 3.9 GB，還要你手動刪。</div>
+    <div class="card new"><h3>3.5（新）</h3>
+      固定用 <code>C:\smv\guard</code>：每次先清乾淨（fetch → checkout → clean → reset）再驗證。同時只跑一個；只改紀錄的提交跑輕量檢查；清不乾淨就停下來，不另建複本。</div>
+  </div>
+
+  <h2>全部 11 項變更（點開看細節）</h2>
+  <details><summary><span class="tag prop">PROP-002</span>刪掉守門命令裡一行多餘的 Plugin Debug 建置</summary>
+    <div class="body">P2-01 已經讓測試不再依賴這個產物。刪掉後如果有測試失敗，修的是測試，不是把這行加回來。（00 §8.1）</div></details>
+  <details><summary><span class="tag prop">PROP-003</span>固定 guard、紀錄型提交輕量檢查、同一個 HEAD 兩包共跑一次</summary>
+    <div class="body">見上方「新規則二」。只改進度頁、回報、Trellis 紀錄的提交，只跑編碼、檔案說明、進度頁三項檢查。（00 §8.2、§8.3，D38）</div></details>
+  <details><summary><span class="tag prop">PROP-004</span>Plugin 打包：明列輸入＋打包專用的精簡子集</summary>
+    <div class="body">D365 沙箱不接受某些參考（例如 Microsoft.CSharp）。P2-11 用「只挑需要的原始碼另外編一份」解決，不放寬任何檢查。階段 5 新增 Workflows 時沿用。（05 檔階段 5 開頭）</div></details>
+  <details><summary><span class="tag prop">PROP-005</span>舊的推播程式統一走一個 .NET 10 入口</summary>
+    <div class="body">推給正式會友的走新的 Core；其他（非會友、群組、多則、群發、圖片等）走 <code>LineLegacySendWorkflow</code>。不為了套規則而假造教會或會友。階段 6 移除舊殼時照這個分流。（00 D36、05 檔 P6-03）</div></details>
+  <details><summary><span class="tag prop">PROP-006</span>「同一則不重複送」的實機驗證方式</summary>
+    <div class="body">D365 不能把跑完的系統作業重跑，所以改成「用同一個 ID 重建一次」，LINE 回 409 就代表沒有重複送。P2-12 已用這個方式通過。（90 附錄 A.9、A.10）</div></details>
+  <details><summary><span class="tag prop">PROP-007</span>確認沙箱真的換成新程式</summary>
+    <div class="body">P2 期間兩次遇到「新版已上傳，沙箱還在跑舊的」或「沙箱權限比測試環境嚴」。階段 5 的更新驗收一律看沙箱實際寫出的追蹤；加一道部分信任測試；還是舊版時重啟服務，並記錄「只改版本號夠不夠」。（05 檔更新與回復前置驗收）</div></details>
+  <details><summary><span class="tag new">新增</span>每個階段開工先做前置缺項檢查</summary>
+    <div class="body">見上方「新規則一」。（00 D37、§7.3、§10；90 附錄 K 有清單範本）</div></details>
+  <details><summary><span class="tag new">新增</span>推送後核對遠端，才能說「已推送」</summary>
+    <div class="body">P2-11 曾在推送沒成功時寫「已推送」。之後回報都要附上遠端分支的編號，確認真的推上去了。（00 §6.3）</div></details>
+  <details><summary><span class="tag new">新增</span>教會代碼要符合宮格 alias 規則</summary>
+    <div class="body">LINE 的宮格 alias 只接受小寫。階段 5 開工前先查教會代碼有沒有大寫；有的話提出修正提案讓你決定，不偷偷轉小寫（避免兩間教會撞名）。（05 檔階段 5 前置缺項檢查）</div></details>
+  <details><summary><span class="tag tidy">整理</span>階段 2 收成一頁摘要；實測事實寫進附錄</summary>
+    <div class="body">包括實機找出並已修好的三個問題：D365 時間只存到整秒、沙箱不允許讀私有欄位、alias 只能小寫。（03 檔、90 附錄 A.9 第 5～8 項、A.10）</div></details>
+  <details><summary><span class="tag tidy">整理</span>檔案重新編號</summary>
+    <div class="body">見下表。</div></details>
+
+  <h2>檔案對照</h2>
+  <table>
+    <tr><th>3.4</th><th>3.5</th><th>說明</th></tr>
+    <tr><td>00_總覽與執行規則</td><td>00_總覽與執行規則</td><td>加 D36～D38、§7.3、新的 §8.2／§8.3、§13 對照表、§14 切換步驟、§15 路線圖</td></tr>
+    <tr><td>01、02 完成摘要</td><td>01、02 完成摘要</td><td>不變</td></tr>
+    <tr><td>03_階段2-4_共用送訊_Webhook_金流</td><td><b>03_階段2_完成摘要</b>（新）<br><b>04_階段3-4_Webhook_金流</b></td><td>拆成兩份：階段 2 收成摘要；階段 3、4 規格不變，加前置缺項檢查</td></tr>
+    <tr><td>04_階段5-8_Plugin重建_切換_收尾</td><td><b>05</b>_階段5-8_Plugin重建_切換_收尾</td><td>加打包規則、PROP-007、教會代碼檢查、P6-03 分流</td></tr>
+    <tr><td>90_附錄</td><td>90_附錄</td><td>加 A.9 第 5～8 項、A.10、附錄 K；附錄 B、G、H 小改</td></tr>
+  </table>
+
+  <h2>你接下來要做的事</h2>
+  <div class="card">
+    <ol class="todo">
+      <li><b>核定 3.5：</b>回一句「3.5 生效」。Codex 會照 00 §14 切換（大約 2 小時），封存 3.4，再開階段 3 的分支。</li>
+      <li><b>看階段 3 的前置缺項清單：</b>Codex 切換完會交給你，一次處理完回「好了」。</li>
+    </ol>
+  </div>
+</main>
+</body>
+</html>

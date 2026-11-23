@@ -1,0 +1,50 @@
+{
+  "module": "fees",
+  "cases": [
+    {
+      "name": "fee-allot-create",
+      "church": { "alias": "church-a", "organizationName": "synthetic-fees", "timeZone": "Asia/Taipei", "culture": "zh-TW" },
+      "seed": [
+        { "alias": "church-a", "entity": "account", "fields": { "new_timezone": "Asia/Taipei" } },
+        { "alias": "p7-test-contact", "entity": "contact", "fields": {} },
+        { "alias": "member", "entity": "contact", "fields": { "lastname": "SMV-TEST-Member", "parentcustomerid": { "ref": "church-a", "entity": "account" } } },
+        { "alias": "record", "entity": "new_fee", "fields": { "new_contact_new_fee": { "ref": "member", "entity": "contact" }, "new_pay_date": "2026-11-18T16:00:00Z", "new_category": { "option": 100000002 }, "new_pay_way": { "option": 100000002 }, "new_fee_really_paid": { "money": 1000 } } }
+      ],
+      "trigger": { "project": "SpeechMessage.Dynamics.Plugins", "type": "SpeechMessage.Dynamics.Plugins.Fees.FeeAllotPlugin", "message": "Create", "entity": "new_fee", "target": "record", "fields": {}, "depth": 1 },
+      "now": "2026-11-19T00:00:00Z",
+      "volatile": [ "new_idempotencykey", "new_name" ],
+      "liveShadow": true,
+      "observe": [ { "alias": "record", "entity": "new_fee", "fields": [ "new_pay_date", "new_pay_way" ] } ]
+    },
+    {
+      "name": "fee-allot-update",
+      "church": { "alias": "church-a", "organizationName": "synthetic-fees", "timeZone": "Asia/Taipei", "culture": "zh-TW" },
+      "seed": [
+        { "alias": "church-a", "entity": "account", "fields": { "new_timezone": "Asia/Taipei" } },
+        { "alias": "p7-test-contact", "entity": "contact", "fields": {} },
+        { "alias": "member", "entity": "contact", "fields": { "lastname": "SMV-TEST-Member", "parentcustomerid": { "ref": "church-a", "entity": "account" } } },
+        { "alias": "record", "entity": "new_fee", "fields": { "new_contact_new_fee": { "ref": "member", "entity": "contact" }, "new_pay_date": "2026-11-18T16:00:00Z", "new_category": { "option": 100000002 }, "new_pay_way": { "option": 100000002 }, "new_fee_really_paid": { "money": 1000 } } }
+      ],
+      "trigger": { "project": "SpeechMessage.Dynamics.Plugins", "type": "SpeechMessage.Dynamics.Plugins.Fees.FeeAllotPlugin", "message": "Update", "entity": "new_fee", "target": "record", "fields": {}, "depth": 1 },
+      "now": "2026-11-19T00:00:00Z",
+      "volatile": [ "new_idempotencykey", "new_name" ],
+      "liveShadow": true,
+      "observe": [ { "alias": "record", "entity": "new_fee", "fields": [ "new_pay_date", "new_pay_way" ] } ]
+    },
+    {
+      "name": "fee-allot-activity",
+      "church": { "alias": "church-a", "organizationName": "synthetic-fees", "timeZone": "Asia/Taipei", "culture": "zh-TW" },
+      "seed": [
+        { "alias": "church-a", "entity": "account", "fields": { "new_timezone": "Asia/Taipei" } },
+        { "alias": "p7-test-contact", "entity": "contact", "fields": {} },
+        { "alias": "member", "entity": "contact", "fields": { "lastname": "SMV-TEST-Member", "parentcustomerid": { "ref": "church-a", "entity": "account" } } },
+        { "alias": "record", "entity": "new_fee", "fields": { "new_contact_new_fee": { "ref": "member", "entity": "contact" }, "new_pay_date": "2026-11-18T16:00:00Z", "new_category": { "option": 100000002 }, "new_pay_way": { "option": 100000002 }, "new_fee_really_paid": { "money": 1000 } } }
+      ],
+      "trigger": { "project": "SpeechMessage.Dynamics.Workflows", "type": "AllotWorkflow.AllotWorkflowClass", "activity": true, "depth": 1, "inputs": { "InputParameter": "synthetic" } },
+      "now": "2026-11-19T00:00:00Z",
+      "volatile": [ "new_idempotencykey", "new_name" ],
+      "liveShadow": true,
+      "observe": [ { "alias": "record", "entity": "new_fee", "fields": [ "new_pay_date", "new_pay_way" ] } ]
+    }
+  ]
+}

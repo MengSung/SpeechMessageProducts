@@ -1,0 +1,29 @@
+{
+  "id": "three-products-planning",
+  "name": "three-products-planning",
+  "title": "三大產品共用架構與開發路線規劃",
+  "description": "完成三大產品共用架構、LINE Channel/Webhook 邊界、好牧人 Pilot Run、三產品開發順序與 Word/HTML 規劃文件。",
+  "status": "completed",
+  "dev_type": null,
+  "scope": "規劃、研究、文件產製；不修改外部程式碼、不連線正式組織。",
+  "package": null,
+  "priority": "P2",
+  "creator": "--help",
+  "assignee": "Codex",
+  "createdAt": "2026-11-23",
+  "completedAt": "2026-11-23",
+  "branch": null,
+  "base_branch": "1.0.0.12.GoodShepherd2.0.Worktree",
+  "worktree_path": null,
+  "commit": null,
+  "pr_url": null,
+  "subtasks": [],
+  "children": [],
+  "parent": null,
+  "relatedFiles": [
+    "docs/planning/three-products/三大產品共用架構與開發路線實施計畫.docx",
+    "docs/planning/three-products/三大產品共用架構與開發路線圖形教學.html"
+  ],
+  "notes": "",
+  "meta": {}
+}

@@ -1,0 +1,15 @@
+{
+  "module": "weeklyreports",
+  "basis": "reading",
+  "cases": [
+    {
+      "name": "notification-unchanged",
+      "entrypoint": "SpeechMessage.Dynamics.Plugins.WeeklyReports.WeeklyReportNotificationPlugin",
+      "writes": [],
+      "lineCalls": [],
+      "outputs": {},
+      "exception": null
+    }
+  ],
+  "declaredDifferences": []
+}

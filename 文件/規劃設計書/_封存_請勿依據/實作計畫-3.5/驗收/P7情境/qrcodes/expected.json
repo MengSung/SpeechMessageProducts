@@ -1,0 +1,81 @@
+{
+  "module": "qrcodes",
+  "basis": "reading",
+  "cases": [
+    {
+      "name": "meeting-image-task",
+      "entrypoint": "SundayQrCodeWorkflow.QrCodeWorkflow",
+      "writes": [
+        { "operation": "Create", "entity": "new_outboundtask", "alias": "qr-task", "fields": { "new_accountid": { "ref": "church-a", "entity": "account" }, "new_contactid": null, "new_payload": "{\"contentVersion\":1,\"imageCount\":38,\"kind\":0,\"recordId\":\"${record}\",\"schema\":2}" } }
+      ],
+      "lineCalls": [],
+      "outputs": {},
+      "exception": null
+    },
+    {
+      "name": "scan-count-empty",
+      "entrypoint": "CalculateQrCodeScanNumberWorkflow.CalculateQrCodeScanNumberWorkflow",
+      "writes": [
+        {
+          "operation": "Update",
+          "entity": "new_meeting_statistics",
+          "alias": "record",
+          "fields": {
+            "new_sunday_first_qr_on_number": 0,
+            "new_sunday_second_qr_on_number": 0,
+            "new_saturday_worship_on_number": 0,
+            "new_yongmen_on_number": 0,
+            "new_prayer_meeting_qr_on_number": 0,
+            "new_child_on_number": 0,
+            "new_big_disciple_qr_on_number": 0,
+            "new_leadership_small_lecture_qr_on_number": 0,
+            "new_leaders_gather_qr_on_number": 0,
+            "new_sunday_first_qr_off_number": 0,
+            "new_sunday_second_qr_off_number": 0,
+            "new_saturday_worship_off_number": 0,
+            "new_yongmen_off_number": 0,
+            "new_prayer_meeting_qr_off_number": 0,
+            "new_child_off_number": 0,
+            "new_big_disciple_qr_off_number": 0,
+            "new_leadership_small_lecture_qr_off_number": 0,
+            "new_leaders_gather_qr_off_number": 0,
+            "new_1_sign_on_number": 0,
+            "new_1_sign_off_number": 0,
+            "new_2_sign_on_number": 0,
+            "new_2_sign_off_number": 0,
+            "new_3_sign_on_number": 0,
+            "new_3_sign_off_number": 0,
+            "new_4_sign_on_number": 0,
+            "new_4_sign_off_number": 0,
+            "new_5_sign_on_number": 0,
+            "new_5_sign_off_number": 0,
+            "new_6_sign_on_number": 0,
+            "new_6_sign_off_number": 0,
+            "new_7_sign_on_number": 0,
+            "new_7_sign_off_number": 0,
+            "new_8_sign_on_number": 0,
+            "new_8_sign_off_number": 0,
+            "new_9_sign_on_number": 0,
+            "new_9_sign_off_number": 0,
+            "new_10_sign_on_number": 0,
+            "new_10_sign_off_number": 0
+          }
+        }
+      ],
+      "lineCalls": [],
+      "outputs": {},
+      "exception": null
+    },
+    {
+      "name": "personal-image-task",
+      "entrypoint": "PersonalQrCodeWorkflow.PersonalQrCodeWorkflowClass",
+      "writes": [
+        { "operation": "Create", "entity": "new_outboundtask", "alias": "qr-task", "fields": { "new_accountid": { "ref": "church-a", "entity": "account" }, "new_contactid": { "ref": "record", "entity": "contact" }, "new_payload": "{\"contentVersion\":1,\"imageCount\":1,\"kind\":1,\"recordId\":\"${record}\",\"schema\":2}" } }
+      ],
+      "lineCalls": [],
+      "outputs": {},
+      "exception": null
+    }
+  ],
+  "declaredDifferences": []
+}
