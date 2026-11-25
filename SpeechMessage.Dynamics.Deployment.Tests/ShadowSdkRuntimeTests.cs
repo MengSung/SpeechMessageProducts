@@ -18,6 +18,7 @@ using System.Text.Json;
 using System.Threading;
 using Microsoft.Xrm.Sdk;
 using Microsoft.Xrm.Sdk.Query;
+using SpeechMessage.Dynamics.Deployment.Live;
 using SpeechMessage.Dynamics.Deployment.Shadow;
 using Xunit;
 
@@ -525,8 +526,8 @@ public sealed class ShadowSdkRuntimeTests
         while (repository is not null && !File.Exists(Path.Combine(repository.FullName, "SpeechMessageProducts.sln")))
             repository = repository.Parent;
         Assert.NotNull(repository);
-        var scenarioRoot = Path.Combine(repository.FullName, "文件", "規劃設計書", "_封存_請勿依據", "實作計畫-3.5",
-            "驗收", "P7情境", "appointments");
+        var scenarioRoot = Path.Combine(repository.FullName, LiveText.Get("AcceptanceFolder"),
+            LiveText.Get("ScenarioFolder"), "appointments");
         if (trailingSeparator) scenarioRoot += Path.DirectorySeparatorChar;
         var arguments = new[] { "live-check", "--org", "goodshepherdback", "--module", "appointments", "--scenario-root", scenarioRoot };
         var catalog = OrganizationCatalog.LoadDefault();
