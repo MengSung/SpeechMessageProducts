@@ -7,7 +7,7 @@
 window.PROGRESS_LANES = window.PROGRESS_LANES || {};
 window.PROGRESS_LANES.B = {
   lane: 'B',
-  lastUpdated: '2026-11-26T00:48:00+08:00',
+  lastUpdated: '2026-11-26T00:53:00+08:00',
   packages: {
     P0: { status: '完成（自動測試通過）', started: '2026-11-25 22:12', finished: '2026-11-26 00:48', commit: '6ada2a4ebeca4aae6d7d462f0e6b5d0a350f9ebb', pending: '實機待補：平台 SQL 憑證鏈與應用程式集區最小權限驗證；測試網址 DNS、管理員套用 Node 路由、監控重啟後 CRM 302；F2 再驗 /health/live。瀏覽器目視進度頁尚未完成；依頁面實際警告規則核對資料為 0 項。', report: 'wp-reports/3P-P0-前置.md' },
     F10: { status: '進行中', started: '2026-11-26 00:23', finished: '', commit: '', pending: '', report: '' },
@@ -19,6 +19,7 @@ window.PROGRESS_LANES.B = {
     F11: { status: '未開始', started: '', finished: '', commit: '', pending: '', report: '' },
   },
   log: [
+    '2026-11-26 00:53 Asia/Taipei (UTC+08:00)｜P0 合併前 rebase 因工作樹既有 `.ccg` 修改而未執行；確認整合 HEAD 3c2fba0f45aab49d013be57e0a3af65691d5213d 已是本線 HEAD daf7e6dd83ca98fdf192824a5e5c7533c346904 的祖先，保留 `.ccg` 狀態並按既有提交跑 §4 守門，鎖內再確認 SHA。來源：線 B 決策紀錄。',
     '2026-11-26 00:48 Asia/Taipei (UTC+08:00)｜P0-6 文件改用明確換行標記後，重新核實實際 SHA-256 為 91F0113B6911E64A033EEAD3F2B9B62043D78DBF30D286A2DDB2F9C42B342E0B，並更新驗收報告；政策文字與隔離規則未變。來源：提交前摘要核對。',
     '2026-11-26 00:45 Asia/Taipei (UTC+08:00)｜P0 報告標頭改用明確換行標記，消除差異空白檢查的 Markdown 尾端空白；報告的實機限制與驗證結果不變。來源：提交前差異檢查。',
     '2026-11-26 00:43 Asia/Taipei (UTC+08:00)｜P0 報告修正 P0-6 規則文件 SHA-256，改以本輪 `Get-FileHash` 實算值 702AF03FDB83089600DA8907F675C1473379909601996CB0F7CBA75F03552BCB；文件內容未變。來源：線 B P0 驗收報告。',
