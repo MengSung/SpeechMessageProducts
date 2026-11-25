@@ -1,9 +1,9 @@
 /*
 檔案整體說明
 
-目的與定位：保護現行實作計畫 3.5 的 84 個工作包、固定五項完成定義及同階段單一
-資訊卡，並驗證真實頁面的渲染與狀態統計。舊頁的歷史斷言仍由 Test-ProgressPage.cjs
-唯讀執行，本檔不把頁面通過當成產品、D365 或 LINE 實機驗收。
+目的與定位：保護封存實作計畫 3.5 的 84 個工作包、固定五項完成定義及同階段單一
+資訊卡，並驗證歷史頁面的渲染與狀態統計。歷史斷言由 Test-ProgressPage.cjs 唯讀執行；
+本檔不代表 3.5 仍是現行計畫，也不把頁面通過當成產品、D365 或 LINE 實機驗收。
 
 主要功能與流程：讀取 HTML 的 DATA 與原始 script，每案建立專有資料副本及 DOM 替身，
 執行實際 renderer。用真實資料核對唯一 ID、狀態、最多兩包、驗收證據、逐筆時區，
@@ -22,7 +22,7 @@ const path = require('node:path');
 const vm = require('node:vm');
 
 const root = path.resolve(__dirname, '../../..');
-const html = fs.readFileSync(path.join(root, '文件/規劃設計書/實作計畫-3.5/實作進度.html'), 'utf8');
+const html = fs.readFileSync(path.join(root, '文件/規劃設計書/_封存_請勿依據/實作計畫-3.5/實作進度.html'), 'utf8');
 const script = html.slice(html.lastIndexOf('<script>') + 8, html.lastIndexOf('</script>'));
 const start = script.indexOf('const DATA = ');
 const end = script.indexOf('\n};', start) + 3;
@@ -179,7 +179,7 @@ test('Plan35_NoPendingUserAction_ShowsNoneWithoutInventingRequest', () => {
 });
 
 test('Plan35_Page_UsesUtf8WithoutBomAndOnlyCrlf', () => {
-  const bytes = fs.readFileSync(path.join(root, '文件/規劃設計書/實作計畫-3.5/實作進度.html'));
+  const bytes = fs.readFileSync(path.join(root, '文件/規劃設計書/_封存_請勿依據/實作計畫-3.5/實作進度.html'));
   assert.notDeepEqual([...bytes.subarray(0, 3)], [239, 187, 191]);
   assert.equal(new TextDecoder('utf-8', { fatal: true }).decode(bytes), html);
   assert.ok(html.endsWith('\r\n'));
@@ -200,5 +200,5 @@ test('Plan35_Switch_PreservesStage2AndArchivesOnlyTheOldPlan', () => {
   assert.match(html, /依設計 v3\.4/);
   assert.equal(fs.existsSync(path.join(root, '文件/規劃設計書/實作計畫-3.4')), false);
   assert.ok(fs.existsSync(path.join(root, '文件/規劃設計書/_封存_請勿依據/實作計畫-3.4/00_總覽與執行規則.md')));
-  assert.ok(fs.existsSync(path.join(root, '文件/規劃設計書/實作計畫-3.5/驗收/P2_推播鏈驗收步驟.md')));
+  assert.ok(fs.existsSync(path.join(root, '文件/規劃設計書/_封存_請勿依據/實作計畫-3.5/驗收/P2_推播鏈驗收步驟.md')));
 });
