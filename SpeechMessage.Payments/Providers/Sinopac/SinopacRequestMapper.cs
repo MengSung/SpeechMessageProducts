@@ -7,11 +7,12 @@
  * 主要功能與流程：
  * 本檔宣告 SinopacRequestMapper。
  * 主要操作入口包含 MapCreateRequest、MapOrderPayQuery、MapAllotQuery、GetRequiredCredential、GetXKeyId、TryGetCredential、ToMinorUnit、
- * NormalizeCurrency、ResolvePayType；其餘入口見下方成員契約。
+ * NormalizeCurrency、ResolvePayType、ParseExpBillingDays；其餘入口見下方成員契約。
  *
  * 使用邊界與維護：
  * 建單金額由 PaymentCreateRequest.Total.Amount 轉為整數分，幣別取 Money.Currency；profile 憑證只在單次 mapping 取用，不由 mapper 保存。
- * 本檔不執行網路或跨請求共享狀態；DateTime.Now 到期日既有行為不在 P4-02 修改範圍。
+ * 本檔不執行網路或跨請求共享狀態；延後請款天數若有提供，必須符合永豐 V2.6 的 1–30 範圍且在傳輸前拒絕無效值。
+ * DateTime.Now 到期日既有行為不在 P4-02 修改範圍。
  * 可沿 SpeechMessage.Payments.Tests/Providers/Sinopac/SinopacProviderTests.cs、
  * SpeechMessage.Payments/Providers/Sinopac/SinopacCrypto.cs、
  * SpeechMessage.Payments/Providers/Sinopac/SinopacPaymentProvider.cs 追查目前工作樹中的合作／使用位置。
@@ -69,7 +70,7 @@ internal static class SinopacRequestMapper
             payload.CardParam = new SinopacOrderCreateCardRequest
             {
                 AutoBilling = FirstNonEmpty(GetMetadata(request, "AutoBilling"), "Y"),
-                ExpBillingDays = ParseNullableInt(GetMetadata(request, "ExpBillingDays")),
+                ExpBillingDays = ParseExpBillingDays(GetMetadata(request, "ExpBillingDays")),
                 ExpMinutes = ParseNullableInt(GetMetadata(request, "ExpMinutes")),
                 PayTypeSub = FirstNonEmpty(
                     request.PaymentMethodSubType,
@@ -208,6 +209,31 @@ internal static class SinopacRequestMapper
         return int.TryParse(value, NumberStyles.Integer, CultureInfo.InvariantCulture, out var parsed)
             ? parsed
             : null;
+    }
+
+    /// <summary>
+    /// 驗證選用的延後請款天數並回傳整數值。V2.6 限定 1–30；空白表示不指定，
+    /// 格式錯誤或超界則在建立 HTTP 請求前 fail closed，避免銀行忽略無效的請款排程。
+    /// </summary>
+    /// <param name="value">中立請求提供的十進位天數字串，不包含任何秘密或跨請求狀態。</param>
+    /// <returns>未指定時為 null；有效時為 1 至 30 的原始整數值。</returns>
+    /// <exception cref="ArgumentOutOfRangeException">值不是純十進位整數或不在 1–30 範圍。</exception>
+    private static int? ParseExpBillingDays(string value)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            return null;
+        }
+
+        if (!int.TryParse(value, NumberStyles.None, CultureInfo.InvariantCulture, out var days) ||
+            days is < 1 or > 30)
+        {
+            throw new ArgumentOutOfRangeException(
+                "ExpBillingDays",
+                "Sinopac delayed capture days must be between 1 and 30.");
+        }
+
+        return days;
     }
 
     private static string GetMetadata(PaymentCreateRequest request, params string[] keys)

@@ -1,7 +1,7 @@
 /*
  * 檔案整體說明
  *
- * 目的與定位：永豐 QPay provider 實作，宣告支援 TWD，並集中處理 Nonce、AES、簽章、建單、付款查詢及撥款查詢封包；
+ * 目的與定位：永豐 QPay provider 實作，宣告支援 TWD，並集中處理 Nonce、AES、簽章、綁卡、建單、付款查詢及撥款查詢封包；
  * 外層 APIService 一律由固定對照輸出規格服務名稱，不使用 enum 數值。
  *
  * 主要功能與流程：
@@ -10,10 +10,12 @@
  * QueryAllotAsync、ResolveCreateResult、CreateMissingCreateFieldError、BuildQueryProviderData；其餘入口見下方成員契約。
  *
  * 使用邊界與維護：
- * 本 provider 只借用 DI 提供且由 Host 管理生命週期的 HttpClient；每次請求／回應由 using 關閉，序列化金額以 Money 為核心來源。
+ * 本 provider 只借用 DI 提供且由 Host 管理生命週期的 HttpClient；每次請求／回應由 using 關閉，
+ * 回應以 ResponseHeadersRead 逐步讀取並受固定位元組上限與涵蓋本文的總逾時保護，序列化金額以 Money 為核心來源。
  * 撥款查詢只將固定階段、數字 HTTP 狀態與符合格式的短 APIM code 暴露給呼叫端；任何回應本文都不進例外訊息或診斷欄位。
  * 請求 profile 是單次呼叫輸入，不快取憑證；X-KeyID 僅寫入該次 HttpRequestMessage，不使用共享 DefaultRequestHeaders 或跨呼叫鎖。
- * typed HttpClient 的共用 handler 關閉 cookie 與自動轉址，避免商店 session 被保留或敏感標頭跟隨轉址；DI 是 handler 的唯一 owner。
+ * typed HttpClient 的共用 handler 關閉 cookie 與自動轉址，避免商店 session 被保留或敏感標頭跟隨轉址；API endpoint 僅允許 HTTPS。
+ * 綁卡明文 token 只在單次 provider 操作期間存在，核心結果只交付 profile-bound AEAD 封裝。
  * 可沿 SpeechMessage.Payments.Tests/Providers/Sinopac/SinopacProviderTests.cs、
  * SpeechMessage.Payments/DependencyInjection/ServiceCollectionExtensions.cs 追查目前工作樹中的合作／使用位置。
  */
@@ -35,10 +37,22 @@ namespace SpeechMessage.Payments.Providers.Sinopac;
 /// 這裡集中處理 Nonce、AES 加解密、簽章、建單與查詢封包；
 /// 宿主產品端只拿 normalized result，不再自行組永豐 protocol。
 /// </summary>
-internal sealed class SinopacPaymentProvider : IPaymentProvider, IPaymentAllotProvider
+internal sealed partial class SinopacPaymentProvider :
+    IPaymentProvider,
+    IPaymentAllotProvider,
+    IPaymentCardBinding,
+    IPaymentOrderMaintenance,
+    IPaymentRecurring
 {
     private const string CurrentVersion = "1.0.0";
 
+    /// <summary>
+    /// 限制每次永豐 HTTP 回應本文的 UTF-8／宣告字元集原始位元組數；超限時只多讀一個位元組便拒絕，
+    /// 避免未知 Content-Length 或 chunked 回應在 JSON 反序列化前無界佔用記憶體。
+    /// </summary>
+    internal const int MaximumResponseBodyBytes = 4 * 1024 * 1024;
+
+    private static readonly Encoding StrictUtf8Encoding = new UTF8Encoding(false, true);
     private static readonly JsonSerializerSettings SerializerSettings = new()
     {
         NullValueHandling = NullValueHandling.Ignore,
@@ -74,10 +88,34 @@ internal sealed class SinopacPaymentProvider : IPaymentProvider, IPaymentAllotPr
         PaymentCreateRequest request,
         CancellationToken cancellationToken)
     {
-        SinopacOrderCreateRequest payload;
+        SinopacOrderCreateRequest? payload = null;
         try
         {
             payload = SinopacRequestMapper.MapCreateRequest(profile, request);
+            if (request.Metadata.TryGetValue("ProtectedBindToken", out var protectedBindToken) &&
+                !string.IsNullOrWhiteSpace(protectedBindToken))
+            {
+                if (payload.CardParam is null ||
+                    !string.Equals(payload.PayType, "C", StringComparison.OrdinalIgnoreCase) ||
+                    !request.Metadata.TryGetValue("BindNo", out var bindNo) ||
+                    string.IsNullOrWhiteSpace(bindNo) ||
+                    payload.CardParam.ExpBillingDays is null)
+                {
+                    return CreateError(
+                        request.ProductOrderId,
+                        PaymentErrorKind.RequestInvalid,
+                        "Protected card binding requires a credit-card request, BindNo, and ExpBillingDays.");
+                }
+
+                payload.CardParam.BindNo = bindNo;
+                payload.CardParam.AutoBilling = "N";
+                payload.CardParam.BindToken = SinopacBindTokenProtector.Unprotect(
+                    profile,
+                    SinopacRequestMapper.GetRequiredCredential(profile, "ShopNo"),
+                    bindNo,
+                    protectedBindToken);
+            }
+
             var response = await SendOrderAsync<SinopacOrderCreateRequest, SinopacOrderCreateResponse>(
                 profile,
                 payload,
@@ -85,6 +123,10 @@ internal sealed class SinopacPaymentProvider : IPaymentProvider, IPaymentAllotPr
                 cancellationToken);
 
             return ResolveCreateResult(payload, response, request.ProductOrderId);
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            throw;
         }
         catch (PaymentConfigurationException ex)
         {
@@ -117,6 +159,13 @@ internal sealed class SinopacPaymentProvider : IPaymentProvider, IPaymentAllotPr
         catch (Exception ex) when (IsNetworkTransportException(ex))
         {
             return CreateError(request.ProductOrderId, PaymentErrorKind.NetworkFailure, ex.Message);
+        }
+        finally
+        {
+            if (payload?.CardParam is not null)
+            {
+                payload.CardParam.BindToken = string.Empty;
+            }
         }
     }
 
@@ -380,6 +429,9 @@ internal sealed class SinopacPaymentProvider : IPaymentProvider, IPaymentAllotPr
             SinopacApiService.OrderCreate => "OrderCreate",
             SinopacApiService.OrderPayQuery => "OrderPayQuery",
             SinopacApiService.AllotQuery => "AllotQuery",
+            SinopacApiService.CardBindCreate => "CardBindCreate",
+            SinopacApiService.OrderMaintain => "OrderMaintain",
+            SinopacApiService.RegularQuery => "RegularQuery",
             _ => throw new ArgumentOutOfRangeException(
                 nameof(apiService),
                 apiService,
@@ -413,8 +465,18 @@ internal sealed class SinopacPaymentProvider : IPaymentProvider, IPaymentAllotPr
 
         try
         {
-            using var response = await _httpClient.SendAsync(request, cancellationToken);
-            var content = await response.Content.ReadAsStringAsync(cancellationToken);
+            // ResponseHeadersRead 避免 HttpClient 在回傳 response 前先把未知長度本文整份緩衝。
+            // HttpClient.Timeout 對此模式只涵蓋 headers，故另以 linked token 將同一 timeout 延伸到本文讀取。
+            using var requestTimeout = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+            requestTimeout.CancelAfter(_httpClient.Timeout);
+            using var response = await _httpClient.SendAsync(
+                request,
+                HttpCompletionOption.ResponseHeadersRead,
+                requestTimeout.Token);
+            var content = await ReadBoundedResponseBodyAsync(
+                response.Content,
+                route,
+                requestTimeout.Token);
             if (!response.IsSuccessStatusCode)
             {
                 throw new SinopacRequestException(
@@ -445,17 +507,94 @@ internal sealed class SinopacPaymentProvider : IPaymentProvider, IPaymentAllotPr
         {
             throw new SinopacRequestException(route, "Transport");
         }
+        catch (IOException)
+        {
+            throw new SinopacRequestException(route, "Transport");
+        }
+    }
+
+    /// <summary>
+    /// 讀取單一 response 本文，先以 Content-Length 快速拒絕已知超限資料，再對未知長度串流最多讀取
+    /// 上限加一個偵測位元組；所有讀取都使用呼叫端／HttpClient timeout 的 linked token。
+    /// 本方法借用 response.Content 的串流，response 是唯一外層 owner；本地緩衝在成功或失敗時清零。
+    /// </summary>
+    /// <param name="content">由尚未 Dispose 的 response 擁有之 HTTP content。</param>
+    /// <param name="route">固定的 API route 標籤，只供安全診斷分類。</param>
+    /// <param name="cancellationToken">呼叫端取消及本次 HTTP timeout 的合併權杖。</param>
+    /// <returns>位元組上限內解碼的回應本文。</returns>
+    /// <exception cref="SinopacRequestException">回應超限或宣告字元集／內容無法安全解析時。</exception>
+    private static async Task<string> ReadBoundedResponseBodyAsync(
+        HttpContent content,
+        string route,
+        CancellationToken cancellationToken)
+    {
+        if (content.Headers.ContentLength > MaximumResponseBodyBytes)
+        {
+            throw new SinopacRequestException(route, "ResponseTooLarge");
+        }
+
+        await using var stream = await content.ReadAsStreamAsync(cancellationToken);
+        var buffer = new byte[MaximumResponseBodyBytes + 1];
+        try
+        {
+            var totalBytesRead = 0;
+            while (totalBytesRead < buffer.Length)
+            {
+                var bytesRead = await stream.ReadAsync(
+                    buffer.AsMemory(totalBytesRead, buffer.Length - totalBytesRead),
+                    cancellationToken);
+                if (bytesRead == 0)
+                {
+                    break;
+                }
+
+                totalBytesRead += bytesRead;
+            }
+
+            if (totalBytesRead > MaximumResponseBodyBytes)
+            {
+                throw new SinopacRequestException(route, "ResponseTooLarge");
+            }
+
+            try
+            {
+                var charset = content.Headers.ContentType?.CharSet?.Trim('"');
+                var encoding = string.IsNullOrWhiteSpace(charset)
+                    ? StrictUtf8Encoding
+                    : Encoding.GetEncoding(
+                        charset,
+                        EncoderFallback.ExceptionFallback,
+                        DecoderFallback.ExceptionFallback);
+                var decoded = encoding.GetString(buffer, 0, totalBytesRead);
+                return decoded.Length > 0 && decoded[0] == '\uFEFF'
+                    ? decoded[1..]
+                    : decoded;
+            }
+            catch (ArgumentException)
+            {
+                throw new SinopacRequestException(route, "Unreadable", 200);
+            }
+        }
+        finally
+        {
+            CryptographicOperations.ZeroMemory(buffer);
+        }
     }
 
     private static Uri ResolveEndpoint(PaymentMerchantProfile profile, string route)
     {
         if (profile.Endpoints.TryGetValue("ApiBaseUrl", out var apiBaseUrl) &&
-            Uri.TryCreate($"{apiBaseUrl.TrimEnd('/')}/{route}", UriKind.Absolute, out var uri))
+            Uri.TryCreate($"{apiBaseUrl.TrimEnd('/')}/{route}", UriKind.Absolute, out var uri) &&
+            string.Equals(uri.Scheme, Uri.UriSchemeHttps, StringComparison.OrdinalIgnoreCase) &&
+            string.IsNullOrEmpty(uri.UserInfo) &&
+            string.IsNullOrEmpty(uri.Query) &&
+            string.IsNullOrEmpty(uri.Fragment))
         {
             return uri;
         }
 
-        throw new PaymentConfigurationException($"Sinopac profile '{profile.Name}' is missing endpoint 'ApiBaseUrl'.");
+        throw new PaymentConfigurationException(
+            $"Sinopac profile '{profile.Name}' endpoint 'ApiBaseUrl' must be an absolute HTTPS URI without user information, query, or fragment.");
     }
 
     private static IReadOnlyDictionary<string, string> BuildCreateProviderData(SinopacOrderCreateResponse response)
@@ -836,7 +975,7 @@ internal sealed class SinopacPaymentProvider : IPaymentProvider, IPaymentAllotPr
             ErrorKind = failureCode switch
             {
                 "NonceMissing" => PaymentErrorKind.ProviderUnavailable,
-                "Unreadable" => PaymentErrorKind.SerializationFailure,
+                "Unreadable" or "ResponseTooLarge" => PaymentErrorKind.SerializationFailure,
                 _ when statusCode != 0 => ClassifyHttpFailure(statusCode),
                 _ => PaymentErrorKind.NetworkFailure
             };

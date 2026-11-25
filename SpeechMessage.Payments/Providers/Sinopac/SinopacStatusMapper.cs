@@ -125,7 +125,8 @@ internal static class SinopacStatusMapper
             IsFailureStatus(response?.Status);
     }
 
-    private static bool IsSuccessStatus(string? value)
+    /// <summary>供 provider capability 對已解密並完成外層驗簽的操作狀態作一致成功判斷。</summary>
+    internal static bool IsSuccessStatus(string? value)
     {
         return SuccessCodes.Contains(ExtractLeadingCode(value));
     }

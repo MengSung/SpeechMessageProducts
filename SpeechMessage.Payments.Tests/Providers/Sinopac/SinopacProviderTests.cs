@@ -1,8 +1,8 @@
 /*
  * 檔案整體說明
  *
- * 目的與定位：驗證永豐 QPay provider 的 request mapping、AES key、狀態轉換、callback 與 HTTP 錯誤正規化。HTTP 失敗只公開固定階段／狀態碼，不回傳回應本文。這些測試特別保護付款頁 URL、ATM 虛擬帳號與 legacy
- * key derivation，避免抽離後破壞既有奉獻流程。
+ * 目的與定位：驗證永豐 QPay provider 的 wire mapping、AES key、狀態轉換、callback 與 HTTP 錯誤正規化。
+ * HTTP 失敗只公開固定階段／狀態碼，不回傳回應本文；測試同時保護既有付款頁與 ATM 流程、延後請款範圍及 legacy key derivation。
  *
  * 主要功能與流程：
  * 本檔宣告 SinopacProviderTests、StaticResponseHandler 與只擷取 envelope 服務名稱的假 HTTP handler。
@@ -13,6 +13,8 @@
  * Create_result_fails_when_card_payment_success_response_has_no_payment_page_url、
  * Create_result_preserves_provider_rejection_when_card_payment_page_url_is_missing、
  * Create_result_preserves_atm_virtual_account_in_provider_data、
+ * DelayedCapture_ExpBillingDaysOutOfRange_Rejected、
+ * DelayedCapture_AllowedExpBillingDays_ArePreserved、
  * Envelope_ApiService_UsesDocumentedServiceName、Envelope_ApiService_NeverNumeric、
  * Envelope_ApiService_RejectsUnknownEnumValue、
  * Allot_query_preserves_http_status_when_error_body_root_is_not_an_object；其餘入口見下方成員契約。
@@ -86,6 +88,62 @@ public sealed class SinopacProviderTests
         payload.CardParam.PayTypeSub.Should().Be("ONE");
     }
 
+    /// <summary>
+    /// 保護 V2.6 延後請款天數只能是 1–30。0 與 31 必須在任何網路傳輸前拒絕，
+    /// 避免銀行忽略無效期限後提早或永不請款；輸入與 profile 都是本測試專用合成資料。
+    /// </summary>
+    [Theory]
+    [InlineData("0")]
+    [InlineData("31")]
+    public void DelayedCapture_ExpBillingDaysOutOfRange_Rejected(string expBillingDays)
+    {
+        var request = new PaymentCreateRequest
+        {
+            ProductOrderId = "SYNTHETIC-DELAYED-CAPTURE",
+            Total = new Money(1200m, "TWD"),
+            PaymentMethod = "C",
+            Metadata = new Dictionary<string, string>
+            {
+                ["AutoBilling"] = "N",
+                ["ExpBillingDays"] = expBillingDays
+            }
+        };
+
+        Action mapRequest = () => SinopacRequestMapper.MapCreateRequest(CreateProfile(), request);
+
+        mapRequest.Should()
+            .Throw<ArgumentOutOfRangeException>()
+            .Where(exception => exception.ParamName == "ExpBillingDays");
+    }
+
+    /// <summary>
+    /// 保護有效延後請款邊界值 1 與 30 依原值送入 QPay，並確認使用綁卡流程所需的 AutoBilling=N。
+    /// 本案例只檢查純 mapping，不建立 HTTP 資源或連線。
+    /// </summary>
+    [Theory]
+    [InlineData("1", 1)]
+    [InlineData("30", 30)]
+    public void DelayedCapture_AllowedExpBillingDays_ArePreserved(string expBillingDays, int expectedDays)
+    {
+        var request = new PaymentCreateRequest
+        {
+            ProductOrderId = "SYNTHETIC-DELAYED-CAPTURE",
+            Total = new Money(1200m, "TWD"),
+            PaymentMethod = "C",
+            Metadata = new Dictionary<string, string>
+            {
+                ["AutoBilling"] = "N",
+                ["ExpBillingDays"] = expBillingDays
+            }
+        };
+
+        var payload = SinopacRequestMapper.MapCreateRequest(CreateProfile(), request);
+
+        payload.CardParam.Should().NotBeNull();
+        payload.CardParam!.AutoBilling.Should().Be("N");
+        payload.CardParam.ExpBillingDays.Should().Be(expectedDays);
+    }
+
     [Fact]
     public void Request_mapper_maps_query_provider_order_ref_to_qpay_pay_token()
     {
@@ -110,6 +168,9 @@ public sealed class SinopacProviderTests
     [InlineData(1, "OrderCreate")]
     [InlineData(5, "OrderPayQuery")]
     [InlineData(7, "AllotQuery")]
+    [InlineData(8, "CardBindCreate")]
+    [InlineData(9, "OrderMaintain")]
+    [InlineData(10, "RegularQuery")]
     public async Task Envelope_ApiService_UsesDocumentedServiceName(
         int apiServiceValue,
         string expectedServiceName)
@@ -547,6 +608,40 @@ public sealed class SinopacProviderTests
                         FromDate = new DateOnly(2026, 7, 1),
                         ToDate = new DateOnly(2026, 7, 8),
                         PaymentType = "C"
+                    },
+                    CancellationToken.None);
+                return;
+
+            case SinopacApiService.CardBindCreate:
+                await ((IPaymentCardBinding)provider).CreateCardBindAsync(
+                    profile,
+                    new CardBindRequest
+                    {
+                        ProfileName = profile.Name,
+                        BindNo = "SYNTHETIC-BIND-001",
+                        ReturnUrl = "https://example.test/bind-return"
+                    },
+                    CancellationToken.None);
+                return;
+
+            case SinopacApiService.OrderMaintain:
+                await ((IPaymentOrderMaintenance)provider).CancelAuthorizationAsync(
+                    profile,
+                    new OrderMaintenanceRequest
+                    {
+                        ProfileName = profile.Name,
+                        OrderNo = "SYNTHETIC-MAINTAIN-001"
+                    },
+                    CancellationToken.None);
+                return;
+
+            case SinopacApiService.RegularQuery:
+                await ((IPaymentRecurring)provider).QueryRecurringAsync(
+                    profile,
+                    new RecurringQueryRequest
+                    {
+                        ProfileName = profile.Name,
+                        MasterOrderNo = "SYNTHETIC-REGULAR-001"
                     },
                     CancellationToken.None);
                 return;
