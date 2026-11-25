@@ -11,7 +11,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using LineMessagingProcessor.AspNetCore.Webhooks.Dispatch;
+using SpeechMessageProducts.GoodShepherd.Hosting.Webhooks;
 using Xunit;
 
 namespace SpeechMessageProducts.LineWebhook.Tests;

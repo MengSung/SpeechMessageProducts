@@ -21,6 +21,7 @@ using System.Net.Http.Headers;
 using System.Text;
 using Microsoft.AspNetCore.Builder;
 using LineMessagingProcessor.AspNetCore.Webhooks;
+using SpeechMessageProducts.GoodShepherd.Hosting.Webhooks;
 using LineMessagingProcessor.Core.Security;
 using Microsoft.Crm.Sdk.Messages;
 using Microsoft.Extensions.Configuration;
@@ -331,7 +332,7 @@ public sealed class RelayLiveAcceptanceTests(ITestOutputHelper output)
                 var hostConfig = hostConfiguration;
                 var services = new ServiceCollection(); services.AddSingleton<IConfiguration>(hostConfig); services.AddLogging();
                 services.AddScoped<IOrganizationService>(_ => OpenSdk()); services.AddSingleton<IWebhookEventDeduplicator>(new NoDedupe()); services.AddSingleton<IWebhookEventQueue>(new NoQueue());
-                services.AddLineWebhook(hostConfig); provider = services.BuildServiceProvider(validateScopes: true);
+                services.AddGoodShepherdLineWebhook(hostConfig); provider = services.BuildServiceProvider(validateScopes: true);
                 worker = provider.GetServices<IHostedService>().OfType<OutboundTaskWorker>().Single();
                 await worker.StartAsync(CancellationToken.None); var deadline = DateTime.UtcNow.AddSeconds(60);
                 while (true)

@@ -20,6 +20,7 @@ using LineMessagingProcessor.AspNetCore.Webhooks;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using SpeechMessageProducts.GoodShepherd.Hosting.Webhooks;
 using Xunit;
 
 namespace SpeechMessageProducts.LineWebhook.Tests;
@@ -147,7 +148,7 @@ public sealed class WebhookSignatureTests
         }).Build();
 
     /// <summary>
-    /// 以正式 AddLineWebhook 入口建立 provider；本組只解析驗簽器，dispatcher 的 CRM graph
+    /// 以正式 AddGoodShepherdLineWebhook 入口建立 provider；本組只解析驗簽器，dispatcher 的 CRM graph
     /// 由真 Host／端到端測試另行驗證，因此不在此純驗簽案例強制建構未使用的外部服務。
     /// </summary>
     private static ServiceProvider BuildProvider(IConfiguration configuration)
@@ -155,7 +156,7 @@ public sealed class WebhookSignatureTests
         var services = new ServiceCollection();
         services.AddSingleton<IConfiguration>(configuration);
         services.AddLogging();
-        services.AddLineWebhook(configuration);
+        services.AddGoodShepherdLineWebhook(configuration);
         return services.BuildServiceProvider(new ServiceProviderOptions
         {
             ValidateOnBuild = false,

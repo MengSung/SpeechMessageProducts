@@ -1,0 +1,35 @@
+<!--
+檔案整體說明
+
+目的與定位：好牧人產品的 Host 組合層，承接 Webhook、QR 與付款工作流程的產品專屬接線，
+使 LineMessagingProcessor、RichMenus 與 Payments 共用層不再反向參考好牧人核心。
+
+主要功能與流程：以 net10.0 建置，向下依賴共用 Webhook／RichMenus／Payments／Localization
+元件、GoodShepherd.Core、SpeechMessage.Hosting 與 ToolUtility；產品 Web Host 只呼叫本專案公開的
+組合入口。此專案本身不建立外部連線，執行時依呼叫端 Host 的 DI 設定解析 scoped 資源。
+
+使用邊界與維護：本層可依賴共用層及好牧人核心，不得由共用層反向依賴。Webhook、QR、
+付款工作及 SDK 的實際授權、scope 所有權、取消、排空與釋放責任由各組合類別明確實作；
+不得將 request、租戶、credential 或 scoped SDK 狀態提升至 singleton。離線建置與測試
+不代表已連線 D365、LINE 或金流沙箱；實機結果須由指定 Live3P 驗收記錄。
+-->
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <IsPackable>true</IsPackable>
+    <AssemblyName>SpeechMessageProducts.GoodShepherd.Hosting</AssemblyName>
+    <RootNamespace>SpeechMessageProducts.GoodShepherd.Hosting</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+    <ProjectReference Include="..\LineMessagingProcessor.AspNetCore\LineMessagingProcessor.AspNetCore.csproj" />
+    <ProjectReference Include="..\LineMessagingProcessor.RichMenus\LineMessagingProcessor.RichMenus.csproj" />
+    <ProjectReference Include="..\SpeechMessageProducts.GoodShepherd.Core\SpeechMessageProducts.GoodShepherd.Core.csproj" />
+    <ProjectReference Include="..\SpeechMessage.Hosting\SpeechMessage.Hosting.csproj" />
+    <ProjectReference Include="..\SpeechMessage.Localization\SpeechMessage.Localization.csproj" />
+    <ProjectReference Include="..\SpeechMessage.Payments\SpeechMessage.Payments.csproj" />
+    <ProjectReference Include="..\ToolUtility\ToolUtility.csproj" />
+  </ItemGroup>
+</Project>

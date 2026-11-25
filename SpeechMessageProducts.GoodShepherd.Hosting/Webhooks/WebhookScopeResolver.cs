@@ -1,0 +1,288 @@
+/*
+檔案整體說明
+目的與定位：把已驗簽 envelope 的 channel 提示轉成真正可信 CRM 組織、教會、頻道、使用者及文字範圍；不沿用舊 ToolUtilityFactory 的程序級身分。
+主要功能與流程：只讀 Host 的 LineWebhook:Channels 映射；每筆以 WhoAmI 複核 OrganizationId，再以既有 LineRecipientQueries 讀 Contact 偏好語言、Church 名稱／啟用語系及加密 token，驗 new_linechannel.new_channelid 等於入站頻道。Contact 同時依 parentcustomerid 與 new_lineid 查詢且拒絕多筆。沿用 ChannelTokenProtector，不另造密碼實作或跨頻道後備。
+使用邊界與維護：DI scoped 借用 SDK，生命週期由 queue scope 管理；同步 SDK 有 transport deadline 並於返回前 drain。設定不由事件控制，無 Session、cache、背景工作。解密key讀取亦供代送Host共用，驗64-byte並由caller finally清除；解密 token 只屬當次結果且 ToString 遮罩，不寫診斷。正式部署須提供明確 OrganizationId、ChurchId、TimeZone 及可選 HTTPS sender icon；缺項固定拒絕，不猜測預設教會。
+*/
+using LineMessagingProcessor.Core.Security;
+using LineMessagingProcessor.AspNetCore.Webhooks;
+using Microsoft.Crm.Sdk.Messages;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Xrm.Sdk;
+using Microsoft.Xrm.Sdk.Query;
+using SpeechMessage.Localization;
+using SpeechMessageProducts.GoodShepherd.Core.Messaging;
+using ToolUtilityNameSpace.LineRecipients;
+
+namespace SpeechMessageProducts.GoodShepherd.Hosting.Webhooks;
+
+/// <summary>事件範圍解析契約；正式實作必須核對實際組織，不能只包裝 caller 提供的值。</summary>
+public interface IWebhookScopeResolver
+{
+    /// <summary>同一筆事件內完成 CRM 授權與 token 準備；真正故障不降級至其他組織。</summary>
+    ResolvedWebhookScope Resolve(string channelId, string sourceId, CancellationToken ct);
+
+    /// <summary>
+    /// 同時解析 actor 與群組／聊天室 display source；預設實作保留單一來源的相容行為，
+    /// 正式 resolver 必須覆寫以完成兩個 Contact 的獨立 scope 驗證。
+    /// </summary>
+    ResolvedWebhookScope Resolve(string channelId, string actorSourceId, string displaySourceId, CancellationToken ct) =>
+        Resolve(channelId, actorSourceId, ct);
+}
+
+/// <summary>僅供單次 dispatch 使用的已驗證資料；不是可共享或記錄的 DTO。</summary>
+public sealed class ResolvedWebhookScope
+{
+    /// <summary>單一來源相容建構式；actor 與 display source 相同。</summary>
+    public ResolvedWebhookScope(
+        IOrganizationService service,
+        Guid organizationId,
+        Guid churchId,
+        string channelId,
+        string sourceId,
+        string timeZone,
+        string accessToken,
+        Entity? contact,
+        string organizationName = "GoodShepherd",
+        string churchName = "Church",
+        string memberCulture = "zh-TW",
+        string formatCulture = "zh-TW",
+        string? senderIconUrl = null,
+        IReadOnlyList<string>? enabledCultures = null)
+        : this(service, organizationId, churchId, channelId, sourceId, sourceId, timeZone, accessToken, contact, contact,
+            organizationName, churchName, memberCulture, formatCulture, senderIconUrl, enabledCultures)
+    {
+    }
+
+    /// <summary>
+    /// 組合根或離線測試建立範圍，SDK 仍由外層 owner 擁有；actor 與 display source
+    /// 分開保存，避免群組／聊天室顯示資料取代真正授權使用者。
+    /// </summary>
+    public ResolvedWebhookScope(
+        IOrganizationService service,
+        Guid organizationId,
+        Guid churchId,
+        string channelId,
+        string actorSourceId,
+        string displaySourceId,
+        string timeZone,
+        string accessToken,
+        Entity? contact,
+        Entity? displayContact,
+        string organizationName = "GoodShepherd",
+        string churchName = "Church",
+        string memberCulture = "zh-TW",
+        string formatCulture = "zh-TW",
+        string? senderIconUrl = null,
+        IReadOnlyList<string>? enabledCultures = null)
+    {
+        Service = service ?? throw new ArgumentNullException(nameof(service));
+        if (organizationId == Guid.Empty || churchId == Guid.Empty || !WebhookOptions.IsValidChannelId(channelId) ||
+            !ValidSource(actorSourceId) || !ValidSource(displaySourceId) ||
+            string.IsNullOrWhiteSpace(timeZone) || string.IsNullOrWhiteSpace(accessToken) ||
+            string.IsNullOrWhiteSpace(organizationName) || organizationName.Length > 128 ||
+            string.IsNullOrWhiteSpace(churchName) || churchName.Length > 160 ||
+            string.IsNullOrWhiteSpace(memberCulture) || memberCulture.Length > 128 ||
+            string.IsNullOrWhiteSpace(formatCulture) || formatCulture.Length > 128)
+            throw new InvalidOperationException("Incomplete webhook scope.");
+        if (!string.IsNullOrWhiteSpace(senderIconUrl) &&
+            (!Uri.TryCreate(senderIconUrl, UriKind.Absolute, out var icon) ||
+             icon.Scheme != Uri.UriSchemeHttps || senderIconUrl.Length > 2048))
+            throw new InvalidOperationException("The webhook sender icon must be an HTTPS URL.");
+        OrganizationId = organizationId;
+        ChurchId = churchId;
+        ChannelId = channelId;
+        SourceId = actorSourceId;
+        DisplaySourceId = displaySourceId;
+        TimeZone = timeZone;
+        AccessToken = accessToken;
+        Contact = contact;
+        DisplayContact = displayContact;
+        OrganizationName = organizationName;
+        ChurchName = churchName;
+        MemberCulture = memberCulture;
+        FormatCulture = formatCulture;
+        SenderIconUrl = senderIconUrl;
+        EnabledCultures = CopyEnabledCultures(enabledCultures);
+    }
+    /// <summary>已通過組織核對的借用 SDK，由 queue 的 DI scope 釋放。</summary>
+    public IOrganizationService Service { get; }
+    /// <summary>WhoAmI 的正式組織 ID。</summary>
+    public Guid OrganizationId { get; }
+    /// <summary>受部署映射及 account 指派核對的教會 ID。</summary>
+    public Guid ChurchId { get; }
+    /// <summary>已驗簽的供應商頻道 ID。</summary>
+    public string ChannelId { get; }
+    /// <summary>本次 U／C／R 識別，不能用顯示名稱取代。</summary>
+    public string SourceId { get; }
+    /// <summary>群組／聊天室的顯示來源正式識別；與 actor source 分開授權與查詢。</summary>
+    public string DisplaySourceId { get; }
+    /// <summary>本教會明確時區，不從伺服器 local 推測。</summary>
+    public string TimeZone { get; }
+    /// <summary>由部署 mapping 驗證的組織名稱，只供文字 scope，不是資料存取權。</summary>
+    public string OrganizationName { get; }
+    /// <summary>resolver 從已授權教會資料取得並複製的啟用語系列表，只供本事件的關鍵字語言順序。</summary>
+    public IReadOnlyList<string> EnabledCultures { get; }
+    /// <summary>由該教會正式資料讀出的 bounded 名稱，只供 sender／letter 顯示。</summary>
+    public string ChurchName { get; }
+    /// <summary>由會員偏好與教會啟用政策解析出的本次文字語系。</summary>
+    public string MemberCulture { get; }
+    /// <summary>由教會語系政策發布的格式文化，不依賴執行緒文化。</summary>
+    public string FormatCulture { get; }
+    /// <summary>可選的部署 HTTPS sender icon；空值表示省略 sender 品牌物件。</summary>
+    public string? SenderIconUrl { get; }
+    /// <summary>當次查詢的 Contact，僅供本次更新，不向結果或診斷暴露。</summary>
+    internal Entity? Contact { get; }
+    /// <summary>當次查詢的 display Contact，只供舊業務需要的顯示名稱，不作 actor 授權。</summary>
+    internal Entity? DisplayContact { get; }
+    /// <summary>僅供逐 request Authorization，存活至 dispatch 結束，不設定共用 header。</summary>
+    internal string AccessToken { get; }
+    /// <summary>建立本次回覆／letter 使用的不可變文字 scope，不保存 request 或 catalog 參數。</summary>
+    internal TextContext TextContext => new(ChurchId, MemberCulture, FormatCulture, OrganizationName, "GoodShepherd");
+    /// <summary>複製有界語系列表，避免保留 CRM locale collection 或可變呼叫端陣列。</summary>
+    private static IReadOnlyList<string> CopyEnabledCultures(IReadOnlyList<string>? cultures)
+    {
+        if (cultures is null) return Array.AsReadOnly(new[] { "zh-TW" });
+        if (cultures.Count > 64) throw new InvalidOperationException("Webhook culture scope exceeds its bounded count.");
+        var copy = new string[cultures.Count];
+        for (var index = 0; index < cultures.Count; index++)
+        {
+            var culture = cultures[index];
+            if (string.IsNullOrWhiteSpace(culture) || culture.Length > 128)
+                throw new InvalidOperationException("Webhook culture scope is invalid.");
+            copy[index] = culture;
+        }
+        return Array.AsReadOnly(copy);
+    }
+    /// <summary>只有真正綁定 Contact 才能建立領域 actor；後續核心仍複核綁定。</summary>
+    internal WebhookActor Actor() => Contact is null ? throw new InvalidOperationException("A bound actor is required.") : new WebhookActor(OrganizationId, ChannelId, ChurchId, Contact.Id, SourceId, TimeZone);
+    /// <summary>委派核心固定長度十六進位格式檢查；授權仍由本 resolver 的組織／教會綁定流程完成。</summary>
+    internal static bool ValidSource(string value) => WebhookRecordOperations.IsValidLineIdentity(value);
+    /// <summary>不輸出 SDK、token、使用者或 Contact。</summary>
+    public override string ToString() => "ResolvedWebhookScope(***)";
+}
+
+/// <summary>借用原 Host 組態與 scoped SDK，不建立另一套連線池或信任任何 request 租戶值。</summary>
+/// <param name="service">由目前 queue DI scope 擁有的 Dataverse SDK；resolver 不 Dispose 或提升其生命週期。</param>
+/// <param name="configuration">Host 擁有的可信部署組態，提供固定頻道到組織／教會 mapping。</param>
+/// <param name="cultures">可選語系解析服務；未提供時建立無共享 request 狀態的純解析器。</param>
+public sealed class WebhookScopeResolver(
+    IOrganizationService service,
+    IConfiguration configuration,
+    IMemberCultureResolver? cultures = null) : IWebhookScopeResolver
+{
+    private readonly IMemberCultureResolver cultures = cultures ?? new MemberCultureResolver(new LocalizationOptions());
+    /// <summary>單一來源相容入口；actor 與 display source 使用同一正式識別。</summary>
+    public ResolvedWebhookScope Resolve(string channelId, string sourceId, CancellationToken ct) =>
+        Resolve(channelId, sourceId, sourceId, ct);
+
+    /// <summary>
+    /// 核對組織及教會後分別查 actor 與 display source；多筆綁定、缺設定或外頻道
+    /// 均拒絕，原故障交 queue。display source 不得用來替代 actor 的授權 Contact。
+    /// </summary>
+    public ResolvedWebhookScope Resolve(string channelId, string actorSourceId, string displaySourceId, CancellationToken ct)
+    {
+        ct.ThrowIfCancellationRequested();
+        if (!WebhookOptions.IsValidChannelId(channelId) ||
+            !ResolvedWebhookScope.ValidSource(actorSourceId) ||
+            !ResolvedWebhookScope.ValidSource(displaySourceId))
+            throw new InvalidOperationException("Invalid webhook scope input.");
+        var mapping = configuration.GetSection("LineWebhook:Channels:" + channelId);
+        var organization = mapping["Organization"];
+        if (string.IsNullOrWhiteSpace(organization) || organization.Any(c => !char.IsAsciiLetterOrDigit(c) && c is not '-' and not '_') ||
+            !Guid.TryParse(mapping["OrganizationId"], out var orgId) || orgId == Guid.Empty ||
+            !Guid.TryParse(mapping["ChurchId"], out var churchId) || churchId == Guid.Empty || string.IsNullOrWhiteSpace(mapping["TimeZone"]))
+            throw new InvalidOperationException("Webhook dispatch mapping is incomplete.");
+        var who = service.Execute(new WhoAmIRequest()) as WhoAmIResponse;
+        ct.ThrowIfCancellationRequested();
+        if (who is null || who.OrganizationId != orgId) throw new InvalidOperationException("The CRM organization does not match the webhook deployment.");
+        using var source = new LineRecipientQueries(service);
+        var church = source.ReadChannel(churchId, ct);
+        var channel = WebhookRecordOperations.Read(service, "new_linechannel", church.ChannelId, new ColumnSet("new_channelid"), ct);
+        if (channel.GetAttributeValue<string>("new_channelid") != channelId) throw new InvalidOperationException("The channel is not assigned to this church.");
+        var contact = ReadBoundContact(churchId, actorSourceId, ct);
+        var displayContact = string.Equals(actorSourceId, displaySourceId, StringComparison.Ordinal)
+            ? contact
+            : ReadBoundContact(churchId, displaySourceId, ct);
+        var member = contact is null ? null : source.ReadMember(contact.Id, ct);
+        var memberCulture = "zh-TW";
+        var formatCulture = "zh-TW";
+        if (member is not null)
+        {
+            var resolved = cultures.Resolve(new MemberLanguagePreference(member.Language), church.Locales);
+            memberCulture = resolved.TextCulture;
+            formatCulture = resolved.FormatCulture;
+        }
+        var key = ReadOrganizationTokenKey(configuration, organization);
+        try
+        {
+            return new ResolvedWebhookScope(
+                service,
+                orgId,
+                churchId,
+                channelId,
+                actorSourceId,
+                displaySourceId,
+                mapping["TimeZone"]!,
+                ChannelTokenProtector.Unprotect(church.EncryptedToken, key),
+                contact,
+                displayContact,
+                organization,
+                church.ChurchName,
+                memberCulture,
+                formatCulture,
+                ReadSenderIcon(mapping),
+                church.Locales.EnabledCultures);
+        }
+        finally { Array.Clear(key); }
+    }
+
+    /// <summary>Webhook及Host代送共用的key讀取；組織名稱須來自已驗server mapping／metadata，不接受payload。回傳64-byte由呼叫owner finally清零。</summary>
+    internal static byte[] ReadOrganizationTokenKey(IConfiguration configuration, string organization)
+    {
+        ArgumentNullException.ThrowIfNull(configuration);
+        if (string.IsNullOrWhiteSpace(organization) || organization.Length > 128 || organization.Any(c => !char.IsAsciiLetterOrDigit(c) && c is not '-' and not '_'))
+            throw new InvalidOperationException("The server organization name is invalid.");
+        var value = configuration["Deployment:Organizations:" + organization + ":TokenKey"];
+        if (string.IsNullOrWhiteSpace(value) || value.Length > 128) throw new InvalidOperationException("The organization token key is unavailable.");
+        byte[] key;
+        try { key = Convert.FromBase64String(value); }
+        catch (FormatException) { throw new InvalidOperationException("The organization token key format is invalid."); }
+        if (key.Length == 64) return key;
+        Array.Clear(key);
+        throw new InvalidOperationException("The organization token key size is invalid.");
+    }
+
+    /// <summary>只接受部署設定的 HTTPS icon；缺少時明確省略，不捏造固定網址。</summary>
+    private static string? ReadSenderIcon(IConfigurationSection mapping)
+    {
+        var value = mapping["SenderIconUrl"];
+        if (string.IsNullOrWhiteSpace(value)) return null;
+        if (!Uri.TryCreate(value, UriKind.Absolute, out var icon) ||
+            icon.Scheme != Uri.UriSchemeHttps || value.Length > 2048)
+            throw new InvalidOperationException("The webhook sender icon must be an HTTPS URL.");
+        return value;
+    }
+
+    /// <summary>以完整 church＋LINE ID 條件讀取唯一 Contact；空集合代表尚未綁定，不猜測身份。</summary>
+    private Entity? ReadBoundContact(Guid churchId, string sourceId, CancellationToken ct)
+    {
+        var query = new QueryExpression("contact")
+        {
+            ColumnSet = new ColumnSet("new_lineid", "parentcustomerid", "fullname", "customertypecode", "versionnumber", "new_preferredlanguage")
+        };
+        query.Criteria.AddCondition("parentcustomerid", ConditionOperator.Equal, churchId);
+        query.Criteria.AddCondition("new_lineid", ConditionOperator.Equal, sourceId);
+        query.Criteria.AddCondition("statecode", ConditionOperator.Equal, 0);
+        var contacts = WebhookRecordOperations.Query(service, query, ct);
+        if (contacts.Entities.Count > 1) throw new InvalidOperationException("Conflicting LINE bindings require remediation.");
+        var contact = contacts.Entities.SingleOrDefault();
+        if (contact is not null)
+        {
+            WebhookRecordOperations.RequireLookup(contact, "parentcustomerid", "account", churchId);
+            if (!string.Equals(contact.GetAttributeValue<string>("new_lineid"), sourceId, StringComparison.Ordinal))
+                throw new InvalidOperationException("The Contact binding does not match.");
+        }
+        return contact;
+    }
+}

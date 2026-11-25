@@ -26,7 +26,7 @@ using SpeechMessage.Payments.Abstractions;
 using SpeechMessage.Payments.DependencyInjection;
 using SpeechMessage.Payments.Gateway;
 using SpeechMessage.Payments.Models;
-using SpeechMessage.Payments.AspNetCore.Outbound;
+using SpeechMessageProducts.GoodShepherd.Hosting.Payments;
 using SpeechMessageProducts.GoodShepherd.Core.Outbound;
 using ToolUtilityNameSpace.DependencyInjection;
 using ToolUtilityNameSpace.Outbound;
@@ -817,7 +817,7 @@ public sealed class PaymentsLiveAcceptanceTests
                             return _recordingGateway;
                         });
                     }
-                    services.AddSpeechMessagePaymentOutbound(configuration);
+                    services.AddGoodShepherdPaymentOutbound(configuration);
                 })
                 .Build();
         }

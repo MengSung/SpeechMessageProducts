@@ -91,6 +91,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PluginHarness", "tools\Lega
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SpeechMessage.Dynamics.Workflows", "SpeechMessage.Dynamics.Workflows\SpeechMessage.Dynamics.Workflows.csproj", "{63E6CBA0-A9D8-46DB-8C60-C2C8F73D0AF1}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SpeechMessageProducts.GoodShepherd.Hosting", "SpeechMessageProducts.GoodShepherd.Hosting\SpeechMessageProducts.GoodShepherd.Hosting.csproj", "{3275F5D8-971C-4D79-9B3A-C99960B8165A}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SpeechMessageProducts.GoodShepherd.Hosting.Tests", "SpeechMessageProducts.GoodShepherd.Hosting.Tests\SpeechMessageProducts.GoodShepherd.Hosting.Tests.csproj", "{31FCAC45-7E5D-4B23-81CC-6CA150C7800B}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug_LearnCrm|Any CPU = Debug_LearnCrm|Any CPU
@@ -1370,6 +1374,66 @@ Global
 		{63E6CBA0-A9D8-46DB-8C60-C2C8F73D0AF1}.Test_Exchange_Service|x64.Build.0 = Debug|Any CPU
 		{63E6CBA0-A9D8-46DB-8C60-C2C8F73D0AF1}.Test_Exchange_Service|x86.ActiveCfg = Debug|Any CPU
 		{63E6CBA0-A9D8-46DB-8C60-C2C8F73D0AF1}.Test_Exchange_Service|x86.Build.0 = Debug|Any CPU
+		{3275F5D8-971C-4D79-9B3A-C99960B8165A}.Debug_LearnCrm|Any CPU.ActiveCfg = Debug|Any CPU
+		{3275F5D8-971C-4D79-9B3A-C99960B8165A}.Debug_LearnCrm|Any CPU.Build.0 = Debug|Any CPU
+		{3275F5D8-971C-4D79-9B3A-C99960B8165A}.Debug_LearnCrm|x64.ActiveCfg = Debug|Any CPU
+		{3275F5D8-971C-4D79-9B3A-C99960B8165A}.Debug_LearnCrm|x64.Build.0 = Debug|Any CPU
+		{3275F5D8-971C-4D79-9B3A-C99960B8165A}.Debug_LearnCrm|x86.ActiveCfg = Debug|Any CPU
+		{3275F5D8-971C-4D79-9B3A-C99960B8165A}.Debug_LearnCrm|x86.Build.0 = Debug|Any CPU
+		{3275F5D8-971C-4D79-9B3A-C99960B8165A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3275F5D8-971C-4D79-9B3A-C99960B8165A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3275F5D8-971C-4D79-9B3A-C99960B8165A}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{3275F5D8-971C-4D79-9B3A-C99960B8165A}.Debug|x64.Build.0 = Debug|Any CPU
+		{3275F5D8-971C-4D79-9B3A-C99960B8165A}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{3275F5D8-971C-4D79-9B3A-C99960B8165A}.Debug|x86.Build.0 = Debug|Any CPU
+		{3275F5D8-971C-4D79-9B3A-C99960B8165A}.DebugOracleConnector|Any CPU.ActiveCfg = Debug|Any CPU
+		{3275F5D8-971C-4D79-9B3A-C99960B8165A}.DebugOracleConnector|Any CPU.Build.0 = Debug|Any CPU
+		{3275F5D8-971C-4D79-9B3A-C99960B8165A}.DebugOracleConnector|x64.ActiveCfg = Debug|Any CPU
+		{3275F5D8-971C-4D79-9B3A-C99960B8165A}.DebugOracleConnector|x64.Build.0 = Debug|Any CPU
+		{3275F5D8-971C-4D79-9B3A-C99960B8165A}.DebugOracleConnector|x86.ActiveCfg = Debug|Any CPU
+		{3275F5D8-971C-4D79-9B3A-C99960B8165A}.DebugOracleConnector|x86.Build.0 = Debug|Any CPU
+		{3275F5D8-971C-4D79-9B3A-C99960B8165A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3275F5D8-971C-4D79-9B3A-C99960B8165A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3275F5D8-971C-4D79-9B3A-C99960B8165A}.Release|x64.ActiveCfg = Release|Any CPU
+		{3275F5D8-971C-4D79-9B3A-C99960B8165A}.Release|x64.Build.0 = Release|Any CPU
+		{3275F5D8-971C-4D79-9B3A-C99960B8165A}.Release|x86.ActiveCfg = Release|Any CPU
+		{3275F5D8-971C-4D79-9B3A-C99960B8165A}.Release|x86.Build.0 = Release|Any CPU
+		{3275F5D8-971C-4D79-9B3A-C99960B8165A}.Test_Exchange_Service|Any CPU.ActiveCfg = Debug|Any CPU
+		{3275F5D8-971C-4D79-9B3A-C99960B8165A}.Test_Exchange_Service|Any CPU.Build.0 = Debug|Any CPU
+		{3275F5D8-971C-4D79-9B3A-C99960B8165A}.Test_Exchange_Service|x64.ActiveCfg = Debug|Any CPU
+		{3275F5D8-971C-4D79-9B3A-C99960B8165A}.Test_Exchange_Service|x64.Build.0 = Debug|Any CPU
+		{3275F5D8-971C-4D79-9B3A-C99960B8165A}.Test_Exchange_Service|x86.ActiveCfg = Debug|Any CPU
+		{3275F5D8-971C-4D79-9B3A-C99960B8165A}.Test_Exchange_Service|x86.Build.0 = Debug|Any CPU
+		{31FCAC45-7E5D-4B23-81CC-6CA150C7800B}.Debug_LearnCrm|Any CPU.ActiveCfg = Debug|Any CPU
+		{31FCAC45-7E5D-4B23-81CC-6CA150C7800B}.Debug_LearnCrm|Any CPU.Build.0 = Debug|Any CPU
+		{31FCAC45-7E5D-4B23-81CC-6CA150C7800B}.Debug_LearnCrm|x64.ActiveCfg = Debug|Any CPU
+		{31FCAC45-7E5D-4B23-81CC-6CA150C7800B}.Debug_LearnCrm|x64.Build.0 = Debug|Any CPU
+		{31FCAC45-7E5D-4B23-81CC-6CA150C7800B}.Debug_LearnCrm|x86.ActiveCfg = Debug|Any CPU
+		{31FCAC45-7E5D-4B23-81CC-6CA150C7800B}.Debug_LearnCrm|x86.Build.0 = Debug|Any CPU
+		{31FCAC45-7E5D-4B23-81CC-6CA150C7800B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{31FCAC45-7E5D-4B23-81CC-6CA150C7800B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{31FCAC45-7E5D-4B23-81CC-6CA150C7800B}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{31FCAC45-7E5D-4B23-81CC-6CA150C7800B}.Debug|x64.Build.0 = Debug|Any CPU
+		{31FCAC45-7E5D-4B23-81CC-6CA150C7800B}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{31FCAC45-7E5D-4B23-81CC-6CA150C7800B}.Debug|x86.Build.0 = Debug|Any CPU
+		{31FCAC45-7E5D-4B23-81CC-6CA150C7800B}.DebugOracleConnector|Any CPU.ActiveCfg = Debug|Any CPU
+		{31FCAC45-7E5D-4B23-81CC-6CA150C7800B}.DebugOracleConnector|Any CPU.Build.0 = Debug|Any CPU
+		{31FCAC45-7E5D-4B23-81CC-6CA150C7800B}.DebugOracleConnector|x64.ActiveCfg = Debug|Any CPU
+		{31FCAC45-7E5D-4B23-81CC-6CA150C7800B}.DebugOracleConnector|x64.Build.0 = Debug|Any CPU
+		{31FCAC45-7E5D-4B23-81CC-6CA150C7800B}.DebugOracleConnector|x86.ActiveCfg = Debug|Any CPU
+		{31FCAC45-7E5D-4B23-81CC-6CA150C7800B}.DebugOracleConnector|x86.Build.0 = Debug|Any CPU
+		{31FCAC45-7E5D-4B23-81CC-6CA150C7800B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{31FCAC45-7E5D-4B23-81CC-6CA150C7800B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{31FCAC45-7E5D-4B23-81CC-6CA150C7800B}.Release|x64.ActiveCfg = Release|Any CPU
+		{31FCAC45-7E5D-4B23-81CC-6CA150C7800B}.Release|x64.Build.0 = Release|Any CPU
+		{31FCAC45-7E5D-4B23-81CC-6CA150C7800B}.Release|x86.ActiveCfg = Release|Any CPU
+		{31FCAC45-7E5D-4B23-81CC-6CA150C7800B}.Release|x86.Build.0 = Release|Any CPU
+		{31FCAC45-7E5D-4B23-81CC-6CA150C7800B}.Test_Exchange_Service|Any CPU.ActiveCfg = Debug|Any CPU
+		{31FCAC45-7E5D-4B23-81CC-6CA150C7800B}.Test_Exchange_Service|Any CPU.Build.0 = Debug|Any CPU
+		{31FCAC45-7E5D-4B23-81CC-6CA150C7800B}.Test_Exchange_Service|x64.ActiveCfg = Debug|Any CPU
+		{31FCAC45-7E5D-4B23-81CC-6CA150C7800B}.Test_Exchange_Service|x64.Build.0 = Debug|Any CPU
+		{31FCAC45-7E5D-4B23-81CC-6CA150C7800B}.Test_Exchange_Service|x86.ActiveCfg = Debug|Any CPU
+		{31FCAC45-7E5D-4B23-81CC-6CA150C7800B}.Test_Exchange_Service|x86.Build.0 = Debug|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

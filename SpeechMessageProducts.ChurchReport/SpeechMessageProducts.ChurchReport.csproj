@@ -5,7 +5,7 @@
 
 主要功能與流程：
 宣告的產品／測試target為net10.0；條件評估後的實際輸出以MSBuild為準。
-專案參考包含Line.Messaging.csproj、SpeechMessage.Tenancy.csproj、SpeechMessage.Hosting.csproj、LineMessagingProcessor.csproj、LineMessagingProcessor.AspNetCore.csproj、LineMessagingProcessor.Workflows.csproj、ToolUtility.csproj、SpeechMessage.Payments.csproj、SpeechMessage.Payments.AspNetCore.csproj、SpeechMessage.Payments.Workflows.csproj、LineMessagingProcessor.RichMenus.csproj、SpeechMessageProducts.GoodShepherd.Core.csproj；不能新增反向相依或將主機狀態引入純核心。GoodShepherd.Core 只提供純 QR 內容解析，不接管產品簽到或資料存取。
+專案參考包含Line.Messaging.csproj、SpeechMessage.Tenancy.csproj、SpeechMessage.Hosting.csproj、LineMessagingProcessor.csproj、LineMessagingProcessor.AspNetCore.csproj、LineMessagingProcessor.Workflows.csproj、ToolUtility.csproj、SpeechMessage.Payments.csproj、SpeechMessage.Payments.AspNetCore.csproj、SpeechMessage.Payments.Workflows.csproj、LineMessagingProcessor.RichMenus.csproj、SpeechMessageProducts.GoodShepherd.Core.csproj及SpeechMessageProducts.GoodShepherd.Hosting.csproj；不能新增反向相依或將主機狀態引入純核心。GoodShepherd.Core提供純規則與讀取器，產品Hosting只由產品主機向下引用，不反向進入共用層。
 
 使用邊界與維護：修改前先核對引用此檔的專案、頁面、腳本或CI步驟，保留既有參數、輸出及失敗結束碼。
 Area Razor 檔案必須隨 Web SDK 一併編譯與發佈；限制 glob 不得只選取 Views 目錄本身而漏掉 .cshtml。
@@ -131,6 +131,7 @@ Area Razor 檔案必須隨 Web SDK 一併編譯與發佈；限制 glob 不得只
     <ProjectReference Include="..\SpeechMessage.Payments.Workflows\SpeechMessage.Payments.Workflows.csproj" />
     <ProjectReference Include="..\LineMessagingProcessor.RichMenus\LineMessagingProcessor.RichMenus.csproj" />
     <ProjectReference Include="..\SpeechMessageProducts.GoodShepherd.Core\SpeechMessageProducts.GoodShepherd.Core.csproj" />
+    <ProjectReference Include="..\SpeechMessageProducts.GoodShepherd.Hosting\SpeechMessageProducts.GoodShepherd.Hosting.csproj" />
   </ItemGroup>
   <ItemGroup>
     <InternalsVisibleTo Include="ToolUtility.Dataverse.Tests" />

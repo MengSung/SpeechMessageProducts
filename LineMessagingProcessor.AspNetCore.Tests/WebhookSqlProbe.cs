@@ -46,7 +46,7 @@ internal sealed class WebhookSqlProbe : IAsyncDisposable
         diagnostics = new ExceptionDiagnostics(LogPath, outputOptions: new ExceptionOutputOptions(true, false));
         using var config = new ConfigurationManager(); config["ConnectionStrings:Platform"] = "Server=synthetic;Database=synthetic;Integrated Security=true";
         var services = new ServiceCollection(); services.AddSingleton(diagnostics); services.AddSingleton<TimeProvider>(Clock);
-        services.AddSingleton<Func<DbConnection>>(() => new Connection(this)); services.AddLineWebhook(config);
+        services.AddSingleton<Func<DbConnection>>(() => new Connection(this)); services.AddLineWebhookPipeline(config);
         Provider = services.BuildServiceProvider();
     }
     /// <summary>相同原例外不能再次被記錄，驗證安全入口保留真實身分。</summary>

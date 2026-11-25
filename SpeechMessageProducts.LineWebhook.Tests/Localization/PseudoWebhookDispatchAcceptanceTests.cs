@@ -24,7 +24,7 @@ using System.Net.Http;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
-using LineMessagingProcessor.AspNetCore.Webhooks.Dispatch;
+using SpeechMessageProducts.GoodShepherd.Hosting.Webhooks;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Http;

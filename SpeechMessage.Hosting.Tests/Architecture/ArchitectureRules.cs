@@ -10,6 +10,8 @@
  * - P6-06 對所有專案的直接／已還原相依拒絕九個舊 ASP.NET Core 套件，
  *   精確識別套件而非拒絕全部 AspNetCore 前綴，保留目前合法的 NewtonsoftJson 整合套件。
  * - 驗證完整評估圖；呼叫端擁有輸入，結果只含固定的架構診斷。
+ * - F1 以既有 DAG 的 Layer 精確辨識產品元件；共用與未知層級禁止參考 SpeechMessageProducts.*，
+ *   產品層與部署工具不被誤判為共用來源，未知專案仍 fail closed。
  * - 檢查 NuGet 已選出的 Framework 相依，而不是只相信 csproj 宣告能提供 net462。
  * - 部署端 Plugin 與 Workflow 都受同一個 v4.6.2 沙箱契約約束。
  * - 以來源快照執行 R2 主機／Plugin 公開邊界、R3 組織字面值白名單及 R9 傳輸／Plugin 參考守門；
@@ -129,6 +131,15 @@ internal static class ArchitectureRules
                 if (LegacyAspNetCorePackages.Contains(package, StringComparer.OrdinalIgnoreCase))
                 {
                     Add("LegacyAspNetCorePackage", package);
+                }
+            }
+
+            if (!project.IsTest && IsSharedProject(project.Name))
+            {
+                foreach (var reference in project.References.Where(reference =>
+                    reference.StartsWith("SpeechMessageProducts.", StringComparison.Ordinal)))
+                {
+                    Add("SharedToProduct", reference);
                 }
             }
 
@@ -634,6 +645,15 @@ internal static class ArchitectureRules
     private static bool IsHost(string name) => name is "SpeechMessageProducts.ChurchReport" or "SpeechMessageProducts.LineWebhook";
 
     /// <summary>
+    /// 已知產品來源依明確 DAG 分類排除，共用及未知來源則受 SharedToProduct 守門；
+    /// 未分類的產品前綴不能自動取得豁免，避免以名稱偽裝產品邊界。
+    /// </summary>
+    private static bool IsSharedProject(string name) =>
+        !(name.StartsWith("SpeechMessageProducts.", StringComparison.Ordinal) && Layer(name) >= 0)
+        && !IsSandbox(name)
+        && !IsTool(name);
+
+    /// <summary>
     /// 以實際 DAG 而非示意圖的位置標記層級；共用核心內Localization為取字底層，其餘同層彼此不可參考。未知專案 fail closed，
     /// 加入新產品時必須明確分類並補正反例，不能因名稱相似自動取得高層權限。
     /// </summary>
@@ -653,6 +673,7 @@ internal static class ArchitectureRules
         "LineMessagingProcessor" or "SpeechMessage.Payments.Workflows" => 35,
         "ToolUtility" or "LineMessagingProcessor.Workflows" or "LineMessagingProcessor.RichMenus" => 40,
         "LineMessagingProcessor.AspNetCore" or "SpeechMessage.Payments.AspNetCore" => 50,
+        "SpeechMessageProducts.GoodShepherd.Hosting" => 60,
         "SpeechMessageProducts.ChurchReport" or "SpeechMessageProducts.LineWebhook" or "SpeechMessage.Dynamics.Plugins" or "SpeechMessage.Dynamics.Workflows" => 100,
         "SpeechMessage.Dynamics.Deployment" or "LegacyGolden" or "PluginHarness" => 110,
         _ => -1

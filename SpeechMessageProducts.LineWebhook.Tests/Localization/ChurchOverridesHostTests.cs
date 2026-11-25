@@ -13,7 +13,7 @@
  * 共享輪詢已排空後才釋放快取、FeeNotify 使用完整教會 scope 的覆寫範本。
  */
 using Xunit;
-using LineMessagingProcessor.AspNetCore.Webhooks.Dispatch;
+using SpeechMessageProducts.GoodShepherd.Hosting.Webhooks;
 using LineMessagingProcessor.Core;
 using LineMessagingProcessor.Core.Security;
 using SpeechMessage.Hosting.Localization;

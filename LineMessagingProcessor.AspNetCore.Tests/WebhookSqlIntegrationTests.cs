@@ -241,7 +241,7 @@ public sealed class WebhookSqlIntegrationTests
         }
     }
 
-    /// <summary>單案例 DI 與安全診斷 owner；真 SQL 服務只能從正式 AddLineWebhook 接點取得。</summary>
+    /// <summary>單案例 DI 與安全診斷 owner；真 SQL 服務只能從正式 AddLineWebhookPipeline 接點取得。</summary>
     private sealed class Owner : IAsyncDisposable
     {
         private readonly ExceptionDiagnostics diagnostics;
@@ -255,7 +255,7 @@ public sealed class WebhookSqlIntegrationTests
             diagnostics = new ExceptionDiagnostics(Path.Combine(WebhookSqlTestDatabase.Root, ".trellis", "tasks", "11-09-p3-04-sql-dedupe", "evidence", "sql", Guid.NewGuid().ToString("N")), outputOptions: new ExceptionOutputOptions(true, false));
             using var configuration = new ConfigurationManager(); configuration["ConnectionStrings:Platform"] = connectionString;
             var services = new ServiceCollection(); services.AddSingleton(diagnostics); services.AddSingleton(clock ?? TimeProvider.System);
-            services.AddLineWebhook(configuration); Provider = services.BuildServiceProvider();
+            services.AddLineWebhookPipeline(configuration); Provider = services.BuildServiceProvider();
         }
         /// <summary>先停止所有容器 owner 再 drain 診斷；SQL fixture 最後刪庫，避免把清理失敗留給後續案例。</summary>
         public async ValueTask DisposeAsync()

@@ -1,0 +1,47 @@
+<!--
+檔案整體說明
+
+目的與定位：好牧人產品 Hosting 組合層的自動化測試專案，集中驗證產品專屬 Webhook、
+QR、付款處理器與啟動契約，不把這些產品案例留在共用程式庫的測試邊界。
+
+主要功能與流程：以 net10.0 執行 xUnit 測試，直接參考 GoodShepherd.Hosting 及其相關
+共用契約；SqlIntegration 仍由專案 runsettings 排除，明確指定類別才可執行。LINE 事件
+黃金資料以唯讀測試內容複製到輸出目錄，測試不得讀取秘密或連接正式服務。
+
+使用邊界與維護：測試替身與每案資源由個別測試擁有並清理；SDK、scope、HTTP client、
+queue 或背景工作案例須斷言故障／取消後回到宣告基線。所有離線案例只證明合成契約，
+不代表 Live3P、手機、D365、LINE 或付款沙箱驗收。新增測試需保持 UTF-8 無 BOM、
+CRLF 與檔尾 CRLF，並交代其保護的產品契約及決定性斷言。
+-->
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <IsPackable>false</IsPackable>
+    <IsTestProject>true</IsTestProject>
+    <RunSettingsFilePath Condition="'$(VSTestTestCaseFilter)' == ''">$(MSBuildThisFileDirectory)..\LineMessagingProcessor.AspNetCore.Tests\SqlIntegration.runsettings</RunSettingsFilePath>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" />
+    <PackageReference Include="xunit" />
+    <PackageReference Include="xunit.runner.visualstudio">
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
+    <PackageReference Include="FluentAssertions" />
+    <PackageReference Include="Microsoft.PowerPlatform.Dataverse.Client" />
+    <PackageReference Include="Newtonsoft.Json" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\SpeechMessageProducts.GoodShepherd.Hosting\SpeechMessageProducts.GoodShepherd.Hosting.csproj" />
+    <ProjectReference Include="..\LineMessagingProcessor.AspNetCore\LineMessagingProcessor.AspNetCore.csproj" />
+    <ProjectReference Include="..\LineMessagingProcessor.RichMenus\LineMessagingProcessor.RichMenus.csproj" />
+    <ProjectReference Include="..\SpeechMessageProducts.GoodShepherd.Core\SpeechMessageProducts.GoodShepherd.Core.csproj" />
+    <ProjectReference Include="..\SpeechMessage.Localization\SpeechMessage.Localization.csproj" />
+    <ProjectReference Include="..\SpeechMessage.Payments\SpeechMessage.Payments.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="..\SpeechMessageProducts.LineWebhook.Tests\Golden\Events\*.json" Link="Golden\Events\%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+</Project>

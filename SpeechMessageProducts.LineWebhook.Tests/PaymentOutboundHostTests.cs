@@ -1,7 +1,7 @@
 /*
  * 檔案整體說明
  *
- * 目的與定位：驗證 P4-03 LineWebhook 對外撥款 worker 的開關、handler lease 資源所有權及產品主機組合。
+ * 目的與定位：驗證 GoodShepherd.Hosting 提供的 P4-03 對外撥款 worker 開關、handler lease 資源所有權及產品主機組合。
  * 測試不啟動完整 LineWebhook、不連接 D365／永豐／LINE，也不讀取 User Secrets。
  *
  * 主要功能與流程：直接檢查 disabled 設定不發布 outbound 服務；啟用時透過真實 DI 容器解析 handler
@@ -21,7 +21,7 @@ using Microsoft.Xrm.Sdk;
 using SpeechMessage.Hosting.Outbound;
 using SpeechMessage.Localization;
 using SpeechMessage.Payments.Abstractions;
-using SpeechMessage.Payments.AspNetCore.Outbound;
+using SpeechMessageProducts.GoodShepherd.Hosting.Payments;
 using SpeechMessage.Payments.Models;
 using Xunit;
 
@@ -40,7 +40,7 @@ public sealed class PaymentOutboundHostTests
         var services = new ServiceCollection();
         var configuration = new ConfigurationBuilder().Build();
 
-        services.AddSpeechMessagePaymentOutbound(configuration);
+        services.AddGoodShepherdPaymentOutbound(configuration);
 
         Assert.DoesNotContain(services, descriptor =>
             descriptor.ServiceType == typeof(IOutboundWorkStore)
@@ -66,7 +66,7 @@ public sealed class PaymentOutboundHostTests
         services.AddSingleton<IChurchClock>(new UnusedChurchClock());
         services.AddScoped<ScopeProbe>();
         services.AddScoped<IOrganizationService>(provider => provider.GetRequiredService<ScopeProbe>().Service);
-        services.AddSpeechMessagePaymentOutbound(configuration);
+        services.AddGoodShepherdPaymentOutbound(configuration);
 
         await using var provider = services.BuildServiceProvider(validateScopes: true);
         var factory = provider.GetRequiredService<IOutboundTaskHandlerFactory>();

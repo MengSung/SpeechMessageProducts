@@ -6,6 +6,7 @@
 */
 using System.Data.Common;
 using LineMessagingProcessor.AspNetCore.Webhooks;
+using LineMessagingProcessor.AspNetCore.Webhooks.Queue;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -35,8 +36,9 @@ public sealed class WebhookDedupeRegistrationTests
         {
             services.AddSingleton(diagnostics); services.AddSingleton<Func<DbConnection>>(() => { connections++; throw new InvalidOperationException("Must not create SQL connection."); });
             services.AddSingleton<IWebhookSignatureVerifier>(new Verifier()); services.AddSingleton<IWebhookEventQueue>(new RejectQueue());
+            services.AddSingleton<IWebhookEnvelopeHandler, StartupOnlyEnvelopeHandler>();
             services.Configure<HostOptions>(options => options.ServicesStartConcurrently = true);
-            services.AddLineWebhook(configuration); services.AddSingleton<IHostedService>(probe);
+            services.AddLineWebhookPipeline(configuration); services.AddSingleton<IHostedService>(probe);
         }).Build();
         var error = await Assert.ThrowsAsync<AggregateException>(() => host.StartAsync());
         var failures = error.Flatten().InnerExceptions;
@@ -53,7 +55,8 @@ public sealed class WebhookDedupeRegistrationTests
         await using var diagnostics = new ExceptionDiagnostics(Path.Combine(WebhookSqlTestDatabase.Root, ".trellis", "tasks", "11-09-p3-04-sql-dedupe", "evidence", "startup", Guid.NewGuid().ToString("N")), outputOptions: new ExceptionOutputOptions(false, false));
         var services = new ServiceCollection(); services.AddSingleton(diagnostics); var connections = 0;
         services.AddSingleton<Func<DbConnection>>(() => { connections++; throw new InvalidOperationException("Must not open SQL during resolution."); });
-        try { services.AddLineWebhook(configuration); configuration["ConnectionStrings:Platform"] = "invalid-private-marker"; }
+        services.AddSingleton<IWebhookEnvelopeHandler, StartupOnlyEnvelopeHandler>();
+        try { services.AddLineWebhookPipeline(configuration); configuration["ConnectionStrings:Platform"] = "invalid-private-marker"; }
         finally { ((IDisposable)configuration).Dispose(); }
         await using var provider = services.BuildServiceProvider();
         Assert.NotNull(provider.GetRequiredService<IWebhookEventDeduplicator>()); Assert.Equal(0, connections);
@@ -69,6 +72,14 @@ public sealed class WebhookDedupeRegistrationTests
         public Task StartAsync(CancellationToken cancellationToken) { Interlocked.Increment(ref Starts); return Task.CompletedTask; }
         /// <summary>無在途資源，不另啟背景工作。</summary>
         public Task StopAsync(CancellationToken cancellationToken) => Task.CompletedTask;
+    }
+
+    /// <summary>只供啟動組合測試滿足產品 handler 插槽；不接事件、不建立背景工作或保存任何狀態。</summary>
+    private sealed class StartupOnlyEnvelopeHandler : IWebhookEnvelopeHandler
+    {
+        /// <summary>本測試不啟動 queue；若呼叫 handler 代表測試越界，立即以固定錯誤失敗。</summary>
+        public ValueTask HandleAsync(WebhookEnvelope envelope, CancellationToken cancellationToken) =>
+            ValueTask.FromException(new InvalidOperationException("Startup-only handler must not receive events."));
     }
 
     /// <summary>只隔離 SQL 啟動驗證，無外部驗簽 I/O 或資料保存，永遠不可用於產品。</summary>

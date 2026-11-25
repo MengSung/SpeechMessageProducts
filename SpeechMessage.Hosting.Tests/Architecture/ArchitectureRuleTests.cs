@@ -1,7 +1,8 @@
 /*
  * 檔案整體說明
  *
- * 目的與定位：以合成相依圖及實際方案保護 R2／R3／R4／R9；每個反例只違反指定邊界，
+ * 目的與定位：以合成相依圖及實際方案保護 R2／R3／R4／R9 與 SharedToProduct；
+ * 每個反例只違反指定邊界，
  * 避免以其他建置失敗冒充架構拒絕。測試不讀任何秘密、不連資料庫；實際專案僅進行有界
  * MSBuild／來源評估，子程序、串流與來源快照由讀取器及當次案例釋放。
  *
@@ -10,6 +11,8 @@
  * - P3-01 黃金工具精確分類並保護反向參考與沙箱隔離，未知或相似名稱仍拒絕。
  * - P5-02 僅 PluginHarness 的 net48 節點取得目標例外；其他工具與相似名稱仍檢查 ProductTarget。
  * - P2-05共用核心向Localization取字合法，反向仍拒絕；雙目標專案不能指向只有 net10 的產品，即使當次建置選到 net10 也不豁免整體雙目標契約。
+ * - F1 依既有 DAG 分辨產品、工具與共用層；未知專案仍視為共用來源並 fail closed。
+ *   合成反例保護分類，真實方案圖驗證共用層的產品相依已移至產品 Hosting。
  * - Extensions、ASP.NET 與 Dataverse 直接套件不得進入共用雙目標；以各套件正反例保護辨識。
  * - P6-06 以合成圖注入九個舊 ASP.NET Core 套件，保護直接及還原相依的拒絕，
  *   並以真實 ChurchReport 的 Debug／Release 評估確認不再使用這些套件；不啟動網站或外部連線。
@@ -708,6 +711,75 @@ public sealed class ArchitectureRuleTests
             item.Rule == "LayerDirection" &&
             item.Project == "SpeechMessage.Localization" &&
             item.Dependency == "SpeechMessage.Payments");
+    }
+
+    /// <summary>
+    /// F1 的依賴方向契約禁止共用專案直接參考產品組件；已分類的產品與部署工具不會
+    /// 被誤認為共用層，測試專案仍可驗證產品。合成圖只持有本案例純值，不建立外部資源。
+    /// </summary>
+    [Fact]
+    public void SharedProject_ReferenceToProduct_IsRejected()
+    {
+        var product = Product("SpeechMessageProducts.GoodShepherd.Core", "net10.0", "net10.0");
+        var shared = Product("LineMessagingProcessor.AspNetCore", "net10.0", "net10.0", product.Name);
+        var productHosting = Product("SpeechMessageProducts.GoodShepherd.Hosting", "net10.0", "net10.0", product.Name);
+        var test = Product("LineMessagingProcessor.AspNetCore.Tests", "net10.0", "net10.0", product.Name) with
+        {
+            IsTest = true
+        };
+
+        Assert.Contains(ArchitectureRules.Validate(Graph(shared, product)), item =>
+            item.Rule == "SharedToProduct" && item.Project == shared.Name && item.Dependency == product.Name);
+        Assert.DoesNotContain(ArchitectureRules.Validate(Graph(productHosting, product)), item =>
+            item.Rule == "SharedToProduct");
+        Assert.DoesNotContain(ArchitectureRules.Validate(Graph(test, product)), item =>
+            item.Rule == "SharedToProduct");
+    }
+
+    /// <summary>
+    /// 依既有 DAG 精確排除 Dynamics Plugin／Workflow 產品元件及 Deployment 工具；
+    /// 未知產品名稱即使採產品命名也仍為未知共用來源，參考已知產品時必須同時報
+    /// SharedToProduct 與 UnknownProject。所有節點為案例區域純值，不載入或執行組件。
+    /// </summary>
+    [Fact]
+    public void SharedToProduct_UsesDagClassificationAndRejectsUnknownSources()
+    {
+        var core = Product("SpeechMessageProducts.GoodShepherd.Core", "net462", "net462;net10.0");
+        var plugin = Product("SpeechMessage.Dynamics.Plugins", "net462", "net462", core.Name);
+        var workflow = Product("SpeechMessage.Dynamics.Workflows", "net462", "net462", core.Name);
+        var deployment = Product("SpeechMessage.Dynamics.Deployment", "net10.0", "net10.0", core.Name);
+        var unknown = Product("SpeechMessageProducts.Unclassified", "net10.0", "net10.0", core.Name);
+
+        Assert.DoesNotContain(ArchitectureRules.Validate(Graph(plugin, core)), item =>
+            item.Rule == "SharedToProduct");
+        Assert.DoesNotContain(ArchitectureRules.Validate(Graph(workflow, core)), item =>
+            item.Rule == "SharedToProduct");
+        Assert.DoesNotContain(ArchitectureRules.Validate(Graph(deployment, core)), item =>
+            item.Rule == "SharedToProduct");
+        Assert.Contains(ArchitectureRules.Validate(Graph(unknown, core)), item =>
+            item.Rule == "SharedToProduct" && item.Project == unknown.Name && item.Dependency == core.Name);
+        Assert.Contains(ArchitectureRules.Validate(Graph(unknown, core)), item =>
+            item.Rule == "UnknownProject" && item.Project == unknown.Name);
+    }
+
+    /// <summary>
+    /// F1 以真正 Release 方案評估出的 ProjectReference 驗證非產品共用層沒有依賴產品層，
+    /// 並確認同一規則引擎未回報違規。診斷會列出精確的共用專案與產品邊；MSBuild
+    /// 評估及來源快照由讀取器有界建立並釋放，測試不載入產品、不讀秘密或連線服務。
+    /// </summary>
+    [Fact]
+    public void Solution_SharedProjects_DoNotReferenceProducts()
+    {
+        var projects = ArchitectureProjectReader.ReadSolution("Release");
+        var invalidEdges = ArchitectureRules.Validate(projects)
+            .Where(item => item.Rule == "SharedToProduct")
+            .Select(item => $"{item.Project} -> {item.Dependency}")
+            .Distinct(StringComparer.Ordinal)
+            .OrderBy(edge => edge, StringComparer.Ordinal)
+            .ToArray();
+
+        Assert.True(invalidEdges.Length == 0,
+            "Shared projects must not reference products: " + string.Join(", ", invalidEdges));
     }
 
     /// <summary>建立單一不可變的合成評估節點，陣列僅屬此案例，不持有 request 或 SDK 型別。</summary>

@@ -5,8 +5,9 @@
 
 主要功能與流程：
 宣告的產品／測試target為net10.0；條件評估後的實際輸出以MSBuild為準。
-專案參考包含Line.Messaging.csproj、LineMessagingProcessor.csproj、SpeechMessage.Hosting.csproj及Localization；
-P2-09b以較低層GoodShepherd.Core唯一編碼器產生QR內容，ZXing.Net只供net10影像處理，不進沙箱。
+專案參考包含Line.Messaging.csproj、LineMessagingProcessor.csproj、SpeechMessage.Hosting.csproj及Localization，
+只提供產品中性的RichMenu目錄、佈建、指派與狀態協調。好牧人專屬QR圖片、發布及D365 adapter
+由SpeechMessageProducts.GoodShepherd.Hosting擁有，不能再由本共用專案參考產品核心。
 不能新增反向相依或將主機狀態引入純核心。
 
 使用邊界與維護：修改前先核對引用此檔的專案、頁面、腳本或CI步驟，保留既有參數、輸出及失敗結束碼。
@@ -25,7 +26,6 @@ P2-09b以較低層GoodShepherd.Core唯一編碼器產生QR內容，ZXing.Net只�
     <PackageReference Include="SixLabors.ImageSharp" />
     <PackageReference Include="SixLabors.ImageSharp.Drawing" />
     <PackageReference Include="ZXing.Net" />
-    <ProjectReference Include="..\SpeechMessageProducts.GoodShepherd.Core\SpeechMessageProducts.GoodShepherd.Core.csproj" />
     <ProjectReference Include="..\SpeechMessage.Hosting\SpeechMessage.Hosting.csproj" />
     <ProjectReference Include="..\SpeechMessage.Localization\SpeechMessage.Localization.csproj" />
     <ProjectReference Include="..\Line.Messaging\Line.Messaging.csproj" />
