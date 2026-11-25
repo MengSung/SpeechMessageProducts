@@ -1,10 +1,10 @@
 /*
 檔案整體說明
 
-目的與定位：作為封存 3.5 與封存 3.3 進度頁歷史回歸測試的共同入口；本檔案例驗證83個工作包的身分、合法狀態、
+目的與定位：作為封存 3.5 與封存 3.3 進度頁的共同守門入口；本檔歷史案例驗證83個工作包的身分、合法狀態、
 各階段計數、單階段資訊摘要與歷史紀錄一致。呈現測試通過不表示產品或實機驗收通過。
 P1-12只有apply、已發布verify、Active key、唯一性與清理證據齊全才能標已完成。
-封存 3.5 的84包與切換契約由 Test-ProgressPage34.cjs 載入；舊頁結果不能代替現行 1.3 頁。
+封存 3.5 的84包與切換契約由 Test-ProgressPage34.cjs 載入；這些歷史測試不代替現行 1.3 頁面的檢查。
 
 主要功能與流程：
 讀取真實DATA與script，在每案例自有的vm／DOM替身執行原頁renderer，再斷言可見內容、
@@ -541,5 +541,5 @@ test('Empty notices hide their region and unknown severity cannot inject markup'
   assert.doesNotMatch(content, /onclick/);
 });
 
-// 保留封存頁全部歷史斷言，同時讓固定入口執行 3.5 歷史契約。
+// 保留封存頁全部歷史斷言，並讓固定入口執行封存 3.5 契約。
 require('./Test-ProgressPage34.cjs');

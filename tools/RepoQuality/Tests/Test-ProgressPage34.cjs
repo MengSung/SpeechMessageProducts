@@ -1,8 +1,8 @@
 /*
 檔案整體說明
 
-目的與定位：保護封存實作計畫 3.5 的 84 個工作包、固定五項完成定義及同階段單一
-資訊卡，並驗證歷史頁面的渲染與狀態統計。歷史斷言由 Test-ProgressPage.cjs 唯讀執行；
+目的與定位：保護已封存實作計畫 3.5 的 84 個工作包、固定五項完成定義及同階段單一
+資訊卡，並驗證其歷史進度頁的渲染與狀態統計。歷史斷言由 Test-ProgressPage.cjs 唯讀執行；
 本檔不代表 3.5 仍是現行計畫，也不把頁面通過當成產品、D365 或 LINE 實機驗收。
 
 主要功能與流程：讀取 HTML 的 DATA 與原始 script，每案建立專有資料副本及 DOM 替身，
@@ -11,7 +11,7 @@
 跳脫案例自帶合成進行卡與待使用者事項，不依賴當前是否有工作或缺少憑證；
 另驗空清單與沒有待辦時的摘要，不會為了滿足測試而變造真實進度。
 
-使用邊界與維護：不修改 DATA、產品設定或歷史證據，不建置、不連網、不讀秘密。
+使用邊界與維護：只讀封存 3.5 頁面及資料，不修改 DATA、產品設定或歷史證據，不建置、不連網、不讀秘密。
 所有 Map、事件與 localStorage 替身屬於單次案例，無背景工作、計時器或需 Dispose
 的資源。新增狀態或欄位須同步檢查真實 schema；不以固定舊測試數限制合法進度。
 */
@@ -200,5 +200,8 @@ test('Plan35_Switch_PreservesStage2AndArchivesOnlyTheOldPlan', () => {
   assert.match(html, /依設計 v3\.4/);
   assert.equal(fs.existsSync(path.join(root, '文件/規劃設計書/實作計畫-3.4')), false);
   assert.ok(fs.existsSync(path.join(root, '文件/規劃設計書/_封存_請勿依據/實作計畫-3.4/00_總覽與執行規則.md')));
-  assert.ok(fs.existsSync(path.join(root, '文件/規劃設計書/_封存_請勿依據/實作計畫-3.5/驗收/P2_推播鏈驗收步驟.md')));
+  const archivedAcceptance = '文件/規劃設計書/_封存_請勿依據/實作計畫-3.5/驗收/P2_推播鏈驗收步驟.md';
+  const activeAcceptance = '文件/規劃設計書/實作計畫-3.5/驗收/P2_推播鏈驗收步驟.md';
+  assert.ok(fs.existsSync(path.join(root, archivedAcceptance)));
+  assert.equal(fs.existsSync(path.join(root, activeAcceptance)), false);
 });
