@@ -1,0 +1,8 @@
+{
+  "schemaVersion": 1,
+  "activePhase": 1,
+  "solution": "SpeechMessageCore",
+  "publisher": "SpeechMessagePublisher",
+  "prefix": "new",
+  "entities": []
+}

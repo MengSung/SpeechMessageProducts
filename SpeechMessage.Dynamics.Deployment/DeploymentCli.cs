@@ -63,7 +63,13 @@ internal static partial class DeploymentCli
     private const string PlanOption = "--plan";
     private const string FromOption = "--from";
     private const string ScenarioOption = "--scenario";
+    private const string SolutionOption = "--solution";
     private static readonly JsonSerializerOptions JsonOptions = new() { WriteIndented = true };
+
+    /// <summary>整台電腦共用的 D365 組織鎖目錄；不以 repo 根或使用者輸入決定隔離邊界。</summary>
+    internal static string GetSharedOrganizationLockDirectory() =>
+        Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData),
+            "SpeechMessage", "d365-locks");
 
     /// <summary>
     /// 解析並執行單一命令。輸出目錄固定位於 artifacts/d365，測試可注入獨立暫存根；
@@ -219,10 +225,11 @@ internal static partial class DeploymentCli
                 command = command with { InputPath = fullInputPath };
             }
 
-            using var writeLock = command.Name is "apply" or "rollback" or "smoke" or "switch" or "shadow"
+            using var writeLock = command.Name is "apply" or "rollback" or "smoke" or "switch" or "shadow" or "ui-import"
                 ? OrganizationWriteLock.Acquire(
                     organizationArtifactRoot,
                     writeLockTimeout ?? TimeSpan.FromMinutes(5),
+                    GetSharedOrganizationLockDirectory(),
                     cancellationToken)
                 : null;
             cancellationToken.ThrowIfCancellationRequested();
@@ -230,13 +237,13 @@ internal static partial class DeploymentCli
             ProductionGuard.VerifyServer(lease.Service, target, cancellationToken);
             if (command.Name == "ui-export")
             {
-                UiSolutionDeployment.Export(lease.Service, repositoryRoot, cancellationToken);
+                UiSolutionDeployment.Export(lease.Service, repositoryRoot, command.Solution!, cancellationToken);
                 output.WriteLine("UI solution export completed.");
                 return 0;
             }
             if (command.Name == "ui-import")
             {
-                UiSolutionDeployment.Import(lease.Service, command.InputPath!, cancellationToken);
+                UiSolutionDeployment.Import(lease.Service, command.InputPath!, command.Solution!, cancellationToken);
                 output.WriteLine("UI solution import and publish completed.");
                 return 0;
             }
@@ -572,6 +579,7 @@ internal static partial class DeploymentCli
         string? organization = null;
         string? inputPath = null;
         string? scenario = null;
+        string? solution = null;
         string? module = null;
         string? target = null;
         string? scenarioRoot = null;
@@ -581,7 +589,7 @@ internal static partial class DeploymentCli
         for (var index = 1; index < args.Length; index++)
         {
             var option = args[index];
-            if (option is not ("--org" or "--plan" or "--from" or "--scenario" or "--module" or "--to" or "--scenario-root" or "--switch-to" or "--plan-sha256") ||
+            if (option is not ("--org" or "--plan" or "--from" or "--scenario" or "--solution" or "--module" or "--to" or "--scenario-root" or "--switch-to" or "--plan-sha256") ||
                 !seen.Add(option) ||
                 index + 1 >= args.Length ||
                 string.IsNullOrWhiteSpace(args[index + 1]) ||
@@ -605,6 +613,9 @@ internal static partial class DeploymentCli
                 case ScenarioOption:
                     scenario = value;
                     break;
+                case SolutionOption:
+                    solution = value;
+                    break;
                 case "--module": module = value; break;
                 case "--to": target = value; break;
                 case "--scenario-root": scenarioRoot = value; break;
@@ -615,7 +626,9 @@ internal static partial class DeploymentCli
 
         if (name is not ("switch" or "shadow") && module is not null ||
             name != "switch" && target is not null ||
-            name != "shadow" && scenarioRoot is not null) return false;
+            name != "shadow" && scenarioRoot is not null ||
+            name is not ("ui-export" or "ui-import") && solution is not null ||
+            solution is not null && !UiSolutionArchive.IsAllowedSolutionName(solution)) return false;
         if (switchTargetState is not null && (name != "plan" || switchTargetState is not ("off" or "shadow" or "live")) ||
             planSha256 is not null && (name != "switch" || planSha256.Length != 64 || !planSha256.All(char.IsAsciiHexDigit))) return false;
         var valid = name switch
@@ -624,8 +637,11 @@ internal static partial class DeploymentCli
                 (seen.Count == 1 || switchTargetState is not null && HasExactlyTwoOptions(seen, OrganizationOption, "--switch-to")),
             "verify" => organization is not null && scenario is null &&
                 (seen.Count == 1 || inputPath is not null && HasExactlyTwoOptions(seen, OrganizationOption, PlanOption)),
-            "export" or "export-legacy" or "ui-export" => organization is not null && inputPath is null && scenario is null && seen.Count == 1,
-            "ui-import" => organization is not null && HasExactlyTwoOptions(seen, OrganizationOption, FromOption) && inputPath is not null && scenario is null,
+            "export" or "export-legacy" => organization is not null && inputPath is null && scenario is null && solution is null && seen.Count == 1,
+            "ui-export" => organization is not null && inputPath is null && scenario is null && solution is not null &&
+                seen.Count == 2 && seen.Contains(SolutionOption),
+            "ui-import" => organization is not null && inputPath is not null && scenario is null && solution is not null &&
+                seen.Count == 3 && seen.Contains(FromOption) && seen.Contains(SolutionOption),
             "apply" => organization is not null && HasExactlyTwoOptions(seen, OrganizationOption, PlanOption) && inputPath is not null && scenario is null,
             "rollback" => organization is not null && HasExactlyTwoOptions(seen, OrganizationOption, FromOption) && inputPath is not null && scenario is null,
             "switch" => organization is not null &&
@@ -642,7 +658,15 @@ internal static partial class DeploymentCli
             return false;
         }
 
-        command = new ParsedCommand(name, organization!, inputPath, scenario) { Module = module, Target = target, ScenarioRoot = scenarioRoot, SwitchTargetState = switchTargetState, PlanSha256 = planSha256 };
+        command = new ParsedCommand(name, organization!, inputPath, scenario)
+        {
+            Solution = solution,
+            Module = module,
+            Target = target,
+            ScenarioRoot = scenarioRoot,
+            SwitchTargetState = switchTargetState,
+            PlanSha256 = planSha256
+        };
         return true;
     }
 
@@ -773,7 +797,7 @@ internal static partial class DeploymentCli
         output.WriteLine("          observe --org <name> --since <UTC-time-Z>");
         output.WriteLine("          workflow-shape --org <test-name> --activity-type <registered-type> (read-only; sanitized output)");
         output.WriteLine("          church-defaults --org <name> [--apply --plan <file> --plan-sha256 <sha256>]");
-        output.WriteLine("          ui-export --org <test-name> | ui-import --org <name> --from <archive>");
+        output.WriteLine("          ui-export --org <test-name> --solution <name> | ui-import --org <name> --solution <name> --from <archive>");
         output.WriteLine("          export-legacy --org <name> (read-only; test stops on enabled legacy, production reports counts)");
         output.WriteLine("          switch --to legacy is retained for history and refused under revision 2; legacy code is never executed.");
         output.WriteLine("          export --org <name> | rollback --org <name> --from <file>");
@@ -791,6 +815,9 @@ internal static partial class DeploymentCli
     /// <summary>只包含已驗證的命令名稱與參數；不保留其他命令列文字。</summary>
     private readonly record struct ParsedCommand(string Name, string Organization, string? InputPath, string? Scenario)
     {
+        /// <summary>固定白名單中的 UI 方案名稱；不由命令列值擴張可發布範圍。</summary>
+        public string? Solution { get; init; }
+
         /// <summary>切換的核定模組，不作資料存取授權。</summary>
         public string? Module { get; init; }
         /// <summary>切換目標；legacy 僅保留歷史語法，修訂 2 由影子入口一律拒絕執行。</summary>

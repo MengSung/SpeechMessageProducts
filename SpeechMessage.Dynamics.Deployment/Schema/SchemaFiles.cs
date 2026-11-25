@@ -66,6 +66,96 @@ internal static class SchemaFiles
         return definition;
     }
 
+    /// <summary>讀取分層檔；允許明確的空白產品層，但仍拒絕所有其他格式與身份錯誤。</summary>
+    private static SchemaDefinition LoadLayer(string path)
+    {
+        var definition = Read<SchemaDefinition>(path, 1_048_576);
+        Validate(definition, allowEmptyEntities: true);
+        return definition;
+    }
+
+    /// <summary>
+    /// 依 organization 的分層清單載入並合併 schema。資料夾層可在同一 layer 分檔延伸實體，
+    /// 不同 layer 重複實體、同名欄位或未列組織一律拒絕；所有檔案先讀成 operation-local
+    /// 候選，完成衝突與 ownership／view 驗證後才回傳完整定義。
+    /// </summary>
+    internal static SchemaDefinition LoadForOrganization(string repositoryRoot, string organization)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(repositoryRoot);
+        ArgumentException.ThrowIfNullOrWhiteSpace(organization);
+        var schemaRoot = Path.GetFullPath(Path.Combine(repositoryRoot, "d365", "schema"));
+        var layerPath = Path.Combine(schemaRoot, "layers.json");
+        var layerManifest = ReadLayerManifest(layerPath);
+        if (!layerManifest.Organizations.TryGetValue(organization, out var layers) || layers.Count == 0)
+            throw new InvalidDataException("Organization has no approved schema layers.");
+
+        var definitions = new List<(string Layer, bool Folder, SchemaDefinition Definition)>();
+        foreach (var layer in layers)
+        {
+            if (!IsLayerName(layer)) throw new InvalidDataException("Schema layer name is invalid.");
+            var folder = Path.Combine(schemaRoot, layer);
+            var folderFiles = Directory.Exists(folder)
+                ? Directory.EnumerateFiles(folder, "*.schema.json", SearchOption.TopDirectoryOnly)
+                    .OrderBy(path => path, StringComparer.OrdinalIgnoreCase).ToArray()
+                : Array.Empty<string>();
+            if (folderFiles.Length != 0)
+            {
+                foreach (var file in folderFiles)
+                    definitions.Add((layer, true, LoadLayer(file)));
+                continue;
+            }
+
+            var filePath = Path.Combine(schemaRoot, layer + ".schema.json");
+            if (!File.Exists(filePath))
+                throw new InvalidDataException("Approved schema layer is missing.");
+            definitions.Add((layer, false, LoadLayer(filePath)));
+        }
+
+        if (definitions.Count == 0) throw new InvalidDataException("Schema layer composition is empty.");
+        var first = definitions[0].Definition;
+        var entities = new List<SchemaEntity>();
+        var entityLayers = new Dictionary<string, string>(StringComparer.Ordinal);
+        var views = new List<SchemaView>();
+        foreach (var item in definitions)
+        {
+            var definition = item.Definition;
+            if (definition.SchemaVersion != first.SchemaVersion || definition.ActivePhase != first.ActivePhase ||
+                definition.Solution != first.Solution || definition.Publisher != first.Publisher ||
+                definition.Prefix != first.Prefix)
+                throw new InvalidDataException("Schema layers have incompatible identities.");
+
+            foreach (var entity in definition.Entities)
+            {
+                var existingIndex = entities.FindIndex(candidate => candidate.LogicalName == entity.LogicalName);
+                if (existingIndex < 0)
+                {
+                    entityLayers.Add(entity.LogicalName, item.Layer);
+                    entities.Add(entity);
+                }
+                else if (!item.Folder || !string.Equals(entityLayers[entity.LogicalName], item.Layer, StringComparison.Ordinal))
+                {
+                    throw new InvalidDataException("Schema entity is duplicated across layers.");
+                }
+                else
+                {
+                    entities[existingIndex] = MergeFolderEntity(entities[existingIndex], entity);
+                }
+            }
+
+            if (layerManifest.Views.TryGetValue(item.Layer, out var layerViews))
+                views.AddRange(layerViews);
+        }
+
+        var merged = first with
+        {
+            Entities = Array.AsReadOnly(entities.ToArray()),
+            Views = Array.AsReadOnly(views.ToArray())
+        };
+        Validate(merged);
+        ValidateLayeredContract(merged, organization);
+        return merged;
+    }
+
     /// <summary>讀取有界plan，不接受未知或重複屬性；語意與hash仍須由apply依即時server重驗。</summary>
     internal static SchemaPlan ReadPlan(string path) => Read<SchemaPlan>(path, 4 * 1024 * 1024);
 
@@ -176,12 +266,16 @@ internal static class SchemaFiles
     }
 
     /// <summary>驗全部實體與欄位後才交規劃器；P8只額外允許兩張舊表的指定optional lookup，未知表或欄仍拒絕且不回顯輸入。</summary>
-    internal static void Validate(SchemaDefinition definition)
+    internal static void Validate(SchemaDefinition definition) => Validate(definition, allowEmptyEntities: false);
+
+    /// <summary>共用 schema 驗證；空實體清單只可由分層的明確空產品層使用。</summary>
+    private static void Validate(SchemaDefinition definition, bool allowEmptyEntities)
     {
         ArgumentNullException.ThrowIfNull(definition);
         if (definition.SchemaVersion != 1 || definition.ActivePhase is < 1 or > 8 || definition.Solution != "SpeechMessageCore"
             || definition.Publisher != "SpeechMessagePublisher" || definition.Prefix != "new"
-            || definition.Entities is null || definition.Entities.Count is < 1 or > 32)
+            || definition.Entities is null || definition.Entities.Count > 32 ||
+            !allowEmptyEntities && definition.Entities.Count < 1)
             throw new InvalidDataException("Unsupported schema identity or budget.");
         var entities = new HashSet<string>(StringComparer.Ordinal);
         foreach (var entity in definition.Entities)
@@ -215,6 +309,135 @@ internal static class SchemaFiles
         foreach (var field in definition.Entities.SelectMany(entity => entity.Fields).Where(field => field.Type == "lookup"))
             if (!entities.Contains(field.Target)) throw new InvalidDataException("Unknown schema lookup target.");
     }
+
+    /// <summary>分層組合只允許同一 folder 檔案延伸欄位／鍵，metadata 身份不因最後一檔覆蓋。</summary>
+    private static SchemaEntity MergeFolderEntity(SchemaEntity first, SchemaEntity second)
+    {
+        if (first.IsNew != second.IsNew || first.DisplayName != second.DisplayName ||
+            first.PluralName != second.PluralName || first.PrimaryName != second.PrimaryName ||
+            first.Audit != second.Audit || first.OwnershipType != second.OwnershipType ||
+            first.OptimisticConcurrency != second.OptimisticConcurrency)
+            throw new InvalidDataException("Schema entity metadata conflicts within a layer folder.");
+        var fields = first.Fields.Concat(second.Fields).ToArray();
+        if (fields.Select(field => field.LogicalName).Distinct(StringComparer.Ordinal).Count() != fields.Length)
+            throw new InvalidDataException("Schema attribute is duplicated within a layer folder.");
+        var keys = first.Keys.Concat(second.Keys).ToArray();
+        if (keys.Select(key => key.LogicalName).Distinct(StringComparer.Ordinal).Count() != keys.Length)
+            throw new InvalidDataException("Schema key is duplicated within a layer folder.");
+        return first with
+        {
+            Fields = Array.AsReadOnly(fields),
+            Keys = Array.AsReadOnly(keys)
+        };
+    }
+
+    /// <summary>分層專用 ownership 與檢視契約；legacy goodshepherdback 保留舊 nullable ownership 以維持回歸 hash。</summary>
+    private static void ValidateLayeredContract(SchemaDefinition definition, string organization)
+    {
+        foreach (var entity in definition.Entities.Where(entity => entity.IsNew))
+        {
+            if (organization != "goodshepherdback" &&
+                entity.OwnershipType is not ("UserOwned" or "OrganizationOwned"))
+                throw new InvalidDataException("New schema entity requires an explicit ownership type.");
+            if (entity.LogicalName == "new_localizedtext" && entity.OwnershipType == "OrganizationOwned" &&
+                entity.Fields.Any(field => field.Type == "lookup" && field.Target == "account"))
+                throw new InvalidDataException("Tenant business entity cannot be organization-owned.");
+        }
+
+        ValidateViews(definition);
+    }
+
+    /// <summary>檢查 view 的實體／欄位白名單與每個實體唯一預設公用檢視。</summary>
+    private static void ValidateViews(SchemaDefinition definition)
+    {
+        var entities = definition.Entities.ToDictionary(entity => entity.LogicalName, StringComparer.Ordinal);
+        var defaults = new HashSet<string>(StringComparer.Ordinal);
+        foreach (var view in definition.Views)
+        {
+            if (view is null || !ValidViewText(view.Entity, 128) || !ValidViewText(view.Name, 300) ||
+                view.Columns is null || view.Columns.Count is < 1 or > 64 ||
+                view.Filter is null || view.Filter.Count > 64 || view.Order is null || view.Order.Count > 64)
+                throw new InvalidDataException("Schema view definition is invalid.");
+            if (!entities.TryGetValue(view.Entity, out var entity))
+                throw new InvalidDataException("Schema view references an unknown entity.");
+            var fields = entity.Fields.Select(field => field.LogicalName).ToHashSet(StringComparer.Ordinal);
+            if (view.Columns.Any(column => !ValidName(column) || !fields.Contains(column)) ||
+                view.Columns.Distinct(StringComparer.Ordinal).Count() != view.Columns.Count ||
+                view.Order.Any(column => !ValidName(column) || !fields.Contains(column)) ||
+                view.Order.Distinct(StringComparer.Ordinal).Count() != view.Order.Count ||
+                view.Filter.Any(condition => !ValidName(condition)))
+                throw new InvalidDataException("Schema view contains an unknown or unsafe attribute.");
+            if (view.IsDefault && !defaults.Add(view.Entity))
+                throw new InvalidDataException("An entity has more than one default public view.");
+        }
+    }
+
+    /// <summary>公開檢視名稱與固定條件只允許可見字元，避免未驗證本文進入 FetchXml。</summary>
+    private static bool ValidViewText(string? value, int maximum) =>
+        !string.IsNullOrWhiteSpace(value) && value.Length <= maximum && !value.Any(char.IsControl);
+
+    /// <summary>讀取 layers.json 的嚴格純值描述，不忽略未知欄位或重複 JSON 屬性。</summary>
+    private static LayerManifest ReadLayerManifest(string path)
+    {
+        using var document = ReadDocument(path, 1_048_576);
+        var root = document.RootElement;
+        RejectDuplicateProperties(root);
+        if (root.ValueKind != JsonValueKind.Object || root.EnumerateObject()
+                .Any(property => property.Name is not ("schemaVersion" or "organizations" or "views")))
+            throw new InvalidDataException("Schema layer manifest is invalid.");
+        if (!root.TryGetProperty("schemaVersion", out var version) || version.GetInt32() != 1 ||
+            !root.TryGetProperty("organizations", out var organizations) ||
+            organizations.ValueKind != JsonValueKind.Object)
+            throw new InvalidDataException("Schema layer manifest is invalid.");
+
+        var result = new Dictionary<string, IReadOnlyList<string>>(StringComparer.Ordinal);
+        foreach (var item in organizations.EnumerateObject())
+        {
+            if (item.Value.ValueKind != JsonValueKind.Array || !item.Value.EnumerateArray().Any())
+                throw new InvalidDataException("Schema organization layer list is invalid.");
+            var names = item.Value.EnumerateArray().Select(value =>
+                value.ValueKind == JsonValueKind.String && value.GetString() is { } name ? name : throw new InvalidDataException("Schema layer name is invalid.")).ToArray();
+            if (names.Distinct(StringComparer.Ordinal).Count() != names.Length || names.Any(name => !IsLayerName(name)))
+                throw new InvalidDataException("Schema layer list contains duplicates or invalid names.");
+            if (!result.TryAdd(item.Name, Array.AsReadOnly(names)))
+                throw new InvalidDataException("Schema organization is duplicated.");
+        }
+
+        var views = new Dictionary<string, IReadOnlyList<SchemaView>>(StringComparer.Ordinal);
+        if (root.TryGetProperty("views", out var rawViews))
+        {
+            if (rawViews.ValueKind != JsonValueKind.Object) throw new InvalidDataException("Schema views are invalid.");
+            foreach (var item in rawViews.EnumerateObject())
+            {
+                if (!IsLayerName(item.Name) || item.Value.ValueKind != JsonValueKind.Array)
+                    throw new InvalidDataException("Schema view layer is invalid.");
+                var parsed = item.Value.Deserialize<SchemaView[]>(Json) ?? throw new InvalidDataException("Schema views are invalid.");
+                views.Add(item.Name, Array.AsReadOnly(parsed));
+            }
+        }
+        return new LayerManifest(result, views);
+    }
+
+    /// <summary>取得有界 JsonDocument；由呼叫端 using 擁有 document，避免 reader 跨方法存活。</summary>
+    private static JsonDocument ReadDocument(string path, long maximumBytes)
+    {
+        var file = new FileInfo(path);
+        if (!file.Exists || file.Length <= 0 || file.Length > maximumBytes ||
+            (file.Attributes & FileAttributes.ReparsePoint) != 0)
+            throw new InvalidDataException("Schema layer manifest is unavailable.");
+        using var stream = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read);
+        if (stream.Length <= 0 || stream.Length > maximumBytes) throw new InvalidDataException("Schema layer manifest exceeds its budget.");
+        return JsonDocument.Parse(stream, new JsonDocumentOptions { MaxDepth = 32 });
+    }
+
+    /// <summary>固定 layer 名稱只能是檔名／資料夾名，不能以路徑穿越改變讀取範圍。</summary>
+    private static bool IsLayerName(string value) =>
+        !string.IsNullOrWhiteSpace(value) && value.Length <= 64 &&
+        value.All(character => char.IsAsciiLetterOrDigit(character) || character is '-' or '_');
+
+    private sealed record LayerManifest(
+        IReadOnlyDictionary<string, IReadOnlyList<string>> Organizations,
+        IReadOnlyDictionary<string, IReadOnlyList<SchemaView>> Views);
 
     /// <summary>既有表延伸採逐表逐欄白名單；奉獻實體只接受一個phase 8 optional lookup，不允許順帶管理其他舊欄位。</summary>
     private static bool ValidExistingEntity(SchemaEntity entity)

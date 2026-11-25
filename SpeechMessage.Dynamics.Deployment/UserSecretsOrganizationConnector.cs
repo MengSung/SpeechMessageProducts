@@ -81,6 +81,12 @@ internal sealed class UserSecretsOrganizationConnector : IOrganizationConnector
         OrganizationDefinition target;
         try { target = catalog.Get(organization); }
         catch (InvalidDataException) { throw new InvalidOperationException("Target organization is not allowlisted."); }
+        if (target.Kind == "test" && string.IsNullOrEmpty(target.Host))
+        {
+            // 空 host 是尚未核定端點，不是可連線的萬用值。先拒絕，避免讀取
+            // User Secrets、建立 HttpClient 或讓錯誤設定影響其他組織。
+            throw new InvalidOperationException("Organization endpoint is pending approval.");
+        }
         var prefix = "Deployment:Organizations:" + target.Name + ":";
         var organizationUrl = configuration[prefix + "OrganizationUrl"];
         var username = configuration[prefix + "Username"];
@@ -116,9 +122,12 @@ internal sealed class UserSecretsOrganizationConnector : IOrganizationConnector
     /// <returns>URL 完全符合核定端點時為 true。</returns>
     private static bool IsAllowedEndpoint(string? value, string host)
     {
+        var expectedHost = Uri.TryCreate(host, UriKind.Absolute, out var expected)
+            ? expected.IdnHost
+            : host;
         return Uri.TryCreate(value, UriKind.Absolute, out var uri) &&
             string.Equals(uri.Scheme, Uri.UriSchemeHttps, StringComparison.OrdinalIgnoreCase) &&
-            string.Equals(uri.IdnHost, host, StringComparison.OrdinalIgnoreCase) &&
+            string.Equals(uri.IdnHost, expectedHost, StringComparison.OrdinalIgnoreCase) &&
             string.Equals(uri.AbsolutePath, AllowedPath, StringComparison.OrdinalIgnoreCase) &&
             uri.IsDefaultPort &&
             string.IsNullOrEmpty(uri.Query) &&

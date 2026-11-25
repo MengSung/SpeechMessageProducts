@@ -11,6 +11,7 @@ using System.IO.Compression;
 using System.Linq;
 using System.Text;
 using System.Xml.Linq;
+using Microsoft.Crm.Sdk.Messages;
 using Microsoft.Xrm.Sdk;
 using Microsoft.Xrm.Sdk.Query;
 using Xunit;
@@ -23,7 +24,15 @@ public sealed class UiSolutionArchiveTests
     private static readonly string[] NonWhitelistedImportArguments =
         { "ui-import", "--org", "production", "--from", "outside.zip" };
     private static readonly string[] ExpectedSdkRequests =
-        { "ExportSolution", "ImportSolution", "PublishAllXml" };
+    {
+        "ExportSolution",
+        "RetrieveUnpublishedMultiple",
+        "RetrieveUnpublishedMultiple",
+        "ImportSolution",
+        "RetrieveUnpublishedMultiple",
+        "RetrieveUnpublishedMultiple",
+        "PublishXml"
+    };
 
     /// <summary>共用 account／contact 表單及其根參照必須移除；相同集合中的檢視及本產品實體表單必須完整保留。</summary>
     [Fact]
@@ -120,16 +129,42 @@ public sealed class UiSolutionArchiveTests
         try
         {
             var service = new UiService(Archive());
-            UiSolutionDeployment.Export(service, root, default);
+            UiSolutionDeployment.Export(service, root, "SpeechMessageUi", default);
             var exported = Path.Combine(root, "d365", "solutions", "SpeechMessageUi", "solution.xml");
             Assert.True(File.Exists(exported));
 
             var input = Path.Combine(root, "input.zip");
             File.WriteAllBytes(input, Archive());
-            UiSolutionDeployment.Import(service, input, default);
+            UiSolutionDeployment.Import(service, input, "SpeechMessageUi", default);
             Assert.Equal(ExpectedSdkRequests, service.Requests);
             Assert.NotNull(service.ImportedArchive);
             Assert.Equal("SpeechMessageUi", service.ImportedArchive!.Value.SolutionName);
+        }
+        finally
+        {
+            if (Directory.Exists(root)) Directory.Delete(root, recursive: true);
+        }
+    }
+
+    /// <summary>匯入前發現計畫外未發布元件即停止；不得先匯入再用發布範圍檢查掩蓋衝突。</summary>
+    [Fact]
+    public void UiImport_UnplannedPendingComponent_RefusedBeforeImport()
+    {
+        var root = Path.Combine(Path.GetTempPath(), "smv-ui-pending-" + Guid.NewGuid().ToString("N"));
+        Directory.CreateDirectory(root);
+        try
+        {
+            var service = new UiService(
+                Archive(),
+                new[] { Guid.Parse("90000000-0000-0000-0000-000000000009") });
+            var input = Path.Combine(root, "input.zip");
+            File.WriteAllBytes(input, Archive());
+
+            var error = Assert.Throws<InvalidDataException>(() =>
+                UiSolutionDeployment.Import(service, input, "SpeechMessageUi", default));
+
+            Assert.Contains("90000000-0000-0000-0000-000000000009", error.Message, StringComparison.OrdinalIgnoreCase);
+            Assert.DoesNotContain("ImportSolution", service.Requests);
         }
         finally
         {
@@ -168,7 +203,7 @@ public sealed class UiSolutionArchiveTests
     }
 
     /// <summary>只支援本包的三個 SDK 訊息，意外資料存取立即失敗；所有 archive bytes 只留本案例。</summary>
-    private sealed class UiService(byte[] exportArchive) : IOrganizationService
+    private sealed class UiService(byte[] exportArchive, IReadOnlyList<Guid>? pendingIds = null) : IOrganizationService
     {
         internal List<string> Requests { get; } = new();
         internal (string SolutionName, byte[] Archive)? ImportedArchive { get; private set; }
@@ -179,13 +214,24 @@ public sealed class UiSolutionArchiveTests
             Requests.Add(request.RequestName);
             if (request.RequestName == "ExportSolution")
                 return new OrganizationResponse { Results = { ["ExportSolutionFile"] = exportArchive } };
+            if (request.RequestName == "RetrieveUnpublishedMultiple")
+            {
+                var query = Assert.IsType<QueryExpression>(request["Query"]);
+                var rows = query.EntityName == "systemform"
+                    ? (pendingIds ?? Array.Empty<Guid>()).Select(id => new Entity("systemform", id)).ToArray()
+                    : Array.Empty<Entity>();
+                return new RetrieveUnpublishedMultipleResponse
+                {
+                    Results = { ["EntityCollection"] = new EntityCollection(rows) }
+                };
+            }
             if (request.RequestName == "ImportSolution")
             {
                 var bytes = Assert.IsType<byte[]>(request["CustomizationFile"]);
                 ImportedArchive = ("SpeechMessageUi", bytes);
                 return new OrganizationResponse();
             }
-            if (request.RequestName == "PublishAllXml")
+            if (request.RequestName == "PublishXml")
                 return new OrganizationResponse();
             throw new NotSupportedException();
         }

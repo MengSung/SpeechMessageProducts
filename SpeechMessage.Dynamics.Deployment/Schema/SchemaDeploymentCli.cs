@@ -65,7 +65,11 @@ internal static class SchemaDeploymentCli
                 acceptanceText = SchemaFiles.ReadAcceptanceText(fixture);
             }
             using var writeLock = command is "apply" or "smoke" or "complete-created-audit"
-                ? OrganizationWriteLock.Acquire(organizationArtifacts, writeLockTimeout ?? TimeSpan.FromMinutes(5), cancellationToken) : null;
+                ? OrganizationWriteLock.Acquire(
+                    organizationArtifacts,
+                    writeLockTimeout ?? TimeSpan.FromMinutes(5),
+                    DeploymentCli.GetSharedOrganizationLockDirectory(),
+                    cancellationToken) : null;
             using var lease = connector.Connect(target.Name);
             ProductionGuard.VerifyServer(lease.Service, target, cancellationToken);
             var destination = command == "export-metadata"

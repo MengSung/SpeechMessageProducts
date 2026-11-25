@@ -209,6 +209,14 @@ public sealed class SchemaPlannerTests
     public void Plan_ExistingConflict_FailsClosed(string fault)
     {
         var definition = Definition();
+        if (fault == "ownership")
+        {
+            var entitiesWithOwnership = definition.Entities.Select(entity =>
+                entity.LogicalName == "new_localizedtext"
+                    ? entity with { OwnershipType = "OrganizationOwned" }
+                    : entity).ToArray();
+            definition = definition with { Entities = entitiesWithOwnership };
+        }
         var snapshot = CompleteSnapshot(definition);
         var entities = snapshot.Entities.ToArray();
         var targetName = fault is "ownership" or "audit" or "field-audit" ? "new_localizedtext"

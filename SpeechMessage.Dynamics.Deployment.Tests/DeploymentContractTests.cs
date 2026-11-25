@@ -245,7 +245,13 @@ public sealed class DeploymentContractTests
 
             var disabled = f.Manifest with
             {
-                Steps = new[] { f.Manifest.Steps[0] with { EnabledByOrganization = new Dictionary<string, bool>(StringComparer.Ordinal) } }
+                Steps = new[] { f.Manifest.Steps[0] with
+                {
+                    EnabledByOrganization = new Dictionary<string, bool>(StringComparer.Ordinal)
+                    {
+                        [Fixture.Organization] = false
+                    }
+                } }
             };
             File.WriteAllText(manifestPath, System.Text.Json.JsonSerializer.Serialize(new RegistrationDocument { Assemblies = new[] { disabled } }, RegistrationManifestLoader.Json));
             Assert.Equal(0, DeploymentCli.Run(
@@ -523,7 +529,7 @@ public sealed class DeploymentContractTests
     [InlineData(false)] [InlineData(true)]
     public void Apply_NewStep_DefaultDisabledUnlessManifestEnables(bool enabled)
     {
-        using var f = new Fixture(enabled: enabled);
+        using var f = enabled ? new Fixture(enabled: true) : new Fixture();
         f.Engine.Apply(f.Plan(), f.Manifest, f.Image);
         var step = Assert.Single(f.Service.Rows.Where(x => x.LogicalName == "sdkmessageprocessingstep"));
         Assert.Equal(enabled ? 0 : 1, step.GetAttributeValue<OptionSetValue>("statecode").Value);
@@ -599,7 +605,16 @@ public sealed class DeploymentContractTests
         using var f = new Fixture(enabled: true);
         f.Engine.Apply(f.Plan(), f.Manifest, f.Image);
         var changedImage = f.Image with { Content = Convert.ToBase64String(new byte[] { 9, 8, 7 }), Sha256 = Convert.ToHexString(SHA256.HashData(new byte[] { 9, 8, 7 })) };
-        var changed = f.Manifest with { Steps = new[] { f.Manifest.Steps[0] with { EnabledByOrganization = new Dictionary<string, bool>(StringComparer.Ordinal) } } };
+        var changed = f.Manifest with
+        {
+            Steps = new[] { f.Manifest.Steps[0] with
+            {
+                EnabledByOrganization = new Dictionary<string, bool>(StringComparer.Ordinal)
+                {
+                    [Fixture.Organization] = false
+                }
+            } }
+        };
         var plan = f.Engine.Plan(changed, changedImage, Fixture.Organization);
         var backup = f.Engine.Apply(plan, changed, changedImage);
         f.Engine.Rollback(backup, f.Manifest, Fixture.Organization);
@@ -1416,8 +1431,15 @@ internal sealed class Fixture : IDisposable
         var step = new StepRegistration {
             UnsecureConfig = push ? "{\"mode\":\"push\",\"culture\":\"zh-TW\",\"lineUserId\":\"${secret:TestLineUserId}\"}" : "{\"mode\":\"trace\",\"culture\":\"zh-TW\"}",
             SecureConfig = push ? "${secret:TestChannelToken}" : "",
-            EnabledByOrganization = enabled ? new Dictionary<string, bool>(StringComparer.Ordinal) { [Organization] = true } : new Dictionary<string, bool>(StringComparer.Ordinal)
+            EnabledByOrganization = new Dictionary<string, bool>(StringComparer.Ordinal)
+            {
+                [Organization] = true
+            }
         };
+        if (!enabled)
+        {
+            step = step with { EnabledByOrganization = new Dictionary<string, bool>(StringComparer.Ordinal) };
+        }
         Manifest = new RegistrationManifest { Steps = new[] { step } };
         Engine = new DeploymentEngine(Service, Root, Clock, _ => { SecretReads++; return SecretValue; });
         Service.Seed(new Entity("sdkmessage", Guid.NewGuid()) { ["name"] = "Create" });

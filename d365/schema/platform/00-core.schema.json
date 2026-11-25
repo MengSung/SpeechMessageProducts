@@ -1,0 +1,167 @@
+{
+  "schemaVersion": 1,
+  "activePhase": 1,
+  "solution": "SpeechMessageCore",
+  "publisher": "SpeechMessagePublisher",
+  "prefix": "new",
+  "entities": [
+    {
+      "logicalName": "account",
+      "displayName": "教會",
+      "pluralName": "教會",
+      "isNew": false,
+      "audit": false,
+      "fields": [
+        {
+          "logicalName": "new_istenant",
+          "displayName": "租戶",
+          "type": "choice",
+          "phase": 1,
+          "options": [
+            { "value": 100000000, "label": "否" },
+            { "value": 100000001, "label": "是" }
+          ]
+        },
+        {
+          "logicalName": "new_tenantcode",
+          "displayName": "租戶代碼",
+          "type": "string",
+          "phase": 1,
+          "maxLength": 64
+        },
+        {
+          "logicalName": "new_istesttenant",
+          "displayName": "測試租戶",
+          "type": "choice",
+          "phase": 1,
+          "options": [
+            { "value": 100000000, "label": "否" },
+            { "value": 100000001, "label": "是" }
+          ]
+        },
+        {
+          "logicalName": "new_timezone",
+          "displayName": "時區",
+          "type": "string",
+          "phase": 1,
+          "maxLength": 64
+        },
+        {
+          "logicalName": "new_logourl",
+          "displayName": "標誌網址",
+          "type": "string",
+          "phase": 1,
+          "maxLength": 400
+        },
+        {
+          "logicalName": "new_themecolor",
+          "displayName": "主題色",
+          "type": "string",
+          "phase": 1,
+          "maxLength": 16
+        }
+      ],
+      "keys": [
+        {
+          "logicalName": "new_ak_tenant",
+          "attributes": [
+            "new_tenantcode"
+          ]
+        }
+      ]
+    },
+    {
+      "logicalName": "contact",
+      "displayName": "會友",
+      "pluralName": "會友",
+      "isNew": false,
+      "audit": false,
+      "fields": [
+        {
+          "logicalName": "new_lineid",
+          "displayName": "LINE 使用者識別",
+          "type": "string",
+          "phase": 1,
+          "maxLength": 128
+        }
+      ],
+      "keys": []
+    },
+    {
+      "logicalName": "new_linechannel",
+      "displayName": "LINE 頻道",
+      "pluralName": "LINE 頻道",
+      "isNew": true,
+      "ownershipType": "OrganizationOwned",
+      "audit": false,
+      "primaryName": "new_name",
+      "fields": [
+        {
+          "logicalName": "new_name",
+          "displayName": "名稱",
+          "type": "string",
+          "phase": 1,
+          "maxLength": 100,
+          "required": true
+        }
+      ],
+      "keys": []
+    },
+    {
+      "logicalName": "new_outboundtask",
+      "displayName": "送出工作",
+      "pluralName": "送出工作",
+      "isNew": true,
+      "ownershipType": "OrganizationOwned",
+      "audit": false,
+      "primaryName": "new_name",
+      "fields": [
+        {
+          "logicalName": "new_name",
+          "displayName": "名稱",
+          "type": "string",
+          "phase": 1,
+          "maxLength": 300,
+          "required": true
+        },
+        {
+          "logicalName": "new_accountid",
+          "displayName": "租戶",
+          "type": "lookup",
+          "phase": 1,
+          "target": "account",
+          "required": true
+        }
+      ],
+      "keys": []
+    },
+    {
+      "logicalName": "new_localizedtext",
+      "displayName": "租戶文字覆寫",
+      "pluralName": "租戶文字覆寫",
+      "isNew": true,
+      "ownershipType": "UserOwned",
+      "audit": true,
+      "primaryName": "new_name",
+      "fields": [
+        {
+          "logicalName": "new_name",
+          "displayName": "名稱",
+          "type": "string",
+          "phase": 1,
+          "maxLength": 300,
+          "required": true
+        },
+        {
+          "logicalName": "new_accountid",
+          "displayName": "租戶",
+          "type": "lookup",
+          "phase": 1,
+          "target": "account",
+          "required": true
+        }
+      ],
+      "keys": []
+    }
+  ]
+}

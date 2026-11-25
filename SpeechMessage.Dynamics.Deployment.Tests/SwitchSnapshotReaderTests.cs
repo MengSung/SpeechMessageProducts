@@ -33,7 +33,7 @@ public sealed class SwitchSnapshotReaderTests
         var workflow = new Entity("workflow", Guid.NewGuid()) { ["type"] = new OptionSetValue(1), ["statecode"] = new OptionSetValue(0),
             ["xaml"] = "<Activity><Node AssemblyQualifiedName=\"Old.Activity, Old.Assembly\"/></Activity>" };
         f.Service.Seed(workflow);
-        var definition = OrganizationCatalog.LoadDefault().TestOrganization;
+        var definition = OrganizationCatalog.LoadDefault().GetTest("goodshepherdback");
         var document = new RegistrationDocument { Assemblies = new[] { manifest } };
         var first = SwitchSnapshotReader.Read(sdk, document, new[] { f.Image }, definition, "manifest", "catalog", f.Root, OrganizationCatalog.LoadDefault(), CancellationToken.None);
         Assert.Equal(step.Id, Assert.Single(first.Steps).Id);
@@ -52,7 +52,7 @@ public sealed class SwitchSnapshotReaderTests
         f.Engine.Apply(f.Engine.Plan(manifest, f.Image, Fixture.Organization), manifest, f.Image);
         f.Service.Rows.Single(row => row.LogicalName == "sdkmessageprocessingstep")["configuration"] = "{\"mode\":\"Shadow\",\"unknown\":\"SYNTHETIC-SECRET\"}";
         Assert.Throws<InvalidDataException>(() => SwitchSnapshotReader.Read(new ReadService(f.Service), new RegistrationDocument { Assemblies = new[] { manifest } },
-            new[] { f.Image }, OrganizationCatalog.LoadDefault().TestOrganization, "manifest", "catalog", f.Root, OrganizationCatalog.LoadDefault(), CancellationToken.None));
+            new[] { f.Image }, OrganizationCatalog.LoadDefault().GetTest("goodshepherdback"), "manifest", "catalog", f.Root, OrganizationCatalog.LoadDefault(), CancellationToken.None));
     }
 
     /// <summary>只讀轉接：WhoAmI提供合成ID，plugintype的activity欄位由此案例明確補false，其他行為沿原SDK。</summary>

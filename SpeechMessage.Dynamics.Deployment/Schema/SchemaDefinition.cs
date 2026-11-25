@@ -31,6 +31,8 @@ internal sealed record SchemaDefinition
     public string Prefix { get; init; } = "";
     /// <summary>完整操作候選，最多32表；只在本命令存活，不跨命令快取或原地發布。</summary>
     public IReadOnlyList<SchemaEntity> Entities { get; init; } = Array.Empty<SchemaEntity>();
+    /// <summary>同一分層清單載入的公用檢視定義；不含SDK savedquery或組織資料列。</summary>
+    public IReadOnlyList<SchemaView> Views { get; init; } = Array.Empty<SchemaView>();
 }
 
 /// <summary>一個受管實體的純定義；IsNew才驗證owner/audit/concurrency，不強制改既有account/contact政策。</summary>
@@ -48,6 +50,11 @@ internal sealed record SchemaEntity
     public string PrimaryName { get; init; } = "";
     /// <summary>新表要求的稽核狀態；既有不相容時衝突，不自動UpdateEntity。</summary>
     public bool Audit { get; init; }
+    /// <summary>
+    /// 新實體建立時一次決定的 Dataverse 擁有權；legacy schema 可為 null 以維持舊 canonical hash，
+    /// 但分層組合載入的新實體會在發布前拒絕缺漏。
+    /// </summary>
+    public string? OwnershipType { get; init; }
     /// <summary>有值才要求明確樂觀並行政策；SDK此回應欄唯讀，新自訂表使用server預設true並於建立後核對，不能假造setter。</summary>
     public bool? OptimisticConcurrency { get; init; }
     /// <summary>最多128欄的單次候選；phase=1才參與本階段寫入。</summary>
@@ -95,4 +102,21 @@ internal sealed record SchemaKey
     public string LogicalName { get; init; } = "";
     /// <summary>唯一鍵欄位順序，皆須在同表P1欄位存在；不得以臨時request token代替正式欄位。</summary>
     public IReadOnlyList<string> Attributes { get; init; } = Array.Empty<string>();
+}
+
+/// <summary>由 layer 清單產生的公用 savedquery 候選；特殊 QueryType 只能更新既有元件。</summary>
+internal sealed record SchemaView
+{
+    /// <summary>正式實體邏輯名稱，不接受顯示名稱當作資料來源。</summary>
+    public string Entity { get; init; } = "";
+    /// <summary>公用檢視名稱；只作顯示與穩定清單比對。</summary>
+    public string Name { get; init; } = "";
+    /// <summary>FetchXml／LayoutXml 要顯示的正式欄位。</summary>
+    public IReadOnlyList<string> Columns { get; init; } = Array.Empty<string>();
+    /// <summary>固定文字條件片段；值由部署器驗證後才進 XML。</summary>
+    public IReadOnlyList<string> Filter { get; init; } = Array.Empty<string>();
+    /// <summary>固定排序欄位名稱，不能以清單位置作身份。</summary>
+    public IReadOnlyList<string> Order { get; init; } = Array.Empty<string>();
+    /// <summary>是否為該實體唯一預設公用檢視。</summary>
+    public bool IsDefault { get; init; }
 }

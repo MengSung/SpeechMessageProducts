@@ -7,6 +7,27 @@
       "host": "goodshepherdback.speechmessage.com.tw",
       "switchState": "off",
       "tierOverrides": []
+    },
+    {
+      "name": "goodshepherd20",
+      "kind": "test",
+      "host": "",
+      "switchState": "off",
+      "tierOverrides": []
+    },
+    {
+      "name": "construction",
+      "kind": "test",
+      "host": "",
+      "switchState": "off",
+      "tierOverrides": []
+    },
+    {
+      "name": "association",
+      "kind": "test",
+      "host": "",
+      "switchState": "off",
+      "tierOverrides": []
     }
   ]
 }

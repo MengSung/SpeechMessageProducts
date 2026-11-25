@@ -16,12 +16,20 @@ using System.Xml.Linq;
 
 namespace SpeechMessage.Dynamics.Deployment;
 
+/// <summary>UI 匯入後要核對的實體與正式元件身份；只保存 detached 純值，不持有 ZIP 或 SDK。</summary>
+internal sealed record UiArchivePublishScope(
+    string SolutionName,
+    IReadOnlyList<string> EntityNames,
+    IReadOnlyList<Guid> ComponentIds);
+
 /// <summary>封裝離線 UI 解決方案的有限候選；所有公開操作均建立新的 operation-local byte 集合。</summary>
 internal static class UiSolutionArchive
 {
     private const long MaxEntryBytes = 8 * 1024 * 1024;
     private const long MaxArchiveBytes = 16 * 1024 * 1024;
-    private const string SolutionName = "SpeechMessageUi";
+    private const string LegacySolutionName = "SpeechMessageUi";
+    private static readonly string[] AllowedSolutionNames =
+        { "SpeechMessageUi", "SpeechMessagePlatformUi", "GoodShepherd2Ui", "GoodButlerUi", "GoodGuildUi" };
 
     /// <summary>
     /// 讀取並驗證未受管理 UI 解決方案，並依 D26 移除共用 account／contact 的表單。
@@ -30,8 +38,19 @@ internal static class UiSolutionArchive
     /// <param name="archive">本次命令擁有的完整 ZIP bytes。</param>
     /// <returns>可供匯入或再次封裝的完整成員快照。</returns>
     internal static IReadOnlyDictionary<string, byte[]> Prepare(byte[] archive)
+        => Prepare(archive, LegacySolutionName);
+
+    /// <summary>
+    /// 讀取白名單中的指定未受管理 UI 解決方案；方案名稱不由 ZIP 外部輸入自行擴權。
+    /// </summary>
+    /// <param name="archive">本次命令擁有的完整 ZIP bytes。</param>
+    /// <param name="solutionName">呼叫端已核定的方案名稱。</param>
+    /// <returns>完整且已套用 D26 篩選的 detached 成員。</returns>
+    internal static IReadOnlyDictionary<string, byte[]> Prepare(byte[] archive, string solutionName)
     {
         ArgumentNullException.ThrowIfNull(archive);
+        if (solutionName is null || !AllowedSolutionNames.Contains(solutionName, StringComparer.Ordinal))
+            throw InvalidArchive();
         if (archive.LongLength is <= 0 or > MaxArchiveBytes)
             throw InvalidArchive();
 
@@ -50,7 +69,7 @@ internal static class UiSolutionArchive
             if (!candidate.TryGetValue("solution.xml", out var solution) ||
                 !candidate.TryGetValue("customizations.xml", out var customizations))
                 throw InvalidArchive();
-            ValidateSolution(solution);
+            ValidateSolution(solution, solutionName);
             candidate["solution.xml"] = FilterSharedFormRoots(solution, customizations);
             candidate["customizations.xml"] = FilterSharedForms(customizations);
             return candidate;
@@ -63,6 +82,53 @@ internal static class UiSolutionArchive
         {
             throw InvalidArchive();
         }
+    }
+
+    /// <summary>判斷方案名稱是否屬於本工具固定白名單，不把 caller 輸入當成 SDK 授權。</summary>
+    internal static bool IsAllowedSolutionName(string solutionName) =>
+        solutionName is not null && AllowedSolutionNames.Contains(solutionName, StringComparer.Ordinal);
+
+    /// <summary>
+    /// 從已通過 Prepare 的 detached ZIP 成員建立 UI 發布範圍。
+    /// 只保留 solution.xml 的表單／檢視根元件 GUID，以及 customizations.xml 的實體名稱；
+    /// 未列出的元件不能在匯入後被發布。
+    /// </summary>
+    /// <param name="files">已通過 Prepare 的完整 ZIP 成員快照。</param>
+    /// <returns>本次方案的固定發布範圍。</returns>
+    internal static UiArchivePublishScope ReadPublishScope(IReadOnlyDictionary<string, byte[]> files)
+    {
+        ArgumentNullException.ThrowIfNull(files);
+        if (!files.TryGetValue("solution.xml", out var solutionBytes) ||
+            !files.TryGetValue("customizations.xml", out var customizationsBytes))
+            throw InvalidArchive();
+
+        var solution = ParseXml(solutionBytes);
+        var customizations = ParseXml(customizationsBytes);
+        var solutionName = solution.Descendants("SolutionManifest").SingleOrDefault()?.Element("UniqueName")?.Value;
+        if (solutionName is null || !IsAllowedSolutionName(solutionName))
+            throw InvalidArchive();
+
+        var entities = customizations.Descendants("Entity")
+            .Select(entity => entity.Element("Name")?.Value.Trim() ?? string.Empty)
+            .Where(name => name.Length != 0)
+            .ToArray();
+        if (entities.Length == 0 || entities.Distinct(StringComparer.Ordinal).Count() != entities.Length)
+            throw InvalidArchive();
+
+        var componentIds = new List<Guid>();
+        foreach (var root in solution.Descendants("RootComponent")
+                     .Where(root => (string?)root.Attribute("type") is "26" or "60"))
+        {
+            if (!Guid.TryParse((string?)root.Attribute("id"), out var id) || id == Guid.Empty ||
+                componentIds.Contains(id))
+                throw InvalidArchive();
+            componentIds.Add(id);
+        }
+
+        return new UiArchivePublishScope(
+            solutionName,
+            Array.AsReadOnly(entities),
+            Array.AsReadOnly(componentIds.ToArray()));
     }
 
     /// <summary>以固定 ZIP 順序重建完整候選；輸出 stream 由本次呼叫唯一擁有並同步關閉。</summary>
@@ -109,13 +175,13 @@ internal static class UiSolutionArchive
         return target.ToArray();
     }
 
-    /// <summary>依 XML 安全設定解析方案，唯一接受 SpeechMessageUi 且 Managed 必須為零。</summary>
-    private static void ValidateSolution(byte[] bytes)
+    /// <summary>依 XML 安全設定解析固定白名單方案，且 Managed 必須為零。</summary>
+    private static void ValidateSolution(byte[] bytes, string solutionName)
     {
         var document = ParseXml(bytes);
         var manifest = document.Descendants("SolutionManifest").SingleOrDefault()
             ?? throw InvalidArchive();
-        if (!string.Equals(manifest.Element("UniqueName")?.Value, SolutionName, StringComparison.Ordinal) ||
+        if (!string.Equals(manifest.Element("UniqueName")?.Value, solutionName, StringComparison.Ordinal) ||
             !string.Equals(manifest.Element("Managed")?.Value, "0", StringComparison.Ordinal))
             throw InvalidArchive();
     }

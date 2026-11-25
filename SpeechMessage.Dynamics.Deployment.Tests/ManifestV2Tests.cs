@@ -39,7 +39,7 @@ public sealed class ManifestV2Tests
       "message":"Create","entity":"task","stage":"PostOperation","mode":"Asynchronous","rank":1,
       "filteringAttributes":[],"images":[],
       "unsecureConfig":"{\"mode\":\"trace\",\"culture\":\"zh-TW\"}","secureConfig":"",
-      "enabledByOrganization":{"goodshepherdback":false},
+      "enabledByOrganization":{"goodshepherdback":true},
       "legacy":[],"shadowReport":{"file":"","differences":null,"basis":""}
     }]
   }]

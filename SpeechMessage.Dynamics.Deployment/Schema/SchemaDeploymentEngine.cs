@@ -35,9 +35,14 @@ internal sealed class SchemaDeploymentEngine
     private readonly IOrganizationService service;
     private readonly string directory;
     private readonly TimeProvider clock;
-    /// <summary>使用既有命令lease與固定輸出根，不自建client或服務容器；caller必須先取得同組織寫鎖與合法授權。</summary>
+    /// <summary>
+    /// 使用既有命令lease與固定輸出根，不自建client或服務容器；caller必須先取得同組織寫鎖與合法授權。
+    /// 舊無 target 的測試入口明確固定 goodshepherdback，不能因catalog新增測試組織而隱含選擇。
+    /// </summary>
     internal SchemaDeploymentEngine(IOrganizationService service, string directory, TimeProvider clock)
-        : this(service, directory, clock, OrganizationCatalog.LoadDefault().TestOrganization, OrganizationCatalog.LoadDefault()) { }
+        : this(service, directory, clock,
+            OrganizationCatalog.LoadDefault().GetTest("goodshepherdback"),
+            OrganizationCatalog.LoadDefault()) { }
     /// <summary>正式及測試命令共同使用顯式核定目標與catalog；不以server回傳名稱自行改目標，SDK仍由外層租約唯一擁有。</summary>
     internal SchemaDeploymentEngine(IOrganizationService service, string directory, TimeProvider clock, OrganizationDefinition target, OrganizationCatalog catalog)
     {
@@ -166,7 +171,16 @@ internal sealed class SchemaDeploymentEngine
                         Entity = new EntityMetadata
                         {
                             SchemaName = entity.LogicalName, DisplayName = new Label(entity.DisplayName, before.LanguageCode),
-                            DisplayCollectionName = new Label(entity.PluralName, before.LanguageCode), OwnershipType = OwnershipTypes.OrganizationOwned,
+                            DisplayCollectionName = new Label(entity.PluralName, before.LanguageCode),
+                            OwnershipType = entity.OwnershipType switch
+                            {
+                                "UserOwned" => OwnershipTypes.UserOwned,
+                                "OrganizationOwned" => OwnershipTypes.OrganizationOwned,
+                                // 舊單檔 schema 的 canonical hash 尚未包含 ownershipType；
+                                // 分層載入器會在候選邊界拒絕新表缺值，只有 legacy 入口保留既有
+                                // OrganizationOwned 預設，避免回溯部署因新增欄位而改變歷史語意。
+                                _ => OwnershipTypes.OrganizationOwned
+                            },
                             // 樂觀並行為server唯讀metadata；custom entity預設true，後續重新讀取必須核對outbound要求。
                             IsActivity = false, IsAuditEnabled = new BooleanManagedProperty(entity.Audit)
                         }, PrimaryAttribute = primary

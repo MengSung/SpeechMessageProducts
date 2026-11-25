@@ -99,5 +99,10 @@
   "SpeechMessageProducts.GoodShepherd.Core.Tests/Golden/Roles/customertypecode-options.json": "P8-02 唯讀 goodshepherdback contact.customertypecode 選項中繼資料的固定黃金快照，只保存 option value 與 LanguageCode 1028 原始 label，不含會友列、聯絡資訊、秘密或連線設定。Core 雙目標測試逐筆核對唯一 option 身分、標籤原文及角色精確對應；未符合完整字串的項目必須沒有角色代碼與權限。檔案由一次唯讀 metadata 查詢建立，不能按角色語意推測或手造標籤，也不能以空快照掩蓋來源證據缺失。",
   "SpeechMessage.Dynamics.Deployment.Tests/Golden/Offerings/category-optionsets.json": "P8-01a／P8-01c goodshepherdback 的奉獻欄位選項集 metadata 黃金快照，保存語系 1028、new_fee.new_category 與 new_dedication_booking.new_dedication_category 的 RequiredLevel、選項值及各自原始標籤，不含業務記錄或秘密。離線測試使用它驗證依組織標籤生成類別及 RequiredLevel 分支；兩欄同值異標籤不得合併、任選或猜測，衝突時遷移必須 fail closed。"
   ,
-  "tools/PseudoLocaleAudit/audit-urls.json": "P8-04a 偽語系瀏覽器稽核唯一固定案例清單，限制於 localhost 的 ChurchSettings 名詞、奉獻類別、稽核頁與匿名 403 情境，並登記依 I6 排除的舊頁與 LIFF 範圍；runner 只讀取這份清單，不接受任意 URL，不保存登入資訊、cookie、頁面原文或個資。"
+  "tools/PseudoLocaleAudit/audit-urls.json": "P8-04a 偽語系瀏覽器稽核唯一固定案例清單，限制於 localhost 的 ChurchSettings 名詞、奉獻類別、稽核頁與匿名 403 情境，並登記依 I6 排除的舊頁與 LIFF 範圍；runner 只讀取這份清單，不接受任意 URL，不保存登入資訊、cookie、頁面原文或個資。",
+  "d365/schema/goodbutler.schema.json": "FS 好管家產品層的 D365 schema 入口，宣告本階段可套用的 schema 版本、解決方案、發行者、前綴與實體集合；目前保留空產品層，避免把好牧人專屬實體誤佈署到 construction。Deployment 的分層載入器會依 organizations 與 layers.json 組合平台層，缺漏或非法實體由離線 plan 失敗；本檔不含秘密、不代表 construction 已連線、建立或發布。",
+  "d365/schema/goodguild.schema.json": "FS 好學會產品層的 D365 schema 入口，宣告本階段可套用的 schema 版本、解決方案、發行者、前綴與實體集合；目前保留空產品層，避免把好牧人專屬實體誤佈署到 association。Deployment 的分層載入器會依 organizations 與 layers.json 組合平台層，缺漏或非法實體由離線 plan 失敗；本檔不含秘密、不代表 association 已連線、建立或發布。",
+  "d365/schema/goodshepherd.schema.json": "FS 好牧人產品層的 D365 schema，保存只應進入 goodshepherd20 的產品實體、欄位、擁有權、稽核與 phase 邊界；平台共用欄位不得在此重複定義。SchemaFiles 以嚴格 JSON 載入並由分層 planner 驗證實體、欄位、唯一鍵與 ownership，construction／association 的 plan 必須排除本檔；內容是離線部署候選，不含秘密，也不代表任何組織已 apply 或發布。",
+  "d365/schema/layers.json": "FS 分層 schema 與 UI view 的唯一組合清單，將 goodshepherdback、goodshepherd20、construction、association 對應到平台／產品層，並列出可產生的公用檢視欄位。載入器依此清單建立 operation-local 候選，驗證組織白名單、層順序、重複實體與欄位衝突後才允許 plan；空白或未知層 fail closed。本檔只描述離線範圍，不授權正式組織或保存連線資訊。",
+  "d365/schema/platform/00-core.schema.json": "FS 平台層核心 schema，集中宣告三個產品共用的 account 租戶欄位、既有 Channel 與 outbound／localized 資料結構，並固定每個新實體的 ownership、稽核及 phase。其他 F3、F5、F8、F9、F12 平台檔案不得重複定義本檔欄位；分層 planner 在產生 apply 計畫前會做完整身份與唯一鍵檢查。內容僅為離線 D365 metadata 候選，不含秘密、個資或正式發布證據。"
 }

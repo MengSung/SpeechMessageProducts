@@ -18,7 +18,11 @@ using System.Text;
 using SpeechMessage.Dynamics.Deployment.Offerings;
 namespace SpeechMessage.Dynamics.Deployment;
 
-/// <summary>命令區域不可變組織描述；純值不包含連線或帳密，不能替代ProductionGuard。</summary>
+/// <summary>
+/// 命令區域不可變組織描述；純值不包含連線或帳密，不能替代ProductionGuard。
+/// Host 可是既有清單使用的 DNS 主機，也可是核定的 HTTPS 基址；測試組織在端點尚未核定
+/// 時以空字串表示待補狀態，connector 必須在讀取秘密與建立 client 前拒絕。
+/// </summary>
 internal sealed record OrganizationDefinition(string Name, string Kind, string Host, string SwitchState)
 {
     /// <summary>完整驗證且唯讀的逐筆決定，型別優先序由後續切換planner解釋，不由catalog自行升級分級。</summary>
@@ -34,8 +38,14 @@ internal sealed class OrganizationCatalog
     private readonly ReadOnlyDictionary<string, OrganizationDefinition> organizations;
     /// <summary>只接完整區域候選，包成唯讀dictionary後不再修改，不交出內部可變集合。</summary>
     private OrganizationCatalog(Dictionary<string, OrganizationDefinition> values) => organizations = new ReadOnlyDictionary<string, OrganizationDefinition>(values);
-    /// <summary>只供舊測試專用入口取得唯一test描述；不存在即拒絕，不把production當測試後備。</summary>
+    /// <summary>只供相容舊入口取得唯一 test 描述；多個或零個 test 一律拒絕，避免隱含選錯組織。</summary>
     internal OrganizationDefinition TestOrganization => organizations.Values.SingleOrDefault(value => value.Kind == "test") ?? throw Invalid();
+    /// <summary>依明確名稱取得 test 組織；production、未列名稱或空白名稱都拒絕。</summary>
+    internal OrganizationDefinition GetTest(string name)
+    {
+        var organization = Get(name);
+        return organization.Kind == "test" ? organization : throw Invalid();
+    }
     /// <summary>沿組件所在方案根讀核定catalog，不借目前工作目錄中的測試fixture改變連線白名單；每次重讀不快取。</summary>
     internal static OrganizationCatalog LoadDefault()
     {
@@ -73,12 +83,12 @@ internal sealed class OrganizationCatalog
             {
                 Fields(row, "name", "kind", "host", "switchState", "tierOverrides");
                 var name = Text(row, "name", 128); var kind = Text(row, "kind", 16);
-                var host = Text(row, "host", 253); var state = Text(row, "switchState", 16);
+                var host = HostText(row, "host", 253); var state = Text(row, "switchState", 16);
                 if (!name.All(character => char.IsAsciiLetterOrDigit(character) || character is '_' or '-') ||
                     kind is not ("test" or "production") || state is not ("off" or "shadow" or "live") ||
-                    kind == "test" && name != Shadow.ShadowTestIdentity.AllowedOrganization ||
-                    Uri.CheckHostName(host) != UriHostNameType.Dns || host.Any(char.IsAsciiLetterUpper) ||
-                    !hosts.Add(host)) throw Invalid();
+                    !ValidTestName(name, kind) || !ValidHost(host, kind) ||
+                    !string.IsNullOrEmpty(host) && !hosts.Add(CanonicalHost(host))) throw Invalid();
+                host = CanonicalEndpoint(host);
                 var overrides = row.GetProperty("tierOverrides");
                 if (overrides.ValueKind != JsonValueKind.Array || overrides.GetArrayLength() > 256) throw Invalid();
                 var decisions = new List<OrganizationTierOverride>();
@@ -104,6 +114,32 @@ internal sealed class OrganizationCatalog
     }
     /// <summary>未列組織一律拒絕，不以輸入名稱自動建立許可。</summary>
     internal OrganizationDefinition Get(string name) => name is not null && organizations.TryGetValue(name, out var value) ? value : throw Invalid();
+    /// <summary>允許本階段核定的三個新測試組織與既有回歸組織，拒絕把任意輸入標成 test。</summary>
+    private static bool ValidTestName(string name, string kind) =>
+        kind != "test" || name is "goodshepherdback" or "goodshepherd20" or "construction" or "association";
+    /// <summary>
+    /// 生產組織必須有 DNS 主機；測試組織可暫留空字串。非空值可使用既有 DNS 格式或 HTTPS 基址，
+    /// 但不得帶查詢、片段、路徑或大寫主機，避免 connector 被設定值擴權。
+    /// </summary>
+    private static bool ValidHost(string host, string kind)
+    {
+        if (host.Length == 0) return kind == "test";
+        if (Uri.TryCreate(host, UriKind.Absolute, out var uri))
+            return uri.Scheme == Uri.UriSchemeHttps && uri.IsDefaultPort &&
+                string.IsNullOrEmpty(uri.Query) && string.IsNullOrEmpty(uri.Fragment) &&
+                (uri.AbsolutePath is "" or "/") && uri.IdnHost.Length <= 253 &&
+                string.Equals(uri.IdnHost, uri.IdnHost.ToLowerInvariant(), StringComparison.Ordinal);
+        return Uri.CheckHostName(host) == UriHostNameType.Dns &&
+            host.Length <= 253 && !host.Any(character => character is >= 'A' and <= 'Z');
+    }
+    /// <summary>以不含秘密的 canonical host 作唯一性比較；空值不參與比較，因為它代表待補而非端點。</summary>
+    private static string CanonicalHost(string host) =>
+        Uri.TryCreate(host, UriKind.Absolute, out var uri) ? uri.IdnHost : host;
+    /// <summary>將既有 DNS 清單值轉成穩定 HTTPS 基址；空值維持待補標記。</summary>
+    private static string CanonicalEndpoint(string host) =>
+        string.IsNullOrEmpty(host) ? host :
+        Uri.TryCreate(host, UriKind.Absolute, out _) ? host :
+        "https://" + host;
     /// <summary>物件欄位必須完全相等；未知及缺欄不能用預設值掩蓋核定文件錯誤。</summary>
     private static void Fields(JsonElement row, params string[] names)
     {
@@ -116,6 +152,13 @@ internal sealed class OrganizationCatalog
         var token = row.GetProperty(field);
         return token.ValueKind == JsonValueKind.String && token.GetString() is { } value &&
             !string.IsNullOrWhiteSpace(value) && value.Length <= maximum ? value : throw Invalid();
+    }
+    /// <summary>讀取可代表待核定測試端點的 host；只有 test 可使用空字串，production 仍由 ValidHost 拒絕。</summary>
+    private static string HostText(JsonElement row, string field, int maximum)
+    {
+        var token = row.GetProperty(field);
+        return token.ValueKind == JsonValueKind.String && token.GetString() is { } value &&
+            value.Length <= maximum && value.Trim() == value ? value : throw Invalid();
     }
     /// <summary>固定錯誤不含原文、名稱或host，避免將候選設定當成安全日誌內容。</summary>
     private static InvalidDataException Invalid() => new("Organization catalog is invalid or target is not allowlisted.");

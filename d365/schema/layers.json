@@ -1,0 +1,34 @@
+{
+  "schemaVersion": 1,
+  "organizations": {
+    "goodshepherdback": [
+      "speechmessagecore"
+    ],
+    "goodshepherd20": [
+      "platform",
+      "goodshepherd"
+    ],
+    "construction": [
+      "platform",
+      "goodbutler"
+    ],
+    "association": [
+      "platform",
+      "goodguild"
+    ]
+  },
+  "views": {
+    "platform": [
+      {
+        "entity": "new_linechannel",
+        "name": "所有 Channel",
+        "columns": [
+          "new_name"
+        ],
+        "filter": [],
+        "order": [],
+        "isDefault": true
+      }
+    ]
+  }
+}

@@ -119,7 +119,7 @@ internal static class RegistrationManifestLoader
                     (step.Message == "Delete" && image.Type == "PostImage") ||
                     (image.Type == "PostImage" && step.Stage != "PostOperation")) throw InvalidManifest();
             }
-            if (step.EnabledByOrganization.Keys.Any(organization => organization != Shadow.ShadowTestIdentity.AllowedOrganization)) throw InvalidManifest();
+            if (step.EnabledByOrganization.Keys.Any(organization => !IsKnownOrganization(organization))) throw InvalidManifest();
             ValidateReport(step.ShadowReport);
             if (step.Module == "diagnostics")
             {
@@ -189,6 +189,10 @@ internal static class RegistrationManifestLoader
     /// <summary>模組代號使用 05A 核定集合，不允許任意輸入取得其他步驟控制範圍。</summary>
     private static bool ValidModule(string value) => value is "diagnostics" or "localization" or "weeklyreports" or
         "attendance" or "lessons" or "appointments" or "qrcodes" or "care" or "fees" or "messaging";
+
+    /// <summary>註冊旗標只接受本階段四個核定測試組織，不以任意 caller key 擴張 Plugin 範圍。</summary>
+    private static bool IsKnownOrganization(string value) =>
+        value is "goodshepherdback" or "goodshepherd20" or "construction" or "association";
 
     /// <summary>報告基準保持未驗收與實機、離線、閱讀對照的區別，不自行推導證據。</summary>
     private static void ValidateReport(ShadowReport report)

@@ -1,0 +1,90 @@
+{
+  "schemaVersion": 1,
+  "activePhase": 8,
+  "solution": "SpeechMessageCore",
+  "publisher": "SpeechMessagePublisher",
+  "prefix": "new",
+  "entities": [
+    {
+      "logicalName": "new_offeringcategory",
+      "displayName": "奉獻類別",
+      "pluralName": "奉獻類別",
+      "isNew": true,
+      "ownershipType": "UserOwned",
+      "audit": true,
+      "primaryName": "new_name",
+      "fields": [
+        {
+          "logicalName": "new_accountid",
+          "displayName": "租戶",
+          "type": "lookup",
+          "phase": 1,
+          "target": "account",
+          "required": true
+        },
+        {
+          "logicalName": "new_name",
+          "displayName": "名稱",
+          "type": "string",
+          "phase": 1,
+          "maxLength": 100,
+          "required": true
+        }
+      ],
+      "keys": []
+    },
+    {
+      "logicalName": "new_fee",
+      "displayName": "收費單",
+      "pluralName": "收費單",
+      "isNew": false,
+      "audit": false,
+      "fields": [
+        {
+          "logicalName": "new_offeringcategoryid",
+          "displayName": "奉獻類別",
+          "type": "lookup",
+          "phase": 8,
+          "target": "new_offeringcategory",
+          "required": false
+        }
+      ],
+      "keys": []
+    },
+    {
+      "logicalName": "new_dedication_booking",
+      "displayName": "奉獻預約",
+      "pluralName": "奉獻預約",
+      "isNew": false,
+      "audit": false,
+      "fields": [
+        {
+          "logicalName": "new_offeringcategoryid",
+          "displayName": "奉獻類別",
+          "type": "lookup",
+          "phase": 8,
+          "target": "new_offeringcategory",
+          "required": false
+        }
+      ],
+      "keys": []
+    },
+    {
+      "logicalName": "new_stor_lessons",
+      "displayName": "學員課程紀錄",
+      "pluralName": "學員課程紀錄",
+      "isNew": false,
+      "audit": false,
+      "fields": [
+        {
+          "logicalName": "new_saved_flag",
+          "displayName": "課程儲存觸發標記",
+          "type": "string",
+          "phase": 5,
+          "maxLength": 2000
+        }
+      ],
+      "keys": []
+    }
+  ]
+}

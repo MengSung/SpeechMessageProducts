@@ -481,13 +481,18 @@ internal sealed partial class DeploymentEngine
                 filterByIdentity.Add(filterKey, filter);
             }
 
+            var shouldEnable = IsEnabled(step, organization);
             var pluginType = pluginTypes.SingleOrDefault(type =>
                 string.Equals(type.GetAttributeValue<string>("typename"), step.Type, StringComparison.Ordinal));
             if (pluginType is null)
             {
                 if (plannedTypes.Add(step.Type)) operations.Add(new DeploymentOperation("CreateType", step.Type));
-                operations.Add(new DeploymentOperation("CreateStep", StepKey(step)));
-                if (step.Images.Count != 0) operations.Add(new DeploymentOperation("ReconcileImages", StepKey(step)));
+                if (!IsExplicitlyDisabled(step, organization))
+                {
+                    operations.Add(new DeploymentOperation("CreateStep", StepKey(step)));
+                    if (step.Images.Count != 0) operations.Add(new DeploymentOperation("ReconcileImages", StepKey(step)));
+                }
+
                 continue;
             }
 
@@ -496,8 +501,12 @@ internal sealed partial class DeploymentEngine
             var existingStep = FindStep(pluginType.Id, message.Id, filter.Id, stage, mode, step.Rank);
             if (existingStep is null)
             {
-                operations.Add(new DeploymentOperation("CreateStep", StepKey(step)));
-                if (step.Images.Count != 0) operations.Add(new DeploymentOperation("ReconcileImages", StepKey(step)));
+                if (!IsExplicitlyDisabled(step, organization))
+                {
+                    operations.Add(new DeploymentOperation("CreateStep", StepKey(step)));
+                    if (step.Images.Count != 0) operations.Add(new DeploymentOperation("ReconcileImages", StepKey(step)));
+                }
+
                 continue;
             }
 
@@ -511,7 +520,6 @@ internal sealed partial class DeploymentEngine
                 operations.Add(new DeploymentOperation("UpdateStepConfiguration", StepKey(step)));
             }
 
-            var shouldEnable = IsEnabled(step, organization);
             if ((ReadOption(existingStep, "statecode") == 0) != shouldEnable)
             {
                 operations.Add(new DeploymentOperation("UpdateStepState", StepKey(step)));
@@ -1484,6 +1492,14 @@ internal sealed partial class DeploymentEngine
     /// <summary>只有該組織明確 true 才啟用；缺少設定一律停用以避免意外推播。</summary>
     private static bool IsEnabled(StepRegistration step, string organization) =>
         step.EnabledByOrganization.TryGetValue(organization, out var enabled) && enabled;
+
+    /// <summary>
+    /// 判斷清單是否明確宣告該組織不註冊新步驟。缺少旗標仍保留 legacy
+    /// 的「建立後停用」流程，讓既有 goodshepherdback 建立／回歸契約不因多組織擴充改變；
+    /// 明確 false 則代表該組織不應得到新的 Plugin step。
+    /// </summary>
+    private static bool IsExplicitlyDisabled(StepRegistration step, string organization) =>
+        step.EnabledByOrganization.TryGetValue(organization, out var enabled) && !enabled;
 
     /// <summary>所有核心入口再驗本命令白名單；不以呼叫端字串擴權，正式操作確認仍由CLI負責。</summary>
     private void ValidateOrganization(string organization) => _ = catalog.Get(organization);

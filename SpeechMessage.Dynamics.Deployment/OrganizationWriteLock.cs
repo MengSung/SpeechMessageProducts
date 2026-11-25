@@ -6,7 +6,9 @@
  * 主要功能與流程：
  * 本檔宣告 OrganizationWriteLock。
  * - 取得指定組織輸出根的獨占寫入租約；等待可由 caller 取消，超過上限時以固定訊息失敗。
- * - 釋放獨占檔案控制代碼，讓下一個命令可以取得同一組織的寫入租約。 空鎖檔留在 artifacts 供後續命令重用；互斥所有權只由可確定釋放的控制代碼代表。
+ * - 需要電腦級互斥時，先取得工作樹本地鎖，再取得共享鎖目錄內的組織鎖；兩把鎖都由本次租約唯一擁有。
+ * - Dispose 以 shared -> local 的反向順序釋放所有控制代碼；等待期間若取消或 I/O 失敗，也會釋放已取得的部分租約。
+ *   空鎖檔留在 artifacts 供後續命令重用；互斥所有權只由可確定釋放的控制代碼代表。
  * 主要操作入口包含 Acquire、Dispose。
  *
  * 使用邊界與維護：
@@ -28,10 +30,12 @@ internal sealed class OrganizationWriteLock : IDisposable
 {
     private static readonly TimeSpan RetryInterval = TimeSpan.FromMilliseconds(50);
     private FileStream? lockStream;
+    private FileStream? sharedLockStream;
 
-    private OrganizationWriteLock(FileStream lockStream)
+    private OrganizationWriteLock(FileStream lockStream, FileStream? sharedLockStream)
     {
         this.lockStream = lockStream;
+        this.sharedLockStream = sharedLockStream;
     }
 
     /// <summary>
@@ -45,6 +49,28 @@ internal sealed class OrganizationWriteLock : IDisposable
         string organizationRoot,
         TimeSpan timeout,
         CancellationToken cancellationToken = default)
+        => AcquireCore(organizationRoot, timeout, null, cancellationToken);
+
+    /// <summary>
+    /// 取得整台電腦共用的組織鎖；此 overload 將 sharedLockDirectory 放在具名參數，
+    /// 同時保留既有呼叫端的 CancellationToken 參數順序，避免生命週期語意被錯綁。
+    /// </summary>
+    /// <param name="organizationRoot">唯一白名單組織的本機 artifacts 根目錄。</param>
+    /// <param name="timeout">等待其他寫入命令釋放鎖的時間上限。</param>
+    /// <param name="sharedLockDirectory">整台電腦共用的鎖目錄。</param>
+    /// <param name="cancellationToken">呼叫端取消訊號。</param>
+    public static OrganizationWriteLock Acquire(
+        string organizationRoot,
+        TimeSpan timeout,
+        string sharedLockDirectory,
+        CancellationToken cancellationToken = default)
+        => AcquireCore(organizationRoot, timeout, sharedLockDirectory, cancellationToken);
+
+    private static OrganizationWriteLock AcquireCore(
+        string organizationRoot,
+        TimeSpan timeout,
+        string? sharedLockDirectory,
+        CancellationToken cancellationToken)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(organizationRoot);
         ArgumentOutOfRangeException.ThrowIfLessThan(timeout, TimeSpan.Zero);
@@ -52,30 +78,51 @@ internal sealed class OrganizationWriteLock : IDisposable
 
         var root = Path.GetFullPath(organizationRoot);
         Directory.CreateDirectory(root);
-        var lockPath = Path.Combine(root, ".deployment-write.lock");
+        var localLockPath = Path.Combine(root, ".deployment-write.lock");
+        var organizationName = Path.GetFileName(root.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar));
+        if (string.IsNullOrWhiteSpace(organizationName))
+            throw new ArgumentException("Organization root must identify an organization.", nameof(organizationRoot));
+        var sharedLockPath = string.IsNullOrWhiteSpace(sharedLockDirectory)
+            ? null
+            : Path.Combine(Path.GetFullPath(sharedLockDirectory), organizationName + ".lock");
+        if (sharedLockPath is not null)
+            Directory.CreateDirectory(Path.GetDirectoryName(sharedLockPath)!);
         var stopwatch = Stopwatch.StartNew();
 
         while (true)
         {
+            FileStream? localStream = null;
+            FileStream? sharedStream = null;
             try
             {
-                var stream = new FileStream(
-                    lockPath,
+                // 所有呼叫端固定 local -> shared 的順序，避免兩個工作樹以相反順序互相等待。
+                localStream = new FileStream(
+                    localLockPath,
                     FileMode.OpenOrCreate,
                     FileAccess.ReadWrite,
                     FileShare.None,
                     bufferSize: 1,
                     FileOptions.None);
-                if (cancellationToken.IsCancellationRequested)
+                if (sharedLockPath is not null)
                 {
-                    stream.Dispose();
-                    cancellationToken.ThrowIfCancellationRequested();
+                    sharedStream = new FileStream(
+                        sharedLockPath,
+                        FileMode.OpenOrCreate,
+                        FileAccess.ReadWrite,
+                        FileShare.None,
+                        bufferSize: 1,
+                        FileOptions.None);
                 }
 
-                return new OrganizationWriteLock(stream);
+                if (cancellationToken.IsCancellationRequested)
+                    cancellationToken.ThrowIfCancellationRequested();
+
+                return new OrganizationWriteLock(localStream, sharedStream);
             }
             catch (IOException)
             {
+                sharedStream?.Dispose();
+                localStream?.Dispose();
                 var remaining = timeout - stopwatch.Elapsed;
                 if (remaining <= TimeSpan.Zero)
                 {
@@ -88,6 +135,12 @@ internal sealed class OrganizationWriteLock : IDisposable
                     cancellationToken.ThrowIfCancellationRequested();
                 }
             }
+            catch (OperationCanceledException)
+            {
+                sharedStream?.Dispose();
+                localStream?.Dispose();
+                throw;
+            }
         }
     }
 
@@ -97,6 +150,7 @@ internal sealed class OrganizationWriteLock : IDisposable
     /// </summary>
     public void Dispose()
     {
+        Interlocked.Exchange(ref sharedLockStream, null)?.Dispose();
         Interlocked.Exchange(ref lockStream, null)?.Dispose();
     }
 }

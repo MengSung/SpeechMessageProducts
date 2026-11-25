@@ -65,7 +65,8 @@ internal static class SchemaPlanner
                 if (!expected.IsNew) Conflict(expected.LogicalName);
                 operations.Add(new SchemaOperation("CreateEntity", expected.LogicalName, expected.PrimaryName, Guid.Empty));
             }
-            else if (expected.IsNew && (existing.Ownership != "OrganizationOwned" || existing.PrimaryName != expected.PrimaryName
+            else if (expected.IsNew && (expected.OwnershipType is not null && existing.Ownership != expected.OwnershipType ||
+                existing.PrimaryName != expected.PrimaryName
                 || existing.Audit != expected.Audit
                 || expected.OptimisticConcurrency.HasValue && existing.OptimisticConcurrency != expected.OptimisticConcurrency || existing.Managed != false))
                 Conflict(expected.LogicalName);
