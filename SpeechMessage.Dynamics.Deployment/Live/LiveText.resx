@@ -25,6 +25,6 @@
   <data name="Deployment.Live.Pass" xml:space="preserve"><value>通過</value></data>
   <data name="Deployment.Live.Difference" xml:space="preserve"><value>有差異</value></data>
   <data name="Deployment.Live.NotChecked" xml:space="preserve"><value>未檢查</value></data>
-  <data name="Deployment.Live.AcceptanceFolder" xml:space="preserve"><value>文件/規劃設計書/實作計畫-3.5/驗收</value></data>
+  <data name="Deployment.Live.AcceptanceFolder" xml:space="preserve"><value>文件/規劃設計書/_封存_請勿依據/實作計畫-3.5/驗收</value></data>
   <data name="Deployment.Live.ScenarioFolder" xml:space="preserve"><value>P7情境</value></data>
 </root>

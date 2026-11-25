@@ -221,7 +221,7 @@ public sealed class ActivityInputContractReaderTests
             activityLegacyTypes.Keys.OrderBy(type => type, StringComparer.Ordinal));
 
         var scenarioRoot = System.IO.Path.Combine(
-            root, "文件", "規劃設計書", "實作計畫-3.5", "驗收", "P7情境");
+            root, "文件", "規劃設計書", "_封存_請勿依據", "實作計畫-3.5", "驗收", "P7情境");
         var matchedActivities = new HashSet<string>(StringComparer.Ordinal);
         var matchedScenarioCount = 0;
         foreach (var scenarioPath in EnumerateScenarioFiles(scenarioRoot))
