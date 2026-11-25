@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<!--
+檔案整體說明
+目的與定位：三大產品共通層實作計畫 1.3 的「線 A 即時進度」頁，讓使用者不必詢問就能看到這條線現在做到哪裡、是否還在工作、有沒有需要使用者的事。
+主要功能與流程：讀取同資料夾的「實作進度資料-線A.js」（每包合併時更新），以及本機 C:\ProgramData\SpeechMessage\lanes\live-A.js（由 %USERPROFILE%\.speechmessage\Update-3PLiveProgress.ps1 每分鐘產生，內容取自狀態檔、工作樹的 git 紀錄與 Codex 對話紀錄）；每 60 秒自動重新整理一次，可暫停。
+使用邊界與維護：本頁版面固定，兩條線都不改；只讀資料、不寫任何檔。即時資料只存在這台電腦，沒有開自動更新時會顯示「即時資料沒有在更新」。Codex 的說明已由產生器截短並遮罩疑似金鑰的字串。
+-->
+<html lang="zh-Hant-TW">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>線 A｜即時進度｜三大產品共通層 1.3</title>
+<style>
+:root{--bg:#f7f6f2;--card:#fff;--ink:#1f1e1c;--ink2:#6b6a66;--line:#e2e0da;--ok:#1a8f5a;--run:#2a78d6;--todo:#b9b6ae;--bad:#c0392b;--warn:#b7791f;--tint:#eef4fc;--lane:#e8682f}
+@media (prefers-color-scheme:dark){:root{--bg:#1b1b1a;--card:#252523;--ink:#ecebe6;--ink2:#a9a7a0;--line:#3a3936;--todo:#5a5852;--tint:#20293a}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.6 "Microsoft JhengHei","PingFang TC",system-ui,sans-serif}
+main{max-width:1100px;margin:0 auto;padding:16px 18px 60px}
+h1{font-size:24px;margin:4px 0;color:var(--lane)}
+h2{font-size:18px;margin:22px 0 8px;padding-bottom:4px;border-bottom:2px solid var(--lane)}
+.top{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between}
+.links a{margin-left:10px;color:var(--lane);font-weight:700}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px 14px}
+.alive{display:flex;gap:14px;align-items:center;border-radius:14px;padding:14px 16px;color:#fff;margin:12px 0}
+.alive .dot{width:18px;height:18px;border-radius:50%;background:#fff;opacity:.9;animation:pulse 1.6s infinite}
+@keyframes pulse{50%{opacity:.35}}
+.alive b{font-size:20px;display:block}
+.g{background:var(--ok)}.y{background:var(--warn)}.r{background:var(--bad)}.o{background:#d4691b}.n{background:var(--todo)}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px}
+.grid div{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px 12px}
+.grid small{color:var(--ink2);display:block}
+.grid b{font-size:16px}
+table{width:100%;border-collapse:collapse;background:var(--card)}
+th,td{border-bottom:1px solid var(--line);padding:6px 8px;text-align:left;vertical-align:top;font-size:14px}
+th{background:var(--tint)}
+.badge{display:inline-block;border-radius:999px;padding:1px 10px;font-size:13px;font-weight:700;color:#fff;white-space:nowrap}
+.b-done{background:var(--ok)}.b-run{background:var(--run)}.b-todo{background:var(--todo)}.b-cut{background:var(--warn)}
+.msg{border-left:4px solid var(--lane);padding:6px 10px;margin:8px 0;background:var(--card);border-radius:6px}
+.msg .t{color:var(--ink2);font-size:13px}
+.note{color:var(--ink2);font-size:13px}
+.warn{background:#fdecea;border:1px solid var(--bad);color:var(--bad);border-radius:10px;padding:10px 14px;margin:10px 0}
+code{background:var(--tint);border-radius:4px;padding:0 4px}
+</style>
+</head>
+<body>
+<main>
+<div class="top"><h1>線 A｜即時進度</h1><div class="links"><a href="實作進度.html">總覽</a><a href="實作進度-線B.html">線 B</a> <label class="note"><input type="checkbox" id="auto" checked> 每 60 秒自動重新整理</label></div></div>
+<div class="note" id="gen"></div>
+<div id="warn"></div>
+<div id="alive"></div>
+<div class="grid" id="now"></div>
+
+<h2>這條線的工作包</h2>
+<div id="wps"></div>
+
+<h2>這一包已完成的步驟（還沒合併的提交）</h2>
+<div class="card" id="commits"></div>
+
+<h2>Codex 最近說了什麼（新的在上面）</h2>
+<div id="msgs"></div>
+
+<h2>需要你協助</h2>
+<div class="card" id="help"></div>
+
+<h2>測試環境與合併的鎖</h2>
+<div class="card" id="locks"></div>
+
+<p class="note">即時資料由 <code>%USERPROFILE%\.speechmessage\Update-3PLiveProgress.ps1</code> 每分鐘產生；工作包狀態在每包合併時才更新。網頁只讀，不會影響 Codex。</p>
+</main>
+<script src="實作進度資料-線A.js"></script>
+<script src="file:///C:/ProgramData/SpeechMessage/lanes/live-A.js"></script>
+<script>
+'use strict';
+(function () {
+  const LANE = 'A';
+  const PLAN = [{"id": "F0", "name": "基線矩陣", "dates": "11/30～12/01"}, {"id": "F1", "name": "依賴方向修正", "dates": "12/02～12/04"}, {"id": "FS", "name": "結構分層與三組織佈署", "dates": "12/07～12/11"}, {"id": "F3", "name": "Channel 名額池", "dates": "12/14～12/18"}, {"id": "F5", "name": "推播唯一出口", "dates": "12/21～12/23"}, {"id": "F7", "name": "公開圖片代管", "dates": "12/24～12/28"}, {"id": "F9", "name": "審核卡片", "dates": "12/29～12/31"}, {"id": "M1", "name": "最薄通路（結業考）", "dates": "01/04～01/05"}];
+  const esc = s => String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  const $ = id => document.getElementById(id);
+  const data = (window.PROGRESS_LANES || {})[LANE];
+  const live = (window.LIVE_LANES || {})[LANE];
+  const warns = [];
+  if (!data) warns.push('讀不到「實作進度資料-線' + LANE + '.js」');
+  if (!live) warns.push('即時資料不存在：請雙擊 %USERPROFILE%\\.speechmessage\\開始自動更新進度.cmd（開一次就好，視窗縮小即可）');
+  const nowTpe = new Date(Date.now() + 8 * 36e5).toISOString().slice(0, 16).replace('T', ' ');
+  if (live) {
+    const age = (Date.parse(nowTpe.replace(' ', 'T') + 'Z') - Date.parse(live.generatedAt.replace(' ', 'T') + 'Z')) / 60000;
+    if (age > 5) warns.push(`即時資料停在 ${live.generatedAt}（${Math.round(age)} 分鐘前）：自動更新可能沒有在跑，請雙擊「開始自動更新進度.cmd」`);
+  }
+  if (warns.length) $('warn').innerHTML = `<div class="warn">${warns.map(esc).join('<br>')}</div>`;
+  $('gen').textContent = '現在：' + nowTpe + ' Asia/Taipei｜即時資料產生：' + (live ? live.generatedAt : '—');
+
+  // ---------- 是否還在工作 ----------
+  const st = (live && live.status) || {};
+  const cx = (live && live.codex) || {};
+  const helpMine = ((live && live.help) || []).filter(h => (h.lane || '').indexOf(LANE) >= 0 && !/已處理/.test(h.state || ''));
+  const stopMine = helpMine.filter(h => /要停/.test(h.kind || ''));
+  let cls = 'n', title = '沒有資料', sub = '';
+  if (live && cx.found) {
+    const m = cx.minutesAgo;
+    if (/完成/.test(st['狀態'] || '')) { cls = 'g'; title = '這條線已完成'; }
+    else if (stopMine.length || /等待使用者/.test(st['狀態'] || '')) { cls = 'o'; title = '正在等你'; sub = '看下方「需要你協助」，到這條線的 Codex 對話框回覆。'; }
+    else if (m <= 10) { cls = 'g'; title = '正在工作'; }
+    else if (m <= 60) { cls = 'y'; title = '一陣子沒有動作'; sub = '可能在跑長時間的建置或測試，或在等另一條線。'; }
+    else { cls = 'r'; title = '超過 1 小時沒有動作'; sub = '請到這條線的 Codex 對話框看看；需要時回「繼續」。'; }
+    sub = `Codex 最後活動：${cx.lastActivity}（${m} 分鐘前）｜目標狀態：${cx.goal || '—'}` + (sub ? '｜' + sub : '');
+  }
+  $('alive').innerHTML = `<div class="alive ${cls}"><span class="dot"></span><div><b>${esc(title)}</b>${esc(sub)}</div></div>`;
+
+  $('now').innerHTML = [['工作包', st['工作包']], ['狀態', st['狀態']], ['步驟', st['步驟']], ['下一步', st['下一步']], ['本包起點', st['本包起點']], ['狀態檔更新', st['更新']], ['工作樹正在改的檔案', live ? (live.git || {}).changed + ' 個' : '']]
+    .map(([k, v]) => `<div><small>${esc(k)}</small><b>${esc(v || '—')}</b></div>`).join('');
+
+  // ---------- 工作包 ----------
+  const badge = s => `<span class="badge ${/（縮減）/.test(s) ? 'b-cut' : /^完成/.test(s) ? 'b-done' : s === '進行中' ? 'b-run' : 'b-todo'}">${esc(s)}</span>`;
+  const cur = st['工作包'] || '';
+  $('wps').innerHTML = `<table><thead><tr><th>包</th><th>名稱</th><th>計畫日期</th><th>狀態</th><th>完成</th><th>提交</th><th>待補</th></tr></thead><tbody>${PLAN.map(p => {
+    const d = (data && data.packages && data.packages[p.id]) || {};
+    let s = d.status || '未開始';
+    if (s === '未開始' && cur.indexOf(p.id) === 0) s = '進行中';
+    return `<tr><td><b>${esc(p.id)}</b></td><td>${esc(p.name)}</td><td>${esc(p.dates)}</td><td>${badge(s)}</td><td>${esc(d.finished)}</td><td>${esc((d.commit || '').slice(0, 8))}</td><td>${esc(d.pending)}</td></tr>`;
+  }).join('')}</tbody></table><p class="note">狀態在每包合併時更新；目前這一包依狀態檔顯示為「進行中」。</p>`;
+
+  const cm = (live && live.git && live.git.unmerged) || [];
+  $('commits').innerHTML = cm.length ? `<ul>${cm.map(c => `<li><code>${esc(c.sha)}</code> ${esc(c.time)}｜${esc(c.subject)}</li>`).join('')}</ul>` : '<span class="note">這一包還沒有提交（或已全部合併）。</span>';
+
+  const ms = (cx.messages) || [];
+  $('msgs').innerHTML = ms.length ? ms.map(m => `<div class="msg"><div class="t">${esc(m.time)}</div>${esc(m.text)}</div>`).join('') : '<p class="note">還沒有讀到 Codex 的說明。</p>';
+
+  const hp = (live && live.help) || [];
+  $('help').innerHTML = hp.length ? `<table><thead><tr><th style="width:150px">時間</th><th style="width:36px">線</th><th style="width:64px">類別</th><th>需要你做什麼</th><th>做完後 Codex 會做什麼</th><th style="width:64px">狀態</th></tr></thead><tbody>${hp.map(h => `<tr${(h.lane || '').indexOf(LANE) >= 0 ? '' : ' style="opacity:.55"'}><td>${esc(h.time)}</td><td>${esc(h.lane)}</td><td>${esc(h.kind)}</td><td>${esc(h.need)}</td><td>${esc(h.after)}</td><td>${esc(h.state)}</td></tr>`).join('')}</tbody></table><p class="note">淡色是另一條線的項目。</p>` : '<span class="note">目前沒有。</span>';
+
+  const lk = (live && live.locks) || [];
+  $('locks').innerHTML = lk.length ? `<ul>${lk.map(l => `<li><b>${esc(l.name)}</b>（${esc(l.since)} 起）：${esc(l.content)}</li>`).join('')}</ul>` : '<span class="note">目前沒有人持鎖。</span>';
+
+  // ---------- 自動重新整理 ----------
+  const KEY = '3p-lane-autorefresh';
+  const box = $('auto'); box.checked = localStorage.getItem(KEY) !== 'off';
+  box.onchange = () => localStorage.setItem(KEY, box.checked ? 'on' : 'off');
+  setTimeout(() => { if (box.checked) location.reload(); }, 60000);
+})();
+</script>
+</body>
+</html>
