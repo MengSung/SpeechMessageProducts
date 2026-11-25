@@ -1,0 +1,14 @@
+{
+  "id": "three-products-foundation-discussion",
+  "title": "三產品共同底層與D365遠端佈建討論文件",
+  "status": "completed",
+  "complexity": "L",
+  "risk": "medium",
+  "domain": "planning-documents",
+  "currentPhase": "completed",
+  "nextAction": "交付文件，待使用者釐清三組織環境用途；未啟動實作",
+  "createdAt": "2026-11-25",
+  "branch": "1.0.0.12.GoodShepherd2.0.Worktree",
+  "completedAt": "2026-11-25",
+  "notes": "只完成討論文件；無遠端操作、無產品變更。雙模型未完成，Claude審查無Critical；全庫文件檢查16筆既有封存JSON失敗。"
+}

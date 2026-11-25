@@ -1,0 +1,31 @@
+{
+  "id": "three-products-foundation-discussion",
+  "name": "three-products-foundation-discussion",
+  "title": "三產品共同底層與D365遠端佈建討論文件",
+  "description": "",
+  "status": "completed",
+  "dev_type": null,
+  "scope": null,
+  "package": null,
+  "priority": "P2",
+  "creator": "--help",
+  "assignee": "Codex",
+  "createdAt": "2026-11-25",
+  "completedAt": "2026-11-25",
+  "branch": null,
+  "base_branch": "1.0.0.12.GoodShepherd2.0.Worktree",
+  "worktree_path": null,
+  "commit": null,
+  "pr_url": null,
+  "subtasks": [],
+  "children": [],
+  "parent": null,
+  "relatedFiles": [
+    "docs/planning/three-products/2026-11-25-common-foundation/三產品共同底層與D365佈建圖解_2026-11-25_v1.0.html",
+    "docs/planning/three-products/2026-11-25-common-foundation/三產品共同底層與D365佈建討論報告_2026-11-25_v1.0.docx",
+    "docs/planning/three-products/2026-11-25-common-foundation/報告內容與來源.md",
+    "docs/planning/three-products/2026-11-25-common-foundation/驗證紀錄.md"
+  ],
+  "notes": "只完成討論文件；無遠端操作、無產品變更。雙模型未完成，Claude審查無Critical；全庫文件檢查16筆既有封存JSON失敗。",
+  "meta": {}
+}
