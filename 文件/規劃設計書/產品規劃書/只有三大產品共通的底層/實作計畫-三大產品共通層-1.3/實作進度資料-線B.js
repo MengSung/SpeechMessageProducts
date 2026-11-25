@@ -7,10 +7,10 @@
 window.PROGRESS_LANES = window.PROGRESS_LANES || {};
 window.PROGRESS_LANES.B = {
   lane: 'B',
-  lastUpdated: '2026-11-25T22:15:00+08:00',
+  lastUpdated: '2026-11-26T00:48:00+08:00',
   packages: {
-    P0: { status: '進行中', started: '2026-11-25 22:12', finished: '', commit: '', pending: '', report: '' },
-    F10: { status: '未開始', started: '', finished: '', commit: '', pending: '', report: '' },
+    P0: { status: '完成（自動測試通過）', started: '2026-11-25 22:12', finished: '2026-11-26 00:48', commit: '6ada2a4ebeca4aae6d7d462f0e6b5d0a350f9ebb', pending: '實機待補：平台 SQL 憑證鏈與應用程式集區最小權限驗證；測試網址 DNS、管理員套用 Node 路由、監控重啟後 CRM 302；F2 再驗 /health/live。瀏覽器目視進度頁尚未完成；依頁面實際警告規則核對資料為 0 項。', report: 'wp-reports/3P-P0-前置.md' },
+    F10: { status: '進行中', started: '2026-11-26 00:23', finished: '', commit: '', pending: '', report: '' },
     F2: { status: '未開始', started: '', finished: '', commit: '', pending: '', report: '' },
     F6: { status: '未開始', started: '', finished: '', commit: '', pending: '', report: '' },
     F4: { status: '未開始', started: '', finished: '', commit: '', pending: '', report: '' },
@@ -19,6 +19,15 @@ window.PROGRESS_LANES.B = {
     F11: { status: '未開始', started: '', finished: '', commit: '', pending: '', report: '' },
   },
   log: [
+    '2026-11-26 00:48 Asia/Taipei (UTC+08:00)｜P0-6 文件改用明確換行標記後，重新核實實際 SHA-256 為 91F0113B6911E64A033EEAD3F2B9B62043D78DBF30D286A2DDB2F9C42B342E0B，並更新驗收報告；政策文字與隔離規則未變。來源：提交前摘要核對。',
+    '2026-11-26 00:45 Asia/Taipei (UTC+08:00)｜P0 報告標頭改用明確換行標記，消除差異空白檢查的 Markdown 尾端空白；報告的實機限制與驗證結果不變。來源：提交前差異檢查。',
+    '2026-11-26 00:43 Asia/Taipei (UTC+08:00)｜P0 報告修正 P0-6 規則文件 SHA-256，改以本輪 `Get-FileHash` 實算值 702AF03FDB83089600DA8907F675C1473379909601996CB0F7CBA75F03552BCB；文件內容未變。來源：線 B P0 驗收報告。',
+    '2026-11-26 00:39 Asia/Taipei (UTC+08:00)｜P0 記錄進度資料修正後重跑檢查：1.3 頁面警告規則核對 16 個工作包與兩線欄位、時間及完成證據為 0 項；`node --test tools/RepoQuality/Tests/Test-ProgressPage.cjs` 通過 28/28；線 B JavaScript 語法通過。沒有可控瀏覽器，未宣稱目視驗收。來源：本輪檢查。',
+    '2026-11-26 00:36 Asia/Taipei (UTC+08:00)｜P0 本輪重跑 02 §4 五道自動閘門均通過：Release 建置 0 錯誤（65 個編譯警告，未抑制）、全方案測試 0 失敗（Deployment 1,059/1,059、Hosting 165/165）、檔案說明 1,904 檔 0 失敗、Changed 編碼 5 檔 0 問題、方案清單核對通過。SQL 憑證鏈、DNS 與管理員路由仍為實機待補。來源：P0 驗收報告。',
+    '2026-11-26 00:23 Asia/Taipei (UTC+08:00)｜P0 報告補正：明確記錄最後程式修正提交 6ada2a4 修改兩個進度頁守門測試，修正後自動閘門通過；指定的隔離審查指引缺失，依 AGENTS 永久規則與現存重複資料發布契約完成本地自審，未進行雙模型審核。SQL 憑證鏈、DNS 與管理員路由仍為實機待補。F10 開始，待 P0 驗收文件提交並合併後依序執行。來源：線 B P0 報告與決策紀錄。',
+    '2026-11-26 00:13 Asia/Taipei (UTC+08:00)｜1.3 進度頁瀏覽器目視受本對話無可控制本機瀏覽器限制，未宣稱目視驗收；依 HTML 實際警告判斷式核對 16 個工作包及兩線紀錄，0 項警告。P0 SQL／DNS／管理員路由仍標「實機待補」。來源：線 B 驗收報告與頁面資料檢查。',
+    '2026-11-26 00:04 Asia/Taipei (UTC+08:00)｜P0 補跑固定進度頁守門：首次因 3.5 頁面已封存而引用舊路徑失敗；更新 RepoQuality 測試為封存路徑並斷言舊作用中路徑不存在，`node --test tools/RepoQuality/Tests/Test-ProgressPage.cjs` 通過 28/28。P0-2④ SQL 與 P0-3 DNS／管理員路由仍標「實機待補」。守門修正 SHA：6ada2a4ebeca4aae6d7d462f0e6b5d0a350f9ebb。來源：線 B 驗收報告。',
+    '2026-11-25 23:53 Asia/Taipei (UTC+08:00)｜P0 線 B 結論已完成：自動閘門通過，狀態為「完成（自動測試通過）」；P0-2④ SQL TLS 信任鏈與 P0-3 DNS／管理員路由仍為實機待補。Claude-only 審查未取得可用輸出，已按 02 §4 本地自審，未宣稱外部審查通過。程式修正 SHA：988ec1bd0b2a61e13fda5aa6b04c0f154679d431；報告：wp-reports/3P-P0-前置.md。F10 於 P0 合併後開工。來源：線 B 狀態檔與本包驗收報告。',
     '2026-11-25 22:12 Asia/Taipei (UTC+08:00)｜P0（P0-2④ 平台 SQL、P0-3 測試網址、P0-6 測試資料規則）開工，先做 02 §6 的開工檢查。來源：線 B 狀態檔；由 Claude 於 2026-11-25 22:15 建立本檔時寫入。',
     '2026-11-25 22:01 Asia/Taipei (UTC+08:00)｜線 B 對話開始，等待線 A 建立 cl-lane-b。來源：Codex 線 B 紀錄。',
   ],
