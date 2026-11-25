@@ -7,9 +7,9 @@
 window.PROGRESS_LANES = window.PROGRESS_LANES || {};
 window.PROGRESS_LANES.B = {
   lane: 'B',
-  lastUpdated: '2026-11-26T00:53:00+08:00',
+  lastUpdated: '2026-11-26T01:22:04+08:00',
   packages: {
-    P0: { status: '完成（自動測試通過）', started: '2026-11-25 22:12', finished: '2026-11-26 00:48', commit: '6ada2a4ebeca4aae6d7d462f0e6b5d0a350f9ebb', pending: '實機待補：平台 SQL 憑證鏈與應用程式集區最小權限驗證；測試網址 DNS、管理員套用 Node 路由、監控重啟後 CRM 302；F2 再驗 /health/live。瀏覽器目視進度頁尚未完成；依頁面實際警告規則核對資料為 0 項。', report: 'wp-reports/3P-P0-前置.md' },
+    P0: { status: '完成（自動測試通過）', started: '2026-11-25 22:12', finished: '2026-11-26 01:22', commit: 'd1f887adb50bdd4e8d32340d00feed97830c3bf6', pending: '實機待補：平台 SQL 憑證鏈與應用程式集區最小權限驗證；測試網址 DNS、管理員套用 Node 路由、監控重啟後 CRM 302；F2 再驗 /health/live。瀏覽器目視進度頁尚未完成；依頁面實際警告規則核對資料為 0 項。', report: 'wp-reports/3P-P0-前置.md' },
     F10: { status: '進行中', started: '2026-11-26 00:23', finished: '', commit: '', pending: '', report: '' },
     F2: { status: '未開始', started: '', finished: '', commit: '', pending: '', report: '' },
     F6: { status: '未開始', started: '', finished: '', commit: '', pending: '', report: '' },
@@ -19,6 +19,7 @@ window.PROGRESS_LANES.B = {
     F11: { status: '未開始', started: '', finished: '', commit: '', pending: '', report: '' },
   },
   log: [
+    '2026-11-26 01:22 Asia/Taipei (UTC+08:00)｜P0 rebase 到線 A 的 F0 提交 a90cc06fcabd3206acd611656dfea0bf0c9ad249 後，依序重跑五道 §4 閘門全部通過：建置 65 警告／0 錯誤、全方案測試 0 失敗（Deployment 1,059/1,059、Hosting 165/165）、文件 1,904 檔 0 失敗、Changed 編碼 11 檔 0 問題、方案清單通過；進度頁測試 28/28。重寫後程式 SHA：4eff1223cb4b5815de3c2fdf96c8a8f0e57865dc、d1f887adb50bdd4e8d32340d00feed97830c3bf6。SQL、DNS 與管理員路由仍為實機待補。來源：本輪完整命令結果與 P0 報告。',
     '2026-11-26 00:53 Asia/Taipei (UTC+08:00)｜P0 合併前 rebase 因工作樹既有 `.ccg` 修改而未執行；確認整合 HEAD 3c2fba0f45aab49d013be57e0a3af65691d5213d 已是本線 HEAD daf7e6dd83ca98fdf192824a5e5c7533c346904 的祖先，保留 `.ccg` 狀態並按既有提交跑 §4 守門，鎖內再確認 SHA。來源：線 B 決策紀錄。',
     '2026-11-26 00:48 Asia/Taipei (UTC+08:00)｜P0-6 文件改用明確換行標記後，重新核實實際 SHA-256 為 91F0113B6911E64A033EEAD3F2B9B62043D78DBF30D286A2DDB2F9C42B342E0B，並更新驗收報告；政策文字與隔離規則未變。來源：提交前摘要核對。',
     '2026-11-26 00:45 Asia/Taipei (UTC+08:00)｜P0 報告標頭改用明確換行標記，消除差異空白檢查的 Markdown 尾端空白；報告的實機限制與驗證結果不變。來源：提交前差異檢查。',
