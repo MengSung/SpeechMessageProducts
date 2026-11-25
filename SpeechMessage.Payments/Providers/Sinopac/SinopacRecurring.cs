@@ -5,7 +5,7 @@
  * 建立一律強制 PayTypeSub=REGULAR；查詢依主單與每筆扣款的穩定識別建立完整候選集合，
  * 只有商店、主單、列數及所有 OrderNo/期數識別均通過驗證後才發布唯讀快照。
  *
- * 主要流程與失敗處理：
+ * 主要功能與流程：
  * 定期建立驗證期數、週期與頻率後委派既有一次性 OrderCreate 封包流程。
  * RegularQuery 回應的外層簽章不涵蓋巢狀 Order/Info；巢狀值只視為由 HTTPS 傳輸的資料，
  * 以 profile ShopNo、request MasterOrderNo 與穩定 row identity 交叉核對，絕不虛稱巢狀內容已驗簽。
