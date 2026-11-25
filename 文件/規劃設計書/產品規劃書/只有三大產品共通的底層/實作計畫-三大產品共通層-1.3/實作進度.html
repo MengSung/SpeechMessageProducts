@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<!--
+檔案整體說明
+目的與定位：三大產品共通層實作計畫 1.3 的進度總覽頁，給使用者看兩條線（兩個 Codex 對話框）做到哪裡。
+主要功能與流程：讀取同資料夾的「實作進度資料-線A.js」「實作進度資料-線B.js」，畫出計畫與實際對照的時程圖、15 包狀態表、待補清單與逐筆進度紀錄；資料不合規時在頁首顯示紅色警告。
+使用邊界與維護：本頁版面固定，兩條線都不改；各線只改自己的資料檔（規則見 02 §2、§5.4）。計畫日期取自 00 §3，改計畫時才改本頁。本頁只是每包完成時的快照；「現在做到第幾步」在 C:\ProgramData\SpeechMessage\lanes\ 的狀態檔，本頁讀不到。
+-->
+<html lang="zh-Hant-TW">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>三大產品共通層 1.3｜實作進度</title>
+<style>
+:root{--bg:#f7f6f2;--card:#fff;--ink:#1f1e1c;--ink2:#6b6a66;--line:#e2e0da;--ok:#1a8f5a;--run:#2a78d6;--todo:#b9b6ae;--bad:#c0392b;--warn:#b7791f;--a:#e8682f;--b:#2a78d6;--tint:#eef4fc}
+@media (prefers-color-scheme:dark){:root{--bg:#1b1b1a;--card:#252523;--ink:#ecebe6;--ink2:#a9a7a0;--line:#3a3936;--todo:#5a5852;--tint:#20293a}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.6 "Microsoft JhengHei","PingFang TC",system-ui,sans-serif}
+main{max-width:1180px;margin:0 auto;padding:18px 18px 60px}
+h1{font-size:24px;margin:4px 0}
+h2{font-size:19px;margin:26px 0 10px;padding-bottom:4px;border-bottom:2px solid var(--run)}
+.sub{color:var(--ink2)}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px 14px}
+.kpi{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px;margin:14px 0}
+.kpi div{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px 12px}
+.kpi b{display:block;font-size:24px}
+.warn{background:#fdecea;border:1px solid var(--bad);color:var(--bad);border-radius:10px;padding:10px 14px;margin:12px 0}
+.warn ul{margin:4px 0 0 18px;padding:0}
+table{width:100%;border-collapse:collapse;background:var(--card);border-radius:12px;overflow:hidden}
+th,td{border-bottom:1px solid var(--line);padding:7px 8px;text-align:left;vertical-align:top;font-size:14px}
+th{background:var(--tint);font-weight:700}
+.badge{display:inline-block;border-radius:999px;padding:1px 10px;font-size:13px;font-weight:700;color:#fff;white-space:nowrap}
+.b-done{background:var(--ok)}.b-run{background:var(--run)}.b-todo{background:var(--todo)}.b-cut{background:var(--warn)}
+.lane{display:inline-block;width:22px;height:22px;border-radius:6px;color:#fff;text-align:center;font-weight:700;font-size:13px;line-height:22px}
+.lane.A{background:var(--a)}.lane.B{background:var(--b)}
+.log li{margin:4px 0}.log .t{color:var(--ink2);font-size:13px}
+details summary{cursor:pointer;font-weight:700}
+.note{color:var(--ink2);font-size:13px}
+svg text{font-family:"Microsoft JhengHei",system-ui,sans-serif}
+code{background:var(--tint);border-radius:4px;padding:0 4px}
+</style>
+</head>
+<body>
+<main>
+<h1>三大產品共通層 1.3｜實作進度</h1>
+<div class="sub" id="updated"></div>
+<div id="warnings"></div>
+<div class="kpi" id="kpi"></div>
+
+<h2>時程：計畫與實際</h2>
+<div class="card" id="gantt"></div>
+<p class="note">淺色外框＝計畫（00 §3）；實心＝已完成；藍色斜線＝進行中；紅色直線＝今天。12/25、1/1 放假。</p>
+
+<h2>工作包狀態</h2>
+<div id="table"></div>
+
+<h2>待補（實機或手機還沒做到的）</h2>
+<div class="card" id="pending"></div>
+
+<h2>進度紀錄（新的在上面）</h2>
+<div class="card"><details open><summary>展開／收合</summary><ul class="log" id="log"></ul></details></div>
+
+<h2>這一頁怎麼更新</h2>
+<div class="card"><ul>
+<li>每包寫驗收報告的那個提交，該線同時更新自己的資料檔：線 A 改 <code>實作進度資料-線A.js</code>，線 B 改 <code>實作進度資料-線B.js</code>；本頁誰都不改。</li>
+<li>合併到整合分支後，W:\ 這份就會更新；重新整理瀏覽器即可。</li>
+<li>「現在做到第幾步」與「需要你協助」在 <code>C:\ProgramData\SpeechMessage\lanes\</code>（lane-A.md、lane-B.md、需要你協助.md），本頁讀不到。</li>
+</ul></div>
+</main>
+
+<script src="實作進度資料-線A.js"></script>
+<script src="實作進度資料-線B.js"></script>
+<script>
+'use strict';
+(function () {
+  // ---------- 計畫（00 §3；半開區間 [開始, 結束)，單位：第幾個工作天）----------
+  const PLAN = [
+    { id: 'F0', lane: 'A', name: '基線矩陣', s: 1, e: 3 },
+    { id: 'F1', lane: 'A', name: '依賴方向修正', s: 3, e: 6 },
+    { id: 'FS', lane: 'A', name: '結構分層與三組織佈署', s: 6, e: 11 },
+    { id: 'F3', lane: 'A', name: 'Channel 名額池', s: 11, e: 16 },
+    { id: 'F5', lane: 'A', name: '推播唯一出口', s: 16, e: 19 },
+    { id: 'F7', lane: 'A', name: '公開圖片代管', s: 19, e: 21 },
+    { id: 'F9', lane: 'A', name: '審核卡片', s: 21, e: 24 },
+    { id: 'M1', lane: 'A', name: '最薄通路（結業考）', s: 24, e: 25.5 },
+    { id: 'P0', lane: 'B', name: 'P0 線 B 項目', s: 1, e: 2 },
+    { id: 'F10', lane: 'B', name: '永豐補強（沙箱）', s: 2, e: 6 },
+    { id: 'F2', lane: 'B', name: '好牧人 2.0 網站骨架', s: 6, e: 9 },
+    { id: 'F6', lane: 'B', name: 'LIFF 身分', s: 9, e: 13 },
+    { id: 'F4', lane: 'B', name: '通用排程器', s: 13, e: 17 },
+    { id: 'F8', lane: 'B', name: '權限＋修改紀錄', s: 17, e: 21 },
+    { id: 'F12', lane: 'B', name: '測試租戶建立、邀請與清理', s: 21, e: 23.5 },
+    { id: 'F11', lane: 'B', name: '觀測與健康', s: 23.5, e: 26.5 },
+  ];
+  const HOLIDAYS = ['2026-12-25', '2027-01-01'];
+  const STATUS = /^(未開始|進行中|完成（自動測試通過）|完成（測試環境驗證）)(（縮減）)?$/;
+  const STAMP = /^(補記 )?(\d{4}-\d{2}-\d{2} \d{2}:\d{2}) Asia\/Taipei \(UTC\+08:00\)/;
+  const ROOT = '../../../../../';
+  const esc = s => String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+
+  const workDays = []; { let d = new Date(Date.UTC(2026, 10, 30)); while (workDays.length < 40) { const s = d.toISOString().slice(0, 10); const w = d.getUTCDay(); if (w && w !== 6 && !HOLIDAYS.includes(s)) workDays.push(s); d = new Date(d.getTime() + 864e5); } }
+  const md = s => s.slice(5).replace('-', '/');
+  const fromDay = p => workDays[Math.floor(p.s) - 1], toDay = p => workDays[Math.ceil(p.e) - 2];
+
+  // ---------- 讀資料並檢查 ----------
+  const warns = [];
+  const L = window.PROGRESS_LANES || {};
+  const rows = PLAN.map(p => {
+    const lane = L[p.lane];
+    const d = lane && lane.packages ? lane.packages[p.id] : null;
+    if (!lane) return { ...p, d: null };
+    if (!d) warns.push(`線 ${p.lane} 的資料缺少 ${p.id}`);
+    else {
+      if (!STATUS.test(d.status || '')) warns.push(`${p.id} 的狀態「${d.status}」不是允許的值`);
+      if (/^完成/.test(d.status || '') && (!d.finished || !d.commit)) warns.push(`${p.id} 已標完成，但缺完成時間或提交 SHA`);
+    }
+    return { ...p, d };
+  });
+  ['A', 'B'].forEach(k => {
+    const lane = L[k];
+    if (!lane) { warns.push(`讀不到「實作進度資料-線${k}.js」`); return; }
+    if (!/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(:\d{2})?\+08:00$/.test(lane.lastUpdated || '')) warns.push(`線 ${k} 的 lastUpdated 不是 +08:00 的 ISO 時間`);
+    Object.keys(lane.packages || {}).forEach(id => { if (!PLAN.some(p => p.id === id && p.lane === k)) warns.push(`線 ${k} 的資料多了不屬於它的 ${id}`); });
+    (lane.log || []).forEach((t, i) => { if (!STAMP.test(t)) warns.push(`線 ${k} 第 ${i + 1} 筆紀錄沒有以台北日期時間開頭`); });
+  });
+
+  // ---------- 頁首 ----------
+  const last = ['A', 'B'].map(k => (L[k] || {}).lastUpdated).filter(Boolean).sort().pop();
+  document.getElementById('updated').textContent = '資料更新：' + (last ? last.replace('T', ' ').slice(0, 16) + ' Asia/Taipei (UTC+08:00)' : '（沒有資料）') + '｜計畫：M1 最晚 2027-01-05；全部最晚 2027-01-07';
+  if (warns.length) document.getElementById('warnings').innerHTML = `<div class="warn"><b>資料有問題（請該線修正自己的資料檔）</b><ul>${warns.map(w => `<li>${esc(w)}</li>`).join('')}</ul></div>`;
+
+  const wps = rows.filter(r => r.id !== 'P0');
+  const st = r => (r.d && r.d.status) || '未開始';
+  const done = wps.filter(r => /^完成/.test(st(r))).length;
+  const running = rows.filter(r => st(r) === '進行中').length;
+  const pend = rows.filter(r => r.d && r.d.pending);
+  const today = new Date(Date.now() + 8 * 36e5).toISOString().slice(0, 10);
+  document.getElementById('kpi').innerHTML = [
+    ['已完成', `${done} / ${wps.length} 包`], ['進行中', `${running} 包`], ['待補', `${pend.length} 項`], ['今天', today],
+  ].map(([k, v]) => `<div>${esc(k)}<b>${esc(v)}</b></div>`).join('');
+
+  // ---------- 時程圖 ----------
+  const x0 = 150, W = 1120, END = 28.5, dw = (W - 10 - x0) / (END - 1), X = d => x0 + (d - 1) * dw;
+  let todayIdx = workDays.findIndex(s => s >= today); if (todayIdx < 0) todayIdx = workDays.length; const tx = X(Math.min(todayIdx + 1, END));
+  let g = `<svg viewBox="0 0 ${W} 250" width="100%" role="img" aria-label="計畫與實際">`;
+  g += `<defs><pattern id="hatch" width="8" height="8" patternTransform="rotate(45)" patternUnits="userSpaceOnUse"><rect width="8" height="8" fill="var(--tint)"/><line x1="0" y1="0" x2="0" y2="8" stroke="var(--run)" stroke-width="4"/></pattern></defs>`;
+  [[1, '第 1 週'], [6, '第 2 週'], [11, '第 3 週'], [16, '第 4 週'], [20, '第 5 週'], [24, '第 6 週']].forEach(([d, n]) => { g += `<line x1="${X(d)}" y1="22" x2="${X(d)}" y2="232" stroke="var(--line)" stroke-dasharray="3 4"/><text x="${X(d) + 4}" y="15" font-size="11" fill="var(--ink2)">${n}（${md(workDays[d - 1])}）</text>`; });
+  ['A', 'B'].forEach((k, li) => {
+    const y = 36 + li * 100;
+    g += `<text x="10" y="${y + 30}" font-size="15" font-weight="700" fill="var(--${k.toLowerCase()})">線 ${k}</text>`;
+    rows.filter(r => r.lane === k).forEach(r => {
+      const x = X(r.s), w = (r.e - r.s) * dw - 3, s = st(r);
+      const fill = /^完成/.test(s) ? 'var(--ok)' : s === '進行中' ? 'url(#hatch)' : 'var(--card)';
+      g += `<rect x="${x}" y="${y}" width="${w}" height="64" rx="7" fill="${fill}" stroke="${s === '未開始' ? 'var(--todo)' : 'var(--' + k.toLowerCase() + ')'}" stroke-width="1.8"/>`;
+      g += `<text x="${x + 5}" y="${y + 18}" font-size="12.5" font-weight="700" fill="${/^完成/.test(s) ? '#fff' : 'var(--ink)'}">${esc(r.id)}</text>`;
+      if (w > 40) g += `<text x="${x + 5}" y="${y + 40}" font-size="11" fill="${/^完成/.test(s) ? '#fff' : 'var(--ink2)'}">${esc(s.replace('完成（自動測試通過）', '完成').replace('完成（測試環境驗證）', '完成✓').slice(0, Math.max(2, Math.floor(w / 11))))}</text>`;
+    });
+  });
+  g += `<line x1="${tx}" y1="24" x2="${tx}" y2="236" stroke="var(--bad)" stroke-width="2"/><text x="${tx + 3}" y="246" font-size="11" fill="var(--bad)">今天</text></svg>`;
+  document.getElementById('gantt').innerHTML = g;
+
+  // ---------- 狀態表 ----------
+  const badge = s => `<span class="badge ${/（縮減）/.test(s) ? 'b-cut' : /^完成/.test(s) ? 'b-done' : s === '進行中' ? 'b-run' : 'b-todo'}">${esc(s)}</span>`;
+  document.getElementById('table').innerHTML = `<table><thead><tr><th>包</th><th>名稱</th><th>線</th><th>計畫日期</th><th>狀態</th><th>開始</th><th>完成</th><th>提交</th><th>待補</th><th>報告</th></tr></thead><tbody>${rows.map(r => {
+    const d = r.d || {};
+    return `<tr><td><b>${esc(r.id)}</b></td><td>${esc(r.name)}</td><td><span class="lane ${r.lane}">${r.lane}</span></td><td>${md(fromDay(r))}～${md(toDay(r))}</td><td>${badge(st(r))}</td><td>${esc(d.started)}</td><td>${esc(d.finished)}</td><td>${esc((d.commit || '').slice(0, 8))}</td><td>${esc(d.pending)}</td><td>${d.report ? `<a href="${esc(encodeURI(ROOT + d.report))}">報告</a>` : ''}</td></tr>`;
+  }).join('')}</tbody></table>`;
+
+  // ---------- 待補 ----------
+  document.getElementById('pending').innerHTML = pend.length ? `<ul>${pend.map(r => `<li><span class="lane ${r.lane}">${r.lane}</span> <b>${esc(r.id)}</b>：${esc(r.d.pending)}</li>`).join('')}</ul>` : '<span class="note">目前沒有待補。</span>';
+
+  // ---------- 進度紀錄 ----------
+  const logs = [];
+  ['A', 'B'].forEach(k => ((L[k] || {}).log || []).forEach(t => { const m = STAMP.exec(t); logs.push({ k, t, key: m ? m[2] : '' }); }));
+  logs.sort((a, b) => b.key.localeCompare(a.key));
+  document.getElementById('log').innerHTML = logs.map(x => `<li><span class="lane ${x.k}">${x.k}</span> ${esc(x.t)}</li>`).join('') || '<li class="note">還沒有紀錄。</li>';
+})();
+</script>
+</body>
+</html>
