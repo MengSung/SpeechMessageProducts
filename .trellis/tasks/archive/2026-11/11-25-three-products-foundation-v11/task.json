@@ -1,0 +1,33 @@
+{
+  "id": "three-products-foundation-v11",
+  "name": "three-products-foundation-v11",
+  "title": "三產品獨立 Channel 與 D365 表單檢視佈建圖解修訂",
+  "description": "",
+  "status": "completed",
+  "dev_type": null,
+  "scope": null,
+  "package": null,
+  "priority": "P2",
+  "creator": "--help",
+  "assignee": "codex",
+  "createdAt": "2026-11-25",
+  "completedAt": "2026-11-25",
+  "branch": null,
+  "base_branch": "1.0.0.12.GoodShepherd2.0.Worktree",
+  "worktree_path": null,
+  "commit": null,
+  "pr_url": null,
+  "subtasks": [],
+  "children": [],
+  "parent": null,
+  "relatedFiles": [
+    "docs/planning/three-products/2026-11-25-common-foundation/三產品共同底層與D365佈建討論報告_2026-11-25_v1.1.docx",
+    "docs/planning/three-products/2026-11-25-common-foundation/三產品共同底層與D365佈建圖解_2026-11-25_v1.1.html",
+    "docs/planning/three-products/2026-11-25-common-foundation/驗證紀錄_v1.1.md"
+  ],
+  "notes": "僅文件任務完成：v1.1 DOCX 21頁與互動 HTML 已驗證。未執行 task start、產品實作或遠端連線。完整雙模型審查未完成；詳見驗證紀錄。",
+  "meta": {
+    "documentationOnly": true,
+    "dualModelComplete": false
+  }
+}
