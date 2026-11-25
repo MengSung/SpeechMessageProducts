@@ -7,10 +7,10 @@
 window.PROGRESS_LANES = window.PROGRESS_LANES || {};
 window.PROGRESS_LANES.A = {
   lane: 'A',
-  lastUpdated: '2026-11-25T22:15:00+08:00',
+  lastUpdated: '2026-11-26T00:26:00+08:00',
   packages: {
-    F0: { status: '進行中', started: '2026-11-25 22:09', finished: '', commit: '', pending: '', report: '' },
-    F1: { status: '未開始', started: '', finished: '', commit: '', pending: '', report: '' },
+    F0: { status: '完成（自動測試通過）', started: '2026-11-25 22:09', finished: '2026-11-26 00:24', commit: '74ea5a1c1ff723f6a64aeb73cadf69685021f528, a9e438be0d9fe13d8fe40d0c2e03e9558774e113', pending: '實機待補：核定三組織 IFD 端點；goodshepherd20 唯讀 metadata／資料筆數盤點', report: 'wp-reports/3P-F0-基線矩陣.md' },
+    F1: { status: '進行中', started: '2026-11-26 00:24', finished: '', commit: '', pending: '', report: '' },
     FS: { status: '未開始', started: '', finished: '', commit: '', pending: '', report: '' },
     F3: { status: '未開始', started: '', finished: '', commit: '', pending: '', report: '' },
     F5: { status: '未開始', started: '', finished: '', commit: '', pending: '', report: '' },
@@ -19,6 +19,8 @@ window.PROGRESS_LANES.A = {
     M1: { status: '未開始', started: '', finished: '', commit: '', pending: '', report: '' },
   },
   log: [
+    '2026-11-26 00:26 Asia/Taipei (UTC+08:00)｜在 Edge 開啟本工作樹的實作進度 1.3，頁首警告區為空，F0 狀態及實機待補顯示正常。',
+    '2026-11-26 00:24 Asia/Taipei (UTC+08:00)｜F0 完成離線守門：Release 建置 0 警告／錯誤、全方案 7,553/7,553、進度頁測試 28/28、文件檢查 1,904/0、變更編碼檢查 8/0、方案清單成功；修復提交 74ea5a1c1ff723f6a64aeb73cadf69685021f528、a9e438be0d9fe13d8fe40d0c2e03e9558774e113。ClaudeOnly 審查入口兩次均無可用輸出，已本地自審；核定 IFD 端點與 goodshepherd20 唯讀盤點實機待補。F1 開始。',
     '2026-11-25 22:09 Asia/Taipei (UTC+08:00)｜F0 開工（本包起點 e3518961），先做 Step 0 測試組織連線設定。來源：線 A 狀態檔；由 Claude 於 2026-11-25 22:15 建立本檔時寫入。',
     '2026-11-25 22:05 Asia/Taipei (UTC+08:00)｜建立工作樹 cl-lane-a、cl-lane-b（都從 e3518961）。來源：Codex 線 A 紀錄。',
     '2026-11-25 22:04 Asia/Taipei (UTC+08:00)｜開工切換：AGENTS.md 現行依據改指共通層 1.3，提交 e3518961 並推送；遠端與本機 SHA 一致。來源：git 提交紀錄。',
