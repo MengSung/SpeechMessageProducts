@@ -43,7 +43,14 @@ public interface IPaymentGateway
     /// <returns>綁卡狀態與密文；沒有 capability 時不發出 I/O。</returns>
     Task<CardBindQueryResult> QueryCardBindAsync(
         CardBindQueryRequest request,
-        CancellationToken cancellationToken = default);
+        CancellationToken cancellationToken = default)
+    {
+        return Task.FromResult(new CardBindQueryResult
+        {
+            Status = PaymentStatus.Failed,
+            Error = UnsupportedOperationError()
+        });
+    }
 
     /// <summary>建立銀行綁卡付款頁；成功只代表頁面建立，不代表使用者完成綁卡或付款。</summary>
     /// <param name="request">含伺服器產生 BindNo 與 HTTPS 回跳網址的中立請求。</param>
@@ -51,7 +58,13 @@ public interface IPaymentGateway
     /// <returns>不含明文卡片 token 的綁卡頁結果。</returns>
     Task<CardBindResult> CreateCardBindAsync(
         CardBindRequest request,
-        CancellationToken cancellationToken = default);
+        CancellationToken cancellationToken = default)
+    {
+        return Task.FromResult(new CardBindResult
+        {
+            Error = UnsupportedOperationError()
+        });
+    }
 
     /// <summary>要求 provider 取消指定訂單授權。</summary>
     /// <param name="request">含伺服器端 profile 名稱與穩定訂單識別的中立請求。</param>
@@ -59,7 +72,15 @@ public interface IPaymentGateway
     /// <returns>只有銀行明確接受時才回報 Cancelled。</returns>
     Task<PaymentStatusResult> CancelAuthorizationAsync(
         OrderMaintenanceRequest request,
-        CancellationToken cancellationToken = default);
+        CancellationToken cancellationToken = default)
+    {
+        return Task.FromResult(new PaymentStatusResult
+        {
+            Status = PaymentStatus.Failed,
+            ProductOrderId = request.OrderNo,
+            Error = UnsupportedOperationError()
+        });
+    }
 
     /// <summary>要求 provider 對指定訂單立即請款。</summary>
     /// <param name="request">含伺服器端 profile 名稱與穩定訂單識別的中立請求。</param>
@@ -67,7 +88,15 @@ public interface IPaymentGateway
     /// <returns>只有銀行明確接受時才回報 Succeeded。</returns>
     Task<PaymentStatusResult> CaptureNowAsync(
         OrderMaintenanceRequest request,
-        CancellationToken cancellationToken = default);
+        CancellationToken cancellationToken = default)
+    {
+        return Task.FromResult(new PaymentStatusResult
+        {
+            Status = PaymentStatus.Failed,
+            ProductOrderId = request.OrderNo,
+            Error = UnsupportedOperationError()
+        });
+    }
 
     /// <summary>依中立 Money-first 建單資料建立定期扣款方案。</summary>
     /// <param name="request">含 profile 名稱、付款資料及定期排程中繼資料的請求。</param>
@@ -75,7 +104,15 @@ public interface IPaymentGateway
     /// <returns>定期方案的建立結果；不支援時不發出 I/O。</returns>
     Task<RecurringResult> CreateRecurringAsync(
         PaymentCreateRequest request,
-        CancellationToken cancellationToken = default);
+        CancellationToken cancellationToken = default)
+    {
+        return Task.FromResult(new RecurringResult
+        {
+            Status = PaymentStatus.Failed,
+            MasterOrderNo = request.ProductOrderId,
+            Error = UnsupportedOperationError()
+        });
+    }
 
     /// <summary>查詢定期扣款主單及其完整、穩定識別的子扣款集合。</summary>
     /// <param name="request">含 profile 名稱與定期主單識別的中立查詢。</param>
@@ -83,7 +120,15 @@ public interface IPaymentGateway
     /// <returns>驗證完成後發布的唯讀結果，或不含部分資料的失敗結果。</returns>
     Task<RecurringResult> QueryRecurringAsync(
         RecurringQueryRequest request,
-        CancellationToken cancellationToken = default);
+        CancellationToken cancellationToken = default)
+    {
+        return Task.FromResult(new RecurringResult
+        {
+            Status = PaymentStatus.Failed,
+            MasterOrderNo = request.MasterOrderNo,
+            Error = UnsupportedOperationError()
+        });
+    }
 
     /// <summary>停止指定定期扣款方案。</summary>
     /// <param name="request">含 profile 名稱及定期主單識別的中立維護請求。</param>
@@ -91,7 +136,15 @@ public interface IPaymentGateway
     /// <returns>只有銀行明確接受停止命令時才回報 Cancelled。</returns>
     Task<PaymentStatusResult> StopRecurringAsync(
         OrderMaintenanceRequest request,
-        CancellationToken cancellationToken = default);
+        CancellationToken cancellationToken = default)
+    {
+        return Task.FromResult(new PaymentStatusResult
+        {
+            Status = PaymentStatus.Failed,
+            ProductOrderId = request.OrderNo,
+            Error = UnsupportedOperationError()
+        });
+    }
 
     /// <summary>以 provider 交易參照查詢付款狀態；回傳狀態不會自行更新產品持久資料。</summary>
     /// <param name="request">含伺服器端 profile 名稱、產品訂單及 provider 交易參照的中立查詢資料。</param>
@@ -108,4 +161,19 @@ public interface IPaymentGateway
     Task<PaymentCallbackResult> ParseCallbackAsync(
         PaymentCallbackRequest request,
         CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// 為尚未更新的 gateway 實作者提供安全預設值；這個分支不觸發任何 provider I/O，
+    /// 讓新增 capability 不會因舊替身或外部實作者而誤宣稱已執行。
+    /// </summary>
+    /// <returns>固定的 UnsupportedOperation 錯誤。</returns>
+    private static PaymentError UnsupportedOperationError()
+    {
+        return new PaymentError
+        {
+            Kind = PaymentErrorKind.UnsupportedOperation,
+            Code = "UnsupportedOperation",
+            Message = "The payment gateway does not support this operation."
+        };
+    }
 }
