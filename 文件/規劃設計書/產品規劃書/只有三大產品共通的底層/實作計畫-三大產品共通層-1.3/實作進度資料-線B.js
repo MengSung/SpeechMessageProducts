@@ -7,18 +7,19 @@
 window.PROGRESS_LANES = window.PROGRESS_LANES || {};
 window.PROGRESS_LANES.B = {
   lane: 'B',
-  lastUpdated: '2026-11-26T13:04:20+08:00',
+  lastUpdated: '2026-11-26T13:50:54+08:00',
   packages: {
     P0: { status: '完成（自動測試通過）', started: '2026-11-25 22:12', finished: '2026-11-26 01:22', commit: 'd1f887adb50bdd4e8d32340d00feed97830c3bf6', pending: '實機待補：平台SQL憑證鏈及最小權限、F2公開live／ready。DNS與P0-3管理員Apply已通過，監控重啟及CRM302證據核實；不需重跑Apply。瀏覽器目視待補。', report: 'wp-reports/3P-P0-前置.md' },
     F10: { status: '完成（自動測試通過）', started: '2026-11-26 00:23', finished: '2026-11-26 10:02', commit: '8072b764c5bca3b0853177fbe16c0a0ac30311ef', pending: '實機待補：JesusTest 必要設定及測試卡文件已存在，五項沙箱及隔日到期查詢尚未實跑；V2.6 完整規格待核對。宿主 Exception.log sink capture 與產品持久層最終原子冪等待後續整合。離線 parser／合成 handler 不代表實機。', report: 'wp-reports/3P-F10-永豐補強.md' },
     F2: { status: '完成（自動測試通過）', started: '2026-11-26 04:16', finished: '2026-11-26 13:04', commit: '9f86ad16dccec7568910a032aad402b0ea2d2c95', pending: '實機待補：兩次部署失敗後不作第三次Apply；停止候選與環境回復已核對，修正版未實機驗證。公開live／ready、T01 webhook/test與平台SQL待補；T01／T02／LIFF已交接。完整一般測試7741/7741、主機83/83，ClaudeOnly複審無Critical／High；固定總覽目視待補。', report: 'wp-reports/3P-F2-主機骨架.md' },
-    F6: { status: '進行中', started: '2026-11-26 13:04', finished: '', commit: '', pending: 'F2閘門全綠，驗收文件合併後接續離線實作；架構精確分類由線A維護。測試站未啟用，外部頁面及手機仍待驗。', report: '' },
+    F6: { status: '進行中', started: '2026-11-26 13:04', finished: '', commit: '162caf44ec97af736e1ce58113449c1dbd0e1833', pending: '本包共用113、產品23、主機106、JS91、LocalDB12全過；全方案7874通過／3失敗，等待線A精確架構分類及完整重驗。LIFF app已API建立讀回；公開頁面逾時，未第三次部署；平台SQL及手機仍待補。', report: 'wp-reports/3P-F6-LIFF身分.md' },
     F4: { status: '未開始', started: '', finished: '', commit: '', pending: '', report: '' },
     F8: { status: '未開始', started: '', finished: '', commit: '', pending: '', report: '' },
     F12: { status: '未開始', started: '', finished: '', commit: '', pending: '', report: '' },
     F11: { status: '未開始', started: '', finished: '', commit: '', pending: '', report: '' },
   },
   log: [
+    '2026-11-26 13:50 Asia/Taipei (UTC+08:00)｜F6程式162caf44已固定；全方案Release建置65警告／0錯誤，本包測試全綠，文件1967/0、Changed編碼27/0。完整一般測試7874通過／3失敗（兩組態UnknownProject及既有轉碼單次失敗），不放行；轉碼原樣重驗1/1並捕捉十檔成功manifest，未宣稱修復原因。LIFF app已API建立讀回；公開頁面逾時、手機與平台SQL如實待補。',
     '2026-11-26 13:04 Asia/Taipei (UTC+08:00)｜F2首輪Main生命週期High先紅後綠修正，完整方案7741/7741、主機83/83；ClaudeOnly複審無Critical／High。同步14746fc6後鎖內建置65警告／0錯誤、一般測試7741/7741再次通過，文件1941/0，兩新專案各一次。修正SHA：9f86ad16dccec7568910a032aad402b0ea2d2c95；兩次部署失敗與實機待補如實保留，不作第三次Apply。狀態檔已修為UTF-8無BOM固定八行CRLF，讀回及即時資料八欄均核對；瀏覽器已見即時欄位，固定總覽目視未完成。F2推送後開始F6。',
     '2026-11-26 11:40 Asia/Taipei (UTC+08:00)｜F2同步線A架構登錄後建置通過，但完整測試仍拒絕01明定的GoodShepherd2Product及GoodShepherd2StartupGuard，已回報線A補精確公開契約，不改成internal或放寬守門。第二次部署Switch失敗後站台／集區均Stopped；Commit後重開快照修正先紅後綠、PS7／PS5各19/19。依02§10不做第三次Apply，實機待補不冒稱環境限制。T01／T02／LIFF必要User Secrets與ID已核對齊全，未輸出值或呼叫LINE。修正SHA：2ec00b2b8f190f484faeb7b6ce697142eed9df91。',
     '2026-11-26 11:08 Asia/Taipei (UTC+08:00)｜F2補正部署CRM憑證接線，僅使用精確goodshepherd20 User Secrets及專用集區環境兩鍵，舊環境可精準回復；PS7／PS5各17/17離線通過。未Apply；全方案架構登錄仍待線A合併，未放行F2。',
