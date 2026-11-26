@@ -1,8 +1,8 @@
 # FS 結構分層與三組織佈署
 
-更新：2026-11-26 14:49 Asia/Taipei (UTC+08:00)
+更新：2026-11-26 20:49 Asia/Taipei (UTC+08:00)
 本包起點：`601d5056825eec30299432c054e867deb1e6b790`；目前基線含 F2 與 F1 LIFF 必要補正：`474669ddd57563ab3e657cc4098dbbe140e88ab0`
-狀態：進行中；尚未完成實機部署及最終自動閘門。ClaudeOnly 首輪一項 High 正在補正，尚未複審通過。
+狀態：進行中；修正後完整離線自動閘門已通過，Plugin 缺旗標 High 經 ClaudeOnly 複審結清；新增測試的分組覆蓋補查及同步最新整合分支後驗證仍待完成。實機部署未完成。
 
 ## 驗收狀態
 
@@ -74,10 +74,49 @@
 - 主代理另以未加 restore／audit 調整的既定完整排除式，正式 Deployment 一般測試1750/1750、exit0，log SHA-256 `AC76813E094ECCB0537FE7FF2375A4D032407E0411442F85FCF476AD731C2F7D`；solution Release build exit0、0 warning／0 error（增量建置），log SHA-256 `D90801A8A36FD64392AC7CFB114453FB5D4203A6AB1B6AB514759B2ACDD9849C`。文件1962/0、Changed74/0；新增檔及最後文件在提交前再核對。這些不取代同步整合後的全方案一般測試與複審。
 - 選擇將已可建置的 FS 草稿保存為本機檢查點，再正常 rebase 已合併 F6；只提交明列 FS 路徑，保存原始 bytes／manifest，避免在 dirty 樹 rebase、stash、reset 或反覆搬移。檢查點不代表 FS 完成，不合併、不推送，整包最終閘門與 ClaudeOnly 仍待完成。原 QR 失敗及所有實機限制保留。
 
+### 2026-11-26 17:45 Asia/Taipei (UTC+08:00) 同步後完整離線守門與第二輪複審補正
+
+- 依 02 §4 原命令完成本輪 Release 全方案建置：exit 0、0 warning／0 error；log SHA-256 `B57A98C73A5ADD63EF836C7FF4D9A879B14588941C1F3F105688339D9B047C29`。
+- 指定排除式全方案一般測試完成 25 個測試回合、8,705/8,705 通過、0 失敗／0 略過（含 Deployment 1,847、Hosting 270）；log SHA-256 `7E0A878BB36D0D66B9D67A7A557DCA4F1804A6D34E944F061731617B0877A084`。測試排除 Live3P，結果全屬離線證據。
+- 檔案說明 1,990/0（SHA-256 `69607C847A8DDC13A1705216E9F8ED5BEACE002AC0F0E9A3BAF8F7FFBA780B8E`）；Changed 編碼 101/0（SHA-256 `E0D3E80DA4365FE21DCBCFB21ACE79BA1167DFA5CE80D898DEF32E6A655EB212`）；方案清單通過（SHA-256 `845249C1806921C8C34F07D1E4683C4E7FE2CF91E80E4EA62A53F7EBA85A9E82`）；進度頁自動測試 28/28（SHA-256 `AD42168CECF67C5454F8D86BF5A48B5051BD12574F23824736E94CD6282DBA51`）。
+- 第二輪單模型（使用者指定 ClaudeOnly）無 Critical、提出 1 High：schema-only 的既有表雖會納入定向 PublishXml，完整 metadata 檢查卻只涵蓋 UI 寫入表，因而可能連帶發布未審 label／cascade。後續候選修正將 full metadata baseline 擴至所有 schema／UI 發布範圍的既有表，並於 before 與首筆 SDK 寫入之前檢查；發布前仍與初始純值基準比對，只允許以正式 SDK 回應身分表示的明確增量。無 views 時亦保護 systemform／savedquery 原始範圍。新增／補強 `Apply_SchemaOnlyPendingFullMetadata_RefusesBeforeEvidenceAndEveryWrite`、`Apply_SchemaOnlyApprovedAttribute_PublishesExactDelta`、`Apply_SchemaOnlyMetadataDrift_RefusesBeforePublish` 等真引擎合成回歸，涵蓋 schema-only、標籤／cascade pending、單／雙來源漂移與合法欄位增量。修正尚待第三輪 ClaudeOnly 獨立複審，不先宣稱外部 High 已結清。
+- H1 行為分類仍未知；未執行 quiesce apply、schema apply、UI import／publish 或其他 D365 寫入。三組織完整 plan 與 inventory 已各兩次失敗，依 02 §10 不做第三次相同操作；三組織實機及 UI export／import、Live3P 仍待補。進度頁目視待補且不以自動測試替代。
 ## 手機待驗
 
 FS無手機步驟；手機畫面集中M1。目前進度頁目視亦待補：先前電腦操作被使用者Escape停止，本輪不再呼叫，不宣稱頁首無警告。
 
+
+### 2026-11-26 15:47 Asia/Taipei (UTC+08:00) 同步 F1 與 H1 證據追查
+
+- F1 Scheduling及QR必要補正已合併推送`347fa2636174d2bdf079b212711fdc2736517d67`，遠端與整合HEAD相同。F1正式完整一般7943/7943、ClaudeOnly無Critical／High；其真鎖修復不是原FS現場owner辨識，原FS8134/1失敗證據保留。
+- 乾淨FS檢查點正常rebase到此整合，三份共用文件逐欄保留：決策全部不同歷史、90只採F0／FS／F3來源列且保留F1與線B、線A資料合併全部log。其餘51檔對原CRLF備份逐位元組不變；manifest SHA-256 `76D60FCF47C12D084CDD60191672AD20B999275FB7983ABC808A486499AEDEE8`。目前程式HEAD `ecd83b94eb55266d2d243c896e9a3d7ddfb77b55`，分支恢復cl/lane-a；舊樹與所有備份保留，不stash/reset。
+- 純唯讀H1追查報告SHA-256 `01AF62361FDF0080A215C57DC337F8AEE4B440F28244B74F19EA7905DBB1EE7A`。完整正式ID來源能證明身分，不能證明7280 Plugin及146流程均可keep；EmailPlugins五筆不同type均維持unknown。缺目標版本觸發／相依及可信行為／安全停用契約，未讀組件content、workflow本文或設定；不能由managed／簽署／名稱或sourceFingerprint冒充行為證據。H1尚未結清，舊policy不apply，其他FS寫入也不放行。
+- sourceFingerprint補正已完成：嚴格大寫64位，apply同一次候選核來源後才beforeWrite／首Update。正式Deployment1750/1750是前輪證據，不是這次完整方案結果。目標9.1三欄投遞選項實值仍待補；不把離線0／0／2當實機核對。
+- 同步後02原命令Release建置及完整一般測試執行中；第二輪ClaudeOnly將補齊原FS34檔基礎提交與此次全部最終來源，不漏舊檔，不把實機待補或H1未知寫成已完成。
+
+
+### 2026-11-26 19:48 Asia/Taipei (UTC+08:00) UI ZIP RootComponent 邊界補正與離線驗證
+
+- 沿 UiSolutionDeployment.Import 確認整份 ZIP 在發布範圍檢查後直接送入 ImportSolution；先前只收集表單／檢視 ID 並不能限制匯入 ZIP 的其他根元件。未允許的 RootComponent type="62" 負向案例與 type 61 正向控制已保留。
+- Microsoft Learn RootComponentBehavior 定義 0=IncludeSubcomponents、1=DoNotIncludeSubcomponents、2=IncludeAsShellOnly。依本包 UI-only 信任邊界，初次解析只接受 Entity、Saved Query、System Form、Web Resource 四種根類型與穩定身分；D26 移除共用 account/contact 表單後，最終送 SDK 候選的 Entity 根必須精確為 behavior=2。完整子元件、僅根元件及缺少 shell 行為皆在 ImportSolution 前拒絕；只有已移除表單的 account/contact 根才由篩選器轉成 shell-only。
+- UiImport_EntityRootIncludesSubcomponents_RefusedBeforeImport 的預期 RED 已重現（未拋 InvalidDataException）；shell-only 正向控制通過。最小修正後 UiSolutionArchiveTests 28/28，Deployment 專案正式排除式測試 1852/1852；兩者均為合成離線 SDK 證據，不代表實機 ZIP 匯入。檔案說明 1990/0、Changed 編碼 101/0、進度頁測試 28/28 亦通過；整方案 §4 閘門與第三輪 ClaudeOnly 仍待執行。
+- docs/file-purpose-companions.json 已把 organizations.json 說明由單一組織修正為目前四個 test 組織。線 A 的進度資料 JS 與 90 的 F3 待辦文字均為「等 FS 完成後開始」，並保留 F2 已於 b6da17e2 合併的證據。
+- 未連線任何 D365、LINE Channel 或金流，沒有執行 plan/apply/import/publish；H1 行為分類仍 unknown，三組織完整 plan 與 inventory 各兩次失敗後依 02 §10 不重試第三次。FS 狀態維持進行中，所有實機驗收仍如實待補。
+### 2026-11-26 20:26 Asia/Taipei (UTC+08:00) 第三輪 ClaudeOnly 發現與 Plugin 註冊修正
+
+- 專案 CCG 自我修復入口以 ClaudeOnly 成功完成第三輪 FS 審查。首份輸出雖寫「無 Critical／High」，同時承認未讀兩個新增測試及多數未覆蓋路徑，不能作完整放行結論；補充覆蓋讀取主要未審生產程式及部分測試後發現 1 項 High：DeploymentEngine.IsExplicitlyDisabled 只把明確 false 視為不註冊，旗標缺漏時仍對 goodshepherd20、construction、association 規劃 CreateStep。
+- 已以 Registration_NewTestOrganization_UnlistedStep_IsNotPlanned 做 RED：三個新測試組織均失敗，實際計畫包含 CreateStep；證據為該定向測試之真實失敗輸出。最小修正改用 ShouldCreateStep：非 legacy 組織只接受明確 true；缺漏或 false 均不建立步驟／映像。goodshepherdback 的舊缺漏旗標「建立後停用」相容語意保持不變，明確 false 仍不新增。
+- GREEN 驗證：Registration_NewTestOrganization_UnlistedStep_IsNotPlanned 三組織、Registration_OrgFlag_OnlyEnabledStepsRegistered 及既有 Apply_NewStep_DefaultDisabledUnlessManifestEnables 正反控制合計 6/6 通過；Release Deployment 測試專案定向執行成功。全方案完整自動閘門尚未在此修正後重跑。
+- 修正後複審仍待執行；覆蓋補充輸出也列有尚未逐檔讀完的測試與設定，故目前不宣稱 ClaudeOnly 全範圍審查完成，會在放行前補齊覆蓋並明確保留所有未讀清單。
+- 未連線任何 D365、正式組織、LINE Channel 或金流，未做任何實機寫入。H1 行為分類仍 unknown；quiesce policy 不 apply；完整 plan 與 inventory 各兩次失敗，依 02 §10 不做第三次。F3 註記維持「等 FS 完成後開始；F2 已於 b6da17e2 合併」，JS pending 維持「等 FS 完成後開始」。
+### 2026-11-26 20:49 Asia/Taipei (UTC+08:00) 修正後完整離線閘門與 High 複審
+
+- Plugin 缺旗標修正已獨立提交 `386f1d74e2f40e1072eb87563915c5c25c726347`；受影響 6/6、完整 Release 建置 exit0（0 warning／0 error），SHA-256 `68E0E654CFCE9B75A7BE4BC5D1B7C6F59F92EBB81F23A7A2A7BC67F5B2C8F0A8`。
+- 02 §4 原排除式全方案一般測試完成 25 回合、8,713/8,713、0失敗／0略過、exit0；Deployment1855、Hosting270、LineWebhook143。log SHA-256 `DA54116EFC74704A92B0B4F52A39421A3B8803F080CB7DA66C0B02F578ED9086`；全部是離線結果。
+- 文件說明1990/0（SHA-256 69607C847A8DDC13A1705216E9F8ED5BEACE002AC0F0E9A3BAF8F7FFBA780B8E）、Changed編碼101/0（E0D3E80DA4365FE21DCBCFB21ACE79BA1167DFA5CE80D898DEF32E6A655EB212）、方案清單exit0（845249C1806921C8C34F07D1E4683C4E7FE2CF91E80E4EA62A53F7EBA85A9E82）、進度頁28/28（5E799A59A3718C26CD9081C73FBFBFAD71A5217527A25578C5200B4E12168944）。報告曾有7個LF已只正規化CRLF，文字未更動。
+- 單模型（使用者指定 ClaudeOnly）修正複審確認最新 High 已結清，已讀生產修改區段無Critical／High；輸出SHA-256 `877C93DF67B264E800DD1D4515718D010ED0FA3612548266CE3A79D5D939E4D4`。但約6000行新增測試仍只模式掃描，已拆為兩組同一Claude模型的限定唯讀補查，未呼叫Gemini，不把模式掃描冒充全文審查。
+- 最新安全修正已存本機提交 `0d5515fcd076b4b78dcf3760c16c23b6479defbc`；來源及未提交文件備份manifest SHA-256 `FE047C90551CC8553B4CC53686B3C720FA7BC15FC0037CD900422775756B2ADD`。這不是FS完成或放行，尚未合併／推送。最新整合HEAD2da59fac含線B的F4／F6，正常同步並重驗後才能合併。H1 unknown、不apply、零D365寫入、實機待補及兩次失敗限制不變。
+
 ## 下一步
 
-修復並整合離線守門；以純管理metadata明確分類Plugin正式ID後才quiesce apply；完整plan重試限制解除並取得真正三份plan後才可摘要ClaudeOnly，再依序apply／verify及UI匯出入、Live3P；目前不重試第三次。全部符合本包可用驗收及02自動閘門後才能更新完成與合併推送。
+先完成第三輪覆蓋補充並複審上述 High 修正；更新後重跑 02 §4 全方案守門。若覆蓋完整且沒有未修 Critical／High，再依 02 §5 鎖內同步、必要重驗、快轉合併並核對遠端。所有 H1 分類、Step 3b、三組織 plan／apply／verify、UI export／import 與 Live3P 均如實標「實機待補」，不做第三次完整 plan／inventory，不進行 D365 寫入。

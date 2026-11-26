@@ -39,3 +39,7 @@ metadata 已確認 `new_fee`、`new_offeringcategory`、`new_dedication_booking`
 ## 手機待驗
 
 本盤點無手機步驟；手機驗收留至 M1。所有唯讀證據均不代表流程已停用、推播安全或正式可用。
+
+### 2026-11-26 15:47 Asia/Taipei (UTC+08:00) H1 保留分類證據更正
+
+既有清冊與政策逐正式ID完整相符，只能證明來源與覆蓋。唯讀調查SHA-256 `01AF62361FDF0080A215C57DC337F8AEE4B440F28244B74F19EA7905DBB1EE7A`：五個EmailPlugins正式步驟及其餘來源尚缺目標9.1.49.13可信行為／相依／安全停用契約，不以名稱、managed或簽署一律keep，亦不盲停。H1未知，Step3b未通過，零D365寫入；舊政策尚無新版sourceFingerprint，不補猜指紋、不套用。程式已補ACT及原值before-image與來源綁定，目標選項實值仍待補，不能用離線測試代替。
