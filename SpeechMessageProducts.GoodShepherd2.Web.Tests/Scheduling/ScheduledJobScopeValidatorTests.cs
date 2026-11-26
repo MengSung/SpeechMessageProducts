@@ -1,7 +1,7 @@
 /*
 檔案整體說明
 目的與定位：F4產品執行前重驗的離線安全與生命週期測試，保護固定產品、權威組織與租戶即時狀態，禁止重用上次授權結果。
-主要功能與流程：真實validator及啟動守門借用Moq SDK／manager／lease；租戶旗標直接讀平台清單的choice選項建立SDK列，另以合成WhoAmI及生命週期metadata區分伺服器選項值與標籤。故障注入越界組織、停用／保留／結束、缺欄、未知或重複metadata、重複列、SDK及清理例外；決定性斷言是拒絕結果、查詢次數、原始例外身分與fault→release順序。
+主要功能與流程：真實validator及啟動守門借用Moq SDK／manager／lease；租戶旗標直接讀平台清單的choice選項建立SDK列，另以合成WhoAmI及生命週期metadata區分伺服器選項值與標籤。故障注入越界組織、停用／保留／結束、缺欄、未知或重複metadata、重複列、SDK及清理例外；結構缺損必須拋固定安全例外進既有重試告警，不能冒充租戶正常跳過。決定性斷言是拒絕結果、查詢次數、原始例外身分與fault→release順序。
 使用邊界與維護：所有GUID、生命週期數值及名稱只屬單案，不是正式schema。不讀User Secrets、不連D365、SQL或LINE。受控阻塞由測試finally解除並等待真實工作排空，訊號及CancellationTokenSource當案Dispose；fixture不擁有真實連線、timer或背景owner。並行測試每次Acquire建立獨立租約，確認不同租戶不共享查詢候選且active租約回零；不把離線證據冒稱實機驗收。
 */
 using Microsoft.Crm.Sdk.Messages;
@@ -148,12 +148,13 @@ public sealed class ScheduledJobScopeValidatorTests
         Assert.Equal(1, f.Released);
     }
 
-    /// <summary>metadata欠缺、未核定label、重複數值或未知當前選項，均不能猜測保留／結束的數字。</summary>
+    /// <summary>metadata缺損必須拋例外以進入核心重試與告警，而非返回false成為永久Skipped；只有資料列未知當前狀態仍屬拒絕。</summary>
     /// <param name="fault">合成metadata或account的故障種類。</param>
     [Theory]
     [InlineData("missing")]
     [InlineData("unknown-label")]
     [InlineData("duplicate-value")]
+    [InlineData("duplicate-label")]
     [InlineData("missing-label")]
     [InlineData("unknown-current")]
     [InlineData("wrong-field")]
@@ -165,12 +166,23 @@ public sealed class ScheduledJobScopeValidatorTests
             case "missing": f.Metadata = null; break;
             case "unknown-label": f.Metadata!.OptionSet.Options[0].Label = new Label("未核定狀態", 1028); break;
             case "duplicate-value": f.Metadata!.OptionSet.Options[0].Value = f.Metadata.OptionSet.Options[1].Value; break;
+            case "duplicate-label": f.Metadata!.OptionSet.Options[0].Label = f.Metadata.OptionSet.Options[1].Label; break;
             case "missing-label": f.Metadata!.OptionSet.Options[0].Label = new Label("Pending", 1033); break;
             case "unknown-current": f.Row["new_lifecyclestatus"] = new OptionSetValue(-98765); break;
             case "wrong-field": f.Metadata!.LogicalName = "synthetic_wrong"; break;
         }
-        Assert.False(await f.Validator.CanExecuteAsync(f.Scope, CancellationToken.None));
+        if (fault == "unknown-current")
+        {
+            Assert.False(await f.Validator.CanExecuteAsync(f.Scope, CancellationToken.None));
+            Assert.Equal(["release"], f.Order);
+        }
+        else
+        {
+            await Assert.ThrowsAsync<InvalidOperationException>(() => f.Validator.CanExecuteAsync(f.Scope, CancellationToken.None));
+            Assert.Equal(["fault", "release"], f.Order);
+        }
         Assert.Equal(1, f.Released);
+        Assert.Equal(0, f.Active);
     }
 
     /// <summary>單列查詢即使收到兩筆相同ID，也必須診斷衝突並淘汰租約，不能靜默Distinct或任選。</summary>
