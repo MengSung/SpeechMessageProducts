@@ -7,11 +7,11 @@
 window.PROGRESS_LANES = window.PROGRESS_LANES || {};
 window.PROGRESS_LANES.B = {
   lane: 'B',
-  lastUpdated: '2026-11-26T11:08:09+08:00',
+  lastUpdated: '2026-11-26T11:40:52+08:00',
   packages: {
     P0: { status: '完成（自動測試通過）', started: '2026-11-25 22:12', finished: '2026-11-26 01:22', commit: 'd1f887adb50bdd4e8d32340d00feed97830c3bf6', pending: '實機待補：平台SQL憑證鏈及最小權限、F2公開live／ready。DNS與P0-3管理員Apply已通過，監控重啟及CRM302證據核實；不需重跑Apply。瀏覽器目視待補。', report: 'wp-reports/3P-P0-前置.md' },
     F10: { status: '完成（自動測試通過）', started: '2026-11-26 00:23', finished: '2026-11-26 10:02', commit: '8072b764c5bca3b0853177fbe16c0a0ac30311ef', pending: '實機待補：JesusTest 必要設定及測試卡文件已存在，五項沙箱及隔日到期查詢尚未實跑；V2.6 完整規格待核對。宿主 Exception.log sink capture 與產品持久層最終原子冪等待後續整合。離線 parser／合成 handler 不代表實機。', report: 'wp-reports/3P-F10-永豐補強.md' },
-    F2: { status: '進行中', started: '2026-11-26 04:16', finished: '', commit: 'b5ca0e8c77ee16b65cf013e766f709db5b5797bc', pending: 'F2離線80/80及部署17+17通過；全方案建置通過、架構UnknownProject兩案失敗，等待線A分類登錄後重跑完整守門，不合併放行。實機待補：IIS部署、平台SQL、T01／T02及LIFF；P0-3管理員路由已通過；DNS已確認。', report: 'wp-reports/3P-F2-主機骨架.md' },
+    F2: { status: '進行中', started: '2026-11-26 04:16', finished: '', commit: '2ec00b2b8f190f484faeb7b6ce697142eed9df91', pending: '主機80/80、部署19+19通過；同步後建置通過，完整測試仍因01明定兩個public型別的R2HostPublicType失敗，待線A精確補正。部署兩次失敗後不作第三次Apply；停止候選已核對、快照修正未實機驗證，非環境限制。公開live／ready、T01 webhook/test及平台SQL待補；T01／T02／LIFF交接鍵已核對齊全。', report: 'wp-reports/3P-F2-主機骨架.md' },
     F6: { status: '未開始', started: '', finished: '', commit: '', pending: '', report: '' },
     F4: { status: '未開始', started: '', finished: '', commit: '', pending: '', report: '' },
     F8: { status: '未開始', started: '', finished: '', commit: '', pending: '', report: '' },
@@ -19,6 +19,7 @@ window.PROGRESS_LANES.B = {
     F11: { status: '未開始', started: '', finished: '', commit: '', pending: '', report: '' },
   },
   log: [
+    '2026-11-26 11:40 Asia/Taipei (UTC+08:00)｜F2同步線A架構登錄後建置通過，但完整測試仍拒絕01明定的GoodShepherd2Product及GoodShepherd2StartupGuard，已回報線A補精確公開契約，不改成internal或放寬守門。第二次部署Switch失敗後站台／集區均Stopped；Commit後重開快照修正先紅後綠、PS7／PS5各19/19。依02§10不做第三次Apply，實機待補不冒稱環境限制。T01／T02／LIFF必要User Secrets與ID已核對齊全，未輸出值或呼叫LINE。修正SHA：2ec00b2b8f190f484faeb7b6ce697142eed9df91。',
     '2026-11-26 11:08 Asia/Taipei (UTC+08:00)｜F2補正部署CRM憑證接線，僅使用精確goodshepherd20 User Secrets及專用集區環境兩鍵，舊環境可精準回復；PS7／PS5各17/17離線通過。未Apply；全方案架構登錄仍待線A合併，未放行F2。',
     '2026-11-26 11:04 Asia/Taipei (UTC+08:00)｜P0-3使用者管理員Apply成功的執行證據已核對：監控確認、Node語法通過、CRM302，代理12892→55152；目前路由SHA與紀錄相符。DNS已完成，不需再重跑Apply。平台SQL及F2公開live／ready仍待補；代理本輪僅讀檔核對，未操作程序或連線CRM。',
     '2026-11-26 10:53 Asia/Taipei (UTC+08:00)｜F2程式，主機護欄／資源清理80/80、預設排除Live3P的普通測試80/80、部署PS7及PS5各15/15。全方案建置65警告／0錯誤，文件1941/0、編碼17/0、方案登錄各一次；全方案一般測試僅Debug／Release兩案架構UnknownProject失敗，不可放行，已依檔案所有權請線A登錄。其餘等待期間只整理F6測試草稿；未執行實機。',
