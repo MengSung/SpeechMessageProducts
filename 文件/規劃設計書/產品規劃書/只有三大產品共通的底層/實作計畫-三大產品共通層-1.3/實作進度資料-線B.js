@@ -7,11 +7,11 @@
 window.PROGRESS_LANES = window.PROGRESS_LANES || {};
 window.PROGRESS_LANES.B = {
   lane: 'B',
-  lastUpdated: '2026-11-26T04:45:00+08:00',
+  lastUpdated: '2026-11-26T10:02:11+08:00',
   packages: {
     P0: { status: '完成（自動測試通過）', started: '2026-11-25 22:12', finished: '2026-11-26 01:22', commit: 'd1f887adb50bdd4e8d32340d00feed97830c3bf6', pending: '實機待補：平台 SQL 憑證鏈與應用程式集區最小權限驗證；測試網址 DNS、管理員套用 Node 路由、監控重啟後 CRM 302；F2 再驗 /health/live。瀏覽器目視進度頁尚未完成；依頁面實際警告規則核對資料為 0 項。', report: 'wp-reports/3P-P0-前置.md' },
-    F10: { status: '完成（自動測試通過）', started: '2026-11-26 00:23', finished: '2026-11-26 04:45', commit: '6dc26670f2ca41c73057736845f444196d9add48', pending: '實機待補：P0-1 沙箱交接設定後補做綁卡、取消授權、立即請款、延後請款到期查詢、定期扣款建立與中止五個 Live3P 情境；宿主 Exception.log sink capture 待共用告警整合。離線 callback 只證明 parser 不直接入帳，資料庫最終冪等待產品持久層。', report: 'wp-reports/3P-F10-永豐補強.md' },
-    F2: { status: '進行中', started: '2026-11-26 04:16', finished: '', commit: '', pending: '等待線 A 的 F1 依賴合併；P0-1 測試網址與 Channel 準備仍有實機待補。', report: '' },
+    F10: { status: '完成（自動測試通過）', started: '2026-11-26 00:23', finished: '2026-11-26 10:02', commit: '8072b764c5bca3b0853177fbe16c0a0ac30311ef', pending: '實機待補：JesusTest 必要設定及測試卡文件已存在，五項沙箱及隔日到期查詢尚未實跑；V2.6 完整規格待核對。宿主 Exception.log sink capture 與產品持久層最終原子冪等待後續整合。離線 parser／合成 handler 不代表實機。', report: 'wp-reports/3P-F10-永豐補強.md' },
+    F2: { status: '進行中', started: '2026-11-26 04:16', finished: '', commit: '', pending: 'F1 已合併；F10 合併後開始實作。實機待補：DNS、管理員 Node 路由、平台 SQL、T01／T02、LIFF Login。三產品 Channel 秘密已交接；不載入複製舊 Channel。', report: '' },
     F6: { status: '未開始', started: '', finished: '', commit: '', pending: '', report: '' },
     F4: { status: '未開始', started: '', finished: '', commit: '', pending: '', report: '' },
     F8: { status: '未開始', started: '', finished: '', commit: '', pending: '', report: '' },
@@ -19,6 +19,7 @@ window.PROGRESS_LANES.B = {
     F11: { status: '未開始', started: '', finished: '', commit: '', pending: '', report: '' },
   },
   log: [
+    '2026-11-26 10:02 Asia/Taipei (UTC+08:00)｜F10 修正兩項 High 後，ClaudeOnly 複審無 Critical／High；rebase 至 d5c008f4 後全方案 Release 建置通過（65 警告／0 錯誤）、一般測試 0 失敗（Payments 119/119、Deployment 1085/1085、Hosting 168/168、LineWebhook 143/143）、文件 1927/0、Changed 編碼 19/0、方案清單通過。修正 SHA：8072b764c5bca3b0853177fbe16c0a0ac30311ef。更正舊紀錄：沙箱交接設定與測試卡文件已存在，五項沙箱尚未實跑，仍為實機待補；F1 已合併，接續 F2。',
     '2026-11-26 04:45 Asia/Taipei (UTC+08:00)｜F10 完成 02 §4 離線自動閘門：Release 建置 0 警告／錯誤、一般測試 0 失敗（Payments 129/129、Deployment 1,059/1,059、Hosting 165/165、LineWebhook 143/143、AspNetCore 119/119）、文件說明 1,911/0、Changed 編碼 17/0、方案清單通過。補正兩個 F10 檔案的檔首流程標題後重跑文件守門通過。P0-1 沙箱交接設定未具備，五個永豐 Live3P 情境標「實機待補」；未執行雙模型審核，依使用者指示不宣稱外部審查。程式 SHA：6dc26670f2ca41c73057736845f444196d9add48；報告：wp-reports/3P-F10-永豐補強.md。下一包 F2 等待線 A 的 F1 依賴。',
     '2026-11-26 01:22 Asia/Taipei (UTC+08:00)｜P0 rebase 到線 A 的 F0 提交 a90cc06fcabd3206acd611656dfea0bf0c9ad249 後，依序重跑五道 §4 閘門全部通過：建置 65 警告／0 錯誤、全方案測試 0 失敗（Deployment 1,059/1,059、Hosting 165/165）、文件 1,904 檔 0 失敗、Changed 編碼 11 檔 0 問題、方案清單通過；進度頁測試 28/28。重寫後程式 SHA：4eff1223cb4b5815de3c2fdf96c8a8f0e57865dc、d1f887adb50bdd4e8d32340d00feed97830c3bf6。SQL、DNS 與管理員路由仍為實機待補。來源：本輪完整命令結果與 P0 報告。',
     '2026-11-26 00:53 Asia/Taipei (UTC+08:00)｜P0 合併前 rebase 因工作樹既有 `.ccg` 修改而未執行；確認整合 HEAD 3c2fba0f45aab49d013be57e0a3af65691d5213d 已是本線 HEAD daf7e6dd83ca98fdf192824a5e5c7533c346904 的祖先，保留 `.ccg` 狀態並按既有提交跑 §4 守門，鎖內再確認 SHA。來源：線 B 決策紀錄。',
