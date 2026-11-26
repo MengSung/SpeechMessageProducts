@@ -10,6 +10,7 @@
 先核對主機身分及系統管理員權限，再驗證固定內容根、獨占端口與精確萬用憑證。建立封閉的
 證據目錄並取得獨占檔案鎖後，先備份完整IIS設定，才上傳到不公開的套件目錄；提交前再次核對與備份，完整解壓後停止專用集區並排空，
 首次安裝先建立未Commit的站台候選，再解析本站匿名設定；切換到新的不可變發佈目錄，
+每次Commit後釋放已封存的組態快照，重新取得管理器並核對本站路徑及停止狀態，
 以虛擬帳號啟動，最後嚴格驗證本機HTTPS存活端點。
 使用邊界與維護：遠端唯一主機為部署前重新驗證的測試虛擬機。站台與集區名稱、網域、端口、
 內容根與整合登入資料庫皆為固定值，不能以參數改成正式站台。CRM設定只接受核定測試主機
@@ -626,9 +627,30 @@ $remoteDeployment = {
             [Security.AccessControl.InheritanceFlags]'ContainerInherit, ObjectInherit',
             [Security.AccessControl.PropagationFlags]::None, [Security.AccessControl.AccessControlType]::Allow))
         Set-Acl -LiteralPath $logs -AclObject $logsAcl
+        # Commit後的ConfigurationElement已封存，不可沿用舊pool／site修改AutoStart。
+        # ACL完成後重開唯一管理器，重新核對所有權與排空狀態才允許啟用；失敗仍走既有精準回復。
+        $manager.Dispose()
+        $manager = New-Object Microsoft.Web.Administration.ServerManager
+        Get-Gs2Topology $manager
+        $site = $manager.Sites['GoodShepherd2Test']
+        $pool = $manager.ApplicationPools['GoodShepherd2Test']
+        if ($null -eq $site -or $null -eq $pool -or
+            $site.Applications['/'].VirtualDirectories['/'].PhysicalPath -ine $release -or
+            $site.State.ToString() -ne 'Stopped' -or $pool.State.ToString() -ne 'Stopped' -or
+            $pool.WorkerProcesses.Count -ne 0) { throw 'GS2_ACTIVATION_OWNERSHIP_OR_STATE_CONFLICT' }
         $pool.AutoStart = $true
         $site.ServerAutoStart = $true
         $manager.CommitChanges()
+        # 執行期啟動也只消費新的已提交快照，避免把組態寫入與服務控制混在失效物件上。
+        $manager.Dispose()
+        $manager = New-Object Microsoft.Web.Administration.ServerManager
+        Get-Gs2Topology $manager
+        $site = $manager.Sites['GoodShepherd2Test']
+        $pool = $manager.ApplicationPools['GoodShepherd2Test']
+        if ($null -eq $site -or $null -eq $pool -or
+            $site.Applications['/'].VirtualDirectories['/'].PhysicalPath -ine $release) {
+            throw 'GS2_ACTIVATION_OWNERSHIP_OR_STATE_CONFLICT'
+        }
         if ($pool.State.ToString() -ne 'Started') { $pool.Start() | Out-Null }
         if ($site.State.ToString() -ne 'Started') { $site.Start() | Out-Null }
         $remotePhase = 'Liveness'

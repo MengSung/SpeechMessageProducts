@@ -6,6 +6,8 @@
 憑證精確選取、固定內容路徑、端口獨占與壓縮檔輸入驗證契約，並不代表任何實機結果。
 另以合成CRM帳密驗證只取用精確組織、不回退舊組織；集合替身驗證專用集區環境的兩鍵
 更新與精準回復，其他鍵保持不變且不輸出帳密。替身不代表IIS實際保存或worker繼承成功。
+提交生命週期案例直接執行部署的切換片段，讓合成IIS物件在Commit後拒絕再次修改，
+保護先釋放舊快照、重新核驗目標再啟動的流程；ACL操作只用無磁碟副作用的替身。
 主要功能與流程：先解析部署腳本，從語法樹載入純驗證函式，再注入同名不同身分、過期、
 無私鑰、歧義、越界與端口衝突等案例；每例以接受或固定拒絕結果為決定性斷言。
 使用邊界與維護：不執行套用、不啟動產品、不建立遠端連線或存取秘密。測試僅保留呼叫區域
@@ -83,6 +85,82 @@ function New-SiteFixture {
 }
 
 $cases = [ordered]@{
+    IisActivation_ReopensCommittedConfigurationBeforeChangingAutoStart = {
+        $assignment = $ast.Find({
+            param($node)
+            $node -is [Management.Automation.Language.AssignmentStatementAst] -and
+            $node.Left.Extent.Text -ceq '$remoteDeployment'
+        }, $true)
+        $source = $assignment.Right.Extent.Text
+        $start = $source.IndexOf('$manager.CommitChanges()' + "`r`n" + '        $committed = $true',
+            [StringComparison]::Ordinal)
+        $end = $source.IndexOf('$remotePhase = ''Liveness''', $start, [StringComparison]::Ordinal)
+        Assert-Condition ($start -ge 0 -and $end -gt $start)
+        $release = 'C:\inetpub\GoodShepherd2Test\releases\20261126T000000Z-aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'
+        $owners = [Collections.Generic.List[object]]::new()
+        $savedAuto = @{ Pool=$false; Site=$false }
+        function New-ActivationManagerFixture {
+            # Commit後的組態只能讀；替身重現實機第二輪的失效快照，不建立站台或檔案。
+            $poolFixture = [pscustomobject]@{ Committed=$false; AutoValue=$savedAuto.Pool; State='Stopped'; WorkerProcesses=@() }
+            $poolFixture | Add-Member ScriptProperty AutoStart { $this.AutoValue } {
+                param($value)
+                if ($this.Committed) { throw 'COMMITTED_CONFIGURATION_IS_READ_ONLY' }
+                $this.AutoValue = $value
+            }
+            $poolFixture | Add-Member ScriptMethod Start { $this.State='Started' }
+            $siteFixture = [pscustomobject]@{
+                Committed=$false; AutoValue=$savedAuto.Site; State='Stopped'
+                Applications=@{ '/'=@{ VirtualDirectories=@{ '/'=@{ PhysicalPath=$release } } } }
+            }
+            $siteFixture | Add-Member ScriptProperty ServerAutoStart { $this.AutoValue } {
+                param($value)
+                if ($this.Committed) { throw 'COMMITTED_CONFIGURATION_IS_READ_ONLY' }
+                $this.AutoValue = $value
+            }
+            $siteFixture | Add-Member ScriptMethod Start { $this.State='Started' }
+            $fixture = [pscustomobject]@{
+                ApplicationPools=@{ GoodShepherd2Test=$poolFixture }
+                Sites=@{ GoodShepherd2Test=$siteFixture }
+                Disposed=$false
+            }
+            $fixture | Add-Member ScriptMethod CommitChanges {
+                $savedAuto.Pool=$this.ApplicationPools.GoodShepherd2Test.AutoValue
+                $savedAuto.Site=$this.Sites.GoodShepherd2Test.AutoValue
+                $this.ApplicationPools.GoodShepherd2Test.Committed=$true
+                $this.Sites.GoodShepherd2Test.Committed=$true
+            }
+            $fixture | Add-Member ScriptMethod Dispose { $this.Disposed=$true }
+            $owners.Add($fixture)
+            return $fixture
+        }
+        function New-Object {
+            param([string]$TypeName)
+            if ($TypeName -cne 'Microsoft.Web.Administration.ServerManager') { throw 'UNEXPECTED_FACTORY' }
+            New-ActivationManagerFixture
+        }
+        function Get-Gs2Topology { param($Manager) Assert-Condition (-not $Manager.Disposed) }
+        function Get-Acl {
+            param($LiteralPath)
+            $aclFixture = [pscustomobject]@{}
+            $aclFixture | Add-Member ScriptMethod AddAccessRule { param($Rule) }
+            return $aclFixture
+        }
+        function Set-Acl { param($LiteralPath, $AclObject) }
+        function Test-Path { param($LiteralPath) return $false }
+        function New-Gs2PrivateDirectory { param($Path) }
+        $manager = New-ActivationManagerFixture
+        $pool = $manager.ApplicationPools['GoodShepherd2Test']
+        $site = $manager.Sites['GoodShepherd2Test']
+        try {
+            . ([scriptblock]::Create($source.Substring($start, $end - $start)))
+            Assert-Condition ($pool.State -ceq 'Started' -and $site.State -ceq 'Started')
+            Assert-Condition ($pool.AutoStart -and $site.ServerAutoStart)
+            Assert-Condition ($owners.Count -gt 1 -and $owners[0].Disposed)
+        }
+        finally {
+            foreach ($owner in $owners) { $owner.Dispose() }
+        }
+    }
     IisAnonymousSection_IsNotReadBeforeSiteCandidateExists = {
         $definition = $ast.Find({
             param($node)
