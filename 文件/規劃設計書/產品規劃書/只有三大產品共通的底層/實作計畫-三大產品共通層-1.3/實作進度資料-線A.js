@@ -7,10 +7,10 @@
 window.PROGRESS_LANES = window.PROGRESS_LANES || {};
 window.PROGRESS_LANES.A = {
   lane: 'A',
-  lastUpdated: '2026-11-26T07:27:00+08:00',
+  lastUpdated: '2026-11-26T11:18:03+08:00',
   packages: {
     F0: { status: '完成（自動測試通過）', started: '2026-11-25 22:09', finished: '2026-11-26 00:24', commit: '74ea5a1c1ff723f6a64aeb73cadf69685021f528, a9e438be0d9fe13d8fe40d0c2e03e9558774e113', pending: '實機待補：核定三組織 IFD 端點；goodshepherd20 唯讀 metadata／資料筆數盤點', report: 'wp-reports/3P-F0-基線矩陣.md' },
-    F1: { status: '完成（自動測試通過）', started: '2026-11-26 00:24', finished: '2026-11-26 04:31', commit: 'bfb5f56b96ff7b2c9a185f9757248c5dd9a5368a', pending: '', report: 'wp-reports/3P-F1-依賴方向修正.md' },
+    F1: { status: '完成（自動測試通過）', started: '2026-11-26 00:24', finished: '2026-11-26 04:31', commit: 'bfb5f56b96ff7b2c9a185f9757248c5dd9a5368a, 79f5362a44659e68afc1c17727bc2a2a3f51ac69', pending: '', report: 'wp-reports/3P-F1-依賴方向修正.md' },
     FS: { status: '完成（自動測試通過）', started: '2026-11-26 04:31', finished: '2026-11-26 07:27', commit: '64b801dbb28c9d29c5fdd3613c417fb2bdd6442c', pending: '實機待補：三個測試組織 IFD HTTPS 端點尚未核定；quiesce、三組織 plan/apply/verify、平台檢視表發布與 UI export/import 待端點核定後補做', report: 'wp-reports/3P-FS-結構分層與三組織佈署.md' },
     F3: { status: '未開始', started: '', finished: '', commit: '', pending: '等待線 B 的 F2 合併後開始', report: '' },
     F5: { status: '未開始', started: '', finished: '', commit: '', pending: '', report: '' },
@@ -19,6 +19,7 @@ window.PROGRESS_LANES.A = {
     M1: { status: '未開始', started: '', finished: '', commit: '', pending: '', report: '' },
   },
   log: [
+    '2026-11-26 11:18 Asia/Taipei (UTC+08:00)｜F1 必要補正精確登錄 F2 新主機；8項正反例 RED→GREEN，全方案7626/7626（Hosting176、LineWebhook143）、Release建置通過（65個既有警告），ClaudeOnly無Critical／High；提交79f5362a44659e68afc1c17727bc2a2a3f51ac69。FS補正仍在另一暫存工作樹進行，既有FS完成紀錄須以後續更正為準。',
     '2026-11-26 07:27 Asia/Taipei (UTC+08:00)｜FS 完成離線自動驗收：Release 建置通過、完整一般測試命令 exit 0（Deployment 1085/1085、Hosting 168/168、GoodShepherd.Hosting 137/137）、文件說明 1920/0、變更編碼 22/0、方案清單通過；實機待補為三個測試組織端點、quiesce、plan/apply/verify 與 UI export/import。實作提交 64b801dbb28c9d29c5fdd3613c417fb2bdd6442c；報告：wp-reports/3P-FS-結構分層與三組織佈署.md。依使用者指示未執行雙模型審核。',
     '2026-11-26 04:31 Asia/Taipei (UTC+08:00)｜F1 完成自動驗收：Release 建置 0 錯誤（65 個警告均在未變更來源檔）、全方案 7,557/7,557、LineWebhook 143/143、架構定向測試 2/2、文件檢查 1,907/0、變更編碼 67/0、兩個新專案各登錄一次且 Debug／Release 對應正確；實作提交 bfb5f56b96ff7b2c9a185f9757248c5dd9a5368a。ClaudeOnly 無可驗證 Critical／High；報告：wp-reports/3P-F1-依賴方向修正.md。FS 離線工作開始，三個測試組織端點實機待補。',
     '2026-11-26 00:26 Asia/Taipei (UTC+08:00)｜在 Edge 開啟本工作樹的實作進度 1.3，頁首警告區為空，F0 狀態及實機待補顯示正常。',
