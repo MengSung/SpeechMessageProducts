@@ -2,6 +2,7 @@
 
 | 時間（Asia/Taipei） | 工作包 | 遇到的選擇 | 選了什麼 | 依據 | 怎麼回復 |
 |---|---|---|---|---|---|
+| 2026-11-26 14:10 Asia/Taipei (UTC+08:00) | F6 | 線A分類474669dd已推送，但既有.ccg修改阻擋直接rebase；狀態檔需永久保留逐欄換行 | 先提交本包證據草稿，於本線忽略目錄乾淨checkout重放兩個F6提交；驗本包程式／方案／.ccg提交樹不變後切回。原.ccg雜湊及刪除狀態完整保留；重寫程式44f6df89。完整方案7905/7905及其他守門全過，13:55 Edge總覽頁首無紅色警告；lane-B固定八行WriteAllLines並逐byte驗證，每次更新只執行一次即時更新器 | 02§3、§5.2、§5.4及§10；使用者禁止stash／reset及所有編輯限線B | 保留分支codex/lane-b-f6-preserve-20261126-1356指向ab0bd5d6；乾淨暫時checkout已移除，未改整合工作樹或重跑環境Apply |
 | 2026-11-26 13:44 Asia/Taipei (UTC+08:00) | F6 | Login Channel準備已齊，且LIFF app尚不存在；是否仍標缺Channel或自行建app | 持測試環境鎖以固定測試Login Channel取得短期無狀態token，GET回404後POST建立、再GET核對app ID／固定測試URL／openid與profile。只記公開識別及狀態，不保存token或金鑰；開發設定放公開三項映射，Host配置後必先嚴格TLS初始化選擇表。公開頁面與手機仍獨立待驗 | 01 F6、02§6與§8；使用者已交接Login Channel；API實際200證據 | 可用同一Login Channel刪除本輪唯一新app並移除三項公開設定；不改其他app，不因app存在宣稱站台或手機成功 |
 | 2026-11-26 13:44 Asia/Taipei (UTC+08:00) | F6 | Program只可加一行，但LIFF需要靜態頁及有filter端點；名字邊界前後端不一致 | 以本包IStartupFilter接固定/liff及/api/liff分支，Program只加Add入口；分支自行接同一diagnostics，沒有另一DI容器。名稱256字元與頁面一致，先新增257拒絕紅燈再修正；A/B三輪64請求與同步SDK取消排空通過 | 02§5.4；AGENTS完整發布及資源規則；最小既有檔變更 | 撤回F6專屬註冊與Program該行；不動F2健康及線A端點 |
 | 2026-11-26 13:44 Asia/Taipei (UTC+08:00) | F6 | SqlClient7.0.2傳遞Pkcs9.0.13觸發既有稽核；是否壓抑或新增版號 | 共用專案直接參考既有中央Pkcs10.0.14，沿AspNetCore既有安全做法；不改中央版本、不壓抑稽核。LocalDB12/12含真交易、取消、回滾、session及資料檔清理通過，僅代表本機SQL | AGENTS安全與嚴格守門；02§10；現有中央套件契約 | 移除直接參考會恢復被稽核拒絕的傳遞版本，不可藉此降低守門 |
