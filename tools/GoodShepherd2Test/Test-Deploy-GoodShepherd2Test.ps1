@@ -4,11 +4,14 @@
 .DESCRIPTION
 目的與定位：本檔屬於線Ｂ的Ｆ２部署工具測試，只使用合成憑證與站台快照，保護乾跑不連線、
 憑證精確選取、固定內容路徑、端口獨占與壓縮檔輸入驗證契約，並不代表任何實機結果。
+另以合成CRM帳密驗證只取用精確組織、不回退舊組織；集合替身驗證專用集區環境的兩鍵
+更新與精準回復，其他鍵保持不變且不輸出帳密。替身不代表IIS實際保存或worker繼承成功。
 主要功能與流程：先解析部署腳本，從語法樹載入純驗證函式，再注入同名不同身分、過期、
 無私鑰、歧義、越界與端口衝突等案例；每例以接受或固定拒絕結果為決定性斷言。
 使用邊界與維護：不執行套用、不啟動產品、不建立遠端連線或存取秘密。測試僅保留呼叫區域
 的合成值，無檔案、背景工作或遠端資源需要清理；乾跑以會拋錯的遠端命令替身證明沒有連線。
 腳本與測試必須同時維持可執行語彙為純英文、繁中僅在註解，以及無ＢＯＭ的統一換行。
+PSCredential由當案Dispose其SecureString；失敗只輸出型別與位置，不輸出原例外訊息。
 #>
 [CmdletBinding()]
 param()
@@ -80,6 +83,62 @@ function New-SiteFixture {
 }
 
 $cases = [ordered]@{
+    CrmCredential_ExactOrganizationOnlyAndNoFallback = {
+        $definition = $ast.Find({
+            param($node)
+            $node -is [System.Management.Automation.Language.FunctionDefinitionAst] -and
+            $node.Name -ceq 'Get-Gs2CrmCredential'
+        }, $true)
+        Assert-Condition ($null -ne $definition)
+        . ([scriptblock]::Create($definition.Extent.Text))
+        $settings = [pscustomobject]@{
+            'Deployment:Organizations:goodshepherd20:OrganizationUrl' = 'https://goodshepherd20.speechmessage.com.tw/XRMServices/2011/Organization.svc'
+            'Deployment:Organizations:goodshepherd20:Username' = 'fixture-service'
+            'Deployment:Organizations:goodshepherd20:Password' = 'fixture-password'
+            'Deployment:Organizations:goodshepherdback:Username' = 'foreign-service'
+            'Deployment:Organizations:goodshepherdback:Password' = 'foreign-password'
+        }
+        $url = $settings.'Deployment:Organizations:goodshepherd20:OrganizationUrl'
+        $credential = Get-Gs2CrmCredential $settings $url
+        try {
+            Assert-Condition ($credential -is [Management.Automation.PSCredential])
+            Assert-Condition ($credential.UserName -ceq 'fixture-service')
+            Assert-Condition ($credential.GetNetworkCredential().Password -ceq 'fixture-password')
+        }
+        finally { $credential.Password.Dispose() }
+        foreach ($field in @('OrganizationUrl', 'Username', 'Password')) {
+            $copy = $settings | Select-Object *
+            $copy.PSObject.Properties.Remove('Deployment:Organizations:goodshepherd20:' + $field)
+            Assert-Rejected { Get-Gs2CrmCredential $copy $url }
+        }
+        $settings.'Deployment:Organizations:goodshepherd20:OrganizationUrl' = 'https://goodshepherdback.speechmessage.com.tw/XRMServices/2011/Organization.svc'
+        Assert-Rejected { Get-Gs2CrmCredential $settings $url }
+    }
+    CrmEnvironment_RoundTripRestoresOnlyOwnedKeysWithoutOutput = {
+        foreach ($name in @('Get-Gs2CrmEnvironment', 'Set-Gs2CrmEnvironment')) {
+            $definition = $ast.Find({
+                param($node)
+                $node -is [System.Management.Automation.Language.FunctionDefinitionAst] -and $node.Name -ceq $name
+            }, $true)
+            Assert-Condition ($null -ne $definition)
+            . ([scriptblock]::Create($definition.Extent.Text))
+        }
+        # 替身只模擬IIS集合API；保護產品可觀察的異動／回復邊界，不連線或保存真實秘密。
+        $variables = [Collections.ArrayList]::new()
+        Add-Member -InputObject $variables -MemberType ScriptMethod -Name CreateElement -Value { param($kind) return @{} }
+        $variables.Add(@{ name='Unrelated'; value='unchanged' }) | Out-Null
+        $variables.Add(@{ name='CrmConnection__Username'; value='old-service' }) | Out-Null
+        $before = Get-Gs2CrmEnvironment $variables
+        $candidate = @{ CrmConnection__Username='new-service'; CrmConnection__Password='fixture-password' }
+        $output = @(Set-Gs2CrmEnvironment $variables $candidate)
+        Assert-Condition ($output.Count -eq 0 -and $variables.Count -eq 3)
+        Assert-Condition (($variables | Where-Object { $_.name -ceq 'CrmConnection__Username' }).value -ceq 'new-service')
+        Assert-Condition (($variables | Where-Object { $_.name -ceq 'CrmConnection__Password' }).value -ceq 'fixture-password')
+        Set-Gs2CrmEnvironment $variables $before
+        Assert-Condition ($variables.Count -eq 2)
+        Assert-Condition (($variables | Where-Object { $_.name -ceq 'CrmConnection__Username' }).value -ceq 'old-service')
+        Assert-Condition (($variables | Where-Object { $_.name -ceq 'Unrelated' }).value -ceq 'unchanged')
+    }
     DryRun_NoRemoteOrPublish = {
         function New-PSSession { throw 'Dry-run attempted remoting.' }
         function Invoke-Command { throw 'Dry-run attempted remote execution.' }
@@ -241,7 +300,12 @@ $cases = [ordered]@{
 $failed = 0
 foreach ($entry in $cases.GetEnumerator()) {
     try { & $entry.Value; Write-Output ('PASS ' + $entry.Key) }
-    catch { $failed++; Write-Output ('FAIL ' + $entry.Key) }
+    catch {
+        $failed++
+        Write-Output ('FAIL ' + $entry.Key + ' line=' + $_.InvocationInfo.ScriptLineNumber +
+            ' type=' + $_.Exception.GetType().FullName)
+        Write-Output $_.ScriptStackTrace
+    }
 }
 Write-Output ('Deployment offline tests: ' + ($cases.Count - $failed) + '/' + $cases.Count)
 if ($failed -ne 0) { exit 1 }

@@ -5,16 +5,21 @@
 目的與定位：本檔是共通層計畫Ｆ２的主機部署入口。只部署專用的測試網站與應用程式集區，
 不負責組織資料、平台資料庫建置、網域轉接、防火牆或手機驗收，也不修改本機電腦設定。
 主要功能與流程：乾跑只回傳固定部署計畫，不發佈、不建立檔案或遠端連線。明確套用時，
-先以有界子程序發佈專案，產生無秘密的開發設定與網站設定，打包並計算雜湊；遠端每次命令
+先從部署工具既有User Secrets精確取用goodshepherd20帳密，再以有界子程序發佈專案，
+產生無秘密的開發設定與網站設定，打包並計算雜湊；遠端每次命令
 先核對主機身分及系統管理員權限，再驗證固定內容根、獨占端口與精確萬用憑證。建立封閉的
 證據目錄並取得獨占檔案鎖後，先備份完整IIS設定，才上傳到不公開的套件目錄；提交前再次核對與備份，完整解壓後停止專用集區並排空，
 切換到新的不可變發佈目錄，以虛擬帳號啟動，最後嚴格驗證本機HTTPS存活端點。
 使用邊界與維護：遠端唯一主機為部署前重新驗證的測試虛擬機。站台與集區名稱、網域、端口、
 內容根與整合登入資料庫皆為固定值，不能以參數改成正式站台。CRM設定只接受核定測試主機
-的完整HTTPS服務網址；本檔不呼叫CRM、SQL、LINE或就緒端點，不讀User Secrets或憑證私鑰。
+的完整HTTPS服務網址；本檔不呼叫CRM、SQL、LINE或就緒端點，也不讀憑證私鑰。
+CRM帳密只在Apply後從固定部署User Secrets讀取，透過現有Negotiate加密遠端Session
+傳給唯一專用集區的環境變數，不寫入publish、web.config、套件、操作紀錄或輸出。
+IIS管理設定及原生備份的管理員／SYSTEM權限是這份部署環境的秘密保存邊界；不宣稱為
+加密保管庫。舊環境值只在單次遠端命令記憶體中保留供失敗回復，不寫入JSON回復紀錄。
 憑證只能來自本機電腦個人存放區，須有精確萬用SAN、伺服器驗證用途、有效期及私鑰；不唯一
 就拒絕，明確指紋也不能略過驗證。不新增四四三繫結、不更動CRM站台、不放寬TLS或驗證。
-資源擁有權：單次呼叫擁有發佈子程序、兩個丟棄輸出的串流工作及唯一遠端Session；子程序
+資源擁有權：單次呼叫擁有CRM SecureString、發佈子程序、兩個丟棄輸出的串流工作及唯一遠端Session；子程序
 三分鐘逾時即終止整棵程序樹，工作排空後Dispose；Session必定在finally移除。遠端提交的
 檔案鎖、IIS管理器、憑證與壓縮串流均在同一命令finally釋放，沒有背景job或跨請求狀態。
 僅全新目錄設定封閉ACL；集區只取得候選發佈目錄讀取執行，以及其Logs子目錄修改權限。
@@ -71,6 +76,55 @@ function Assert-Gs2CrmUrl {
         $uri.Port -ne 443 -or $uri.UserInfo -ne '' -or $uri.Query -ne '' -or $uri.Fragment -ne '' -or
         $uri.AbsolutePath -cne '/XRMServices/2011/Organization.svc') {
         throw 'GS2_CRM_URL_REJECTED'
+    }
+}
+
+function Get-Gs2CrmCredential {
+    # 僅精確選取已授權組織；缺項不能回退至舊組織或其他產品。純轉換不連線、不輸出設定。
+    param([object]$Settings, [string]$ExpectedUrl)
+    Assert-Gs2CrmUrl $ExpectedUrl
+    $prefix = 'Deployment:Organizations:goodshepherd20:'
+    $values = @{}
+    foreach ($name in @('OrganizationUrl', 'Username', 'Password')) {
+        $property = $Settings.PSObject.Properties[$prefix + $name]
+        if ($null -eq $property -or $property.Value -isnot [string] -or
+            [string]::IsNullOrWhiteSpace($property.Value) -or $property.Value.Length -gt 4096 -or
+            $property.Value -match '[\x00-\x1f\x7f]') { throw 'GS2_CRM_CREDENTIAL_MISSING_OR_INVALID' }
+        $values[$name] = $property.Value
+    }
+    if ($values.OrganizationUrl -cne $ExpectedUrl) { throw 'GS2_CRM_CREDENTIAL_ORGANIZATION_MISMATCH' }
+    $secure = ConvertTo-SecureString -String $values.Password -AsPlainText -Force
+    try { return [Management.Automation.PSCredential]::new($values.Username, $secure) }
+    catch { $secure.Dispose(); throw 'GS2_CRM_CREDENTIAL_INVALID' }
+}
+
+function Get-Gs2CrmEnvironment {
+    # 回復候選僅活於單次遠端命令；只讀兩個本工具擁有的鍵，不讀其他站台或集區環境值。
+    param($Variables)
+    $snapshot = @{}
+    foreach ($variable in $Variables) {
+        $name = [string]$variable['name']
+        if ($name -in @('CrmConnection__Username', 'CrmConnection__Password')) {
+            if ($snapshot.ContainsKey($name)) { throw 'GS2_CRM_ENVIRONMENT_DUPLICATE' }
+            $snapshot[$name] = [string]$variable['value']
+        }
+    }
+    return $snapshot
+}
+
+function Set-Gs2CrmEnvironment {
+    # 設定或精準回復本工具擁有的兩鍵；缺鍵表示移除，其他環境完全保留，且不產生管線輸出。
+    param($Variables, [hashtable]$Values)
+    foreach ($name in @('CrmConnection__Username', 'CrmConnection__Password')) {
+        $existing = @($Variables | Where-Object { $_['name'] -ieq $name })
+        if ($existing.Count -gt 1) { throw 'GS2_CRM_ENVIRONMENT_DUPLICATE' }
+        foreach ($variable in $existing) { $Variables.Remove($variable) | Out-Null }
+        if ($Values.ContainsKey($name)) {
+            $element = $Variables.CreateElement('add')
+            $element['name'] = $name
+            $element['value'] = $Values[$name]
+            $Variables.Add($element) | Out-Null
+        }
     }
 }
 
@@ -171,6 +225,7 @@ if (-not $PSCmdlet.ShouldProcess('D365APP01/GoodShepherd2Test:9443', 'Publish an
 
 $runId = [datetime]::UtcNow.ToString('yyyyMMddTHHmmssZ', [Globalization.CultureInfo]::InvariantCulture) + '-' + [guid]::NewGuid().ToString('N')
 $session = $null
+$crmCredential = $null
 $phase = 'Publish'
 
 # 純驗證函式的來源只來自本檔固定函式，不接受外部程式碼；遠端與離線測試共用相同拒絕規則。
@@ -180,10 +235,13 @@ $validatorSources = @(
     'function Assert-Gs2Topology {' + ${function:Assert-Gs2Topology}.ToString() + '}'
     'function Assert-Gs2ArchiveName {' + ${function:Assert-Gs2ArchiveName}.ToString() + '}'
     'function Assert-Gs2NoReparse {' + ${function:Assert-Gs2NoReparse}.ToString() + '}'
+    'function Get-Gs2CrmEnvironment {' + ${function:Get-Gs2CrmEnvironment}.ToString() + '}'
+    'function Set-Gs2CrmEnvironment {' + ${function:Set-Gs2CrmEnvironment}.ToString() + '}'
 )
 
 $remoteDeployment = {
-    param([string]$Stage, [string]$Id, [string]$Thumbprint, [string]$PackageHash, [string[]]$Validators)
+    param([string]$Stage, [string]$Id, [string]$Thumbprint, [string]$PackageHash, [string[]]$Validators,
+        [Management.Automation.PSCredential]$CrmCredential)
     $ErrorActionPreference = 'Stop'
     Set-StrictMode -Version Latest
     # 每次遠端呼叫都重新驗證身分，不能把IP或前一次查詢視為永久授權。
@@ -200,6 +258,7 @@ $remoteDeployment = {
     if ($Stage -notin @('Prepare', 'Commit') -or $Id -cnotmatch '^[0-9]{8}T[0-9]{6}Z-[a-f0-9]{32}$') {
         throw 'GS2_REMOTE_INPUT_REJECTED'
     }
+    if ($Stage -eq 'Commit' -and $null -eq $CrmCredential) { throw 'GS2_CRM_CREDENTIAL_REQUIRED' }
     $root = 'C:\inetpub\GoodShepherd2Test'
     $release = Join-Path $root ('releases\' + $Id)
     $package = Join-Path $root ('packages\' + $Id + '.zip')
@@ -209,6 +268,7 @@ $remoteDeployment = {
     $manager = $null
     $lock = $null
     $previous = $null
+    $previousCrmEnvironment = $null
     $changed = $false
     $committed = $false
     $hasRecord = $false
@@ -514,6 +574,16 @@ $remoteDeployment = {
             $pool.ProcessModel.IdentityType = 4
         }
         $pool.AutoStart = $false
+        # IIS集區環境由專用worker在啟動時繼承；不是部署操作者的User Secrets或通用IIS帳號。
+        # 舊值不能放入recordData；回復時只還原這兩鍵，不覆蓋其他管理設定。
+        $crmVariables = $pool.GetCollection('environmentVariables')
+        $previousCrmEnvironment = Get-Gs2CrmEnvironment $crmVariables
+        $candidateEnvironment = @{
+            CrmConnection__Username = $CrmCredential.UserName
+            CrmConnection__Password = $CrmCredential.GetNetworkCredential().Password
+        }
+        try { Set-Gs2CrmEnvironment $crmVariables $candidateEnvironment }
+        finally { $candidateEnvironment.Clear(); $candidateEnvironment = $null }
         if ($null -eq $site) {
             $site = $manager.Sites.Add('GoodShepherd2Test', 'https', '*:9443:gs2-test.speechmessage.com.tw', $release)
         }
@@ -596,7 +666,12 @@ $remoteDeployment = {
                     if ($site.Applications['/'].VirtualDirectories['/'].PhysicalPath -ine $release) { throw 'GS2_ROLLBACK_OWNERSHIP_CONFLICT' }
                     $site.ServerAutoStart = $false
                 }
-                if ($null -ne $pool) { $pool.AutoStart = $previous.PoolAutoStart }
+                if ($null -ne $pool) {
+                    $pool.AutoStart = $previous.PoolAutoStart
+                    if ($null -ne $previousCrmEnvironment) {
+                        Set-Gs2CrmEnvironment ($pool.GetCollection('environmentVariables')) $previousCrmEnvironment
+                    }
+                }
                 $manager.CommitChanges()
                 if ($previous.PoolStarted -and $pool.State.ToString() -ne 'Started') { $pool.Start() | Out-Null }
                 if ($previous.SiteStarted -and $site.State.ToString() -ne 'Started') { $site.Start() | Out-Null }
@@ -616,12 +691,27 @@ $remoteDeployment = {
         throw ('GS2_REMOTE_FAILED phase=' + $remotePhase + ' run=' + $Id + ' rollback=' + $rollback + ' type=' + $failureType)
     }
     finally {
+        $previousCrmEnvironment = $null
+        if ($null -ne $CrmCredential) { $CrmCredential.Password.Dispose(); $CrmCredential = $null }
         try { if ($null -ne $manager) { $manager.Dispose() } }
         finally { if ($null -ne $lock) { $lock.Dispose() } }
     }
 }
 
 try {
+    $phase = 'CrmCredential'
+    # 只讀固定User Secrets且限制檔案大小／連結；不接受命令列密碼、不複製到發佈目錄。
+    $secretPath = Join-Path $env:APPDATA 'Microsoft\UserSecrets\SpeechMessage.Dynamics.Deployment.P0\secrets.json'
+    Assert-Gs2NoReparse $secretPath
+    if (-not (Test-Path -LiteralPath $secretPath -PathType Leaf) -or
+        (Get-Item -LiteralPath $secretPath).Length -gt 1048576) { throw 'GS2_DEPLOYMENT_USER_SECRETS_REQUIRED' }
+    $secretSettings = $null
+    try {
+        $secretSettings = [IO.File]::ReadAllText($secretPath, [Text.UTF8Encoding]::new($false, $true)) | ConvertFrom-Json
+        $crmCredential = Get-Gs2CrmCredential $secretSettings $CrmServerUrl
+    }
+    finally { $secretSettings = $null }
+    $phase = 'Publish'
     $repo = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..\..'))
     $project = Join-Path $repo 'SpeechMessageProducts.GoodShepherd2.Web\SpeechMessageProducts.GoodShepherd2.Web.csproj'
     if (-not (Test-Path -LiteralPath $project -PathType Leaf)) { throw 'GS2_PROJECT_NOT_FOUND' }
@@ -738,11 +828,11 @@ try {
     if ($null -ne $Credential) { $connection.Credential = $Credential }
     $session = New-PSSession @connection
     $phase = 'Prepare'
-    $prepared = Invoke-Command -Session $session -ScriptBlock $remoteDeployment -ArgumentList @('Prepare', $runId, $CertificateThumbprint, '', $validatorSources) -ErrorAction Stop
+    $prepared = Invoke-Command -Session $session -ScriptBlock $remoteDeployment -ArgumentList @('Prepare', $runId, $CertificateThumbprint, '', $validatorSources, $null) -ErrorAction Stop
     $phase = 'Transfer'
     Copy-Item -LiteralPath $archivePath -Destination $prepared.PackagePath -ToSession $session -ErrorAction Stop
     $phase = 'Commit'
-    $result = Invoke-Command -Session $session -ScriptBlock $remoteDeployment -ArgumentList @('Commit', $runId, $CertificateThumbprint, $packageHash, $validatorSources) -ErrorAction Stop
+    $result = Invoke-Command -Session $session -ScriptBlock $remoteDeployment -ArgumentList @('Commit', $runId, $CertificateThumbprint, $packageHash, $validatorSources, $crmCredential) -ErrorAction Stop
     $plan.Mode = 'Applied'
     $plan.RemoteValidation = 'LivenessPassed;ReadinessNotChecked'
     $plan | Add-Member -NotePropertyName Deployment -NotePropertyValue $result
@@ -753,5 +843,8 @@ catch {
     throw ('GS2_DEPLOYMENT_FAILED phase=' + $phase + ' run=' + $runId + ' type=' + $_.Exception.GetType().FullName)
 }
 finally {
-    if ($null -ne $session) { Remove-PSSession -Session $session -ErrorAction Stop }
+    try { if ($null -ne $session) { Remove-PSSession -Session $session -ErrorAction Stop } }
+    finally {
+        if ($null -ne $crmCredential) { $crmCredential.Password.Dispose(); $crmCredential = $null }
+    }
 }
