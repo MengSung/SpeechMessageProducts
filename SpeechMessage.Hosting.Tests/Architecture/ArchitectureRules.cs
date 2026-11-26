@@ -16,6 +16,7 @@
  * - 部署端 Plugin 與 Workflow 都受同一個 v4.6.2 沙箱契約約束。
  * - 以來源快照執行 R2 主機／Plugin 公開邊界、R3 組織字面值白名單及 R9 傳輸／Plugin 參考守門；
  *   ChurchReport以框架入口、MVC繼承及公開簽章閉包判定；明列例外必附理由與證據，其他主機規則不變。
+ *   GoodShepherd2.Web 精確列為產品主機，沿用公開外殼與主機互參限制，相似名稱仍拒絕分類。
  *   公開表面統計沿用同次分類並同步交給可選接收器，不保存回呼或跨掃描狀態。
  * - 以實際 DAG 而非示意圖的位置標記層級；共用核心內Localization為取字底層，其餘同層彼此不可參考。未知專案 fail closed， 加入新產品時必須明確分類並補正反例，不能因名稱相似自動取得高層權限。
  * 測試案例入口包含 ArchitectureProject、ArchitectureSource、ArchitectureViolation、Validate、
@@ -641,8 +642,9 @@ internal static class ArchitectureRules
     /// <summary>部署端 Plugin 與 Workflow 都受同一個 v4.6.2 沙箱契約約束。</summary>
     private static bool IsSandbox(string name) => name is "SpeechMessage.Dynamics.Plugins" or "SpeechMessage.Dynamics.Workflows";
 
-    /// <summary>主機具有獨立啟動與授權邊界，不得彼此參考產品外殼。</summary>
-    private static bool IsHost(string name) => name is "SpeechMessageProducts.ChurchReport" or "SpeechMessageProducts.LineWebhook";
+    /// <summary>三個精確主機具有獨立啟動與授權邊界，不得彼此參考產品外殼；名稱前綴不授予主機權限。</summary>
+    private static bool IsHost(string name) => name is "SpeechMessageProducts.ChurchReport"
+        or "SpeechMessageProducts.LineWebhook" or "SpeechMessageProducts.GoodShepherd2.Web";
 
     /// <summary>
     /// 已知產品來源依明確 DAG 分類排除，共用及未知來源則受 SharedToProduct 守門；
@@ -674,7 +676,9 @@ internal static class ArchitectureRules
         "ToolUtility" or "LineMessagingProcessor.Workflows" or "LineMessagingProcessor.RichMenus" => 40,
         "LineMessagingProcessor.AspNetCore" or "SpeechMessage.Payments.AspNetCore" => 50,
         "SpeechMessageProducts.GoodShepherd.Hosting" => 60,
-        "SpeechMessageProducts.ChurchReport" or "SpeechMessageProducts.LineWebhook" or "SpeechMessage.Dynamics.Plugins" or "SpeechMessage.Dynamics.Workflows" => 100,
+        "SpeechMessageProducts.ChurchReport" or "SpeechMessageProducts.LineWebhook"
+            or "SpeechMessageProducts.GoodShepherd2.Web" or "SpeechMessage.Dynamics.Plugins"
+            or "SpeechMessage.Dynamics.Workflows" => 100,
         "SpeechMessage.Dynamics.Deployment" or "LegacyGolden" or "PluginHarness" => 110,
         _ => -1
     };

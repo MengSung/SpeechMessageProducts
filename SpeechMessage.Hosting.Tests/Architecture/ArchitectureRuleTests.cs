@@ -13,6 +13,8 @@
  * - P2-05共用核心向Localization取字合法，反向仍拒絕；雙目標專案不能指向只有 net10 的產品，即使當次建置選到 net10 也不豁免整體雙目標契約。
  * - F1 依既有 DAG 分辨產品、工具與共用層；未知專案仍視為共用來源並 fail closed。
  *   合成反例保護分類，真實方案圖驗證共用層的產品相依已移至產品 Hosting。
+ * - F2 新主機僅以精確名稱登錄；合成圖與來源反例保護主機互參、公開外殼及共用反向相依，
+ *   相似名稱仍拒絕，測試不建立主機或接觸線 B 的實作檔。
  * - Extensions、ASP.NET 與 Dataverse 直接套件不得進入共用雙目標；以各套件正反例保護辨識。
  * - P6-06 以合成圖注入九個舊 ASP.NET Core 套件，保護直接及還原相依的拒絕，
  *   並以真實 ChurchReport 的 Debug／Release 評估確認不再使用這些套件；不啟動網站或外部連線。
@@ -155,6 +157,89 @@ public sealed class ArchitectureRuleTests
     public void HostToHost_IsRejected()
     {
         Assert.Contains(ArchitectureRules.Validate(Graph(Product("SpeechMessageProducts.ChurchReport", "net10.0", "net10.0", "SpeechMessageProducts.LineWebhook"), Product("SpeechMessageProducts.LineWebhook", "net10.0", "net10.0"))), x => x.Rule == "HostReference");
+    }
+
+    /// <summary>
+    /// F2 精確主機可組合既有 Hosting、ToolUtility 與通用 Webhook 管線；合法向下相依
+    /// 證明新主機取得產品層級，但共用層反向參考仍同時違反產品與層序邊界。
+    /// 節點全為案例內純值，不讀秘密、不載入產品或持有主機資源。
+    /// </summary>
+    [Fact]
+    public void GoodShepherd2Host_ExactLayer_AllowsFoundationAndRejectsReverseReference()
+    {
+        var host = Product("SpeechMessageProducts.GoodShepherd2.Web", "net10.0", "net10.0",
+            "SpeechMessage.Hosting", "ToolUtility", "LineMessagingProcessor.AspNetCore");
+        var hosting = Product("SpeechMessage.Hosting", "net10.0", "net10.0");
+        var tool = Product("ToolUtility", "net10.0", "net10.0");
+        var pipeline = Product("LineMessagingProcessor.AspNetCore", "net10.0", "net10.0");
+        Assert.Empty(ArchitectureRules.Validate(Graph(host, hosting, tool, pipeline)));
+        var violations = ArchitectureRules.Validate(Graph(
+            hosting with { References = new[] { host.Name } }, host, tool, pipeline));
+        Assert.Contains(violations, item => item.Rule == "SharedToProduct" &&
+            item.Project == hosting.Name && item.Dependency == host.Name);
+        Assert.Contains(violations, item => item.Rule == "LayerDirection" &&
+            item.Project == hosting.Name && item.Dependency == host.Name);
+    }
+
+    /// <summary>
+    /// 新主機與兩個既有主機的任一方向參考均必須回報 HostReference；
+    /// 不以一般 LayerDirection 或 UnknownProject 失敗冒充獨立主機邊界保護。
+    /// 合成圖由本案例擁有，沒有組件執行、網路或跨案例狀態。
+    /// </summary>
+    /// <param name="existing">已知主機的精確專案名稱。</param>
+    /// <param name="reverse">是否由既有主機參考新主機。</param>
+    [Theory]
+    [InlineData("SpeechMessageProducts.ChurchReport", false)]
+    [InlineData("SpeechMessageProducts.ChurchReport", true)]
+    [InlineData("SpeechMessageProducts.LineWebhook", false)]
+    [InlineData("SpeechMessageProducts.LineWebhook", true)]
+    public void GoodShepherd2Host_HostReferences_AreRejected(string existing, bool reverse)
+    {
+        var source = reverse ? existing : "SpeechMessageProducts.GoodShepherd2.Web";
+        var dependency = reverse ? "SpeechMessageProducts.GoodShepherd2.Web" : existing;
+        var violations = ArchitectureRules.Validate(Graph(
+            Product(source, "net10.0", "net10.0", dependency),
+            Product(dependency, "net10.0", "net10.0")));
+        Assert.Contains(violations, item => item.Rule == "HostReference" &&
+            item.Project == source && item.Dependency == dependency);
+        Assert.DoesNotContain(violations, item => item.Rule == "UnknownProject");
+    }
+
+    /// <summary>
+    /// F2 主機沿用 Program／Registration／Endpoints 公開外殼規則；
+    /// 注入一般公開服務必須精確拒絕，不能套用 ChurchReport 的 MVC 簽章例外。
+    /// 純來源只在當次 Roslyn 掃描存活，metadata 由規則引擎確定釋放。
+    /// </summary>
+    [Fact]
+    public void GoodShepherd2Host_PublicSurface_RejectsNonShellType()
+    {
+        var host = Product("SpeechMessageProducts.GoodShepherd2.Web", "net10.0", "net10.0") with
+        {
+            Sources = new[] { Source("Host.cs", """
+                public static class Program {}
+                public static class HostRegistration {}
+                public static class HealthEndpoints {}
+                public sealed class MutableRequestService {}
+                internal sealed class RequestOwner {}
+                """) }
+        };
+        var violation = Assert.Single(ArchitectureRules.ValidateSource(Graph(host)));
+        Assert.Equal("R2HostPublicType", violation.Rule);
+        Assert.Equal("MutableRequestService", violation.Dependency);
+    }
+
+    /// <summary>
+    /// 新主機只以完整名稱登錄；相似前綴與大小寫變體仍回報 UnknownProject，
+    /// 避免以任意產品命名取得高層相依權限。案例只有短生命週期純值。
+    /// </summary>
+    /// <param name="name">刻意冒充新主機的未登錄名稱。</param>
+    [Theory]
+    [InlineData("SpeechMessageProducts.GoodShepherd2.Web.Other")]
+    [InlineData("SpeechMessageProducts.GoodShepherd2.web")]
+    public void GoodShepherd2Host_SimilarNames_RemainUnknown(string name)
+    {
+        Assert.Contains(ArchitectureRules.Validate(Graph(Product(name, "net10.0", "net10.0"))),
+            item => item.Rule == "UnknownProject" && item.Project == name);
     }
 
     /// <summary>低層反向依賴、工具被產品引用與未分類專案都不可靜默放行。</summary>
