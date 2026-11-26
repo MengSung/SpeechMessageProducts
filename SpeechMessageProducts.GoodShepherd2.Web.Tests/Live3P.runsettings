@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+檔案整體說明
+目的與定位：好牧人 2.0 主機測試的預設實機隔離設定，避免一般 dotnet test 意外連線公開站台、修改測試 Channel Webhook 或呼叫外部服務。
+主要功能與流程：由測試專案條件式 RunSettingsFilePath 載入，排除 P7Live、P8Live、PaymentsLive、SqlIntegration 及 Live3P。明確命令列篩選會覆寫預設值，完整方案守門因此仍須列出全部排除式。
+使用邊界與維護：本檔只有測試分類契約，不含網址、token 或秘密；實機僅能在準備齊備且取得測試環境鎖後，以 Category=Live3P 與工作包篩選明確執行。未執行案例必須標記實機待補，不能將預設排除當成實機通過。
+-->
+<RunSettings>
+  <RunConfiguration>
+    <TestCaseFilter>Category!=P7Live&amp;Category!=P8Live&amp;Category!=PaymentsLive&amp;Category!=SqlIntegration&amp;Category!=Live3P</TestCaseFilter>
+  </RunConfiguration>
+</RunSettings>

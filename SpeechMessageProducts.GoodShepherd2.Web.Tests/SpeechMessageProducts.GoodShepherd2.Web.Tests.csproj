@@ -1,0 +1,27 @@
+<!--
+檔案整體說明
+目的與定位：好牧人 2.0 F2 主機契約的 net10 離線測試專案，保護啟動組織白名單、Production 拒絕、產品連線子池與 Host 生命週期。
+主要功能與流程：一般測試透過真實 DI 及合成 SDK／HTTP 依賴注入故障並確認就緒失敗、租約歸還、主機停止與組態釋放，不讀真實金鑰、不連線 D365、SQL 或 LINE。預設 RunSettings 排除全部實機分類；明確 Category=Live3P、WP=F2 時才選取固定測試站及 T01 測試。中央套件提供 xUnit、Moq 與測試執行器，新建當下登錄方案。
+使用邊界與維護：每案擁有其 Host、client、組態及暫存資料，finally／Dispose 確保單案狀態不外洩；有實機案例時須獨立標記 Live3P 與 WP=F2，不以跳過或零測試冒稱通過。嚴格分析、文件與 UTF-8 無 BOM、CRLF 皆必須通過。
+-->
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <SpeechMessageStrictCode>true</SpeechMessageStrictCode>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <IsTestProject>true</IsTestProject>
+    <IsPackable>false</IsPackable>
+    <RunSettingsFilePath Condition="'$(VSTestTestCaseFilter)' == ''">$(MSBuildThisFileDirectory)Live3P.runsettings</RunSettingsFilePath>
+  </PropertyGroup>
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" />
+    <PackageReference Include="xunit" />
+    <PackageReference Include="xunit.runner.visualstudio" PrivateAssets="all" />
+    <PackageReference Include="Moq" />
+    <PackageReference Include="coverlet.collector" PrivateAssets="all" />
+    <ProjectReference Include="..\SpeechMessageProducts.GoodShepherd2.Web\SpeechMessageProducts.GoodShepherd2.Web.csproj" />
+  </ItemGroup>
+</Project>
