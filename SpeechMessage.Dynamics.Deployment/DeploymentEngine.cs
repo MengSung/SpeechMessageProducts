@@ -11,6 +11,8 @@
  * - 將清單、組件 PE、組織身分及受管理 metadata 比對，建立沒有憑證值的 plan；不讀取業務記錄，也不解析秘密。
  * - 新三測試組織在 plan／apply 各自核對精確伺服器名稱與非空正式 ID，計畫 hash 綁定 ID，
  *   apply 在 metadata、export 及寫入前重驗；legacy／production 的 null 欄位省略，保留原計畫 bytes 與外層正式授權。
+ * - 新測試組織只為 enabledByOrganization 明確為 true 的步驟規劃新增；缺漏或 false 不註冊。
+ *   goodshepherdback 保留歷史相容：旗標缺漏時仍建立停用步驟，明確 false 則不建立。
  * - 建立可由人工審核的 Markdown 摘要。輸出只列固定欄位、operation、hash 與佔位名稱， 不列出 unsecure／secure 設定實值、帳密、LINE token 或 userId。
  * - member 安全設定僅在 apply 寫入時組成單欄 tokenKey JSON，建立與更新共用轉換；trace／push 保持原契約，秘密不進 plan、export 或快取。
  * - 新停用步驟以當次 GUID 在固定兩項交易內建立並停用；交易失敗回滾，不發布暫時啟用列。
@@ -496,7 +498,7 @@ internal sealed partial class DeploymentEngine
             if (pluginType is null)
             {
                 if (plannedTypes.Add(step.Type)) operations.Add(new DeploymentOperation("CreateType", step.Type));
-                if (!IsExplicitlyDisabled(step, organization))
+                if (ShouldCreateStep(step, organization))
                 {
                     operations.Add(new DeploymentOperation("CreateStep", StepKey(step)));
                     if (step.Images.Count != 0) operations.Add(new DeploymentOperation("ReconcileImages", StepKey(step)));
@@ -510,7 +512,7 @@ internal sealed partial class DeploymentEngine
             var existingStep = FindStep(pluginType.Id, message.Id, filter.Id, stage, mode, step.Rank);
             if (existingStep is null)
             {
-                if (!IsExplicitlyDisabled(step, organization))
+                if (ShouldCreateStep(step, organization))
                 {
                     operations.Add(new DeploymentOperation("CreateStep", StepKey(step)));
                     if (step.Images.Count != 0) operations.Add(new DeploymentOperation("ReconcileImages", StepKey(step)));
@@ -1506,12 +1508,21 @@ internal sealed partial class DeploymentEngine
         step.EnabledByOrganization.TryGetValue(organization, out var enabled) && enabled;
 
     /// <summary>
-    /// 判斷清單是否明確宣告該組織不註冊新步驟。缺少旗標仍保留 legacy
-    /// 的「建立後停用」流程，讓既有 goodshepherdback 建立／回歸契約不因多組織擴充改變；
-    /// 明確 false 則代表該組織不應得到新的 Plugin step。
+    /// 決定目前組織是否可在既有穩定身份不存在時新增 Plugin step。goodshepherd20、
+    /// construction、association 及其他非 legacy 組織必須有 enabledByOrganization 的明確 true；
+    /// 缺鍵或 false 都不產生 CreateStep／ReconcileImages，避免將其他組織的配置帶入新組織。
+    /// goodshepherdback 保留既有 P0 相容語意：明確 false 不新增，缺鍵仍以停用狀態建立，
+    /// 讓舊版「清單省略組織旗標即建立停用步驟」行為不因本次多組織擴充而改變。
     /// </summary>
-    private static bool IsExplicitlyDisabled(StepRegistration step, string organization) =>
-        step.EnabledByOrganization.TryGetValue(organization, out var enabled) && !enabled;
+    private static bool ShouldCreateStep(StepRegistration step, string organization)
+    {
+        if (string.Equals(organization, "goodshepherdback", StringComparison.Ordinal))
+        {
+            return !step.EnabledByOrganization.TryGetValue(organization, out var enabled) || enabled;
+        }
+
+        return IsEnabled(step, organization);
+    }
 
     /// <summary>所有核心入口再驗本命令白名單；不以呼叫端字串擴權，正式操作確認仍由CLI負責。</summary>
     private void ValidateOrganization(string organization) => _ = catalog.Get(organization);

@@ -4,6 +4,7 @@
 主要流程：以合成 JSON 建立四組織 catalog，檢查指定 test 的 canonical 描述、未指定唯一 test 時拒絕，
 並注入尚未核定的空 host；另驗證跨 repo 寫鎖、Plugin 組織旗標與複製組織 quiesce dry-run。
 註冊測試以每個組織獨立的合成 SDK 身分回應通過真正身分守門；不因補齊替身而略過核身或改動生產規則。
+新三測試組織只有在 enabledByOrganization 明確為 true 時才規劃新增步驟；未列旗標與 false 均不得建立 Plugin step。
 quiesce 直接 apply 的成功案例明確提供合成快照 owner，在首筆 Update 前檢查零寫入與信箱原像；
 保留三欄投遞斷言並以 ACT None=2 驗證，不把原錯誤的 0 預期當成現場版本證據。
 有界落盤、flush、取消與部分失敗的完整原像契約另由 QuiesceMailboxDeliveryTests 驗證。
@@ -152,6 +153,39 @@ public sealed class MultiTestOrganizationTests
         Assert.Equal(1, constructionService.IdentityReads);
         Assert.Equal(1, associationService.IdentityReads);
         Assert.NotEqual(construction.OrganizationId, association.OrganizationId);
+    }
+
+    /// <summary>
+    /// 新三測試組織的步驟必須由旗標明確加入；清單缺少組織鍵時不得把既有組織的停用值
+    /// 當成允許建立後停用的 fallback。透過真正 Plan 與獨立合成組織身分驗證零 CreateStep。
+    /// </summary>
+    /// <param name="organization">本階段新增且需明確 opt-in 的測試組織。</param>
+    [Theory]
+    [InlineData("goodshepherd20")]
+    [InlineData("construction")]
+    [InlineData("association")]
+    public void Registration_NewTestOrganization_UnlistedStep_IsNotPlanned(string organization)
+    {
+        var catalog = OrganizationCatalog.Parse(FourTestOrganizations);
+        using var fixture = new Fixture();
+        var step = fixture.Manifest.Steps[0] with
+        {
+            EnabledByOrganization = new Dictionary<string, bool>(StringComparer.Ordinal)
+            {
+                ["goodshepherdback"] = false
+            }
+        };
+        var manifest = fixture.Manifest with { Steps = new[] { step } };
+        var service = new NamedRegistrationService(fixture.Service, organization);
+        var engine = new DeploymentEngine(service, fixture.Root, fixture.Clock,
+            _ => throw new InvalidOperationException("No secret should be read while planning."), catalog);
+
+        var plan = engine.Plan(manifest, fixture.Image, organization);
+
+        Assert.DoesNotContain(plan.Operations, operation => operation.Kind == "CreateStep");
+        Assert.DoesNotContain(plan.Operations, operation => operation.Kind == "ReconcileImages");
+        Assert.Equal(1, service.IdentityReads);
+        Assert.Empty(fixture.Service.Writes);
     }
 
     /// <summary>相同組織名稱從兩個 repo artifacts 根取得同一台電腦級鎖；第二個寫入需等第一個釋放。</summary>
