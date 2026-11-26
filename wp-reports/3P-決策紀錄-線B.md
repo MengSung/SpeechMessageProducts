@@ -2,6 +2,7 @@
 
 | 時間（Asia/Taipei） | 工作包 | 遇到的選擇 | 選了什麼 | 依據 | 怎麼回復 |
 |---|---|---|---|---|---|
+| 2026-11-26 17:04 Asia/Taipei (UTC+08:00) | F6 | 02§5.2要求合併前同步整合分支；線B有未提交的舊`.ccg`狀態，直接rebase被Git拒絕，整合目前仍是F4提交 | 不stash／reset；用全新detached worktree對已提交lane-b tip執行rebase到整合SHA，結果HEAD up-to-date且與lane-b一致、祖先關係成立；只移除本次建立且乾淨的暫時worktree。原工作樹.ccg未改，後在鎖內仍重查整合SHA | 02§5.2、§5.4及§10；使用者禁止stash/reset與丟棄他人修改；git status與isolated no-op rebase輸出 | 沒有產品狀態改動；未移除或覆寫任何既有.ccg檔；若整合SHA已變，鎖內停止merge並重新按§5.2判斷 |
 | 2026-11-26 17:00 Asia/Taipei (UTC+08:00) | F6 | 已合併F6以bool消費平台choice欄位，修復屬F6原契約必要補正，不改線A schema | 直接從平台JSON建choice測試及query斷言；bool原程式RED5/24，修後OptionSetValue(100000001)且嚴格核alias owner／field。產品175/175、全方案8049/8049、ClaudeOnly0 Critical/High，提交97e93413 | 01 F6、00平台租戶定義、02§4／§10、實際平台JSON與RED/GREEN | 三個F6專屬程式檔修正可單獨revert；不改FS或F3資料，不冒稱D365實機
 | 2026-11-26 16:37 Asia/Taipei (UTC+08:00) | F4 | 第三輪審查與最新守門均已取得；畫面操作曾被使用者Esc取消 | 只採ClaudeOnly可用輸出0 Critical／0 High，並明示未逐檔讀測試；最新完整8026/8026及其餘守門通過後按鎖合併推送。新版進度僅離線檢查，UI不自行恢復。F4後先獨立F6旗標必要補正，不修改FS | 02§3、§4、§5.2及§10；使用者取消優先；測試與審查證據分開 | 未操作外部環境；F4可按專屬提交追溯撤回，不能將已重現的High版本當可放行版本 |
 | 2026-11-26 16:11 Asia/Taipei (UTC+08:00) | F4 | 第二輪ClaudeOnly發現metadata缺損被當租戶拒絕並永久Skipped；舊CCG修改仍須保留 | 六種缺損先重現6 RED（未知當前狀態仍正常拒絕），改固定安全InvalidOperationException，fault→release後進既有Retryable與最終共用告警。產品152/152、核心失敗重試及告警2/2通過，修正cb36af9b；重跑完整閘門及第三輪複審，未先放行。前輪同步347fa263時4491原CCG檔雜湊及刪除狀態不變，F4重寫為87834b04／dcd5e75d／ae9eb0ac | 00§2真正故障須告警；02§4、§5.2及§10；產品RED／GREEN與既有真SQL失敗路徑 | 保留分支codex/lane-b-f4-preserve-20261126-1542指向6bd0bf7d；單獨撤回cb36af9b會恢復已重現缺口，不是可放行版本；未變更整合工作樹或外部環境 |
