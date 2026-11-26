@@ -16,6 +16,9 @@
  * - F2 新主機僅以精確名稱登錄；合成圖與來源反例保護主機互參、公開外殼及共用反向相依，
  *   F1 必要補正以合成來源驗證 F2 的兩個精確 static 契約，錯專案、命名空間、形狀、巢狀及相似名稱仍拒絕；
  *   測試不建立主機、不執行來源，也不依賴線 B 的實作檔。
+ * - F6 的 LIFF 共用 adapter 以精確名稱沿用 ASP.NET Core 層級；合成圖保護 Hosting／
+ *   Localization 向下依賴、基礎層反向拒絕、同層互參拒絕及共用不得參考產品。
+ *   相似名稱仍未知；產品主機可組合 LIFF，但 LIFF 型別不能因此取得主機公開表面豁免。
  * - Extensions、ASP.NET 與 Dataverse 直接套件不得進入共用雙目標；以各套件正反例保護辨識。
  * - P6-06 以合成圖注入九個舊 ASP.NET Core 套件，保護直接及還原相依的拒絕，
  *   並以真實 ChurchReport 的 Debug／Release 評估確認不再使用這些套件；不啟動網站或外部連線。
@@ -384,6 +387,170 @@ public sealed class ArchitectureRuleTests
     {
         Assert.Contains(ArchitectureRules.Validate(Graph(Product(name, "net10.0", "net10.0"))),
             item => item.Rule == "UnknownProject" && item.Project == name);
+    }
+
+    /// <summary>
+    /// F6 的精確 net10 LIFF 共用節點可同時向下使用 Hosting 與雙目標 Localization，
+    /// 空違規清單證明合法依賴不再被 UnknownProject 誤擋。所有節點為案例內純值，
+    /// 不依賴線 B 的檔案、不載入產品或建立須釋放的外部資源。
+    /// </summary>
+    [Fact]
+    public void LiffSharedLayer_HostingAndLocalizationDependencies_AreAllowed()
+    {
+        Assert.Empty(ArchitectureRules.Validate(Graph(
+            Product("SpeechMessage.Liff.AspNetCore", "net10.0", "net10.0",
+                "SpeechMessage.Hosting", "SpeechMessage.Localization"),
+            Product("SpeechMessage.Hosting", "net10.0", "net10.0"),
+            Product("SpeechMessage.Localization", "net10.0", "net462;net10.0"))));
+    }
+
+    /// <summary>
+    /// 基礎層不得反向取得 LIFF adapter；逐目標注入反向邊，精確斷言 LayerDirection，
+    /// Localization 另須保留 DualTargetReference，不能以未知名稱或其他失敗冒充拒絕。
+    /// 合成圖僅在當次同步驗證持有，不讀檔案、憑證或建立網路與背景資源。
+    /// </summary>
+    /// <param name="foundation">不得反向引用 LIFF 的基礎專案。</param>
+    /// <param name="target">本案例的實際評估目標。</param>
+    /// <param name="targets">基礎專案完整目標，避免 net10 掩蓋雙目標契約。</param>
+    [Theory]
+    [InlineData("SpeechMessage.Hosting", "net10.0", "net10.0")]
+    [InlineData("SpeechMessage.Localization", "net10.0", "net462;net10.0")]
+    [InlineData("SpeechMessage.Localization", "net462", "net462;net10.0")]
+    public void LiffSharedLayer_FoundationReverseReferences_AreRejected(string foundation, string target, string targets)
+    {
+        var violations = ArchitectureRules.Validate(Graph(
+            Product(foundation, target, targets, "SpeechMessage.Liff.AspNetCore"),
+            Product("SpeechMessage.Liff.AspNetCore", "net10.0", "net10.0")));
+
+        Assert.DoesNotContain(violations, item => item.Rule == "UnknownProject");
+        Assert.Contains(violations, item => item.Rule == "LayerDirection" &&
+            item.Project == foundation && item.Target == target && item.Dependency == "SpeechMessage.Liff.AspNetCore");
+        Assert.Equal(foundation == "SpeechMessage.Localization",
+            violations.Any(item => item.Rule == "DualTargetReference" &&
+                item.Project == foundation && item.Dependency == "SpeechMessage.Liff.AspNetCore"));
+    }
+
+    /// <summary>
+    /// LIFF 與既有兩個 ASP.NET Core adapter 必須同層且雙向禁止互參；
+    /// 唯一 LayerDirection 診斷防止把 LIFF 放在任一側而偷偷取得同儕的能力。
+    /// 節點為案例區域純值，不建立主機、來源模型、檔案或外部資源。
+    /// </summary>
+    /// <param name="peer">既有 ASP.NET Core 層的精確專案名稱。</param>
+    /// <param name="reverse">是否由既有 adapter 反向引用 LIFF。</param>
+    [Theory]
+    [InlineData("LineMessagingProcessor.AspNetCore", false)]
+    [InlineData("LineMessagingProcessor.AspNetCore", true)]
+    [InlineData("SpeechMessage.Payments.AspNetCore", false)]
+    [InlineData("SpeechMessage.Payments.AspNetCore", true)]
+    public void LiffSharedLayer_AspNetCorePeerReferences_AreRejected(string peer, bool reverse)
+    {
+        var source = reverse ? peer : "SpeechMessage.Liff.AspNetCore";
+        var dependency = reverse ? "SpeechMessage.Liff.AspNetCore" : peer;
+        var violation = Assert.Single(ArchitectureRules.Validate(Graph(
+            Product(source, "net10.0", "net10.0", dependency),
+            Product(dependency, "net10.0", "net10.0"))));
+
+        Assert.Equal("LayerDirection", violation.Rule);
+        Assert.Equal(source, violation.Project);
+        Assert.Equal(dependency, violation.Dependency);
+    }
+
+    /// <summary>
+    /// LIFF 即使已分類仍是共用層；逐一注入產品核心、產品 Hosting 及主機參考，
+    /// 必須回報 SharedToProduct。較高產品層另回報 LayerDirection，較低產品核心
+    /// 仍不能藉合法層序放行。純值圖不執行產品，也沒有跨案例狀態或清理責任。
+    /// </summary>
+    /// <param name="product">禁止共用層參考的精確產品專案。</param>
+    /// <param name="targets">產品完整目標，用來維持真實核心的雙目標形狀。</param>
+    /// <param name="upward">該依賴是否同時違反嚴格層序。</param>
+    [Theory]
+    [InlineData("SpeechMessageProducts.GoodShepherd.Core", "net462;net10.0", false)]
+    [InlineData("SpeechMessageProducts.GoodShepherd.Hosting", "net10.0", true)]
+    [InlineData("SpeechMessageProducts.ChurchReport", "net10.0", true)]
+    [InlineData("SpeechMessageProducts.LineWebhook", "net10.0", true)]
+    [InlineData("SpeechMessageProducts.GoodShepherd2.Web", "net10.0", true)]
+    public void LiffSharedLayer_ReferenceToProduct_IsRejected(string product, string targets, bool upward)
+    {
+        var violations = ArchitectureRules.Validate(Graph(
+            Product("SpeechMessage.Liff.AspNetCore", "net10.0", "net10.0", product),
+            Product(product, "net10.0", targets)));
+
+        Assert.DoesNotContain(violations, item => item.Rule == "UnknownProject");
+        Assert.Contains(violations, item => item.Rule == "SharedToProduct" &&
+            item.Project == "SpeechMessage.Liff.AspNetCore" && item.Dependency == product);
+        Assert.Equal(upward, violations.Any(item => item.Rule == "LayerDirection" &&
+            item.Project == "SpeechMessage.Liff.AspNetCore" && item.Dependency == product));
+    }
+
+    /// <summary>
+    /// 僅精確 LIFF 專案可取得分類；前綴、後綴、大小寫及未標記測試的相似名稱，
+    /// 即使只依賴合法基礎層仍須唯一回報 UnknownProject。圖與診斷僅屬本案例，
+    /// 不依賴實際專案存在、不讀秘密或保留資源。
+    /// </summary>
+    /// <param name="name">刻意冒充已核定 LIFF 專案的名稱。</param>
+    [Theory]
+    [InlineData("SpeechMessage.Liff.AspNetCore.Other")]
+    [InlineData("SpeechMessage.Liff.AspNetCorePretender")]
+    [InlineData("SpeechMessage.Liff.aspnetcore")]
+    [InlineData("SpeechMessage.Liff")]
+    [InlineData("SpeechMessage.Liff.AspNetCore.Tests")]
+    public void LiffSharedLayer_SimilarNames_RemainUnknown(string name)
+    {
+        var violation = Assert.Single(ArchitectureRules.Validate(Graph(
+            Product(name, "net10.0", "net10.0", "SpeechMessage.Hosting", "SpeechMessage.Localization"),
+            Product("SpeechMessage.Hosting", "net10.0", "net10.0"),
+            Product("SpeechMessage.Localization", "net10.0", "net462;net10.0"))));
+
+        Assert.Equal("UnknownProject", violation.Rule);
+        Assert.Equal(name, violation.Project);
+        Assert.Equal(name, violation.Dependency);
+    }
+
+    /// <summary>
+    /// 既有三個產品主機與產品 Hosting 均可向下組合 LIFF 共用 adapter；
+    /// 空違規清單保護它不是主機或工具，避免錯誤分類觸發 HostReference 等邊界。
+    /// 案例只驗證合成參考圖，不建立主機、執行產品或持有外部資源。
+    /// </summary>
+    /// <param name="consumer">已有明確分類的產品組合根或 adapter。</param>
+    [Theory]
+    [InlineData("SpeechMessageProducts.ChurchReport")]
+    [InlineData("SpeechMessageProducts.LineWebhook")]
+    [InlineData("SpeechMessageProducts.GoodShepherd2.Web")]
+    [InlineData("SpeechMessageProducts.GoodShepherd.Hosting")]
+    public void LiffSharedLayer_ProductConsumers_AreAllowed(string consumer)
+    {
+        Assert.Empty(ArchitectureRules.Validate(Graph(
+            Product(consumer, "net10.0", "net10.0", "SpeechMessage.Liff.AspNetCore"),
+            Product("SpeechMessage.Liff.AspNetCore", "net10.0", "net10.0"))));
+    }
+
+    /// <summary>
+    /// 產品主機引用 LIFF 不能替自行宣告的同名公開服務取得 R2 豁免；逐一把合成型別
+    /// 放入三個主機，精確斷言唯一 R2HostPublicType 與完整名稱。來源不執行，
+    /// Roslyn metadata 由規則引擎在當次同步掃描結束時確定釋放，不建立實際 LIFF 流程。
+    /// </summary>
+    /// <param name="host">必須保留既有公開外殼限制的精確主機。</param>
+    /// <param name="name">未核定為主機公開外殼的 LIFF 型別名稱。</param>
+    [Theory]
+    [InlineData("SpeechMessageProducts.ChurchReport", "LiffAuthenticationFilter")]
+    [InlineData("SpeechMessageProducts.ChurchReport", "LiffServiceCollectionExtensions")]
+    [InlineData("SpeechMessageProducts.LineWebhook", "LiffAuthenticationFilter")]
+    [InlineData("SpeechMessageProducts.LineWebhook", "LiffServiceCollectionExtensions")]
+    [InlineData("SpeechMessageProducts.GoodShepherd2.Web", "LiffAuthenticationFilter")]
+    [InlineData("SpeechMessageProducts.GoodShepherd2.Web", "LiffServiceCollectionExtensions")]
+    public void LiffSharedLayer_UnapprovedHostPublicTypes_AreRejected(string host, string name)
+    {
+        var project = Product(host, "net10.0", "net10.0", "SpeechMessage.Liff.AspNetCore") with
+        {
+            Sources = new[] { Source("LiffService.cs",
+                $"namespace SpeechMessage.Liff.AspNetCore; public sealed class {name} {{}}") }
+        };
+        var violation = Assert.Single(ArchitectureRules.ValidateSource(Graph(project,
+            Product("SpeechMessage.Liff.AspNetCore", "net10.0", "net10.0"))));
+
+        Assert.Equal("R2HostPublicType", violation.Rule);
+        Assert.Equal(host, violation.Project);
+        Assert.Equal("SpeechMessage.Liff.AspNetCore." + name, violation.Dependency);
     }
 
     /// <summary>低層反向依賴、工具被產品引用與未分類專案都不可靜默放行。</summary>

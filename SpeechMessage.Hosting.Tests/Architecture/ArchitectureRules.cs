@@ -12,6 +12,8 @@
  * - 驗證完整評估圖；呼叫端擁有輸入，結果只含固定的架構診斷。
  * - F1 以既有 DAG 的 Layer 精確辨識產品元件；共用與未知層級禁止參考 SpeechMessageProducts.*，
  *   產品層與部署工具不被誤判為共用來源，未知專案仍 fail closed。
+ * - F6 的 SpeechMessage.Liff.AspNetCore 精確歸入既有 ASP.NET Core adapter 層，
+ *   向下使用 Hosting／Localization；基礎層反向、同層互參及共用參考產品仍拒絕，不新增公開型別例外。
  * - 檢查 NuGet 已選出的 Framework 相依，而不是只相信 csproj 宣告能提供 net462。
  * - 部署端 Plugin 與 Workflow 都受同一個 v4.6.2 沙箱契約約束。
  * - 以來源快照執行 R2 主機／Plugin 公開邊界、R3 組織字面值白名單及 R9 傳輸／Plugin 參考守門；
@@ -677,6 +679,8 @@ internal static class ArchitectureRules
     /// <summary>
     /// 以實際 DAG 而非示意圖的位置標記層級；共用核心內Localization為取字底層，其餘同層彼此不可參考。未知專案 fail closed，
     /// 加入新產品時必須明確分類並補正反例，不能因名稱相似自動取得高層權限。
+    /// F6 的 net10 LIFF 沿用 ASP.NET Core adapter 層，僅由精確名稱取得分類，
+    /// 向下依賴 Hosting／Localization，不授予產品身分、主機身分或公開型別豁免。
     /// </summary>
     private static int Layer(string name) => name switch
     {
@@ -693,7 +697,8 @@ internal static class ArchitectureRules
         "SpeechMessage.Hosting" => 32,
         "LineMessagingProcessor" or "SpeechMessage.Payments.Workflows" => 35,
         "ToolUtility" or "LineMessagingProcessor.Workflows" or "LineMessagingProcessor.RichMenus" => 40,
-        "LineMessagingProcessor.AspNetCore" or "SpeechMessage.Payments.AspNetCore" => 50,
+        "LineMessagingProcessor.AspNetCore" or "SpeechMessage.Payments.AspNetCore"
+            or "SpeechMessage.Liff.AspNetCore" => 50,
         "SpeechMessageProducts.GoodShepherd.Hosting" => 60,
         "SpeechMessageProducts.ChurchReport" or "SpeechMessageProducts.LineWebhook"
             or "SpeechMessageProducts.GoodShepherd2.Web" or "SpeechMessage.Dynamics.Plugins"
