@@ -2,6 +2,7 @@
 
 | 時間（Asia/Taipei） | 工作包 | 項目 | 本階段處置 |
 |---|---|---|---|
+| 2026-11-26 16:37 Asia/Taipei (UTC+08:00) | F4 | 第三輪非阻擋觀察：Cancel可明確解除Uncertain一次性工作後重排；同鍵長工作使Schedule／Cancel在5秒鎖逾時失敗 | 審查未找到外洩或重複觸發路徑，不列Critical／High；handler業務副作用仍須權威原子冪等。後續操作介面須明示取消不是已完成對帳，不在本包擴張產品UI |
 | 2026-11-26 09:56 Asia/Taipei (UTC+08:00) | F10 | RegularQuery 的 V2.6 期數／重試子單語意與 ExpBillingDays 參數名稱共用常數建議 | 本機 V2.4 §8.9 支持目前保守完整性檢查，V2.6 與實機仍待補；不把舊版核對寫成新版驗證。參數名稱耦合已有 Gateway 行為測試，非 Critical／High 的常數整理本輪不擴張實作 |
 | 2026-11-26 04:16 Asia/Taipei (UTC+08:00) | F10 | Payments core 的 `Logs_NoCardNumberOrBindToken` 宿主 `Exception.log` sink capture | 核心沒有 logger 或檔案 writer；本包只驗證 diagnostics sanitizer 邊界。由後續 host／告警整合補做實際 sink capture，不在 F10 建立第二個日誌 owner |
 | 2026-11-26 04:16 Asia/Taipei (UTC+08:00) | F10 | callback 最終狀態的跨請求資料庫冪等 | provider parser 保持無狀態，只交付查詢線索；由產品持久層以銀行交易穩定鍵及原子 create-or-update 實作，F10 不虛構完成 |
