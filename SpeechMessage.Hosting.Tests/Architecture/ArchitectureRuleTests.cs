@@ -19,6 +19,9 @@
  * - F6 的 LIFF 共用 adapter 以精確名稱沿用 ASP.NET Core 層級；合成圖保護 Hosting／
  *   Localization 向下依賴、基礎層反向拒絕、同層互參拒絕及共用不得參考產品。
  *   相似名稱仍未知；產品主機可組合 LIFF，但 LIFF 型別不能因此取得主機公開表面豁免。
+ * - F1 必要補正以合成圖登錄 F4 的 Scheduling 共用引擎，保護向下參考 Hosting／
+ *   Localization、同層與反向拒絕、SharedToProduct、目標相容及精確名稱邊界。
+ *   測試專案仍依 IsTest 判定；來源案例保留主機公開限制，不執行排程或依賴線 B 工作樹。
  * - Extensions、ASP.NET 與 Dataverse 直接套件不得進入共用雙目標；以各套件正反例保護辨識。
  * - P6-06 以合成圖注入九個舊 ASP.NET Core 套件，保護直接及還原相依的拒絕，
  *   並以真實 ChurchReport 的 Debug／Release 評估確認不再使用這些套件；不啟動網站或外部連線。
@@ -551,6 +554,256 @@ public sealed class ArchitectureRuleTests
         Assert.Equal("R2HostPublicType", violation.Rule);
         Assert.Equal(host, violation.Project);
         Assert.Equal("SpeechMessage.Liff.AspNetCore." + name, violation.Dependency);
+    }
+
+    /// <summary>
+    /// 精確 Scheduling 節點可向下使用 net10 Hosting 與提供 net10 的雙目標 Localization；
+    /// 若漏登引擎或錯放在基礎層，空違規斷言就會失敗。圖只含當次純值，
+    /// 不讀線 B 檔案、不執行排程、不建立連線或跨案例資源。
+    /// </summary>
+    [Fact]
+    public void SchedulingSharedLayer_HostingAndLocalizationDependencies_AreAllowed()
+    {
+        Assert.Empty(ArchitectureRules.Validate(Graph(
+            Product("SpeechMessage.Scheduling", "net10.0", "net10.0",
+                "SpeechMessage.Hosting", "SpeechMessage.Localization"),
+            Product("SpeechMessage.Hosting", "net10.0", "net10.0"),
+            Product("SpeechMessage.Localization", "net10.0", "net462;net10.0"))));
+    }
+
+    /// <summary>
+    /// 基礎層反向引用 Scheduling 必須精確回報 LayerDirection；雙目標 Localization
+    /// 在任一目標另回報 DualTargetReference。唯一或兩筆診斷排除未知分類冒充拒絕，
+    /// 純值圖僅由案例同步持有，沒有主機、檔案、秘密或待釋放資源。
+    /// </summary>
+    /// <param name="foundation">禁止向上依賴排程引擎的基礎專案。</param>
+    /// <param name="target">本次評估的確切目標。</param>
+    /// <param name="targets">完整目標集合，不能以 net10 評估掩蓋雙目標相容。</param>
+    [Theory]
+    [InlineData("SpeechMessage.Hosting", "net10.0", "net10.0")]
+    [InlineData("SpeechMessage.Localization", "net10.0", "net462;net10.0")]
+    [InlineData("SpeechMessage.Localization", "net462", "net462;net10.0")]
+    public void SchedulingSharedLayer_FoundationReverseReferences_AreRejected(
+        string foundation, string target, string targets)
+    {
+        var violations = ArchitectureRules.Validate(Graph(
+            Product(foundation, target, targets, "SpeechMessage.Scheduling"),
+            Product("SpeechMessage.Scheduling", "net10.0", "net10.0")));
+
+        Assert.Equal(foundation == "SpeechMessage.Localization" ? 2 : 1, violations.Count);
+        Assert.All(violations, item =>
+        {
+            Assert.Equal(foundation, item.Project);
+            Assert.Equal(target, item.Target);
+            Assert.Equal("SpeechMessage.Scheduling", item.Dependency);
+        });
+        Assert.Contains(violations, item => item.Rule == "LayerDirection");
+        Assert.Equal(foundation == "SpeechMessage.Localization",
+            violations.Any(item => item.Rule == "DualTargetReference"));
+    }
+
+    /// <summary>
+    /// Scheduling 沿用既有第 50 層；逐一向兩側注入同層 adapter 參考，必須只有
+    /// LayerDirection，防止另開層級或錯置層序放行同儕。節點全為案例區域值，
+    /// 不執行 ASP.NET Core、排程、I/O 或背景工作。
+    /// </summary>
+    /// <param name="peer">既有第 50 層的精確同儕專案。</param>
+    /// <param name="reverse">是否由同儕引用 Scheduling。</param>
+    [Theory]
+    [InlineData("LineMessagingProcessor.AspNetCore", false)]
+    [InlineData("LineMessagingProcessor.AspNetCore", true)]
+    [InlineData("SpeechMessage.Payments.AspNetCore", false)]
+    [InlineData("SpeechMessage.Payments.AspNetCore", true)]
+    [InlineData("SpeechMessage.Liff.AspNetCore", false)]
+    [InlineData("SpeechMessage.Liff.AspNetCore", true)]
+    public void SchedulingSharedLayer_PeerReferences_AreRejected(string peer, bool reverse)
+    {
+        var source = reverse ? peer : "SpeechMessage.Scheduling";
+        var dependency = reverse ? "SpeechMessage.Scheduling" : peer;
+        var violation = Assert.Single(ArchitectureRules.Validate(Graph(
+            Product(source, "net10.0", "net10.0", dependency),
+            Product(dependency, "net10.0", "net10.0"))));
+
+        Assert.Equal("LayerDirection", violation.Rule);
+        Assert.Equal(source, violation.Project);
+        Assert.Equal(dependency, violation.Dependency);
+    }
+
+    /// <summary>
+    /// 已分類的 Scheduling 仍為共用來源；產品核心即使位於較低層也須由
+    /// SharedToProduct 拒絕，產品 Hosting／主機另觸發層序診斷。斷言完整診斷數
+    /// 及參考身分，避免錯誤分類掩蓋產品邊界；案例不載入產品或保留外部資源。
+    /// </summary>
+    /// <param name="product">刻意注入的產品依賴。</param>
+    /// <param name="targets">產品原有單目標或雙目標形狀。</param>
+    /// <param name="upward">該產品是否同時位於 Scheduling 之上。</param>
+    [Theory]
+    [InlineData("SpeechMessageProducts.GoodShepherd.Core", "net462;net10.0", false)]
+    [InlineData("SpeechMessageProducts.GoodShepherd.Hosting", "net10.0", true)]
+    [InlineData("SpeechMessageProducts.ChurchReport", "net10.0", true)]
+    [InlineData("SpeechMessageProducts.LineWebhook", "net10.0", true)]
+    [InlineData("SpeechMessageProducts.GoodShepherd2.Web", "net10.0", true)]
+    public void SchedulingSharedLayer_ReferenceToProduct_IsRejected(
+        string product, string targets, bool upward)
+    {
+        var violations = ArchitectureRules.Validate(Graph(
+            Product("SpeechMessage.Scheduling", "net10.0", "net10.0", product),
+            Product(product, "net10.0", targets)));
+
+        Assert.Equal(upward ? 2 : 1, violations.Count);
+        Assert.All(violations, item =>
+        {
+            Assert.Equal("SpeechMessage.Scheduling", item.Project);
+            Assert.Equal(product, item.Dependency);
+        });
+        Assert.Contains(violations, item => item.Rule == "SharedToProduct");
+        Assert.Equal(upward, violations.Any(item => item.Rule == "LayerDirection"));
+    }
+
+    /// <summary>
+    /// 產品 Hosting 與三個主機可向下組合 Scheduling；空違規證明共用引擎沒有被
+    /// 誤分成主機、工具或高於產品 Hosting 的層級。所有輸入為本案例純值，
+    /// 不啟動產品、不存取實際排程專案或建立需清理的外部 owner。
+    /// </summary>
+    /// <param name="consumer">既有產品組合根的完整專案名稱。</param>
+    [Theory]
+    [InlineData("SpeechMessageProducts.GoodShepherd.Hosting")]
+    [InlineData("SpeechMessageProducts.ChurchReport")]
+    [InlineData("SpeechMessageProducts.LineWebhook")]
+    [InlineData("SpeechMessageProducts.GoodShepherd2.Web")]
+    public void SchedulingSharedLayer_ProductConsumers_AreAllowed(string consumer)
+    {
+        Assert.Empty(ArchitectureRules.Validate(Graph(
+            Product(consumer, "net10.0", "net10.0", "SpeechMessage.Scheduling"),
+            Product("SpeechMessage.Scheduling", "net10.0", "net10.0"))));
+    }
+
+    /// <summary>
+    /// 相似前後綴、大小寫及未標記測試的名稱仍未知；刻意參考產品核心，必須同時得到
+    /// UnknownProject 與 SharedToProduct。這能攔截以前綴或 Tests 後綴豁免的退化，
+    /// 全部節點為案例區域值，不讀秘密、工作樹外來源或建立背景資源。
+    /// </summary>
+    /// <param name="name">沒有正式登錄、不得冒充共用排程引擎的名稱。</param>
+    [Theory]
+    [InlineData("SpeechMessage.Scheduling.Other")]
+    [InlineData("SpeechMessage.SchedulingPretender")]
+    [InlineData("SpeechMessage.scheduling")]
+    [InlineData("Pretend.SpeechMessage.Scheduling")]
+    [InlineData("SpeechMessage.Scheduling.Tests")]
+    [InlineData("Unclassified.Scheduler")]
+    public void SchedulingSharedLayer_UnknownOrSimilarNames_AreRejected(string name)
+    {
+        const string product = "SpeechMessageProducts.GoodShepherd.Core";
+        var violations = ArchitectureRules.Validate(Graph(
+            Product(name, "net10.0", "net10.0", product),
+            Product(product, "net10.0", "net462;net10.0")));
+
+        Assert.Equal(2, violations.Count);
+        Assert.All(violations, item => Assert.Equal(name, item.Project));
+        Assert.Contains(violations, item => item.Rule == "UnknownProject" && item.Dependency == name);
+        Assert.Contains(violations, item => item.Rule == "SharedToProduct" && item.Dependency == product);
+    }
+
+    /// <summary>
+    /// 真正標記 IsTest 的 Scheduling 測試與任意名稱測試仍沿用既有測試分類；
+    /// 同一張圖取消標記即回到未知與產品反向拒絕。輸入只持有短生命週期純值，
+    /// 不建立測試主機、連線或需排空的工作。
+    /// </summary>
+    /// <param name="name">證明分類依明確測試標記而非專案名前綴或後綴的名稱。</param>
+    [Theory]
+    [InlineData("SpeechMessage.Scheduling.Tests")]
+    [InlineData("Unclassified.SchedulerProbe")]
+    public void SchedulingSharedLayer_TestClassification_RequiresExplicitTestMarker(string name)
+    {
+        var product = Product("SpeechMessageProducts.GoodShepherd.Core", "net10.0", "net462;net10.0");
+        var test = Product(name, "net10.0", "net10.0", "SpeechMessage.Scheduling", product.Name) with
+        {
+            IsTest = true
+        };
+        var scheduler = Product("SpeechMessage.Scheduling", "net10.0", "net10.0");
+
+        Assert.Empty(ArchitectureRules.Validate(Graph(test, scheduler, product)));
+        var violations = ArchitectureRules.Validate(Graph(test with { IsTest = false }, scheduler, product));
+        Assert.Equal(2, violations.Count);
+        Assert.Contains(violations, item => item.Rule == "UnknownProject" && item.Project == name);
+        Assert.Contains(violations, item => item.Rule == "SharedToProduct" &&
+            item.Project == name && item.Dependency == product.Name);
+    }
+
+    /// <summary>
+    /// 即使 Scheduling 已正確分類，雙目標核心仍不能引用只有 net10 的引擎；
+    /// 兩個評估目標都必須精確回報 DualTargetReference 與 LayerDirection。
+    /// 圖只驗證框架契約，不讀 NuGet 產物、不還原 SDK 或持有外部資源。
+    /// </summary>
+    /// <param name="target">同一雙目標核心的實際評估目標。</param>
+    [Theory]
+    [InlineData("net462")]
+    [InlineData("net10.0")]
+    public void SchedulingSharedLayer_DualTargetConsumers_AreRejected(string target)
+    {
+        var violations = ArchitectureRules.Validate(Graph(
+            Product("ToolUtility.Core", target, "net462;net10.0", "SpeechMessage.Scheduling"),
+            Product("SpeechMessage.Scheduling", "net10.0", "net10.0")));
+
+        Assert.Equal(2, violations.Count);
+        Assert.All(violations, item =>
+        {
+            Assert.Equal("ToolUtility.Core", item.Project);
+            Assert.Equal(target, item.Target);
+            Assert.Equal("SpeechMessage.Scheduling", item.Dependency);
+        });
+        Assert.Contains(violations, item => item.Rule == "DualTargetReference");
+        Assert.Contains(violations, item => item.Rule == "LayerDirection");
+    }
+
+    /// <summary>
+    /// 新增層級不授予未核准 Framework 例外；注入 net48 或 net8 必須唯一回報
+    /// ProductTarget，不能以 UnknownProject 失敗冒充目標守門。純節點不編譯
+    /// 注入的框架，也沒有檔案、連線或跨案例狀態。
+    /// </summary>
+    /// <param name="target">不在既有產品目標白名單內的框架。</param>
+    [Theory]
+    [InlineData("net48")]
+    [InlineData("net8.0")]
+    public void SchedulingSharedLayer_UnapprovedTargets_AreRejected(string target)
+    {
+        var violation = Assert.Single(ArchitectureRules.Validate(Graph(
+            Product("SpeechMessage.Scheduling", target, target))));
+
+        Assert.Equal("ProductTarget", violation.Rule);
+        Assert.Equal("SpeechMessage.Scheduling", violation.Project);
+        Assert.Equal(target, violation.Target);
+        Assert.Equal(target, violation.Dependency);
+    }
+
+    /// <summary>
+    /// 引擎可宣告公開共用契約，但主機內同名公開服務仍必須由 R2 拒絕；
+    /// 加上排程參考不能取得新的主機公開表面豁免。來源只供當次 Roslyn 掃描，
+    /// 不執行處理器；metadata 由規則引擎於同步掃描返回前確定釋放。
+    /// </summary>
+    /// <param name="host">必須保留公開外殼限制的精確主機。</param>
+    [Theory]
+    [InlineData("SpeechMessageProducts.ChurchReport")]
+    [InlineData("SpeechMessageProducts.LineWebhook")]
+    [InlineData("SpeechMessageProducts.GoodShepherd2.Web")]
+    public void SchedulingSharedLayer_PublicContracts_DoNotExemptHostTypes(string host)
+    {
+        var scheduler = Product("SpeechMessage.Scheduling", "net10.0", "net10.0") with
+        {
+            Sources = new[] { Source("Contract.cs",
+                "namespace SpeechMessage.Scheduling; public interface IJobScheduler {}") }
+        };
+        Assert.Empty(ArchitectureRules.ValidateSource(Graph(scheduler)));
+
+        var project = Product(host, "net10.0", "net10.0", scheduler.Name) with
+        {
+            Sources = new[] { Source("Scheduler.cs",
+                "namespace SpeechMessage.Scheduling; public sealed class HangfireJobScheduler {}") }
+        };
+        var violation = Assert.Single(ArchitectureRules.ValidateSource(Graph(project, scheduler)));
+        Assert.Equal("R2HostPublicType", violation.Rule);
+        Assert.Equal(host, violation.Project);
+        Assert.Equal("SpeechMessage.Scheduling.HangfireJobScheduler", violation.Dependency);
     }
 
     /// <summary>低層反向依賴、工具被產品引用與未分類專案都不可靜默放行。</summary>

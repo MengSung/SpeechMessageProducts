@@ -14,6 +14,9 @@
  *   產品層與部署工具不被誤判為共用來源，未知專案仍 fail closed。
  * - F6 的 SpeechMessage.Liff.AspNetCore 精確歸入既有 ASP.NET Core adapter 層，
  *   向下使用 Hosting／Localization；基礎層反向、同層互參及共用參考產品仍拒絕，不新增公開型別例外。
+ * - F1 必要補正將精確 SpeechMessage.Scheduling 登錄於既有第 50 層，供 F4 共用引擎
+ *   向下使用 Hosting／Localization、由產品組合根消費；不放寬同層、產品或公開表面守門，
+ *   測試仍依 IsTest 分類，相似名稱不取得排程層級。本檔不實作或啟動排程產品。
  * - 檢查 NuGet 已選出的 Framework 相依，而不是只相信 csproj 宣告能提供 net462。
  * - 部署端 Plugin 與 Workflow 都受同一個 v4.6.2 沙箱契約約束。
  * - 以來源快照執行 R2 主機／Plugin 公開邊界、R3 組織字面值白名單及 R9 傳輸／Plugin 參考守門；
@@ -681,6 +684,8 @@ internal static class ArchitectureRules
     /// 加入新產品時必須明確分類並補正反例，不能因名稱相似自動取得高層權限。
     /// F6 的 net10 LIFF 沿用 ASP.NET Core adapter 層，僅由精確名稱取得分類，
     /// 向下依賴 Hosting／Localization，不授予產品身分、主機身分或公開型別豁免。
+    /// F1 對 F4 Scheduling 的必要補正沿用同一第 50 層，位於 Hosting／Localization
+    /// 之上、產品 Hosting／主機之下；同儕互參仍拒絕，不以名稱前綴或測試後綴授權。
     /// </summary>
     private static int Layer(string name) => name switch
     {
@@ -698,7 +703,7 @@ internal static class ArchitectureRules
         "LineMessagingProcessor" or "SpeechMessage.Payments.Workflows" => 35,
         "ToolUtility" or "LineMessagingProcessor.Workflows" or "LineMessagingProcessor.RichMenus" => 40,
         "LineMessagingProcessor.AspNetCore" or "SpeechMessage.Payments.AspNetCore"
-            or "SpeechMessage.Liff.AspNetCore" => 50,
+            or "SpeechMessage.Liff.AspNetCore" or "SpeechMessage.Scheduling" => 50,
         "SpeechMessageProducts.GoodShepherd.Hosting" => 60,
         "SpeechMessageProducts.ChurchReport" or "SpeechMessageProducts.LineWebhook"
             or "SpeechMessageProducts.GoodShepherd2.Web" or "SpeechMessage.Dynamics.Plugins"
