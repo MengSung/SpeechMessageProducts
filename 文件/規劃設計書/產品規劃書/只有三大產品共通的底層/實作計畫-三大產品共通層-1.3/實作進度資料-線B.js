@@ -7,18 +7,19 @@
 window.PROGRESS_LANES = window.PROGRESS_LANES || {};
 window.PROGRESS_LANES.B = {
   lane: 'B',
-  lastUpdated: '2026-11-26T16:37:53+08:00',
+  lastUpdated: '2026-11-26T17:00:52+08:00',
   packages: {
     P0: { status: '完成（自動測試通過）', started: '2026-11-25 22:12', finished: '2026-11-26 01:22', commit: 'd1f887adb50bdd4e8d32340d00feed97830c3bf6', pending: '實機待補：平台SQL憑證鏈及最小權限、F2公開live／ready。DNS與P0-3管理員Apply已通過，監控重啟及CRM302證據核實；不需重跑Apply。瀏覽器目視待補。', report: 'wp-reports/3P-P0-前置.md' },
     F10: { status: '完成（自動測試通過）', started: '2026-11-26 00:23', finished: '2026-11-26 10:02', commit: '8072b764c5bca3b0853177fbe16c0a0ac30311ef', pending: '實機待補：JesusTest 必要設定及測試卡文件已存在，五項沙箱及隔日到期查詢尚未實跑；V2.6 完整規格待核對。宿主 Exception.log sink capture 與產品持久層最終原子冪等待後續整合。離線 parser／合成 handler 不代表實機。', report: 'wp-reports/3P-F10-永豐補強.md' },
     F2: { status: '完成（自動測試通過）', started: '2026-11-26 04:16', finished: '2026-11-26 13:04', commit: '9f86ad16dccec7568910a032aad402b0ea2d2c95', pending: '實機待補：兩次部署失敗後不作第三次Apply；停止候選與環境回復已核對，修正版未實機驗證。公開live／ready、T01 webhook/test與平台SQL待補；T01／T02／LIFF已交接。完整一般測試7741/7741、主機83/83，ClaudeOnly複審無Critical／High；固定總覽目視待補。', report: 'wp-reports/3P-F2-主機骨架.md' },
-    F6: { status: '完成（自動測試通過）', started: '2026-11-26 13:04', finished: '2026-11-26 14:11', commit: '44f6df89380e8b81d9e681c557dab09f629b4282', pending: '實機待補：F2公開站台、嚴格TLS平台SQL及FS／F3資料；LIFF app已API建立讀回，公開whoami200未通過，手機M1。全方案7905/7905、ClaudeOnly無Critical／High；13:55瀏覽器總覽無紅色警告。', report: 'wp-reports/3P-F6-LIFF身分.md' },
+    F6: { status: '完成（自動測試通過）', started: '2026-11-26 13:04', finished: '2026-11-26 17:00', commit: '97e93413bd398f1f63998d17784a7c2a465f3ed8', pending: '原F6全方案7905/7905及LIFF app API讀回證據保留；發現平台new_istenant為choice而原resolver/fixture用bool。必要補正先RED 5/24後產品175/175、最新全方案8049/8049；ClaudeOnly無Critical／High。仍實機待補：F2公開站台、嚴格TLS平台SQL、FS／F3資料、外部whoami及M1手機。', report: 'wp-reports/3P-F6-LIFF身分.md' },
     F4: { status: '完成（自動測試通過）', started: '2026-11-26 14:11', finished: '2026-11-26 16:37', commit: 'cb36af9b', pending: '完整8026/8026、核心37/37、產品152/152；第三輪ClaudeOnly無Critical／High，前兩輪High均先紅後綠修正。實機待補：F2公開站台及嚴格TLS平台SQL；LocalDB不等於實機。使用者Esc取消後未恢復UI，新版目視待補。合併後優先獨立F6平台旗標必要補正，F8等待FS。', report: 'wp-reports/3P-F4-通用排程器.md' },
     F8: { status: '未開始', started: '', finished: '', commit: '', pending: '', report: '' },
     F12: { status: '未開始', started: '', finished: '', commit: '', pending: '', report: '' },
     F11: { status: '未開始', started: '', finished: '', commit: '', pending: '', report: '' },
   },
   log: [
+    '2026-11-26 17:00 Asia/Taipei (UTC+08:00)｜F6必要choice補正提交97e93413；平台JSON真choice先RED 5/24，修後產品175/175、完整全方案8049/8049（26組件），建置65警告／0錯誤、文件1991/0、編碼3/0。ClaudeOnly無Critical／High；測試為離線平台JSON與合成SDK，不是D365實機。F4已推送2e9d5064。新版進度頁未作瀏覽器目視；F8等FS合併後再開始。',
     '2026-11-26 16:37 Asia/Taipei (UTC+08:00)｜F4第三輪ClaudeOnly無Critical／High；兩輪High已修，metadata六案RED→產品152/152及核心重試告警2/2。同步347fa263後最新全方案8026/8026、Release65警告／0錯誤、文件1991/0、編碼37/0。程式87834b04、週期dcd5e75d、旗標ae9eb0ac、metadata cb36af9b。lane-B八行CRLF及更新器八欄解析確認；UI因Esc維持停止，新版瀏覽器目視仍待補。F4按鎖流程合併後先獨立F6旗標補正，再等FS開始F8。',
     '2026-11-26 15:16 Asia/Taipei (UTC+08:00)｜F4程式3d915fe9與週期修正7cbf6392已提交：九指定案例先紅後綠，核心37/37、產品144/144，Release建置65警告／0錯誤。完整一般7974通過／2 UnknownProject，等待線A精確分類，不合併；ClaudeOnly首輪1 High已用四例重現並修正，仍待完整守門及複審。lane-B讀回八行／八CRLF／UTF-8無BOM，即時更新器已解析各欄。F8僅整理測試草稿，未開正式實作。',
     '2026-11-26 14:11 Asia/Taipei (UTC+08:00)｜F6同步474669dd後全方案7905/7905、Release建置65警告／0錯誤、文件1967/0、Changed編碼33/0，單模型（使用者指定ClaudeOnly）無Critical／High；程式SHA：44f6df89380e8b81d9e681c557dab09f629b4282。共用113、主機106、JS91、LocalDB12通過；LIFF app已建立讀回，公開頁面／SQL／手機仍待補。lane-B固定八行CRLF並完成更新器解析；13:55瀏覽器固定總覽無紅色警告。F6合併後續F4。',

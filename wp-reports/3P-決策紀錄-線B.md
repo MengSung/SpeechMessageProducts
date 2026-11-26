@@ -2,6 +2,7 @@
 
 | 時間（Asia/Taipei） | 工作包 | 遇到的選擇 | 選了什麼 | 依據 | 怎麼回復 |
 |---|---|---|---|---|---|
+| 2026-11-26 17:00 Asia/Taipei (UTC+08:00) | F6 | 已合併F6以bool消費平台choice欄位，修復屬F6原契約必要補正，不改線A schema | 直接從平台JSON建choice測試及query斷言；bool原程式RED5/24，修後OptionSetValue(100000001)且嚴格核alias owner／field。產品175/175、全方案8049/8049、ClaudeOnly0 Critical/High，提交97e93413 | 01 F6、00平台租戶定義、02§4／§10、實際平台JSON與RED/GREEN | 三個F6專屬程式檔修正可單獨revert；不改FS或F3資料，不冒稱D365實機
 | 2026-11-26 16:37 Asia/Taipei (UTC+08:00) | F4 | 第三輪審查與最新守門均已取得；畫面操作曾被使用者Esc取消 | 只採ClaudeOnly可用輸出0 Critical／0 High，並明示未逐檔讀測試；最新完整8026/8026及其餘守門通過後按鎖合併推送。新版進度僅離線檢查，UI不自行恢復。F4後先獨立F6旗標必要補正，不修改FS | 02§3、§4、§5.2及§10；使用者取消優先；測試與審查證據分開 | 未操作外部環境；F4可按專屬提交追溯撤回，不能將已重現的High版本當可放行版本 |
 | 2026-11-26 16:11 Asia/Taipei (UTC+08:00) | F4 | 第二輪ClaudeOnly發現metadata缺損被當租戶拒絕並永久Skipped；舊CCG修改仍須保留 | 六種缺損先重現6 RED（未知當前狀態仍正常拒絕），改固定安全InvalidOperationException，fault→release後進既有Retryable與最終共用告警。產品152/152、核心失敗重試及告警2/2通過，修正cb36af9b；重跑完整閘門及第三輪複審，未先放行。前輪同步347fa263時4491原CCG檔雜湊及刪除狀態不變，F4重寫為87834b04／dcd5e75d／ae9eb0ac | 00§2真正故障須告警；02§4、§5.2及§10；產品RED／GREEN與既有真SQL失敗路徑 | 保留分支codex/lane-b-f4-preserve-20261126-1542指向6bd0bf7d；單獨撤回cb36af9b會恢復已重現缺口，不是可放行版本；未變更整合工作樹或外部環境 |
 | 2026-11-26 15:37 Asia/Taipei (UTC+08:00) | F4 | 平台new_istenant為choice，但產品排程錯用bool且合成fixture亦用bool，會拒絕合法租戶 | 直接從本工作樹00-core.schema.json建立SDK選項消費測試，先重現合法「是」被拒及bool true被收兩失敗，再只接受OptionSetValue(100000001)。否、未知、裸整數、字串及bool皆拒絕；產品151/151通過。另發現已合併F6的LIFF resolver及查詢同樣用bool，列為F4放行後優先F6必要補正，未宣稱已修或實機可用 | 00§2租戶權威與02§10；平台清單實際choice契約；RED／GREEN證據 | 本包未部署，可獨立撤回F4旗標修正；不能修改線A平台清單或放寬成同時接受錯誤bool |
