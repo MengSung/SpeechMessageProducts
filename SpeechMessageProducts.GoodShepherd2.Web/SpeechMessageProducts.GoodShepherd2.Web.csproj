@@ -1,7 +1,7 @@
 <!--
 檔案整體說明
 目的與定位：好牧人 2.0 的 net10 ASP.NET Core 組合根專案，依 F2 將 GoodShepherd2 與既有 GoodShepherd 的連線產品鍵分離；不參考 1.5 產品 Hosting 或支付產品流程。
-主要功能與流程：以中央套件及共用 Hosting、ToolUtility、Webhook 管線建立主機；啟動先驗環境與測試組織，提供健康、F3前空Webhook及F6的LIFF驗證／租戶端點。LIFF共用程式庫不反向參考本產品。新建專案當下加入方案，保持 Debug／Release 完整映射。
+主要功能與流程：以中央套件及共用 Hosting、ToolUtility、Webhook 管線建立主機；啟動先驗環境與測試組織，提供健康、F3前空Webhook及F6的LIFF驗證／租戶端點。F4引用中立Scheduling核心，產品介接只負責固定組織驗證與每次執行的租戶重查，SQL及工作者由核心唯一擁有。共用程式庫不反向參考本產品。新建專案當下加入方案，保持 Debug／Release 完整映射。
 使用邊界與維護：組態只存無秘密部署預設，秘密由本主機 User Secrets 或部署環境注入；主機容器擁有服務與組態並在停止時排空及釋放。離線建置與測試不等於 VM、SQL、LINE 實機驗收，嚴格分析與完整繁中文件皆為提交守門。
 -->
 <Project Sdk="Microsoft.NET.Sdk.Web">
@@ -17,6 +17,7 @@
     <InternalsVisibleTo Include="SpeechMessageProducts.GoodShepherd2.Web.Tests" />
     <ProjectReference Include="..\SpeechMessage.Hosting\SpeechMessage.Hosting.csproj" />
     <ProjectReference Include="..\SpeechMessage.Liff.AspNetCore\SpeechMessage.Liff.AspNetCore.csproj" />
+    <ProjectReference Include="..\SpeechMessage.Scheduling\SpeechMessage.Scheduling.csproj" />
     <ProjectReference Include="..\ToolUtility\ToolUtility.csproj" />
     <ProjectReference Include="..\LineMessagingProcessor.AspNetCore\LineMessagingProcessor.AspNetCore.csproj" />
   </ItemGroup>

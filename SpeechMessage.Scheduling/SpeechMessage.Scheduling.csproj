@@ -1,0 +1,27 @@
+<!--
+檔案整體說明
+目的與定位：F4三大產品共用的net10排程引擎專案，以Hangfire及平台SQL保存工作，不反向參考任何產品或Dynamics SDK。
+主要功能與流程：中央套件提供Hangfire三個核定組件與SqlClient，向下借用Hosting的安全例外入口及Localization時鐘；產品注入處理器與執行前範圍重驗。
+使用邊界與維護：此檔只宣告建置關係，不保存憑證或啟動程序。SQL儲存、四個worker與停止排空由單一Host容器擁有；測試朋友組件只供真LocalDB及故障驗證。新增當下登錄方案，文件、嚴格分析與UTF8無BOM及CRLF均須通過。
+-->
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <SpeechMessageStrictCode>true</SpeechMessageStrictCode>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+    <PackageReference Include="Hangfire.Core" />
+    <PackageReference Include="Hangfire.SqlServer" />
+    <PackageReference Include="Hangfire.AspNetCore" />
+    <PackageReference Include="Microsoft.Data.SqlClient" />
+    <PackageReference Include="System.Security.Cryptography.Pkcs" />
+    <InternalsVisibleTo Include="SpeechMessage.Scheduling.Tests" />
+    <ProjectReference Include="..\SpeechMessage.Hosting\SpeechMessage.Hosting.csproj" />
+    <ProjectReference Include="..\SpeechMessage.Localization\SpeechMessage.Localization.csproj" />
+  </ItemGroup>
+</Project>

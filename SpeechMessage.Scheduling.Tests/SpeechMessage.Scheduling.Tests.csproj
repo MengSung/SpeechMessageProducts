@@ -1,0 +1,26 @@
+<!--
+檔案整體說明
+目的與定位：F4共用排程器的net10契約測試，使用隨機合成LocalDB核對真正持久化、工作覆寫、週期時間及每Channel速率。
+主要功能與流程：中央xUnit與實際Hangfire SQL組件執行一般測試，不把本包LocalDB案例藏在預設排除類別；合成時鐘及租戶guard注入故障、取消與隔離情境。
+使用邊界與維護：不讀User Secrets或連部署SQL；fixture唯一擁有自己的庫、主機及處理器，停止並排空後清理連線池、資料庫及檔案。離線結果不等於遠端部署驗證；新增立即登錄方案，嚴格文件與位元組守門保護未來修改。
+-->
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <SpeechMessageStrictCode>true</SpeechMessageStrictCode>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <IsTestProject>true</IsTestProject>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" />
+    <PackageReference Include="xunit" />
+    <PackageReference Include="xunit.runner.visualstudio" PrivateAssets="all" />
+    <PackageReference Include="Moq" />
+    <PackageReference Include="coverlet.collector" PrivateAssets="all" />
+    <ProjectReference Include="..\SpeechMessage.Scheduling\SpeechMessage.Scheduling.csproj" />
+  </ItemGroup>
+</Project>
