@@ -1,7 +1,7 @@
 /*
 檔案整體說明
 目的與定位：Hangfire固定可啟用的共用dispatcher，將持久化純值交給產品scoped validator及handler，不從job資料反射任意型別。
-主要功能與流程：每次取Host operation lease、工作SQL鎖及完整ledger，先驗generation與原始scope。完成的一次工作不重跑；上次Running且結果不明則明確失敗。每次另建async DI scope重新查租戶狀態，成功且scope完整釋放後才發布Completed；正常速率延期交狀態filter重排。
+主要功能與流程：每次取Host operation lease、工作SQL鎖及完整ledger，先驗generation與原始scope。完成的一次工作不重跑；同一次occurrence上次Running且結果不明則明確失敗，後續全新occurrence獨立執行，不被歷史故障永久封鎖。每次另建async DI scope重新查租戶狀態，成功且scope完整釋放後才發布Completed；正常速率延期交狀態filter重排。
 使用邊界與維護：工作鎖只限相同鍵，不把全產品序列化。payload與handler只活至單次操作；scope先DisposeAsync，然後SQL鎖／連線與Host lease釋放。停止取消保留明確Failed且不重送；真正失敗保留原Exception供安全告警，不將其訊息或InnerException交Hangfire持久化。
 */
 using Hangfire.Server;
@@ -60,7 +60,11 @@ public sealed class ScheduledJobDispatcher
                 if (occurrenceLedger.GetValueOrDefault("state") is "Completed" or "Skipped") return;
             }
             occurrenceLedger ??= recurring ? new Dictionary<string, string>(StringComparer.Ordinal)
-                { ["generation"] = generation, ["job"] = occurrence, ["state"] = "Pending" } : null;
+                { ["generation"] = generation, ["job"] = occurrence,
+                    ["state"] = ledger.GetValueOrDefault("lastOccurrence") == occurrence ? priorState ?? "Pending" : "Pending" } : null;
+            // 週期主ledger只保存最後觀察，不能把某次不明結果變成整個工作鍵永久停擺。
+            // 每次occurrence各自保留終態；舊次Running／Failed仍拒絕重送，全新次從Pending開始。
+            var executionState = recurring ? occurrenceLedger!.GetValueOrDefault("state") : priorState;
 
             // 完整主ledger與occurrence必須同一次SQL交易發布；這個local owner不逃離目前工作。
             void Publish(string state, TimeSpan? lifetime)
@@ -80,12 +84,10 @@ public sealed class ScheduledJobDispatcher
                     throw new SchedulingFailureException(normalCancellation ? persistence : primary, permanent: true);
                 }
             }
-            if (priorState == "Cancelled" ||
-                (priorState is "Completed" or "Skipped" &&
-                    (!recurring || ledger.GetValueOrDefault("lastOccurrence") == occurrence))) return;
-            if (priorState is "Running" or "Uncertain" or "Failed")
+            if (priorState == "Cancelled" || executionState is "Completed" or "Skipped") return;
+            if (executionState is "Running" or "Uncertain" or "Failed")
             {
-                Publish("Uncertain", TimeSpan.FromDays(30));
+                Publish("Uncertain", recurring ? null : TimeSpan.FromDays(30));
                 throw new SchedulingFailureException(new InvalidOperationException(
                     "The prior execution outcome is uncertain and requires reconciliation."), permanent: true);
             }

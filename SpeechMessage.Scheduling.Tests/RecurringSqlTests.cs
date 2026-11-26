@@ -94,6 +94,71 @@ public sealed class RecurringSqlTests
             "SELECT COUNT(DISTINCT [Key]) FROM scheduler_goodshepherd2.Hash WHERE [Key] LIKE 'occurrence:%' AND ExpireAt IS NOT NULL"));
     }
 
+    /// <summary>前一次以真SQL trigger造成完成發布失敗，或模擬中斷／取消的已存狀態；下一次必須獨立執行，舊occurrence重送仍拒絕，不能讓單次不明永久癱瘓週期。</summary>
+    /// <param name="prior">sql-fault走實際失敗路徑；其他值模擬程序退出時已持久化的狀態。</param>
+    [Theory]
+    [InlineData("sql-fault")]
+    [InlineData("Running")]
+    [InlineData("Uncertain")]
+    [InlineData("Failed")]
+    public async Task Recurring_FailedOrUnknownOccurrence_NextRunsButOldNeverReruns(string prior)
+    {
+        await using var database = await SchedulingDatabase.CreateAsync();
+        var clock = new SchedulingClock(new DateTimeOffset(2037, 2, 1, 0, 10, 0, TimeSpan.Zero));
+        var probe = new SchedulingProbe();
+        await using var host = await SchedulingTestHost.CreateAsync(database, probe, startServer: false, clock: clock);
+        await host.Scheduler.ScheduleRecurringAsync(host.Key(), "0 * * * *", "Asia/Taipei", host.Scope(), "\"recurring\"", default);
+        ReanchorOfficialRegistration(host);
+        if (prior == "sql-fault")
+            await database.ExecuteAsync("CREATE TRIGGER scheduler_goodshepherd2.F4_RecurringCompletionFail ON scheduler_goodshepherd2.Hash AFTER INSERT,UPDATE AS BEGIN IF EXISTS(SELECT 1 FROM inserted WHERE Field=N'state' AND Value=N'Completed') THROW 51096,'Synthetic recurring completion failure.',1; END");
+        string firstJob;
+        try
+        {
+            clock.Set(new DateTimeOffset(2037, 2, 1, 1, 0, 0, TimeSpan.Zero));
+            Tick(host);
+            firstJob = Assert.Single(await database.QueryAsync(
+                "SELECT CONVERT(nvarchar(32),Id) FROM scheduler_goodshepherd2.Job", reader => reader.GetString(0)));
+            host.StartManualWorkers();
+            await SchedulingDatabase.UntilAsync(async () => await database.ScalarAsync(
+                "SELECT COUNT(*) FROM scheduler_goodshepherd2.Job WHERE StateName IN ('Succeeded','Failed')") == 1,
+                "First recurring occurrence did not finish.");
+            Assert.Single(probe.Calls);
+            if (prior == "sql-fault")
+                Assert.Equal(1, await database.ScalarAsync("SELECT COUNT(*) FROM scheduler_goodshepherd2.Job WHERE StateName='Failed' AND ExpireAt IS NOT NULL"));
+            else
+                // 三種固定測試文字皆由InlineData提供；只改本案兩份state，模擬中斷時已提交的ledger。
+                await database.ExecuteAsync("UPDATE scheduler_goodshepherd2.Hash SET Value=N'" + prior + "' WHERE Field=N'state'");
+        }
+        finally
+        {
+            if (prior == "sql-fault")
+                await database.ExecuteAsync("DROP TRIGGER scheduler_goodshepherd2.F4_RecurringCompletionFail");
+        }
+        clock.Set(new DateTimeOffset(2037, 2, 1, 2, 0, 0, TimeSpan.Zero));
+        Tick(host);
+        await SchedulingDatabase.UntilAsync(async () => await database.ScalarAsync(
+            "SELECT COUNT(*) FROM scheduler_goodshepherd2.Job WHERE StateName IN ('Succeeded','Failed')") == 2,
+            "Second recurring occurrence did not finish.");
+        Assert.Equal(2, probe.Calls.Count);
+        var client = new BackgroundJobClient(host.Runtime.Storage, host.Runtime.FilterProvider);
+        Assert.True(client.ChangeState(firstJob, new EnqueuedState(), prior == "sql-fault" ? "Failed" : "Succeeded"));
+        await SchedulingDatabase.UntilAsync(async () =>
+            await database.ScalarAsync("SELECT COUNT(*) FROM scheduler_goodshepherd2.State WHERE Name='Processing'") == 3 &&
+            await database.ScalarAsync("SELECT COUNT(*) FROM scheduler_goodshepherd2.Job WHERE StateName IN ('Succeeded','Failed')") == 2,
+            "Old failed occurrence was not actually consumed.");
+        Assert.Equal(2, probe.Calls.Count);
+        // 舊次不明轉永久失敗後，第三個全新occurrence仍不能被主ledger的歷史狀態再次封鎖。
+        clock.Set(new DateTimeOffset(2037, 2, 1, 3, 0, 0, TimeSpan.Zero));
+        Tick(host);
+        await SchedulingDatabase.UntilAsync(async () => await database.ScalarAsync(
+            "SELECT COUNT(*) FROM scheduler_goodshepherd2.Job WHERE StateName IN ('Succeeded','Failed')") == 3,
+            "Third recurring occurrence did not finish.");
+        await host.StopAsync();
+        Assert.Equal(3, probe.Calls.Count);
+        Assert.Equal(probe.Created, probe.Disposed);
+        Assert.Equal(0, probe.Active);
+    }
+
     /// <summary>共用實際觸發流程；以 UTC 瞬間斷言前後邊界及下一天，程式不自行推算 cron 或用語系代表時區。</summary>
     private static async Task VerifyLocalNineAsync(string zone, int utcHour)
     {
