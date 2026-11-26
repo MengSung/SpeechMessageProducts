@@ -17,6 +17,8 @@
  * - 以來源快照執行 R2 主機／Plugin 公開邊界、R3 組織字面值白名單及 R9 傳輸／Plugin 參考守門；
  *   ChurchReport以框架入口、MVC繼承及公開簽章閉包判定；明列例外必附理由與證據，其他主機規則不變。
  *   GoodShepherd2.Web 精確列為產品主機，沿用公開外殼與主機互參限制，相似名稱仍拒絕分類。
+ *   F2 的產品識別與啟動守門僅在精確專案、完整命名空間及型別名稱吻合，且為頂層非泛型
+ *   static class 時允許公開；不擴張公開簽章閉包，也不授權其他主機或一般服務。
  *   公開表面統計沿用同次分類並同步交給可選接收器，不保存回呼或跨掃描狀態。
  * - 以實際 DAG 而非示意圖的位置標記層級；共用核心內Localization為取字底層，其餘同層彼此不可參考。未知專案 fail closed， 加入新產品時必須明確分類並補正反例，不能因名稱相似自動取得高層權限。
  * 測試案例入口包含 ArchitectureProject、ArchitectureSource、ArchitectureViolation、Validate、
@@ -317,7 +319,8 @@ internal static class ArchitectureRules
                             ? !churchReportAllowed.Contains(symbol.OriginalDefinition)
                             : symbol.Name != "Program" &&
                               !symbol.Name.EndsWith("Registration", StringComparison.Ordinal) &&
-                              !symbol.Name.EndsWith("Endpoints", StringComparison.Ordinal)))
+                              !symbol.Name.EndsWith("Endpoints", StringComparison.Ordinal) &&
+                              !IsGoodShepherd2PublicContract(project.Name, symbol)))
                         {
                             Add("R2HostPublicType", project, identity, path);
                         }
@@ -511,6 +514,22 @@ internal static class ArchitectureRules
         }
         return false;
     }
+
+    /// <summary>
+    /// 僅辨識 F2 計畫明定的兩個公開組合根契約；專案、命名空間、短名與頂層非泛型
+    /// static class 形狀必須全部吻合，避免同名服務、巢狀型別或其他主機取得豁免。
+    /// 公開可見性由呼叫端先行檢查；本方法只借用當次符號，不保存模型或建立資源。
+    /// </summary>
+    /// <param name="project">目前掃描節點的精確專案名稱。</param>
+    /// <param name="symbol">當次編譯模型內已確認對外可見的來源型別。</param>
+    /// <returns>只在精確契約身分與外殼形狀全部符合時允許公開。</returns>
+    private static bool IsGoodShepherd2PublicContract(string project, INamedTypeSymbol symbol) =>
+        project == "SpeechMessageProducts.GoodShepherd2.Web" &&
+        symbol.TypeKind == TypeKind.Class && symbol.IsStatic && symbol.Arity == 0 &&
+        symbol.ContainingType is null &&
+        (symbol.ContainingNamespace.ToDisplayString(), symbol.Name) is
+            ("SpeechMessageProducts.GoodShepherd2.Web", "GoodShepherd2Product") or
+            ("SpeechMessageProducts.GoodShepherd2.Web.Startup", "GoodShepherd2StartupGuard");
 
     /// <summary>所有包含型別均須公開；internal 容器、私有或 protected 巢狀型別不構成直接公開 API。</summary>
     private static bool IsExternallyVisible(INamedTypeSymbol symbol)

@@ -14,7 +14,8 @@
  * - F1 依既有 DAG 分辨產品、工具與共用層；未知專案仍視為共用來源並 fail closed。
  *   合成反例保護分類，真實方案圖驗證共用層的產品相依已移至產品 Hosting。
  * - F2 新主機僅以精確名稱登錄；合成圖與來源反例保護主機互參、公開外殼及共用反向相依，
- *   相似名稱仍拒絕，測試不建立主機或接觸線 B 的實作檔。
+ *   F1 必要補正以合成來源驗證 F2 的兩個精確 static 契約，錯專案、命名空間、形狀、巢狀及相似名稱仍拒絕；
+ *   測試不建立主機、不執行來源，也不依賴線 B 的實作檔。
  * - Extensions、ASP.NET 與 Dataverse 直接套件不得進入共用雙目標；以各套件正反例保護辨識。
  * - P6-06 以合成圖注入九個舊 ASP.NET Core 套件，保護直接及還原相依的拒絕，
  *   並以真實 ChurchReport 的 Debug／Release 評估確認不再使用這些套件；不啟動網站或外部連線。
@@ -226,6 +227,149 @@ public sealed class ArchitectureRuleTests
         var violation = Assert.Single(ArchitectureRules.ValidateSource(Graph(host)));
         Assert.Equal("R2HostPublicType", violation.Rule);
         Assert.Equal("MutableRequestService", violation.Dependency);
+    }
+
+    /// <summary>
+    /// F2 計畫要求的產品識別與啟動守門必須可公開；逐一以頂層、非泛型 static class
+    /// 合成來源驗證 Debug／Release 均零違規，防止舊外殼規則誤擋合法組合根契約。
+    /// 只借用當次 Roslyn metadata，來源不執行、不讀秘密，規則引擎於返回前釋放 owner。
+    /// </summary>
+    /// <param name="scope">契約所屬的精確完整命名空間。</param>
+    /// <param name="name">計畫明定的型別名稱。</param>
+    [Theory]
+    [InlineData("SpeechMessageProducts.GoodShepherd2.Web", "GoodShepherd2Product")]
+    [InlineData("SpeechMessageProducts.GoodShepherd2.Web.Startup", "GoodShepherd2StartupGuard")]
+    public void R2_GoodShepherd2Contracts_ExactStaticShells_AreAllowed(string scope, string name)
+    {
+        foreach (var configuration in new[] { "Debug", "Release" })
+        {
+            var host = Product("SpeechMessageProducts.GoodShepherd2.Web", "net10.0", "net10.0") with
+            {
+                Configuration = configuration,
+                PreprocessorSymbols = new[] { configuration == "Debug" ? "DEBUG" : "RELEASE" },
+                Sources = new[] { Source("Contract.cs", $"namespace {scope}; public static class {name} {{}}") }
+            };
+            Assert.Empty(ArchitectureRules.ValidateSource(Graph(host)));
+        }
+    }
+
+    /// <summary>
+    /// 將兩個完整合法型別原封不動放進其他既有主機，必須各回報 R2HostPublicType；
+    /// 此故障注入防止依短名或完整型別名稱取得跨專案豁免。純來源與結果僅活於本案例，
+    /// metadata 由規則引擎清理，不建立主機或共用可變狀態。
+    /// </summary>
+    /// <param name="project">不得取得 F2 契約權限的其他主機。</param>
+    [Theory]
+    [InlineData("SpeechMessageProducts.LineWebhook")]
+    [InlineData("SpeechMessageProducts.ChurchReport")]
+    public void R2_GoodShepherd2Contracts_OtherHosts_AreRejected(string project)
+    {
+        var host = Product(project, "net10.0", "net10.0") with
+        {
+            Sources = new[]
+            {
+                Source("Product.cs", "namespace SpeechMessageProducts.GoodShepherd2.Web; public static class GoodShepherd2Product {}"),
+                Source("Guard.cs", "namespace SpeechMessageProducts.GoodShepherd2.Web.Startup; public static class GoodShepherd2StartupGuard {}")
+            }
+        };
+        var violations = ArchitectureRules.ValidateSource(Graph(host));
+        Assert.Equal(2, violations.Count);
+        Assert.All(violations, item =>
+        {
+            Assert.Equal("R2HostPublicType", item.Rule);
+            Assert.Equal(project, item.Project);
+        });
+        Assert.Contains(violations, item => item.Dependency == "SpeechMessageProducts.GoodShepherd2.Web.GoodShepherd2Product");
+        Assert.Contains(violations, item => item.Dependency == "SpeechMessageProducts.GoodShepherd2.Web.Startup.GoodShepherd2StartupGuard");
+    }
+
+    /// <summary>
+    /// 相同短名若位於錯誤、相似、全域或大小寫不同的命名空間仍須拒絕；同主機一般服務
+    /// 與近似型別名亦不可獲准。注入來源可解析，斷言唯一診斷的規則及完整身分，避免以
+    /// 語法錯誤冒充邊界保護；所有文字與 metadata 僅由本次同步掃描持有並清理。
+    /// </summary>
+    /// <param name="scope">故意使用的命名空間；空值表示全域。</param>
+    /// <param name="name">未符合精確完整身分的公開型別。</param>
+    [Theory]
+    [InlineData("", "GoodShepherd2Product")]
+    [InlineData("", "GoodShepherd2StartupGuard")]
+    [InlineData("SpeechMessageProducts.GoodShepherd2.Web.Startup", "GoodShepherd2Product")]
+    [InlineData("SpeechMessageProducts.GoodShepherd2.Web", "GoodShepherd2StartupGuard")]
+    [InlineData("SpeechMessageProducts.GoodShepherd2.Web.Other", "GoodShepherd2Product")]
+    [InlineData("SpeechMessageProducts.GoodShepherd2.Web.Startup.Other", "GoodShepherd2StartupGuard")]
+    [InlineData("Pretend.SpeechMessageProducts.GoodShepherd2.Web", "GoodShepherd2Product")]
+    [InlineData("SpeechMessageProducts.GoodShepherd2.Web.StartupPretender", "GoodShepherd2StartupGuard")]
+    [InlineData("SpeechMessageProducts.GoodShepherd2.web", "GoodShepherd2Product")]
+    [InlineData("SpeechMessageProducts.GoodShepherd2.Web.startup", "GoodShepherd2StartupGuard")]
+    [InlineData("SpeechMessageProducts.GoodShepherd2.Web", "MutableRequestService")]
+    [InlineData("SpeechMessageProducts.GoodShepherd2.Web.Startup", "MutableRequestService")]
+    [InlineData("SpeechMessageProducts.GoodShepherd2.Web", "GoodShepherd2ProductService")]
+    [InlineData("SpeechMessageProducts.GoodShepherd2.Web.Startup", "GoodShepherd2StartupGuardService")]
+    [InlineData("SpeechMessageProducts.GoodShepherd2.Web", "GoodShepherd2Products")]
+    [InlineData("SpeechMessageProducts.GoodShepherd2.Web.Startup", "GoodShepherd2StartupGuards")]
+    public void R2_GoodShepherd2Contracts_WrongIdentity_IsRejected(string scope, string name)
+    {
+        var declaration = $"public static class {name} {{}}";
+        var identity = scope.Length == 0 ? name : scope + "." + name;
+        var host = Product("SpeechMessageProducts.GoodShepherd2.Web", "net10.0", "net10.0") with
+        {
+            Sources = new[] { Source("Contract.cs", scope.Length == 0 ? declaration : $"namespace {scope}; {declaration}") }
+        };
+        var violation = Assert.Single(ArchitectureRules.ValidateSource(Graph(host)));
+        Assert.Equal("R2HostPublicType", violation.Rule);
+        Assert.Equal(identity, violation.Dependency);
+    }
+
+    /// <summary>
+    /// 即使完整名稱正確，實例類別、結構、介面、record 或泛型 static 類別都不是計畫的
+    /// 固定外殼。逐一注入有效宣告，唯一完整身分診斷證明形狀檢查不能只比較字串；
+    /// 來源不執行，沒有連線或產品 owner，metadata 隨同步掃描結束釋放。
+    /// </summary>
+    /// <param name="scope">原契約命名空間。</param>
+    /// <param name="kind">刻意替換的型別宣告形狀。</param>
+    /// <param name="name">含泛型參數時仍須被拒絕的型別名稱。</param>
+    [Theory]
+    [InlineData("SpeechMessageProducts.GoodShepherd2.Web", "class", "GoodShepherd2Product")]
+    [InlineData("SpeechMessageProducts.GoodShepherd2.Web.Startup", "class", "GoodShepherd2StartupGuard")]
+    [InlineData("SpeechMessageProducts.GoodShepherd2.Web", "struct", "GoodShepherd2Product")]
+    [InlineData("SpeechMessageProducts.GoodShepherd2.Web.Startup", "struct", "GoodShepherd2StartupGuard")]
+    [InlineData("SpeechMessageProducts.GoodShepherd2.Web", "interface", "GoodShepherd2Product")]
+    [InlineData("SpeechMessageProducts.GoodShepherd2.Web.Startup", "interface", "GoodShepherd2StartupGuard")]
+    [InlineData("SpeechMessageProducts.GoodShepherd2.Web", "record", "GoodShepherd2Product")]
+    [InlineData("SpeechMessageProducts.GoodShepherd2.Web.Startup", "record", "GoodShepherd2StartupGuard")]
+    [InlineData("SpeechMessageProducts.GoodShepherd2.Web", "static class", "GoodShepherd2Product<T>")]
+    [InlineData("SpeechMessageProducts.GoodShepherd2.Web.Startup", "static class", "GoodShepherd2StartupGuard<T>")]
+    public void R2_GoodShepherd2Contracts_WrongShape_IsRejected(string scope, string kind, string name)
+    {
+        var host = Product("SpeechMessageProducts.GoodShepherd2.Web", "net10.0", "net10.0") with
+        {
+            Sources = new[] { Source("Contract.cs", $"namespace {scope}; public {kind} {name} {{}}") }
+        };
+        var violation = Assert.Single(ArchitectureRules.ValidateSource(Graph(host)));
+        Assert.Equal("R2HostPublicType", violation.Rule);
+        Assert.Equal(scope + "." + name, violation.Dependency);
+    }
+
+    /// <summary>
+    /// 把相同短名巢狀放進合法 Program，不能藉外層入口或 namespace 相符取得頂層契約
+    /// 權限；決定性斷言僅拒絕完整巢狀身分，保留原 Program 外殼斷言。
+    /// 合成來源不執行，所有資料為案例區域值，規則引擎確定釋放 metadata。
+    /// </summary>
+    /// <param name="scope">與合法契約相同的命名空間。</param>
+    /// <param name="name">故意宣告為巢狀的契約短名。</param>
+    [Theory]
+    [InlineData("SpeechMessageProducts.GoodShepherd2.Web", "GoodShepherd2Product")]
+    [InlineData("SpeechMessageProducts.GoodShepherd2.Web.Startup", "GoodShepherd2StartupGuard")]
+    public void R2_GoodShepherd2Contracts_NestedNames_AreRejected(string scope, string name)
+    {
+        var host = Product("SpeechMessageProducts.GoodShepherd2.Web", "net10.0", "net10.0") with
+        {
+            Sources = new[] { Source("Contract.cs",
+                $"namespace {scope}; public static class Program {{ public static class {name} {{}} }}") }
+        };
+        var violation = Assert.Single(ArchitectureRules.ValidateSource(Graph(host)));
+        Assert.Equal("R2HostPublicType", violation.Rule);
+        Assert.Equal(scope + ".Program." + name, violation.Dependency);
     }
 
     /// <summary>
