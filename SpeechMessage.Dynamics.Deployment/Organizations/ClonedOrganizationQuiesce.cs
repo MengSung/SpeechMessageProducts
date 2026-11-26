@@ -7,7 +7,8 @@
 流程定義改回 Draft，外送步驟改 Disabled，信箱停用三種投遞方式；最後取消等待流程執行個體。
 信箱 incoming／outgoing None=0，ACT None=2；篩選與寫入共用此數值契約。
 此為官方 mailbox 參照的離線契約，尚未核對目標 9.1 metadata，不能據此宣稱實機驗證。
-信箱查詢只增列三個 delivery 選項，原值連同正式 ID、nullable state/status 複製為不可變 before-image；
+信箱查詢只增列三個 delivery 選項，任一投遞值與 None 不同或缺值／null 都列為候選；
+原值連同正式 ID、nullable state/status 複製為不可變 before-image；
 未確認可準確取得 rowversion，因此不產生版本值，也不宣稱具有伺服器端樂觀併行保護。
 apply 在全部查詢、純值投影與分類驗證完成後，必須先將同一結果交 beforeWrite owner。
 owner 須成功有界落盤並 flush 才能返回；缺回呼或回呼失敗一律零寫入，寫入只用該快照正式 ID。
@@ -247,6 +248,8 @@ internal static class ClonedOrganizationQuiesce
                     new ConditionExpression("statecode", ConditionOperator.Equal, 0)
                 }
             }, cancellationToken, readSourceIdentities);
+        // NotEqual 不會把 null 當成「已是 None」；每個欄位同時查不同值與 Null，
+        // 缺欄位或明確 null 才能被納入候選並保存原像，後續明確更新成核定 None 值。
         var mailboxes = Query(service, "mailbox",
             new ColumnSet("mailboxid", "statecode", "statuscode",
                 "incomingemaildeliverymethod", "outgoingemaildeliverymethod", "actdeliverymethod"),
@@ -255,8 +258,11 @@ internal static class ClonedOrganizationQuiesce
                 Conditions =
                 {
                     new ConditionExpression("incomingemaildeliverymethod", ConditionOperator.NotEqual, 0),
+                    new ConditionExpression("incomingemaildeliverymethod", ConditionOperator.Null),
                     new ConditionExpression("outgoingemaildeliverymethod", ConditionOperator.NotEqual, 0),
-                    new ConditionExpression("actdeliverymethod", ConditionOperator.NotEqual, 2)
+                    new ConditionExpression("outgoingemaildeliverymethod", ConditionOperator.Null),
+                    new ConditionExpression("actdeliverymethod", ConditionOperator.NotEqual, 2),
+                    new ConditionExpression("actdeliverymethod", ConditionOperator.Null)
                 }
             }, cancellationToken, validateMetadata: true);
 

@@ -2,7 +2,7 @@
 檔案整體說明
 目的與定位：以記憶體 ZIP 與合成 Dynamics 解決方案 XML，驗證 P5-03b 匯出入共用的封裝邊界，並非實機匯出結果。
 主要功能與流程：核對共用實體表單移除但檢視與自有實體表單保留；注入越界路徑、大小寫重複、壓縮膨脹、DTD 及錯誤方案身分，驗證完整候選失敗而非發布部分資料。合成多成員 ZIP 分別跨越累計解壓 16MiB 與 128 成員邊界；以執行緒配置量驗證封裝在超額輸入及 ZIP 標頭超額時停止，不只斷言最終例外。
-使用邊界與擁有權：每個案例獨占記憶體串流與 ZIP，using 在斷言失敗時亦釋放；資料只含合成 GUID、固定名稱與測試內容，不讀 User Secrets、不連真實 SDK 服務、不建立背景工作。SDK 替身分別承接已發布查詢與未發布訊息，每次建立獨立快照；相同正式 ID 只有 XML 差異才構成 pending。新增的 RetrieveEntity 只返回受影響表的一致合成結構，配合完整結構護欄，不放寬原 UI 或 ZIP 斷言。往返測試核對實際封裝內容；真 Import 案例另保留完整請求順序與計畫外 ID 拒絕斷言，暫存目錄由案例 finally 清理。
+使用邊界與擁有權：每個案例獨占記憶體串流與 ZIP，using 在斷言失敗時亦釋放；資料只含合成 GUID、固定名稱與測試內容，不讀 User Secrets、不連真實 SDK 服務、不建立背景工作。SDK 替身分別承接已發布查詢與未發布訊息，每次建立獨立快照；相同正式 ID 只有 XML 差異才構成 pending。新增的 RetrieveEntity 只返回受影響表的一致合成結構，配合完整結構護欄，不放寬原 UI 或 ZIP 斷言。RootComponent 測試故障注入未允許型別及非 shell Entity，並以 ImportSolution 呼叫不存在作為 fail-closed 斷言。往返測試核對實際封裝內容；真 Import 案例另保留完整請求順序與計畫外 ID 拒絕斷言，暫存目錄由案例 finally 清理。
 */
 using System;
 using System.Collections.Generic;
@@ -311,6 +311,92 @@ public sealed class UiSolutionArchiveTests
         }
     }
 
+    /// <summary>
+    /// 未允許的 RootComponent type 62 不得因發布範圍只收集表單／檢視而隨完整 ZIP 進入 ImportSolution。
+    /// 故障注入使用合成 ZIP；決定性斷言是 Import 前拒絕，且 SDK 假服務從未收到 ImportSolution，暫存目錄由 finally 清除。
+    /// </summary>
+    [Fact]
+    public void UiImport_UnapprovedRootComponentType_RefusedBeforeImport()
+    {
+        var root = Path.Combine(Path.GetTempPath(), "smv-ui-root-type-" + Guid.NewGuid().ToString("N"));
+        Directory.CreateDirectory(root);
+        try
+        {
+            var unsafeSolution = Solution.Replace(
+                "</RootComponents>",
+                "<RootComponent type=\"62\" id=\"90000000-0000-0000-0000-000000000061\" /></RootComponents>",
+                StringComparison.Ordinal);
+            var input = Path.Combine(root, "input.zip");
+            File.WriteAllBytes(input, Archive(solution: unsafeSolution));
+            var service = new UiService(Archive());
+
+            Assert.Throws<InvalidDataException>(() =>
+                UiSolutionDeployment.Import(service, input, "SpeechMessageUi", default));
+
+            Assert.DoesNotContain("ImportSolution", service.Requests);
+        }
+        finally
+        {
+            if (Directory.Exists(root)) Directory.Delete(root, recursive: true);
+        }
+    }
+    /// <summary>
+    /// Entity RootComponent 的 behavior=0 會包含全部子元件；UI 匯入只允許 entity shell，完整實體必須在送出 ImportSolution 前拒絕。
+    /// 合成 ZIP 將已列於 customizations 的 new_example 改成包含子元件；斷言 SDK 未收到 ImportSolution，並由 finally 清除本案目錄。
+    /// </summary>
+    [Fact]
+    public void UiImport_EntityRootIncludesSubcomponents_RefusedBeforeImport()
+    {
+        var root = Path.Combine(Path.GetTempPath(), "smv-ui-entity-root-" + Guid.NewGuid().ToString("N"));
+        Directory.CreateDirectory(root);
+        try
+        {
+            var solution = Solution.Replace(
+                "</RootComponents>",
+                "<RootComponent type=\"1\" schemaName=\"new_example\" behavior=\"0\" /></RootComponents>",
+                StringComparison.Ordinal);
+            var input = Path.Combine(root, "input.zip");
+            File.WriteAllBytes(input, Archive(solution: solution));
+            var service = new UiService(Archive());
+
+            Assert.Throws<InvalidDataException>(() =>
+                UiSolutionDeployment.Import(service, input, "SpeechMessageUi", default));
+
+            Assert.DoesNotContain("ImportSolution", service.Requests);
+        }
+        finally
+        {
+            if (Directory.Exists(root)) Directory.Delete(root, recursive: true);
+        }
+    }
+
+    /// <summary>明確標成 shell-only 的產品實體仍可隨表單／檢視匯入；正向控制須確實抵達 ImportSolution，而不是全面拒絕。</summary>
+    [Fact]
+    public void UiImport_EntityRootShellOnly_Allowed()
+    {
+        var root = Path.Combine(Path.GetTempPath(), "smv-ui-entity-shell-" + Guid.NewGuid().ToString("N"));
+        Directory.CreateDirectory(root);
+        try
+        {
+            var solution = Solution.Replace(
+                "</RootComponents>",
+                "<RootComponent type=\"1\" schemaName=\"new_example\" behavior=\"2\" /></RootComponents>",
+                StringComparison.Ordinal);
+            var input = Path.Combine(root, "input.zip");
+            File.WriteAllBytes(input, Archive(solution: solution));
+            var service = new UiService(Archive());
+
+            UiSolutionDeployment.Import(service, input, "SpeechMessageUi", default);
+
+            Assert.Contains("ImportSolution", service.Requests);
+        }
+        finally
+        {
+            if (Directory.Exists(root)) Directory.Delete(root, recursive: true);
+        }
+    }
+
+
     /// <summary>建立標準三個根檔及自有資源；可注入單一惡意 entry 或 XML，所有串流離開方法前確定關閉。</summary>
     internal static byte[] Archive(string? extra = null, byte[]? content = null, string? solution = null)
     {
@@ -497,6 +583,7 @@ public sealed class UiSolutionArchiveTests
         <RootComponent type="60" id="{10000000-0000-0000-0000-000000000001}" />
         <RootComponent type="60" id="{10000000-0000-0000-0000-000000000002}" />
         <RootComponent type="60" id="{10000000-0000-0000-0000-000000000003}" />
+        <RootComponent type="61" id="{10000000-0000-0000-0000-000000000061}" />
         </RootComponents></SolutionManifest></ImportExportXml>
         """;
 

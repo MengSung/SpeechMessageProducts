@@ -3,6 +3,7 @@
 目的與定位：保護 FS quiesce 信箱投遞的離線安全契約，以真實 SDK Entity／QueryExpression
 承載合成資料，獨立判讀查詢條件，驗證 incoming／outgoing None=0、ACT None=2。
 主要流程：每案建立自己的合成信箱與 SDK，經正式 reader 比對候選、更新內容及重新盤點；
+任一投遞欄位缺失／null 均屬未知並納入候選，測試假件獨立模擬 Null 與 NotEqual 的 OR 條件；
 合法 incoming=3 與 ACT=0／1／2 都必須依實際數值處理，不以產品常數產生預期值。
 故障與驗證：測試只注入記憶體 SDK 或本案暫存輸出，不讀 Secrets、email、name、password、
 OAuth，不建立網路連線、VM 工作或環境鎖；離線通過不代表目標 9.1 metadata 已驗證。
@@ -94,6 +95,29 @@ public sealed class QuiesceMailboxDeliveryTests
         Assert.Equal(2, before.GetProperty("outgoingEmailDeliveryMethod").GetInt32());
         Assert.Equal(JsonValueKind.Null, before.GetProperty("actDeliveryMethod").ValueKind);
         Assert.Throws<NotSupportedException>(() => ((IList<QuiesceCandidate>)result.Candidates).Clear());
+    }
+
+    /// <summary>任一投遞欄位缺失或為 null 都是未知狀態，必須納入候選並保留原值再明確停用。</summary>
+    /// <param name="omitAttribute">true 模擬 SDK 省略欄位；false 模擬 SDK 明確回傳 null。</param>
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void Run_MissingDeliveryMethod_IsIncludedForSafeDisable(bool omitAttribute)
+    {
+        var service = new MailboxService();
+        var row = Mailbox(1, 0, 0, 2);
+        if (omitAttribute)
+            row.Attributes.Remove("outgoingemaildeliverymethod");
+        else
+            row["outgoingemaildeliverymethod"] = null;
+        service.Rows.Add(row);
+
+        var result = ClonedOrganizationQuiesce.Run(service, Target(), false, default);
+
+        Assert.Equal(1, result.MailboxConfigurationsToDisable);
+        Assert.Null(Assert.Single(result.Candidates, candidate => candidate.Entity == "mailbox")
+            .MailboxBeforeImage!.OutgoingEmailDeliveryMethod);
+        Assert.Empty(service.Updates);
     }
 
     /// <summary>第一筆 Update 必須已能獨占開啟完整落盤 JSON 及比對 SHA；同次快照只查一次且回讀 None 為零候選。</summary>
@@ -448,7 +472,7 @@ public sealed class QuiesceMailboxDeliveryTests
         /// <summary>合成未分類啟用 Plugin，保護分類先於寫前回呼的關卡。</summary>
         internal bool UnclassifiedPlugin { get; set; }
 
-        /// <summary>獨立判讀 OR／NotEqual 的 SQL 缺值語意，並按要求欄位回傳真 SDK 投影。</summary>
+        /// <summary>獨立判讀 OR／NotEqual／Null 的 SQL 缺值語意，並按要求欄位回傳真 SDK 投影。</summary>
         public EntityCollection RetrieveMultiple(QueryBase query)
         {
             var expression = Assert.IsType<QueryExpression>(query);
@@ -468,16 +492,28 @@ public sealed class QuiesceMailboxDeliveryTests
             Assert.False(expression.ColumnSet.AllColumns);
             Assert.All(expression.ColumnSet.Columns, column => Assert.Contains(column, allowed));
             Assert.Equal(LogicalOperator.Or, expression.Criteria.FilterOperator);
-            Assert.Equal(3, expression.Criteria.Conditions.Count);
+            Assert.Equal(6, expression.Criteria.Conditions.Count);
             Assert.Empty(expression.Criteria.Filters);
             Assert.Empty(expression.LinkEntities);
             Assert.Equal(5000, expression.PageInfo.Count);
             Assert.Equal("mailboxid", Assert.Single(expression.Orders).AttributeName);
+            var expected = new Dictionary<string, int>(StringComparer.Ordinal)
+            {
+                ["incomingemaildeliverymethod"] = 0,
+                ["outgoingemaildeliverymethod"] = 0,
+                ["actdeliverymethod"] = 2
+            };
             var selected = Rows.Where(row => expression.Criteria.Conditions.Any(condition =>
             {
-                Assert.Contains(condition.AttributeName, allowed[3..]);
+                Assert.Contains(condition.AttributeName, expected.Keys);
+                if (condition.Operator == ConditionOperator.Null)
+                {
+                    Assert.Empty(condition.Values);
+                    return !row.Attributes.TryGetValue(condition.AttributeName, out var raw) || raw is null;
+                }
                 Assert.Equal(ConditionOperator.NotEqual, condition.Operator);
                 var comparison = Assert.IsType<int>(Assert.Single(condition.Values));
+                Assert.Equal(expected[condition.AttributeName], comparison);
                 return row.GetAttributeValue<OptionSetValue>(condition.AttributeName) is { } value
                     && value.Value != comparison;
             }));

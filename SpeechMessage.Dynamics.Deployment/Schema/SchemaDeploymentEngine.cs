@@ -9,10 +9,11 @@
  * 日期明確UserLocal/DateAndTime，加密欄啟用field security，稽核包含欄位層級。
  * D3659.1忽略新Lookup稽核時，僅對本次Create回傳ID補IsAuditEnabled=true；部分完成的接續另須原plan/before完整hash與其他約束全符，不能變成通用Update。
  * 新custom表樂觀並行依server預設，outbound必須重讀確認true；產品不反射寫入SDK的唯讀回應屬性，也不修改角色或舊欄位。
- * 發布與驗證：schema與UI-only修改共同決定PublishXml實體邊界；保留原schema投影守門，另於before前完整核對需寫UI的既有表metadata。
- * 所有需寫UI的既有表保存命令區域純值基準，Publish前重驗兩來源及基準；新表尚不存在，不送RetrieveEntity。
- * 同表一般欄新增只允許寫前SDK請求的完整wire候選加正式回應ID，保留所有舊metadata及新欄成員比較，不將寫後來源改認為核准基準。
- * 未表達的lookup／key／option增量及server額外預設保守拒絕，須另行明確核定，不能略過整表或任意新子樹。
+ * 發布與驗證：schema與UI-only修改共同決定PublishXml實體邊界；保留原schema投影守門，另於before前完整核對所有發布範圍內的既有表metadata。
+ * 即使沒有views仍於首寫前與發布前盤點systemform／savedquery，兩來源各對初始UI基準比較；新表只納入建立後立即捕捉的原生UI。
+ * 所有發布範圍內的既有表保存命令區域純值基準，Publish前重驗兩來源及基準；新表尚不存在，不送RetrieveEntity。
+ * 同表欄位／雙端關聯／鍵／局部選項只允許寫前SDK請求的完整wire候選加正式回應ID，保留所有舊metadata及新欄成員比較，不將寫後來源改認為核准基準。
+ * 本次新鍵只容許Pending／InProgress／Active；其他server額外預設保守拒絕，須另行明確核定，不能略過整表或任意新子樹。
  * 再讀已發布metadata及key狀態；仍有新增差異拋錯，pending key交CLI回不完整結果。最後核對與發布間仍須由外層維持獨占，SDK不提供原子比較發布。
  * 資源與失敗：SDK由外層lease擁有；本類不Dispose它。同步I/O前後尊重caller取消，不建立背景排程；部分失敗保留before證據與原Exception，不自動刪元件或還原VM。
  * 隔離與限制：所有新ID只能取SDK正式回應，候選與created對照只存活本次apply；metadata備份不是組織資料庫備份，呼叫方法不等於環境獲准寫入。
@@ -132,8 +133,8 @@ internal sealed class SchemaDeploymentEngine
         SchemaFiles.WriteNew(directory, "metadata.json", SchemaMetadata.Read(service, target, cancellationToken));
 
     /// <summary>
-    /// 先重驗全部plan、原schema投影及需寫UI既有表的完整metadata，before成功flush才新增。
-    /// 所有需寫UI既有表發布前另與命令區域純值基準重驗；同表核定一般欄新增以寫前wire候選
+    /// 先重驗全部plan、原schema投影及全部發布範圍既有表的完整metadata，before成功flush才新增。
+    /// 所有發布範圍既有表發布前另與命令區域純值基準重驗；同表核定欄位／雙端關聯／鍵／局部選項以寫前wire候選
     /// 及SDK正式回應ID表達精確增量，其餘差異一律拒絕，不放寬原投影守門。中途故障／取消保留before及原例外，
     /// SDK與寫鎖仍由caller唯一擁有，局部基準不存SDK物件、不跨命令保留或交背景工作。
     /// </summary>
@@ -153,7 +154,11 @@ internal sealed class SchemaDeploymentEngine
         var uiPublishing = plan.Ui?.Views.Where(view => view.NeedsWrite).Select(view => view.Definition.Entity)
             .ToHashSet(StringComparer.Ordinal) ?? new HashSet<string>(StringComparer.Ordinal);
         var publishing = schemaPublishing.Concat(uiPublishing).ToHashSet(StringComparer.Ordinal);
-        var existingUi = before.Entities.Where(entity => uiPublishing.Contains(entity.LogicalName))
+        // 查閱的 referenced 端也會新增關聯；即使該端沒有 view 或其他 schema 操作仍需完整保護。
+        foreach (var operation in plan.Operations.Where(operation => operation.Kind == "CreateLookup"))
+            publishing.Add(definition.Entities.Single(entity => entity.LogicalName == operation.Entity).Fields
+                .Single(field => field.LogicalName == operation.Name).Target!);
+        var existingPublishing = before.Entities.Where(entity => publishing.Contains(entity.LogicalName))
             .Select(entity => entity.LogicalName).ToArray();
         UiMetadataPublicationGuard.Snapshot? uiMetadataBaseline = null;
         if (publishing.Count != 0)
@@ -168,9 +173,15 @@ internal sealed class SchemaDeploymentEngine
                     throw new InvalidDataException("Unpublished metadata changes require separate review before schema apply.");
             }
             // 完整DataMember檢查補足規劃投影未涵蓋的label、description及cascade，且早於before及任何寫入。
-            // 所有既有UI表都保存完整基準；同表有schema新增亦不得繞過發布前完整比較。
-            if (existingUi.Length != 0)
-                uiMetadataBaseline = UiMetadataPublicationGuard.Check(service, existingUi, cancellationToken);
+            // 所有發布範圍既有表都保存完整基準；沒有UI操作的schema-only亦不得繞過完整比較。
+            if (existingPublishing.Length != 0)
+                uiMetadataBaseline = UiMetadataPublicationGuard.Check(service, existingPublishing, cancellationToken);
+        }
+        UiViewScope? schemaUiBaseline = null;
+        if (plan.Ui is null && publishing.Count != 0)
+        {
+            schemaUiBaseline = UiViewDeployment.ReadPublicationScope(service, existingPublishing, cancellationToken);
+            UiPublishScope.Check(UiViewDeployment.Pending(schemaUiBaseline), Array.Empty<Guid>());
         }
         _ = SchemaFiles.WriteNew(directory, "before-metadata.json", before);
         if (plan.Ui is not null) _ = SchemaFiles.WriteNew(directory, "before-ui-plan.json", plan.Ui);
@@ -222,6 +233,13 @@ internal sealed class SchemaDeploymentEngine
                     }, cancellationToken);
                     created.Add((entity.LogicalName, ""), RequireId(response.EntityId));
                     created.Add((entity.LogicalName, entity.PrimaryName), RequireId(response.AttributeId));
+                    if (schemaUiBaseline is not null)
+                    {
+                        // 僅允許本次正式建立的新表原生 UI；立即捕捉，不到發布前才採信任意新列。
+                        var native = UiViewDeployment.ReadPublicationScope(service, new[] { entity.LogicalName }, cancellationToken);
+                        _ = UiViewDeployment.Pending(native);
+                        schemaUiBaseline = UiViewDeployment.AppendPublicationScope(schemaUiBaseline, native);
+                    }
                     break;
                 }
                 case "CreateAttribute":
@@ -231,27 +249,30 @@ internal sealed class SchemaDeploymentEngine
                     var field = entity.Fields.Single(field => field.LogicalName == operation.Name && field.Phase <= definition.ActivePhase);
                     var attribute = Attribute(field, entity.IsNew && entity.Audit, before.LanguageCode);
                     // SDK可能修改request，必須在入場前脫離純值；只有本次一般欄的正式回應ID可綁定增量。
-                    var addition = operation.Kind == "CreateAttribute" && existingUi.Contains(entity.LogicalName, StringComparer.Ordinal)
+                    var addition = operation.Kind == "CreateAttribute" && existingPublishing.Contains(entity.LogicalName, StringComparer.Ordinal)
                         ? metadataAdditions.CaptureAttribute(entity.LogicalName, attribute, cancellationToken) : null;
                     Guid id;
                     if (operation.Kind == "CreateLookup")
                     {
+                        var relationship = new OneToManyRelationshipMetadata
+                        {
+                            SchemaName = "new_" + entity.LogicalName + "_" + field.LogicalName,
+                            ReferencedEntity = field.Target, ReferencedAttribute = field.Target + "id", ReferencingEntity = entity.LogicalName,
+                            CascadeConfiguration = new CascadeConfiguration
+                            {
+                                Delete = CascadeType.Restrict, Assign = CascadeType.NoCascade, Merge = CascadeType.NoCascade,
+                                Reparent = CascadeType.NoCascade, Share = CascadeType.NoCascade, Unshare = CascadeType.NoCascade
+                            }
+                        };
+                        var lookupAddition = metadataAdditions.CaptureLookup(entity.LogicalName, (LookupAttributeMetadata)attribute,
+                            relationship, cancellationToken);
                         var response = Execute<CreateOneToManyResponse>(new CreateOneToManyRequest
                         {
                             SolutionUniqueName = definition.Solution, Lookup = (LookupAttributeMetadata)attribute,
-                            OneToManyRelationship = new OneToManyRelationshipMetadata
-                            {
-                                SchemaName = "new_" + entity.LogicalName + "_" + field.LogicalName,
-                                ReferencedEntity = field.Target, ReferencedAttribute = field.Target + "id", ReferencingEntity = entity.LogicalName,
-                                CascadeConfiguration = new CascadeConfiguration
-                                {
-                                    Delete = CascadeType.Restrict, Assign = CascadeType.NoCascade, Merge = CascadeType.NoCascade,
-                                    Reparent = CascadeType.NoCascade, Share = CascadeType.NoCascade, Unshare = CascadeType.NoCascade
-                                }
-                            }
+                            OneToManyRelationship = relationship
                         }, cancellationToken);
                         id = RequireId(response.AttributeId);
-                        _ = RequireId(response.RelationshipId);
+                        metadataAdditions.AddLookup(lookupAddition, id, RequireId(response.RelationshipId));
                         if (entity.IsNew && entity.Audit) EnableCreatedLookupAudit(entity.LogicalName, field.LogicalName, id, definition.Solution, cancellationToken);
                     }
                     else id = RequireId(Execute<CreateAttributeResponse>(new CreateAttributeRequest
@@ -265,24 +286,32 @@ internal sealed class SchemaDeploymentEngine
                     var field = definition.Entities.Single(entity => entity.LogicalName == operation.Entity).Fields
                         .Single(field => field.LogicalName == operation.Name && field.Type == "choice" && field.Phase <= definition.ActivePhase);
                     var option = field.Options.Single(option => option.Value == operation.OptionValue && option.Label == operation.OptionLabel);
+                    var label = new Label(option.Label, before.LanguageCode);
+                    var optionAddition = metadataAdditions.CaptureOption(operation.Entity, operation.Name,
+                        new OptionMetadata(label, option.Value), cancellationToken);
                     var response = Execute<InsertOptionValueResponse>(new InsertOptionValueRequest
                     {
                         EntityLogicalName = operation.Entity, AttributeLogicalName = operation.Name,
-                        Value = option.Value, Label = new Label(option.Label, before.LanguageCode), SolutionUniqueName = definition.Solution
+                        Value = option.Value, Label = label, SolutionUniqueName = definition.Solution
                     }, cancellationToken);
                     if (response.NewOptionValue != option.Value) throw new InvalidDataException("Inserted option identity is inconsistent.");
+                    metadataAdditions.AddOption(optionAddition);
                     break;
                 }
                 case "CreateKey":
                 {
                     var entity = definition.Entities.Single(entity => entity.LogicalName == operation.Entity);
                     var key = entity.Keys.Single(key => key.LogicalName == operation.Name);
+                    var keyMetadata = new EntityKeyMetadata { SchemaName = key.LogicalName,
+                        DisplayName = new Label(key.LogicalName, before.LanguageCode), KeyAttributes = key.Attributes.ToArray() };
+                    var keyAddition = metadataAdditions.CaptureKey(entity.LogicalName, keyMetadata, cancellationToken);
                     var response = Execute<CreateEntityKeyResponse>(new CreateEntityKeyRequest
                     {
                         EntityName = entity.LogicalName, SolutionUniqueName = definition.Solution,
-                        EntityKey = new EntityKeyMetadata { SchemaName = key.LogicalName, DisplayName = new Label(key.LogicalName, before.LanguageCode), KeyAttributes = key.Attributes.ToArray() }
+                        EntityKey = keyMetadata
                     }, cancellationToken);
                     created.Add((entity.LogicalName, key.LogicalName), RequireId(response.EntityKeyId));
+                    metadataAdditions.AddKey(keyAddition, response.EntityKeyId);
                     break;
                 }
                 case "IncludeEntity":
@@ -318,15 +347,15 @@ internal sealed class SchemaDeploymentEngine
             UiViewDeployment.CheckBeforePublish(service, definition, candidateMetadata, plan.Ui, uiOwnedIds, pendingScope, cancellationToken);
             UiPublishScope.Check(UiViewDeployment.Pending(pendingScope), uiOwnedIds.Concat(nativeIds).Distinct());
         }
-        var changedEntities = plan.Operations.Where(operation => operation.Kind is "CreateEntity" or "CreateAttribute" or "CreateLookup" or "CreateKey" or "AddOptionValue")
-            .Select(operation => operation.Entity)
-            .Concat(plan.Ui?.Views.Where(view => view.NeedsWrite).Select(view => view.Definition.Entity) ?? Array.Empty<string>())
-            .Distinct(StringComparer.Ordinal).Order(StringComparer.Ordinal).ToArray();
+        var changedEntities = publishing.Order(StringComparer.Ordinal).ToArray();
         if (changedEntities.Length != 0)
         {
             // 當下兩來源可能一起漂移；必須同時與初始純值基準比對，失敗保留已flush的before且不發布。
             if (uiMetadataBaseline is not null)
-                _ = UiMetadataPublicationGuard.Check(service, existingUi, cancellationToken, uiMetadataBaseline, metadataAdditions);
+                _ = UiMetadataPublicationGuard.Check(service, existingPublishing, cancellationToken, uiMetadataBaseline, metadataAdditions);
+            if (schemaUiBaseline is not null)
+                UiViewDeployment.CheckUnchangedPublicationScope(schemaUiBaseline,
+                    UiViewDeployment.ReadPublicationScope(service, publishing, cancellationToken), cancellationToken);
             // RetrieveAsIfPublished只供衝突盤點，不能當已發布證據；僅定向發布本plan新增所涉表，不PublishAll其他產品變更。
             var xml = new XElement("importexportxml", new XElement("entities", changedEntities.Select(name => new XElement("entity", name))));
             _ = Execute<PublishXmlResponse>(new PublishXmlRequest { ParameterXml = xml.ToString(SaveOptions.DisableFormatting) }, cancellationToken);

@@ -1,7 +1,7 @@
 /*
 檔案整體說明
 目的與定位：FS schema apply 的完整 metadata 發布邊界回歸；真 SchemaDeploymentEngine
-及公開 CLI 都必須防止 UI-only 檢視發布帶出未受審的標籤、描述或關聯 cascade。
+及公開 CLI 都必須防止 UI-only 或無 UI 的 schema 發布帶出未受審的標籤、描述或關聯 cascade。
 主要流程：沿用嚴格合成 SDK／臨時 repo，先完成無 UI 的 schema，再獨立斷言結構操作為零、
 account 檢視 NeedsWrite 為真；以完整合法 RetrieveEntity 回應注入規劃投影看不到的差異。
 測試契約：既存 pending 在 before 檔及第一個寫入前拒絕；檢視寫入期間兩來源同時漂移，
@@ -338,6 +338,154 @@ public sealed class SchemaUiFullMetadataBoundaryTests
         Assert.Equal("<importexportxml><entities><entity>account</entity></entities></importexportxml>", fixture.Service.LastPublishXml);
         AssertReads(fixture, false, true, false, true);
         AssertBeforeClosed(directory);
+    }
+
+    /// <summary>
+    /// 不定義任何檢視的 account 新增也會定向發布整表；標籤／cascade pending 必須在 before
+    /// 及首個 schema 寫入前拒絕。以真 plan 的 Ui=null、新欄操作及完整來源順序證明不是 UI-only 案例。
+    /// </summary>
+    [Theory]
+    [InlineData("label")]
+    [InlineData("cascade")]
+    public void Apply_SchemaOnlyPendingFullMetadata_RefusesBeforeEvidenceAndEveryWrite(string change)
+    {
+        using var fixture = new UiViewDeploymentTests.UiFixture();
+        var definition = fixture.Definition with { Views = Array.Empty<SchemaView>() };
+        var directory = Output(fixture);
+        var engine = Engine(fixture, directory);
+        var plan = engine.Plan(definition, default);
+        Assert.Null(plan.Ui);
+        Assert.Contains(plan.Operations, operation => operation.Kind == "CreateAttribute" && operation.Entity == "account");
+        fixture.Service.OnFullMetadataRead = (metadata, unpublished) => { if (unpublished) Mutate(metadata, change); };
+        var writes = fixture.Service.MetadataWrites;
+
+        Assert.Throws<InvalidDataException>(() => engine.Apply(plan, definition, default));
+
+        Assert.Equal(writes, fixture.Service.MetadataWrites);
+        Assert.Equal(0, fixture.Service.UiWrites);
+        Assert.Equal("", fixture.Service.LastPublishXml);
+        Assert.False(Directory.Exists(directory));
+        AssertReads(fixture, false, true);
+    }
+
+    /// <summary>
+    /// 無 UI 的一般新欄既可尚未出現在 published，亦可同時出現在兩來源；
+    /// 完整基準加寫前候選及正式建立 ID 必須准許精確增量，不能靠一律拒絕 schema-only 來補護欄。
+    /// </summary>
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void Apply_SchemaOnlyApprovedAttribute_PublishesExactDelta(bool onlyUnpublished)
+    {
+        using var fixture = new UiViewDeploymentTests.UiFixture();
+        var definition = fixture.Definition with { Views = Array.Empty<SchemaView>() };
+        var directory = Output(fixture);
+        var engine = Engine(fixture, directory);
+        var plan = engine.Plan(definition, default);
+        Assert.Null(plan.Ui);
+        if (onlyUnpublished)
+            fixture.Service.OnFullMetadataRead = (metadata, unpublished) =>
+            {
+                if (!unpublished)
+                    SchemaMetadataTests.MetadataService.SetResponse(metadata, "Attributes",
+                        metadata.Attributes.Where(field => field.LogicalName != "new_tenantcode").ToArray());
+            };
+
+        var result = engine.Apply(plan, definition, default);
+
+        Assert.Empty(result.Operations);
+        Assert.Null(result.Ui);
+        Assert.Equal(0, fixture.Service.ViewCreates);
+        Assert.Equal("<importexportxml><entities><entity>account</entity></entities></importexportxml>", fixture.Service.LastPublishXml);
+        AssertReads(fixture, false, true, false, true);
+        AssertBeforeClosed(directory);
+    }
+
+    /// <summary>
+    /// 無 UI 新欄寫入後，對舊欄、cascade 或新欄注入單來源／兩來源同時漂移；
+    /// 即使當下兩來源相等，仍必須對寫前完整基準拒絕且不發布，before 保留並已釋放 handle。
+    /// </summary>
+    [Theory]
+    [InlineData("label", false)]
+    [InlineData("label", true)]
+    [InlineData("cascade", false)]
+    [InlineData("cascade", true)]
+    [InlineData("new-label", false)]
+    [InlineData("new-label", true)]
+    public void Apply_SchemaOnlyMetadataDrift_RefusesBeforePublish(string change, bool bothSources)
+    {
+        using var fixture = new UiViewDeploymentTests.UiFixture();
+        var definition = fixture.Definition with { Views = Array.Empty<SchemaView>() };
+        var directory = Output(fixture);
+        var engine = Engine(fixture, directory);
+        var plan = engine.Plan(definition, default);
+        Assert.Null(plan.Ui);
+        fixture.Service.OnFullMetadataRead = (metadata, unpublished) =>
+        {
+            if (metadata.Attributes.Any(field => field.LogicalName == "new_tenantcode") && (unpublished || bothSources))
+                Mutate(metadata, change);
+        };
+
+        Assert.Throws<InvalidDataException>(() => engine.Apply(plan, definition, default));
+
+        Assert.True(fixture.Service.MetadataWrites > 0);
+        Assert.Equal(0, fixture.Service.ViewCreates);
+        Assert.Equal("", fixture.Service.LastPublishXml);
+        AssertBeforeClosed(directory);
+    }
+
+    /// <summary>
+    /// 無 UI 路徑在完整讀取前或新欄建立後發生 SDK 故障，須保留同一 Exception；
+    /// 故障不得發布，before 是否存在必須符合實際寫入邊界，不以任意替身拒絕作為成功。
+    /// </summary>
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void Apply_SchemaOnlyMetadataFault_PreservesExceptionAndEvidence(bool afterWrite)
+    {
+        using var fixture = new UiViewDeploymentTests.UiFixture();
+        var definition = fixture.Definition with { Views = Array.Empty<SchemaView>() };
+        var directory = Output(fixture);
+        var engine = Engine(fixture, directory);
+        var plan = engine.Plan(definition, default);
+        var failure = new IOException("Synthetic schema-only metadata read failure.");
+        fixture.Service.OnFullMetadataRead = (metadata, _) =>
+        {
+            if (metadata.Attributes.Any(field => field.LogicalName == "new_tenantcode") == afterWrite) throw failure;
+        };
+
+        Assert.Same(failure, Assert.Throws<IOException>(() => engine.Apply(plan, definition, default)));
+
+        Assert.Equal("", fixture.Service.LastPublishXml);
+        Assert.Equal(afterWrite, fixture.Service.MetadataWrites > 0);
+        if (afterWrite) AssertBeforeClosed(directory);
+        else Assert.False(Directory.Exists(directory));
+    }
+
+    /// <summary>無 UI 的完整來源讀取返回前 caller 取消，保留同一 token、停止發布並依邊界保存已關閉的 before。</summary>
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void Apply_SchemaOnlyMetadataCancellation_PreservesTokenAndEvidence(bool afterWrite)
+    {
+        using var fixture = new UiViewDeploymentTests.UiFixture();
+        using var cancellation = new CancellationTokenSource();
+        var definition = fixture.Definition with { Views = Array.Empty<SchemaView>() };
+        var directory = Output(fixture);
+        var engine = Engine(fixture, directory);
+        var plan = engine.Plan(definition, default);
+        fixture.Service.OnFullMetadataRead = (metadata, _) =>
+        {
+            if (metadata.Attributes.Any(field => field.LogicalName == "new_tenantcode") == afterWrite) cancellation.Cancel();
+        };
+
+        var error = Assert.Throws<OperationCanceledException>(() => engine.Apply(plan, definition, cancellation.Token));
+
+        Assert.Equal(cancellation.Token, error.CancellationToken);
+        Assert.Equal("", fixture.Service.LastPublishXml);
+        Assert.Equal(afterWrite, fixture.Service.MetadataWrites > 0);
+        if (afterWrite) AssertBeforeClosed(directory);
+        else Assert.False(Directory.Exists(directory));
     }
 
     /// <summary>獨立核對本回歸確為 UI-only；不可只憑預先設定的 fixture 名稱認定 schema 零操作。</summary>

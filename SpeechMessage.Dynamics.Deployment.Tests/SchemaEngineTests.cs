@@ -8,12 +8,16 @@
  * 故障注入：plan竄改、舊證據同名、SDK原故障與未發布結構差異；失敗不覆寫before、不還原checkpoint、不刪既有元件。
  * 生命週期：Fixture擁有唯一Guid暫存目錄與合成Store；產品借用SDK，所有stream關閉後fixture才刪目錄。沒有真連線、credential或LINE。
  * Store以SDK實際請求建立下一次metadata回應，不從planner複製預期結果；SDK readonly屬性只在測試回應建構時設定。
+ * 無UI元件的Store仍精確驗systemform／savedquery欄位、實體In範圍及有界頁面；真正UI寫入／pending由UiService提供。
+ * 完整單表讀取以DataContract往返深複製，保留實際新增欄／鍵及雙端關聯；缺省空關聯／權限集合明列為空，
+ * 避免用缺少RetrieveEntity或不完整替身遮蔽發布護欄。所有候選僅屬本案，不持有外部資源。
  * 維護要求：新operation要擴充真SDK參數及往返斷言，未知message一律拒絕；本離線整合不是P1-12實機部署或索引唯一性證據。
  */
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using DataContractSerializer = System.Runtime.Serialization.DataContractSerializer;
 using Microsoft.Crm.Sdk.Messages;
 using Microsoft.Xrm.Sdk;
 using Microsoft.Xrm.Sdk.Messages;
@@ -250,14 +254,34 @@ public sealed class SchemaEngineTests
         /// <summary>metadata定義查詢重用基類白名單，根據真實建立結果回完整列，任何設定本文查詢仍拒絕。</summary>
         public override EntityCollection RetrieveMultiple(QueryBase query)
         {
+            var expression = Assert.IsType<QueryExpression>(query);
+            if (expression.EntityName is "systemform" or "savedquery") return EmptyUi(expression);
             _ = base.RetrieveMultiple(query);
-            var expression = (QueryExpression)query;
             return new EntityCollection(rows.Where(row => row.LogicalName == expression.EntityName).ToList());
         }
 
         /// <summary>只實作正式新增與加入solution訊息；未知/update/delete/publish-all一律由基類拒絕。</summary>
         public override OrganizationResponse Execute(OrganizationRequest request)
         {
+            if (request is RetrieveUnpublishedMultipleRequest unpublished)
+                return new RetrieveUnpublishedMultipleResponse
+                { Results = { ["EntityCollection"] = EmptyUi(Assert.IsType<QueryExpression>(unpublished.Query)) } };
+            if (request is RetrieveEntityRequest full)
+            {
+                Assert.Equal(EntityFilters.All, full.EntityFilters);
+                Assert.Equal(Guid.Empty, full.MetadataId);
+                var source = Entities.Single(entity => entity.LogicalName == full.LogicalName);
+                var serializer = new DataContractSerializer(typeof(EntityMetadata));
+                using var stream = new MemoryStream();
+                serializer.WriteObject(stream, source);
+                stream.Position = 0;
+                var detached = Assert.IsType<EntityMetadata>(serializer.ReadObject(stream));
+                SetResponse(detached, "OneToManyRelationships", detached.OneToManyRelationships ?? Array.Empty<OneToManyRelationshipMetadata>());
+                SetResponse(detached, "ManyToOneRelationships", detached.ManyToOneRelationships ?? Array.Empty<OneToManyRelationshipMetadata>());
+                SetResponse(detached, "ManyToManyRelationships", detached.ManyToManyRelationships ?? Array.Empty<ManyToManyRelationshipMetadata>());
+                SetResponse(detached, "Privileges", detached.Privileges ?? Array.Empty<SecurityPrivilegeMetadata>());
+                return new RetrieveEntityResponse { Results = { ["EntityMetadata"] = detached } };
+            }
             if (request is RetrieveAllEntitiesRequest { RetrieveAsIfPublished: false } && MissingPublishedField)
             {
                 var response = (RetrieveAllEntitiesResponse)base.Execute(request);
@@ -310,7 +334,17 @@ public sealed class SchemaEngineTests
                 ((LookupAttributeMetadata)field).Targets = new[] { createLookup.OneToManyRelationship.ReferencedEntity };
                 Assert.Contains(Entities, entity => entity.LogicalName == createLookup.OneToManyRelationship.ReferencedEntity);
                 AddField(createLookup.OneToManyRelationship.ReferencingEntity, field);
-                return new CreateOneToManyResponse { Results = { ["AttributeId"] = field.MetadataId!.Value, ["RelationshipId"] = Guid.NewGuid() } };
+                var relationship = createLookup.OneToManyRelationship;
+                relationship.ReferencingAttribute = field.LogicalName;
+                relationship.MetadataId = Guid.NewGuid();
+                SetResponse(relationship, "IsManaged", false);
+                var referencing = Entities.Single(entity => entity.LogicalName == relationship.ReferencingEntity);
+                var referenced = Entities.Single(entity => entity.LogicalName == relationship.ReferencedEntity);
+                SetResponse(referencing, "ManyToOneRelationships",
+                    (referencing.ManyToOneRelationships ?? Array.Empty<OneToManyRelationshipMetadata>()).Append(relationship).ToArray());
+                SetResponse(referenced, "OneToManyRelationships",
+                    (referenced.OneToManyRelationships ?? Array.Empty<OneToManyRelationshipMetadata>()).Append(relationship).ToArray());
+                return new CreateOneToManyResponse { Results = { ["AttributeId"] = field.MetadataId!.Value, ["RelationshipId"] = relationship.MetadataId.Value } };
             }
             if (request is UpdateAttributeRequest audit)
             {
@@ -339,6 +373,7 @@ public sealed class SchemaEngineTests
             {
                 BeforeWrite(); Assert.Equal("SpeechMessageCore", createKey.SolutionUniqueName); KeyCreates++;
                 var key = createKey.EntityKey; key.MetadataId = Guid.NewGuid(); key.LogicalName = key.SchemaName;
+                SetResponse(key, "IsManaged", false);
                 SetResponse(key, "EntityKeyIndexStatus", PendingKey ? EntityKeyIndexStatus.Pending : EntityKeyIndexStatus.Active);
                 var entity = Entities.Single(entity => entity.LogicalName == createKey.EntityName);
                 Assert.All(key.KeyAttributes, name => Assert.Contains(entity.Attributes, field => field.LogicalName == name));
@@ -371,6 +406,31 @@ public sealed class SchemaEngineTests
                 return new PublishXmlResponse();
             }
             return base.Execute(request);
+        }
+
+        /// <summary>
+        /// 此 metadata Store 沒有任何 UI 元件；仍嚴格驗兩種正式 UI 欄位／In 範圍與有界查詢，
+        /// 不把未知查詢統一回空集合。真正 UI pending／發布副作用由獨立 UiService 測試承擔。
+        /// </summary>
+        private EntityCollection EmptyUi(QueryExpression query)
+        {
+            Assert.True(query.EntityName is "systemform" or "savedquery");
+            Assert.False(query.ColumnSet.AllColumns);
+            var expected = query.EntityName == "systemform"
+                ? new[] { "formid", "objecttypecode", "name", "type", "formactivationstate", "ismanaged", "formxml" }
+                : new[] { "savedqueryid", "returnedtypecode", "name", "querytype", "isdefault", "statecode", "ismanaged", "fetchxml", "layoutxml" };
+            Assert.Equal(expected.Order(StringComparer.Ordinal), query.ColumnSet.Columns.Order(StringComparer.Ordinal));
+            Assert.Empty(query.LinkEntities);
+            Assert.Empty(query.Criteria.Filters);
+            var scope = Assert.Single(query.Criteria.Conditions);
+            Assert.Equal(query.EntityName == "systemform" ? "objecttypecode" : "returnedtypecode", scope.AttributeName);
+            Assert.Equal(ConditionOperator.In, scope.Operator);
+            Assert.InRange(scope.Values.Count, 1, 256);
+            Assert.All(scope.Values, value => Assert.Contains(Entities, entity => entity.LogicalName == Assert.IsType<string>(value)));
+            Assert.Equal(256, query.PageInfo.Count);
+            Assert.Equal(1, query.PageInfo.PageNumber);
+            Assert.Single(query.Orders);
+            return new EntityCollection();
         }
 
         /// <summary>每次SDK寫入前確認before snapshot已可完整讀取，證明stream已flush/close；原故障身份不包裝。</summary>

@@ -12,7 +12,7 @@ SDK 回應只留在目前同步投影；回傳快照只含字串、CLR 純值與
 不讀業務資料、不建快取或背景工作。每個 SDK 前後及逐節點檢查取消，呼叫返回才交外層處理。
 擁有權與驗證：service 與 transport timeout／組織寫鎖由外層命令 lease 擁有，本檔不保存或
 Dispose。匯入前拒絕既存 pending，匯入後同時拒絕 pending 與基準漂移；schema Apply 僅允許
-寫前完整 wire 候選加正式建立 ID 的一般欄位增量，不忽略新欄子樹或重新信任寫後來源。不能防止外部管理員在
+寫前完整 wire 候選加正式建立 ID 的欄位／雙端關聯／鍵／局部選項增量，不忽略新欄子樹或重新信任寫後來源。不能防止外部管理員在
 最後一次核對與發布之間寫入，組織維護仍須保持獨占。合成 SDK 測試不代表實機發布證據。
 */
 using System;
@@ -82,79 +82,175 @@ internal static class UiMetadataPublicationGuard
     }
 
     /// <summary>
-    /// 本次 Apply 唯一擁有的新欄增量候選及共用容量計數，不持有 SDK、stream 或取消註冊。
-    /// 全部欄位合計最多2048項、一百萬投影節點與64MiB純值文字；方法返回後由命令區域回收。
+    /// 本次 Apply 唯一擁有的寫前增量與共用容量計數；只保存純值，不持有 SDK 或取消註冊。
+    /// 最多2048個候選、6144個新增原子樹；完整投影共用一百萬節點／64MiB預算，命令結束即回收。
     /// </summary>
     internal sealed class SchemaDelta
     {
         private readonly ProjectionBudget budget = new();
-        private readonly List<AttributeAddition> additions = new();
+        private readonly List<NodeAddition> additions = new();
+        private int captures;
 
-        /// <summary>只供完整護欄同步讀取；呼叫端不能取得可變集合或跨命令保存。</summary>
-        internal IReadOnlyList<AttributeAddition> Additions => additions.AsReadOnly();
+        /// <summary>完整護欄同步消費的唯讀視圖，不能交背景工作或當下一命令的基準。</summary>
+        internal IReadOnlyList<NodeAddition> Additions => additions.AsReadOnly();
 
-        /// <summary>
-        /// 在 SDK 寫入前複製一般新欄的完整 wire 純值；所有欄共用預算，不能逐欄重設上限。
-        /// 正式 ID 只能由建立回應另行綁定；不保留 request 參照，也不重設原完整基準。
-        /// </summary>
+        /// <summary>寫前脫離一般欄完整 wire 候選；不讀寫後來源，正式 ID 稍後由 SDK 回應綁定。</summary>
         internal AttributeAddition CaptureAttribute(string entity, AttributeMetadata attribute, CancellationToken ct)
         {
-            if (additions.Count >= 2048) throw Invalid();
-            var values = new Dictionary<string, Scalar>(StringComparer.Ordinal);
-            Project(attribute, "", values, budget, 0, ct);
-            return new AttributeAddition(entity, attribute.SchemaName, Guid.Empty,
-                new ReadOnlyDictionary<string, Scalar>(values));
+            Reserve(ct);
+            return new AttributeAddition(entity, attribute.SchemaName, Guid.Empty, Capture(attribute, ct));
         }
 
-        /// <summary>同步建立返回後僅綁定非空正式 ID；失敗或取消不添加候選，不接管 SDK 所有權。</summary>
-        internal void Add(AttributeAddition addition, Guid id)
+        /// <summary>一般欄同步建立成功後只綁非空正式 ID，完整舊基準與新欄成員都繼續受檢。</summary>
+        internal void Add(AttributeAddition addition, Guid id) => Append(new NodeAddition(addition.Entity,
+            "Attributes", Identity(id), Bind(addition.Values, id, addition.Name), 2048));
+
+        /// <summary>
+        /// 在 CreateOneToMany 前複製查閱與雙端關聯；Targets／ReferencingAttribute只由明列請求推導。
+        /// 不修改 request；新表指向舊表也捕捉，護欄只在最初已存在的端點疊加。
+        /// </summary>
+        internal LookupAddition CaptureLookup(string entity, LookupAttributeMetadata attribute,
+            OneToManyRelationshipMetadata relationship, CancellationToken ct)
         {
-            if (id == Guid.Empty || additions.Count >= 2048) throw Invalid();
-            additions.Add(addition with { Id = id });
+            var captured = CaptureAttribute(entity, attribute, ct);
+            if (relationship.ReferencingEntity != entity || string.IsNullOrWhiteSpace(relationship.ReferencedEntity)) throw Invalid();
+            var lookup = new Dictionary<string, Scalar>(captured.Values, StringComparer.Ordinal);
+            // 建立請求未帶 Targets 時，其唯一核准來源就是同一請求的 referenced entity。
+            if (attribute.Targets is not null && (attribute.Targets.Length != 1 || attribute.Targets[0] != relationship.ReferencedEntity)) throw Invalid();
+            lookup[".Targets"] = new Scalar("Collection", 1);
+            lookup[".Targets[text:" + relationship.ReferencedEntity + "]"] = new Scalar(typeof(string).FullName!, relationship.ReferencedEntity);
+            var relation = new Dictionary<string, Scalar>(Capture(relationship, ct), StringComparer.Ordinal);
+            if (relationship.ReferencingAttribute is not null && relationship.ReferencingAttribute != attribute.SchemaName) throw Invalid();
+            relation[".ReferencingAttribute"] = new Scalar(typeof(string).FullName!, attribute.SchemaName);
+            return new LookupAddition(captured with { Values = new ReadOnlyDictionary<string, Scalar>(lookup) },
+                relationship.ReferencedEntity, new ReadOnlyDictionary<string, Scalar>(relation));
+        }
+
+        /// <summary>僅依正式回應綁定 lookup 與 relationship 身分；自我關聯仍保留兩個不同集合的完整原子樹。</summary>
+        internal void AddLookup(LookupAddition candidate, Guid attributeId, Guid relationshipId)
+        {
+            _ = Identity(attributeId); _ = Identity(relationshipId);
+            Add(candidate.Attribute, attributeId);
+            var relation = Bind(candidate.Relationship, relationshipId, null);
+            Append(new NodeAddition(candidate.Attribute.Entity, "ManyToOneRelationships", Identity(relationshipId), relation, 4096));
+            Append(new NodeAddition(candidate.ReferencedEntity, "OneToManyRelationships", Identity(relationshipId), relation, 4096));
+        }
+
+        /// <summary>新鍵寫前複製全部欄位與標籤；沒有正式 ID 或索引結果的 request 不授權其他回應預設。</summary>
+        internal KeyAddition CaptureKey(string entity, EntityKeyMetadata key, CancellationToken ct)
+        {
+            Reserve(ct);
+            return new KeyAddition(entity, key.SchemaName, Capture(key, ct));
+        }
+
+        /// <summary>正式新鍵唯一例外為已明列的非同步索引狀態；Failed／未知值在比較時一律拒絕。</summary>
+        internal void AddKey(KeyAddition candidate, Guid id) => Append(new NodeAddition(candidate.Entity,
+            "Keys", Identity(id), Bind(candidate.Values, id, candidate.Name), 32, true));
+
+        /// <summary>捕捉局部選項的穩定 Value 與完整 Label／其他 wire 成員；父欄由原基準正式身份解析。</summary>
+        internal OptionAddition CaptureOption(string entity, string attribute, OptionMetadata option, CancellationToken ct)
+        {
+            Reserve(ct);
+            if (option.Value is null) throw Invalid();
+            return new OptionAddition(entity, attribute, option.Value.Value, Capture(option, ct));
+        }
+
+        /// <summary>呼叫者先核對 InsertOptionValueResponse.NewOptionValue，再加入原基準局部選項的精確增量。</summary>
+        internal void AddOption(OptionAddition candidate) => Append(new NodeAddition(candidate.Entity,
+            "OptionSet.Options", "option:" + candidate.Value.ToString(CultureInfo.InvariantCulture), candidate.Values, 4096,
+            AttributeName: candidate.Attribute));
+
+        /// <summary>每候選共用數量與取消邊界；不因捕捉未加入而重設記憶體預算。</summary>
+        private void Reserve(CancellationToken ct)
+        {
+            ct.ThrowIfCancellationRequested();
+            if (++captures > 2048) throw Invalid();
+        }
+
+        /// <summary>SDK 物件僅同步投影，不保存來源；未知 wire／容量／取消直接保留原拒絕。</summary>
+        private ReadOnlyDictionary<string, Scalar> Capture(object value, CancellationToken ct)
+        {
+            var values = new Dictionary<string, Scalar>(StringComparer.Ordinal);
+            Project(value, "", values, budget, 0, ct);
+            return new ReadOnlyDictionary<string, Scalar>(values);
+        }
+
+        /// <summary>只允許建立成功的正式身分與 unmanaged／logical name，其他 scalar 不從寫後來源採信。</summary>
+        private static ReadOnlyDictionary<string, Scalar> Bind(IReadOnlyDictionary<string, Scalar> values, Guid id, string? name)
+        {
+            _ = Identity(id);
+            var bound = new Dictionary<string, Scalar>(values, StringComparer.Ordinal)
+            {
+                [".MetadataId"] = new Scalar(typeof(Guid).FullName!, id),
+                [".IsManaged"] = new Scalar(typeof(bool).FullName!, false)
+            };
+            if (name is not null)
+            {
+                if (string.IsNullOrWhiteSpace(name)) throw Invalid();
+                bound[".LogicalName"] = new Scalar(typeof(string).FullName!, name);
+            }
+            return new ReadOnlyDictionary<string, Scalar>(bound);
+        }
+
+        /// <summary>原子樹數量亦有上限；未採用全域或跨組織可變狀態。</summary>
+        private void Append(NodeAddition addition)
+        {
+            if (additions.Count >= 6144) throw Invalid();
+            additions.Add(addition);
         }
     }
 
     /// <summary>
-    /// 只在原完整純值基準上加上本輪明列的新欄及精確集合增量；所有舊節點仍逐項比較。
-    /// published 可尚未含新欄，unpublished 必須完整包含；已存在於任一來源的新欄都要符合
-    /// 寫前 wire 全值及 SDK 回傳 ID。未知 server 預設亦拒絕，不能略過整個新欄子樹。
-    /// 候選字典最多一百萬節點；新增投影另受64MiB預算，沒有每欄複製整張表的平方成本。
+    /// 在原純值基準加精確新原子樹；每個舊節點仍逐項核對，不把整張寫後表當新基準。
+    /// published 可缺本次新增，unpublished 必須有；不存在的基準端點是本次新表，不新增 RetrieveEntity。
+    /// 父欄索引只掃基準一次，避免每個選項重新遍歷整份 metadata 的平方成本。
     /// </summary>
-    private static Dictionary<string, Scalar> WithAdditions(Snapshot baseline, IReadOnlyList<AttributeAddition> additions,
+    private static Dictionary<string, Scalar> WithAdditions(Snapshot baseline, IReadOnlyList<NodeAddition> additions,
         Dictionary<string, Scalar> actual, bool requireAll, CancellationToken ct)
     {
-        if (additions.Count > 2048) throw Invalid();
         var expected = new Dictionary<string, Scalar>(baseline.Values, StringComparer.Ordinal);
+        var fields = new Dictionary<(string Entity, string Attribute), string>();
+        foreach (var pair in baseline.Values)
+        {
+            ct.ThrowIfCancellationRequested();
+            const string middle = ".Attributes[id:";
+            var split = pair.Key.IndexOf(middle, StringComparison.Ordinal);
+            if (split > 0 && pair.Key.EndsWith("].LogicalName", StringComparison.Ordinal) && pair.Value.Value is string name)
+                if (!fields.TryAdd((pair.Key[..split], name), pair.Key[..^12])) throw Invalid();
+        }
         var budget = new ProjectionBudget();
-        var identities = new HashSet<Guid>();
+        var identities = new HashSet<string>(StringComparer.Ordinal);
         foreach (var addition in additions)
         {
             ct.ThrowIfCancellationRequested();
-            if (addition.Id == Guid.Empty || !identities.Add(addition.Id) || string.IsNullOrWhiteSpace(addition.Name))
+            if (!baseline.Values.ContainsKey(addition.Entity)) continue;
+            var collection = addition.Entity + "." + addition.Collection;
+            if (addition.AttributeName is not null)
+            {
+                if (!fields.TryGetValue((addition.Entity, addition.AttributeName), out var parent)) throw Invalid();
+                collection = parent + "." + addition.Collection;
+            }
+            var root = collection + "[" + addition.Identity + "]";
+            if (!identities.Add(root) || baseline.Values.ContainsKey(root) ||
+                !expected.TryGetValue(collection, out var count) || count.Type != "Collection" || count.Value is not int size || size >= addition.Maximum)
                 throw Invalid();
-            var collection = addition.Entity + ".Attributes";
-            var root = collection + "[id:" + addition.Id.ToString("D") + "]";
-            if (!baseline.Values.TryGetValue(collection, out var oldCount) || oldCount is not { Type: "Collection", Value: int } ||
-                baseline.Values.ContainsKey(root)) throw Invalid();
             if (!actual.ContainsKey(root))
             {
                 if (requireAll) throw Invalid();
                 continue;
             }
-            var count = expected[collection];
-            if (count.Value is not int size || size >= 2048) throw Invalid();
             expected[collection] = new Scalar("Collection", size + 1);
             foreach (var pair in addition.Values)
             {
                 ct.ThrowIfCancellationRequested();
-                // 只補 SDK 建立完成的正式身份與固定 unmanaged 旗標；其餘可寫／唯讀成員均保持原投影。
-                var value = pair.Key switch
+                var value = pair.Value;
+                if (addition.IsKey && pair.Key == ".EntityKeyIndexStatus")
                 {
-                    ".MetadataId" => new Scalar(typeof(Guid).FullName!, addition.Id),
-                    ".LogicalName" => new Scalar(typeof(string).FullName!, addition.Name),
-                    ".IsManaged" => new Scalar(typeof(bool).FullName!, false),
-                    _ => pair.Value
-                };
+                    // 官方 enum 僅 Pending=0／InProgress=1／Active=2；不是任意寫後狀態豁免。
+                    if (!actual.TryGetValue(root + pair.Key, out var status) || status.Type != typeof(EntityKeyIndexStatus).FullName ||
+                        status.Value is not long number || number is < 0 or > 2) throw Invalid();
+                    value = status;
+                }
                 Put(root + pair.Key, value, expected, budget);
                 if (expected.Count > 1_000_000) throw Invalid();
             }
@@ -162,11 +258,20 @@ internal static class UiMetadataPublicationGuard
         return expected;
     }
 
-    /// <summary>
-    /// 本命令新欄的純值核准差異；Values 在 SDK 入場前脫離 request，Id 僅來自正式回應。
-    /// 不授權 lookup／key／option 或其他子樹；未表達的 schema 差異由完整比較拒絕而非自動略過。
-    /// </summary>
+    /// <summary>正式 metadata 原子樹身分；不允許空 ID 或暫時 request token 取代。</summary>
+    private static string Identity(Guid id) => id != Guid.Empty ? "id:" + id.ToString("D") : throw Invalid();
+
+    /// <summary>寫前一般欄純值；ID 僅可取本次正式 SDK 回應，不包含來源 SDK 參照。</summary>
     internal sealed record AttributeAddition(string Entity, string Name, Guid Id, IReadOnlyDictionary<string, Scalar> Values);
+    /// <summary>查閱與兩端關聯同一次請求的純值候選；不授權未知 cascade 或額外 server 預設。</summary>
+    internal sealed record LookupAddition(AttributeAddition Attribute, string ReferencedEntity, IReadOnlyDictionary<string, Scalar> Relationship);
+    /// <summary>替代鍵寫前純值與明列邏輯名；正式 ID／合法非同步狀態於比較時獨立驗證。</summary>
+    internal sealed record KeyAddition(string Entity, string Name, IReadOnlyDictionary<string, Scalar> Values);
+    /// <summary>局部選項只認穩定 Value 與完整 wire 值，不以顯示名刪除／合併任何舊值。</summary>
+    internal sealed record OptionAddition(string Entity, string Attribute, int Value, IReadOnlyDictionary<string, Scalar> Values);
+    /// <summary>命令區域的封閉原子樹；父集合與身份明列，唯一動態狀態例外是本次新鍵。</summary>
+    internal sealed record NodeAddition(string Entity, string Collection, string Identity, IReadOnlyDictionary<string, Scalar> Values,
+        int Maximum, bool IsKey = false, string? AttributeName = null);
 
     /// <summary>依實體名稱完整讀取 metadata，前後檢查 caller 取消；缺少必要集合不能視為空且一致。</summary>
     private static void Read(IOrganizationService service, string name, bool unpublished,

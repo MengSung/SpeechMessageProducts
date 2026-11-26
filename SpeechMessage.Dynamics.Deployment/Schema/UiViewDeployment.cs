@@ -16,6 +16,7 @@ XML 單欄最多一 MiB、完整盤點總計十六 MiB；兩來源正式型別�
 檢視 XML 的主鍵與物件類型來自本次正式 metadata，不能硬編 account 的物件類型給自訂表。
 表單 formactivationstate 依官方 Picklist 契約只接受 SDK OptionSetValue，再複製其數值；
 缺值、null 或其他型別整份拒絕，不以整數拆箱、文字轉換或預設狀態掩蓋不完整回應。
+沒有views的schema發布亦用相同雙來源盤點，既有UI逐來源對寫前基準核對，新表僅捕捉本次建立後的原生元件。
 發布由外層結構引擎持同一寫鎖完成；本檔回傳本次擁有的正式 ID，不呼叫 PublishAllXml。
 驗證方式：公開命令與 UI 故障測試驗零差異重跑、指紋漂移、未發布表單、部分建立失敗與重讀；
 所有合成證據均屬離線，真實已發布結果仍須 Live3P SDK 讀回。
@@ -47,7 +48,7 @@ internal sealed record UiViewState(Guid Id, string Type, string Entity, string N
 
 /// <summary>一次盤點的完整純值範圍；沒有連線、lease、request 或背景工作所有權。</summary>
 internal sealed record UiViewScope(Guid SolutionId, string SolutionVersion, Guid PublisherId,
-    IReadOnlyList<Guid> IncludedIds, IReadOnlyList<UiViewState> Published, IReadOnlyList<UiViewState> Unpublished);
+    IReadOnlyList<Guid> IncludedIds, IReadOnlyList<UiViewState> Published, IReadOnlyList<UiViewState> Unpublished, long XmlBytes = 0);
 
 /// <summary>FS 公用檢視 SDK 邊界；所有 mutable 候選均隨單一命令釋放，不跨使用者或組織重用。</summary>
 internal static class UiViewDeployment
@@ -55,6 +56,7 @@ internal static class UiViewDeployment
     internal const string SolutionName = "SpeechMessagePlatformUi";
     private const string Version = "1.0.0.0";
     private const int MaximumPages = 16;
+    private static readonly string[] ComponentTypes = { "systemform", "savedquery" };
     private const int MaximumCookieBytes = 16 * 1024;
     private static readonly string[] ViewColumns =
         { "savedqueryid", "returnedtypecode", "name", "querytype", "isdefault", "statecode", "ismanaged", "fetchxml", "layoutxml" };
@@ -217,6 +219,74 @@ internal static class UiViewDeployment
         }
     }
 
+    /// <summary>
+    /// 只讀實際發布表的兩來源 UI，不要求 view 計畫或平台方案／產品對照；保留 legacy schema 命令。
+    /// 與 UI 部署共用同一嚴格分頁、正式身份、型別及 XML 容量驗證，空範圍不送查詢。
+    /// </summary>
+    internal static UiViewScope ReadPublicationScope(IOrganizationService service, IEnumerable<string> names, CancellationToken ct)
+    {
+        var entities = names.Order(StringComparer.Ordinal).ToArray();
+        if (entities.Length > 256 || entities.Distinct(StringComparer.Ordinal).Count() != entities.Length ||
+            entities.Any(name => string.IsNullOrWhiteSpace(name) || name.Length > 128 ||
+                !name.All(character => char.IsAsciiLetterOrDigit(character) || character == '_')))
+            throw new InvalidDataException("Invalid UI publication entity scope.");
+        var published = new List<UiViewState>();
+        var unpublished = new List<UiViewState>();
+        long bytes = 0;
+        foreach (var type in ComponentTypes)
+        {
+            if (entities.Length == 0) break;
+            var query = new QueryExpression(type) { ColumnSet = new ColumnSet(type == "savedquery" ? ViewColumns : FormColumns) };
+            query.Criteria.AddCondition(type == "savedquery" ? "returnedtypecode" : "objecttypecode", ConditionOperator.In, entities.Cast<object>().ToArray());
+            published.AddRange(ReadRows(service, query, false, ct, ref bytes).Select(row => Project(row, entities)));
+            unpublished.AddRange(ReadRows(service, query, true, ct, ref bytes).Select(row => Project(row, entities)));
+        }
+        return new UiViewScope(Guid.Empty, "", Guid.Empty, Array.Empty<Guid>(), published.AsReadOnly(), unpublished.AsReadOnly(), bytes);
+    }
+
+    /// <summary>
+    /// 新表建立後立即捕捉其原生 UI，再加入同命令基準；累計最多每型別4096列、16MiB XML。
+    /// 只合併已通過嚴格讀取的純值，不從發布前任意新元件擴張允許集合，沒有跨命令快取。
+    /// </summary>
+    internal static UiViewScope AppendPublicationScope(UiViewScope baseline, UiViewScope native)
+    {
+        if (native.XmlBytes > 16 * 1_048_576L - baseline.XmlBytes ||
+            ComponentTypes.Any(type =>
+                baseline.Published.Count(row => row.Type == type) + native.Published.Count(row => row.Type == type) > 4096 ||
+                baseline.Unpublished.Count(row => row.Type == type) + native.Unpublished.Count(row => row.Type == type) > 4096))
+            throw new InvalidDataException("UI publication baseline exceeds its bounded budget.");
+        return baseline with { Published = baseline.Published.Concat(native.Published).ToArray(),
+            Unpublished = baseline.Unpublished.Concat(native.Unpublished).ToArray(), XmlBytes = baseline.XmlBytes + native.XmlBytes };
+    }
+
+    /// <summary>
+    /// 無 UI 計畫沒有修改既有 UI 的權限；兩來源各對首寫前基準逐 ID／hash 比較，
+    /// 即使兩來源同時漂移亦拒絕。新表只允許建立回應後立即擷取的原生 UI 精確內容。
+    /// </summary>
+    internal static void CheckUnchangedPublicationScope(UiViewScope baseline, UiViewScope current, CancellationToken ct)
+    {
+        CheckRows(baseline.Published, current.Published);
+        CheckRows(baseline.Unpublished, current.Unpublished);
+
+        // 每個來源只掃一次，避免每列對完整集合執行 Single 的平方成本。
+        void CheckRows(IReadOnlyList<UiViewState> before, IReadOnlyList<UiViewState> after)
+        {
+            var values = new Dictionary<(string Type, Guid Id), string>();
+            foreach (var row in before)
+            {
+                ct.ThrowIfCancellationRequested();
+                if (!values.TryAdd((row.Type, row.Id), row.Hash)) throw new InvalidDataException("Duplicate UI baseline identity.");
+            }
+            if (before.Count != after.Count) throw new InvalidDataException("UI publication scope changed during schema apply.");
+            foreach (var row in after)
+            {
+                ct.ThrowIfCancellationRequested();
+                if (!values.Remove((row.Type, row.Id), out var hash) || hash != row.Hash)
+                    throw new InvalidDataException("Unapproved UI changed during schema apply.");
+            }
+        }
+    }
+
     /// <summary>完整讀取已存在受管實體的 UI 定義及平台方案元件；不存在的新表不送出無效 objecttype 查詢。</summary>
     internal static UiViewScope ReadScope(IOrganizationService service, SchemaDefinition definition, SchemaSnapshot metadata,
         CancellationToken ct, bool publishedOnly = false)
@@ -226,7 +296,7 @@ internal static class UiViewDeployment
         var published = new List<UiViewState>();
         var unpublished = new List<UiViewState>();
         long xmlBytes = 0;
-        foreach (var type in new[] { "systemform", "savedquery" })
+        foreach (var type in ComponentTypes)
         {
             if (entities.Length == 0) break;
             var query = new QueryExpression(type) { ColumnSet = new ColumnSet(type == "savedquery" ? ViewColumns : FormColumns) };
@@ -263,7 +333,7 @@ internal static class UiViewDeployment
         return new UiViewScope(solution?.Id ?? Guid.Empty, solution?.GetAttributeValue<string>("version") ?? "",
             solution?.GetAttributeValue<EntityReference>("publisherid")?.Id ?? Guid.Empty,
             Array.AsReadOnly(includedIds.Order().ToArray()), published.OrderBy(row => row.Type, StringComparer.Ordinal).ThenBy(row => row.Id).ToArray(),
-            unpublished.OrderBy(row => row.Type, StringComparer.Ordinal).ThenBy(row => row.Id).ToArray());
+            unpublished.OrderBy(row => row.Type, StringComparer.Ordinal).ThenBy(row => row.Id).ToArray(), xmlBytes);
     }
 
     /// <summary>

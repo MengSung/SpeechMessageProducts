@@ -1,7 +1,7 @@
 /*
 檔案整體說明
 目的與定位：P5-03b 畫面元件離線封裝器，為 Deployment CLI 的 UI 匯出／匯入流程提供有界 ZIP 候選驗證與 D26 表單篩選。
-主要功能與流程：以記憶體建立單次候選，嚴格驗證 ZIP 成員路徑、大小、重複身分、方案唯一名稱與未受管理狀態；最多 128 成員、每成員 8MiB、累計解壓及 ZIP 輸出各 16MiB。解壓前先驗累計宣告長度，再以固定陣列核對實際內容；封裝先驗整體輸入，每次寫入含 ZIP 標頭與中央目錄都受硬上限約束。解析 customizations.xml 時移除 account／contact 的 FormXml，但保留其檢視與其他非表單元件；XML 輸出亦受單檔上限與最終累計預算約束。
+主要功能與流程：以記憶體建立單次候選，嚴格驗證 ZIP 成員路徑、大小、重複身分、方案唯一名稱、未受管理狀態與 RootComponent UI 元件型別白名單；只接受 Entity 外殼（最終匯入內容必須 behavior=2）、檢視、表單及 Web Resource，未知元件與非 shell Entity 根元件在 ImportSolution 前拒絕。最多 128 成員、每成員 8MiB、累計解壓及 ZIP 輸出各 16MiB。解壓前先驗累計宣告長度，再以固定陣列核對實際內容；封裝先驗整體輸入，每次寫入含 ZIP 標頭與中央目錄都受硬上限約束。解析 customizations.xml 時移除 account／contact 的 FormXml，但保留其檢視與其他非表單元件；XML 輸出亦受單檔上限與最終累計預算約束。
 信任邊界與資源擁有權：輸入 ZIP、XML 與每個 byte array 只屬本次 operation，不跨命令快取、不保存使用者／組織／憑證資料。所有 stream、ZipArchive、XmlReader 由本方法同步擁有並在返回前釋放；候選完成前不發布任何部分輸出，大小超限、越界、重複、DTD 或格式錯誤皆 fail closed。
 適用範圍與驗證：本檔只處理固定五項白名單的離線未受管理 UI 解決方案，不宣稱已連線匯出、匯入或發布；UiSolutionArchiveTests 以合成 XML、惡意路徑、多成員壓縮資料、配置量及真 ZIP 往返驗證，不把資源預算誤稱整個程序的記憶體上限。
 */
@@ -226,7 +226,64 @@ internal static class UiSolutionArchive
         if (!string.Equals(manifest.Element("UniqueName")?.Value, solutionName, StringComparison.Ordinal) ||
             !string.Equals(manifest.Element("Managed")?.Value, "0", StringComparison.Ordinal))
             throw InvalidArchive();
+        ValidateRootComponents(document, manifest, requireEntityShellOnly: false);
     }
+
+    /// <summary>
+    /// 匯入會把整個 ZIP 交給 Dataverse，不能只核對稍後用於發布的表單／檢視範圍。
+    /// 僅接受本工具 UI 方案契約中的 Entity (1)、Saved Query (26)、System Form (60)
+    /// 與 Web Resource (61)；其餘元件型別可能擴大到 Plugin、流程或其他未審部署面，故在 SDK 前拒絕。
+    /// 初次檢查先限制型別及穩定 schema name／GUID 身分；D26 篩選後再次要求 Entity behavior=2
+    /// （shell only），避免完整或僅根元件行為把未審 schema 一併匯入。候選只存於本次同步呼叫。
+    /// </summary>
+    private static void ValidateRootComponents(
+        XDocument document,
+        XElement manifest,
+        bool requireEntityShellOnly)
+    {
+        var containers = manifest.Elements("RootComponents").ToArray();
+        if (containers.Length > 1)
+            throw InvalidArchive();
+
+        var container = containers.SingleOrDefault();
+        var roots = container?.Elements("RootComponent").ToArray() ?? Array.Empty<XElement>();
+        var allRoots = document.Descendants("RootComponent").ToArray();
+        if (allRoots.Length != roots.Length ||
+            (container is not null && container.Elements().Any(element => element.Name != "RootComponent")) ||
+            roots.Any(root => !ReferenceEquals(root.Parent, container)))
+            throw InvalidArchive();
+        var identities = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        foreach (var root in roots)
+        {
+            var type = (string?)root.Attribute("type");
+            string identity;
+            if (type == "1")
+            {
+                var schemaName = (string?)root.Attribute("schemaName");
+                if (string.IsNullOrWhiteSpace(schemaName) ||
+                    (requireEntityShellOnly && !string.Equals(
+                        (string?)root.Attribute("behavior"),
+                        "2",
+                        StringComparison.Ordinal)))
+                    throw InvalidArchive();
+                identity = "1:" + schemaName;
+            }
+            else if (type is "26" or "60" or "61")
+            {
+                if (!Guid.TryParse((string?)root.Attribute("id"), out var id) || id == Guid.Empty)
+                    throw InvalidArchive();
+                identity = type + ":" + id.ToString("N");
+            }
+            else
+            {
+                throw InvalidArchive();
+            }
+
+            if (!identities.Add(identity))
+                throw InvalidArchive();
+        }
+    }
+
 
     /// <summary>保留共用實體非表單元件，只移除 D26 禁止打包的 FormXml 節點。</summary>
     private static byte[] FilterSharedForms(byte[] bytes)
@@ -258,7 +315,7 @@ internal static class UiSolutionArchive
         return Serialize(document);
     }
 
-    /// <summary>同步移除共用表單的 type 60 根參照，避免只刪 XML 而留下不可匯入的孤立元件。</summary>
+    /// <summary>移除共用表單 type 60 根參照並將必要 Entity root 限為 behavior=2；任何最終非 shell Entity 在 ImportSolution 前拒絕。</summary>
     private static byte[] FilterSharedFormRoots(byte[] solutionBytes, byte[] customizationsBytes)
     {
         var customizations = ParseXml(customizationsBytes);
@@ -267,20 +324,25 @@ internal static class UiSolutionArchive
             .Select(entity => entity.Element("FormXml")?.Descendants("formid").SingleOrDefault()?.Value.Trim())
             .Where(value => !string.IsNullOrWhiteSpace(value))
             .ToHashSet(StringComparer.OrdinalIgnoreCase);
-        if (removedFormIds.Count == 0)
-            return solutionBytes;
 
         var solution = ParseXml(solutionBytes);
-        foreach (var component in solution.Descendants("RootComponent")
-            .Where(component => string.Equals((string?)component.Attribute("type"), "1", StringComparison.Ordinal))
-            .Where(component => (string?)component.Attribute("schemaName") is "account" or "contact"))
-            component.SetAttributeValue("behavior", "2");
-        foreach (var component in solution.Descendants("RootComponent")
-            .Where(component => string.Equals((string?)component.Attribute("type"), "60", StringComparison.Ordinal))
-            .Where(component => removedFormIds.Contains((string?)component.Attribute("id") ?? string.Empty))
-            .ToArray())
-            component.Remove();
-        return Serialize(solution);
+        var manifest = solution.Descendants("SolutionManifest").SingleOrDefault()
+            ?? throw InvalidArchive();
+        if (removedFormIds.Count != 0)
+        {
+            foreach (var component in solution.Descendants("RootComponent")
+                .Where(component => string.Equals((string?)component.Attribute("type"), "1", StringComparison.Ordinal))
+                .Where(component => (string?)component.Attribute("schemaName") is "account" or "contact"))
+                component.SetAttributeValue("behavior", "2");
+            foreach (var component in solution.Descendants("RootComponent")
+                .Where(component => string.Equals((string?)component.Attribute("type"), "60", StringComparison.Ordinal))
+                .Where(component => removedFormIds.Contains((string?)component.Attribute("id") ?? string.Empty))
+                .ToArray())
+                component.Remove();
+        }
+
+        ValidateRootComponents(solution, manifest, requireEntityShellOnly: true);
+        return removedFormIds.Count == 0 ? solutionBytes : Serialize(solution);
     }
 
     /// <summary>以無 BOM、固定換行及每次寫入前的 8MiB 硬上限輸出 XML；逸出與換行擴張也不能擴大候選預算。</summary>
