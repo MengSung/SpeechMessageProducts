@@ -7,10 +7,10 @@
 window.PROGRESS_LANES = window.PROGRESS_LANES || {};
 window.PROGRESS_LANES.A = {
   lane: 'A',
-  lastUpdated: '2026-11-26T13:54:00+08:00',
+  lastUpdated: '2026-11-26T15:39:03+08:00',
   packages: {
     F0: { status: '完成（自動測試通過）', started: '2026-11-25 22:09', finished: '2026-11-26 00:24', commit: '74ea5a1c1ff723f6a64aeb73cadf69685021f528, a9e438be0d9fe13d8fe40d0c2e03e9558774e113', pending: '實機待補：核定三組織 IFD 端點；goodshepherd20 唯讀 metadata／資料筆數盤點', report: 'wp-reports/3P-F0-基線矩陣.md' },
-    F1: { status: '完成（自動測試通過）', started: '2026-11-26 00:24', finished: '2026-11-26 04:31', commit: 'bfb5f56b96ff7b2c9a185f9757248c5dd9a5368a, 79f5362a44659e68afc1c17727bc2a2a3f51ac69, b2cdcbb6d11521950dbece5a7432b29a0d8d5a7a, d82c7a7252fe8ad60e107f8753e06adb12d984a1', pending: '畫面目視待補', report: 'wp-reports/3P-F1-依賴方向修正.md' },
+    F1: { status: '完成（自動測試通過）', started: '2026-11-26 00:24', finished: '2026-11-26 15:39', commit: 'bfb5f56b96ff7b2c9a185f9757248c5dd9a5368a, 79f5362a44659e68afc1c17727bc2a2a3f51ac69, b2cdcbb6d11521950dbece5a7432b29a0d8d5a7a, d82c7a7252fe8ad60e107f8753e06adb12d984a1, f57fef11f342c9d823e6361a42ebae283c4e5a14, 421b6d29266668d07348d87aee0b98ae8b196e81', pending: 'Scheduling分類及QR必要補正已通過完整7943/7943、ClaudeOnly無Critical／High；真F4由線B同步驗證；畫面目視待補', report: 'wp-reports/3P-F1-依賴方向修正.md' },
     FS: { status: '進行中', started: '2026-11-26 04:31', finished: '', commit: '64b801dbb28c9d29c5fdd3613c417fb2bdd6442c', pending: '公開流程補正及完整守門待完成；實機待補：完整清冊、quiesce、三組織 plan/apply/verify、平台檢視表發布與 UI export/import。端點已自主核對，未執行 D365 寫入', report: 'wp-reports/3P-FS-結構分層與三組織佈署.md' },
     F3: { status: '未開始', started: '', finished: '', commit: '', pending: '等待線 B 的 F2 合併後開始', report: '' },
     F5: { status: '未開始', started: '', finished: '', commit: '', pending: '', report: '' },
@@ -19,6 +19,8 @@ window.PROGRESS_LANES.A = {
     M1: { status: '未開始', started: '', finished: '', commit: '', pending: '', report: '' },
   },
   log: [
+    '2026-11-26 15:39 Asia/Taipei (UTC+08:00)｜F1 Scheduling精確分類及QR必要補正：真鎖4 RED→GREEN、八輪152/152，正式完整一般7943/7943（Hosting270、QR141、LineWebhook143），Release建置65既有warning／0error，文件／編碼與28項進度頁檢查通過，ClaudeOnly無Critical／High；來源f57fef11／421b6d29。保留原7938／1失敗，現場外部owner仍未知；FS634e8d55尚未放行，線B同步驗F4；畫面目視待補。',
+    '2026-11-26 15:08 Asia/Taipei (UTC+08:00)｜F1 Scheduling精確分類34案25失敗／9通過→34/34，Release建置通過（65既有warning、0error），提交f57fef11；完整一般已有QR原子目錄搬移IOException，尚未通過守門與ClaudeOnly，不合併。FS保存完整本機634e8d55檢查點，實機及畫面目視待補仍保留。',
     '2026-11-26 13:54 Asia/Taipei (UTC+08:00)｜F1精確登錄F6共用LIFF為既有adapter層，28新合成案17 RED→28 GREEN、回歸98/98，全方案7769/7769（Hosting236、LineWebhook143）；建置65既有warning／0error，ClaudeOnly無Critical／High；程式提交d82c7a7252fe8ad60e107f8753e06adb12d984a1。未改線B，實際F6方案圖由線B同步驗證；FS仍在另一樹補正，畫面目視待補。',
     '2026-11-26 12:13 Asia/Taipei (UTC+08:00)｜F1 精確開放 F2 兩個完整公開 static 契約，32 項反例／正例 RED→GREEN；全方案 7658/7658（Hosting208、LineWebhook143），建置及文件／編碼通過，ClaudeOnly 無 Critical／High；提交 b2cdcbb6d11521950dbece5a7432b29a0d8d5a7a。FS 更正為進行中，公開流程與實機待補；畫面目視待補。',
     '2026-11-26 11:18 Asia/Taipei (UTC+08:00)｜F1 必要補正精確登錄 F2 新主機；8項正反例 RED→GREEN，全方案7626/7626（Hosting176、LineWebhook143）、Release建置通過（65個既有警告），ClaudeOnly無Critical／High；提交79f5362a44659e68afc1c17727bc2a2a3f51ac69。FS補正仍在另一暫存工作樹進行，既有FS完成紀錄須以後續更正為準。',
