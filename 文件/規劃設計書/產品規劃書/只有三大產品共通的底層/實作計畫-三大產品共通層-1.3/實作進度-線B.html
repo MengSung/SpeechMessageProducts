@@ -67,8 +67,8 @@ code{background:var(--tint);border-radius:4px;padding:0 4px}
 
 <p class="note">即時資料由 <code>%USERPROFILE%\.speechmessage\Update-3PLiveProgress.ps1</code> 產生（雙軌）：兩條線每完成一步會自動更新一次；你想看最新時，雙擊 <code>立即更新進度.cmd</code>（一次）或 <code>開始自動更新進度.cmd</code>（每分鐘，關視窗即停）。工作包狀態在每包合併時才更新。網頁只讀，不會影響 Codex。</p>
 </main>
-<script src="實作進度資料-線B.js"></script>
-<script src="file:///C:/ProgramData/SpeechMessage/lanes/live-B.js"></script>
+<script>document.write('<script src="實作進度資料-線B.js?t=' + Date.now() + '"><\/script>');</script>
+<script>document.write('<script src="file:///C:/ProgramData/SpeechMessage/lanes/live-B.js?t=' + Date.now() + '"><\/script>');</script>
 <script>
 'use strict';
 (function () {
