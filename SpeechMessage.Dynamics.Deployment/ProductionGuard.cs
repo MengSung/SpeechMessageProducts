@@ -2,6 +2,9 @@
 檔案整體說明
 目的與定位：部署CLI在任何命令分流及連線之前執行的正式組織關卡，不把白名單或plan雜湊當授權。
 主要流程：讀唯一org與production旗標，查catalog並拒絕測試專用命令，正式寫入再讀一行名稱確認。
+連線後邊界：goodshepherd20、construction、association 即使為 test，也必須由 SDK 讀回精確
+UniqueName 與非空 OrganizationId；正式組織維持原本不分大小寫的名稱比對，goodshepherdback
+保留既有免讀身分的回歸契約。伺服器身分只活到當次核對，不以 caller 名稱或 host 取代。
 資源與隔離：輸入reader由命令owner借入，僅消費確認行；最多256字元，真正stdin沿既有
 ChannelSecretInput的30秒總deadline與確定性釋放，不建立背景Task或保留文字到下一個命令。
 輸出只有本次不可變組織描述及移除已驗旗標的參數候選；不讀User Secrets、不連SDK、不輸出輸入。
@@ -58,15 +61,22 @@ internal static class ProductionGuard
             if (normalized[index] == "--org") normalized[index + 1] = organization.Name;
         return new OrganizationAuthorization(organization, normalized);
     }
-    /// <summary>正式連線後第一個只讀訊息核server正式ID及UniqueName；回錯目標不得繼續盤點或寫入，服務仍由外層lease釋放。</summary>
+    /// <summary>
+    /// 正式或三個新 test 組織連線後，以第一個唯讀訊息核對非空正式 ID 與目標名稱。
+    /// 新 test 名稱採 Ordinal 精確比較；production 保留 OrdinalIgnoreCase，goodshepherdback
+    /// 保留舊回歸免讀契約。SDK 前後均檢查 caller 取消，回錯目標不得繼續盤點或寫入；
+    /// 不保存回應或取得 service 所有權，所有失敗仍由外層 lease 確定性釋放。
+    /// </summary>
     internal static void VerifyServer(IOrganizationService service, OrganizationDefinition target, CancellationToken ct)
     {
-        if (target.Kind != "production") return;
+        var strictTest = target.Kind == "test" && target.Name is "goodshepherd20" or "construction" or "association";
+        if (target.Kind != "production" && !strictTest) return;
         ct.ThrowIfCancellationRequested();
         var response = service.Execute(new RetrieveCurrentOrganizationRequest());
         ct.ThrowIfCancellationRequested();
         if (response is not RetrieveCurrentOrganizationResponse { Detail: { } detail } || detail.OrganizationId == Guid.Empty ||
-            !string.Equals(detail.UniqueName, target.Name, StringComparison.OrdinalIgnoreCase)) throw new InvalidDataException("Server organization does not match the authorized target.");
+            !string.Equals(detail.UniqueName, target.Name, strictTest ? StringComparison.Ordinal : StringComparison.OrdinalIgnoreCase))
+            throw new InvalidDataException("Server organization does not match the authorized target.");
     }
     /// <summary>所有已知寫入列在同一處；後續新增命令須明確加入，不能用「非唯讀」猜測未知命令。</summary>
     internal static bool IsWrite(string[] args) => args.Length > 0 &&

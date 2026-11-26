@@ -3,16 +3,19 @@
  *
  * 目的與定位：DeploymentEngine 第二版清單的活動與具名映像註冊，與既有引擎共用
  * 本命令租約、白名單及核准計畫。輸入為已驗證清單，輸出為正式註冊 metadata。
- * 主要功能與流程：依正式組件／型別／步驟 lookup 找到唯一父列；具名映像保留原 ID
+ * 主要功能與流程：新三測試組織每次 plan／apply 先讀回精確 UniqueName 與非空正式 ID，
+ * 供主檔綁定核准計畫；不以 metadata 相同視為同組織。依正式組件／型別／步驟 lookup 找到唯一父列；具名映像保留原 ID
  * 更新，只刪除所屬步驟中清單已移除的映像。活動設定群組與顯示名稱，不建立步驟。
  * 使用邊界與維護：不讀業務記錄、不解析秘密、不取得 client 所有權；候選集合僅屬
  * 當次呼叫，無 static、快取、背景工作或獨立資源。任一身分衝突拒絕後續寫入；
- * plan 指紋與套用前備份由主檔負責，部分寫入失敗須由同一包的 rollback 還原。
+ * 身分回應只活到本次查核，legacy／production 不新增此讀取；plan 指紋、ID 比對與套用前備份
+ * 由主檔負責，部分寫入失敗須由同一包的 rollback 還原。
  */
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using Microsoft.Crm.Sdk.Messages;
 using Microsoft.Xrm.Sdk;
 using Microsoft.Xrm.Sdk.Query;
 using Microsoft.Xrm.Sdk.Messages;
@@ -23,6 +26,29 @@ namespace SpeechMessage.Dynamics.Deployment;
 /// <summary>同一命令核心的註冊分部，借用主檔的租約服務，不建立跨命令狀態。</summary>
 internal sealed partial class DeploymentEngine
 {
+    /// <summary>
+    /// 新三測試組織須由當次借入服務讀回 canonical UniqueName 與非空正式 ID，
+    /// plan 與 apply 各自重讀，不快取回應或跨命令重用身分；名稱採 Ordinal 精確比較。
+    /// legacy／production 回 null，保留既有序列化及外層 ProductionGuard 契約；
+    /// 此方法不取得服務所有權，失敗仍由命令 lease 擁有者釋放連線。
+    /// </summary>
+    /// <param name="organization">經 catalog 核准的組織名稱，不作為伺服器身分依據。</param>
+    /// <returns>新組織當次驗證的正式 ID；相容目標為 null。</returns>
+    /// <exception cref="InvalidDataException">SDK 回應缺失、正式 ID 為空或精確名稱不符。</exception>
+    private Guid? ReadRegistrationOrganizationId(string organization)
+    {
+        var target = catalog.Get(organization);
+        if (target.Kind != "test" || target.Name is not ("goodshepherd20" or "construction" or "association"))
+            return null;
+
+        if (service.Execute(new RetrieveCurrentOrganizationRequest()) is not RetrieveCurrentOrganizationResponse { Detail: { } detail } ||
+            detail.OrganizationId == Guid.Empty ||
+            !string.Equals(detail.UniqueName, target.Name, StringComparison.Ordinal))
+            throw new InvalidDataException("Server organization does not match the registration target.");
+
+        return detail.OrganizationId;
+    }
+
     /// <summary>
     /// 在規劃及套用前，以即時 metadata 核對 filters／images 的欄位存在性；不查業務記錄。
     /// 每個實體只在本次呼叫讀一次，集合上限四千欄；不快取到命令或組織之外。

@@ -6,6 +6,11 @@
  *
  * 主要功能與流程：先由catalog／ProductionGuard核定組織、旗標與正式寫入確認，再嚴格解析命令及檔案路徑；
  * 明確--schema或export-metadata轉交SchemaDeploymentCli，奉獻類別轉換則交OfferingMigrationCli；
+ * FS 的三個新產品組織以 plan／apply／verify --org 預設載入核定分層結構，不要求 Plugin DLL；
+ * 同三個動詞可加唯一 --registration 明確選取既有 Plugin 流程，與 --schema 互斥；
+ * goodshepherdback 的未帶 --schema 舊註冊命令保留原路由，避免新預設改變 1.5 行為。
+ * UI 方案名稱另與固定產品組織配對，錯配在連線及取鎖前拒絕，不能藉合法方案跨產品匯入。
+ * inventory 僅盤點精確 goodshepherd20 複本的管理 metadata 與伺服器聚合筆數，供 F0 分類使用；
  * 這兩條結構／資料遷移路徑均不需Plugin DLL，且各自嚴格驗證輸入、寫鎖與一次性SDK租約。
  * 奉獻轉換的--backup只對核准測試組織唯讀查詢必要舊欄，並以ID-only格式建立遷移前復原檔。
  * export-legacy 以有界唯讀查詢匯出安全 metadata 並回報啟用筆數，不需要清單或 DLL；
@@ -164,6 +169,19 @@ internal static partial class DeploymentCli
             return 0;
         }
 
+        var registrationMode = args.Contains("--registration", StringComparer.Ordinal);
+        if (registrationMode)
+        {
+            if (args[0] is not ("plan" or "apply" or "verify")
+                || args.Count(value => value == "--registration") != 1
+                || args.Any(value => value is "--schema" or "--switch-to" or "--plan-sha256"))
+            {
+                output.WriteLine("Registration mode arguments are invalid or conflict with schema mode.");
+                return 2;
+            }
+            args = args.Where(value => value != "--registration").ToArray();
+        }
+
         // 新命令先交專屬 parser；不能把 --schema 等未知參數誤導向其他部署路由。
         if (args[0] is "protect-token" or "assign-channel")
             return Channels.ChannelProvisioningCli.Run(args, target, connector, output, report,
@@ -176,13 +194,28 @@ internal static partial class DeploymentCli
             return Offerings.OfferingMigrationCli.Run(args, target, connector, output, report,
                 artifactRoot, writeLockTimeout, cancellationToken);
 
+        if (args[0] == "quiesce")
+            return RunQuiesce(args, target, connector, output, report, artifactRoot, writeLockTimeout, cancellationToken);
+
+        if (args[0] == "inventory")
+            return RunCloneInventory(args, target, connector, output, report, artifactRoot, cancellationToken);
+
         // P1結構命令不需要Plugin DLL；只在明確--schema或export-metadata時進新路由，舊P0語法與安全邊界保留。
-        if (args[0] == "export-metadata" || Array.IndexOf(args, "--schema") >= 0)
+        if (args[0] == "export-metadata" || Array.IndexOf(args, "--schema") >= 0 ||
+            args[0] is "plan" or "apply" or "verify" &&
+                target.Name is "goodshepherd20" or "construction" or "association" && !registrationMode)
             return Schema.SchemaDeploymentCli.Run(args, target, catalog, connector, output, report, artifactRoot, writeLockTimeout, cancellationToken);
 
         if (!TryParse(args, out var command))
         {
             output.WriteLine("Arguments are invalid or not supported.");
+            return 2;
+        }
+
+        if (command.Name is "ui-export" or "ui-import"
+            && !IsUiSolutionAllowedForOrganization(target.Name, command.Solution!))
+        {
+            output.WriteLine("UI solution does not belong to the selected organization.");
             return 2;
         }
 
@@ -670,6 +703,22 @@ internal static partial class DeploymentCli
         return true;
     }
 
+    /// <summary>
+    /// UI 名稱白名單不授予跨產品權限；平台方案只用於三個核定新組織，
+    /// 舊方案維持舊組織，其餘產品方案各只允許自己的精確組織名稱。
+    /// 純值判斷不連線、不存狀態，未知組織或方案一律拒絕。
+    /// </summary>
+    private static bool IsUiSolutionAllowedForOrganization(string organization, string solution) =>
+        solution switch
+        {
+            "SpeechMessageUi" => organization == "goodshepherdback",
+            "SpeechMessagePlatformUi" => organization is "goodshepherd20" or "construction" or "association",
+            "GoodShepherd2Ui" => organization == "goodshepherd20",
+            "GoodButlerUi" => organization == "construction",
+            "GoodGuildUi" => organization == "association",
+            _ => false
+        };
+
     /// <summary>以固定選項常值驗證集合，避免建立每次解析都配置的暫存陣列。</summary>
     /// <param name="seen">本次命令已出現的選項集合。</param>
     /// <param name="first">命令所需的第一個選項。</param>
@@ -787,6 +836,9 @@ internal static partial class DeploymentCli
         output.WriteLine("Production writes require the exact canonical organization name on the first stdin line (256 characters, 30 seconds total).");
         output.WriteLine("Production forbids smoke, shadow, switch --module, live-check and ui-export; Channel secret lines follow confirmation.");
         output.WriteLine("Commands: plan --org <name> | apply --org <name> --plan <file> | verify --org <name>");
+        output.WriteLine("          New product organizations default to schema layers; add --registration for Plugin plan/apply/verify.");
+        output.WriteLine("          quiesce --org <test-name> [--apply] (requires the F0 classification policy for apply)");
+        output.WriteLine("          inventory --org goodshepherd20 (metadata and server aggregate counts only)");
         output.WriteLine("          plan --org <name> --switch-to off|shadow|live");
         output.WriteLine("          switch --org <name> --plan <switch-plan.json> --plan-sha256 <sha256>");
         output.WriteLine("          verify --org <name> --plan <switch-plan.json> | rollback --org <name> --from <switch-log.json>");

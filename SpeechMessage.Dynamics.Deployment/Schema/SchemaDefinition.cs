@@ -54,6 +54,7 @@ internal sealed record SchemaEntity
     /// 新實體建立時一次決定的 Dataverse 擁有權；legacy schema 可為 null 以維持舊 canonical hash，
     /// 但分層組合載入的新實體會在發布前拒絕缺漏。
     /// </summary>
+    [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
     public string? OwnershipType { get; init; }
     /// <summary>有值才要求明確樂觀並行政策；SDK此回應欄唯讀，新自訂表使用server預設true並於建立後核對，不能假造setter。</summary>
     public bool? OptimisticConcurrency { get; init; }

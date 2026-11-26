@@ -1,34 +1,41 @@
 # P0-2⓪ goodshepherd20 唯讀盤點
 
-更新：2026-11-25 23:17 Asia/Taipei (UTC+08:00)
-工作包：F0 Step 3
-狀態：實機待補；本檔是離線盤點草稿，沒有連線或讀取 `goodshepherd20`。
+更新：2026-11-26 13:46 Asia/Taipei (UTC+08:00)
+工作包：F0 Step 3（由 FS 補做）
+狀態：已取得真實結構及停用候選清冊；完整筆數／設定清冊仍待補，不代表自動化已停用。
 
-## 範圍與限制
+## 已取得的實機證據
 
-計畫記載 `goodshepherd20` 是由 `goodshepherdback` 複製而來，IFD／ADFS 可登入。這是計畫提供的背景，不是本輪重新驗證結果。由於三個測試組織的核定 IFD 端點尚未提供給部署連線設定，且目前部署白名單只有 `goodshepherdback`，本輪沒有嘗試猜測 URL、繞過 fail-closed connector 或連線 D365。
+測試組織 `goodshepherd20` 已透過受控 HTTPS／ADFS SDK 核對；組織 ID 為 `ec4d281b-bbe7-f111-8cce-00155d007916`，版本 `9.1.49.13`。唯讀 metadata 為 570 表／22,837 欄，原始快照 SHA-256：`3F7236983F803C68C57C6411B800DBA8884A5A42085EC3DBC601E997E06709F7`。這是結構快照，不是資料庫備份，也不是業務資料筆數。
 
-未讀取任何實體資料列、個資、秘密值或 D365 metadata；沒有盤點數字可報。下表只記錄計畫要求的唯讀範圍與後續處置，不宣稱清冊中的項目目前存在。
+2026-11-26 12:23 Asia/Taipei (UTC+08:00) 的 `quiesce --org goodshepherd20` 乾跑成功，零寫入；清冊 SHA-256：`9575E3028AF7339ACA4AEBC26681CF1F8614AD211675CE0892CB3FAECFCA6E2C`，固定摘要 log SHA-256：`F40A5B174032F65EE6FD1E7B84C6CD3EF5722FB07C99099543E12324ECCBEA0E`。
 
-## 分類清冊
+| 類別 | 唯讀結果 | 處置與未完成項目 |
+|---|---|---|
+| 等待／暫停 workflow 執行個體 | 0 | 保留此時點結果；apply 後仍須重查 |
+| 啟用 workflow 定義 | 146 | 最新正式solution／publisher來源已補讀；均為managed，88筆Complete、58筆僅publisher缺prefix而MetadataIncomplete。尚未完成保留決策審查或停用 |
+| 啟用 Plugin 步驟 | 7,280 | 最新handler／type／assembly對應全部Complete、managed，公開簽署識別31bf3856ad364e35；皆Microsoft.*或ActivityFeeds.*。來源識別不等於已證明不外送，保留草案仍待審，不盲停核心元件 |
+| 舊delivery篩選的信箱候選 | 136 | 135筆state/status=1/2、1筆0/1；原清冊沒有三欄delivery原值，不能當啟用投遞數。ACT None選項與原值落檔安全補正中，未apply；不讀郵件或帳密、不停共享服務 |
+| 全部停用候選 | 7,562 | 純管理身份清冊；保留政策僅草案，未套用、未停止投遞 |
+| Channel、金流／電子發票設定及外部網址 | 完整清冊尚未發布 | 保留／G5-2 處理；不載入、解密或呼叫複製帶入的正式 Channel 與金流 |
+| 會友、出席、奉獻、附件與待送工作筆數 | 未完成 | 只允許 server aggregate count，不讀列值；缺項不能由結構數量推論 |
 
-| 類別 | 唯讀盤點項目 | 預定處置分類 | 現況與限制 |
-|---|---|---|---|
-| 外送自動化 | 等待中／暫停的流程執行個體、啟用中的流程、會推播或寄信的 Plugin 步驟 | 停用（FS Step 3b；先唯讀列出並辨識例外） | 實際名稱、狀態、數量均實機待補；F0 未做停用或其他寫入 |
-| 外送自動化 | 排定的非同步工作 | 依唯讀盤點逐項歸類為停用（FS Step 3b）或保留 | 實際清冊及數量實機待補；不停止整台 CRM 的非同步服務 |
-| 外送待辦 | `new_outboundtask` 待送工作 | 保留（只讀計數；不刪除、不觸發） | 資料表是否存在、各狀態數量實機待補；不讀取 payload、收件人或錯誤內容 |
-| 郵件與伺服器端同步 | 信箱、伺服器端同步設定 | 停用（FS Step 3b；依核准範圍操作） | 設定與數量實機待補；F0 未操作 |
-| 秘密與設定 | Channel 紀錄與 LINE 憑證 | 保留；不讀出、不記錄、不清除秘密值 | 僅於唯讀盤點記錄非秘密 metadata／筆數；依 00 不清 LINE 憑證及會友 `new_lineid`，產品載入規則由 F3 處理 |
-| 秘密與設定 | 永豐、電子發票設定及外部網址 | G5-2 處理；F0 僅確認存在性／筆數，不輸出值、不呼叫外部服務 | 實際設定與數量實機待補；不得以複製組織設定呼叫正式金流 |
-| 資料 | 會友、出席、奉獻及附件 | 保留；只記各類筆數 | 實際數量實機待補；不讀列值、不匯出、不刪除。會友資料依計畫留至 G5-2 處理 |
-| 結構與畫面 | 方案、表單、檢視表、受管理屬性 | 保留；只讀 metadata | 實際清冊與數量實機待補；F0 不發布、不匯入、不修改 |
+## 結構沿用與擴充
 
-## F0 後續
+metadata 已確認 `new_fee`、`new_offeringcategory`、`new_dedication_booking`、`new_stor_lessons` 存在，仍只屬好牧人產品層；construction／association 的本機分層不包含這四表，實機驗證仍待部署後讀回。`contact.new_lineid` 既有長度為 500，平台採同一契約。
 
-取得使用者核定的三個測試組織 IFD 端點並完成受控連線設定後，依 F0 Step 3 僅查 metadata 與筆數，將每個實際項目分類為「停用（FS Step 3b）／保留／G5-2 處理」。任何會影響資料或觸發外送的操作均留到計畫指定工作包，並先遵守測試環境鎖及其寫入前檢查。
+複本的 `new_localizedtext`、`new_offeringcategory` 為既有 OrganizationOwned；FS 僅以已核對的組織 ID 及正式 metadata ID 保留原 ownership，不刪表、不重建、不改 owner。新組織仍遵守新建 UserOwned。其他型別、安全、稽核及管理屬性照原守門；這些離線基線補正仍須三份真正 plan 審查後才可寫入。
 
-本盤點沒有 D365 實機證據；不得引用本草稿宣稱流程已停用、資料數量已確認或三組織已可連線。
+## 失敗與待補
+
+完整 `inventory --org goodshepherd20` 兩次均失敗，未發布 `clone-inventory.json`：首次為合法混合大小寫欄名遭誤拒，修正後第二次為 aggregate count 回應形狀遭拒。第二次的實機根因未確認；離線格式相容案例不能當作實機修復。兩份固定摘要 SHA-256 均為 `1C97615A4B561BC9A84C00A2132ED87F5225331A8B9BAFC48AF23726DD8C7680`。依 02 §10 不做第三次相同完整盤點。
+
+三組織首次 `plan --org` 亦均以 `InvalidCastException` 中止，固定摘要 SHA-256 為 `993FB998BA7BC3B8E22BC32A746387AD04F1AEDAEC69A01B65FDCD4FA4CC2B20`；第二次各以 `FaultException` 中止，固定摘要 SHA-256 均為 `3EAD97E3ADACA8B06523033B50F0133E0B173F100090DA38367489501B89E991`。依02 §10不做第三次完整plan。目前沒有可審的三份plan，尚未執行schema apply、quiesce apply、UI匯入或發布。這些是尚未通過的工程步驟，不是可忽略的環境限制。
+
+2026-11-26 13:15 Asia/Taipei (UTC+08:00) 獨立來源補讀成功，清冊SHA-256 `347C485962C2E24996101C5D9871BD43BDBD8BBCACA080D73547FB3B2DB1E744`，零寫入並釋放test-env鎖。workflow來源publisher：88筆microsoftdynamics／msdyn、50筆MicrosoftCorporation／空prefix、8筆microsoftfirstparty／空prefix；全部保留正式ID，不假填缺值。這份清冊不取代完整業務筆數盤點。政策草案SHA-256 `69C10E94D38224DA13A687B2BC6B953499D5066E440D5768FC8638F950FD27CB`，明列146 workflow與7280 Plugin ID；尚未審完或套用，不能僅以managed就認定不會寄信。
+
+2026-11-26 13:46 Asia/Taipei (UTC+08:00) 政策安全審查有3 High：managed來源不能證明不外送、ACT None參照值與舊實作不符、信箱原值不可回復。政策仍不套用；程式補正與正式行為分類分開驗證。靜態報告SHA-256 `B930F777D73C2D452634A66719C7E2EA0A408F98CE11F3E47FFC728E0C5DFEF6`。
 
 ## 手機待驗
 
-本盤點無手機步驟；手機驗收留至 M1。
+本盤點無手機步驟；手機驗收留至 M1。所有唯讀證據均不代表流程已停用、推播安全或正式可用。

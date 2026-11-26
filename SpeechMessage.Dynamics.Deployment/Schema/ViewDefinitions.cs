@@ -42,8 +42,11 @@ internal static class ViewDefinitions
     /// <param name="schema">已由 SchemaFiles.LoadForOrganization 驗證的組織 schema。</param>
     /// <param name="view">本次要產生的檢視純值。</param>
     /// <param name="queryType">D365 savedquery QueryType；新建只允許 0。</param>
+    /// <param name="primaryId">正式 SDK metadata 的主鍵；純產生器測試未提供時使用標準邏輯主鍵名稱。</param>
+    /// <param name="objectTypeCode">正式 SDK 物件類型；未提供的純 XML 模板省略，不硬編 account 代碼。</param>
     /// <returns>不含未驗證 XML 的純值檢視候選。</returns>
-    internal static GeneratedView Generate(SchemaDefinition schema, SchemaView view, int queryType = 0)
+    internal static GeneratedView Generate(SchemaDefinition schema, SchemaView view, int queryType = 0,
+        string? primaryId = null, int? objectTypeCode = null)
     {
         ArgumentNullException.ThrowIfNull(schema);
         ArgumentNullException.ThrowIfNull(view);
@@ -57,7 +60,7 @@ internal static class ViewDefinitions
             view.Columns.Any(column => !fields.Contains(column)) ||
             view.Columns.Distinct(StringComparer.Ordinal).Count() != view.Columns.Count ||
             view.Order is null || view.Order.Any(column => !fields.Contains(column)) ||
-            view.Filter is null || view.Filter.Any(condition => string.IsNullOrWhiteSpace(condition)))
+            view.Filter is null || view.Filter.Any(condition => !fields.Contains(condition)))
             throw new InvalidDataException("View contains an unknown or invalid attribute.");
 
         var fetchEntity = new XElement("entity", new XAttribute("name", entity.LogicalName));
@@ -74,12 +77,12 @@ internal static class ViewDefinitions
             fetchEntity.Add(new XElement("order", new XAttribute("attribute", attribute)));
 
         var fetch = new XDocument(new XElement("fetch", fetchEntity));
-        var row = new XElement("row", new XAttribute("name", "result"), new XAttribute("id", entity.LogicalName));
+        var row = new XElement("row", new XAttribute("name", "result"), new XAttribute("id", primaryId ?? entity.LogicalName + "id"));
         foreach (var column in view.Columns)
             row.Add(new XElement("cell", new XAttribute("name", column), new XAttribute("width", "150")));
         var layout = new XDocument(new XElement("grid",
             new XAttribute("name", "resultset"),
-            new XAttribute("object", "1"),
+            objectTypeCode is { } code ? new XAttribute("object", code) : null,
             new XAttribute("select", "1"),
             new XAttribute("preview", "1"),
             row));

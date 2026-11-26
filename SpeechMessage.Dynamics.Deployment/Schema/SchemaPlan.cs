@@ -28,6 +28,12 @@ internal sealed record SchemaOperation(string Kind, string Entity, string Name, 
     public string? OptionLabel { get; init; }
 }
 
+/// <summary>F0 精確盤點後保留的既有不可變 owner；不是寫入操作，也不准許建立同 owner 的新租戶表。</summary>
+/// <param name="Entity">固定已盤點的實體邏輯名稱。</param>
+/// <param name="MetadataId">同一測試組織已觀察到的正式 metadata ID。</param>
+/// <param name="Ownership">必須與盤點一致的既有擁有權，不由呼叫端選擇。</param>
+internal sealed record SchemaRetainedOwnership(string Entity, Guid MetadataId, string Ownership);
+
 /// <summary>人工可審核的完整結構計畫；不含SDK、欄位值、帳密或其他組織權限，不能取代Host的寫入授權。</summary>
 internal sealed record SchemaPlan
 {
@@ -49,6 +55,15 @@ internal sealed record SchemaPlan
     public IReadOnlyList<SchemaOperation> Operations { get; init; } = Array.Empty<SchemaOperation>();
     /// <summary>已存在但尚未Active的key，verify不能以零操作當完整成功。</summary>
     public IReadOnlyList<string> PendingKeys { get; init; } = Array.Empty<string>();
+    /// <summary>
+    /// 僅在精確 F0 組織／表身分全部吻合時列出既有 owner；同時參與計畫完整性雜湊與摘要。
+    /// 舊組織沒有此沿用時省略 null，保留歷史計畫表示；其餘 audit／security／key 約束不受影響。
+    /// </summary>
+    [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
+    public IReadOnlyList<SchemaRetainedOwnership>? RetainedOwnership { get; init; }
+    /// <summary>FS 分層檢視的完整計畫與現況指紋；舊清單省略 null，保留既有 canonical hash。</summary>
+    [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
+    public UiViewPlan? Ui { get; init; }
     /// <summary>涵蓋本計畫全部有效欄位的雜湊，不依字串長度或檔名推論可信。</summary>
     public string Sha256 { get; init; } = "";
 }

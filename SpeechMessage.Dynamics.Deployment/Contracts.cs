@@ -13,6 +13,8 @@
  * - RegistrationDocument 保存多組件根；各 RegistrationManifest 保留獨立步驟、映像及活動。
  * - Update 必須明列篩選欄位；Create／Delete 必須為空，不靜默忽略輸入。
  * - 非diagnostics步驟與活動另持live分級/證據；步驟才可宣告TokenKey需求，純資料不解析秘密。
+ * - DeploymentPlan 以 nullable OrganizationId 保存新三測試組織的正式身分並納入 hash；
+ *   null 時完全省略欄位，保留 legacy JSON bytes。模型本身不授權，Engine 必須在 apply 前向借入服務重驗。
  * 主要操作入口包含 AssemblyImage、DeploymentOperation、DeploymentPlan、Dispose。
  *
  * 使用邊界與維護：
@@ -199,7 +201,8 @@ internal sealed record DeploymentOperation(string Kind, string Key);
 
 /// <summary>
 /// 可人工審核的不可變計畫。SHA-256 涵蓋所有有效欄位，apply 前另驗雜湊、來源清單、
-/// DLL 與組織指紋；秘密只以名稱佔位呈現。
+/// DLL 與組織指紋；新三測試組織另綁定伺服器正式 ID。只保存純值至計畫檔生命週期，
+/// 不保留 SDK 回應或連線；秘密只以名稱佔位呈現。
 /// </summary>
 internal sealed record DeploymentPlan(
     string Organization,
@@ -215,6 +218,14 @@ internal sealed record DeploymentPlan(
 
     /// <summary>供人工確認哪些 User Secrets 名稱會在寫入時解析，不含秘密值。</summary>
     public IReadOnlyList<string> SecretPlaceholders { get; init; } = Array.Empty<string>();
+
+    /// <summary>
+    /// 三個新測試組織經 SDK 精確驗名後的非空正式 ID，隨計畫納入 SHA-256 並於 apply 前重驗；
+    /// 不以呼叫端或 metadata 指紋取代伺服器身分。legacy／production 為 null 且完全省略 JSON 欄位，
+    /// 保留原序列化順序及 hash；新組織不能藉 null 或空 GUID 使用此相容路徑。
+    /// </summary>
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public Guid? OrganizationId { get; init; }
 }
 
 /// <summary>

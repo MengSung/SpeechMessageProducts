@@ -11,7 +11,9 @@
 using System;
 using System.IO;
 using System.Linq;
+using System.ServiceModel;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Xrm.Sdk;
 using SpeechMessage.Dynamics.Deployment.Schema;
 using Xunit;
 
@@ -131,6 +133,47 @@ public sealed class SchemaCliTests
         Assert.Same(fixture.Connector.Service.Failure, Assert.Single(fixture.Failures));
         Assert.DoesNotContain("synthetic-private-value", fixture.Output.ToString(), StringComparison.Ordinal);
         Assert.Equal(fixture.Connector.Opened, fixture.Connector.Returned);
+    }
+
+    /// <summary>
+    /// 結構路由與原部署路由共用有界 SDK 數字診斷；注入含秘密的 fault 本文及循環
+    /// InnerFault，要求先釋放租約並將同一 Exception 上報一次，再只輸出四個十六進位碼。
+    /// reporter 故障仍維持 exit 1，不得回顯 Reason、Message、TraceText 或 ErrorDetails。
+    /// </summary>
+    /// <param name="reporterFails">共用告警入口是否在收到原例外後故障。</param>
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void Run_SchemaSdkFault_ReportsBoundedCodesAfterLeaseRelease(bool reporterFails)
+    {
+        using var fixture = new CliFixture();
+        var detail = new OrganizationServiceFault
+        {
+            ErrorCode = unchecked((int)0x80041103),
+            Message = "synthetic-private-fault-message",
+            TraceText = "synthetic-private-fault-trace"
+        };
+        detail.ErrorDetails["synthetic-private-key"] = "synthetic-private-detail";
+        detail.InnerFault = detail;
+        var failure = new FaultException<OrganizationServiceFault>(detail, "synthetic-private-fault-reason");
+        fixture.Connector.Service.Failure = failure;
+        var reports = 0;
+        var exit = DeploymentCli.Run(ExportArguments, fixture.Connector, fixture.Output, exception =>
+        {
+            Assert.Same(failure, exception);
+            Assert.Equal(fixture.Connector.Opened, fixture.Connector.Returned);
+            reports++;
+            if (reporterFails) throw new InvalidOperationException("synthetic-private-reporter");
+        }, Path.Combine(fixture.Root, "artifacts", "d365"));
+        Assert.Equal(1, exit);
+        Assert.Equal(1, reports);
+        var lines = fixture.Output.ToString().Split(Environment.NewLine, StringSplitOptions.RemoveEmptyEntries);
+        Assert.Equal(4, lines.Count(line => line.StartsWith("Dataverse fault code[", StringComparison.Ordinal)));
+        Assert.Contains("Dataverse fault code[0]: 0x80041103", lines);
+        Assert.Contains("Dataverse fault code[3]: 0x80041103", lines);
+        Assert.DoesNotContain("synthetic-private", fixture.Output.ToString(), StringComparison.Ordinal);
+        Assert.Equal(1, fixture.Connector.Returned);
+        Assert.Equal(0, fixture.Connector.Service.WriteCount);
     }
 
     /// <summary>新schema路由必須經真Program共用ExceptionDiagnostics，原例外只記一筆且本文不落檔；不是僅驗mock notifier。</summary>

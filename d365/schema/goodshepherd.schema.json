@@ -23,15 +23,49 @@
           "required": true
         },
         {
+          "logicalName": "new_code",
+          "displayName": "代碼",
+          "type": "string",
+          "phase": 1,
+          "maxLength": 50
+        },
+        {
           "logicalName": "new_name",
           "displayName": "名稱",
           "type": "string",
           "phase": 1,
           "maxLength": 100,
           "required": true
+        },
+        {
+          "logicalName": "new_sortorder",
+          "displayName": "排序",
+          "type": "integer",
+          "phase": 1
+        },
+        {
+          "logicalName": "new_accountingcode",
+          "displayName": "會計代碼",
+          "type": "string",
+          "phase": 1,
+          "maxLength": 50
+        },
+        {
+          "logicalName": "new_legacyoptionvalue",
+          "displayName": "舊選項值",
+          "type": "integer",
+          "phase": 1
         }
       ],
-      "keys": []
+      "keys": [
+        {
+          "logicalName": "new_ak_offeringcategory",
+          "attributes": [
+            "new_accountid",
+            "new_code"
+          ]
+        }
+      ]
     },
     {
       "logicalName": "new_fee",

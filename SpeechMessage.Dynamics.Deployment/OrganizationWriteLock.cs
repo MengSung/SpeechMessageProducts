@@ -7,7 +7,7 @@
  * 本檔宣告 OrganizationWriteLock。
  * - 取得指定組織輸出根的獨占寫入租約；等待可由 caller 取消，超過上限時以固定訊息失敗。
  * - 需要電腦級互斥時，先取得工作樹本地鎖，再取得共享鎖目錄內的組織鎖；兩把鎖都由本次租約唯一擁有。
- * - Dispose 以 shared -> local 的反向順序釋放所有控制代碼；等待期間若取消或 I/O 失敗，也會釋放已取得的部分租約。
+ * - Dispose 以 shared -> local 的反向順序釋放所有控制代碼；任何取得失敗都在 finally 釋放部分租約，再決定是否重試。
  *   空鎖檔留在 artifacts 供後續命令重用；互斥所有權只由可確定釋放的控制代碼代表。
  * 主要操作入口包含 Acquire、Dispose。
  *
@@ -91,38 +91,49 @@ internal sealed class OrganizationWriteLock : IDisposable
 
         while (true)
         {
-            FileStream? localStream = null;
-            FileStream? sharedStream = null;
             try
             {
-                // 所有呼叫端固定 local -> shared 的順序，避免兩個工作樹以相反順序互相等待。
-                localStream = new FileStream(
-                    localLockPath,
-                    FileMode.OpenOrCreate,
-                    FileAccess.ReadWrite,
-                    FileShare.None,
-                    bufferSize: 1,
-                    FileOptions.None);
-                if (sharedLockPath is not null)
+                FileStream? localStream = null;
+                FileStream? sharedStream = null;
+                try
                 {
-                    sharedStream = new FileStream(
-                        sharedLockPath,
+                    // 所有呼叫端固定 local -> shared 的順序，避免兩個工作樹以相反順序互相等待。
+                    localStream = new FileStream(
+                        localLockPath,
                         FileMode.OpenOrCreate,
                         FileAccess.ReadWrite,
                         FileShare.None,
                         bufferSize: 1,
                         FileOptions.None);
-                }
+                    if (sharedLockPath is not null)
+                    {
+                        sharedStream = new FileStream(
+                            sharedLockPath,
+                            FileMode.OpenOrCreate,
+                            FileAccess.ReadWrite,
+                            FileShare.None,
+                            bufferSize: 1,
+                            FileOptions.None);
+                    }
 
-                if (cancellationToken.IsCancellationRequested)
                     cancellationToken.ThrowIfCancellationRequested();
 
-                return new OrganizationWriteLock(localStream, sharedStream);
+                    // 完整取得後才轉移給唯一租約 owner；建構或取消失敗仍由本層 finally 清理。
+                    var acquired = new OrganizationWriteLock(localStream, sharedStream);
+                    localStream = null;
+                    sharedStream = null;
+                    return acquired;
+                }
+                finally
+                {
+                    // 非 IOException（例如共享位置存取遭拒）也不能留下先取得的本地鎖。
+                    // 即使第一個 Dispose 失敗，也必須嘗試釋放最後的本地控制代碼。
+                    try { sharedStream?.Dispose(); }
+                    finally { localStream?.Dispose(); }
+                }
             }
             catch (IOException)
             {
-                sharedStream?.Dispose();
-                localStream?.Dispose();
                 var remaining = timeout - stopwatch.Elapsed;
                 if (remaining <= TimeSpan.Zero)
                 {
@@ -135,12 +146,6 @@ internal sealed class OrganizationWriteLock : IDisposable
                     cancellationToken.ThrowIfCancellationRequested();
                 }
             }
-            catch (OperationCanceledException)
-            {
-                sharedStream?.Dispose();
-                localStream?.Dispose();
-                throw;
-            }
         }
     }
 
@@ -150,7 +155,7 @@ internal sealed class OrganizationWriteLock : IDisposable
     /// </summary>
     public void Dispose()
     {
-        Interlocked.Exchange(ref sharedLockStream, null)?.Dispose();
-        Interlocked.Exchange(ref lockStream, null)?.Dispose();
+        try { Interlocked.Exchange(ref sharedLockStream, null)?.Dispose(); }
+        finally { Interlocked.Exchange(ref lockStream, null)?.Dispose(); }
     }
 }

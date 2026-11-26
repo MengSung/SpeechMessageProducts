@@ -11,21 +11,21 @@
     {
       "name": "goodshepherd20",
       "kind": "test",
-      "host": "",
+      "host": "goodshepherd20.speechmessage.com.tw",
       "switchState": "off",
       "tierOverrides": []
     },
     {
       "name": "construction",
       "kind": "test",
-      "host": "",
+      "host": "construction.speechmessage.com.tw",
       "switchState": "off",
       "tierOverrides": []
     },
     {
       "name": "association",
       "kind": "test",
-      "host": "",
+      "host": "association.speechmessage.com.tw",
       "switchState": "off",
       "tierOverrides": []
     }

@@ -181,8 +181,8 @@ public sealed class SchemaMetadataTests
     {
         /// <summary>metadata可讀表白名單獨立於產品定義，任何業務表皆拒絕。</summary>
         private static readonly string[] AllowedTables = { "solution", "publisher", "solutioncomponent", "sdkmessagefilter", "sdkmessageprocessingstep" };
-        /// <summary>每案獨立組織身份，不能以白名單alias取代實際server組織ID。</summary>
-        internal Guid OrganizationId { get; } = Guid.NewGuid();
+        /// <summary>每案獨立組織身份；衍生合成來源可在建構期明列基線 ID，不能以 alias 取代 server 身分。</summary>
+        internal Guid OrganizationId { get; init; } = Guid.NewGuid();
         /// <summary>每案獨占的SDK來源，測試會mutation確認產品已脫離原物件。</summary>
         internal List<EntityMetadata> Entities { get; } = new() { BaseEntity("account", "name"), BaseEntity("contact", "fullname") };
         /// <summary>可選合成publisher定義，供官方內建空prefix的相容契約；不包含個人或token。</summary>

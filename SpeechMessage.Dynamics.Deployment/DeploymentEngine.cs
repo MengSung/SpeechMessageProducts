@@ -8,7 +8,9 @@
  * 本檔宣告 DeploymentEngine、Inspection、DeploymentExport、PluginAssemblyExport、PluginTypeExport、PluginStepExport。
  * - 步驟安全設定查閱的官方邏輯名稱；不可縮寫成 secureconfigid，否則已註冊步驟的查詢會被拒絕。 所有讀寫、存在性比對、指紋與匯出共用此欄位；只持有本次查閱 ID，不讀取安全設定內容。
  * - 組合一次性的服務、輸出根、時鐘與秘密來源。秘密委派只在實際建立或更新步驟設定時呼叫。
- * - 將清單、組件 PE 與組織中的受管理 metadata 作離線式比對，建立沒有憑證值的 plan。 此方法只讀取組件、類型、訊息、篩選器與步驟，不讀取業務記錄，也不解析秘密。
+ * - 將清單、組件 PE、組織身分及受管理 metadata 比對，建立沒有憑證值的 plan；不讀取業務記錄，也不解析秘密。
+ * - 新三測試組織在 plan／apply 各自核對精確伺服器名稱與非空正式 ID，計畫 hash 綁定 ID，
+ *   apply 在 metadata、export 及寫入前重驗；legacy／production 的 null 欄位省略，保留原計畫 bytes 與外層正式授權。
  * - 建立可由人工審核的 Markdown 摘要。輸出只列固定欄位、operation、hash 與佔位名稱， 不列出 unsecure／secure 設定實值、帳密、LINE token 或 userId。
  * - member 安全設定僅在 apply 寫入時組成單欄 tokenKey JSON，建立與更新共用轉換；trace／push 保持原契約，秘密不進 plan、export 或快取。
  * - 新停用步驟以當次 GUID 在固定兩項交易內建立並停用；交易失敗回滾，不發布暫時啟用列。
@@ -89,20 +91,22 @@ internal sealed partial class DeploymentEngine
 
     /// <summary>
     /// 將清單、組件 PE 與組織中的受管理 metadata 作離線式比對，建立沒有憑證值的 plan。
-    /// 此方法只讀取組件、類型、訊息、篩選器與步驟，不讀取業務記錄，也不解析秘密。
+    /// 新三測試組織先讀伺服器身分並綁定正式 ID，再讀組件、類型、訊息、篩選器與步驟；
+    /// 不讀業務記錄或解析秘密，身分回應不跨本次查核保留，連線仍由外層 lease 擁有。
     /// </summary>
     /// <param name="manifest">經過格式與佔位驗證的註冊清單。</param>
     /// <param name="image">已以 MetadataReader 驗證的 Plugin 組件內容。</param>
     /// <param name="organization">命令catalog核定的組織；正式旗標及確認仍由共同CLI入口負責。</param>
     /// <returns>雜湊固定且僅含非敏感資訊的人工審核計畫。</returns>
     /// <exception cref="ArgumentNullException">清單或組件為 null。</exception>
-    /// <exception cref="InvalidDataException">清單不符合 P0 範圍或既有組件身份衝突。</exception>
+    /// <exception cref="InvalidDataException">清單不符合 P0 範圍、伺服器身分不符或既有組件身份衝突。</exception>
     public DeploymentPlan Plan(RegistrationManifest manifest, AssemblyImage image, string organization)
     {
         ArgumentNullException.ThrowIfNull(manifest);
         ArgumentNullException.ThrowIfNull(image);
         ValidateOrganization(organization);
         ValidateManifest(manifest, image);
+        var organizationId = ReadRegistrationOrganizationId(organization);
         ValidateRegistrationAttributes(manifest);
 
         var inspection = Inspect(manifest, image, organization);
@@ -120,7 +124,8 @@ internal sealed partial class DeploymentEngine
             inspection.Operations.AsReadOnly(),
             string.Empty)
         {
-            SecretPlaceholders = Array.AsReadOnly(placeholders)
+            SecretPlaceholders = Array.AsReadOnly(placeholders),
+            OrganizationId = organizationId
         };
 
         return unsignedPlan with { Sha256 = HashPlan(unsignedPlan) };
@@ -183,8 +188,10 @@ internal sealed partial class DeploymentEngine
     }
 
     /// <summary>
-    /// 驗證 plan hash、來源清單、DLL 與即時組織指紋後，先完成安全 export，再依核准操作寫入。
-    /// 寫入前任何檢查失敗都不呼叫 Dataverse 的 Create／Update。
+    /// 驗證 plan hash 後重讀新三測試組織的名稱及正式 ID，必須與 plan 綁定相同；
+    /// 缺少或空 ID 不能降級成 legacy。接著驗來源清單、DLL 與即時 metadata 指紋，
+    /// 再完成安全 export 並依核准操作寫入。身分失敗早於 metadata、export 及任何 SDK 寫入；
+    /// 不保存身分回應、不解析秘密，連線失敗清理由外層唯一 lease 擁有者負責。
     /// </summary>
     /// <param name="plan">經人工審核的 plan。</param>
     /// <param name="manifest">產生 plan 時相同的清單範本。</param>
@@ -198,8 +205,10 @@ internal sealed partial class DeploymentEngine
         ArgumentNullException.ThrowIfNull(image);
         ValidateOrganization(plan.Organization);
         ValidateManifest(manifest, image);
-        ValidateRegistrationAttributes(manifest);
         ValidatePlanHash(plan);
+        if (plan.OrganizationId != ReadRegistrationOrganizationId(plan.Organization))
+            throw new InvalidDataException("Registration plan organization identity has changed or is missing.");
+        ValidateRegistrationAttributes(manifest);
 
         if (!string.Equals(plan.ManifestHash, HashText(CanonicalManifest(manifest)), StringComparison.Ordinal) ||
             !string.Equals(plan.AssemblyHash, image.Sha256, StringComparison.Ordinal))
@@ -1284,7 +1293,10 @@ internal sealed partial class DeploymentEngine
         return JsonSerializer.Serialize(normalized);
     }
 
-    /// <summary>計算計畫完整性時排除雜湊欄位本身，其餘核准欄位全部納入。</summary>
+    /// <summary>
+    /// 計畫完整性排除雜湊欄位本身，其餘核准欄位包含非空 OrganizationId 全部納入；
+    /// null 由契約的省略屬性保留 legacy JSON bytes，不重新排序或更換原序列化設定。
+    /// </summary>
     private static string HashPlan(DeploymentPlan plan)
     {
         var unsigned = plan with { Sha256 = string.Empty };

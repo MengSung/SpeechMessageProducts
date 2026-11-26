@@ -12,6 +12,10 @@
  * Validate 逐一確認固定 solution／publisher／new 前綴、ActivePhase範圍、精確既有實體白名單、欄位身份與唯一性、
  * 進入既有實體白名單輔助函式前先確認Fields／Keys不為null；null集合與其他結構錯誤一律轉成受控資料錯誤，
  * 型別／長度／phase、lookup 目標、選項數值與索引欄位；主要名稱與索引欄仍要求phase 1，P1時間點必須為UserLocal／DateAndTime。
+ * 分層讀取先驗每檔的結構，lookup 目標存在性留到完整組合後驗證，允許產品層引用平台表；
+ * 單檔 Load／Hash 與合併完成後的 Validate 仍拒絕任何未宣告目標，未驗證的局部層不會公開回傳。
+ * 層級檢視只合併一次，實體／檢視名稱不得重複；所有條件欄位也須存在於清單。
+ * 非教會產品即使誤載了平台內的教會實體仍會拒絕，隔離不只依賴設定檔目前剛好正確。
  * Hash 與 HashValue 對已辨識的純結構計算 SHA-256；它們用於完整性與漂移檢查，不代表使用者授權。
  * WriteNew 與 WritePlanMarkdown 共用 WriteContent，以 UTF-8 無 BOM、CRLF 輸出，最多 100 MiB。
  *
@@ -35,6 +39,7 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using System.Text.Json.Serialization.Metadata;
 using System.Text.RegularExpressions;
 using SpeechMessage.Localization;
 
@@ -49,8 +54,19 @@ internal static class SchemaFiles
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
         UnmappedMemberHandling = JsonUnmappedMemberHandling.Disallow,
         MaxDepth = 32,
-        WriteIndented = true
+        WriteIndented = true,
+        TypeInfoResolver = new DefaultJsonTypeInfoResolver { Modifiers = { PreserveLegacyDefinitionShape } }
     };
+    /// <summary>
+    /// 舊結構沒有 views 欄位；僅在空集合時省略，以保留 FS 前 canonical hash。
+    /// 非空檢視完整參與雜湊，讀取仍使用原嚴格未知欄位及重複屬性檢查，不省略任何有效候選。
+    /// </summary>
+    private static void PreserveLegacyDefinitionShape(JsonTypeInfo info)
+    {
+        if (info.Type == typeof(SchemaDefinition))
+            info.Properties.Single(property => property.Name == "views").ShouldSerialize =
+                static (_, value) => value is IReadOnlyList<SchemaView> { Count: > 0 };
+    }
     /// <summary>固定資料庫名稱文法附逾時，不保存任何來源文字或caller狀態。</summary>
     private static readonly Regex Name = new("^new_[a-z][a-z0-9_]{0,79}$", RegexOptions.CultureInvariant, TimeSpan.FromSeconds(1));
     /// <summary>固定生成資源的不可變系統表，無scope、request或教會覆寫，可安全共用且沒有背景資源。</summary>
@@ -66,11 +82,14 @@ internal static class SchemaFiles
         return definition;
     }
 
-    /// <summary>讀取分層檔；允許明確的空白產品層，但仍拒絕所有其他格式與身份錯誤。</summary>
+    /// <summary>
+    /// 讀取僅供本類別組合的局部層，驗證格式、身份與欄位約束；允許明確空產品層，
+    /// 並把 lookup 目標存在性延到完整組合後確認，不能將此局部候選交給部署器。
+    /// </summary>
     private static SchemaDefinition LoadLayer(string path)
     {
         var definition = Read<SchemaDefinition>(path, 1_048_576);
-        Validate(definition, allowEmptyEntities: true);
+        Validate(definition, allowEmptyEntities: true, validateLookupTargets: false);
         return definition;
     }
 
@@ -116,6 +135,7 @@ internal static class SchemaFiles
         var entities = new List<SchemaEntity>();
         var entityLayers = new Dictionary<string, string>(StringComparer.Ordinal);
         var views = new List<SchemaView>();
+        var viewLayers = new HashSet<string>(StringComparer.Ordinal);
         foreach (var item in definitions)
         {
             var definition = item.Definition;
@@ -142,7 +162,7 @@ internal static class SchemaFiles
                 }
             }
 
-            if (layerManifest.Views.TryGetValue(item.Layer, out var layerViews))
+            if (viewLayers.Add(item.Layer) && layerManifest.Views.TryGetValue(item.Layer, out var layerViews))
                 views.AddRange(layerViews);
         }
 
@@ -202,6 +222,23 @@ internal static class SchemaFiles
         text.AppendLine("- " + Text("PlanHash") + ": " + plan.Sha256);
         text.AppendLine("- " + Text("Safety") + "\n\n## " + Text("Operations") + "\n");
         foreach (var operation in plan.Operations) text.AppendLine("- " + operation.Kind + ": " + operation.Entity + "." + operation.Name);
+        if (plan.RetainedOwnership is { } retained)
+        {
+            text.AppendLine("\n## Existing metadata ownership\n");
+            foreach (var item in retained)
+                text.AppendLine("- " + item.Entity + "; MetadataId=" + item.MetadataId.ToString("D")
+                    + "; retained=" + item.Ownership + "; new-entity contract=UserOwned");
+        }
+        if (plan.Ui is { } ui)
+        {
+            text.AppendLine("\n## UI\n");
+            text.AppendLine("- Solution: " + ui.Solution + "; Product: " + ui.Product + "; Version: " + ui.Version);
+            text.AppendLine("- Fingerprint: " + ui.Fingerprint);
+            foreach (var view in ui.Views)
+                text.AppendLine("- " + (view.NeedsWrite ? view.Id == Guid.Empty ? "CreateView" : "UpdateView" : "VerifyView")
+                    + ": " + view.Definition.Entity + "; " + view.Definition.Name + "; SavedQueryId=" + view.Id.ToString("D")
+                    + "; Include=" + (!view.Included).ToString(System.Globalization.CultureInfo.InvariantCulture));
+        }
         if (plan.Operations.Count == 0) text.AppendLine("- " + Text("NoChanges"));
         text.AppendLine("\n## " + Text("Keys") + "\n");
         foreach (var key in plan.PendingKeys) text.AppendLine("- " + Text("Pending") + ": " + key);
@@ -266,10 +303,14 @@ internal static class SchemaFiles
     }
 
     /// <summary>驗全部實體與欄位後才交規劃器；P8只額外允許兩張舊表的指定optional lookup，未知表或欄仍拒絕且不回顯輸入。</summary>
-    internal static void Validate(SchemaDefinition definition) => Validate(definition, allowEmptyEntities: false);
+    internal static void Validate(SchemaDefinition definition) =>
+        Validate(definition, allowEmptyEntities: false, validateLookupTargets: true);
 
-    /// <summary>共用 schema 驗證；空實體清單只可由分層的明確空產品層使用。</summary>
-    private static void Validate(SchemaDefinition definition, bool allowEmptyEntities)
+    /// <summary>
+    /// 共用 schema 驗證；僅私有 LoadLayer 可接受空層並延後跨層目標存在性。
+    /// 所有公開於類別外的完整定義都必須驗目標，未知或漏載的表不能進入 planner。
+    /// </summary>
+    private static void Validate(SchemaDefinition definition, bool allowEmptyEntities, bool validateLookupTargets)
     {
         ArgumentNullException.ThrowIfNull(definition);
         if (definition.SchemaVersion != 1 || definition.ActivePhase is < 1 or > 8 || definition.Solution != "SpeechMessageCore"
@@ -306,8 +347,11 @@ internal static class SchemaFiles
                     throw new InvalidDataException("Invalid or duplicate schema key.");
             }
         }
-        foreach (var field in definition.Entities.SelectMany(entity => entity.Fields).Where(field => field.Type == "lookup"))
-            if (!entities.Contains(field.Target)) throw new InvalidDataException("Unknown schema lookup target.");
+        if (validateLookupTargets)
+        {
+            foreach (var field in definition.Entities.SelectMany(entity => entity.Fields).Where(field => field.Type == "lookup"))
+                if (!entities.Contains(field.Target)) throw new InvalidDataException("Unknown schema lookup target.");
+        }
     }
 
     /// <summary>分層組合只允許同一 folder 檔案延伸欄位／鍵，metadata 身份不因最後一檔覆蓋。</summary>
@@ -334,6 +378,10 @@ internal static class SchemaFiles
     /// <summary>分層專用 ownership 與檢視契約；legacy goodshepherdback 保留舊 nullable ownership 以維持回歸 hash。</summary>
     private static void ValidateLayeredContract(SchemaDefinition definition, string organization)
     {
+        if (organization is "construction" or "association" &&
+            definition.Entities.Any(entity => entity.LogicalName is
+                "new_fee" or "new_offeringcategory" or "new_dedication_booking" or "new_stor_lessons"))
+            throw new InvalidDataException("Church-specific schema entity is forbidden in this organization.");
         foreach (var entity in definition.Entities.Where(entity => entity.IsNew))
         {
             if (organization != "goodshepherdback" &&
@@ -352,12 +400,15 @@ internal static class SchemaFiles
     {
         var entities = definition.Entities.ToDictionary(entity => entity.LogicalName, StringComparer.Ordinal);
         var defaults = new HashSet<string>(StringComparer.Ordinal);
+        var identities = new HashSet<(string Entity, string Name)>();
         foreach (var view in definition.Views)
         {
             if (view is null || !ValidViewText(view.Entity, 128) || !ValidViewText(view.Name, 300) ||
                 view.Columns is null || view.Columns.Count is < 1 or > 64 ||
                 view.Filter is null || view.Filter.Count > 64 || view.Order is null || view.Order.Count > 64)
                 throw new InvalidDataException("Schema view definition is invalid.");
+            if (!identities.Add((view.Entity, view.Name)))
+                throw new InvalidDataException("Schema view definition is duplicated.");
             if (!entities.TryGetValue(view.Entity, out var entity))
                 throw new InvalidDataException("Schema view references an unknown entity.");
             var fields = entity.Fields.Select(field => field.LogicalName).ToHashSet(StringComparer.Ordinal);
@@ -365,7 +416,7 @@ internal static class SchemaFiles
                 view.Columns.Distinct(StringComparer.Ordinal).Count() != view.Columns.Count ||
                 view.Order.Any(column => !ValidName(column) || !fields.Contains(column)) ||
                 view.Order.Distinct(StringComparer.Ordinal).Count() != view.Order.Count ||
-                view.Filter.Any(condition => !ValidName(condition)))
+                view.Filter.Any(condition => !ValidName(condition) || !fields.Contains(condition)))
                 throw new InvalidDataException("Schema view contains an unknown or unsafe attribute.");
             if (view.IsDefault && !defaults.Add(view.Entity))
                 throw new InvalidDataException("An entity has more than one default public view.");

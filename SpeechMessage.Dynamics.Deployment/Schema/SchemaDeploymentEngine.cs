@@ -9,7 +9,11 @@
  * 日期明確UserLocal/DateAndTime，加密欄啟用field security，稽核包含欄位層級。
  * D3659.1忽略新Lookup稽核時，僅對本次Create回傳ID補IsAuditEnabled=true；部分完成的接續另須原plan/before完整hash與其他約束全符，不能變成通用Update。
  * 新custom表樂觀並行依server預設，outbound必須重讀確認true；產品不反射寫入SDK的唯讀回應屬性，也不修改角色或舊欄位。
- * 發布與驗證：僅定向PublishXml本plan新內容涉及的表，再讀已發布metadata及key狀態；仍有新增差異拋錯，pending key交CLI回不完整結果。
+ * 發布與驗證：schema與UI-only修改共同決定PublishXml實體邊界；保留原schema投影守門，另於before前完整核對需寫UI的既有表metadata。
+ * 所有需寫UI的既有表保存命令區域純值基準，Publish前重驗兩來源及基準；新表尚不存在，不送RetrieveEntity。
+ * 同表一般欄新增只允許寫前SDK請求的完整wire候選加正式回應ID，保留所有舊metadata及新欄成員比較，不將寫後來源改認為核准基準。
+ * 未表達的lookup／key／option增量及server額外預設保守拒絕，須另行明確核定，不能略過整表或任意新子樹。
+ * 再讀已發布metadata及key狀態；仍有新增差異拋錯，pending key交CLI回不完整結果。最後核對與發布間仍須由外層維持獨占，SDK不提供原子比較發布。
  * 資源與失敗：SDK由外層lease擁有；本類不Dispose它。同步I/O前後尊重caller取消，不建立背景排程；部分失敗保留before證據與原Exception，不自動刪元件或還原VM。
  * 隔離與限制：所有新ID只能取SDK正式回應，候選與created對照只存活本次apply；metadata備份不是組織資料庫備份，呼叫方法不等於環境獲准寫入。
  * 維護驗證：SchemaEngineTests以真引擎對合成metadata資料庫往返，驗before先落檔、具體SDK參數、原表ID、第二次零寫入、竄改／故障／未發布變更拒絕。
@@ -56,13 +60,22 @@ internal sealed class SchemaDeploymentEngine
 
     /// <summary>完整只讀server後交純planner，不讀Plugin DLL或業務資料；冷失敗向上保留原Exception。</summary>
     internal SchemaPlan Plan(SchemaDefinition definition, CancellationToken cancellationToken) =>
-        SchemaPlanner.Create(definition, SchemaMetadata.Read(service, target, cancellationToken), clock.GetUtcNow(), catalog);
+        CreatePlan(definition, SchemaMetadata.Read(service, target, cancellationToken), cancellationToken);
 
     /// <summary>驗收只能比對已發布結構；未發布候選即使完整也不能供實際應用使用，故必須與plan的盤點模式分開。只讀且沿用本命令SDK租約。</summary>
     /// <param name="definition">正式唯一結構清單。</param><param name="cancellationToken">命令owner取消，已入場同步SDK必須返回後才能釋放。</param>
     /// <returns>已發布metadata的完整差異及未Active索引鍵；呼叫端依兩者判定結果，不隱式發布或寫入。</returns>
     internal SchemaPlan Verify(SchemaDefinition definition, CancellationToken cancellationToken) =>
-        SchemaPlanner.Create(definition, SchemaMetadata.Read(service, target, cancellationToken, retrieveAsIfPublished: false), clock.GetUtcNow(), catalog);
+        CreatePlan(definition, SchemaMetadata.Read(service, target, cancellationToken, retrieveAsIfPublished: false), cancellationToken, publishedOnly: true);
+
+    /// <summary>在同一命令內把 metadata 與完整 UI 指紋綁入計畫；沒有 views 的 legacy 格式完全省略 UI 欄位。</summary>
+    private SchemaPlan CreatePlan(SchemaDefinition definition, SchemaSnapshot snapshot, CancellationToken ct, bool publishedOnly = false)
+    {
+        var plan = SchemaPlanner.Create(definition, snapshot, clock.GetUtcNow(), catalog);
+        if (definition.Views.Count == 0) return plan;
+        plan = plan with { Ui = UiViewDeployment.Plan(service, definition, snapshot, ct, publishedOnly), Sha256 = "" };
+        return plan with { Sha256 = SchemaFiles.HashValue(plan) };
+    }
 
     /// <summary>用原始受審plan與完整before證明欄位於本輪新增後，只完成新Lookup稽核；其他既有衝突仍須停止，不能拿本入口作通用修改。</summary>
     internal SchemaPlan CompleteCreatedAudits(SchemaPlan original, SchemaSnapshot before, SchemaDefinition definition, CancellationToken cancellationToken)
@@ -118,7 +131,12 @@ internal sealed class SchemaDeploymentEngine
     internal string Export(CancellationToken cancellationToken) =>
         SchemaFiles.WriteNew(directory, "metadata.json", SchemaMetadata.Read(service, target, cancellationToken));
 
-    /// <summary>先即時重驗全部plan、將before snapshot成功flush，才依序新增；中途失敗保留證據，不自動刪除或回復既有元件。</summary>
+    /// <summary>
+    /// 先重驗全部plan、原schema投影及需寫UI既有表的完整metadata，before成功flush才新增。
+    /// 所有需寫UI既有表發布前另與命令區域純值基準重驗；同表核定一般欄新增以寫前wire候選
+    /// 及SDK正式回應ID表達精確增量，其餘差異一律拒絕，不放寬原投影守門。中途故障／取消保留before及原例外，
+    /// SDK與寫鎖仍由caller唯一擁有，局部基準不存SDK物件、不跨命令保留或交背景工作。
+    /// </summary>
     /// <param name="plan">已審核plan，不能以呼叫此方法取代環境隔離/備份授權。</param><param name="definition">本次SSOT。</param>
     /// <param name="cancellationToken">命令owner取消，已入場同步I/O回來後才釋放lease。</param>
     /// <returns>寫後重新讀取的計畫；pending key仍須verify，不表示索引已Active。</returns>
@@ -126,11 +144,22 @@ internal sealed class SchemaDeploymentEngine
     {
         var before = SchemaMetadata.Read(service, target, cancellationToken);
         SchemaPlanner.ValidatePlan(plan, definition, before, catalog);
-        var publishing = plan.Operations.Where(operation => operation.Kind is "CreateEntity" or "CreateAttribute" or "CreateLookup" or "CreateKey" or "AddOptionValue")
+        if (definition.Views.Count != 0)
+            UiViewDeployment.Validate(service, definition, before, plan.Ui, cancellationToken);
+        else if (plan.Ui is not null)
+            throw new InvalidDataException("Legacy schema plans cannot contain unrequested UI operations.");
+        var schemaPublishing = plan.Operations.Where(operation => operation.Kind is "CreateEntity" or "CreateAttribute" or "CreateLookup" or "CreateKey" or "AddOptionValue")
             .Select(operation => operation.Entity).ToHashSet(StringComparer.Ordinal);
+        var uiPublishing = plan.Ui?.Views.Where(view => view.NeedsWrite).Select(view => view.Definition.Entity)
+            .ToHashSet(StringComparer.Ordinal) ?? new HashSet<string>(StringComparer.Ordinal);
+        var publishing = schemaPublishing.Concat(uiPublishing).ToHashSet(StringComparer.Ordinal);
+        var existingUi = before.Entities.Where(entity => uiPublishing.Contains(entity.LogicalName))
+            .Select(entity => entity.LogicalName).ToArray();
+        UiMetadataPublicationGuard.Snapshot? uiMetadataBaseline = null;
         if (publishing.Count != 0)
         {
-            // PublishXml以表為粒度，先拒絕本次涉及既有表的未發布結構差異；不可順便發布未審核修改。
+            // PublishXml以表為粒度；即使只有UI修改也會發布同表metadata，
+            // 因此先保留涉及既有表的原schema規劃投影守門，且早於before與第一個寫入。
             var published = SchemaMetadata.Read(service, target, cancellationToken, retrieveAsIfPublished: false);
             foreach (var entity in before.Entities.Where(entity => publishing.Contains(entity.LogicalName)))
             {
@@ -138,10 +167,16 @@ internal sealed class SchemaDeploymentEngine
                 if (old is null || SchemaFiles.HashValue(old) != SchemaFiles.HashValue(entity))
                     throw new InvalidDataException("Unpublished metadata changes require separate review before schema apply.");
             }
+            // 完整DataMember檢查補足規劃投影未涵蓋的label、description及cascade，且早於before及任何寫入。
+            // 所有既有UI表都保存完整基準；同表有schema新增亦不得繞過發布前完整比較。
+            if (existingUi.Length != 0)
+                uiMetadataBaseline = UiMetadataPublicationGuard.Check(service, existingUi, cancellationToken);
         }
         _ = SchemaFiles.WriteNew(directory, "before-metadata.json", before);
+        if (plan.Ui is not null) _ = SchemaFiles.WriteNew(directory, "before-ui-plan.json", plan.Ui);
         var publisherId = plan.PublisherId;
         var created = new Dictionary<(string Entity, string Name), Guid>();
+        var metadataAdditions = new UiMetadataPublicationGuard.SchemaDelta();
         foreach (var operation in plan.Operations)
         {
             cancellationToken.ThrowIfCancellationRequested();
@@ -195,6 +230,9 @@ internal sealed class SchemaDeploymentEngine
                     var entity = definition.Entities.Single(entity => entity.LogicalName == operation.Entity);
                     var field = entity.Fields.Single(field => field.LogicalName == operation.Name && field.Phase <= definition.ActivePhase);
                     var attribute = Attribute(field, entity.IsNew && entity.Audit, before.LanguageCode);
+                    // SDK可能修改request，必須在入場前脫離純值；只有本次一般欄的正式回應ID可綁定增量。
+                    var addition = operation.Kind == "CreateAttribute" && existingUi.Contains(entity.LogicalName, StringComparer.Ordinal)
+                        ? metadataAdditions.CaptureAttribute(entity.LogicalName, attribute, cancellationToken) : null;
                     Guid id;
                     if (operation.Kind == "CreateLookup")
                     {
@@ -219,6 +257,7 @@ internal sealed class SchemaDeploymentEngine
                     else id = RequireId(Execute<CreateAttributeResponse>(new CreateAttributeRequest
                     { EntityName = entity.LogicalName, Attribute = attribute, SolutionUniqueName = definition.Solution }, cancellationToken).AttributeId);
                     created.Add((entity.LogicalName, field.LogicalName), id);
+                    if (addition is not null) metadataAdditions.Add(addition, id);
                     break;
                 }
                 case "AddOptionValue":
@@ -264,18 +303,39 @@ internal sealed class SchemaDeploymentEngine
             }
             cancellationToken.ThrowIfCancellationRequested();
         }
+        var uiOwnedIds = Array.Empty<Guid>();
+        if (plan.Ui is not null)
+        {
+            var candidateMetadata = SchemaMetadata.Read(service, target, cancellationToken);
+            var generatedScope = UiViewDeployment.ReadScope(service, definition, candidateMetadata, cancellationToken);
+            var createdEntities = plan.Operations.Where(operation => operation.Kind == "CreateEntity")
+                .Select(operation => operation.Entity).ToHashSet(StringComparer.Ordinal);
+            // CreateEntity 會由 server 產生原生表單／預設檢視，僅納入本輪新表的正式子元件。
+            // 舊表的未知 UI 永不藉此放行；來源停止後的其他新變更仍由發布前差異核對攔下。
+            var nativeIds = generatedScope.Unpublished.Where(row => createdEntities.Contains(row.Entity)).Select(row => row.Id).ToArray();
+            uiOwnedIds = UiViewDeployment.Apply(service, definition, candidateMetadata, plan.Ui, directory, cancellationToken).ToArray();
+            var pendingScope = UiViewDeployment.ReadScope(service, definition, candidateMetadata, cancellationToken);
+            UiViewDeployment.CheckBeforePublish(service, definition, candidateMetadata, plan.Ui, uiOwnedIds, pendingScope, cancellationToken);
+            UiPublishScope.Check(UiViewDeployment.Pending(pendingScope), uiOwnedIds.Concat(nativeIds).Distinct());
+        }
         var changedEntities = plan.Operations.Where(operation => operation.Kind is "CreateEntity" or "CreateAttribute" or "CreateLookup" or "CreateKey" or "AddOptionValue")
-            .Select(operation => operation.Entity).Distinct(StringComparer.Ordinal).Order(StringComparer.Ordinal).ToArray();
+            .Select(operation => operation.Entity)
+            .Concat(plan.Ui?.Views.Where(view => view.NeedsWrite).Select(view => view.Definition.Entity) ?? Array.Empty<string>())
+            .Distinct(StringComparer.Ordinal).Order(StringComparer.Ordinal).ToArray();
         if (changedEntities.Length != 0)
         {
+            // 當下兩來源可能一起漂移；必須同時與初始純值基準比對，失敗保留已flush的before且不發布。
+            if (uiMetadataBaseline is not null)
+                _ = UiMetadataPublicationGuard.Check(service, existingUi, cancellationToken, uiMetadataBaseline, metadataAdditions);
             // RetrieveAsIfPublished只供衝突盤點，不能當已發布證據；僅定向發布本plan新增所涉表，不PublishAll其他產品變更。
             var xml = new XElement("importexportxml", new XElement("entities", changedEntities.Select(name => new XElement("entity", name))));
             _ = Execute<PublishXmlResponse>(new PublishXmlRequest { ParameterXml = xml.ToString(SaveOptions.DisableFormatting) }, cancellationToken);
         }
         var after = SchemaMetadata.Read(service, target, cancellationToken, retrieveAsIfPublished: false);
-        var remaining = SchemaPlanner.Create(definition, after, clock.GetUtcNow(), catalog);
+        var remaining = CreatePlan(definition, after, cancellationToken, publishedOnly: true);
         _ = SchemaFiles.WriteNew(directory, "after-metadata.json", after);
-        if (remaining.Operations.Count != 0) throw new InvalidOperationException("Schema apply completed with missing metadata components.");
+        if (remaining.Operations.Count != 0 || remaining.Ui?.Changes > 0)
+            throw new InvalidOperationException("Schema apply completed with missing metadata or published UI components.");
         return remaining;
     }
 

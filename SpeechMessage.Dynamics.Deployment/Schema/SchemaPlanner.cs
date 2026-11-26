@@ -10,6 +10,8 @@
  * 以schema hash及包含server組織ID的metadata fingerprint建立plan hash；ValidatePlan重算即時完整預期，任何範圍、操作或定義漂移都拒絕。
  * 隔離與生命週期：只使用本次方法區域集合，不讀系統時鐘、不連SDK、不存credential／request、不持有背景工作或跨命令結果。
  * 重要限制：傳入快照必須由完整只讀投影取得；值物件、plan hash與白名單alias都不取代server授權、寫鎖或實機備份。
+ * goodshepherd20 的兩張複製表另綁 F0 已觀察的正式組織及 metadata ID／owner，缺表或漂移拒絕；
+ * 只保留既有不可變 owner，不重建、不改 owner，新組織仍依 UserOwned 建立；所有其他功能約束維持精確比對。
  * 維護驗證：SchemaPlannerTests逐一注入型別、長度、日期、安全、owner、audit、concurrency、key與managed衝突，並驗零差異、竄改與pending狀態。
  */
 using System;
@@ -45,6 +47,7 @@ internal static class SchemaPlanner
         var operations = new List<SchemaOperation>();
         var includes = new List<SchemaOperation>();
         var pending = new List<string>();
+        var retainedOwnership = ValidateExistingOwnership(definition, snapshot);
         var solution = snapshot.Solutions.SingleOrDefault();
         if (solution is not null && (solution.Name != definition.Solution || solution.Managed)) Conflict("solution");
         var publisher = solution is not null ? snapshot.Publishers.SingleOrDefault(item => item.Id == solution.PublisherId)
@@ -65,7 +68,8 @@ internal static class SchemaPlanner
                 if (!expected.IsNew) Conflict(expected.LogicalName);
                 operations.Add(new SchemaOperation("CreateEntity", expected.LogicalName, expected.PrimaryName, Guid.Empty));
             }
-            else if (expected.IsNew && (expected.OwnershipType is not null && existing.Ownership != expected.OwnershipType ||
+            else if (expected.IsNew && (existing.Ownership != (expected.OwnershipType ?? "OrganizationOwned")
+                    && retainedOwnership?.Any(item => item.Entity == expected.LogicalName && item.MetadataId == existing.Id) != true ||
                 existing.PrimaryName != expected.PrimaryName
                 || existing.Audit != expected.Audit
                 || expected.OptimisticConcurrency.HasValue && existing.OptimisticConcurrency != expected.OptimisticConcurrency || existing.Managed != false))
@@ -120,9 +124,41 @@ internal static class SchemaPlanner
         {
             OrganizationId = snapshot.OrganizationId, PublisherId = publisher?.Id ?? Guid.Empty, Organization = snapshot.Organization, CreatedUtc = createdUtc,
             Fingerprint = SchemaFiles.HashValue(snapshot), SchemaHash = SchemaFiles.Hash(definition),
-            Operations = Array.AsReadOnly(ordered), PendingKeys = Array.AsReadOnly(pending.ToArray())
+            Operations = Array.AsReadOnly(ordered), PendingKeys = Array.AsReadOnly(pending.ToArray()),
+            RetainedOwnership = retainedOwnership
         };
         return plan with { Sha256 = SchemaFiles.HashValue(plan) };
+    }
+
+    /// <summary>
+    /// 精確沿用 F0 唯讀盤點的不可變 owner。只接受 goodshepherd20 的既定正式組織 ID，
+    /// 並對每個已宣告候選逐一驗正式 metadata ID 與原 OrganizationOwned；表不存在也必須拒絕，
+    /// 不能藉基線建立 OrganizationOwned 租戶表。新建定義仍須為 UserOwned，其他組織完全不套用。
+    /// 結果只有本次命令的純值，無來源 snapshot、SDK、秘密或跨命令可變狀態參照。
+    /// </summary>
+    private static System.Collections.ObjectModel.ReadOnlyCollection<SchemaRetainedOwnership>? ValidateExistingOwnership(
+        SchemaDefinition definition, SchemaSnapshot snapshot)
+    {
+        if (snapshot.Organization != "goodshepherd20") return null;
+        var retained = new List<SchemaRetainedOwnership>();
+        foreach (var baseline in new[]
+        {
+            new SchemaRetainedOwnership("new_localizedtext",
+                Guid.Parse("f417a3e7-d3d9-f111-8cca-00155d007916"), "OrganizationOwned"),
+            new SchemaRetainedOwnership("new_offeringcategory",
+                Guid.Parse("8407cdf5-d3d9-f111-8cca-00155d007916"), "OrganizationOwned")
+        })
+        {
+            var expected = definition.Entities.SingleOrDefault(entity => entity.LogicalName == baseline.Entity);
+            if (expected is null) continue;
+            var actual = snapshot.Entities.SingleOrDefault(entity => entity.LogicalName == baseline.Entity);
+            if (snapshot.OrganizationId != Guid.Parse("ec4d281b-bbe7-f111-8cce-00155d007916")
+                || !expected.IsNew || expected.OwnershipType != "UserOwned" || actual is null
+                || actual.Id != baseline.MetadataId || actual.Ownership != baseline.Ownership)
+                Conflict(baseline.Entity + " F0 metadata baseline");
+            retained.Add(baseline);
+        }
+        return retained.Count == 0 ? null : Array.AsReadOnly(retained.ToArray());
     }
 
     /// <summary>apply在備份／寫入之前重新讀server並重算完整預期計畫，拒絕任何欄位、操作、scope或hash漂移。</summary>
@@ -133,6 +169,12 @@ internal static class SchemaPlanner
             || plan.Sha256 != SchemaFiles.HashValue(plan with { Sha256 = "" }))
             throw new InvalidDataException("Schema plan integrity validation failed.");
         var expected = Create(definition, snapshot, plan.CreatedUtc, catalog);
+        // UI 的 SDK 現況由同一引擎在首次寫入前完整重驗；此處保留純 metadata 比較，
+        // 並將 UI 候選納入外層完整性 hash，不能把 UI 增補誤當成 metadata 漂移。
+        if (plan.Ui is not null)
+            expected = expected with { Ui = plan.Ui, Sha256 = "" };
+        if (plan.Ui is not null)
+            expected = expected with { Sha256 = SchemaFiles.HashValue(expected) };
         if (plan.Sha256 != expected.Sha256) throw new InvalidDataException("Schema plan no longer matches the definition or organization metadata.");
     }
 

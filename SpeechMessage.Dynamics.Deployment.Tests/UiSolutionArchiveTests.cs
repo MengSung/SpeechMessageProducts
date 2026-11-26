@@ -1,8 +1,8 @@
 /*
 檔案整體說明
 目的與定位：以記憶體 ZIP 與合成 Dynamics 解決方案 XML，驗證 P5-03b 匯出入共用的封裝邊界，並非實機匯出結果。
-主要功能與流程：核對共用實體表單移除但檢視與自有實體表單保留；注入越界路徑、大小寫重複、壓縮膨脹、DTD 及錯誤方案身分，驗證完整候選失敗而非發布部分資料。
-使用邊界與擁有權：每個案例獨占記憶體串流與 ZIP，using 在斷言失敗時亦釋放；資料只含合成 GUID、固定名稱與測試內容，不讀 User Secrets、不接 SDK、不建立背景工作。往返測試以實際封裝內容而非替身呼叫次數驗證。
+主要功能與流程：核對共用實體表單移除但檢視與自有實體表單保留；注入越界路徑、大小寫重複、壓縮膨脹、DTD 及錯誤方案身分，驗證完整候選失敗而非發布部分資料。合成多成員 ZIP 分別跨越累計解壓 16MiB 與 128 成員邊界；以執行緒配置量驗證封裝在超額輸入及 ZIP 標頭超額時停止，不只斷言最終例外。
+使用邊界與擁有權：每個案例獨占記憶體串流與 ZIP，using 在斷言失敗時亦釋放；資料只含合成 GUID、固定名稱與測試內容，不讀 User Secrets、不連真實 SDK 服務、不建立背景工作。SDK 替身分別承接已發布查詢與未發布訊息，每次建立獨立快照；相同正式 ID 只有 XML 差異才構成 pending。新增的 RetrieveEntity 只返回受影響表的一致合成結構，配合完整結構護欄，不放寬原 UI 或 ZIP 斷言。往返測試核對實際封裝內容；真 Import 案例另保留完整請求順序與計畫外 ID 拒絕斷言，暫存目錄由案例 finally 清理。
 */
 using System;
 using System.Collections.Generic;
@@ -13,6 +13,8 @@ using System.Text;
 using System.Xml.Linq;
 using Microsoft.Crm.Sdk.Messages;
 using Microsoft.Xrm.Sdk;
+using Microsoft.Xrm.Sdk.Messages;
+using Microsoft.Xrm.Sdk.Metadata;
 using Microsoft.Xrm.Sdk.Query;
 using Xunit;
 
@@ -26,11 +28,27 @@ public sealed class UiSolutionArchiveTests
     private static readonly string[] ExpectedSdkRequests =
     {
         "ExportSolution",
+        "RetrieveMultiple",
+        "RetrieveMultiple",
         "RetrieveUnpublishedMultiple",
         "RetrieveUnpublishedMultiple",
+        "RetrieveEntity",
+        "RetrieveEntity",
+        "RetrieveEntity",
+        "RetrieveEntity",
+        "RetrieveEntity",
+        "RetrieveEntity",
         "ImportSolution",
+        "RetrieveMultiple",
+        "RetrieveMultiple",
         "RetrieveUnpublishedMultiple",
         "RetrieveUnpublishedMultiple",
+        "RetrieveEntity",
+        "RetrieveEntity",
+        "RetrieveEntity",
+        "RetrieveEntity",
+        "RetrieveEntity",
+        "RetrieveEntity",
         "PublishXml"
     };
 
@@ -78,6 +96,121 @@ public sealed class UiSolutionArchiveTests
             Archive(extra: "WebResources/large", content: new byte[8 * 1024 * 1024 + 1])));
     }
 
+    /// <summary>
+    /// 每個成員均小於 8MiB、總數小於 128、壓縮檔小於 1MiB，仍須因累計解壓超過
+    /// 16MiB 而拒絕；不同分塊大小防止只修成單檔限制，所有 ZIP 由本案例同步釋放。
+    /// </summary>
+    [Theory]
+    [InlineData(6 * 1024 * 1024)]
+    [InlineData(512 * 1024)]
+    public void Prepare_IndividuallySmallEntries_ExceedTotalExpandedBudget_Rejected(int entryBytes)
+    {
+        var archive = ArchiveAtExpandedSize(18 * 1024 * 1024, entryBytes);
+        Assert.True(archive.Length < 1024 * 1024);
+
+        Assert.Throws<InvalidDataException>(() => UiSolutionArchive.Prepare(archive));
+    }
+
+    /// <summary>累計解壓恰為 16MiB 且單檔不超過 8MiB 時仍可完整發布候選，避免用縮小既有限制取代總預算。</summary>
+    [Fact]
+    public void Prepare_ExactTotalExpandedBudget_RetainsAllResources()
+    {
+        var archive = ArchiveAtExpandedSize(16 * 1024 * 1024, 8 * 1024 * 1024);
+
+        var files = UiSolutionArchive.Prepare(archive);
+
+        Assert.Equal(6, files.Count);
+        Assert.Equal(8 * 1024 * 1024, files["WebResources/budget-0"].Length);
+        Assert.Contains("WebResources/budget-1", files.Keys);
+    }
+
+    /// <summary>即使額外成員全空，129 個成員仍不得通過；與 16MiB 累計大小的拒絕原因分開驗證。</summary>
+    [Fact]
+    public void Prepare_TooManyEmptyEntries_Rejected()
+    {
+        using var stream = new MemoryStream();
+        stream.Write(Archive());
+        using (var zip = new ZipArchive(stream, ZipArchiveMode.Update, leaveOpen: true))
+        {
+            for (var index = 0; index < 125; index++)
+                zip.CreateEntry("WebResources/empty-" + index.ToString(System.Globalization.CultureInfo.InvariantCulture));
+        }
+
+        Assert.Throws<InvalidDataException>(() => UiSolutionArchive.Prepare(stream.ToArray()));
+    }
+
+    /// <summary>
+    /// 三個合法 8MiB 成員的合計已超額；封裝須在建立大輸出前拒絕。
+    /// 配置量只量正式 Pack 呼叫，2MiB 容差遠低於 24MiB 輸出，避免只在完整配置後擲例外仍通過。
+    /// </summary>
+    [Fact]
+    public void Pack_TotalPayloadOverBudget_RejectedBeforeLargeAllocation()
+    {
+        var payload = new byte[8 * 1024 * 1024];
+        var files = new Dictionary<string, byte[]>
+        {
+            ["a"] = payload,
+            ["b"] = payload,
+            ["c"] = payload
+        };
+        var before = GC.GetAllocatedBytesForCurrentThread();
+
+        var error = Record.Exception(() => UiSolutionArchive.Pack(files));
+        var allocated = GC.GetAllocatedBytesForCurrentThread() - before;
+
+        Assert.IsType<InvalidDataException>(error);
+        Assert.InRange(allocated, 0, 2 * 1024 * 1024);
+    }
+
+    /// <summary>
+    /// 原文剛好 16MiB，或只預留 128 bytes 而在中央目錄關閉時超額，均不得先擴容至 32MiB。
+    /// 執行緒配置量是歷次陣列總和，32MiB 容差涵蓋 8MiB→16MiB 等合法擴容與小型 ZIP 狀態；
+    /// 原始完整封裝後才拒絕的實作需約 56MiB 累計配置，不能通過此斷言。
+    /// </summary>
+    [Theory]
+    [InlineData(0)]
+    [InlineData(128)]
+    public void Pack_ZipOverheadExceedsBudget_DoesNotGrowOversizedBuffer(int reservedBytes)
+    {
+        var payload = new byte[8 * 1024 * 1024];
+        var files = new Dictionary<string, byte[]>
+        {
+            ["a"] = payload,
+            ["b"] = reservedBytes == 0 ? payload : new byte[payload.Length - reservedBytes]
+        };
+        var before = GC.GetAllocatedBytesForCurrentThread();
+
+        var error = Record.Exception(() => UiSolutionArchive.Pack(files));
+        var allocated = GC.GetAllocatedBytesForCurrentThread() - before;
+
+        Assert.IsType<InvalidDataException>(error);
+        Assert.InRange(allocated, 0, 32 * 1024 * 1024);
+    }
+
+    /// <summary>預留足夠 ZIP 標頭空間的近上限候選可以往返；輸出與每個原始資源均保持完整。</summary>
+    [Fact]
+    public void Pack_NearOutputBudget_PreservesEveryByte()
+    {
+        var files = new Dictionary<string, byte[]>
+        {
+            ["a"] = new byte[8 * 1024 * 1024],
+            ["b"] = new byte[8 * 1024 * 1024 - 1024]
+        };
+
+        var packed = UiSolutionArchive.Pack(files);
+
+        Assert.InRange(packed.Length, 16 * 1024 * 1024 - 1024, 16 * 1024 * 1024);
+        using var stream = new MemoryStream(packed, writable: false);
+        using var zip = new ZipArchive(stream, ZipArchiveMode.Read);
+        foreach (var item in files)
+        {
+            using var source = zip.GetEntry(item.Key)!.Open();
+            using var target = new MemoryStream();
+            source.CopyTo(target);
+            Assert.Equal(item.Value, target.ToArray());
+        }
+    }
+
     /// <summary>Windows 相同身分的兩個路徑必須拒絕，不能用字典最後寫入覆蓋來隱藏衝突。</summary>
     [Fact]
     public void DuplicateArchiveIdentity_IsRejected()
@@ -120,7 +253,10 @@ public sealed class UiSolutionArchiveTests
         Assert.Empty(reports);
     }
 
-    /// <summary>假服務驗證匯出寫檔與匯入重壓／發布的 request 順序；不連線、不讀 secrets。</summary>
+    /// <summary>
+    /// 合成服務回傳已／未發布相同的非空表單與檢視，真 Import 不得誤判 pending；
+    /// 保留匯出檔、完整查詢／匯入／發布順序與方案身分斷言，暫存目錄由 finally 清理。
+    /// </summary>
     [Fact]
     public void UiExportAndImport_UseOfflineSdkContract()
     {
@@ -146,7 +282,10 @@ public sealed class UiSolutionArchiveTests
         }
     }
 
-    /// <summary>匯入前發現計畫外未發布元件即停止；不得先匯入再用發布範圍檢查掩蓋衝突。</summary>
+    /// <summary>
+    /// 兩來源含相同計畫外正式 ID，但只在未發布來源改變 XML，真 Import 必須在匯入前拒絕；
+    /// 例外須包含該 ID 且不能送出 ImportSolution，不能靠缺列或無效回應提前失敗。
+    /// </summary>
     [Fact]
     public void UiImport_UnplannedPendingComponent_RefusedBeforeImport()
     {
@@ -187,6 +326,30 @@ public sealed class UiSolutionArchiveTests
         return stream.ToArray();
     }
 
+    /// <summary>
+    /// 從真實合成 ZIP 的成員長度計算待補原文，加入可壓縮且個別有界的資源。
+    /// 大小由測試指定，不讀正式實作常數；每個 stream 在返回前關閉，不產生磁碟檔案。
+    /// </summary>
+    internal static byte[] ArchiveAtExpandedSize(int totalBytes, int entryBytes)
+    {
+        using var stream = new MemoryStream();
+        stream.Write(Archive());
+        using (var zip = new ZipArchive(stream, ZipArchiveMode.Update, leaveOpen: true))
+        {
+            var remaining = totalBytes - zip.Entries.Sum(entry => entry.Length);
+            var payload = new byte[entryBytes];
+            for (var index = 0; remaining > 0; index++)
+            {
+                var count = (int)Math.Min(remaining, payload.Length);
+                using var output = zip.CreateEntry(
+                    "WebResources/budget-" + index.ToString(System.Globalization.CultureInfo.InvariantCulture)).Open();
+                output.Write(payload, 0, count);
+                remaining -= count;
+            }
+        }
+        return stream.ToArray();
+    }
+
     /// <summary>寫入本案例的單一 ZIP 成員，entry stream 不外借或跨案例保留。</summary>
     private static void Add(ZipArchive zip, string name, byte[] bytes)
     {
@@ -202,27 +365,44 @@ public sealed class UiSolutionArchiveTests
             throw new InvalidOperationException("Connector must not be called.");
     }
 
-    /// <summary>只支援本包的三個 SDK 訊息，意外資料存取立即失敗；所有 archive bytes 只留本案例。</summary>
+    /// <summary>
+    /// 承接本案例的匯出、雙來源 UI 讀取、匯入與定向發布，未列出的操作立即失敗。
+    /// 每次查詢建立獨立 Entity，固定正式 ID 與範圍，不共享可變 SDK 列；
+    /// archive bytes、請求紀錄與快照只活到本案例結束，沒有連線或背景資源須額外釋放。
+    /// </summary>
     private sealed class UiService(byte[] exportArchive, IReadOnlyList<Guid>? pendingIds = null) : IOrganizationService
     {
+        /// <summary>只含固定元件型別的唯讀測試資料，不承載任何案例或組織狀態。</summary>
+        private static readonly string[] ComponentTypes = { "systemform", "savedquery" };
+        /// <summary>封裝明列的固定發布範圍，供兩來源查詢共同核對；不外借或修改陣列。</summary>
+        private static readonly string[] ExpectedEntityScope = { "account", "contact", "new_example" };
+
+        /// <summary>本案例獨占的完整 SDK 呼叫紀錄，用來驗證雙來源讀取先於匯入與發布。</summary>
         internal List<string> Requests { get; } = new();
+        /// <summary>只保存本案例送入匯入訊息的封裝，供方案身分與非空斷言使用。</summary>
         internal (string SolutionName, byte[] Archive)? ImportedArchive { get; private set; }
 
-        /// <summary>回傳合成 export 並記錄 import／publish 的固定順序。</summary>
+        /// <summary>回傳合成封裝與獨立未發布快照，並記錄匯入／發布順序；不委派任何真實服務。</summary>
         public OrganizationResponse Execute(OrganizationRequest request)
         {
             Requests.Add(request.RequestName);
+            if (request is RetrieveEntityRequest metadata)
+            {
+                Assert.Equal(EntityFilters.All, metadata.EntityFilters);
+                Assert.Contains(metadata.LogicalName, ExpectedEntityScope);
+                return new RetrieveEntityResponse
+                {
+                    Results = { ["EntityMetadata"] = Ui.UiImportMetadataBoundaryTests.Metadata(metadata.LogicalName) }
+                };
+            }
             if (request.RequestName == "ExportSolution")
                 return new OrganizationResponse { Results = { ["ExportSolutionFile"] = exportArchive } };
             if (request.RequestName == "RetrieveUnpublishedMultiple")
             {
                 var query = Assert.IsType<QueryExpression>(request["Query"]);
-                var rows = query.EntityName == "systemform"
-                    ? (pendingIds ?? Array.Empty<Guid>()).Select(id => new Entity("systemform", id)).ToArray()
-                    : Array.Empty<Entity>();
                 return new RetrieveUnpublishedMultipleResponse
                 {
-                    Results = { ["EntityCollection"] = new EntityCollection(rows) }
+                    Results = { ["EntityCollection"] = Snapshot(query, unpublished: true) }
                 };
             }
             if (request.RequestName == "ImportSolution")
@@ -236,6 +416,58 @@ public sealed class UiSolutionArchiveTests
             throw new NotSupportedException();
         }
 
+        /// <summary>
+        /// 以正式 ID 與固定欄位建立完整單頁；兩來源身份完全一致，只有指定計畫外表單的未發布 XML 不同。
+        /// 非空且未修改的檢視不在封裝計畫內，仍必須允許匯入，防止把未發布來源的所有列誤認為 pending。
+        /// </summary>
+        private EntityCollection Snapshot(QueryExpression query, bool unpublished)
+        {
+            Assert.Contains(query.EntityName, ComponentTypes);
+            var isForm = query.EntityName == "systemform";
+            Assert.False(query.ColumnSet.AllColumns);
+            Assert.Contains(isForm ? "formid" : "savedqueryid", query.ColumnSet.Columns);
+            Assert.Contains(isForm ? "formxml" : "fetchxml", query.ColumnSet.Columns);
+            var scope = Assert.Single(query.Criteria.Conditions);
+            Assert.Equal(isForm ? "objecttypecode" : "returnedtypecode", scope.AttributeName);
+            Assert.Equal(ConditionOperator.In, scope.Operator);
+            Assert.Equal(ExpectedEntityScope, scope.Values.Cast<string>());
+            var rows = new List<Entity>();
+            if (isForm)
+            {
+                var plannedId = Guid.Parse("10000000-0000-0000-0000-000000000003");
+                foreach (var id in new[] { plannedId }.Concat(pendingIds ?? Array.Empty<Guid>()))
+                    rows.Add(new Entity("systemform", id)
+                    {
+                        ["formid"] = id,
+                        ["objecttypecode"] = "new_example",
+                        ["name"] = "Synthetic form",
+                        ["description"] = "Offline UI snapshot",
+                        ["type"] = new OptionSetValue(2),
+                        ["formactivationstate"] = new OptionSetValue(1),
+                        ["ismanaged"] = false,
+                        ["formxml"] = unpublished && id != plannedId ? "<form><tabs /></form>" : "<form />"
+                    });
+            }
+            else
+            {
+                var viewId = Guid.Parse("20000000-0000-0000-0000-000000000001");
+                rows.Add(new Entity("savedquery", viewId)
+                {
+                    ["savedqueryid"] = viewId,
+                    ["returnedtypecode"] = "account",
+                    ["name"] = "Synthetic view",
+                    ["description"] = "Offline UI snapshot",
+                    ["querytype"] = 0,
+                    ["isdefault"] = false,
+                    ["statecode"] = new OptionSetValue(0),
+                    ["ismanaged"] = false,
+                    ["fetchxml"] = "<fetch><entity name=\"account\" /></fetch>",
+                    ["layoutxml"] = "<grid />"
+                });
+            }
+            return new EntityCollection(rows) { EntityName = query.EntityName };
+        }
+
         /// <summary>本測試不使用單列寫入。</summary>
         public Guid Create(Entity entity) => throw new NotSupportedException();
         /// <summary>本測試不使用更新。</summary>
@@ -244,8 +476,12 @@ public sealed class UiSolutionArchiveTests
         public void Delete(string entityName, Guid id) => throw new NotSupportedException();
         /// <summary>本測試不使用單列讀取。</summary>
         public Entity Retrieve(string entityName, Guid id, ColumnSet columnSet) => throw new NotSupportedException();
-        /// <summary>本測試不使用查詢。</summary>
-        public EntityCollection RetrieveMultiple(QueryBase query) => throw new NotSupportedException();
+        /// <summary>承接真 Import 的已發布 QueryExpression，記錄順序並回傳與未發布來源分離的完整快照。</summary>
+        public EntityCollection RetrieveMultiple(QueryBase query)
+        {
+            Requests.Add("RetrieveMultiple");
+            return Snapshot(Assert.IsType<QueryExpression>(query), unpublished: false);
+        }
         /// <summary>本測試不使用關聯。</summary>
         public void Associate(string entityName, Guid entityId, Relationship relationship, EntityReferenceCollection relatedEntities) => throw new NotSupportedException();
         /// <summary>本測試不使用解除關聯。</summary>

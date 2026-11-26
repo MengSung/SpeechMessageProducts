@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "activePhase": 1,
+  "activePhase": 8,
   "solution": "SpeechMessageCore",
   "publisher": "SpeechMessagePublisher",
   "prefix": "new",
@@ -82,7 +82,7 @@
           "displayName": "LINE 使用者識別",
           "type": "string",
           "phase": 1,
-          "maxLength": 128
+          "maxLength": 500
         }
       ],
       "keys": []
@@ -103,9 +103,45 @@
           "phase": 1,
           "maxLength": 100,
           "required": true
+        },
+        {
+          "logicalName": "new_channelid",
+          "displayName": "LINE Channel ID",
+          "type": "string",
+          "phase": 1,
+          "maxLength": 20
+        },
+        {
+          "logicalName": "new_accesstokenencrypted",
+          "displayName": "加密存取權杖",
+          "type": "memo",
+          "phase": 1,
+          "maxLength": 4000,
+          "secured": true
+        },
+        {
+          "logicalName": "new_channelsecretencrypted",
+          "displayName": "加密通道秘密",
+          "type": "memo",
+          "phase": 1,
+          "maxLength": 1000,
+          "secured": true
+        },
+        {
+          "logicalName": "new_richmenucapacityused",
+          "displayName": "已用宮格數",
+          "type": "integer",
+          "phase": 1
         }
       ],
-      "keys": []
+      "keys": [
+        {
+          "logicalName": "new_ak_linechannel",
+          "attributes": [
+            "new_channelid"
+          ]
+        }
+      ]
     },
     {
       "logicalName": "new_outboundtask",
@@ -125,15 +161,130 @@
           "required": true
         },
         {
+          "logicalName": "new_type",
+          "displayName": "類型",
+          "type": "choice",
+          "phase": 1,
+          "options": [
+            {
+              "value": 100000000,
+              "label": "RichMenuGenerate"
+            },
+            {
+              "value": 100000001,
+              "label": "QrImageGenerate"
+            },
+            {
+              "value": 100000002,
+              "label": "AllotQuery"
+            },
+            {
+              "value": 100000003,
+              "label": "MemberNotifyRelay"
+            }
+          ]
+        },
+        {
+          "logicalName": "new_taskstatus",
+          "displayName": "工作狀態",
+          "type": "choice",
+          "phase": 1,
+          "options": [
+            {
+              "value": 100000000,
+              "label": "Pending"
+            },
+            {
+              "value": 100000001,
+              "label": "Processing"
+            },
+            {
+              "value": 100000002,
+              "label": "Completed"
+            },
+            {
+              "value": 100000003,
+              "label": "Failed"
+            }
+          ]
+        },
+        {
           "logicalName": "new_accountid",
           "displayName": "租戶",
           "type": "lookup",
           "phase": 1,
           "target": "account",
           "required": true
+        },
+        {
+          "logicalName": "new_contactid",
+          "displayName": "會友",
+          "type": "lookup",
+          "phase": 1,
+          "target": "contact",
+          "required": false
+        },
+        {
+          "logicalName": "new_payload",
+          "displayName": "內容",
+          "type": "memo",
+          "phase": 1,
+          "maxLength": 4000
+        },
+        {
+          "logicalName": "new_idempotencykey",
+          "displayName": "冪等鍵",
+          "type": "string",
+          "phase": 1,
+          "maxLength": 200
+        },
+        {
+          "logicalName": "new_attempts",
+          "displayName": "重試次數",
+          "type": "integer",
+          "phase": 1
+        },
+        {
+          "logicalName": "new_nextattempton",
+          "displayName": "下次重試時間",
+          "type": "datetime",
+          "phase": 1,
+          "behavior": "UserLocal",
+          "format": "DateAndTime"
+        },
+        {
+          "logicalName": "new_claimedon",
+          "displayName": "取得時間",
+          "type": "datetime",
+          "phase": 1,
+          "behavior": "UserLocal",
+          "format": "DateAndTime"
+        },
+        {
+          "logicalName": "new_completedon",
+          "displayName": "完成時間",
+          "type": "datetime",
+          "phase": 1,
+          "behavior": "UserLocal",
+          "format": "DateAndTime"
+        },
+        {
+          "logicalName": "new_lasterror",
+          "displayName": "錯誤代碼",
+          "type": "string",
+          "phase": 1,
+          "maxLength": 400
         }
       ],
-      "keys": []
+      "keys": [
+        {
+          "logicalName": "new_ak_outboundtask",
+          "attributes": [
+            "new_idempotencykey"
+          ]
+        }
+      ],
+      "optimisticConcurrency": true
     },
     {
       "logicalName": "new_localizedtext",
@@ -159,9 +310,39 @@
           "phase": 1,
           "target": "account",
           "required": true
+        },
+        {
+          "logicalName": "new_key",
+          "displayName": "文字鍵",
+          "type": "string",
+          "phase": 1,
+          "maxLength": 200
+        },
+        {
+          "logicalName": "new_culture",
+          "displayName": "語系",
+          "type": "string",
+          "phase": 1,
+          "maxLength": 16
+        },
+        {
+          "logicalName": "new_text",
+          "displayName": "覆寫文字",
+          "type": "memo",
+          "phase": 1,
+          "maxLength": 2000
         }
       ],
-      "keys": []
+      "keys": [
+        {
+          "logicalName": "new_ak_localizedtext",
+          "attributes": [
+            "new_accountid",
+            "new_key",
+            "new_culture"
+          ]
+        }
+      ]
     }
   ]
 }

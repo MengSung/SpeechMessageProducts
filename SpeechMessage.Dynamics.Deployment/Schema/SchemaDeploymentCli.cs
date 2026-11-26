@@ -4,11 +4,15 @@
  * 目的與定位：本檔承接DeploymentCli明確--schema與export-metadata命令，提供不依賴Plugin DLL的P1結構操作路由。
  * 主要功能：嚴格解析plan/apply/verify/export-metadata，以及受限smoke／complete-created-audit；唯一--org/--schema/--plan/--before組合，只有共同ProductionGuard核定的組織可進connector，正式寫入須旗標與名稱確認。
  * 輸入與流程：schema限定本repo d365/schema，plan限定該組織artifacts；先核對路徑祖先link/junction、讀strict JSON，再由既有connector取得一次lease。
+ * FS 三個新產品的 plan／apply／verify 不接受單檔覆寫，改從 layers.json 組合完整平台與產品層；
+ * goodshepherdback 的明確 --schema 契約保持原樣。分層載入及未知目標拒絕都發生在連線之前。
  * apply沿用既有OrganizationWriteLock，持有期間重新盤點／驗plan／保存before／新增；唯讀匯出寫到d365/snapshots/組織的唯一操作目錄。
  * smoke與新Lookup稽核補正同持寫鎖；前者先確認已發布結構與Active key、建立及清理自身合成列，後者須原始plan/before且不允許通用metadata更新。
  * 輸出：plan同時提供JSON與可閱讀Markdown；verify有差異為1、key未Active為3、拒絕為2、caller取消為130，只有完整一致才為0。
  * 生命週期與保密：每指令使用本地候選及單一lease，using先歸還服務再釋放寫鎖；沒有共用request、credential、結果cache或無界背景工作。
  * 真正故障傳原Exception給Program注入的共用report，摘要不回顯訊息、參數或機密；正常caller取消不告警，內部timeout仍是失敗。
+ * SDK fault 在原例外上報後沿用共同有界診斷，只輸出最多四層 Int32 十六進位錯誤碼；
+ * 不讀取 Message、Reason、TraceText 或 ErrorDetails，補充輸出故障不改變原 exit 1。
  * 重要限制：連線成功／plan產生不等於實機寫入授權；沒有隔離、備份與可驗證復原證據前不可自動apply。
  * 維護驗證：SchemaCliTests用真路由／引擎及合成SDK驗完整生命週期、租約歸還、路徑拒絕、取消、真共用ExceptionDiagnostics與敏感本文不落檔。
  */
@@ -54,7 +58,9 @@ internal static class SchemaDeploymentCli
             if (planPath is not null) EnsureNoLinks(planPath);
             if (beforePath is not null) EnsureNoLinks(beforePath);
             EnsureNoLinks(organizationArtifacts);
-            var definition = schemaPath is null ? null : SchemaFiles.Load(schemaPath);
+            var definition = schemaPath is not null ? SchemaFiles.Load(schemaPath)
+                : command is "plan" or "apply" or "verify"
+                    ? SchemaFiles.LoadForOrganization(root, target.Name) : null;
             var approved = planPath is null ? null : SchemaFiles.ReadPlan(planPath);
             var before = beforePath is null ? null : SchemaFiles.ReadBeforeSnapshot(beforePath);
             string? acceptanceText = null;
@@ -94,7 +100,7 @@ internal static class SchemaDeploymentCli
             var result = command == "apply" ? engine.Apply(approved!, definition!, cancellationToken)
                 : command == "complete-created-audit" ? engine.CompleteCreatedAudits(approved!, before!, definition!, cancellationToken)
                 : engine.Verify(definition!, cancellationToken);
-            if (result.Operations.Count != 0)
+            if (result.Operations.Count != 0 || result.Ui?.Changes > 0)
             {
                 output.WriteLine("Schema differs from the definition; no implicit changes were made.");
                 return 1;
@@ -122,6 +128,7 @@ internal static class SchemaDeploymentCli
         {
             try { report(exception); }
             catch { try { Console.Error.WriteLine("Schema diagnostic reporting failed."); } catch { } }
+            DeploymentCli.WriteSupplementalFailureDiagnostics(exception, output);
             output.WriteLine("Schema command failed (" + exception.GetType().Name + "). Sensitive details are not shown.");
             return 1;
         }
@@ -146,11 +153,16 @@ internal static class SchemaDeploymentCli
             else before = value;
         }
         if (!string.Equals(organization, expectedOrganization, StringComparison.Ordinal)) return false;
+        var layered = expectedOrganization is "goodshepherd20" or "construction" or "association";
+        if (layered && schema is not null) return false;
         return command switch
         {
             "export-metadata" => seen.Count == 1 && schema is null && plan is null && before is null,
-            "plan" or "verify" or "smoke" => seen.Count == 2 && schema is not null && plan is null && before is null,
-            "apply" => seen.Count == 3 && schema is not null && plan is not null && before is null,
+            "plan" or "verify" => (layered ? seen.Count == 1 && schema is null : seen.Count == 2 && schema is not null)
+                && plan is null && before is null,
+            "smoke" => seen.Count == 2 && schema is not null && plan is null && before is null,
+            "apply" => (layered ? seen.Count == 2 && schema is null : seen.Count == 3 && schema is not null)
+                && plan is not null && before is null,
             "complete-created-audit" => seen.Count == 4 && schema is not null && plan is not null && before is not null,
             _ => false
         };
