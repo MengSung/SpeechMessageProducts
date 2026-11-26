@@ -2,6 +2,7 @@
 
 | 時間（Asia/Taipei） | 工作包 | 遇到的選擇 | 選了什麼 | 依據 | 怎麼回復 |
 |---|---|---|---|---|---|
+| 2026-11-26 21:02 Asia/Taipei (UTC+08:00) | FS | 已有同步前綠燈及修正複審，整合新增F4／F6後能否直接沿用 | 正常rebase至2da59fac，90按A／B列保留雙方；58檔只有90不同、其餘57檔bytes相同，仍依02§5.2重新完整守門。補查13個測試全文無Critical／High，低於門檻觀察另記之後再說 | 02 §3／§4／§5.2／§5.4／§10；不把同步前結果當同步後證據、不呼叫Gemini | 同步前完整來源備份manifest 8D84CA882C51751678E95B2942437352BF66A70CD4EA3D077EA17D3CC4042F87及原提交仍保留；未修改或刪除其他工作樹 |
 | 2026-11-26 20:26 Asia/Taipei (UTC+08:00) | FS | 新測試組織的 enabledByOrganization 缺鍵是否沿用 legacy 建立停用步驟 | goodshepherd20、construction、association 與其他非 legacy 組織僅明確 true 才新增 Plugin step；缺鍵／false 拒絕新增。goodshepherdback 保留既有缺鍵建立停用相容行為 | 01 FS Plugin 依 --org 契約；第三輪 ClaudeOnly High；3 組 RED 與 6/6 GREEN；保留既有 goodshepherdback 回歸 | 反向恢復 ShouldCreateStep 與負向測試即可；未連線或寫入任何組織 |
 | 2026-11-26 19:31 Asia/Taipei (UTC+08:00) | FS | UI ZIP 的 Entity RootComponent behavior 允許哪些匯入範圍 | 初次檢查限制 root 型別／身份；完成 D26 表單篩選後僅接受 behavior=2 shell-only；其他 0／1／缺漏在 ImportSolution 前拒絕；共用 account／contact 只有在表單確實移除時才正規化為 shell-only | 01 FS UI-only 範圍；Microsoft Learn RootComponentBehavior（0=IncludeSubcomponents、1=DoNotIncludeSubcomponents、2=IncludeAsShellOnly）；合成負向與正向回歸 | 反向移除最終 behavior 檢查及回歸測試可回復原流程；本決策未觸發 D365 寫入 |
 | 2026-11-26 15:47 Asia/Taipei (UTC+08:00) | FS | F1同步造成三份紀錄衝突，H1追查仍缺行為證據，如何繼續而不假放行 | 正常rebase保留雙方所有決策與log、90依各線列合併，51來源bytes不變；恢復cl/lane-a後重新正式完整閘門及ClaudeOnly。H1 unknown與目標9.1選項實值如實待補，舊政策不apply、不盲停核心；完整plan／inventory仍不第三次 | 02 §3／§4／§5.4／§10；H1追查SHA 01AF6236與rebase manifest 76D60FCF；未知不能當安全分類 | 原634e檢查點與備份完整保留；獨立反向FS提交可回復，未作任何D365寫入 |
