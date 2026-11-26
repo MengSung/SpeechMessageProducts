@@ -1,0 +1,26 @@
+<!doctype html>
+<!--
+檔案整體說明：本頁為 GoodShepherd2 的 LIFF 固定入口，以繁體中文呈現啟動狀態。
+官方 SDK 與本機路由控制器依 defer 次序載入；控制器取得部署設定並完成初始化後
+才派送精確白名單頁面。HTML 不讀取查詢、憑證或身分，不執行授權，沒有表單與
+持久儲存。設定缺失與失敗由控制器以固定文字顯示；離頁取消由 JS scope 擁有。
+維護須執行 node:test 頁面契約，核對固定 SDK 來源、語系、載入次序及 UTF-8
+無 BOM、CRLF 與末尾 CRLF。離線測試不能取代正式部署與手機驗證。
+-->
+<html lang="zh-Hant">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="referrer" content="no-referrer">
+    <title>好牧人</title>
+    <script defer src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+    <script defer src="/liff/liff-router.js"></script>
+</head>
+<body data-liff-page="router">
+    <main>
+        <h1>好牧人</h1>
+        <p id="page-status" role="status">正在開啟，請稍候…</p>
+        <noscript>請啟用 JavaScript 後重新開啟。</noscript>
+    </main>
+</body>
+</html>

@@ -1,0 +1,7 @@
+<!--
+檔案整體說明
+目的與定位：F6測試的預設離線篩選，確保一般執行不會觸及正式或測試環境服務。
+主要功能與流程：明確排除五類外部依賴，命令列指定filter時由操作者依02完整列出；本檔不啟動連線、不讀秘密也不記錄身分。
+使用邊界與維護：SqlIntegration及Live3P只在分別授權且持必要環境鎖時執行，預設排除不能當成這些測試通過。維持UTF-8無BOM與CRLF，篩選與計畫同步。
+-->
+<RunSettings><RunConfiguration><TestCaseFilter>Category!=P7Live&amp;Category!=P8Live&amp;Category!=PaymentsLive&amp;Category!=SqlIntegration&amp;Category!=Live3P</TestCaseFilter></RunConfiguration></RunSettings>

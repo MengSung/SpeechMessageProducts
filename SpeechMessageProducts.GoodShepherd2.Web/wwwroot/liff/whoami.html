@@ -1,0 +1,39 @@
+<!doctype html>
+<!--
+檔案整體說明：本頁為 GoodShepherd2 LIFF 身分頁的靜態畫面，與 whoami 控制器
+合作顯示伺服器確認的教會識別、名稱及角色。官方 SDK、共用頁面工具及控制器依
+defer 次序載入，HTML 不取得 token、不推斷授權，也不實作選擇教會流程。
+所有動態文字由控制器以 textContent 寫入，登入及開發探測按鈕預設隱藏；設定、
+初始化與請求失敗顯示固定訊息。probe 只供開發隔離驗證，不能選擇目前身分。
+頁面資料與 listener 由 JS scope 管理，離頁時取消請求並清除身分；本檔沒有快取、
+儲存或背景工作。維護須執行 node:test 的頁面／清理測試並檢查 UTF-8 無 BOM、
+CRLF 及末尾 CRLF；合成測試不代表外部部署或手機通過。
+-->
+<html lang="zh-Hant">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="referrer" content="no-referrer">
+    <title>我的教會｜好牧人</title>
+    <script defer src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+    <script defer src="/liff/liff-router.js"></script>
+    <script defer src="/liff/whoami.js"></script>
+</head>
+<body data-liff-page="whoami">
+    <main>
+        <h1>我的教會</h1>
+        <p id="page-status" role="status">正在確認您的教會，請稍候…</p>
+        <section id="identity" hidden aria-label="教會資料">
+            <dl>
+                <dt>教會</dt><dd id="tenant-name"></dd>
+                <dt>教會識別</dt><dd id="tenant-id"></dd>
+                <dt>角色</dt><dd id="roles"></dd>
+            </dl>
+        </section>
+        <button id="login-button" type="button" hidden>重新登入</button>
+        <button id="probe-button" type="button" hidden>隔離測試</button>
+        <p id="probe-result" role="status"></p>
+        <noscript>請啟用 JavaScript 後重新開啟。</noscript>
+    </main>
+</body>
+</html>

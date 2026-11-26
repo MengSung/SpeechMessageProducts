@@ -1,0 +1,24 @@
+<!--
+檔案整體說明
+目的與定位：F6跨產品LIFF身分與目前租戶選擇的net10共用程式庫，讓產品提供自己的actor解析而不反向參考任何產品。
+主要功能與流程：以中央既有套件組合ID Token官方驗證、請求端點filter及平台SQL選擇儲存。只宣告建置參考，不在MSBuild保存token、使用者資料或啟動網路程序。
+使用邊界與維護：HTTP與SQL資源生命週期由各操作及DI owner管理，身分只在請求內存在；通過離線測試不表示LINE或遠端SQL實機通過。新增專案立即加入方案，嚴格分析、繁中文件及UTF-8無BOM、CRLF皆須驗證。
+-->
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <SpeechMessageStrictCode>true</SpeechMessageStrictCode>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+    <PackageReference Include="Microsoft.Data.SqlClient" />
+    <!-- 沿用既有中央安全版本，避免SqlClient傳遞9.0.13造成NU1902／NU1903；不壓抑稽核。 -->
+    <PackageReference Include="System.Security.Cryptography.Pkcs" />
+    <ProjectReference Include="..\SpeechMessage.Hosting\SpeechMessage.Hosting.csproj" />
+    <ProjectReference Include="..\SpeechMessage.Localization\SpeechMessage.Localization.csproj" />
+  </ItemGroup>
+</Project>

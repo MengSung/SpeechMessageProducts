@@ -1,0 +1,27 @@
+<!--
+檔案整體說明
+目的與定位：F6共用LIFF的net10離線契約測試專案，保護官方ID Token驗證、請求隔離及完整租戶選擇鍵，與真實LINE及遠端SQL驗收分開。
+主要功能與流程：使用中央xUnit、合成HTTP transport及請求生命週期探針，注入逾時、錯誤回應與取消，核對失敗拒絕、零Cookie和資源排空；真實LocalDB案例另外標示SqlIntegration，預設排除。
+使用邊界與維護：每案擁有自己的client、host及暫存資料並確定清理，不讀User Secrets、不共享token或身分。新增專案當下登錄方案，使用嚴格分析與完整繁中文件；測試命令及檔案編碼均屬守門。
+-->
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <SpeechMessageStrictCode>true</SpeechMessageStrictCode>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <IsTestProject>true</IsTestProject>
+    <IsPackable>false</IsPackable>
+    <RunSettingsFilePath Condition="'$(VSTestTestCaseFilter)' == ''">$(MSBuildThisFileDirectory)Offline.runsettings</RunSettingsFilePath>
+  </PropertyGroup>
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" />
+    <PackageReference Include="xunit" />
+    <PackageReference Include="xunit.runner.visualstudio" PrivateAssets="all" />
+    <PackageReference Include="Moq" />
+    <PackageReference Include="coverlet.collector" PrivateAssets="all" />
+    <ProjectReference Include="..\SpeechMessage.Liff.AspNetCore\SpeechMessage.Liff.AspNetCore.csproj" />
+  </ItemGroup>
+</Project>
