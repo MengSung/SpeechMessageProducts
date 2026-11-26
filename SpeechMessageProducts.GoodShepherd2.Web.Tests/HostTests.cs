@@ -1,10 +1,13 @@
 /*
 檔案整體說明
 目的與定位：驗證 F2 真實 ASP.NET Core 組合根與 D365 就緒端點的離線契約，不連線任何外部組織、SQL 或 LINE。
-主要功能與流程：每案使用獨立暫存 content root、合成 SDK 與真實 Kestrel loopback 埠；以 WhoAmI 正常／失敗、取消及 Dispose 故障注入，確認只回安全狀態、故障先標記再歸還租約。空 Webhook 接收無效 JSON 仍回 200 且不進事件管線。重複啟停證明程序級診斷 owner 能解除後重新綁定。
+主要功能與流程：每案使用獨立暫存 content root、合成 SDK 與真實 Kestrel loopback 埠；以 WhoAmI 正常／失敗、取消及 Dispose 故障注入，確認只回安全狀態、故障先標記再歸還租約。空 Webhook 接收無效 JSON 仍回 200 且不進事件管線。重複啟停證明程序級診斷 owner 能解除後重新綁定。Main 案例以測試擁有的 listener 占用 loopback 埠，在獨立子程序重現啟動失敗，驗證原始例外不被已釋放容器的錯誤蓋掉。
 使用邊界與維護：測試 collection 禁止與其他會綁定靜態診斷 owner 的案例並行；Host、HttpClient、組態與暫存資料由當案 finally／await using 清理。例外訊息使用合成 canary，實際 Exception.log 必須不含它。此測試只證明本機合成依賴及資源釋放，不代表實機 WhoAmI 或 LINE webhook/test 成功。
 */
 using System.Net;
+using System.Net.Sockets;
+using System.Diagnostics;
+using System.Reflection;
 using System.Text;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -32,6 +35,216 @@ public sealed class F2HostGroup;
 [Collection("F2Host")]
 public sealed class HostTests
 {
+    /// <summary>真實 Main 使用的唯一生命週期在正常停止後關閉全部 owner；連續兩輪沒有殘留程序診斷綁定。</summary>
+    [Fact]
+    public async Task MainLifetime_NormalStop_DrainsAndDisposesOnceAcrossRestarts()
+    {
+        for (var iteration = 0; iteration < 2; iteration++)
+        {
+            var directory = Path.Combine(Path.GetTempPath(), "3p-f2-lifetime-" + Guid.NewGuid().ToString("N"));
+            Directory.CreateDirectory(directory);
+            WebApplication? app = null;
+            Task? operation = null;
+            try
+            {
+                var probe = new HostFailureProbe(null, false);
+                var builder = Builder(directory);
+                builder.Services.AddSingleton<IHostedService>(_ => probe);
+                app = Program.BuildApplication(builder);
+                var lifetime = app.Services.GetRequiredService<IHostApplicationLifetime>();
+                var started = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+                using var registration = lifetime.ApplicationStarted.Register(
+                    static value => ((TaskCompletionSource)value!).TrySetResult(), started);
+                operation = RunMainLifetime(app);
+                await started.Task.WaitAsync(TimeSpan.FromSeconds(10));
+                lifetime.StopApplication();
+                await operation.WaitAsync(TimeSpan.FromSeconds(10));
+                Assert.Equal(1, probe.Stopped);
+                Assert.Equal(1, probe.Disposed);
+                Assert.Throws<ObjectDisposedException>(() => app.Services.GetService<IHostApplicationLifetime>());
+            }
+            finally
+            {
+                if (app is not null && operation is { IsCompleted: false })
+                {
+                    app.Services.GetRequiredService<IHostApplicationLifetime>().StopApplication();
+                    await operation.WaitAsync(TimeSpan.FromSeconds(10));
+                }
+                if (operation is null && app is not null) await app.DisposeAsync();
+                Directory.Delete(directory, recursive: true);
+            }
+        }
+    }
+
+    /// <summary>注入啟動、停止及 Dispose 三重故障；原始啟動例外必須維持同一實例，且其他清理仍各執行一次。</summary>
+    [Fact]
+    public async Task MainLifetime_StartAndCleanupFail_PreservesPrimaryAndReleasesContainer()
+    {
+        var directory = Path.Combine(Path.GetTempPath(), "3p-f2-lifetime-fault-" + Guid.NewGuid().ToString("N"));
+        Directory.CreateDirectory(directory);
+        try
+        {
+            var failure = new InvalidOperationException("synthetic-startup-sensitive-canary");
+            var probe = new HostFailureProbe(failure, true);
+            var builder = Builder(directory);
+            builder.Services.AddSingleton<IHostedService>(_ => probe);
+            var app = Program.BuildApplication(builder);
+            var actual = await Assert.ThrowsAsync<InvalidOperationException>(
+                () => RunMainLifetime(app).WaitAsync(TimeSpan.FromSeconds(10)));
+            Assert.Same(failure, actual);
+            Assert.Equal(1, probe.Stopped);
+            Assert.Equal(1, probe.Disposed);
+            Assert.Throws<ObjectDisposedException>(() => app.Services.GetService<IHostApplicationLifetime>());
+            var log = await File.ReadAllTextAsync(Path.Combine(directory, "Logs", "Exception.log"));
+            Assert.Contains("System.InvalidOperationException", log, StringComparison.Ordinal);
+            Assert.DoesNotContain("synthetic-startup-sensitive-canary", log, StringComparison.Ordinal);
+        }
+        finally { Directory.Delete(directory, recursive: true); }
+    }
+
+    /// <summary>直接執行 Main 的同一私有 owner，避免為測試擴張主機公開 API；沒有在測試複製生命週期實作。</summary>
+    /// <param name="app">由產品 owner 接管清理的真實 WebApplication。</param>
+    /// <returns>產品方法的原 Task，例外身分不經 reflection 的同步包裝。</returns>
+    private static Task RunMainLifetime(WebApplication app)
+    {
+        var method = typeof(Program).GetMethod("RunOwnedApplicationAsync", BindingFlags.NonPublic | BindingFlags.Static);
+        Assert.NotNull(method);
+        return Assert.IsAssignableFrom<Task>(method.Invoke(null, new object[] { app }));
+    }
+
+    /// <summary>單案故障注入服務；不持有連線或背景資源，容器負責唯一 Dispose 並保留各階段決定性計數。</summary>
+    /// <param name="startFailure">要由 StartAsync 原樣傳回的合成例外；null 表示正常啟動。</param>
+    /// <param name="cleanupFails">是否在 Stop 與 Dispose 各注入一個不同的合成清理故障。</param>
+    private sealed class HostFailureProbe(Exception? startFailure, bool cleanupFails) : IHostedService, IAsyncDisposable
+    {
+        /// <summary>目前 owner 的 Stop 次數，沒有 static 或跨測試計數。</summary>
+        public int Stopped { get; private set; }
+        /// <summary>容器嘗試唯一清理的次數，清理故障也必須只算一次。</summary>
+        public int Disposed { get; private set; }
+        /// <summary>只注入指定的合成啟動結果，不建立工作或其他需清理資源。</summary>
+        /// <param name="cancellationToken">主機啟動取消；本測試不以其模擬內部逾時。</param>
+        public Task StartAsync(CancellationToken cancellationToken) =>
+            startFailure is null ? Task.CompletedTask : Task.FromException(startFailure);
+        /// <summary>記錄產品曾嘗試停止；即使拋錯，產品仍必須進入容器 Dispose。</summary>
+        /// <param name="cancellationToken">主機停止期限，不產生額外等待。</param>
+        public Task StopAsync(CancellationToken cancellationToken)
+        {
+            Stopped++;
+            return cleanupFails ? Task.FromException(new IOException("synthetic-stop")) : Task.CompletedTask;
+        }
+        /// <summary>記錄容器最終清理；合成故障不能取代先前由 StartAsync 產生的原始失敗。</summary>
+        public ValueTask DisposeAsync()
+        {
+            Disposed++;
+            return cleanupFails ? ValueTask.FromException(new IOException("synthetic-dispose")) : ValueTask.CompletedTask;
+        }
+    }
+
+    /// <summary>
+    /// 真正 Main 遇到占用埠必須保留原始 bind 失敗、落下安全共用告警，並完整關閉子程序。
+    /// 只在子程序指定 Development 與合成組織，不改父程序環境、不連外；stderr 有六十四 KiB 硬上限。
+    /// 若重新使用會先 Dispose 主機的 RunAsync，再從容器解析 diagnostics，本案將因 ObjectDisposedException 失敗。
+    /// </summary>
+    [Fact]
+    public async Task Main_BindFailure_PreservesOriginalExceptionAndWritesSafeLog()
+    {
+        var directory = Path.Combine(Path.GetTempPath(), "3p-f2-main-" + Guid.NewGuid().ToString("N"));
+        Directory.CreateDirectory(directory);
+        using var listener = new TcpListener(IPAddress.Loopback, 0);
+        listener.Start();
+        var port = ((IPEndPoint)listener.LocalEndpoint).Port;
+        var testAssembly = typeof(HostTests).Assembly.Location;
+        var start = new ProcessStartInfo("dotnet")
+        {
+            UseShellExecute = false,
+            CreateNoWindow = true,
+            RedirectStandardOutput = true,
+            RedirectStandardError = true,
+            WorkingDirectory = directory
+        };
+        // 子程序只繼承載入 runtime 所需的系統路徑；部署憑證、hosting startup 與父程序設定不越過本案邊界。
+        start.Environment.Clear();
+        foreach (var name in new[] { "PATH", "SystemRoot", "windir", "DOTNET_ROOT", "ProgramFiles", "ProgramFiles(x86)", "TEMP", "TMP" })
+        {
+            var value = Environment.GetEnvironmentVariable(name);
+            if (value is not null) start.Environment[name] = value;
+        }
+        // Development 的預設 User Secrets provider 只能看到本案空目錄，不能讀取使用者真實設定檔。
+        start.Environment["APPDATA"] = directory;
+        foreach (var argument in new[]
+        {
+            "exec", "--runtimeconfig", Path.ChangeExtension(testAssembly, ".runtimeconfig.json"),
+            "--depsfile", Path.ChangeExtension(testAssembly, ".deps.json"), typeof(Program).Assembly.Location,
+            "--contentRoot", directory, "--urls", "http://127.0.0.1:" + port.ToString(System.Globalization.CultureInfo.InvariantCulture),
+            "--CrmConnection:ServerUrl", "https://goodshepherd20.example/XRMServices/2011/Organization.svc",
+            "--GoodShepherd2:AllowedDevelopmentOrganizations:0", "goodshepherd20",
+            "--ExceptionNotifications:WriteExceptionLog", "true", "--ExceptionNotifications:SendLine", "false",
+            "--ConnectionStrings:Platform", "Server=(localdb)\\MSSQLLocalDB;Database=GoodShepherd2Platform;Integrated Security=true;Encrypt=true",
+            "--LineWebhook:Queue:Capacity", "8", "--LineWebhook:Queue:PartitionCount", "1"
+        })
+            start.ArgumentList.Add(argument);
+        start.Environment["DOTNET_ENVIRONMENT"] = Environments.Development;
+        start.Environment["ASPNETCORE_ENVIRONMENT"] = Environments.Development;
+        using var process = new Process { StartInfo = start };
+        Task? stdout = null;
+        Task<string>? stderr = null;
+        var started = false;
+        try
+        {
+            Assert.True(process.Start());
+            started = true;
+            stdout = process.StandardOutput.BaseStream.CopyToAsync(Stream.Null, 4096);
+            stderr = ReadBoundedErrorAsync(process.StandardError.BaseStream);
+            using var deadline = new CancellationTokenSource(TimeSpan.FromSeconds(30));
+            await process.WaitForExitAsync(deadline.Token);
+            await stdout;
+            var error = await stderr;
+            Assert.NotEqual(0, process.ExitCode);
+            Assert.DoesNotContain("ObjectDisposedException", error, StringComparison.Ordinal);
+            Assert.Contains("System.IO.IOException", error, StringComparison.Ordinal);
+            var logPath = Path.Combine(directory, "Logs", "Exception.log");
+            Assert.True(File.Exists(logPath));
+            var log = await File.ReadAllTextAsync(logPath);
+            Assert.Contains("System.IO.IOException", log, StringComparison.Ordinal);
+            Assert.DoesNotContain(directory, log, StringComparison.Ordinal);
+        }
+        finally
+        {
+            try
+            {
+                if (started && !process.HasExited) process.Kill(entireProcessTree: true);
+                if (started)
+                {
+                    using var drain = new CancellationTokenSource(TimeSpan.FromSeconds(10));
+                    await process.WaitForExitAsync(drain.Token);
+                }
+                if (stdout is not null) await stdout;
+                if (stderr is not null) await stderr;
+            }
+            finally
+            {
+                listener.Stop();
+                Directory.Delete(directory, recursive: true);
+            }
+        }
+    }
+
+    /// <summary>單案借用子程序 stderr，最多持有六十四 KiB；不關閉借入串流，程序 owner 等待排空後 Dispose。</summary>
+    /// <param name="stream">目前測試子程序的唯一 stderr 串流。</param>
+    /// <returns>僅合成啟動錯誤的有界文字，超限直接使測試失敗並由外層終止子程序。</returns>
+    private static async Task<string> ReadBoundedErrorAsync(Stream stream)
+    {
+        using var bytes = new MemoryStream();
+        var buffer = new byte[4096];
+        int count;
+        while ((count = await stream.ReadAsync(buffer)) != 0)
+        {
+            if (bytes.Length + count > 65536) throw new InvalidOperationException("Synthetic host stderr limit exceeded.");
+            bytes.Write(buffer, 0, count);
+        }
+        return Encoding.UTF8.GetString(bytes.ToArray());
+    }
+
     /// <summary>連續建立三個 Host，逐次確認 live、ready 與空 webhook，並證明 shutdown 解除上一個診斷 owner。</summary>
     [Fact]
     public async Task Host_HealthAndEmptyWebhook_RestartsWithoutRetainedOwner()
