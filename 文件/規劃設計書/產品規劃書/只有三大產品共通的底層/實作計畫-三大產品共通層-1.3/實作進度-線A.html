@@ -65,7 +65,7 @@ code{background:var(--tint);border-radius:4px;padding:0 4px}
 <h2>測試環境與合併的鎖</h2>
 <div class="card" id="locks"></div>
 
-<p class="note">即時資料由 <code>%USERPROFILE%\.speechmessage\Update-3PLiveProgress.ps1</code> 每分鐘產生；工作包狀態在每包合併時才更新。網頁只讀，不會影響 Codex。</p>
+<p class="note">即時資料由 <code>%USERPROFILE%\.speechmessage\Update-3PLiveProgress.ps1</code> 產生（雙軌）：兩條線每完成一步會自動更新一次；你想看最新時，雙擊 <code>立即更新進度.cmd</code>（一次）或 <code>開始自動更新進度.cmd</code>（每分鐘，關視窗即停）。工作包狀態在每包合併時才更新。網頁只讀，不會影響 Codex。</p>
 </main>
 <script src="實作進度資料-線A.js"></script>
 <script src="file:///C:/ProgramData/SpeechMessage/lanes/live-A.js"></script>
@@ -80,13 +80,18 @@ code{background:var(--tint);border-radius:4px;padding:0 4px}
   const live = (window.LIVE_LANES || {})[LANE];
   const warns = [];
   if (!data) warns.push('讀不到「實作進度資料-線' + LANE + '.js」');
-  if (!live) warns.push('即時資料不存在：請雙擊 %USERPROFILE%\\.speechmessage\\開始自動更新進度.cmd（開一次就好，視窗縮小即可）');
+  if (!live) warns.push('即時資料不存在：請雙擊 %USERPROFILE%\\.speechmessage\\立即更新進度.cmd');
   const nowTpe = new Date(Date.now() + 8 * 36e5).toISOString().slice(0, 16).replace('T', ' ');
+  const minsSince = s => s ? Math.max(0, Math.round((Date.parse(nowTpe.replace(' ', 'T') + 'Z') - Date.parse(s.replace(' ', 'T') + 'Z')) / 60000)) : null;
+  let info = '';
   if (live) {
-    const age = (Date.parse(nowTpe.replace(' ', 'T') + 'Z') - Date.parse(live.generatedAt.replace(' ', 'T') + 'Z')) / 60000;
-    if (age > 5) warns.push(`即時資料停在 ${live.generatedAt}（${Math.round(age)} 分鐘前）：自動更新可能沒有在跑，請雙擊「開始自動更新進度.cmd」`);
+    // 雙軌：兩條線每完成一步會更新一次；使用者想看最新時雙擊「立即更新進度.cmd」。60 分鐘內不提示，180 分鐘以上才用紅色。
+    const age = minsSince(live.generatedAt);
+    if (age > 180) warns.push(`即時資料停在 ${live.generatedAt}（${age} 分鐘前）。想看最新：雙擊 %USERPROFILE%\\.speechmessage\\立即更新進度.cmd`);
+    else if (age > 60) info = `即時資料是 ${age} 分鐘前的。想看最新：雙擊「立即更新進度.cmd」。`;
   }
   if (warns.length) $('warn').innerHTML = `<div class="warn">${warns.map(esc).join('<br>')}</div>`;
+  else if (info) $('warn').innerHTML = `<div class="note" style="margin:8px 0">${esc(info)}</div>`;
   $('gen').textContent = '現在：' + nowTpe + ' Asia/Taipei｜即時資料產生：' + (live ? live.generatedAt : '—');
 
   // ---------- 是否還在工作 ----------
@@ -96,7 +101,7 @@ code{background:var(--tint);border-radius:4px;padding:0 4px}
   const stopMine = helpMine.filter(h => /要停/.test(h.kind || ''));
   let cls = 'n', title = '沒有資料', sub = '';
   if (live && cx.found) {
-    const m = cx.minutesAgo;
+    const m = minsSince(cx.lastActivity);
     if (/完成/.test(st['狀態'] || '')) { cls = 'g'; title = '這條線已完成'; }
     else if (stopMine.length || /等待使用者/.test(st['狀態'] || '')) { cls = 'o'; title = '正在等你'; sub = '看下方「需要你協助」，到這條線的 Codex 對話框回覆。'; }
     else if (m <= 10) { cls = 'g'; title = '正在工作'; }

@@ -3,7 +3,7 @@
 檔案整體說明
 目的與定位：三大產品共通層實作計畫 1.3 的進度總覽頁，給使用者看兩條線（兩個 Codex 對話框）做到哪裡。
 主要功能與流程：讀取同資料夾的「實作進度資料-線A.js」「實作進度資料-線B.js」，畫出計畫與實際對照的時程圖、15 包狀態表、待補清單與逐筆進度紀錄；資料不合規時在頁首顯示紅色警告。
-使用邊界與維護：本頁版面固定，兩條線都不改；各線只改自己的資料檔（規則見 02 §2、§5.4）。計畫日期取自 00 §3，改計畫時才改本頁。工作包狀態是每包合併時的快照；「兩條線現在」讀本機 C:\ProgramData\SpeechMessage\lanes\live-A.js、live-B.js（Update-3PLiveProgress.ps1 每分鐘產生），沒有開自動更新時顯示「沒有即時資料」。本頁每 60 秒自動重新整理。
+使用邊界與維護：本頁版面固定，兩條線都不改；各線只改自己的資料檔（規則見 02 §2、§5.4）。計畫日期取自 00 §3，改計畫時才改本頁。工作包狀態是每包合併時的快照；「兩條線現在」讀本機 C:\ProgramData\SpeechMessage\lanes\live-A.js、live-B.js（Update-3PLiveProgress.ps1 產生；兩條線每完成一步更新一次，使用者也可手動更新），沒有資料時顯示「沒有即時資料」。本頁每 60 秒自動重新整理。
 -->
 <html lang="zh-Hant-TW">
 <head>
@@ -50,9 +50,9 @@ code{background:var(--tint);border-radius:4px;padding:0 4px}
 <div id="warnings"></div>
 <div class="kpi" id="kpi"></div>
 
-<h2>兩條線現在（每分鐘更新）</h2>
+<h2>兩條線現在</h2>
 <div class="live" id="live"></div>
-<p class="note">點「看線 A」「看線 B」看每條線的詳細即時進度（Codex 最近說了什麼、還沒合併的提交、鎖）。即時資料要先雙擊 <code>%USERPROFILE%\.speechmessage\開始自動更新進度.cmd</code>（開一次就好）。</p>
+<p class="note">點「看線 A」「看線 B」看每條線的詳細即時進度（Codex 最近說了什麼、還沒合併的提交、鎖）。即時資料是雙軌：兩條線每完成一步會自動更新；想看最新時，雙擊 <code>%USERPROFILE%\.speechmessage\立即更新進度.cmd</code>（更新一次）或 <code>開始自動更新進度.cmd</code>（每分鐘更新，關掉視窗就停）。</p>
 
 <h2>時程：計畫與實際</h2>
 <div class="card" id="gantt"></div>
@@ -71,7 +71,7 @@ code{background:var(--tint);border-radius:4px;padding:0 4px}
 <div class="card"><ul>
 <li>每包寫驗收報告的那個提交，該線同時更新自己的資料檔：線 A 改 <code>實作進度資料-線A.js</code>，線 B 改 <code>實作進度資料-線B.js</code>；本頁誰都不改。</li>
 <li>合併到整合分支後，W:\ 這份就會更新；重新整理瀏覽器即可。</li>
-<li>「現在做到第幾步」與「需要你協助」來自 <code>C:\ProgramData\SpeechMessage\lanes\</code>，由 <code>%USERPROFILE%\.speechmessage\Update-3PLiveProgress.ps1</code> 每分鐘整理成即時資料；上方「兩條線現在」與兩個線別頁會顯示，本頁每 60 秒自動重新整理。</li>
+<li>「現在做到第幾步」與「需要你協助」來自 <code>C:\ProgramData\SpeechMessage\lanes\</code>，由 <code>%USERPROFILE%\.speechmessage\Update-3PLiveProgress.ps1</code> 整理成即時資料（兩條線每完成一步更新一次，你也可以隨時手動更新）；上方「兩條線現在」與兩個線別頁會顯示，本頁每 60 秒自動重新整理。</li>
 </ul></div>
 </main>
 
@@ -152,7 +152,9 @@ code{background:var(--tint);border-radius:4px;padding:0 4px}
   const LV = window.LIVE_LANES || {};
   document.getElementById('live').innerHTML = ['A', 'B'].map(k => {
     const v = LV[k]; if (!v) return `<div class="lv n"><b>線 ${k}：沒有即時資料</b>請先開啟自動更新｜<a href="實作進度-線${k}.html">看線 ${k}</a></div>`;
-    const s = v.status || {}, c = v.codex || {}, m = c.minutesAgo;
+    const s = v.status || {}, c = v.codex || {};
+    const nowT = new Date(Date.now() + 8 * 36e5).toISOString().slice(0, 16);
+    const m = c.lastActivity ? Math.max(0, Math.round((Date.parse(nowT + 'Z') - Date.parse(c.lastActivity.replace(' ', 'T') + 'Z')) / 60000)) : null;
     const wait = (v.help || []).some(h => (h.lane || '').indexOf(k) >= 0 && /要停/.test(h.kind || '') && !/已處理/.test(h.state || '')) || /等待使用者/.test(s['狀態'] || '');
     const fin = /完成/.test(s['狀態'] || '');
     const cls = fin ? 'g' : wait ? 'o' : m == null ? 'n' : m <= 10 ? 'g' : m <= 60 ? 'y' : 'r';
