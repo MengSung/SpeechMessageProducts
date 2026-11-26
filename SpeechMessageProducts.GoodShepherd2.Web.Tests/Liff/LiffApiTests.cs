@@ -1,7 +1,7 @@
 /*
 檔案整體說明
 目的與定位：F6真實Kestrel及Program接線的離線整合驗證，保護HTTP身分、租戶ping隔離、公開設定與LIFF靜態頁；所有SDK及LINE傳輸均為合成依賴。
-主要功能與流程：每案建立獨立Development主機、固定部署Channel及可觀察的SDK租約，以真實Bearer HTTP通過官方verifier形狀與產品resolver後讀whoami。對其他租戶ping必403，同租戶200；同時確認健康端點仍有效且設定不回傳秘密。
+主要功能與流程：每案建立獨立Development主機、固定部署Channel及可觀察的SDK租約，以真實Bearer HTTP通過官方verifier形狀與產品resolver後讀whoami；joined投影的租戶旗標使用平台choice的SDK OptionSetValue而非bool，避免fixture掩蓋消費型別錯誤。對其他租戶ping必403，同租戶200；同時確認健康端點仍有效且設定不回傳秘密。
 使用邊界與維護：主機collection序列執行以避免共用診斷owner衝突；本案只在loopback監聽，所有client、Host、lease與暫存目錄由單案owner按停止、排空、Dispose順序清理。源碼靜態資源只讀，不連LINE、D365或平台SQL，成功不代表外部頁面或手機驗收。
 */
 using System.Net;
@@ -238,7 +238,7 @@ public sealed class LiffApiTests
             var row = new Entity("contact", Guid.NewGuid()) { ["new_lineid"] = person, ["parentcustomerid"] = new EntityReference("account", tenant) };
             void Add(string alias, string entity, string field, object value) => row[alias + "." + field] = new AliasedValue(entity, field, value);
             Add("tenant", "account", "accountid", tenant); Add("tenant", "account", "name", name);
-            Add("tenant", "account", "new_istenant", true); Add("tenant", "account", "new_channelslot", new EntityReference("new_channelslot", slot));
+            Add("tenant", "account", "new_istenant", new OptionSetValue(100000001)); Add("tenant", "account", "new_channelslot", new EntityReference("new_channelslot", slot));
             Add("slot", "new_channelslot", "new_channelslotid", slot); Add("slot", "new_channelslot", "new_tenant", new EntityReference("account", tenant));
             Add("slot", "new_channelslot", "new_channel", new EntityReference("new_linechannel", channel));
             Add("channel", "new_linechannel", "new_linechannelid", channel); Add("channel", "new_linechannel", "new_product", "GoodShepherd2");

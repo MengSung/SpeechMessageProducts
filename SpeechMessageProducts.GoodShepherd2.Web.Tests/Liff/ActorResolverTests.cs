@@ -1,9 +1,11 @@
 /*
 檔案整體說明
 目的與定位：F6產品actor解析的離線契約測試，保護同一LINE身分在同Channel多租戶時的選擇、穩定ID與資源生命週期；不使用任何真實會友或秘密。
-主要功能與流程：以合成SDK列、短期lease探針、記憶體selection及角色來源測試真實產品resolver。故障注入重複Contact ID、錯誤產品、跨Channel、失效選擇、第二頁故障與釋放失敗，成功只可在完整讀取及歸還租約後發布。
+主要功能與流程：以合成SDK列、短期lease探針、記憶體selection及角色來源測試真實產品resolver。另直接讀本工作樹平台清單的choice，保護查詢條件與AliasedValue消費型別；錯值、錯型別或別名來源錯置時，角色與選擇皆不得使用。故障注入重複Contact ID、錯誤產品、跨Channel、失效選擇、第二頁故障與釋放失敗，成功只可在完整讀取及歸還租約後發布。
 使用邊界與維護：每案獨立manager、資料列、計數與集合，不連D365或SQL、不共用token。不同Contact ID即使同名亦保留，多候選無有效選擇回null，切換必重新查角色；替身只屬當案，無背景工作。真正SDK生命週期另以受控阻塞及取消確認排空。
 */
+using System.Runtime.CompilerServices;
+using System.Text.Json;
 using Microsoft.Xrm.Sdk;
 using Microsoft.Xrm.Sdk.Query;
 using Moq;
@@ -18,6 +20,127 @@ namespace SpeechMessageProducts.GoodShepherd2.Web.Tests.Liff;
 /// <summary>使用真實resolver與可觀察SDK邊界；所有ID及名稱皆為單案合成資料。</summary>
 public sealed class ActorResolverTests
 {
+    /// <summary>由實際平台choice建立SDK回應，合法「是」須在租約歸還後發布同一Contact與Tenant，不把bool當租戶權威。</summary>
+    [Fact]
+    public async Task Resolve_PlatformTenantChoice_UsesAuthoritativeOption()
+    {
+        var f = new Fixture();
+        var row = Fixture.Row();
+        row["tenant.new_istenant"] = new AliasedValue("account", "new_istenant",
+            new OptionSetValue(PlatformTenantChoice("是")));
+        f.Rows.Add(row);
+        var actor = await f.Resolver.ResolveAsync(f.Identity, CancellationToken.None);
+        Assert.NotNull(actor);
+        Assert.Equal(row.Id, actor.ContactId);
+        Assert.Equal(Fixture.Tenant(row), actor.TenantId);
+        Assert.Equal((row.Id, Fixture.Tenant(row)), Assert.Single(f.Roles.Calls));
+        Assert.Equal(1, f.Released);
+        Assert.Equal(0, f.Faulted);
+        Assert.Equal(["release", "roles"], f.Order);
+        Assert.Empty(f.Selection.Reads);
+        Assert.Empty(f.Selection.Writes);
+    }
+
+    /// <summary>切換也必須接受平台合法choice，先歸還SDK才寫完整scope的Contact ID；沒有讀角色或任選其他人。</summary>
+    [Fact]
+    public async Task Selection_PlatformTenantChoice_ValidatesBeforeWrite()
+    {
+        var f = new Fixture();
+        var row = Fixture.Row();
+        row["tenant.new_istenant"] = new AliasedValue("account", "new_istenant",
+            new OptionSetValue(PlatformTenantChoice("是")));
+        f.Rows.Add(row);
+        Assert.True(await f.Resolver.SetSelectionAsync(f.Identity, row.Id, CancellationToken.None));
+        Assert.Equal(("GoodShepherd2", "2012804957", "synthetic-person", row.Id), Assert.Single(f.Selection.Writes));
+        Assert.Empty(f.Roles.Calls);
+        Assert.Equal(1, f.Released);
+        Assert.Equal(0, f.Faulted);
+        Assert.Equal(["release", "selection-write"], f.Order);
+    }
+
+    /// <summary>SDK入場即驗租戶inner join以平台選項數字篩選；空回應不依賴候選驗證，單獨抓到query錯用bool的缺陷。</summary>
+    [Fact]
+    public async Task Resolve_QueryFiltersTenantByPlatformChoice()
+    {
+        var f = new Fixture();
+        f.Page = query =>
+        {
+            var tenant = Assert.Single(query.LinkEntities);
+            Assert.Equal("account", tenant.LinkToEntityName);
+            Assert.Equal(JoinOperator.Inner, tenant.JoinOperator);
+            var condition = Assert.Single(tenant.LinkCriteria.Conditions);
+            Assert.Equal("new_istenant", condition.AttributeName);
+            Assert.Equal(ConditionOperator.Equal, condition.Operator);
+            Assert.Equal(PlatformTenantChoice("是"), Assert.IsType<int>(Assert.Single(condition.Values)));
+            return new EntityCollection();
+        };
+        Assert.Null(await f.Resolver.ResolveAsync(f.Identity, CancellationToken.None));
+        Assert.Equal(1, f.Queries);
+        Assert.Equal(1, f.Released);
+        Assert.Empty(f.Roles.Calls);
+        Assert.Empty(f.Selection.Reads);
+        Assert.Empty(f.Selection.Writes);
+    }
+
+    /// <summary>即使SDK忽略篩選回傳否、未知、錯型別或偽造別名來源，解析與切換都拒絕整批；fault後歸還，零角色與選擇I/O。</summary>
+    /// <param name="fault">只屬本案的投影故障，不含真實租戶或秘密。</param>
+    /// <param name="switchSelection">同樣的不合法候選分別走actor解析與切換入口。</param>
+    [Theory]
+    [InlineData("no", false)]
+    [InlineData("unknown", false)]
+    [InlineData("bool-true", false)]
+    [InlineData("bool-false", false)]
+    [InlineData("int", false)]
+    [InlineData("string", false)]
+    [InlineData("missing", false)]
+    [InlineData("null", false)]
+    [InlineData("wrong-entity", false)]
+    [InlineData("wrong-attribute", false)]
+    [InlineData("no", true)]
+    [InlineData("unknown", true)]
+    [InlineData("bool-true", true)]
+    [InlineData("bool-false", true)]
+    [InlineData("int", true)]
+    [InlineData("string", true)]
+    [InlineData("missing", true)]
+    [InlineData("null", true)]
+    [InlineData("wrong-entity", true)]
+    [InlineData("wrong-attribute", true)]
+    public async Task Resolve_InvalidTenantChoice_FailsClosed(string fault, bool switchSelection)
+    {
+        var f = new Fixture();
+        var row = Fixture.Row();
+        var yes = PlatformTenantChoice("是");
+        object? value = fault switch
+        {
+            "no" => new OptionSetValue(PlatformTenantChoice("否")),
+            "unknown" => new OptionSetValue(-1),
+            "bool-true" => true,
+            "bool-false" => false,
+            "int" => yes,
+            "string" => yes.ToString(System.Globalization.CultureInfo.InvariantCulture),
+            "null" => null,
+            _ => new OptionSetValue(yes)
+        };
+        row["tenant.new_istenant"] = new AliasedValue(
+            fault == "wrong-entity" ? "contact" : "account",
+            fault == "wrong-attribute" ? "statecode" : "new_istenant", value);
+        if (fault == "missing") row.Attributes.Remove("tenant.new_istenant");
+        f.Rows.Add(row);
+        if (switchSelection)
+            await Assert.ThrowsAsync<InvalidOperationException>(() =>
+                f.Resolver.SetSelectionAsync(f.Identity, row.Id, CancellationToken.None));
+        else
+            await Assert.ThrowsAsync<InvalidOperationException>(() =>
+                f.Resolver.ResolveAsync(f.Identity, CancellationToken.None));
+        Assert.Equal(1, f.Faulted);
+        Assert.Equal(1, f.Released);
+        Assert.Equal(["fault", "release"], f.Order);
+        Assert.Empty(f.Roles.Calls);
+        Assert.Empty(f.Selection.Reads);
+        Assert.Empty(f.Selection.Writes);
+    }
+
     /// <summary>同Channel兩筆同名Contact有不同權威ID，必須使用完整scope儲存的目前選擇，不能按姓名合併。</summary>
     [Fact]
     public async Task Resolve_UserInTwoChurchesSameChannel_UsesCurrentChurch()
@@ -223,6 +346,24 @@ public sealed class ActorResolverTests
         Assert.Equal("viewer", Assert.Single(actor.RoleCodes));
     }
 
+    /// <summary>只讀本工作樹平台清單的唯一choice選項；JSON owner在當次Dispose，不搜尋其他工作樹或讀部署設定。</summary>
+    /// <param name="label">測試常值「是」或「否」，不是前端授權輸入。</param>
+    /// <param name="sourcePath">編譯器提供本來源位置，限定同工作樹清單。</param>
+    /// <returns>實際清單數字；清單型別、唯一欄位或唯一選項不符即讓測試失敗。</returns>
+    private static int PlatformTenantChoice(string label, [CallerFilePath] string sourcePath = "")
+    {
+        var path = Path.GetFullPath(Path.Combine(Path.GetDirectoryName(sourcePath)!, "..", "..",
+            "d365", "schema", "platform", "00-core.schema.json"));
+        using var schema = JsonDocument.Parse(File.ReadAllBytes(path));
+        var account = Assert.Single(schema.RootElement.GetProperty("entities").EnumerateArray(),
+            entity => entity.GetProperty("logicalName").GetString() == "account");
+        var field = Assert.Single(account.GetProperty("fields").EnumerateArray(),
+            field => field.GetProperty("logicalName").GetString() == "new_istenant");
+        Assert.Equal("choice", field.GetProperty("type").GetString());
+        return Assert.Single(field.GetProperty("options").EnumerateArray(),
+            option => option.GetProperty("label").GetString() == label).GetProperty("value").GetInt32();
+    }
+
     /// <summary>單案SDK及scope owner；所有純資料依Fixture生命週期消失，不註冊背景或全域資源。</summary>
     private sealed class Fixture
     {
@@ -242,6 +383,8 @@ public sealed class ActorResolverTests
         internal int Faulted { get; private set; }
         /// <summary>真實查詢次數。</summary>
         internal int Queries { get; private set; }
+        /// <summary>當案純符號順序，不保存身分；確認SDK先歸還才可讀角色或寫選擇，故障先淘汰再釋放。</summary>
+        internal List<string> Order { get; } = [];
         /// <summary>控制歸還故障，無外部資源。</summary>
         internal bool ReleaseFailure { get; set; }
         /// <summary>可觀察的同步分頁／故障入口，只在當案SDK呼叫堆疊內執行，不建立背景所有權。</summary>
@@ -250,6 +393,8 @@ public sealed class ActorResolverTests
         /// <summary>組合固定產品與Channel，SDK可觀察但不建立任何實際連線。</summary>
         internal Fixture()
         {
+            Roles.OnRead = () => Order.Add("roles");
+            Selection.OnWrite = () => Order.Add("selection-write");
             var sdk = new Mock<IOrganizationService>(MockBehavior.Strict);
             sdk.Setup(s => s.RetrieveMultiple(It.IsAny<QueryBase>())).Returns((QueryBase query) =>
             {
@@ -261,9 +406,10 @@ public sealed class ActorResolverTests
             });
             var lease = new Mock<IClientLease>(MockBehavior.Strict);
             lease.SetupGet(l => l.Service).Returns(sdk.Object);
-            lease.Setup(l => l.MarkFaulted()).Callback(() => Faulted++);
+            lease.Setup(l => l.MarkFaulted()).Callback(() => { Order.Add("fault"); Faulted++; });
             lease.Setup(l => l.Dispose()).Callback(() =>
             {
+                Order.Add("release");
                 Released++;
                 if (ReleaseFailure) throw new IOException("synthetic-release");
             });
@@ -290,7 +436,7 @@ public sealed class ActorResolverTests
                 row[alias + "." + field] = new AliasedValue(entity, field, value);
             Add("tenant", "account", "accountid", tenant);
             Add("tenant", "account", "name", "同名租戶");
-            Add("tenant", "account", "new_istenant", true);
+            Add("tenant", "account", "new_istenant", new OptionSetValue(100000001));
             Add("tenant", "account", "new_channelslot", new EntityReference("new_channelslot", slot));
             Add("slot", "new_channelslot", "new_channelslotid", slot);
             Add("slot", "new_channelslot", "new_tenant", new EntityReference("account", tenant));
@@ -314,6 +460,8 @@ public sealed class ActorResolverTests
         internal List<(string, string, string)> Reads { get; } = [];
         /// <summary>當案寫入值，錯誤切換應維持空集合。</summary>
         internal List<(string, string, string, Guid)> Writes { get; } = [];
+        /// <summary>只屬單案的寫入入場探針，不啟動背景工作，Fixture生命週期結束即釋放。</summary>
+        internal Action? OnWrite { get; set; }
         /// <summary>回傳合成選擇，不模擬SQL原子性或實機成功。</summary>
         public Task<Guid?> GetAsync(string product, string channelKey, string lineUserId, CancellationToken ct)
         {
@@ -325,6 +473,7 @@ public sealed class ActorResolverTests
         public Task SetAsync(string product, string channelKey, string lineUserId, Guid contactId, CancellationToken ct)
         {
             ct.ThrowIfCancellationRequested();
+            OnWrite?.Invoke();
             Writes.Add((product, channelKey, lineUserId, contactId));
             Selected = contactId;
             return Task.CompletedTask;
@@ -336,10 +485,13 @@ public sealed class ActorResolverTests
     {
         /// <summary>當案角色讀取紀錄。</summary>
         internal List<(Guid, Guid)> Calls { get; } = [];
+        /// <summary>當案角色讀取入場探針，用於驗租約歸還順序，不保留真實資料。</summary>
+        internal Action? OnRead { get; set; }
         /// <summary>角色回應與Contact權威ID綁定，沒有真正角色資料或SDK。</summary>
         public Task<IReadOnlyCollection<string>> ResolveRolesAsync(Guid contactId, Guid tenantId, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
+            OnRead?.Invoke();
             Calls.Add((contactId, tenantId));
             return Task.FromResult<IReadOnlyCollection<string>>(new[] { contactId.ToString("N") });
         }

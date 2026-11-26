@@ -1,7 +1,7 @@
 /*
 檔案整體說明
 目的與定位：F6好牧人2.0的scoped身分解析，使用固定產品與部署Messaging Channel，在goodshepherd20內逐次查Contact→租戶→名額→Channel。
-主要功能與流程：完整有界讀取本人候選、驗權威ID與關聯且歸還SDK租約，再依唯一候選或SQL完整scope選擇查角色並發布actor。切換同樣重新讀本人候選才寫ID；無或失效選擇回null，不任取資料、不合併同名。
+主要功能與流程：完整有界讀取本人候選、驗權威ID與關聯且歸還SDK租約，再依唯一候選或SQL完整scope選擇查角色並發布actor。租戶旗標採平台choice：query傳「是」的整數值，回應必為account.new_istenant別名的OptionSetValue；不接受bool或裸整數。切換同樣重新讀本人候選才寫ID；無或失效選擇回null，不任取資料、不合併同名。
 使用邊界與維護：輸入identity須先經官方驗證，Channel與產品不取自query。候選與查詢只在方法內；最後名稱快照只活於本次DI request scope，不能作跨請求快取。同步SDK入場後完整等待，取消在呼叫前後檢查，故障淘汰再歸還；清理失敗不能發布部分成功。SDK、SQL與角色來源由外部DI擁有，本類不關閉manager。F8前角色為空；所有真正例外交HTTP共用診斷，額外清理故障交既有共用入口。
 */
 using System.Runtime.ExceptionServices;
@@ -19,6 +19,8 @@ internal sealed class GoodShepherd2LiffActorResolver(
     IDataverseConnectionManager manager, ICurrentTenantSelectionStore selection,
     ILiffRoleResolver roles, LiffOptions options, IChurchClock clock) : ILiffActorResolver
 {
+    /// <summary>FS平台清單account.new_istenant的「是」選項；查詢與投影驗證共用，測試直接消費清單以阻止型別或數字漂移。</summary>
+    private const int TenantYesChoice = 100000001;
     /// <summary>只屬本request最近一次完整解析的名稱與actor，重新解析前立即清除。</summary>
     private Resolved? resolved;
     /// <summary>限制同scoped實例只有一個解析或切換操作；不是跨程序資料鎖。</summary>
@@ -127,7 +129,7 @@ internal sealed class GoodShepherd2LiffActorResolver(
                     var channel = Alias<Guid>(row, "channel.new_linechannelid");
                     if (tenant == Guid.Empty || slot == Guid.Empty || channel == Guid.Empty ||
                         !Lookup(row.GetAttributeValue<EntityReference>("parentcustomerid"), "account", tenant) ||
-                        !Alias<bool>(row, "tenant.new_istenant") ||
+                        !IsTenant(row) ||
                         !Lookup(Alias<EntityReference>(row, "tenant.new_channelslot"), "new_channelslot", slot) ||
                         !Lookup(Alias<EntityReference>(row, "slot.new_tenant"), "account", tenant) ||
                         !Lookup(Alias<EntityReference>(row, "slot.new_channel"), "new_linechannel", channel) ||
@@ -185,7 +187,7 @@ internal sealed class GoodShepherd2LiffActorResolver(
         var tenant = query.AddLink("account", "parentcustomerid", "accountid", JoinOperator.Inner);
         tenant.EntityAlias = "tenant";
         tenant.Columns = new ColumnSet("accountid", "name", "new_istenant", "new_channelslot");
-        tenant.LinkCriteria.AddCondition("new_istenant", ConditionOperator.Equal, true);
+        tenant.LinkCriteria.AddCondition("new_istenant", ConditionOperator.Equal, TenantYesChoice);
         var slot = tenant.AddLink("new_channelslot", "new_channelslot", "new_channelslotid", JoinOperator.Inner);
         slot.EntityAlias = "slot";
         slot.Columns = new ColumnSet("new_channelslotid", "new_tenant", "new_channel");
@@ -196,6 +198,17 @@ internal sealed class GoodShepherd2LiffActorResolver(
         channel.LinkCriteria.AddCondition("new_channelid", ConditionOperator.Equal, options.MessagingChannelKey);
         return query;
     }
+
+    /// <summary>只接受平台租戶choice的精確別名來源與「是」值；SDK忽略filter、錯型別或其他欄位偽裝均拒絕，不做寬鬆轉型。</summary>
+    /// <param name="row">本次SDK回應的候選Contact，不保留在共享快取。</param>
+    /// <returns>只有account.new_istenant的OptionSetValue「是」才true；其餘由呼叫端拒絕整批候選並淘汰租約。</returns>
+    private static bool IsTenant(Entity row) =>
+        row.Attributes.TryGetValue("tenant.new_istenant", out var value) &&
+        value is AliasedValue
+        {
+            EntityLogicalName: "account", AttributeLogicalName: "new_istenant",
+            Value: OptionSetValue { Value: TenantYesChoice }
+        };
 
     /// <summary>連接欄位必須為預期型別的非null值；缺欄位不能用default轉為授權成功。</summary>
     private static T Alias<T>(Entity row, string field)
