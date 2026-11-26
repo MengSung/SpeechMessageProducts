@@ -2,7 +2,7 @@
 檔案整體說明
 目的與定位：F4好牧人2.0排程的scoped執行前權威驗證器，只放行固定產品、部署組織與當次仍可執行的租戶，不保存角色、token或登入身分。
 主要功能與流程：先拒絕不符的JobScope，再以同一短期CRM租約WhoAmI核對組織。租戶工作只讀一個account的new_istenant、statecode及new_lifecyclestatus，並讀已發布choice metadata映射計畫七種繁中狀態；數值不依顯示順序推測，停用、保留中、已結束及不明資料一律跳過。null租戶只允許已驗同組織的明確組織級工作，不自動擴張為全租戶授權。
-使用邊界與維護：計畫與目前repo沒有生命週期數值，因此每次工作向CRM已發布metadata確認；缺少1028繁中label、重複值、未知label或欄位未部署均fail closed並記固定原因。所有query、列、metadata及集合只在單次呼叫存活，沒有授權或schema cache，不增加一般HTTP成本。資料庫ID是account唯一身分，重複列拒絕而非去重。SDK同步操作與取消由CrmLease完整排空、fault及歸還；真正故障保留給核心或主機共用診斷，預期拒絕只記不含識別值的資訊。
+使用邊界與維護：租戶旗標依平台00-core清單，只接受OptionSetValue的「是」100000001，不把bool、裸整數或未知選項當權威資料。計畫與目前repo沒有生命週期數值，因此每次工作向CRM已發布metadata確認；缺少1028繁中label、重複值、未知label或欄位未部署均fail closed並記固定原因。所有query、列、metadata及集合只在單次呼叫存活，沒有授權或schema cache，不增加一般HTTP成本。資料庫ID是account唯一身分，重複列拒絕而非去重。SDK同步操作與取消由CrmLease完整排空、fault及歸還；真正故障保留給核心或主機共用診斷，預期拒絕只記不含識別值的資訊。
 */
 using Microsoft.Xrm.Sdk;
 using Microsoft.Xrm.Sdk.Messages;
@@ -60,7 +60,8 @@ internal sealed class GoodShepherd2ScheduledJobScopeValidator(
         if (rows.Entities.Count == 0) return Reject("TenantMissing");
         var row = rows.Entities[0];
         if (!string.Equals(row.LogicalName, "account", StringComparison.Ordinal) || row.Id != tenantId ||
-            !row.Attributes.TryGetValue("new_istenant", out var tenant) || tenant is not true ||
+            !row.Attributes.TryGetValue("new_istenant", out var tenant) ||
+            tenant is not OptionSetValue { Value: 100000001 } ||
             !row.Attributes.TryGetValue("statecode", out var state) || state is not OptionSetValue { Value: 0 } ||
             !row.Attributes.TryGetValue("new_lifecyclestatus", out var status) || status is not OptionSetValue lifecycle)
             return Reject("TenantDisabledOrIncomplete");

@@ -1,7 +1,7 @@
 /*
 檔案整體說明
 目的與定位：F4產品執行前重驗的離線安全與生命週期測試，保護固定產品、權威組織與租戶即時狀態，禁止重用上次授權結果。
-主要功能與流程：真實validator及啟動守門借用Moq SDK／manager／lease；合成WhoAmI、account及choice metadata明確區分伺服器選項值與標籤。故障注入越界組織、停用／保留／結束、缺欄、未知或重複metadata、重複列、SDK及清理例外；決定性斷言是拒絕結果、查詢次數、原始例外身分與fault→release順序。
+主要功能與流程：真實validator及啟動守門借用Moq SDK／manager／lease；租戶旗標直接讀平台清單的choice選項建立SDK列，另以合成WhoAmI及生命週期metadata區分伺服器選項值與標籤。故障注入越界組織、停用／保留／結束、缺欄、未知或重複metadata、重複列、SDK及清理例外；決定性斷言是拒絕結果、查詢次數、原始例外身分與fault→release順序。
 使用邊界與維護：所有GUID、生命週期數值及名稱只屬單案，不是正式schema。不讀User Secrets、不連D365、SQL或LINE。受控阻塞由測試finally解除並等待真實工作排空，訊號及CancellationTokenSource當案Dispose；fixture不擁有真實連線、timer或背景owner。並行測試每次Acquire建立獨立租約，確認不同租戶不共享查詢候選且active租約回零；不把離線證據冒稱實機驗收。
 */
 using Microsoft.Crm.Sdk.Messages;
@@ -11,6 +11,8 @@ using Microsoft.Xrm.Sdk.Messages;
 using Microsoft.Xrm.Sdk.Metadata;
 using Microsoft.Xrm.Sdk.Query;
 using Moq;
+using System.Runtime.CompilerServices;
+using System.Text.Json;
 using SpeechMessage.Scheduling;
 using SpeechMessageProducts.GoodShepherd2.Web.Scheduling;
 using ToolUtilityNameSpace.Dataverse;
@@ -21,6 +23,45 @@ namespace SpeechMessageProducts.GoodShepherd2.Web.Tests.Scheduling;
 /// <summary>每次執行重新讀權威來源的實際產品validator測試；不測試核心SQL或Hangfire行為。</summary>
 public sealed class ScheduledJobScopeValidatorTests
 {
+    /// <summary>平台清單的「是」以SDK選項型別進入真實validator時必須准許；布林專用判斷會使本案失敗，完成時租約須歸零。</summary>
+    [Fact]
+    public async Task PlatformTenantChoice_ValidAccountCanExecute()
+    {
+        var f = new Fixture();
+        f.Row["new_istenant"] = new OptionSetValue(PlatformTenantChoice("是"));
+        Assert.True(await f.Validator.CanExecuteAsync(f.Scope, CancellationToken.None));
+        Assert.Equal(1, f.MetadataReads);
+        Assert.Equal(1, f.Released);
+        Assert.Equal(0, f.Active);
+    }
+
+    /// <summary>平台的「否」、未知選項與錯誤SDK型別均拒絕；特別注入bool true，防止舊合成布林fixture掩蓋結構不相容。</summary>
+    /// <param name="fault">只屬當案的旗標故障種類，不是呼叫端可選的授權設定。</param>
+    [Theory]
+    [InlineData("no")]
+    [InlineData("unknown")]
+    [InlineData("bool-true")]
+    [InlineData("bool-false")]
+    [InlineData("integer")]
+    [InlineData("string")]
+    public async Task TenantFlagWithWrongTypeOrValue_FailsClosed(string fault)
+    {
+        var f = new Fixture();
+        f.Row["new_istenant"] = fault switch
+        {
+            "no" => new OptionSetValue(PlatformTenantChoice("否")),
+            "unknown" => new OptionSetValue(-98765),
+            "bool-true" => true,
+            "bool-false" => false,
+            "integer" => PlatformTenantChoice("是"),
+            _ => "100000001"
+        };
+        Assert.False(await f.Validator.CanExecuteAsync(f.Scope, CancellationToken.None));
+        Assert.Equal(0, f.MetadataReads);
+        Assert.Equal(1, f.Released);
+        Assert.Equal(0, f.Active);
+    }
+
     /// <summary>錯產品或錯部署組織必須在Acquire前拒絕，caller的JobScope不能成為組織權限。</summary>
     /// <param name="wrongProduct">true改產品；false只改組織。</param>
     [Theory]
@@ -70,7 +111,7 @@ public sealed class ScheduledJobScopeValidatorTests
     }
 
     /// <summary>租戶必要欄位不能由default補成可執行，缺資料或非租戶均拒絕並釋放租約。</summary>
-    /// <param name="field">從權威回應移除的必要欄位；not-tenant改成明確false。</param>
+    /// <param name="field">從權威回應移除的必要欄位；not-tenant改成平台的「否」選項。</param>
     [Theory]
     [InlineData("new_istenant")]
     [InlineData("statecode")]
@@ -79,7 +120,7 @@ public sealed class ScheduledJobScopeValidatorTests
     public async Task MissingTenantData_FailsClosed(string field)
     {
         var f = new Fixture();
-        if (field == "not-tenant") f.Row["new_istenant"] = false;
+        if (field == "not-tenant") f.Row["new_istenant"] = new OptionSetValue(100000000);
         else f.Row.Attributes.Remove(field);
         Assert.False(await f.Validator.CanExecuteAsync(f.Scope, CancellationToken.None));
         Assert.Equal(1, f.Released);
@@ -257,7 +298,7 @@ public sealed class ScheduledJobScopeValidatorTests
             entered.Signal();
             if (!release.Wait(TimeSpan.FromSeconds(10))) throw new TimeoutException("Synthetic concurrent drain deadline.");
             var row = Fixture.Account(id);
-            row["new_istenant"] = id == allowed;
+            row["new_istenant"] = new OptionSetValue(id == allowed ? 100000001 : 100000000);
             return new EntityCollection([row]);
         };
         for (var iteration = 0; iteration < 16; iteration++)
@@ -287,6 +328,24 @@ public sealed class ScheduledJobScopeValidatorTests
 
     /// <summary>選項數字故意不連續且不以零開始，只是單案權威metadata，防止產品依順序猜值。</summary>
     private static int ChoiceValue(int index) => 410071 + index * 13;
+
+    /// <summary>只讀本工作樹平台清單並取得唯一指定選項，讓產品消費測試與FS權威型別連動；JSON文件由本次呼叫Dispose，不接觸部署或秘密。</summary>
+    /// <param name="label">平台清單既有繁中選項名稱，只由測試常值提供。</param>
+    /// <param name="sourcePath">編譯器提供的本測試來源位置，限定同工作樹而不搜尋父工作樹。</param>
+    /// <returns>平台權威選項值；清單缺項、重複或非choice直接使測試失敗。</returns>
+    private static int PlatformTenantChoice(string label, [CallerFilePath] string sourcePath = "")
+    {
+        var path = Path.GetFullPath(Path.Combine(Path.GetDirectoryName(sourcePath)!, "..", "..",
+            "d365", "schema", "platform", "00-core.schema.json"));
+        using var schema = JsonDocument.Parse(File.ReadAllBytes(path));
+        var account = Assert.Single(schema.RootElement.GetProperty("entities").EnumerateArray(),
+            entity => entity.GetProperty("logicalName").GetString() == "account");
+        var field = Assert.Single(account.GetProperty("fields").EnumerateArray(),
+            field => field.GetProperty("logicalName").GetString() == "new_istenant");
+        Assert.Equal("choice", field.GetProperty("type").GetString());
+        return Assert.Single(field.GetProperty("options").EnumerateArray(),
+            option => option.GetProperty("label").GetString() == label).GetProperty("value").GetInt32();
+    }
 
     /// <summary>單案合成SDK owner；每次Acquire建立不同lease，計數只觀察清理，不模擬真正連線池。</summary>
     private sealed class Fixture
@@ -391,10 +450,10 @@ public sealed class ScheduledJobScopeValidatorTests
             Validator = new(Manager.Object, Options, NullLogger<GoodShepherd2ScheduledJobScopeValidator>.Instance);
         }
 
-        /// <summary>建立完整account，數值來自同一個合成metadata函式而非產品硬編碼。</summary>
+        /// <summary>建立完整account；租戶旗標採平台choice值，生命週期來自本案合成metadata，兩者不能誤用bool或顯示順序。</summary>
         internal static Entity Account(Guid id) => new("account", id)
         {
-            ["new_istenant"] = true, ["statecode"] = new OptionSetValue(0),
+            ["new_istenant"] = new OptionSetValue(100000001), ["statecode"] = new OptionSetValue(0),
             ["new_lifecyclestatus"] = new OptionSetValue(ChoiceValue(3))
         };
 
