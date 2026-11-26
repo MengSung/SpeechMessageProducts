@@ -6,6 +6,9 @@
  * 不讀取 User Secrets、不連線永豐或任何正式金流。
  *
  * 主要功能與流程：
+ * PaymentGateway_DelayedCaptureInvalidExpBillingDaysReturnsRequestInvalidBeforeNetwork 與
+ * PaymentGateway_RecurringInvalidExpBillingDaysReturnsRequestInvalidBeforeNetwork 驗證無效延後請款天數
+ * 在一般／定期 Gateway 呼叫都回標準 RequestInvalid，且不觸發 HTTP；
  * CardBind_Golden_RequestSignedCorrectly 固定核對 CardBindCreate 的 API 名稱、簽章及 AES 密文；
  * OrderMaintain_Cancel_MapsCommandC 與 OrderMaintain_Capture_MapsCommandP 保護取消授權／立即請款指令；
  * Recurring_Create_MapsPayTypeSubRegular 與 Recurring_Stop_MapsCommandE 驗證定期定額建立及中止欄位；
@@ -15,6 +18,8 @@
  * 注入密文篡改及跨 profile 重用，確認都在銀行 I/O 前拒絕；Sinopac_HttpEndpointRejectedBeforeNetwork
  * 確認 HTTP endpoint 在傳輸前 fail closed；
  * Logs_NoCardNumberOrBindToken 驗證 Payment core 對外 diagnostics 邊界不保留完整卡號或原始綁卡 token；
+ * Recurring_Query_MissingDeductedCharge_FailsClosed 與 Recurring_Query_OutOfRangeDeductedPeriod_FailsClosed
+ * 驗證 RegularQuery 的 DeductNum 與連續子單集合完整性；
  * Recurring_Query_OversizedChunkedResponseFailsClosedAndStopsReading 與
  * Recurring_Query_ResponseBodyTimeoutReturnsFailureAndDisposesStream 驗證未知長度的回應本文受位元組上限限制、
  * headers-only 傳輸不先行緩衝、本文讀取仍有總逾時且取消／失敗後 response stream 確實釋放；
@@ -36,6 +41,7 @@ using SpeechMessage.Payments.Diagnostics;
 using SpeechMessage.Localization;
 using SpeechMessage.Payments.Abstractions;
 using SpeechMessage.Payments.Configuration;
+using SpeechMessage.Payments.Gateway;
 using SpeechMessage.Payments.Models;
 using SpeechMessage.Payments.Providers.Sinopac;
 using Xunit;
@@ -137,6 +143,83 @@ public sealed class SinopacF10Tests
         result.Error.Kind.Should().Be(PaymentErrorKind.None);
         handler.CapturedApiService.Should().Be("OrderMaintain");
         handler.CapturedCommand.Should().Be("P");
+    }
+
+    /// <summary>
+    /// 保護一般付款 Gateway 對無效 ExpBillingDays 回傳標準 RequestInvalid，而非向呼叫端拋出 mapper 例外。
+    /// 注入 0、31 與非數字值；斷言三例均不建立 HTTP request，合成 handler 不連接銀行。
+    /// </summary>
+    [Theory]
+    [InlineData("0")]
+    [InlineData("31")]
+    [InlineData("invalid")]
+    public async Task PaymentGateway_DelayedCaptureInvalidExpBillingDaysReturnsRequestInvalidBeforeNetwork(
+        string expBillingDays)
+    {
+        var profile = CreateSyntheticProfile();
+        var handler = new F10ProtocolHandler(profile);
+        using var client = new HttpClient(handler);
+        var provider = new SinopacPaymentProvider(client);
+        var gateway = new PaymentGateway(new SyntheticF10ProfileResolver(profile), new[] { provider });
+
+        var result = await gateway.CreatePaymentAsync(
+            new PaymentCreateRequest
+            {
+                ProfileName = profile.Name,
+                ProductOrderId = "SYNTHETIC-EXP-BILLING-INVALID-001",
+                Total = new Money(1200m, "TWD"),
+                PaymentMethod = "C",
+                Metadata = new Dictionary<string, string>
+                {
+                    ["ExpBillingDays"] = expBillingDays
+                }
+            },
+            CancellationToken.None);
+
+        result.Status.Should().Be(PaymentStatus.Failed);
+        result.Error.Kind.Should().Be(PaymentErrorKind.RequestInvalid);
+        result.Error.Message.Should().Be("ExpBillingDaysInvalid");
+        handler.RequestCount.Should().Be(0);
+    }
+
+    /// <summary>
+    /// 保護定期 Gateway 對無效 ExpBillingDays 同樣回標準輸入錯誤，且不發出 Nonce／Order HTTP request。
+    /// 合成週期欄位有效、僅天數非法，藉此確認 recurring delegate 不會遺漏一般付款的錯誤正規化。
+    /// </summary>
+    [Theory]
+    [InlineData("0")]
+    [InlineData("31")]
+    public async Task PaymentGateway_RecurringInvalidExpBillingDaysReturnsRequestInvalidBeforeNetwork(
+        string expBillingDays)
+    {
+        var profile = CreateSyntheticProfile();
+        var handler = new F10ProtocolHandler(profile);
+        using var client = new HttpClient(handler);
+        var provider = new SinopacPaymentProvider(client);
+        var gateway = new PaymentGateway(new SyntheticF10ProfileResolver(profile), new[] { provider });
+
+        var result = await gateway.CreateRecurringAsync(
+            new PaymentCreateRequest
+            {
+                ProfileName = profile.Name,
+                ProductOrderId = "SYNTHETIC-REGULAR-EXP-BILLING-INVALID-001",
+                Total = new Money(1200m, "TWD"),
+                PaymentMethod = "C",
+                Metadata = new Dictionary<string, string>
+                {
+                    ["DeductTotalNum"] = "12",
+                    ["PeriodType"] = "M",
+                    ["DeductFreq"] = "1",
+                    ["ExpBillingDays"] = expBillingDays
+                }
+            },
+            CancellationToken.None);
+
+        result.Status.Should().Be(PaymentStatus.Failed);
+        result.Error.Kind.Should().Be(PaymentErrorKind.RequestInvalid);
+        result.Error.Message.Should().Be("ExpBillingDaysInvalid");
+        result.Charges.Should().BeEmpty();
+        handler.RequestCount.Should().Be(0);
     }
 
     /// <summary>
@@ -471,6 +554,68 @@ public sealed class SinopacF10Tests
     }
 
     /// <summary>
+    /// 保護 RegularQuery 的 DeductNum 已扣款期數不得以缺少子單的部分集合發布。
+    /// 合成回應回報兩個已扣款期數但只提供一列；結果必須整份拒絕且不回傳任何候選列。
+    /// </summary>
+    [Fact]
+    public async Task Recurring_Query_MissingDeductedCharge_FailsClosed()
+    {
+        var profile = CreateSyntheticProfile();
+        var handler = new F10ProtocolHandler(profile)
+        {
+            UseMissingRecurringCharge = true
+        };
+        using var client = new HttpClient(handler);
+        var provider = new SinopacPaymentProvider(client);
+
+        var result = await ((IPaymentRecurring)provider).QueryRecurringAsync(
+            profile,
+            new RecurringQueryRequest
+            {
+                ProfileName = profile.Name,
+                MasterOrderNo = "SYNTHETIC-REGULAR-MASTER-001"
+            },
+            CancellationToken.None);
+
+        result.Status.Should().Be(PaymentStatus.Failed);
+        result.Error.Kind.Should().Be(PaymentErrorKind.SignatureInvalid);
+        result.Error.Code.Should().Be("RegularQueryResponseMismatch");
+        result.Charges.Should().BeEmpty();
+        handler.RequestCount.Should().Be(2);
+    }
+
+    /// <summary>
+    /// 保護已回報扣款期數中的子單期數必須位於 1..DeductNum 完整範圍。
+    /// 合成回應數量與 DeductNum 相同但使用 1、3 期；必須拒絕缺少第 2 期且超出已扣款期數的集合。
+    /// </summary>
+    [Fact]
+    public async Task Recurring_Query_OutOfRangeDeductedPeriod_FailsClosed()
+    {
+        var profile = CreateSyntheticProfile();
+        var handler = new F10ProtocolHandler(profile)
+        {
+            UseGappedRecurringPeriods = true
+        };
+        using var client = new HttpClient(handler);
+        var provider = new SinopacPaymentProvider(client);
+
+        var result = await ((IPaymentRecurring)provider).QueryRecurringAsync(
+            profile,
+            new RecurringQueryRequest
+            {
+                ProfileName = profile.Name,
+                MasterOrderNo = "SYNTHETIC-REGULAR-MASTER-001"
+            },
+            CancellationToken.None);
+
+        result.Status.Should().Be(PaymentStatus.Failed);
+        result.Error.Kind.Should().Be(PaymentErrorKind.SerializationFailure);
+        result.Error.Code.Should().Be("RegularQueryIdentityConflict");
+        result.Charges.Should().BeEmpty();
+        handler.RequestCount.Should().Be(2);
+    }
+
+    /// <summary>
     /// 保護同一 RegularQuery 消費集合內不得有重複穩定訂單 ID；
     /// 遇到衝突時整份 candidate fail closed，不發布其中任一筆。
     /// </summary>
@@ -689,6 +834,30 @@ public sealed class SinopacF10Tests
     }
 
     /// <summary>
+    /// 建立只服務本案例的 synthetic profile resolver；它不讀 User Secrets，且以複本回傳名稱解析結果。
+    /// resolver 的唯一 profile 只含合成憑證，生命週期不超出目前 Gateway 測試。
+    /// </summary>
+    private sealed class SyntheticF10ProfileResolver : IPaymentProfileResolver
+    {
+        private readonly PaymentMerchantProfile _profile;
+
+        /// <summary>以目前測試獨有的合成 profile 建立 resolver。</summary>
+        public SyntheticF10ProfileResolver(PaymentMerchantProfile profile)
+        {
+            _profile = profile;
+        }
+
+        /// <summary>依指定名稱回傳該案例的 profile 複本，不查詢外部設定或共享目錄。</summary>
+        public PaymentMerchantProfile Resolve(string? profileName)
+        {
+            return _profile with
+            {
+                Name = string.IsNullOrWhiteSpace(profileName) ? _profile.Name : profileName
+            };
+        }
+    }
+
+    /// <summary>
     /// 建立最小 callback 欄位投影；事件類型只是合成輸入，付款狀態仍不得由 callback 直接發布。
     /// </summary>
     private static PaymentCallbackRequest CreateCallback(string apiType)
@@ -887,6 +1056,12 @@ public sealed class SinopacF10Tests
             _profile = profile;
         }
 
+        /// <summary>是否注入 1、3 期但 DeductNum=2 的缺口與超界扣款資料。</summary>
+        public bool UseGappedRecurringPeriods { get; set; }
+
+        /// <summary>是否刻意讓扣款子單缺列，以驗證 DeductNum 不符時不得發布部分集合。</summary>
+        public bool UseMissingRecurringCharge { get; set; }
+
         /// <summary>是否刻意讓兩筆扣款子單具有相同 OrderNo，以注入穩定 ID 衝突。</summary>
         public bool UseDuplicateRecurringOrderNo { get; set; }
 
@@ -1052,10 +1227,14 @@ public sealed class SinopacF10Tests
             };
         }
 
-        /// <summary>建立主單與兩筆扣款子單，並可注入兩筆共用 OrderNo 的資料衝突。</summary>
+        /// <summary>建立合成主單及扣款子單，並可注入缺列、期數缺口或重複 OrderNo 衝突。</summary>
         private object BuildRecurringResponse()
         {
-            var chargeCount = UseTooManyRecurringCharges ? 1001 : 2;
+            IEnumerable<int> chargeNumbers = UseTooManyRecurringCharges
+                ? Enumerable.Range(1, 1001)
+                : UseGappedRecurringPeriods
+                    ? new[] { 1, 3 }
+                    : Enumerable.Range(1, UseMissingRecurringCharge ? 1 : 2);
             return new
             {
                 ShopNo = _profile.Credentials["ShopNo"],
@@ -1075,7 +1254,7 @@ public sealed class SinopacF10Tests
                     RegularStatus = "01",
                     StopDeductTime = string.Empty,
                     Remarks = string.Empty,
-                    Info = Enumerable.Range(1, chargeCount)
+                    Info = chargeNumbers
                         .Select(number => new
                         {
                             RegularNum = number,

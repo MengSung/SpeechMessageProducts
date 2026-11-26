@@ -8,6 +8,8 @@
  * 本檔宣告 SinopacPaymentProvider、SinopacRequestException、SinopacSignatureException。
  * 主要操作入口包含 CreatePaymentAsync、QueryPaymentAsync、ParseCallbackAsync、ResolveEndpoint、BuildCreateProviderData、
  * QueryAllotAsync、ResolveCreateResult、CreateMissingCreateFieldError、BuildQueryProviderData；其餘入口見下方成員契約。
+ * 建單只將參數名稱精確為 ExpBillingDays 的延後請款格式／範圍拒絕轉成固定 RequestInvalid；其他範圍例外仍向外傳播，
+ * 以免把程式錯誤誤分類成呼叫端輸入拒絕。
  *
  * 使用邊界與維護：
  * 本 provider 只借用 DI 提供且由 Host 管理生命週期的 HttpClient；每次請求／回應由 using 關閉，
@@ -79,6 +81,10 @@ internal sealed partial class SinopacPaymentProvider :
     public IReadOnlyCollection<string> SupportedCurrencies => SupportedCurrencyCodes;
 
     /// <summary>建立永豐付款；Money 金額由 mapper 依 TWD 金額契約轉成整數分，所有 HTTP I/O 都傳遞呼叫端取消權杖。</summary>
+    /// <remarks>
+    /// mapper 對延後請款天數的格式或範圍拒絕會回傳固定 RequestInvalid，且在任何 HTTP I/O 前結束。
+    /// 只有 <see cref="ArgumentOutOfRangeException.ParamName"/> 精確等於 ExpBillingDays 才正規化；其他範圍例外保留為程式錯誤向外傳播。
+    /// </remarks>
     /// <param name="profile">resolver 選定的單商店設定，只供此操作使用，不會快取憑證。</param>
     /// <param name="request">含 Money 總額及中立付款欄位的建立請求。</param>
     /// <param name="cancellationToken">呼叫端取消權杖，傳遞至各次 HTTP 傳輸。</param>
@@ -127,6 +133,16 @@ internal sealed partial class SinopacPaymentProvider :
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
         {
             throw;
+        }
+        catch (ArgumentOutOfRangeException ex)
+            when (string.Equals(ex.ParamName, "ExpBillingDays", StringComparison.Ordinal))
+        {
+            // ParseExpBillingDays 只用此參數名稱標記呼叫端提供的延後請款天數格式／範圍錯誤；
+            // 以固定安全訊息回傳業務拒絕，其他 ArgumentOutOfRangeException 不攔截，避免掩蓋程式錯誤。
+            return CreateError(
+                request.ProductOrderId,
+                PaymentErrorKind.RequestInvalid,
+                "ExpBillingDaysInvalid");
         }
         catch (PaymentConfigurationException ex)
         {

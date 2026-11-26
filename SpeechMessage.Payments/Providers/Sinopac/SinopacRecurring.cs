@@ -2,8 +2,8 @@
  * 檔案整體說明
  *
  * 目的與定位：實作永豐定期扣款建立、RegularQuery 查詢與停止 capability。
- * 建立一律強制 PayTypeSub=REGULAR；查詢依主單與每筆扣款的穩定識別建立完整候選集合，
- * 只有商店、主單、列數及所有 OrderNo/期數識別均通過驗證後才發布唯讀快照。
+ * 建立一律強制 PayTypeSub=REGULAR；查詢以 DeductNum 驗證已扣款期數的 Info 數量及連續期間，
+ * 並依主單與每筆扣款的穩定識別建立完整候選集合；所有條件通過後才發布唯讀快照。
  *
  * 主要功能與流程：
  * 定期建立驗證期數、週期與頻率後委派既有一次性 OrderCreate 封包流程。
@@ -128,6 +128,8 @@ internal sealed partial class SinopacPaymentProvider
                     cancellationToken);
 
             var order = response.Order;
+            // RegularQuery 的 Info 描述已扣款成功或失敗子單；DeductNum 與列數相符，且每個期數落在
+            // 1..DeductNum，配合下方唯一性檢查才能保證完整集合，避免發布缺期或未扣期資料。
             if (!SinopacStatusMapper.IsSuccessStatus(response.Status) ||
                 !string.Equals(response.ShopNo, shopNo, StringComparison.Ordinal) ||
                 order is null ||
@@ -137,7 +139,8 @@ internal sealed partial class SinopacPaymentProvider
                 order.DeductNum > order.DeductTotalNum ||
                 order.Info is null ||
                 order.Info.Count > MaximumRecurringChargeCount ||
-                order.Info.Count > order.DeductTotalNum)
+                order.Info.Count > order.DeductTotalNum ||
+                order.Info.Count != order.DeductNum)
             {
                 return CreateRecurringFailure(
                     request.MasterOrderNo,
@@ -153,7 +156,7 @@ internal sealed partial class SinopacPaymentProvider
                 if (charge is null ||
                     !IsValidIdentifier(charge.OrderNo) ||
                     charge.RegularNum is < 1 ||
-                    charge.RegularNum > order.DeductTotalNum ||
+                    charge.RegularNum > order.DeductNum ||
                     !orderNumbers.Add(charge.OrderNo) ||
                     !chargeNumbers.Add(charge.RegularNum))
                 {
