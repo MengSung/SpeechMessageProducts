@@ -9,7 +9,8 @@
 產生無秘密的開發設定與網站設定，打包並計算雜湊；遠端每次命令
 先核對主機身分及系統管理員權限，再驗證固定內容根、獨占端口與精確萬用憑證。建立封閉的
 證據目錄並取得獨占檔案鎖後，先備份完整IIS設定，才上傳到不公開的套件目錄；提交前再次核對與備份，完整解壓後停止專用集區並排空，
-切換到新的不可變發佈目錄，以虛擬帳號啟動，最後嚴格驗證本機HTTPS存活端點。
+首次安裝先建立未Commit的站台候選，再解析本站匿名設定；切換到新的不可變發佈目錄，
+以虛擬帳號啟動，最後嚴格驗證本機HTTPS存活端點。
 使用邊界與維護：遠端唯一主機為部署前重新驗證的測試虛擬機。站台與集區名稱、網域、端口、
 內容根與整合登入資料庫皆為固定值，不能以參數改成正式站台。CRM設定只接受核定測試主機
 的完整HTTPS服務網址；本檔不呼叫CRM、SQL、LINE或就緒端點，也不讀憑證私鑰。
@@ -128,6 +129,15 @@ function Set-Gs2CrmEnvironment {
     }
 }
 
+function Get-Gs2AnonymousSection {
+    # IIS無法解析不存在站台的location。首次安裝先建立未Commit的站台候選，才讀取本站設定。
+    # 候選仍由單次ServerManager擁有；本方法本身不建立、啟動、Commit或釋放任何資源。
+    param($Manager, $Site)
+    if ($null -eq $Site) { return $null }
+    return $Manager.GetApplicationHostConfiguration().GetSection(
+        'system.webServer/security/authentication/anonymousAuthentication', 'GoodShepherd2Test')
+}
+
 function Select-Gs2Certificate {
     # 純快照選取不存取私鑰；指定指紋與自動選取共用全部條件，不以最新或名稱近似來猜測。
     param([object[]]$Candidates, [string]$Thumbprint)
@@ -237,6 +247,7 @@ $validatorSources = @(
     'function Assert-Gs2NoReparse {' + ${function:Assert-Gs2NoReparse}.ToString() + '}'
     'function Get-Gs2CrmEnvironment {' + ${function:Get-Gs2CrmEnvironment}.ToString() + '}'
     'function Set-Gs2CrmEnvironment {' + ${function:Set-Gs2CrmEnvironment}.ToString() + '}'
+    'function Get-Gs2AnonymousSection {' + ${function:Get-Gs2AnonymousSection}.ToString() + '}'
 )
 
 $remoteDeployment = {
@@ -535,7 +546,7 @@ $remoteDeployment = {
         $certificate = Get-Gs2Certificate
         $site = $manager.Sites['GoodShepherd2Test']
         $pool = $manager.ApplicationPools['GoodShepherd2Test']
-        $anonymous = $manager.GetApplicationHostConfiguration().GetSection('system.webServer/security/authentication/anonymousAuthentication', 'GoodShepherd2Test')
+        $anonymous = Get-Gs2AnonymousSection $manager $site
         if ($null -ne $site -and $anonymous.GetAttributeValue('userName') -ne '') { throw 'GS2_EXISTING_ANONYMOUS_IDENTITY_CONFLICT' }
         $previous = [ordered]@{
             SiteExists=($null -ne $site); PoolExists=($null -ne $pool)
@@ -594,6 +605,8 @@ $remoteDeployment = {
         $site.Bindings[0].CertificateStoreName = 'My'
         $site.Bindings[0].SslFlags = 1
         # 匿名檔案存取亦使用專用集區身分，避免為了網站可讀而授權共用IUSR或IIS_IUSRS。
+        # 首次安裝到此才已有記憶體中的站台候選，IIS才可解析location；仍未Commit或啟動。
+        $anonymous = Get-Gs2AnonymousSection $manager $site
         $anonymous.SetAttributeValue('userName', '')
         $manager.CommitChanges()
         $committed = $true
@@ -629,6 +642,7 @@ $remoteDeployment = {
     }
     catch {
         $failureType = $_.Exception.GetType().FullName
+        $failureLine = $_.InvocationInfo.ScriptLineNumber
         if ($changed -and $null -ne $previous) {
             $rollback = 'Failed'
             try {
@@ -684,6 +698,7 @@ $remoteDeployment = {
         $recordData.Result = 'Failed'
         $recordData.Rollback = $rollback
         $recordData.ExceptionType = $failureType
+        $recordData.FailureLine = $failureLine
         if ($hasRecord) {
             try { Write-Gs2Record $recordData }
             catch { [Console]::Error.WriteLine('GS2_RECORD_WRITE_FAILED') }
@@ -760,7 +775,7 @@ try {
             foreach ($task in @($stdout, $stderr)) {
                 if ($null -ne $task) {
                     if (-not $task.Wait(10000)) { throw 'GS2_PUBLISH_OUTPUT_DRAIN_FAILED' }
-                    $task.GetAwaiter().GetResult()
+                    $task.GetAwaiter().GetResult() | Out-Null
                     $task.Dispose()
                 }
             }

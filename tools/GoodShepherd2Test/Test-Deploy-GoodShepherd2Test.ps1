@@ -83,6 +83,19 @@ function New-SiteFixture {
 }
 
 $cases = [ordered]@{
+    IisAnonymousSection_IsNotReadBeforeSiteCandidateExists = {
+        $definition = $ast.Find({
+            param($node)
+            $node -is [System.Management.Automation.Language.FunctionDefinitionAst] -and
+            $node.Name -ceq 'Get-Gs2AnonymousSection'
+        }, $true)
+        Assert-Condition ($null -ne $definition)
+        . ([scriptblock]::Create($definition.Extent.Text))
+        $manager = [pscustomobject]@{}
+        $manager | Add-Member ScriptMethod GetApplicationHostConfiguration { throw 'No site context exists.' }
+        Assert-Condition ($null -eq (Get-Gs2AnonymousSection $manager $null))
+        # 真正IIS已另以未Commit候選驗證可讀；此替身只保護首次安裝不可先存取不存在路徑。
+    }
     CrmCredential_ExactOrganizationOnlyAndNoFallback = {
         $definition = $ast.Find({
             param($node)

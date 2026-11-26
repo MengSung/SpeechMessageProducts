@@ -2,6 +2,7 @@
 
 | 時間（Asia/Taipei） | 工作包 | 遇到的選擇 | 選了什麼 | 依據 | 怎麼回復 |
 |---|---|---|---|---|---|
+| 2026-11-26 11:21 Asia/Taipei (UTC+08:00) | F2 | 首次Apply在IIS不存在站台的location查詢失敗；是否當環境限制略過 | 不放行；唯讀重現FileNotFoundException，先建立未Commit站台候選才解析匿名設定。補先紅後綠回歸，PS7／PS5各18/18；實際IIS候選API與環境兩鍵回復通過，沒有Commit。第一輪備份及套件保留，尚未第二次Apply | 02§4失敗守門必須修正、§10可回復及最多兩次；AGENTS資源所有權 | 已失敗輪沒有站台／集區可還原，Rollback=NotRequired；候選ServerManager.Dispose後兩者仍不存在；保留native IIS備份但不整站Restore |
 | 2026-11-26 11:08 Asia/Taipei (UTC+08:00) | F2 | 部署工具未注入真實manager必要的CRM帳密，IIS虛擬帳號不能沿用操作者User Secrets | Apply後只取固定部署User Secrets中goodshepherd20的精確端點／帳密，透過既有Negotiate Session設定專用集區環境兩鍵；包內設定與操作JSON不含秘密，舊兩鍵只在單次記憶體供rollback；PS7／PS5合成回歸各17/17 | 01 F2秘密只走User Secrets或環境；00§5測試組織共用服務帳號；02§10最小範圍與可回復 | 失敗精準還原原兩鍵；IIS備份屬管理員保存邊界；未Apply、不以離線案例宣稱VM登入成功 |
 | 2026-11-26 10:53 Asia/Taipei (UTC+08:00) | F2 | 全方案架構守門對新主機回UnknownProject，而架構檔只允許線A維護 | 不改／不略過架構守門、不把失敗列環境限制；在共用交接及lane-B寫明Layer、IsHost及public型別精確契約需要線A登錄。等待時只完成F2報告、自審及F6測試草稿，F2不合併 | 02 §4、§5.3、§5.4；使用者禁止替線A實作及放寬檢查 | 無架構或環境變更；線A登錄合併後同步重驗 |
 | 2026-11-26 10:53 Asia/Taipei (UTC+08:00) | F2 | 工作樹原有.ccg修改不允許stash／reset；整合新增兩個進度捷徑提交需要同步 | 切到保留分支codex/lane-b-f2-preserve-20261126-1050，於線B忽略目錄乾淨checkout重放cl/lane-b到c61b37f0；確認只有兩個cmd差異且沒有.ccg樹差異，移除乾淨checkout後切回。原有.ccg雜湊及刪除狀態保留，未在整合工作樹編輯；F2程式重寫後b5ca0e8c77ee16b65cf013e766f709db5b5797bc，產品與測試內容不變 | 02 §5.2、§10；使用者保留他人修改及所有編輯限線B | 保留分支指向原9d50f94d歷史；未刪改任何原工作檔 |
