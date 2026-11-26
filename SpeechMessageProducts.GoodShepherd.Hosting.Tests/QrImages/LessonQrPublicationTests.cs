@@ -7,22 +7,36 @@
  * 測試注入跨教會拒絕、重複欄位、圖片複製失敗、取消、交易結果不明及同事件競爭，
  * 決定性斷言是完整 31／32 URL、檔案位元組正確、無 staging 殘留、正式檔案數不增加，
  * 以及原例外保留。另由真實 DI factory 產生 PNG 並驗證工作 scope 回到零。
+ * Windows rename 案例由測試 owner 在最後一張 CopyTo 時持有前一張 PNG 的唯讀 handle，
+ * 刻意不分享 Delete；只觀察本案 MoveDirectory 的真實例外，以 TCS 證明發布已受阻，
+ * 不偽造 HResult、不查詢其他程序。驗證短暫鎖釋放、持鎖到期、原 caller 取消，
+ * 以及等待中不公開部分正式圖片、全程持有 lease、原 IOException／取消不被清理蓋掉。
+ * 每案 finally 取消並 await 發布、關閉讀取 handle；Dispose 解除例外觀察訂閱，
+ * 重送回收固定 staging，獨占重開所有檔案確認產品 handle 已排空。
  * 使用邊界與維護：測試 fixture 是目錄及所有輸入 stream 的唯一 owner，Dispose
  * 在所有 await 返回後關閉 stream 並移除本案例根目錄；沒有共用 Session、SDK、
  * token、靜態可變狀態或背景工作。合成圖片只測儲存，不宣稱可解碼；
  * factory 測試則使用正式 renderer。D365 CAS、SDK timeout 及 HTTPS 映射另需 Host 驗收。
  */
+using System.Diagnostics;
+using System.Runtime.ExceptionServices;
 using SpeechMessageProducts.GoodShepherd.Hosting.QrImages;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using SpeechMessage.Hosting.Outbound;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace SpeechMessageProducts.GoodShepherd.Hosting.Tests.QrImages;
 
 /// <summary>真實檔案發布與 DI 工作 scope 的離線整合測試。</summary>
 public sealed class LessonQrPublicationTests
 {
+    private readonly ITestOutputHelper _output;
+
+    /// <summary>只借用本案例輸出器記錄合成鎖的真實錯誤碼與等待證據，不輸出產品資料。</summary>
+    public LessonQrPublicationTests(ITestOutputHelper output) => _output = output;
+
     /// <summary>兩種入口都只提交一次完整欄位，檔案內容及 URL 路徑逐項正確。</summary>
     [Theory]
     [InlineData(false, 31)]
@@ -57,6 +71,180 @@ public sealed class LessonQrPublicationTests
         Assert.Equal(12, fixture.Store.Commits);
         fixture.AssertNoStaging();
     }
+
+    /// <summary>
+    /// 真實不分享 Delete 的 PNG 讀取鎖必須先阻擋原發布的 Move，釋放後才一次公開完整組。
+    /// 移除產品瞬時等待會在解鎖前使 operation 失敗；lease／正式路徑／提交及位元組斷言
+    /// 保護原子性，第二次合法重送不增加圖片。finally 排空發布，owner 關閉 handle 及訂閱。
+    /// </summary>
+    [Theory]
+    [InlineData(false, 31)]
+    [InlineData(true, 32)]
+    public async Task Publication_TransientWindowsRenameLock_ReleasesThenCommitsCompleteBundle(bool poll, int count)
+    {
+        Assert.True(OperatingSystem.IsWindows(), "This test requires real Windows rename sharing semantics.");
+        using var fixture = new Fixture();
+        var images = fixture.Images(poll).ToArray();
+        var parent = Path.Combine(fixture.Root, fixture.Church.ToString("N"), fixture.Lesson.ToString("N"));
+        var staging = Path.Combine(parent, $".staging-v1-{count}");
+        var final = Path.Combine(parent, $"v1-{count}");
+        using var blocker = new WindowsRenameLockStream(staging, images[0].Descriptor.FieldName + ".png");
+        images[^1] = new(images[^1].Descriptor, blocker);
+        using var cancellation = new CancellationTokenSource(TimeSpan.FromSeconds(5));
+        fixture.Store.OnCommit = urls =>
+        {
+            Assert.Equal(count, urls.Count);
+            Assert.True(Directory.Exists(final));
+            Assert.False(Directory.Exists(staging));
+            Assert.Equal(count, fixture.Files().Length);
+            foreach (var image in images)
+            {
+                Assert.EndsWith(image.Descriptor.FieldName + ".png", urls[image.Descriptor.FieldName]);
+                Assert.Equal(new byte[] { 137, 80, 78, 71 },
+                    File.ReadAllBytes(Path.Combine(final, image.Descriptor.FieldName + ".png")));
+            }
+        };
+        var operation = fixture.Publish(images, cancellation.Token);
+        try
+        {
+            var original = await blocker.Blocked.WaitAsync(TimeSpan.FromSeconds(5));
+            AssertWindowsRenameError(original);
+            _output.WriteLine($"Observed real blocked MoveDirectory: HResult=0x{original.HResult:X8}.");
+            // TCS 已證明真正 Move 拋錯；短觀察窗只檢查發布仍在等鎖，不以延遲製造故障。
+            await Task.Delay(75, cancellation.Token);
+            Assert.False(operation.IsCompleted);
+            Assert.Equal(0, fixture.Store.Commits);
+            Assert.False(Directory.Exists(final));
+            Assert.Equal(count, Directory.GetFiles(staging, "*.png").Length);
+            fixture.AssertLeaseHeld(count);
+            blocker.ReleaseReader();
+            await operation;
+            _output.WriteLine($"Released lock: HResult=0x{original.HResult:X8}, move failures={blocker.MoveFailures}.");
+        }
+        finally
+        {
+            cancellation.Cancel();
+            blocker.ReleaseReader();
+            await Record.ExceptionAsync(() => operation);
+        }
+        blocker.Dispose();
+        Assert.Equal(0, blocker.ActiveResources);
+        Assert.Equal(1, fixture.Store.Commits);
+        fixture.AssertNoStaging();
+        fixture.AssertPublicationHandlesReleased(count);
+        fixture.Store.OnCommit = null;
+        await fixture.Publish(fixture.Images(poll));
+        Assert.Equal(2, fixture.Store.Commits);
+        Assert.Equal(count, fixture.Files().Length);
+        fixture.AssertNoStaging();
+        fixture.AssertPublicationHandlesReleased(count);
+    }
+
+    /// <summary>
+    /// 真實讀取鎖持續到固定等待到期時，必須失敗且回傳第一次 Move 的同一 IOException。
+    /// 清理也受鎖時不得蓋掉原例外；只保留一組固定 staging、不提交，解鎖後重送完整回收。
+    /// 移除期限、改丟 TimeoutException 或回傳最後一次 I/O 例外都會使此測試失敗。
+    /// </summary>
+    [Fact]
+    public async Task Publication_PersistentWindowsRenameLock_PreservesOriginalIoAndRecoversOnRetry()
+    {
+        Assert.True(OperatingSystem.IsWindows(), "This test requires real Windows rename sharing semantics.");
+        using var fixture = new Fixture();
+        var images = fixture.Images().ToArray();
+        var parent = Path.Combine(fixture.Root, fixture.Church.ToString("N"), fixture.Lesson.ToString("N"));
+        var staging = Path.Combine(parent, ".staging-v1-31");
+        using var blocker = new WindowsRenameLockStream(staging, images[0].Descriptor.FieldName + ".png");
+        images[^1] = new(images[^1].Descriptor, blocker);
+        using var cancellation = new CancellationTokenSource(TimeSpan.FromSeconds(5));
+        var operation = fixture.Publish(images, cancellation.Token);
+        try
+        {
+            var original = await blocker.Blocked.WaitAsync(TimeSpan.FromSeconds(5));
+            AssertWindowsRenameError(original);
+            _output.WriteLine($"Observed real blocked MoveDirectory: HResult=0x{original.HResult:X8}.");
+            var error = await Assert.ThrowsAsync<IOException>(() => operation);
+            Assert.Same(original, error);
+            Assert.InRange(blocker.BlockedElapsed.TotalMilliseconds, 800, 3000);
+            Assert.True(blocker.MoveFailures > 1);
+            Assert.Equal(0, fixture.Store.Commits);
+            Assert.False(Directory.Exists(Path.Combine(parent, "v1-31")));
+            Assert.Single(Directory.GetDirectories(parent, ".staging-*"));
+            Assert.InRange(fixture.Files().Length, 1, 31);
+            fixture.AssertLeaseAvailable(31);
+            _output.WriteLine($"Expired lock: HResult=0x{error.HResult:X8}, move failures={blocker.MoveFailures}, " +
+                $"elapsed={blocker.BlockedElapsed.TotalMilliseconds:F0}ms; same original IOException, commits=0.");
+        }
+        finally
+        {
+            cancellation.Cancel();
+            blocker.ReleaseReader();
+            await Record.ExceptionAsync(() => operation);
+        }
+        blocker.Dispose();
+        Assert.Equal(0, blocker.ActiveResources);
+        fixture.AssertPublicationHandlesReleased(31);
+        await fixture.Publish(fixture.Images());
+        Assert.Equal(1, fixture.Store.Commits);
+        Assert.Equal(31, fixture.Files().Length);
+        fixture.AssertNoStaging();
+        fixture.AssertPublicationHandlesReleased(31);
+    }
+
+    /// <summary>
+    /// 已證明 Move 受真實鎖阻擋後取消原 caller，須保留其 token、不提交並釋放產品 lease。
+    /// 鎖仍在時清理失敗不得取代取消；測試 owner 解鎖及解除訂閱後，重送回收唯一 staging。
+    /// 若等待未傳遞 caller token、取消後提交或有 handle 留存，此案必定失敗。
+    /// </summary>
+    [Fact]
+    public async Task Publication_CancelledWindowsRenameLock_PreservesCallerAndDrainsBeforeRetry()
+    {
+        Assert.True(OperatingSystem.IsWindows(), "This test requires real Windows rename sharing semantics.");
+        using var fixture = new Fixture();
+        var images = fixture.Images().ToArray();
+        var parent = Path.Combine(fixture.Root, fixture.Church.ToString("N"), fixture.Lesson.ToString("N"));
+        var staging = Path.Combine(parent, ".staging-v1-31");
+        using var blocker = new WindowsRenameLockStream(staging, images[0].Descriptor.FieldName + ".png");
+        images[^1] = new(images[^1].Descriptor, blocker);
+        using var cancellation = new CancellationTokenSource(TimeSpan.FromSeconds(5));
+        var operation = fixture.Publish(images, cancellation.Token);
+        try
+        {
+            var original = await blocker.Blocked.WaitAsync(TimeSpan.FromSeconds(5));
+            AssertWindowsRenameError(original);
+            _output.WriteLine($"Observed real blocked MoveDirectory: HResult=0x{original.HResult:X8}.");
+            Assert.False(operation.IsCompleted);
+            fixture.AssertLeaseHeld(31);
+            var cancelledAt = Stopwatch.GetTimestamp();
+            cancellation.Cancel();
+            var error = await Assert.ThrowsAnyAsync<OperationCanceledException>(() => operation);
+            Assert.Equal(cancellation.Token, error.CancellationToken);
+            Assert.InRange(Stopwatch.GetElapsedTime(cancelledAt).TotalMilliseconds, 0, 1000);
+            Assert.Equal(0, fixture.Store.Commits);
+            Assert.False(Directory.Exists(Path.Combine(parent, "v1-31")));
+            Assert.Single(Directory.GetDirectories(parent, ".staging-*"));
+            Assert.InRange(fixture.Files().Length, 1, 31);
+            fixture.AssertLeaseAvailable(31);
+            _output.WriteLine($"Cancelled lock: HResult=0x{original.HResult:X8}; original caller token, commits=0.");
+        }
+        finally
+        {
+            cancellation.Cancel();
+            blocker.ReleaseReader();
+            await Record.ExceptionAsync(() => operation);
+        }
+        blocker.Dispose();
+        Assert.Equal(0, blocker.ActiveResources);
+        fixture.AssertPublicationHandlesReleased(31);
+        await fixture.Publish(fixture.Images());
+        Assert.Equal(1, fixture.Store.Commits);
+        Assert.Equal(31, fixture.Files().Length);
+        fixture.AssertNoStaging();
+        fixture.AssertPublicationHandlesReleased(31);
+    }
+
+    /// <summary>只接受 Windows 回報的精確 access denied／sharing／lock violation HRESULT，不合成錯誤碼。</summary>
+    private static void AssertWindowsRenameError(IOException error) => Assert.Contains(error.HResult,
+        new[] { unchecked((int)0x80070005), unchecked((int)0x80070020), unchecked((int)0x80070021) });
 
     /// <summary>交易結果不明保留可能已被引用的圖片；重送仍提交完整組且不成長。</summary>
     [Fact]
@@ -308,6 +496,32 @@ public sealed class LessonQrPublicationTests
                 Assert.Empty(Directory.GetDirectories(Root, ".staging-*", SearchOption.AllDirectories));
         }
 
+        /// <summary>等候 rename 時以真正獨占開檔確認同事件 lease 仍由發布 owner 持有。</summary>
+        internal void AssertLeaseHeld(int count) => Assert.Throws<IOException>(() =>
+        {
+            using var competing = OpenLease(count);
+        });
+
+        /// <summary>發布已排空時可獨占重開 lease，證明失敗／取消未遺留產品 owner。</summary>
+        internal void AssertLeaseAvailable(int count)
+        {
+            using var lease = OpenLease(count);
+        }
+
+        /// <summary>只重開本案固定 lease，不建立背景工作，回傳 handle 由斷言呼叫端 using 關閉。</summary>
+        private FileStream OpenLease(int count) => new(Path.Combine(Root, Church.ToString("N"),
+            Lesson.ToString("N"), $".v1-{count}.lock"), FileMode.Open, FileAccess.ReadWrite, FileShare.None);
+
+        /// <summary>讀取鎖解除後獨占重開全部圖片與 lease，驗證產品寫入／驗證 handle 已確定關閉。</summary>
+        internal void AssertPublicationHandlesReleased(int count)
+        {
+            AssertLeaseAvailable(count);
+            foreach (var path in Files())
+            {
+                using var file = new FileStream(path, FileMode.Open, FileAccess.ReadWrite, FileShare.None);
+            }
+        }
+
         /// <summary>所有 await 完成後先關閉輸入 stream，再移除案例專屬絕對目錄。</summary>
         public void Dispose()
         {
@@ -359,6 +573,78 @@ public sealed class LessonQrPublicationTests
             owner.Cancel();
             token.ThrowIfCancellationRequested();
             return Task.CompletedTask;
+        }
+    }
+
+    /// <summary>
+    /// 最後一張 PNG 的測試輸入 owner，CopyTo 時才開住前一張已關閉的候選，模擬獨立讀取者。
+    /// 唯一 handle 不分享 Delete，真正 Windows MoveDirectory 因此受阻；例外觀察只篩本案
+    /// staging 路徑及 MoveDirectory 堆疊，不產生／改寫例外、不列舉外部 handle、不發告警。
+    /// TCS 只保存第一次真例外，沒有輪詢 task；finally 必須先排空發布再 Dispose 本 owner，
+    /// 解除 AppDomain 訂閱並關閉 handle，避免測試靜態事件保留 fixture 或跨案例干擾。
+    /// </summary>
+    private sealed class WindowsRenameLockStream : MemoryStream
+    {
+        private readonly string _staging;
+        private readonly string _firstImage;
+        private readonly TaskCompletionSource<IOException> _blocked = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        private FileStream? _reader;
+        private int _observing;
+        private int _moveFailures;
+        private long _blockedAt;
+
+        /// <summary>固定本案路徑並訂閱只讀故障觀察；owner Dispose 必須與建構一一配對。</summary>
+        internal WindowsRenameLockStream(string staging, string firstImage) : base(new byte[] { 137, 80, 78, 71 })
+        {
+            _staging = staging;
+            _firstImage = firstImage;
+            AppDomain.CurrentDomain.FirstChanceException += ObserveMoveFailure;
+            _observing = 1;
+        }
+
+        /// <summary>只有真正搬移已拋出本案 IOException 才完成，作為釋放鎖的因果屏障。</summary>
+        internal Task<IOException> Blocked => _blocked.Task;
+        /// <summary>只計算本案 Move 的故障，證明重試曾發生；不累積例外集合。</summary>
+        internal int MoveFailures => Volatile.Read(ref _moveFailures);
+        /// <summary>自第一次受阻起的單調時間，驗證固定等待上限，不依本地日期或時區。</summary>
+        internal TimeSpan BlockedElapsed => Stopwatch.GetElapsedTime(Volatile.Read(ref _blockedAt));
+        /// <summary>本 owner 的讀取 handle 與事件訂閱都必須回到零，不含已 await 的 TCS 結果。</summary>
+        internal int ActiveResources => (_reader is null ? 0 : 1) + Volatile.Read(ref _observing);
+
+        /// <summary>先複製最後一張，再讀取前一張；不接觸仍以 Share.None 寫入的當前目的 stream。</summary>
+        public override async Task CopyToAsync(Stream destination, int bufferSize, CancellationToken token)
+        {
+            await base.CopyToAsync(destination, bufferSize, token);
+            _reader = new FileStream(Path.Combine(_staging, _firstImage),
+                FileMode.Open, FileAccess.Read, FileShare.Read);
+        }
+
+        /// <summary>只觀察框架真正 Move 的第一個 throw，不捕捉清理、lease 或其他案例例外。</summary>
+        private void ObserveMoveFailure(object? sender, FirstChanceExceptionEventArgs args)
+        {
+            if (args.Exception is IOException error &&
+                error.Message.Contains(_staging, StringComparison.Ordinal) &&
+                error.StackTrace?.Contains("System.IO.FileSystem.MoveDirectory", StringComparison.Ordinal) == true)
+            {
+                Interlocked.Increment(ref _moveFailures);
+                Interlocked.CompareExchange(ref _blockedAt, Stopwatch.GetTimestamp(), 0);
+                _blocked.TrySetResult(error);
+            }
+        }
+
+        /// <summary>測試在已證明原發布受阻後解鎖；Interlocked 轉移唯一 owner，重複清理安全。</summary>
+        internal void ReleaseReader() => Interlocked.Exchange(ref _reader, null)?.Dispose();
+
+        /// <summary>所有發布 await 返回後解除靜態事件參照、關閉讀取 handle，最後關閉合成輸入。</summary>
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                if (Interlocked.Exchange(ref _observing, 0) != 0)
+                    AppDomain.CurrentDomain.FirstChanceException -= ObserveMoveFailure;
+                ReleaseReader();
+            }
+            base.Dispose(disposing);
         }
     }
 

@@ -10,6 +10,10 @@
  * 暫存檔由持有固定 lease 檔獨占 handle 的呼叫唯一擁有，finally 關閉並刪除。程序中斷
  * 由 OS 釋放 handle，下次同事件重送先清除固定 staging，不累積隨機孤兒目錄。
  * 每事件只有一個固定 lease 檔與一組暫存圖片；lease 最多等三十秒，取消可提早離開。
+ * Windows 外部讀取者即使在本服務寫入 handle 關閉後仍可能阻擋目錄 rename；
+ * 只對精確 access denied／sharing／lock violation HRESULT 等待最多一秒、
+ * 每次最多二十五毫秒，直接傳遞 caller 取消；全段仍持有同事件 lease。
+ * 等待到期保留第一次原始 IOException，不包裝為逾時、不放寬 ACL 或降級逐檔發布。
  * lease 只保護檔案 staging 所有權，D365 唯一性仍由資料庫鍵與 CAS 負責。
  * 正式圖片是持久產品資料，依教會、
  * 課程與固定內容版本分區；目前來源只支援版本一，每課程最多兩組共 63 張、31.5 MiB。
@@ -25,6 +29,8 @@
  * 真正 SDK 交易在 Host 適配器，這些儲存測試沒有執行該適配器，不能代表其交易
  * 故障注入測試、D365 或靜態網址的實機驗收。
  */
+using System.Diagnostics;
+
 namespace SpeechMessageProducts.GoodShepherd.Hosting.QrImages;
 
 /// <summary>Host 的真實 SDK 邊界；授權讀取及最後交易都必須借用同一工作 scope。</summary>
@@ -81,6 +87,8 @@ public sealed class LessonQrBundlePublicationService : ILessonQrBundlePublicatio
     /// <summary>
     /// 拒絕不完整候選與未授權教會，完整儲存後才送出單一交易；確認提交後不以後到取消
     /// 偽裝失敗。正式圖片保留供讀取與安全重送，暫存目錄永遠由本呼叫清理。
+    /// 同事件 lease 包含有界 Windows rename 等待、既有組核對、交易與 finally 清理；
+    /// 等待失敗保留原 I/O，caller 取消保留原 token，均不得回寫部分 URL。
     /// </summary>
     public async Task PublishAndCommitAsync(Guid churchId, Guid lessonId, int contentVersion,
         IReadOnlyList<LessonQrRenderedImage> images, CancellationToken cancellationToken)
@@ -126,7 +134,7 @@ public sealed class LessonQrBundlePublicationService : ILessonQrBundlePublicatio
             }
 
             cancellationToken.ThrowIfCancellationRequested();
-            try { Directory.Move(temporary, final); }
+            try { await MoveCompleteBundleAsync(temporary, final, cancellationToken).ConfigureAwait(false); }
             catch (IOException) when (Directory.Exists(final))
             {
                 // 另一程序已發布時，只能核對不可變內容，不得刪除或覆寫其圖片。
@@ -163,6 +171,49 @@ public sealed class LessonQrBundlePublicationService : ILessonQrBundlePublicatio
 
     /// <summary>欄位已逐項比對固定 plan，因此不能以 caller 路徑逃出儲存目錄。</summary>
     private static string FileName(LessonQrRenderedImage image) => image.Descriptor.FieldName + ".png";
+
+    /// <summary>
+    /// 仍以單次 Directory.Move 原子公開完整候選，呼叫端持有同事件 lease 直到提交及清理完成。
+    /// 本服務已關閉所有寫入 stream，但 Windows 不分享 Delete 的外部讀取 handle
+    /// 仍可能暫時阻擋 rename；只等待精確的三種 Win32 HRESULT，其他故障立即保留向外傳遞。
+    /// 只在第一次受阻後啟用單調一秒期限，每次最多等二十五毫秒；一次只擁有一個已 await
+    /// 的 delay，直接借用 caller token，沒有額外 CTS、背景工作或逾時取消分類。
+    /// 到期以外層 throw 保留第一次例外實例及原堆疊；永久 ACL 或持續鎖定一樣失敗。
+    /// final 已存在交回原有不可變內容核對，不覆寫、不逐檔公開、不延長固定等待期限。
+    /// </summary>
+    private static async Task MoveCompleteBundleAsync(string temporary, string final, CancellationToken token)
+    {
+        try { Directory.Move(temporary, final); }
+        catch (IOException error) when (IsWindowsRenameContention(error) && !Directory.Exists(final))
+        {
+            var started = Stopwatch.GetTimestamp();
+            var budget = TimeSpan.FromSeconds(1);
+            var poll = TimeSpan.FromMilliseconds(25);
+            while (true)
+            {
+                token.ThrowIfCancellationRequested();
+                var remaining = budget - Stopwatch.GetElapsedTime(started);
+                if (remaining <= TimeSpan.Zero) throw;
+                await Task.Delay(remaining < poll ? remaining : poll, token).ConfigureAwait(false);
+                token.ThrowIfCancellationRequested();
+                // 排程延後也不能在期限過後補做一次搬移，避免持鎖到期卻被任意放行。
+                if (Stopwatch.GetElapsedTime(started) >= budget) throw;
+                try
+                {
+                    Directory.Move(temporary, final);
+                    return;
+                }
+                catch (IOException retry) when (IsWindowsRenameContention(retry) && !Directory.Exists(final))
+                {
+                    // 只繼續同類型瞬時拒絕；原始 catch 保持第一次 IOException，期限不重設。
+                }
+            }
+        }
+    }
+
+    /// <summary>比對完整 Win32 HRESULT 與 OS，不以低十六位或一般 IOException 誤收其他故障。</summary>
+    private static bool IsWindowsRenameContention(IOException error) => OperatingSystem.IsWindows() &&
+        error.HResult is unchecked((int)0x80070005) or unchecked((int)0x80070020) or unchecked((int)0x80070021);
 
     /// <summary>
     /// 有界等待同事件檔案 lease，Share.None 防止跨程序共同清除 staging。
