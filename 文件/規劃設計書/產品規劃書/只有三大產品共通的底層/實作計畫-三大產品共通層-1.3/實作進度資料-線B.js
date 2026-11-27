@@ -7,18 +7,19 @@
 window.PROGRESS_LANES = window.PROGRESS_LANES || {};
 window.PROGRESS_LANES.B = {
   lane: 'B',
-  lastUpdated: '2026-11-27T11:08:07+08:00',
+  lastUpdated: '2026-11-27T11:24:08+08:00',
   packages: {
     P0: { status: '進行中', started: '2026-11-25 22:12', finished: '', commit: 'd1f887adb50bdd4e8d32340d00feed97830c3bf6', pending: '自動測試通過（實機待補）；可自行處理：實機待補：平台SQL依02A憑證釘選及最小權限、F2公開live／ready。DNS與P0-3管理員Apply已通過，監控重啟及CRM302證據核實；不需重跑Apply。瀏覽器目視待補。', report: 'wp-reports/3P-P0-前置.md' },
     F10: { status: '進行中', started: '2026-11-26 00:23', finished: '', commit: '8072b764c5bca3b0853177fbe16c0a0ac30311ef', pending: '自動測試通過（實機待補）；可自行處理的前置：JesusTest 必要設定及測試卡文件已存在，V2.6 完整規格與五項沙箱流程仍須核對及實跑，尚未證明有外部阻擋，不以缺交接排除欠債；隔日到期查詢須待實際到期。外部相依：宿主 Exception.log sink capture 與產品持久層最終原子冪等待後續整合。離線 parser／合成 handler 不代表實機。', report: 'wp-reports/3P-F10-永豐補強.md' },
     F2: { status: '進行中', started: '2026-11-26 04:16', finished: '', commit: '9f86ad16dccec7568910a032aad402b0ea2d2c95', pending: '自動測試通過（實機待補）；可自行處理：實機待補：02A已允許具RED→GREEN證據的修正後重試，將在F8離線合併後執行；停止候選與環境回復已核對，修正版未實機驗證。公開live／ready、T01 webhook/test與平台SQL待補；T01／T02／LIFF已交接。完整一般測試7741/7741、主機83/83，ClaudeOnly複審無Critical／High；固定總覽目視待補。', report: 'wp-reports/3P-F2-主機骨架.md' },
     F6: { status: '進行中', started: '2026-11-26 13:04', finished: '', commit: '97e93413bd398f1f63998d17784a7c2a465f3ed8', pending: '自動測試通過（實機待補）；可自行處理：F2公開站台及嚴格TLS平台SQL完成後驗公開LIFF頁面；外部阻擋：FS／F3資料及M1手機。原F6全方案7905/7905及LIFF app API讀回證據保留；發現平台new_istenant為choice而原resolver/fixture用bool。必要補正先RED 5/24後產品175/175、最新全方案8049/8049；ClaudeOnly無Critical／High。仍實機待補：F2公開站台、嚴格TLS平台SQL、FS／F3資料、外部whoami及M1手機。', report: 'wp-reports/3P-F6-LIFF身分.md' },
     F4: { status: '進行中', started: '2026-11-26 14:11', finished: '', commit: 'cb36af9b', pending: '自動測試通過（實機待補）；可自行處理：完整8026/8026、核心37/37、產品152/152；第三輪ClaudeOnly無Critical／High，前兩輪High均先紅後綠修正。實機待補：F2公開站台及嚴格TLS平台SQL；LocalDB不等於實機。使用者Esc取消後未恢復UI，新版目視待補。F6平台旗標補正已合併；F8離線閘門進行中，合併後先補平台SQL及F2。', report: 'wp-reports/3P-F4-通用排程器.md' },
-    F8: { status: '進行中', started: '', finished: '', commit: '4f270d263', pending: '離線實作已存在，audit防重修正4f270d263、250/250測試通過；完整方案閘門仍有兩項UnknownProject: SpeechMessage.Access，待線A精確分類後重跑，尚未審查或合併。起始時分未留存，不推測；外部阻擋：FS apply、三組織schema及權威Group adapter實機。', report: 'wp-reports/3P-F8-權限與修改紀錄.md' },
+    F8: { status: '進行中', started: '', finished: '', commit: '6a1005c95', pending: '離線實作已存在，安全同步9485726e7後audit防重修正6a1005c95、250/250測試通過；完整方案閘門仍有兩項UnknownProject: SpeechMessage.Access，待線A精確分類後重跑，尚未審查或合併。起始時分未留存，不推測；外部阻擋：FS apply、三組織schema及權威Group adapter實機。', report: 'wp-reports/3P-F8-權限與修改紀錄.md' },
     F12: { status: '未開始', started: '', finished: '', commit: '', pending: '', report: '' },
     F11: { status: '未開始', started: '', finished: '', commit: '', pending: '', report: '' },
   },
   log: [
+    '2026-11-27 11:24 Asia/Taipei (UTC+08:00)｜F8安全同步9485726e7，既有CCG雜湊與刪除狀態全數保留；audit修正重寫6a1005c95，250項離線證據保留，同步後Release建置65警告0錯誤。完整閘門仍待線A Access分類，未合併、未實機，F12未開始。',
     '2026-11-27 11:08 Asia/Taipei (UTC+08:00)｜F8 audit防重先22項RED，修正4f270d263後250/250離線通過；伺服器權威事件唯一鍵、跨實例重送、不同事件保留、衝突不覆寫與取消排空均已覆蓋。Release建置65警告／0錯誤；完整閘門仍待線A Access精確分類，不合併、不宣稱實機，F12未開始。',
     '2026-11-27 10:30 Asia/Taipei (UTC+08:00)｜F8自審重核角色聯集、Group完整樹驗證、SDK排空及Audit遮罩邊界；222/222為離線。02A欠債分類改逐項列出：F6公開頁面由本線處理、FS／F3與M1屬外部相依；F10規格尚未核對不算外部阻擋，未藉分類排除欠債。F12維持未開始。',
     '2026-11-27 10:21 Asia/Taipei (UTC+08:00)｜F8續跑已同步16e1b3626及02A；222/222僅離線，完整閘門仍受架構分類阻擋。修正6個純契約檔的具體檔首說明及矩陣註解；90未實機者改自動測試通過（實機待補），固定頁相容使用進行中並在待補明示。F8離線合併後按平台SQL釘選→F2修正後重試→T01→F4／F6實機，F12維持未開始。新版尚未目視。',
