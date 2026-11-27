@@ -12,8 +12,10 @@
 先核對主機身分及系統管理員權限，再驗證固定內容根、獨占端口與精確萬用憑證。建立封閉的
 證據目錄並取得獨占檔案鎖後，先備份完整IIS設定，才上傳到不公開的套件目錄；提交前再次核對與備份，完整解壓後停止專用集區並排空，
 首次安裝先建立未Commit的站台候選，再解析本站匿名設定；切換到新的不可變發佈目錄，
-每次Commit後釋放已封存的組態快照，重新取得管理器並核對本站路徑及停止狀態，
-以虛擬帳號啟動，最後嚴格驗證本機HTTPS存活端點。
+每次Commit後釋放已封存的組態快照，重新取得管理器並核對本站路徑及停止狀態；
+失敗回復也在設定Commit後重新取得管理器、核對舊路徑與憑證，再恢復原啟動狀態。
+若舊設定已復原但啟動失敗，先安全停止並排空，紀錄「設定已復原、啟動未完成」，
+不把它冒稱為完整復原。正常切換以虛擬帳號啟動，最後嚴格驗證本機HTTPS存活端點。
 使用邊界與維護：遠端唯一主機為部署前重新驗證的測試虛擬機。站台與集區名稱、網域、端口、
 內容根與整合登入資料庫皆為固定值，不能以參數改成正式站台。CRM設定只接受核定測試主機
 的完整HTTPS服務網址；本檔不呼叫CRM、SQL、LINE或就緒端點，也不讀憑證私鑰。
@@ -149,6 +151,22 @@ function Set-Gs2CrmEnvironment {
     }
 }
 
+function Test-Gs2CrmEnvironmentSnapshot {
+    # 比對目前兩個集區自有鍵與回復快照；實際值只留在呼叫範圍記憶體，完成或失敗立即清除。
+    param($Variables, [hashtable]$Expected)
+    $actual = Get-Gs2CrmEnvironment $Variables
+    try {
+        if ($actual.Count -ne $Expected.Count) { return $false }
+        foreach ($name in $Expected.Keys) {
+            if (-not $actual.ContainsKey($name) -or $actual[$name] -cne $Expected[$name]) { return $false }
+        }
+        return $true
+    }
+    finally {
+        if ($null -ne $actual) { $actual.Clear(); $actual = $null }
+    }
+}
+
 function Get-Gs2AnonymousSection {
     # IIS無法解析不存在站台的location。首次安裝先建立未Commit的站台候選，才讀取本站設定。
     # 候選仍由單次ServerManager擁有；本方法本身不建立、啟動、Commit或釋放任何資源。
@@ -267,6 +285,7 @@ $validatorSources = @(
     'function Assert-Gs2NoReparse {' + ${function:Assert-Gs2NoReparse}.ToString() + '}'
     'function Get-Gs2CrmEnvironment {' + ${function:Get-Gs2CrmEnvironment}.ToString() + '}'
     'function Set-Gs2CrmEnvironment {' + ${function:Set-Gs2CrmEnvironment}.ToString() + '}'
+    'function Test-Gs2CrmEnvironmentSnapshot {' + ${function:Test-Gs2CrmEnvironmentSnapshot}.ToString() + '}'
     'function Get-Gs2AnonymousSection {' + ${function:Get-Gs2AnonymousSection}.ToString() + '}'
 )
 
@@ -692,6 +711,56 @@ $remoteDeployment = {
                 Get-Gs2Topology $manager
                 $site = $manager.Sites['GoodShepherd2Test']
                 $pool = $manager.ApplicationPools['GoodShepherd2Test']
+                if (-not $committed) {
+                    # 初次設定尚未Commit時，丟棄舊管理器即可捨棄記憶體候選；不可再Commit它們。
+                    # 只有原先存在的站台／集區才可能需要恢復執行狀態，未提交的新物件不得被留下。
+                    if ([bool]$previous.SiteExists -ne ($null -ne $site) -or
+                        [bool]$previous.PoolExists -ne ($null -ne $pool)) {
+                        throw 'GS2_ROLLBACK_UNCOMMITTED_RESOURCE_CONFLICT'
+                    }
+                    if ($previous.SiteExists -and
+                        ($site.Id -ne $previous.SiteId -or
+                         $site.Applications['/'].VirtualDirectories['/'].PhysicalPath -ine $previous.PhysicalPath -or
+                         [Convert]::ToBase64String([byte[]]$site.Bindings[0].CertificateHash) -cne $previous.Certificate -or
+                         $site.Bindings[0].CertificateStoreName -cne $previous.Store -or
+                         [bool]$site.ServerAutoStart -ne [bool]$previous.SiteAutoStart)) {
+                        throw 'GS2_ROLLBACK_UNCOMMITTED_SITE_CONFIGURATION_CONFLICT'
+                    }
+                    if ($previous.PoolExists -and
+                        ([bool]$pool.AutoStart -ne [bool]$previous.PoolAutoStart -or
+                         ($null -ne $previousCrmEnvironment -and
+                          -not (Test-Gs2CrmEnvironmentSnapshot ($pool.GetCollection('environmentVariables')) $previousCrmEnvironment)))) {
+                        throw 'GS2_ROLLBACK_UNCOMMITTED_POOL_CONFIGURATION_CONFLICT'
+                    }
+                    if (-not $previous.SiteExists -and -not $previous.PoolExists) {
+                        $rollback = 'NoChangeCommitted'
+                    }
+                    else {
+                        $rollback = 'PreviousConfigurationRestoredActivationIncomplete'
+                        try {
+                            if ($previous.PoolExists -and $previous.PoolStarted -and $pool.State.ToString() -ne 'Started') { $pool.Start() | Out-Null }
+                            if ($previous.SiteExists -and $previous.SiteStarted -and $site.State.ToString() -ne 'Started') { $site.Start() | Out-Null }
+                            $expectedPoolState = if ($previous.PoolStarted) { 'Started' } else { 'Stopped' }
+                            $expectedSiteState = if ($previous.SiteStarted) { 'Started' } else { 'Stopped' }
+                            if (($previous.PoolExists -and $pool.State.ToString() -cne $expectedPoolState) -or
+                                ($previous.SiteExists -and $site.State.ToString() -cne $expectedSiteState)) {
+                                throw 'GS2_ROLLBACK_UNCOMMITTED_RUNTIME_STATE_CONFLICT'
+                            }
+                            $rollback = 'PreviousStateRestored'
+                        }
+                        catch {
+                            if ($null -ne $site -and $site.State.ToString() -ne 'Stopped') { $site.Stop() | Out-Null }
+                            if ($null -ne $pool -and $pool.State.ToString() -ne 'Stopped') { $pool.Stop() | Out-Null }
+                            Wait-Gs2PoolStopped
+                            if (($null -ne $site -and $site.State.ToString() -ne 'Stopped') -or
+                                ($null -ne $pool -and $pool.State.ToString() -ne 'Stopped')) {
+                                throw 'GS2_ROLLBACK_UNCOMMITTED_ACTIVATION_DRAIN_FAILED'
+                            }
+                            $rollback = 'PreviousConfigurationRestoredActivationIncomplete'
+                        }
+                    }
+                }
+                else {
                 # 人工作業若已切到另一個合法版本，也不得先停站再判斷；回復前先驗證本次所有權。
                 if ($previous.SiteExists) {
                     $expectedPath = $previous.PhysicalPath
@@ -728,10 +797,81 @@ $remoteDeployment = {
                     }
                 }
                 $manager.CommitChanges()
-                if ($previous.PoolStarted -and $pool.State.ToString() -ne 'Started') { $pool.Start() | Out-Null }
-                if ($previous.SiteStarted -and $site.State.ToString() -ne 'Started') { $site.Start() | Out-Null }
-                $rollback = 'PreviousStateRestored'
-                if (-not $previous.SiteExists) { $rollback = 'NewSiteKeptStopped' }
+                # CommitChanges會封存本管理器持有的ConfigurationElement；舊pool/site不可再啟動。
+                # 先釋放快照，再由新管理器確認已提交的舊路徑、憑證及自動啟動設定。
+                $manager.Dispose()
+                $manager = $null
+                $manager = New-Object Microsoft.Web.Administration.ServerManager
+                Get-Gs2Topology $manager
+                $site = $manager.Sites['GoodShepherd2Test']
+                $pool = $manager.ApplicationPools['GoodShepherd2Test']
+                if ($previous.SiteExists) {
+                    if ($null -eq $site -or $null -eq $pool -or $site.Id -ne $previous.SiteId -or
+                        $site.Applications['/'].VirtualDirectories['/'].PhysicalPath -ine $previous.PhysicalPath -or
+                        [Convert]::ToBase64String([byte[]]$site.Bindings[0].CertificateHash) -cne $previous.Certificate -or
+                        $site.Bindings[0].CertificateStoreName -cne $previous.Store -or
+                        [bool]$site.ServerAutoStart -ne [bool]$previous.SiteAutoStart -or
+                        [bool]$pool.AutoStart -ne [bool]$previous.PoolAutoStart) {
+                        throw 'GS2_ROLLBACK_COMMITTED_CONFIGURATION_CONFLICT'
+                    }
+                    if ($null -ne $previousCrmEnvironment -and
+                        -not (Test-Gs2CrmEnvironmentSnapshot ($pool.GetCollection('environmentVariables')) $previousCrmEnvironment)) {
+                        throw 'GS2_ROLLBACK_COMMITTED_POOL_ENVIRONMENT_CONFLICT'
+                    }
+                    # 到此已證明舊組態持久化。啟動是獨立階段，失敗不得回報完整恢復。
+                    $rollback = 'PreviousConfigurationRestoredActivationIncomplete'
+                    try {
+                        if ($previous.PoolStarted -and $pool.State.ToString() -ne 'Started') { $pool.Start() | Out-Null }
+                        if ($previous.SiteStarted -and $site.State.ToString() -ne 'Started') { $site.Start() | Out-Null }
+                        if (($site.State.ToString() -eq 'Started') -ne [bool]$previous.SiteStarted -or
+                            ($pool.State.ToString() -eq 'Started') -ne [bool]$previous.PoolStarted) {
+                            throw 'GS2_ROLLBACK_PREVIOUS_RUNTIME_STATE_CONFLICT'
+                        }
+                        $rollback = 'PreviousStateRestored'
+                    }
+                    catch {
+                        # 啟動只恢復到一半時盡量回到停止且已排空的安全狀態；若無法證實，外層記Failed。
+                        if ($null -ne $site -and $site.State.ToString() -ne 'Stopped') { $site.Stop() | Out-Null }
+                        if ($null -ne $pool -and $pool.State.ToString() -ne 'Stopped') { $pool.Stop() | Out-Null }
+                        Wait-Gs2PoolStopped
+                        if (($null -ne $site -and $site.State.ToString() -ne 'Stopped') -or
+                            ($null -ne $pool -and $pool.State.ToString() -ne 'Stopped')) {
+                            throw 'GS2_ROLLBACK_ACTIVATION_DRAIN_FAILED'
+                        }
+                        $rollback = 'PreviousConfigurationRestoredActivationIncomplete'
+                    }
+                }
+                else {
+                    if ($null -eq $site -or $null -eq $pool -or
+                        $site.Applications['/'].VirtualDirectories['/'].PhysicalPath -ine $release -or
+                        $site.State.ToString() -ne 'Stopped' -or $pool.State.ToString() -ne 'Stopped' -or
+                        [bool]$site.ServerAutoStart -or [bool]$pool.AutoStart -ne [bool]$previous.PoolAutoStart) {
+                        throw 'GS2_ROLLBACK_NEW_SITE_STOPPED_STATE_CONFLICT'
+                    }
+                    if ($null -ne $previousCrmEnvironment -and
+                        -not (Test-Gs2CrmEnvironmentSnapshot ($pool.GetCollection('environmentVariables')) $previousCrmEnvironment)) {
+                        throw 'GS2_ROLLBACK_NEW_SITE_POOL_ENVIRONMENT_CONFLICT'
+                    }
+                    $rollback = 'PreviousConfigurationRestoredActivationIncomplete'
+                    try {
+                        if ($previous.PoolExists -and $previous.PoolStarted -and $pool.State.ToString() -ne 'Started') { $pool.Start() | Out-Null }
+                        $expectedPoolState = if ($previous.PoolStarted) { 'Started' } else { 'Stopped' }
+                        if ($site.State.ToString() -cne 'Stopped' -or $pool.State.ToString() -cne $expectedPoolState) {
+                            throw 'GS2_ROLLBACK_NEW_SITE_RUNTIME_STATE_CONFLICT'
+                        }
+                        $rollback = 'NewSiteKeptStopped'
+                    }
+                    catch {
+                        if ($site.State.ToString() -ne 'Stopped') { $site.Stop() | Out-Null }
+                        if ($pool.State.ToString() -ne 'Stopped') { $pool.Stop() | Out-Null }
+                        Wait-Gs2PoolStopped
+                        if ($site.State.ToString() -ne 'Stopped' -or $pool.State.ToString() -ne 'Stopped') {
+                            throw 'GS2_ROLLBACK_NEW_SITE_ACTIVATION_DRAIN_FAILED'
+                        }
+                        $rollback = 'PreviousConfigurationRestoredActivationIncomplete'
+                    }
+                }
+                }
             }
             catch { $rollback = 'Failed' }
         }
@@ -747,7 +887,7 @@ $remoteDeployment = {
         throw ('GS2_REMOTE_FAILED phase=' + $remotePhase + ' run=' + $Id + ' rollback=' + $rollback + ' type=' + $failureType)
     }
     finally {
-        $previousCrmEnvironment = $null
+        if ($null -ne $previousCrmEnvironment) { $previousCrmEnvironment.Clear(); $previousCrmEnvironment = $null }
         if ($null -ne $CrmCredential) { $CrmCredential.Password.Dispose(); $CrmCredential = $null }
         try { if ($null -ne $manager) { $manager.Dispose() } }
         finally { if ($null -ne $lock) { $lock.Dispose() } }

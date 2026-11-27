@@ -7,7 +7,7 @@
 window.PROGRESS_LANES = window.PROGRESS_LANES || {};
 window.PROGRESS_LANES.B = {
   lane: 'B',
-  lastUpdated: '2026-11-27T16:00:49+08:00',
+  lastUpdated: '2026-11-27T23:13:00+08:00',
   packages: {
     P0: { status: '自動測試通過（實機待補）', started: '2026-11-25 22:12', finished: '', commit: 'd1f887adb50bdd4e8d32340d00feed97830c3bf6', pending: '自動測試通過（實機待補）；可自行處理：實機待補：平台SQL依02A憑證釘選及最小權限、F2公開live／ready。DNS與P0-3管理員Apply已通過，監控重啟及CRM302證據核實；不需重跑Apply。瀏覽器目視待補。', report: 'wp-reports/3P-P0-前置.md' },
     F10: { status: '自動測試通過（實機待補）', started: '2026-11-26 00:23', finished: '', commit: '8072b764c5bca3b0853177fbe16c0a0ac30311ef', pending: '自動測試通過（實機待補）；可自行處理的前置：JesusTest 必要設定及測試卡文件已存在，V2.6 完整規格與五項沙箱流程仍須核對及實跑，尚未證明有外部阻擋，不以缺交接排除欠債；隔日到期查詢須待實際到期。外部相依：宿主 Exception.log sink capture 與產品持久層最終原子冪等待後續整合。離線 parser／合成 handler 不代表實機。', report: 'wp-reports/3P-F10-永豐補強.md' },
@@ -19,6 +19,7 @@ window.PROGRESS_LANES.B = {
     F11: { status: '未開始', started: '', finished: '', commit: '', pending: '', report: '' },
   },
   log: [
+    '2026-11-27 23:13 Asia/Taipei (UTC+08:00)｜依02A §4核對線B的P0（P0-2／P0-3／P0-6）、F10、F2、F6、F4、F8狀態均為「自動測試通過（實機待補）」；無Live3P通過證據，未標「完成」。',
     '2026-11-27 16:00 Asia/Taipei (UTC+08:00)｜修正文案以使F8待補欄與90狀態一致；狀態仍為「自動測試通過（實機待補）」，Live3P未執行，未宣稱完成。',
     '2026-11-27 15:35 Asia/Taipei (UTC+08:00)｜依02A §4及使用者指示，90與本檔的P0、F10、F2、F6、F4、F8未通過實機狀態統一為「自動測試通過（實機待補）」；未改寫完成時間或實機證據。平台SQL與F2公開health等仍待實機。',
     '2026-11-27 15:26 Asia/Taipei (UTC+08:00)｜F8 02 §4五項離線閘門全部通過：Release建置0警告／0錯誤；一般測試9458/9458（Access 253/253）；文件說明2086/0；Changed編碼110檔0問題；方案清單54項、52項整合基底保留。ClaudeOnly 0 Critical／0 High但實際只審閱DataverseAuditLog.cs。Live3P未跑，test-env.lock由線A持有；F8未合併、F12未開始。',
