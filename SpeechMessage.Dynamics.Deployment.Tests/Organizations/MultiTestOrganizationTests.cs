@@ -5,6 +5,8 @@
 並注入尚未核定的空 host；另驗證跨 repo 寫鎖、Plugin 組織旗標與複製組織 quiesce dry-run。
 註冊測試以每個組織獨立的合成 SDK 身分回應通過真正身分守門；不因補齊替身而略過核身或改動生產規則。
 新三測試組織只有在 enabledByOrganization 明確為 true 時才規劃新增步驟；未列旗標與 false 均不得建立 Plugin step。
+F3 起教會組件只適用好牧人；好管家／好學會的舊教會候選應在 SDK 前拒絕，平台三組件公開生命週期另由 F3PlatformRegistrationContractTests 驗證。
+旗標正反例在同一合成好牧人組織反轉自己的設定，其他產品的 true 不可替它授權；不再以跨產品教會部署作成功控制。
 quiesce 直接 apply 的成功案例明確提供合成快照 owner，在首筆 Update 前檢查零寫入與信箱原像；
 保留三欄投遞斷言並以 ACT None=2 驗證，不把原錯誤的 0 預期當成現場版本證據。
 有界落盤、flush、取消與部分失敗的完整原像契約另由 QuiesceMailboxDeliveryTests 驗證。
@@ -37,7 +39,7 @@ namespace SpeechMessage.Dynamics.Deployment.Tests.Organizations;
 [Collection("Deployment working directory")]
 public sealed class MultiTestRegistrationCliTests
 {
-    /// <summary>明確 --registration 仍可取得真實 Plugin 計畫；不可以因新結構預設值讓註冊入口永久無法使用。</summary>
+    /// <summary>明確 --registration 保留好牧人的教會註冊路由；其他產品拒絕此舊組件，不能誤走結構部署或產生跨產品計畫。</summary>
     [Theory]
     [InlineData("goodshepherd20")]
     [InlineData("construction")]
@@ -53,8 +55,18 @@ public sealed class MultiTestRegistrationCliTests
         using var output = new StringWriter(System.Globalization.CultureInfo.InvariantCulture);
         var failures = new List<Exception>();
         var root = Path.Combine(fixture.Root, "artifacts", "d365");
-        Assert.Equal(0, DeploymentCli.Run(["plan", "--org", organization, "--registration"],
-            connector, output, failures.Add, root));
+        var result = DeploymentCli.Run(["plan", "--org", organization, "--registration"],
+            connector, output, failures.Add, root);
+        if (organization != "goodshepherd20")
+        {
+            Assert.Equal(1, result);
+            Assert.IsType<InvalidDataException>(Assert.Single(failures));
+            Assert.Empty(Directory.GetFiles(root, "*plan.json", SearchOption.AllDirectories));
+            Assert.Equal(1, connector.Returned);
+            Assert.Empty(fixture.Service.Writes);
+            return;
+        }
+        Assert.Equal(0, result);
         Assert.Empty(failures);
         var path = Assert.Single(Directory.GetFiles(root, "plan.json", SearchOption.AllDirectories));
         using var json = System.Text.Json.JsonDocument.Parse(File.ReadAllText(path));
@@ -124,7 +136,7 @@ public sealed class MultiTestOrganizationTests
         Assert.Equal("test", catalog.GetTest("goodshepherd20").Kind);
     }
 
-    /// <summary>同一份清單可明確控制各組織的註冊步驟；未啟用組織不得得到 CreateStep 操作。</summary>
+    /// <summary>只採目前組織的明確旗標；反轉好牧人的 true／false 及另一產品旗標，證明其他產品的啟用不會授權此組織。</summary>
     [Fact]
     public void Registration_OrgFlag_OnlyEnabledStepsRegistered()
     {
@@ -134,30 +146,40 @@ public sealed class MultiTestOrganizationTests
         {
             EnabledByOrganization = new Dictionary<string, bool>(StringComparer.Ordinal)
             {
-                ["construction"] = true,
+                ["goodshepherd20"] = true,
                 ["association"] = false
             }
         };
         var manifest = fixture.Manifest with { Steps = new[] { step } };
-        var constructionService = new NamedRegistrationService(fixture.Service, "construction");
-        var constructionEngine = new DeploymentEngine(constructionService, fixture.Root, fixture.Clock,
+        var enabledService = new NamedRegistrationService(fixture.Service, "goodshepherd20");
+        var enabledEngine = new DeploymentEngine(enabledService, fixture.Root, fixture.Clock,
             _ => throw new InvalidOperationException("No secret should be read while planning."), catalog);
-        var associationService = new NamedRegistrationService(fixture.Service, "association");
-        var associationEngine = new DeploymentEngine(associationService, fixture.Root, fixture.Clock,
+        var disabledService = new NamedRegistrationService(fixture.Service, "goodshepherd20");
+        var disabledEngine = new DeploymentEngine(disabledService, fixture.Root, fixture.Clock,
             _ => throw new InvalidOperationException("No secret should be read while planning."), catalog);
-        var construction = constructionEngine.Plan(manifest, fixture.Image, "construction");
-        var association = associationEngine.Plan(manifest, fixture.Image, "association");
+        var disabledManifest = manifest with { Steps = new[] { step with
+        {
+            EnabledByOrganization = new Dictionary<string, bool>(StringComparer.Ordinal)
+            {
+                ["goodshepherd20"] = false,
+                ["association"] = true
+            }
+        } } };
+        var enabled = enabledEngine.Plan(manifest, fixture.Image, "goodshepherd20");
+        var disabled = disabledEngine.Plan(disabledManifest, fixture.Image, "goodshepherd20");
 
-        Assert.Contains(construction.Operations, operation => operation.Kind == "CreateStep");
-        Assert.DoesNotContain(association.Operations, operation => operation.Kind == "CreateStep");
-        Assert.Equal(1, constructionService.IdentityReads);
-        Assert.Equal(1, associationService.IdentityReads);
-        Assert.NotEqual(construction.OrganizationId, association.OrganizationId);
+        Assert.Contains(enabled.Operations, operation => operation.Kind == "CreateStep");
+        Assert.DoesNotContain(disabled.Operations, operation => operation.Kind == "CreateStep");
+        Assert.Equal(1, enabledService.IdentityReads);
+        Assert.Equal(1, disabledService.IdentityReads);
+        Assert.Equal(enabled.OrganizationId, disabled.OrganizationId);
+        Assert.Empty(fixture.Service.Writes);
     }
 
     /// <summary>
     /// 新三測試組織的步驟必須由旗標明確加入；清單缺少組織鍵時不得把既有組織的停用值
-    /// 當成允許建立後停用的 fallback。透過真正 Plan 與獨立合成組織身分驗證零 CreateStep。
+    /// 當成允許建立後停用的 fallback。好牧人透過真正 Plan 驗證零 CreateStep；
+    /// 其他產品在 F3 組件用途守門先拒絕，不得為保留舊成功 fixture 而放寬跨產品邊界。
     /// </summary>
     /// <param name="organization">本階段新增且需明確 opt-in 的測試組織。</param>
     [Theory]
@@ -180,6 +202,13 @@ public sealed class MultiTestOrganizationTests
         var engine = new DeploymentEngine(service, fixture.Root, fixture.Clock,
             _ => throw new InvalidOperationException("No secret should be read while planning."), catalog);
 
+        if (organization != "goodshepherd20")
+        {
+            Assert.Throws<InvalidDataException>(() => engine.Plan(manifest, fixture.Image, organization));
+            Assert.Equal(0, service.IdentityReads);
+            Assert.Empty(fixture.Service.Writes);
+            return;
+        }
         var plan = engine.Plan(manifest, fixture.Image, organization);
 
         Assert.DoesNotContain(plan.Operations, operation => operation.Kind == "CreateStep");

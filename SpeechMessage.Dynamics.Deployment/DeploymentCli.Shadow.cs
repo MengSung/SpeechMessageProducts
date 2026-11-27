@@ -6,6 +6,7 @@
  * 主要功能與流程：連線前檢查固定模組目錄；連線後核對完整部署 PE／註冊狀態、
  * User Secrets 中的測試 GUID 與權威 LINE 綁定，再準備整批情境，唯讀匯出後執行。
  * 每輪由 runner 停用、核對、清理自己的記錄並還原追蹤；成功返回後才寫安全報告。
+ * 完整來源先驗證，再只取本組織的舊教會組件；F3 平台池的產品設定不當作 Shadow mode 解析或切換。
  * 信任與適用邊界：修訂 2 公開入口僅接受 new／reading／legacy-golden 的新輪；
  * 舊輪與 switch 程式保留供歷史維護，但 legacyOnly 在任何 SDK I/O 前拒絕，不能執行舊程式。
  * 外部既有列範圍來自固定盤點與正式metadata，觀察只保存教會內ID／版本，報告只含筆數。
@@ -75,7 +76,7 @@ internal static partial class DeploymentCli
             item.Basis is not ("new" or "reading" or "legacy-golden")) ||
             selected.Select(item => item.Basis).Distinct(StringComparer.Ordinal).Count() != 1)
             throw InvalidShadowCommand();
-        var document = RegistrationManifestLoader.LoadDocument(repositoryRoot);
+        var document = RegistrationManifestLoader.LoadForOrganization(repositoryRoot, command.Organization, legacyOnly: true);
         var images = document.Assemblies.Select(manifest => AssemblyCatalog.Read(
             Path.Combine(repositoryRoot, "artifacts", "plugins", manifest.AssemblyName + ".dll"), manifest)).ToArray();
         var deployment = new DocumentDeploymentEngine(service, operationRoot, TimeProvider.System,

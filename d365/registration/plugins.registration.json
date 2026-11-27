@@ -1339,6 +1339,126 @@
           }
         }
       ]
+    },
+    {
+      "assemblyName": "SpeechMessage.Dynamics.Platform.Plugins",
+      "steps": [
+        {
+          "module": "platform",
+          "type": "SpeechMessage.Dynamics.Platform.Plugins.ChannelPool.SlotRequestPlugin",
+          "message": "Create",
+          "entity": "new_slotrequest",
+          "stage": "PreOperation",
+          "mode": "Synchronous",
+          "rank": 1,
+          "filteringAttributes": [],
+          "images": [],
+          "unsecureConfig": "{\"products\":{\"goodshepherd20\":\"GoodShepherd2\",\"construction\":\"GoodButler\",\"association\":\"GoodGuild\"}}",
+          "secureConfig": "",
+          "enabledByOrganization": {
+            "goodshepherd20": true,
+            "construction": true,
+            "association": true
+          },
+          "legacy": [],
+          "shadowReport": {
+            "file": "",
+            "differences": null,
+            "basis": ""
+          },
+          "live": {
+            "tier": "live",
+            "tokenKey": false,
+            "reason": "",
+            "evidence": {
+              "file": "",
+              "sha256": "",
+              "at": "",
+              "result": ""
+            }
+          }
+        },
+        {
+          "module": "platform",
+          "type": "SpeechMessage.Dynamics.Platform.Plugins.ChannelPool.ChannelCreatedPlugin",
+          "message": "Create",
+          "entity": "new_linechannel",
+          "stage": "PostOperation",
+          "mode": "Synchronous",
+          "rank": 1,
+          "filteringAttributes": [],
+          "images": [],
+          "unsecureConfig": "{\"products\":{\"goodshepherd20\":\"GoodShepherd2\",\"construction\":\"GoodButler\",\"association\":\"GoodGuild\"}}",
+          "secureConfig": "",
+          "enabledByOrganization": {
+            "goodshepherd20": true,
+            "construction": true,
+            "association": true
+          },
+          "legacy": [],
+          "shadowReport": {
+            "file": "",
+            "differences": null,
+            "basis": ""
+          },
+          "live": {
+            "tier": "live",
+            "tokenKey": false,
+            "reason": "",
+            "evidence": {
+              "file": "",
+              "sha256": "",
+              "at": "",
+              "result": ""
+            }
+          }
+        },
+        {
+          "module": "platform",
+          "type": "SpeechMessage.Dynamics.Platform.Plugins.ChannelPool.ChannelCreatedPlugin",
+          "message": "Update",
+          "entity": "new_linechannel",
+          "stage": "PreOperation",
+          "mode": "Synchronous",
+          "rank": 1,
+          "filteringAttributes": [
+            "new_product"
+          ],
+          "images": [
+            {
+              "name": "ProductBefore",
+              "attributes": [
+                "new_product"
+              ],
+              "type": "PreImage"
+            }
+          ],
+          "unsecureConfig": "{\"products\":{\"goodshepherd20\":\"GoodShepherd2\",\"construction\":\"GoodButler\",\"association\":\"GoodGuild\"}}",
+          "secureConfig": "",
+          "enabledByOrganization": {
+            "goodshepherd20": true,
+            "construction": true,
+            "association": true
+          },
+          "legacy": [],
+          "shadowReport": {
+            "file": "",
+            "differences": null,
+            "basis": ""
+          },
+          "live": {
+            "tier": "live",
+            "tokenKey": false,
+            "reason": "",
+            "evidence": {
+              "file": "",
+              "sha256": "",
+              "at": "",
+              "result": ""
+            }
+          }
+        }
+      ]
     }
   ]
 }

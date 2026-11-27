@@ -9,15 +9,24 @@
  * - 步驟安全設定查閱的官方邏輯名稱；不可縮寫成 secureconfigid，否則已註冊步驟的查詢會被拒絕。 所有讀寫、存在性比對、指紋與匯出共用此欄位；只持有本次查閱 ID，不讀取安全設定內容。
  * - 組合一次性的服務、輸出根、時鐘與秘密來源。秘密委派只在實際建立或更新步驟設定時呼叫。
  * - 將清單、組件 PE、組織身分及受管理 metadata 比對，建立沒有憑證值的 plan；不讀取業務記錄，也不解析秘密。
+ * - WriteExport 精確支援舊 Plugin、Workflow 與 F3 平台 Plugin 組件名稱；平台只限三核定測試組織。
+ *   plan／apply／rollback 委派共用清單關卡，export 亦依相同組件用途映射拒絕跨產品來源；
+ *   construction／association 不接受教會舊組件，其他既有 catalog 組織保留原相容性。
+ *   回復在首筆寫入前重驗 manifest、雜湊及平台組件／步驟／型別身份，且只清理快照外的精確平台列。
  * - 新三測試組織在 plan／apply 各自核對精確伺服器名稱與非空正式 ID，計畫 hash 綁定 ID，
  *   apply 在 metadata、export 及寫入前重驗；legacy／production 的 null 欄位省略，保留原計畫 bytes 與外層正式授權。
  * - 新測試組織只為 enabledByOrganization 明確為 true 的步驟規劃新增；缺漏或 false 不註冊。
  *   goodshepherdback 保留歷史相容：旗標缺漏時仍建立停用步驟，明確 false 則不建立。
  * - 建立可由人工審核的 Markdown 摘要。輸出只列固定欄位、operation、hash 與佔位名稱， 不列出 unsecure／secure 設定實值、帳密、LINE token 或 userId。
  * - member 安全設定僅在 apply 寫入時組成單欄 tokenKey JSON，建立與更新共用轉換；trace／push 保持原契約，秘密不進 plan、export 或快取。
+ *   F3 平台設定已由精確清單驗證且禁止 secure 值，直接使用空安全設定，不套用教會 mode 解析或讀秘密。
  * - 新停用步驟以當次 GUID 在固定兩項交易內建立並停用；交易失敗回滾，不發布暫時啟用列。
  * - smoke 版本輸出只接受本次 task 關聯的唯一診斷追蹤，驗證完整 PluginFileVersion 行後才透過操作區域回呼發布；
  *   原始追蹤與回呼不存入欄位，拒絕缺失、重複或非正規版本，task／timer 仍由原 finally／using 清理。
+ * - JSON 備份先在同目錄唯一暫存檔完整寫入、flush 並關閉，再以一次覆寫搬移原子發布。
+ *   Windows 不分享 Delete 的讀取 handle 可回報 access denied；僅對精確拒絕／共享／鎖定碼
+ *   在首次受阻後等待最多一秒、每次最多二十五毫秒，不改 ACL、不先刪舊檔、不重寫候選。
+ *   到期保留第一次原例外，finally 清理本次暫存；沒有背景重試或跨命令共享的可變狀態。
  * 主要操作入口包含 Plan、Markdown、Apply、WriteExport、Rollback、SmokeAsync、Inspect、CreateAssembly；其餘入口見下方成員契約。
  *
  * 使用邊界與維護：
@@ -50,6 +59,11 @@ internal sealed partial class DeploymentEngine
 {
     private readonly OrganizationCatalog catalog;
     private const string AssemblyLogicalName = "pluginassembly";
+    private const string PlatformAssemblyName = "SpeechMessage.Dynamics.Platform.Plugins";
+    private const string SlotRequestPluginType =
+        "SpeechMessage.Dynamics.Platform.Plugins.ChannelPool.SlotRequestPlugin";
+    private const string ChannelCreatedPluginType =
+        "SpeechMessage.Dynamics.Platform.Plugins.ChannelPool.ChannelCreatedPlugin";
     private const string TypeLogicalName = "plugintype";
     private const string StepLogicalName = "sdkmessageprocessingstep";
     private const string ImageLogicalName = "sdkmessageprocessingstepimage";
@@ -108,6 +122,7 @@ internal sealed partial class DeploymentEngine
         ArgumentNullException.ThrowIfNull(image);
         ValidateOrganization(organization);
         ValidateManifest(manifest, image);
+        ValidatePlatformOrganization(manifest, organization);
         var organizationId = ReadRegistrationOrganizationId(organization);
         ValidateRegistrationAttributes(manifest);
 
@@ -207,6 +222,7 @@ internal sealed partial class DeploymentEngine
         ArgumentNullException.ThrowIfNull(image);
         ValidateOrganization(plan.Organization);
         ValidateManifest(manifest, image);
+        ValidatePlatformOrganization(manifest, plan.Organization);
         ValidatePlanHash(plan);
         if (plan.OrganizationId != ReadRegistrationOrganizationId(plan.Organization))
             throw new InvalidDataException("Registration plan organization identity has changed or is missing.");
@@ -267,6 +283,8 @@ internal sealed partial class DeploymentEngine
     /// <summary>
     /// 將受管理組件、Plugin 型別及步驟安全匯出到指定本機路徑。secure 設定只記錄有無，
     /// unsecure 設定只進指紋雜湊；原始 userId 與 token 不會序列化。
+    /// 先由 catalog 核定組織，再委派共用用途映射驗證組件產品邊界；不適用時在 SDK 查詢及
+    /// 檔案候選建立前拒絕，不因只讀匯出而容許教會與平台組件跨產品混用。
     /// </summary>
     /// <param name="organization">catalog核定的canonical組織名稱。</param>
     /// <param name="path">輸出 JSON 檔案路徑。</param>
@@ -276,8 +294,10 @@ internal sealed partial class DeploymentEngine
     {
         ValidateOrganization(organization);
         ArgumentException.ThrowIfNullOrWhiteSpace(path);
-        if (assemblyName is not ("SpeechMessage.Dynamics.Plugins" or "SpeechMessage.Dynamics.Workflows"))
+        if (!IsSupportedManagedAssemblyName(assemblyName))
             throw new InvalidDataException("Managed assembly name is invalid.");
+        if (!RegistrationManifestLoader.IsAssemblyAllowed(assemblyName, organization))
+            throw new InvalidDataException("The managed assembly is not allowed for the selected organization.");
         var export = CaptureExport(organization, assemblyName);
         WriteJsonAtomically(path, export);
         return Path.GetFullPath(path);
@@ -296,6 +316,8 @@ internal sealed partial class DeploymentEngine
         ArgumentException.ThrowIfNullOrWhiteSpace(path);
         ArgumentNullException.ThrowIfNull(manifest);
         ValidateOrganization(organization);
+        RegistrationManifestLoader.Validate(manifest);
+        ValidatePlatformOrganization(manifest, organization);
         var export = ReadExport(path);
         ValidateExport(export, organization);
         if (export.ManagedAssemblyName != manifest.AssemblyName ||
@@ -303,6 +325,10 @@ internal sealed partial class DeploymentEngine
             export.Images.Any(image => image.Id == Guid.Empty || !export.Steps.Any(step => step.Id == image.StepId)) ||
             export.Images.Select(image => image.Id).Distinct().Count() != export.Images.Count)
             throw new InvalidDataException("Export does not match the target assembly or image parent.");
+        (Entity[] Types, Entity[] Steps)? platformRollbackRows =
+            string.Equals(manifest.AssemblyName, PlatformAssemblyName, StringComparison.Ordinal)
+            ? ValidatePlatformRollbackScope(manifest, export)
+            : null;
         // 所有原步驟必須存在且仍屬原型別；缺失時在組件更新前拒絕，避免部分回復。
         foreach (var previous in export.Steps)
         {
@@ -329,6 +355,8 @@ internal sealed partial class DeploymentEngine
         }
         else
         {
+            if (platformRollbackRows is not null)
+                RemovePlatformRowsAbsentFromExport(export, platformRollbackRows.Value);
             service.Update(ToAssemblyEntity(export.Assembly, currentAssembly.Id));
         }
 
@@ -354,6 +382,153 @@ internal sealed partial class DeploymentEngine
                     ["statuscode"] = new OptionSetValue(previousStatus)
                 });
             }
+        }
+    }
+
+    /// <summary>
+    /// 回復平台組件前，以核定三步驟清單驗證快照及目前 Dataverse 列；只接受精確型別、
+    /// 自然步驟身份與 ProductBefore 映像，並先物化完整列集合。任何未知、重複、歸屬變更
+    /// 或 secure config 都在第一筆寫入前拒絕，避免 hash 可重算的手造 JSON 擴大刪除範圍。
+    /// </summary>
+    /// <param name="manifest">已通過 Loader 精確三步驟驗證的本次平台清單。</param>
+    /// <param name="export">已完成格式、組織與雜湊核對的本機回復快照。</param>
+    /// <returns>通過完整預檢的目前型別與步驟列；僅在平台 Assembly 分支使用。</returns>
+    /// <exception cref="InvalidDataException">快照或目前列含非 F3 身份、重複身份或無法安全回復的設定。</exception>
+    private (Entity[] Types, Entity[] Steps) ValidatePlatformRollbackScope(
+        RegistrationManifest manifest,
+        DeploymentExport export)
+    {
+        if (!string.Equals(export.ManagedAssemblyName, PlatformAssemblyName, StringComparison.Ordinal) ||
+            (export.Assembly is not null &&
+             !string.Equals(export.Assembly.Name, PlatformAssemblyName, StringComparison.Ordinal)))
+            throw new InvalidDataException("Platform rollback export assembly identity is invalid.");
+
+        var expectedTypes = manifest.Steps.Select(step => step.Type).ToHashSet(StringComparer.Ordinal);
+        var exportTypeIds = new HashSet<Guid>();
+        var exportTypeNames = new HashSet<string>(StringComparer.Ordinal);
+        foreach (var type in export.Types)
+        {
+            if (type.Id == Guid.Empty || !exportTypeIds.Add(type.Id) ||
+                !expectedTypes.Contains(type.TypeName) || !exportTypeNames.Add(type.TypeName))
+                throw new InvalidDataException("Platform rollback export contains an unknown or duplicate Plugin type.");
+        }
+
+        var exportStepIds = new HashSet<Guid>();
+        var exportStepKeys = new HashSet<string>(StringComparer.Ordinal);
+        foreach (var step in export.Steps)
+        {
+            var registration = FindPlatformRegistration(manifest, step);
+            if (step.Id == Guid.Empty || !exportStepIds.Add(step.Id) ||
+                !exportTypeNames.Contains(step.TypeName) ||
+                !exportStepKeys.Add(StepKey(registration)))
+                throw new InvalidDataException("Platform rollback export contains an unknown or duplicate step.");
+        }
+
+        var exportImagesByStep = export.Steps.ToDictionary(step => step.Id, step => new HashSet<string>(StringComparer.Ordinal));
+        foreach (var image in export.Images)
+        {
+            var parent = export.Steps.SingleOrDefault(step => step.Id == image.StepId);
+            if (parent is null ||
+                !exportImagesByStep.TryGetValue(image.StepId, out var names) ||
+                !names.Add(image.Name) ||
+                !IsAllowedPlatformImage(FindPlatformRegistration(manifest, parent), image))
+                throw new InvalidDataException("Platform rollback export contains an unknown or duplicate image.");
+        }
+
+        var assembly = FindAssembly(PlatformAssemblyName);
+        if (assembly is null)
+        {
+            if (export.Types.Count != 0 || export.Steps.Count != 0 || export.Images.Count != 0)
+                throw new InvalidDataException("Platform rollback rows are missing from their owning assembly.");
+            return (Array.Empty<Entity>(), Array.Empty<Entity>());
+        }
+
+        var currentTypes = ReadPluginTypes(assembly.Id);
+        var currentTypeNames = new HashSet<string>(StringComparer.Ordinal);
+        foreach (var type in currentTypes)
+        {
+            var typeName = type.GetAttributeValue<string>("typename");
+            if (!expectedTypes.Contains(typeName ?? string.Empty) ||
+                !currentTypeNames.Add(typeName!))
+                throw new InvalidDataException("Current platform assembly contains an unknown or duplicate Plugin type.");
+        }
+
+        var currentTypeIds = currentTypes.Select(type => type.Id).ToHashSet();
+        var currentSteps = ReadSteps(currentTypeIds);
+        var currentStepIds = new HashSet<Guid>();
+        var currentStepKeys = new HashSet<string>(StringComparer.Ordinal);
+        foreach (var step in currentSteps)
+        {
+            var snapshot = ToStepExport(step, currentTypes);
+            var registration = FindPlatformRegistration(manifest, snapshot);
+            if (!currentStepIds.Add(step.Id) ||
+                !currentStepKeys.Add(StepKey(registration)) ||
+                snapshot.HasSecureConfig ||
+                !string.Equals(step.GetAttributeValue<string>("filteringattributes") ?? string.Empty,
+                    string.Join(",", registration.FilteringAttributes), StringComparison.Ordinal))
+                throw new InvalidDataException("Current platform assembly contains an unknown, duplicate or unsafe step.");
+
+            foreach (var image in ReadImages(step.Id))
+            {
+                if (!IsAllowedPlatformImage(registration, ToImageExport(image)))
+                    throw new InvalidDataException("Current platform step contains an unknown image.");
+            }
+        }
+
+        foreach (var previousType in export.Types)
+        {
+            if (!currentTypes.Any(type => type.Id == previousType.Id &&
+                string.Equals(type.GetAttributeValue<string>("typename"), previousType.TypeName, StringComparison.Ordinal)))
+                throw new InvalidDataException("Original platform Plugin type no longer exists.");
+        }
+
+        return (currentTypes, currentSteps);
+    }
+
+    /// <summary>依完整自然身份尋找唯一核定平台步驟；export 欄位不可替代 manifest 白名單。</summary>
+    private static StepRegistration FindPlatformRegistration(RegistrationManifest manifest, PluginStepExport step)
+    {
+        return manifest.Steps.SingleOrDefault(registration =>
+                   string.Equals(registration.Type, step.TypeName, StringComparison.Ordinal) &&
+                   string.Equals(registration.Message, step.Message, StringComparison.Ordinal) &&
+                   string.Equals(registration.Entity, step.Entity, StringComparison.Ordinal) &&
+                   ReadStage(registration.Stage) == step.Stage &&
+                   ReadMode(registration.Mode) == step.Mode &&
+                   registration.Rank == step.Rank)
+               ?? throw new InvalidDataException("Platform rollback step is not present in the exact registration manifest.");
+    }
+
+    /// <summary>平台步驟只允許快照／清單明列的具名映像，避免偽造匯出刪除或還原其他影像。</summary>
+    private static bool IsAllowedPlatformImage(StepRegistration registration, PluginImageExport image) =>
+        registration.Images.Any(expected =>
+            string.Equals(image.Name, expected.Name, StringComparison.Ordinal) &&
+            string.Equals(image.Alias, expected.Name, StringComparison.Ordinal) &&
+            image.Type == (expected.Type == "PreImage" ? 0 : 1) &&
+            string.Equals(image.Attributes,
+                string.Join(",", expected.Attributes.OrderBy(attribute => attribute, StringComparer.Ordinal)),
+                StringComparison.Ordinal) &&
+            string.Equals(image.MessageProperty,
+                registration.Message == "Create" ? "Id" : "Target", StringComparison.Ordinal));
+
+    /// <summary>
+    /// 回復快照既有的列狀態後，刪除只在後續部署新增的 F3 步驟及 Plugin 型別。
+    /// 預檢已證明候選全屬精確平台組件；刪除順序先影像、步驟、型別，保留快照原有資料庫 ID。
+    /// </summary>
+    private void RemovePlatformRowsAbsentFromExport(
+        DeploymentExport export,
+        (Entity[] Types, Entity[] Steps) current)
+    {
+        foreach (var step in current.Steps)
+        {
+            if (export.Steps.Any(previous => previous.Id == step.Id)) continue;
+            foreach (var image in ReadImages(step.Id)) service.Delete(ImageLogicalName, image.Id);
+            service.Delete(StepLogicalName, step.Id);
+        }
+
+        foreach (var type in current.Types)
+        {
+            if (!export.Types.Any(previous => previous.Id == type.Id))
+                service.Delete(TypeLogicalName, type.Id);
         }
     }
 
@@ -892,6 +1067,12 @@ internal sealed partial class DeploymentEngine
     /// <summary>在任何還原寫入前確認格式、唯一組織與內容雜湊，拒絕跨組織或遭修改的備份。</summary>
     private static void ValidateExport(DeploymentExport export, string organization)
     {
+        if (export.Types is null || export.Steps is null || export.Images is null ||
+            !IsSupportedManagedAssemblyName(export.ManagedAssemblyName) ||
+            (export.Assembly is not null &&
+             !string.Equals(export.Assembly.Name, export.ManagedAssemblyName, StringComparison.Ordinal)))
+            throw new InvalidDataException("Export managed assembly identity or collections are invalid.");
+
         var canonical = export.SchemaVersion == 1
             ? JsonSerializer.Serialize(new
             {
@@ -902,6 +1083,8 @@ internal sealed partial class DeploymentEngine
             : JsonSerializer.Serialize(export with { Sha256 = string.Empty });
         if (export.SchemaVersion is not (1 or 2) ||
             (export.SchemaVersion == 1 && (export.ManagedAssemblyName != "SpeechMessage.Dynamics.Plugins" || export.Images.Count != 0)) ||
+            (export.SchemaVersion == 2 && export.ManagedAssemblyName is not
+                ("SpeechMessage.Dynamics.Plugins" or "SpeechMessage.Dynamics.Workflows" or PlatformAssemblyName)) ||
             !string.Equals(export.Organization, organization, StringComparison.Ordinal) ||
             !string.Equals(export.Sha256, HashText(canonical), StringComparison.Ordinal))
         {
@@ -1440,6 +1623,8 @@ internal sealed partial class DeploymentEngine
     /// <summary>
     /// 僅供 apply 建立或更新步驟時解析安全設定；member 建構式要求單欄 tokenKey JSON，
     /// 不能直接寫入原始金鑰。以 JSON API 跳脫值，保留 trace 空值及 push 原始 token 契約。
+    /// 精確清單已驗證的 platform 模組只接受空 secure，故直接返回空字串，不讀取不存在的 mode；
+    /// 非空仍拒絕，這條分流不替代上層對組件、兩個入口、三步驟與產品映射的完整驗證。
     /// 結果字串只借給本次 SDK 寫入，不快取或加入 plan／export／日誌；CLR 字串無法保證清零，
     /// 因此呼叫端不得延長其範圍。缺少秘密時在建立 secure 列之前失敗。
     /// </summary>
@@ -1447,6 +1632,12 @@ internal sealed partial class DeploymentEngine
     /// <returns>只供本次寫入使用的安全設定，不包含跨組織或跨命令狀態。</returns>
     private string ResolveSecureConfiguration(StepRegistration registration)
     {
+        if (registration.Module == "platform")
+        {
+            if (registration.SecureConfig.Length != 0)
+                throw new InvalidDataException("Platform registration must not contain secure configuration.");
+            return string.Empty;
+        }
         var value = ResolvePlaceholders(registration.SecureConfig);
         using var configuration = JsonDocument.Parse(registration.UnsecureConfig);
         return string.Equals(configuration.RootElement.GetProperty("mode").GetString(), "member", StringComparison.Ordinal)
@@ -1526,6 +1717,24 @@ internal sealed partial class DeploymentEngine
 
     /// <summary>所有核心入口再驗本命令白名單；不以呼叫端字串擴權，正式操作確認仍由CLI負責。</summary>
     private void ValidateOrganization(string organization) => _ = catalog.Get(organization);
+
+    /// <summary>
+    /// 將本次單組件候選交共用清單關卡完整驗證，並在任何 SDK 查詢或寫入前核對組件產品範圍。
+    /// 平台僅限三核定組織，construction／association 拒絕教會舊組件；其他既有 catalog 名稱
+    /// 沿用共用映射的正式相容性。只建立本次同步呼叫的容器，不保存 SDK、秘密或跨命令狀態。
+    /// </summary>
+    /// <param name="manifest">本次完整註冊候選，不可透過過濾移除不適用組件來假稱驗證成功。</param>
+    /// <param name="organization">已由核心 catalog 驗證的 canonical 組織名稱。</param>
+    /// <exception cref="InvalidDataException">候選格式或組件產品邊界不符合共用關卡。</exception>
+    private static void ValidatePlatformOrganization(RegistrationManifest manifest, string organization)
+    {
+        RegistrationManifestLoader.ValidateForOrganization(
+            new RegistrationDocument { Assemblies = new[] { manifest } }, organization);
+    }
+
+    /// <summary>明列既有兩組件及 F3 平台組件，避免其他輸入以共通 package 名稱進入 export。</summary>
+    private static bool IsSupportedManagedAssemblyName(string assemblyName) =>
+        assemblyName is "SpeechMessage.Dynamics.Plugins" or "SpeechMessage.Dynamics.Workflows" or PlatformAssemblyName;
 
     /// <summary>舊模組切換／影子入口只允許catalog的test種類；一般部署的白名單檢查不能擴張此權限。</summary>
     internal void ValidateTestOrganization(string organization)
@@ -1608,7 +1817,20 @@ internal sealed partial class DeploymentEngine
     private static string HashText(string content) =>
         Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(content)));
 
-    /// <summary>在同目錄唯一暫存檔寫入並 flush 後原子發布；finally 刪除殘留暫存，避免讀者看到半份備份。</summary>
+    /// <summary>
+    /// 同目錄候選完整寫入、flush 並關閉後，才以單次覆寫搬移原子發布；等待中保留舊完整快照。
+    /// Windows 外部讀取 handle 即使沒有分享 Delete，也可能回報 UnauthorizedAccessException，
+    /// 因此只對本機 Windows 的精確 access denied／sharing／lock violation HRESULT 有界等待。
+    /// 首次受阻才啟動單調一秒期限，每次最多同步等待二十五毫秒，不重設期限、不新增背景工作；
+    /// 正常路徑不等待。永久權限／唯讀／持續占用仍失敗，到期以外層 throw 保留首例外及堆疊。
+    /// 本呼叫唯一擁有 writer、stream 及暫存路徑，finally 清除未發布候選；不放寬屬性或 ACL，
+    /// 不先刪目的檔，也不把候選、SDK、身分或秘密保留至另一命令。最終失敗仍交呼叫端處理。
+    /// </summary>
+    /// <typeparam name="T">只屬本次呼叫、已由上層驗證可安全匯出的純值候選型別。</typeparam>
+    /// <param name="path">部署者核定的本機輸出位置，不作為組織或授權依據。</param>
+    /// <param name="value">本次完整匯出候選，重試只搬移已關閉的同一份檔案。</param>
+    /// <exception cref="IOException">不可恢復的 I/O 故障或 Windows 共享／鎖定等待到期。</exception>
+    /// <exception cref="UnauthorizedAccessException">持續拒絕或非 Windows 權限錯誤，保留原始例外。</exception>
     private static void WriteJsonAtomically<T>(string path, T value)
     {
         var fullPath = Path.GetFullPath(path);
@@ -1626,7 +1848,33 @@ internal sealed partial class DeploymentEngine
                 stream.Flush(flushToDisk: true);
             }
 
-            File.Move(temporaryPath, fullPath, overwrite: true);
+            try
+            {
+                File.Move(temporaryPath, fullPath, overwrite: true);
+            }
+            catch (Exception error) when (IsWindowsMoveContention(error))
+            {
+                var started = System.Diagnostics.Stopwatch.GetTimestamp();
+                var budget = TimeSpan.FromSeconds(1);
+                var poll = TimeSpan.FromMilliseconds(25);
+                while (true)
+                {
+                    var remaining = budget - System.Diagnostics.Stopwatch.GetElapsedTime(started);
+                    if (remaining <= TimeSpan.Zero) throw;
+                    Thread.Sleep(remaining < poll ? remaining : poll);
+                    // 排程延遲不能延長期限，避免到期後才補一次搬移而誤報成功。
+                    if (System.Diagnostics.Stopwatch.GetElapsedTime(started) >= budget) throw;
+                    try
+                    {
+                        File.Move(temporaryPath, fullPath, overwrite: true);
+                        return;
+                    }
+                    catch (Exception retry) when (IsWindowsMoveContention(retry))
+                    {
+                        // 繼續同一固定期限；外層 catch 保有第一次真例外，不包裝或改成最後一次故障。
+                    }
+                }
+            }
         }
         finally
         {
@@ -1635,6 +1883,11 @@ internal sealed partial class DeploymentEngine
                 File.Delete(temporaryPath);
             }
         }
+
+        // 完整 HRESULT 與實際 OS 同時核對；其他 I/O、路徑或序列化錯誤直接向外傳遞。
+        static bool IsWindowsMoveContention(Exception error) => OperatingSystem.IsWindows() &&
+            error is IOException or UnauthorizedAccessException &&
+            error.HResult is unchecked((int)0x80070005) or unchecked((int)0x80070020) or unchecked((int)0x80070021);
     }
 
     private sealed record Inspection(string Fingerprint, List<DeploymentOperation> Operations);

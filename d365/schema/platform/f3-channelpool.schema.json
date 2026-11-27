@@ -1,0 +1,450 @@
+{
+  "schemaVersion": 1,
+  "activePhase": 8,
+  "solution": "SpeechMessageCore",
+  "publisher": "SpeechMessagePublisher",
+  "prefix": "new",
+  "entities": [
+    {
+      "logicalName": "new_linechannel",
+      "displayName": "LINE 頻道",
+      "pluralName": "LINE 頻道",
+      "isNew": true,
+      "ownershipType": "OrganizationOwned",
+      "audit": false,
+      "primaryName": "new_name",
+      "fields": [
+        {
+          "logicalName": "new_product",
+          "displayName": "產品",
+          "type": "string",
+          "phase": 1,
+          "maxLength": 32
+        },
+        {
+          "logicalName": "new_channeltype",
+          "displayName": "Channel類型",
+          "type": "choice",
+          "phase": 1,
+          "options": [
+            {
+              "value": 100000000,
+              "label": "音訊科技"
+            },
+            {
+              "value": 100000001,
+              "label": "產品池"
+            }
+          ]
+        },
+        {
+          "logicalName": "new_capacity",
+          "displayName": "容量",
+          "type": "integer",
+          "phase": 1
+        },
+        {
+          "logicalName": "new_poolorder",
+          "displayName": "配發順序",
+          "type": "integer",
+          "phase": 1
+        },
+        {
+          "logicalName": "new_channelstatus",
+          "displayName": "Channel狀態",
+          "type": "choice",
+          "phase": 1,
+          "options": [
+            {
+              "value": 100000000,
+              "label": "登錄中"
+            },
+            {
+              "value": 100000001,
+              "label": "營運中"
+            },
+            {
+              "value": 100000002,
+              "label": "已滿"
+            },
+            {
+              "value": 100000003,
+              "label": "停用"
+            },
+            {
+              "value": 100000004,
+              "label": "退役"
+            }
+          ]
+        },
+        {
+          "logicalName": "new_reservedrichmenus",
+          "displayName": "系統保留宮格數",
+          "type": "integer",
+          "phase": 1
+        },
+        {
+          "logicalName": "new_tenantrichmenuquota",
+          "displayName": "每租戶宮格配額",
+          "type": "integer",
+          "phase": 1
+        },
+        {
+          "logicalName": "new_defaultrichmenuid",
+          "displayName": "預設宮格ID",
+          "type": "string",
+          "phase": 1,
+          "maxLength": 100
+        },
+        {
+          "logicalName": "new_suspendedrichmenuid",
+          "displayName": "停用宮格ID",
+          "type": "string",
+          "phase": 1,
+          "maxLength": 100
+        },
+        {
+          "logicalName": "new_monthlyusage",
+          "displayName": "本月用量",
+          "type": "integer",
+          "phase": 1
+        },
+        {
+          "logicalName": "new_actualrichmenucount",
+          "displayName": "實際宮格數",
+          "type": "integer",
+          "phase": 1
+        },
+        {
+          "logicalName": "new_lastcheckedon",
+          "displayName": "最後檢查時間",
+          "type": "datetime",
+          "phase": 1,
+          "behavior": "UserLocal",
+          "format": "DateAndTime"
+        }
+      ],
+      "keys": []
+    },
+    {
+      "logicalName": "new_channelslot",
+      "displayName": "Channel名額",
+      "pluralName": "Channel名額",
+      "isNew": true,
+      "ownershipType": "OrganizationOwned",
+      "audit": false,
+      "optimisticConcurrency": true,
+      "primaryName": "new_name",
+      "fields": [
+        {
+          "logicalName": "new_name",
+          "displayName": "名稱",
+          "type": "string",
+          "phase": 1,
+          "maxLength": 100,
+          "required": true
+        },
+        {
+          "logicalName": "new_channel",
+          "displayName": "Channel",
+          "type": "lookup",
+          "phase": 1,
+          "target": "new_linechannel",
+          "required": true
+        },
+        {
+          "logicalName": "new_slotnumber",
+          "displayName": "名額編號",
+          "type": "integer",
+          "phase": 1,
+          "required": true
+        },
+        {
+          "logicalName": "new_slotstatus",
+          "displayName": "名額狀態",
+          "type": "choice",
+          "phase": 1,
+          "options": [
+            {
+              "value": 100000000,
+              "label": "可用"
+            },
+            {
+              "value": 100000001,
+              "label": "已配發"
+            },
+            {
+              "value": 100000002,
+              "label": "保留中"
+            },
+            {
+              "value": 100000003,
+              "label": "清理中"
+            },
+            {
+              "value": 100000004,
+              "label": "清理異常"
+            }
+          ]
+        },
+        {
+          "logicalName": "new_tenant",
+          "displayName": "租戶",
+          "type": "lookup",
+          "phase": 1,
+          "target": "account",
+          "required": false
+        },
+        {
+          "logicalName": "new_richmenuquota",
+          "displayName": "宮格配額",
+          "type": "integer",
+          "phase": 1
+        },
+        {
+          "logicalName": "new_usedrichmenus",
+          "displayName": "已使用宮格數",
+          "type": "integer",
+          "phase": 1
+        },
+        {
+          "logicalName": "new_aliasprefix",
+          "displayName": "別名前綴",
+          "type": "string",
+          "phase": 1,
+          "maxLength": 100
+        },
+        {
+          "logicalName": "new_allocatedon",
+          "displayName": "配發時間",
+          "type": "datetime",
+          "phase": 1,
+          "behavior": "UserLocal",
+          "format": "DateAndTime"
+        },
+        {
+          "logicalName": "new_releasedon",
+          "displayName": "釋放時間",
+          "type": "datetime",
+          "phase": 1,
+          "behavior": "UserLocal",
+          "format": "DateAndTime"
+        },
+        {
+          "logicalName": "new_reserveduntil",
+          "displayName": "保留期限",
+          "type": "datetime",
+          "phase": 1,
+          "behavior": "UserLocal",
+          "format": "DateAndTime"
+        },
+        {
+          "logicalName": "new_usecount",
+          "displayName": "使用次數",
+          "type": "integer",
+          "phase": 1
+        }
+      ],
+      "keys": [
+        {
+          "logicalName": "new_ak_channelslot",
+          "attributes": [
+            "new_channel",
+            "new_slotnumber"
+          ]
+        }
+      ]
+    },
+    {
+      "logicalName": "new_slotallocationlock",
+      "displayName": "名額配發鎖",
+      "pluralName": "名額配發鎖",
+      "isNew": true,
+      "ownershipType": "OrganizationOwned",
+      "audit": false,
+      "primaryName": "new_name",
+      "fields": [
+        {
+          "logicalName": "new_name",
+          "displayName": "名稱",
+          "type": "string",
+          "phase": 1,
+          "maxLength": 100,
+          "required": true
+        },
+        {
+          "logicalName": "new_lockvalue",
+          "displayName": "列鎖更新值",
+          "type": "integer",
+          "phase": 1
+        }
+      ],
+      "keys": [
+        {
+          "logicalName": "new_ak_slotallocationlock",
+          "attributes": [
+            "new_name"
+          ]
+        }
+      ]
+    },
+    {
+      "logicalName": "new_slotrequest",
+      "displayName": "名額申請單",
+      "pluralName": "名額申請單",
+      "isNew": true,
+      "ownershipType": "OrganizationOwned",
+      "audit": false,
+      "optimisticConcurrency": true,
+      "primaryName": "new_name",
+      "fields": [
+        {
+          "logicalName": "new_name",
+          "displayName": "名稱",
+          "type": "string",
+          "phase": 1,
+          "maxLength": 100,
+          "required": true
+        },
+        {
+          "logicalName": "new_tenant",
+          "displayName": "租戶",
+          "type": "lookup",
+          "phase": 1,
+          "target": "account",
+          "required": true
+        },
+        {
+          "logicalName": "new_correlationid",
+          "displayName": "操作識別",
+          "type": "string",
+          "phase": 1,
+          "maxLength": 64,
+          "required": true
+        },
+        {
+          "logicalName": "new_operation",
+          "displayName": "操作",
+          "type": "choice",
+          "phase": 1,
+          "options": [
+            {
+              "value": 100000000,
+              "label": "配發"
+            },
+            {
+              "value": 100000001,
+              "label": "釋放"
+            }
+          ]
+        },
+        {
+          "logicalName": "new_result",
+          "displayName": "結果",
+          "type": "choice",
+          "phase": 1,
+          "options": [
+            {
+              "value": 100000000,
+              "label": "已配發"
+            },
+            {
+              "value": 100000001,
+              "label": "待配發"
+            },
+            {
+              "value": 100000002,
+              "label": "產品不符"
+            },
+            {
+              "value": 100000003,
+              "label": "不是租戶"
+            },
+            {
+              "value": 100000004,
+              "label": "已釋放"
+            },
+            {
+              "value": 100000005,
+              "label": "無效"
+            }
+          ]
+        },
+        {
+          "logicalName": "new_channel",
+          "displayName": "Channel",
+          "type": "lookup",
+          "phase": 1,
+          "target": "new_linechannel",
+          "required": false
+        },
+        {
+          "logicalName": "new_slot",
+          "displayName": "名額",
+          "type": "lookup",
+          "phase": 1,
+          "target": "new_channelslot",
+          "required": false
+        },
+        {
+          "logicalName": "new_f3diagnostic",
+          "displayName": "F3安全診斷封套",
+          "type": "string",
+          "phase": 1,
+          "maxLength": 1024,
+          "required": false
+        },
+        {
+          "logicalName": "new_f3diagnosticstate",
+          "displayName": "F3診斷處理狀態",
+          "type": "integer",
+          "phase": 1
+        },
+        {
+          "logicalName": "new_f3diagnosticclaim",
+          "displayName": "F3診斷租約識別",
+          "type": "string",
+          "phase": 1,
+          "maxLength": 36,
+          "required": false
+        },
+        {
+          "logicalName": "new_f3diagnosticuntil",
+          "displayName": "F3診斷租約到期",
+          "type": "datetime",
+          "phase": 1,
+          "behavior": "UserLocal",
+          "format": "DateAndTime"
+        }
+      ],
+      "keys": [
+        {
+          "logicalName": "new_ak_slotrequest",
+          "attributes": [
+            "new_tenant",
+            "new_operation",
+            "new_correlationid"
+          ]
+        }
+      ]
+    },
+    {
+      "logicalName": "account",
+      "displayName": "教會",
+      "pluralName": "教會",
+      "isNew": false,
+      "audit": false,
+      "fields": [
+        {
+          "logicalName": "new_channelslot",
+          "displayName": "名額",
+          "type": "lookup",
+          "phase": 1,
+          "target": "new_channelslot",
+          "required": false
+        }
+      ],
+      "keys": []
+    }
+  ]
+}

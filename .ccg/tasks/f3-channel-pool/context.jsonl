@@ -1,0 +1,6 @@
+{"path":"文件/規劃設計書/產品規劃書/只有三大產品共通的底層/實作計畫-三大產品共通層-1.3/01_共通層實作計畫.md","reason":"F3 authoritative package scope, interfaces, tests, expected results"}
+{"path":"文件/規劃設計書/產品規劃書/只有三大產品共通的底層/實作計畫-三大產品共通層-1.3/02_兩條線操作說明.md","reason":"F3 package start, automatic gate, merge and lock rules"}
+{"path":"文件/規劃設計書/產品規劃書/只有三大產品共通的底層/實作計畫-三大產品共通層-1.3/02A_實機打通補充.md","reason":"Post-merge live sequence, retry and goodshepherd20 quiesce policy"}
+{"path":".trellis/spec/backend/channel-token-contract.md","reason":"Existing channel credential, SDK Upsert and secret handling contract"}
+{"path":".trellis/spec/backend/schema-deployment-contract.md","reason":"Schema key and deployment fail-closed requirements"}
+{"path":".trellis/spec/backend/file-documentation-contract.md","reason":"Source file overview and byte-level requirements"}

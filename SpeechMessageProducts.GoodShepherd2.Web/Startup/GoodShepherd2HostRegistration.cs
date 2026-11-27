@@ -1,10 +1,11 @@
 /*
 檔案整體說明
 目的與定位：集中好牧人 2.0 F2 的服務組合、共用診斷生命週期與尚未啟用的事件插槽，讓 Program 保持單一註冊入口。
-主要功能與流程：驗證本階段不載入 Channel 或例外 LINE 外送；統一 ToolUtility 的兩個環境鍵為已驗 Host 環境，註冊固定 GoodShepherd2 管理器、Hosting、ICU／語系快照及有界 Webhook 管線。空驗簽器永遠拒絕，事件處理器意外被呼叫則拋錯；F2 的空 HTTP 端點不接入這些插槽。
-使用邊界與維護：沒有任何正式 Channel、token、Session 或 request 參照進入 singleton。診斷 lifetime 在所有管線服務之前註冊，Host 反向停止時先排空 HTTP／queue，再解除程序相容入口及釋放 diagnostics。DI 最終 Dispose 可重入相同清理工作；取消不能略過資源釋放。所有設定只活至目前 Host；不建立隱藏容器、sender、重試或額外背景 task。真實啟停回歸保護 owner 解除，實機驗證仍獨立列待補。
+主要功能與流程：拒絕 legacy 設定映射與例外 LINE 外送；F3 的固定產品 D365 Channel 由獨立 Channels 入口接入；統一 ToolUtility 的兩個環境鍵為已驗 Host 環境，註冊固定 GoodShepherd2 管理器、Hosting、ICU／語系快照及有界 Webhook 管線。未配置 F3 時空驗簽器永遠拒絕；F3 設定完整時由正式驗簽器取代。產品事件處理器意外被呼叫則拋錯並由 queue 告警，不能靜默吃掉事件。
+使用邊界與維護：本檔不持有 Channel、token、Session 或 request 參照；F3 credential 快照由其獨立 owner 有界管理。診斷 lifetime 在所有管線服務之前註冊，Host 反向停止時先排空 HTTP／queue，再解除程序相容入口及釋放 diagnostics。DI 最終 Dispose 可重入相同清理工作；取消不能略過資源釋放。所有設定只活至目前 Host；不建立隱藏容器、sender、重試或額外背景 task。真實啟停回歸保護 owner 解除，實機驗證仍獨立列待補。
 */
 using ChurchReport.Logging;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using LineMessagingProcessor.AspNetCore.Webhooks;
 using LineMessagingProcessor.AspNetCore.Webhooks.Queue;
 using SpeechMessage.Hosting;
@@ -44,7 +45,7 @@ public static class GoodShepherd2HostRegistration
         StartupGuards.ValidateIcuMode();
         services.AddSingleton(StartupGuards.ValidateLocalizationConfiguration(configuration, isProduction: false));
         services.AddToolUtility(configuration, GoodShepherd2Product.Name);
-        services.AddSingleton<IWebhookSignatureVerifier, InactiveSignatureVerifier>();
+        services.TryAddSingleton<IWebhookSignatureVerifier, InactiveSignatureVerifier>();
         services.AddScoped<IWebhookEnvelopeHandler, InactiveEnvelopeHandler>();
         services.AddLineWebhookPipeline(configuration);
         return services;
@@ -91,7 +92,7 @@ internal sealed class GoodShepherd2DiagnosticsLifetime(
 /// <summary>F3 前的拒絕驗簽插槽；不讀秘密、不保留 body，也不能把任何事件視為已授權。</summary>
 internal sealed class InactiveSignatureVerifier : IWebhookSignatureVerifier
 {
-    /// <summary>空 HTTP 回呼不呼叫本介面；若其他呼叫端誤用，一律拒絕並尊重正常取消。</summary>
+    /// <summary>沒有完整 F3 配置時拒絕所有 HTTP 簽章；不保存原始本文，並尊重呼叫端正常取消。</summary>
     /// <param name="channelId">未驗證識別，不保存或輸出。</param>
     /// <param name="body">不讀取、不保存的借入本文。</param>
     /// <param name="signature">不讀取、不保存的借入簽章。</param>

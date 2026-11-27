@@ -7,6 +7,10 @@
  * 本檔宣告 RegistrationManifestLoader。
  * - 從 repo 的固定清單位置讀取並驗證可解析的 JSON 結構。
  * - 非diagnostics的live分級與完整pass摘要必須有效；活動不能攜帶tokenKey，未驗收不當成功。
+ * - 精確平台組件只接受 F3 核定的兩個 IPlugin 型別、三個同步 Create／Update 步驟、
+ *   Update 的 new_product filter 與 ProductBefore PreImage，以及三組織產品映射；舊組件語法維持原樣。
+ * - 整份來源先驗證，再按已核定組織選取適用組件；好管家／好學會只取平台，
+ *   好牧人取三組件，既有組織只取舊兩組件。模組切換另排除平台，不把產品池當 Shadow 模組。
  * 主要操作入口包含 Load。
  *
  * 使用邊界與維護：
@@ -30,6 +34,11 @@ namespace SpeechMessage.Dynamics.Deployment;
 internal static class RegistrationManifestLoader
 {
     private const long MaximumManifestBytes = 1024 * 1024;
+    private const string PlatformAssemblyName = "SpeechMessage.Dynamics.Platform.Plugins";
+    private const string PlatformSlotRequestType =
+        "SpeechMessage.Dynamics.Platform.Plugins.ChannelPool.SlotRequestPlugin";
+    private const string PlatformChannelCreatedType =
+        "SpeechMessage.Dynamics.Platform.Plugins.ChannelPool.ChannelCreatedPlugin";
     /// <summary>固定 schema 名稱與深度；序列化測試清單亦沿用此規約，未知欄位不得靜默丟棄。</summary>
     internal static readonly JsonSerializerOptions Json = new()
     {
@@ -69,14 +78,7 @@ internal static class RegistrationManifestLoader
             using var document = JsonDocument.Parse(stream, new JsonDocumentOptions { MaxDepth = 32 });
             Schema.SchemaFiles.RejectDuplicateProperties(document.RootElement);
             var registration = document.RootElement.Deserialize<RegistrationDocument>(Json) ?? throw InvalidManifest();
-            if (registration.SchemaVersion != 2 || registration.Assemblies is null ||
-                registration.Assemblies.Count is < 1 or > 2) throw InvalidManifest();
-            var names = new HashSet<string>(StringComparer.Ordinal);
-            foreach (var assembly in registration.Assemblies)
-            {
-                if (assembly is null || !names.Add(assembly.AssemblyName)) throw InvalidManifest();
-                Validate(assembly);
-            }
+            ValidateDocument(registration);
             return registration;
         }
         catch (JsonException)
@@ -85,19 +87,76 @@ internal static class RegistrationManifestLoader
         }
     }
 
+    /// <summary>
+    /// 完整來源全部驗證後才選取本組織的組件；不藉過濾掩蓋未知、重複或壞設定。
+    /// 組織授權仍由 catalog／ProductionGuard 負責，本方法不連線或載入 DLL；
+    /// 回傳集合是本次命令的新容器，候選只存活至同步命令結束。
+    /// </summary>
+    /// <param name="repositoryRoot">本命令核定的方案根。</param>
+    /// <param name="organization">catalog 已核定的 canonical 名稱。</param>
+    /// <param name="legacyOnly">舊 Shadow／切換只允許既有教會兩組件，不操作平台池。</param>
+    internal static RegistrationDocument LoadForOrganization(string repositoryRoot, string organization, bool legacyOnly = false)
+    {
+        var document = LoadDocument(repositoryRoot);
+        var selected = document.Assemblies.Where(assembly => IsAssemblyAllowed(assembly.AssemblyName, organization) &&
+            (!legacyOnly || assembly.AssemblyName != PlatformAssemblyName)).ToArray();
+        if (selected.Length == 0) throw InvalidManifest();
+        return document with { Assemblies = selected };
+    }
+
+    /// <summary>
+    /// 核心入口驗證完整候選及組件產品邊界，不會默默刪去呼叫端傳入的不適用組件。
+    /// 既有正式組織的 catalog／人工確認規則由上層保留；此純值關卡不授予連線權。
+    /// </summary>
+    internal static void ValidateForOrganization(RegistrationDocument document, string organization)
+    {
+        ValidateDocument(document);
+        if (document.Assemblies.Any(assembly => !IsAssemblyAllowed(assembly.AssemblyName, organization)))
+            throw InvalidManifest();
+    }
+
+    /// <summary>
+    /// 精確組件用途映射：平台僅三個新產品，教會組件不得進好管家與好學會。
+    /// 其他既有組織只保留原教會組件相容性；未知組織仍須先由 catalog 拒絕。
+    /// </summary>
+    internal static bool IsAssemblyAllowed(string assemblyName, string organization) => assemblyName switch
+    {
+        PlatformAssemblyName => organization is "goodshepherd20" or "construction" or "association",
+        "SpeechMessage.Dynamics.Plugins" or "SpeechMessage.Dynamics.Workflows" =>
+            !string.IsNullOrWhiteSpace(organization) && organization is not ("construction" or "association"),
+        _ => false
+    };
+
+    /// <summary>磁碟與程式內候選共用三組件上限及精確身分驗證，重複組件不得被投影隱藏。</summary>
+    private static void ValidateDocument(RegistrationDocument document)
+    {
+        ArgumentNullException.ThrowIfNull(document);
+        if (document.SchemaVersion != 2 || document.Assemblies is null || document.Assemblies.Count is < 1 or > 3)
+            throw InvalidManifest();
+        var names = new HashSet<string>(StringComparer.Ordinal);
+        foreach (var assembly in document.Assemblies)
+        {
+            if (assembly is null || !names.Add(assembly.AssemblyName)) throw InvalidManifest();
+            Validate(assembly);
+        }
+    }
+
     /// <summary>核心亦呼叫此驗證，防止程式內自行建立的候選繞過檔案格式關卡。</summary>
     internal static void Validate(RegistrationManifest manifest)
     {
         ArgumentNullException.ThrowIfNull(manifest);
         if (manifest.SchemaVersion != 2 || manifest.AssemblyName is not
-            ("SpeechMessage.Dynamics.Plugins" or "SpeechMessage.Dynamics.Workflows") ||
+            ("SpeechMessage.Dynamics.Plugins" or "SpeechMessage.Dynamics.Workflows" or PlatformAssemblyName) ||
             manifest.Steps is null || manifest.Activities is null ||
             manifest.Steps.Count + manifest.Activities.Count is < 1 or > 256) throw InvalidManifest();
+        var isPlatformAssembly = string.Equals(manifest.AssemblyName, PlatformAssemblyName, StringComparison.Ordinal);
+        if (isPlatformAssembly && (manifest.Steps.Count != 3 || manifest.Activities.Count != 0 ||
+            !string.IsNullOrEmpty(manifest.ActivityGroup))) throw InvalidManifest();
         var keys = new HashSet<string>(StringComparer.Ordinal);
         var legacyIds = new HashSet<Guid>();
         foreach (var step in manifest.Steps)
         {
-            if (step is null || !ValidModule(step.Module) || string.IsNullOrWhiteSpace(step.Type) ||
+            if (step is null || !ValidModule(manifest.AssemblyName, step.Module) || string.IsNullOrWhiteSpace(step.Type) ||
                 !ValidName(step.Entity) || step.Message is not ("Create" or "Update" or "Delete") ||
                 step.Stage is not ("PreValidation" or "PreOperation" or "PostOperation") ||
                 step.Mode is not ("Synchronous" or "Asynchronous") || step.Rank <= 0 ||
@@ -129,8 +188,9 @@ internal static class RegistrationManifestLoader
             foreach (var legacy in step.Legacy)
                 if (legacy is null || string.IsNullOrWhiteSpace(legacy.Assembly) || string.IsNullOrWhiteSpace(legacy.Type) ||
                     !Guid.TryParseExact(legacy.StepId, "D", out var id) || id == Guid.Empty || !legacyIds.Add(id)) throw InvalidManifest();
-            ValidateConfiguration(step);
+            ValidateConfiguration(manifest.AssemblyName, step);
         }
+        if (isPlatformAssembly) ValidatePlatformSteps(manifest.Steps);
         var activityTypes = new HashSet<string>(StringComparer.Ordinal);
         foreach (var activity in manifest.Activities)
         {
@@ -145,7 +205,7 @@ internal static class RegistrationManifestLoader
     }
 
     /// <summary>diagnostics 保留舊設定語法，其餘外殼只接受 Shadow／Live 及 scalar options。</summary>
-    private static void ValidateConfiguration(StepRegistration step)
+    private static void ValidateConfiguration(string assemblyName, StepRegistration step)
     {
         if (step.UnsecureConfig.Length is < 1 or > 4096 || step.SecureConfig.Length > 4096) throw InvalidManifest();
         try
@@ -157,6 +217,11 @@ internal static class RegistrationManifestLoader
             if (step.Module == "diagnostics")
             {
                 DeploymentEngine.ValidateConfigurationTemplate(step);
+                return;
+            }
+            if (string.Equals(assemblyName, PlatformAssemblyName, StringComparison.Ordinal))
+            {
+                ValidatePlatformConfiguration(root, step);
                 return;
             }
             if (!root.TryGetProperty("mode", out var mode) || mode.ValueKind != JsonValueKind.String ||
@@ -174,6 +239,86 @@ internal static class RegistrationManifestLoader
         }
     }
 
+    /// <summary>活動只使用既有模組白名單；活動清單沒有組件專屬 platform 模組。</summary>
+    private static bool ValidModule(string value) =>
+        value is "diagnostics" or "localization" or "weeklyreports" or "attendance" or "lessons" or
+            "appointments" or "qrcodes" or "care" or "fees" or "messaging";
+
+    /// <summary>步驟沿用既有模組白名單；platform 僅在精確 F3 組件身分下開放。</summary>
+    private static bool ValidModule(string assemblyName, string value) =>
+        ValidModule(value) ||
+        (string.Equals(assemblyName, PlatformAssemblyName, StringComparison.Ordinal) && value == "platform");
+
+    /// <summary>
+    /// 驗證平台組件恰有三個固定事件。型別允許重複出現在 Create 與 Update，
+    /// 因此逐筆比對完整事件身份、filter、image 與所有組織旗標，不以型別集合或一般步驟預算代替。
+    /// </summary>
+    /// <param name="steps">已通過通用資料欄位、組織代碼及唯一步驟鍵檢查的本組件候選。</param>
+    private static void ValidatePlatformSteps(IReadOnlyList<StepRegistration> steps)
+    {
+        foreach (var step in steps)
+        {
+            var validEvent = step.Type switch
+            {
+                PlatformSlotRequestType => step.Module == "platform" && step.Message == "Create" &&
+                    step.Entity == "new_slotrequest" && step.Stage == "PreOperation" && step.Mode == "Synchronous" &&
+                    step.Rank == 1 && step.FilteringAttributes.Count == 0 && step.Images.Count == 0,
+                PlatformChannelCreatedType when step.Message == "Create" =>
+                    step.Module == "platform" && step.Entity == "new_linechannel" &&
+                    step.Stage == "PostOperation" && step.Mode == "Synchronous" && step.Rank == 1 &&
+                    step.FilteringAttributes.Count == 0 && step.Images.Count == 0,
+                PlatformChannelCreatedType when step.Message == "Update" =>
+                    step.Module == "platform" && step.Entity == "new_linechannel" &&
+                    step.Stage == "PreOperation" && step.Mode == "Synchronous" && step.Rank == 1 &&
+                    step.FilteringAttributes.Count == 1 &&
+                    string.Equals(step.FilteringAttributes[0], "new_product", StringComparison.Ordinal) &&
+                    step.Images.Count == 1 && step.Images[0].Name == "ProductBefore" &&
+                    step.Images[0].Type == "PreImage" && step.Images[0].Attributes.Count == 1 &&
+                    string.Equals(step.Images[0].Attributes[0], "new_product", StringComparison.Ordinal),
+                _ => false
+            };
+            if (!validEvent || step.Legacy.Count != 0 ||
+                step.Live is not { Tier: "live", TokenKey: false, Reason: "" } ||
+                step.Live.Evidence is not { File: "", Sha256: "", At: "", Result: "" } ||
+                step.ShadowReport is not { File: "", Differences: null, Basis: "" } ||
+                step.EnabledByOrganization.Count != 3 ||
+                !step.EnabledByOrganization.TryGetValue("goodshepherd20", out var shepherdEnabled) || !shepherdEnabled ||
+                !step.EnabledByOrganization.TryGetValue("construction", out var constructionEnabled) || !constructionEnabled ||
+                !step.EnabledByOrganization.TryGetValue("association", out var associationEnabled) || !associationEnabled)
+                throw InvalidManifest();
+        }
+
+        var eventKeys = steps.Select(step => string.Join("|", step.Type, step.Message, step.Entity,
+            step.Stage, step.Mode, step.Rank.ToString(CultureInfo.InvariantCulture)))
+            .ToHashSet(StringComparer.Ordinal);
+        if (eventKeys.Count != 3 ||
+            !eventKeys.Contains(string.Join("|", PlatformSlotRequestType, "Create", "new_slotrequest",
+                "PreOperation", "Synchronous", "1")) ||
+            !eventKeys.Contains(string.Join("|", PlatformChannelCreatedType, "Create", "new_linechannel",
+                "PostOperation", "Synchronous", "1")) ||
+            !eventKeys.Contains(string.Join("|", PlatformChannelCreatedType, "Update", "new_linechannel",
+                "PreOperation", "Synchronous", "1")))
+            throw InvalidManifest();
+    }
+
+    /// <summary>平台設定只接受完整三組織 products map；未知鍵、缺鍵、額外欄位與 secure config 均 fail closed。</summary>
+    /// <param name="root">已解析且已拒絕遞迴重複屬性的 JSON 物件。</param>
+    /// <param name="step">本次平台步驟純資料；不解析或保留任何秘密值。</param>
+    private static void ValidatePlatformConfiguration(JsonElement root, StepRegistration step)
+    {
+        if (step.SecureConfig.Length != 0 || root.ValueKind != JsonValueKind.Object ||
+            root.EnumerateObject().Count() != 1 || !root.TryGetProperty("products", out var products) ||
+            products.ValueKind != JsonValueKind.Object || products.EnumerateObject().Count() != 3 ||
+            !HasProduct(products, "goodshepherd20", "GoodShepherd2") ||
+            !HasProduct(products, "construction", "GoodButler") ||
+            !HasProduct(products, "association", "GoodGuild")) throw InvalidManifest();
+    }
+
+    /// <summary>以精確 key 與字串值查驗單一產品，不接受大小寫變體、非字串或呼叫端新增名稱。</summary>
+    private static bool HasProduct(JsonElement products, string organization, string product) =>
+        products.TryGetProperty(organization, out var value) && value.ValueKind == JsonValueKind.String &&
+        string.Equals(value.GetString(), product, StringComparison.Ordinal);
+
     /// <summary>穩定鍵涵蓋所有註冊語意；同型別不同順位仍為不同步驟。</summary>
     internal static string StepKey(StepRegistration step) => string.Join("|", step.Type, step.Message, step.Entity,
         step.Stage, step.Mode, step.Rank.ToString(CultureInfo.InvariantCulture));
@@ -185,10 +330,6 @@ internal static class RegistrationManifestLoader
     /// <summary>欄位清單必須有界、合法且逐筆唯一，不以 Distinct 隱藏衝突。</summary>
     private static bool ValidNames(IReadOnlyList<string> values) => values.Count <= 128 &&
         values.All(ValidName) && values.Distinct(StringComparer.Ordinal).Count() == values.Count;
-
-    /// <summary>模組代號使用 05A 核定集合，不允許任意輸入取得其他步驟控制範圍。</summary>
-    private static bool ValidModule(string value) => value is "diagnostics" or "localization" or "weeklyreports" or
-        "attendance" or "lessons" or "appointments" or "qrcodes" or "care" or "fees" or "messaging";
 
     /// <summary>註冊旗標只接受本階段四個核定測試組織，不以任意 caller key 擴張 Plugin 範圍。</summary>
     private static bool IsKnownOrganization(string value) =>

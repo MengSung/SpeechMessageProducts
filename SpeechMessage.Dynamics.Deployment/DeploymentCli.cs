@@ -20,6 +20,8 @@
  * 舊plan/apply/verify/export/rollback/smoke則載入固定registration manifest及必要Plugin PE，
  * 單組件委派DeploymentEngine；多組件由 partial 的文件路由完整交給DocumentDeploymentEngine，
  * 使用組織共用備份根及已 flush 的固定名稱索引，保留原P0公開語法與設定佔位安全驗證。
+ * F3 完整來源先驗證再按組織選取 DLL：好牧人三組件，好管家／好學會只有平台，
+ * 舊模組切換只讀舊兩組件；明確 --registration 的 verify 固定走註冊驗證，不誤入 Shadow 切換。
  * 舊註冊verify有metadata差異回1，只有秘密佔位尚未比對時回3，不因零操作假稱秘密或推播已驗證。
  * P7非診斷清單的verify依catalog.switchState或plan目標比對狀態與secure有無，明確說明不比秘密；
  * plan --switch-to與switch --plan走Switching分部，switch-log回復使用原字串與uncancelled清理。
@@ -287,13 +289,13 @@ internal static partial class DeploymentCli
                 return RunShadow(command, shadowCases!, repositoryRoot, operationRoot,
                     lease.Service, output, secretReader, cancellationToken, legacyOnly);
             if (command.SwitchTargetState is not null || command.PlanSha256 is not null ||
-                command.Name == "verify" && (command.InputPath is not null || RegistrationManifestLoader.LoadDocument(repositoryRoot).Assemblies.Any(assembly => assembly.Steps.Any(step => step.Module != "diagnostics"))) ||
+                !registrationMode && command.Name == "verify" && (command.InputPath is not null || RegistrationManifestLoader.LoadForOrganization(repositoryRoot, command.Organization).Assemblies.Any(assembly => assembly.Steps.Any(step => step.Module is not ("diagnostics" or "platform")))) ||
                 command.Name == "rollback" && Path.GetFileName(command.InputPath) == "switch-log.json")
                 return RunSwitchPlan(command, target, catalog, repositoryRoot, organizationArtifactRoot,
                     operationRoot, lease.Service, output, secretReader, cancellationToken);
             if (command.Name == "switch")
             {
-                var document = RegistrationManifestLoader.LoadDocument(repositoryRoot);
+                var document = RegistrationManifestLoader.LoadForOrganization(repositoryRoot, command.Organization, legacyOnly: true);
                 var switchEngine = new DeploymentEngine(lease.Service, operationRoot, TimeProvider.System,
                     name => ResolveRequiredSecret(command.Organization, name, secretReader), catalog);
                 switchEngine.SwitchModule(document, command.Organization, command.Module!, command.Target!,
@@ -302,7 +304,7 @@ internal static partial class DeploymentCli
                 output.WriteLine("Module switch completed.");
                 return 0;
             }
-            var registration = RegistrationManifestLoader.LoadDocument(repositoryRoot);
+            var registration = RegistrationManifestLoader.LoadForOrganization(repositoryRoot, command.Organization);
             if (registration.Assemblies.Count > 1 && command.Name != "smoke")
                 return RunDocument(command, registration, repositoryRoot, organizationArtifactRoot,
                     operationRoot, lease.Service, output, secretReader, catalog);
@@ -347,7 +349,7 @@ internal static partial class DeploymentCli
                 case "export":
                 {
                     var path = Path.Combine(operationRoot, "export.json");
-                    engine.WriteExport(command.Organization, path);
+                    engine.WriteExport(command.Organization, path, manifest.AssemblyName);
                     output.WriteLine("Metadata export created.");
                     return 0;
                 }

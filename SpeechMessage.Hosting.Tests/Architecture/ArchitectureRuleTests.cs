@@ -1046,6 +1046,51 @@ public sealed class ArchitectureRuleTests
     }
 
     /// <summary>
+    /// F3 平台 Plugin 僅由精確專案名稱取得 net462 沙箱與共用相依分類；
+    /// 合成來源使用真正 Xrm SDK 中繼資料辨識 IPlugin，兩個入口可公開而 helper 必須拒絕。
+    /// 相似名稱反例確保不因前綴把其他專案提升成沙箱或取得入口例外。
+    /// </summary>
+    [Fact]
+    public void F3_PlatformPlugin_ExactClassificationAndPublicEntryPoints()
+    {
+        const string projectName = "SpeechMessage.Dynamics.Platform.Plugins";
+        var platform = Product(projectName, "net462", "net462",
+            "LineMessagingProcessor.Core", "SpeechMessage.Localization") with
+        {
+            ContractMetadataPaths = ArchitectureProjectReader.ReadPluginContractMetadata(),
+            Sources = new[]
+            {
+                Source("SlotRequestPlugin.cs",
+                    "namespace SpeechMessage.Dynamics.Platform.Plugins.ChannelPool { public sealed class SlotRequestPlugin : Microsoft.Xrm.Sdk.IPlugin { public void Execute(System.IServiceProvider provider) {} } }"),
+                Source("ChannelCreatedPlugin.cs",
+                    "namespace SpeechMessage.Dynamics.Platform.Plugins.ChannelPool { public sealed class ChannelCreatedPlugin : Microsoft.Xrm.Sdk.IPlugin { public void Execute(System.IServiceProvider provider) {} } }"),
+                Source("Helper.cs",
+                    "namespace SpeechMessage.Dynamics.Platform.Plugins { public sealed class PublicHelper {} }")
+            }
+        };
+        var core = Product("LineMessagingProcessor.Core", "net462", "net462;net10.0");
+        var localization = Product("SpeechMessage.Localization", "net462", "net462;net10.0");
+
+        var violations = ArchitectureRules.ValidateSource(Graph(platform, core, localization));
+
+        Assert.Contains(violations, item => item.Rule == "R2PluginPublicType" &&
+            item.Project == projectName && item.Dependency == "SpeechMessage.Dynamics.Platform.Plugins.PublicHelper");
+        Assert.DoesNotContain(violations, item => item.Project == projectName &&
+            item.Rule == "R2PluginPublicType" &&
+            item.Dependency is "SpeechMessage.Dynamics.Platform.Plugins.ChannelPool.SlotRequestPlugin" or "SpeechMessage.Dynamics.Platform.Plugins.ChannelPool.ChannelCreatedPlugin");
+        Assert.DoesNotContain(violations, item => item.Project == projectName &&
+            item.Rule is "UnknownProject" or "SharedToProduct");
+        var lookalike = Product(projectName + ".Other", "net48", "net48",
+            "LineMessagingProcessor.Core") with
+        {
+            ContractMetadataPaths = ArchitectureProjectReader.ReadPluginContractMetadata()
+        };
+        Assert.Contains(ArchitectureRules.Validate(Graph(lookalike, core)),
+            item => item.Project == projectName + ".Other" &&
+                item.Rule is "UnknownProject" or "SharedToProduct");
+    }
+
+    /// <summary>
     /// R3 只接受精確檔案／專案／字面值白名單；相同組織字面值出現在另一個來源時不得
     /// 因為既有相容案例而整體放行。
     /// </summary>

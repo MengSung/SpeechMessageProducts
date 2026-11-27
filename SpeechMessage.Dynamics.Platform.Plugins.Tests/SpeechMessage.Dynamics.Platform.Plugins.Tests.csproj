@@ -1,0 +1,27 @@
+<!--
+檔案整體說明
+目的與定位：以 net48 測試宿主驗證真正 net462 平台 Plugin，保護名額交易、產品分流、原子發布與借用服務生命週期。
+主要功能與流程：使用既有 Xrm SDK 與 xUnit、Moq；所有資料與服務為合成替身，並行測試模擬資料列交易鎖，另以拒絕案例驗組織與狀態。測試只參考新平台 Plugin 及向下 Core，不連任何 D365、Channel 或金流。
+使用邊界與維護：每案自行擁有可變資料與同步資源，在完成或故障後確實排空並釋放。net48 僅為宿主相容，不允許產品升至 net48；離線列鎖不等同實機 SQL／D365 交易證據，實機另走 Live3P。
+-->
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net48</TargetFramework>
+    <SpeechMessageStrictCode>true</SpeechMessageStrictCode>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <IsTestProject>true</IsTestProject>
+    <IsPackable>false</IsPackable>
+    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
+    <GenerateBindingRedirectsOutputType>true</GenerateBindingRedirectsOutputType>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.CrmSdk.CoreAssemblies" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" />
+    <PackageReference Include="xunit" />
+    <PackageReference Include="xunit.runner.visualstudio" PrivateAssets="all" />
+    <PackageReference Include="Moq" />
+    <PackageReference Include="Newtonsoft.Json" />
+    <ProjectReference Include="../SpeechMessage.Dynamics.Platform.Plugins/SpeechMessage.Dynamics.Platform.Plugins.csproj" />
+  </ItemGroup>
+</Project>

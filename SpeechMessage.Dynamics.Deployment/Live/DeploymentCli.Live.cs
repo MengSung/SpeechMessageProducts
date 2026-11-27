@@ -3,6 +3,7 @@
 目的與定位：P7 Live、觀察、教會預設與工作流程形狀工具的主 CLI 分部，沿共同 ProductionGuard，再嚴格核選項、固定路徑及同組織寫鎖。
 主要流程：observe 與 workflow-shape 包唯讀 SDK；前者只發布計數，後者只輸出已脫敏停用流程結構；
 church-defaults 只讀計畫或同 buffer 核 SHA 後套用；live-check 只在 test 組織，依即時 metadata、D34 與情境準備後交唯一 runner。
+舊教會驗收快照先驗證整份來源再只取本組織教會組件，F3平台池另依自己的Live3P入口驗收，不混入舊切換語法。
 安全與隔離：每命令獨占 lease，SDK 歸還後才釋放寫鎖；manifest/catalog handle 全程只讀持有，
 檔案固定在本組織 artifacts。計畫有界、拒未知／重複欄位，不接受命令列秘密或任意輸出位置。
 資源與失敗：讀取工具不得呼叫任何寫入 SDK API；HTTP safety owner 在 SDK 前 Dispose，所有真失敗在 lease 釋放後交共同告警，
@@ -139,7 +140,7 @@ internal static partial class DeploymentCli
             var service = args[0] is "observe" or "workflow-shape" ? new ReadOnlyOrganizationService(lease.Service) : lease.Service;
             SwitchSnapshot ReadSnapshot()
             {
-                var document = RegistrationManifestLoader.LoadDocument(repository);
+                var document = RegistrationManifestLoader.LoadForOrganization(repository, target.Name, legacyOnly: true);
                 var images = document.Assemblies.Select(assembly => AssemblyCatalog.Read(Path.Combine(repository, "artifacts", "plugins", assembly.AssemblyName + ".dll"), assembly)).ToArray();
                 return SwitchSnapshotReader.Read(service, document, images, target,
                     Convert.ToHexString(SHA256.HashData(manifestHandle)), Convert.ToHexString(SHA256.HashData(catalogHandle)), operation, catalog, token);

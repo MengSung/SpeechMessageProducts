@@ -11,7 +11,7 @@
  * 不誤拒合法的 System.Net.Http 等框架參考。
  * - 輸出固定 JSON 檢查結果；未完成檢查時不得以結束碼零假稱通過。
  * - 由呼叫者擁有輸出 writer，讓並行離線驗證不必改全域 Console 或共享診斷緩衝。
- * - 以 PE 正式組件名稱選擇 Plugins 診斷入口或 Workflows 公開非抽象活動入口；只有後者可參考 Workflow SDK。
+ * - 以 PE 正式組件名稱選擇 Plugins 診斷入口、Workflows 公開非抽象活動入口，或精確 F3 平台組件的兩個公開 SDK IPlugin 型別；平台組件不得暴露第三個公開型別，且只有 Workflow 可參考 Workflow SDK。
  *   活動基類沿本檔 TypeDefinition 有界追溯，只接受指向 System.Activities 組件的 CodeActivity 參考，
  *   不解析磁碟相依、不載入 DLL；所有追溯狀態只存活於當次 reader 操作。
  * 主要操作入口包含 Main、Run、ReadFramework、ReadFrameworkName、ValidateMergeInputFramework、HasNoFrameworkFacade、
@@ -24,6 +24,7 @@
  */
 using System;
 using System.Collections.Frozen;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -41,6 +42,12 @@ internal static class Program
 {
     /// <summary>部署沙箱目前核定的最高組件目標框架；更高版本即使本機可執行也不得送入合併。</summary>
     private static readonly Version MaximumMergeInputFramework = new(4, 6, 2);
+    private const string PlatformAssemblyName = "SpeechMessage.Dynamics.Platform.Plugins";
+    private static readonly FrozenSet<string> PlatformPluginTypeNames = new[]
+    {
+        "SpeechMessage.Dynamics.Platform.Plugins.ChannelPool.SlotRequestPlugin",
+        "SpeechMessage.Dynamics.Platform.Plugins.ChannelPool.ChannelCreatedPlugin"
+    }.ToFrozenSet(StringComparer.Ordinal);
 
     /// <summary>
     /// 以固定 Microsoft.NETFramework.ReferenceAssemblies.net462 1.0.3 的 Facades 清單加 netstandard
@@ -134,7 +141,8 @@ internal static class Program
             var assemblyName = metadata.GetString(assembly.Name);
             var isPlugins = string.Equals(assemblyName, "SpeechMessage.Dynamics.Plugins", StringComparison.Ordinal);
             var isWorkflows = string.Equals(assemblyName, "SpeechMessage.Dynamics.Workflows", StringComparison.Ordinal);
-            var assemblyIdentity = isPlugins || isWorkflows;
+            var isPlatform = string.Equals(assemblyName, PlatformAssemblyName, StringComparison.Ordinal);
+            var assemblyIdentity = isPlugins || isWorkflows || isPlatform;
             var publicKey = metadata.GetBlobBytes(assembly.PublicKey);
             var identity = new AssemblyName("InspectionOnly");
             identity.SetPublicKey(publicKey);
@@ -154,6 +162,7 @@ internal static class Program
                     string.Equals(metadata.GetString(type.Namespace), "SpeechMessage.Dynamics.Plugins.Diagnostics", StringComparison.Ordinal) &&
                     string.Equals(metadata.GetString(type.Name), "DiagnosticsPingPlugin", StringComparison.Ordinal);
             });
+            var platformPlugin = isPlatform && HasExactPlatformPluginEntries(metadata);
             var workflowActivity = isWorkflows && metadata.TypeDefinitions.Any(handle =>
             {
                 var type = metadata.GetTypeDefinition(handle);
@@ -162,11 +171,11 @@ internal static class Program
             });
             var noNetStandardFacade = HasNoFrameworkFacade(metadata, assembly);
             var ok = strongName && targetFramework && allowed && noDrawing && assemblyIdentity &&
-                (plugin || workflowActivity) && noNetStandardFacade;
+                (plugin || workflowActivity || platformPlugin) && noNetStandardFacade;
             output.WriteLine(JsonSerializer.Serialize(new
             {
                 ok,
-                checks = new { readable = true, strongName, targetFramework, allowedReferences = allowed, noNetStandardFacade, noDrawing, assemblyIdentity, diagnosticsPlugin = plugin, workflowActivity, size = true },
+                checks = new { readable = true, strongName, targetFramework, allowedReferences = allowed, noNetStandardFacade, noDrawing, assemblyIdentity, diagnosticsPlugin = plugin, workflowActivity, platformPlugin, size = true },
                 assemblyVersion = assembly.Version.ToString(),
                 references,
                 sizeBytes = stream.Length
@@ -178,6 +187,66 @@ internal static class Program
             // 損壞影像、不可讀檔與不合法中繼資料都是預期輸入拒絕；不輸出原始路徑或例外訊息。
             return Reject("InvalidImage", output);
         }
+    }
+
+    /// <summary>
+    /// 平台組件所有可見公開型別必須恰為兩個完整核定名稱，且兩者介面參照都解析到 Microsoft.Xrm.Sdk 組件。
+    /// 同時限制公開非 Plugin 輔助型別，避免 ILRepack Internalize 失效後把依賴 API 暴露為產品入口。
+    /// 只讀本次 PE 的 TypeDefinition／InterfaceImplementation，不載入 DLL、不依賴同名本地介面，也不保留跨檔案快取。
+    /// </summary>
+    /// <param name="metadata">由 Run 當次 PEReader 擁有的唯讀中繼資料。</param>
+    /// <returns>公開型別恰為兩個指定類別，且兩者均直接實作官方 SDK IPlugin 時才回傳 true。</returns>
+    private static bool HasExactPlatformPluginEntries(MetadataReader metadata)
+    {
+        var publicTypes = new HashSet<string>(StringComparer.Ordinal);
+        var pluginEntries = new HashSet<string>(StringComparer.Ordinal);
+        var duplicatePublicType = false;
+        foreach (var handle in metadata.TypeDefinitions)
+        {
+            var type = metadata.GetTypeDefinition(handle);
+            var attributes = type.Attributes;
+            var visibility = attributes & TypeAttributes.VisibilityMask;
+            if (visibility is not (TypeAttributes.Public or TypeAttributes.NestedPublic)) continue;
+
+            var typeName = metadata.GetString(type.Name);
+            var typeNamespace = metadata.GetString(type.Namespace);
+            var fullName = typeNamespace.Length == 0 ? typeName : typeNamespace + "." + typeName;
+            if (!publicTypes.Add(fullName))
+            {
+                duplicatePublicType = true;
+                continue;
+            }
+
+            if ((attributes & TypeAttributes.Abstract) == 0 &&
+                (attributes & TypeAttributes.Interface) == 0 &&
+                ImplementsOfficialSdkPlugin(metadata, type))
+                pluginEntries.Add(fullName);
+        }
+
+        return !duplicatePublicType &&
+            PlatformPluginTypeNames.SetEquals(publicTypes) &&
+            PlatformPluginTypeNames.SetEquals(pluginEntries);
+    }
+
+    /// <summary>只認 TypeReference 指向 Microsoft.Xrm.Sdk.IPlugin；同名 TypeDefinition 或其他組件契約不算 SDK 外掛。</summary>
+    /// <param name="metadata">當次 PEReader 的唯讀中繼資料。</param>
+    /// <param name="type">目前檢查的公開型別定義。</param>
+    /// <returns>存在精確 Xrm assembly-scoped IPlugin interface reference 時為 true。</returns>
+    private static bool ImplementsOfficialSdkPlugin(MetadataReader metadata, TypeDefinition type)
+    {
+        foreach (var handle in type.GetInterfaceImplementations())
+        {
+            var implementation = metadata.GetInterfaceImplementation(handle);
+            if (implementation.Interface.Kind != HandleKind.TypeReference) continue;
+            var contract = metadata.GetTypeReference((TypeReferenceHandle)implementation.Interface);
+            if (!string.Equals(metadata.GetString(contract.Namespace), "Microsoft.Xrm.Sdk", StringComparison.Ordinal) ||
+                !string.Equals(metadata.GetString(contract.Name), "IPlugin", StringComparison.Ordinal) ||
+                contract.ResolutionScope.Kind != HandleKind.AssemblyReference) continue;
+            var assembly = metadata.GetAssemblyReference((AssemblyReferenceHandle)contract.ResolutionScope);
+            if (string.Equals(metadata.GetString(assembly.Name), "Microsoft.Xrm.Sdk", StringComparison.Ordinal)) return true;
+        }
+
+        return false;
     }
 
     /// <summary>
@@ -314,7 +383,7 @@ internal static class Program
         {
             ok = false,
             reason,
-            checks = new { readable = false, strongName = false, targetFramework = false, allowedReferences = false, noNetStandardFacade = false, noDrawing = false, assemblyIdentity = false, diagnosticsPlugin = false, workflowActivity = false, size = false }
+            checks = new { readable = false, strongName = false, targetFramework = false, allowedReferences = false, noNetStandardFacade = false, noDrawing = false, assemblyIdentity = false, diagnosticsPlugin = false, workflowActivity = false, platformPlugin = false, size = false }
         }));
         return 1;
     }

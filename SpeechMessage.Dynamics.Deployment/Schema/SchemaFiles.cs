@@ -12,7 +12,9 @@
  * Validate 逐一確認固定 solution／publisher／new 前綴、ActivePhase範圍、精確既有實體白名單、欄位身份與唯一性、
  * 進入既有實體白名單輔助函式前先確認Fields／Keys不為null；null集合與其他結構錯誤一律轉成受控資料錯誤，
  * 型別／長度／phase、lookup 目標、選項數值與索引欄位；主要名稱與索引欄仍要求phase 1，P1時間點必須為UserLocal／DateAndTime。
- * 分層讀取先驗每檔的結構，lookup 目標存在性留到完整組合後驗證，允許產品層引用平台表；
+ * 分層讀取先驗每檔的結構，lookup 目標與主名稱欄位存在性留到完整組合後驗證，允許同層檔案延伸新表；
+ * 跨層僅精確允許 goodshepherd20 的 goodshepherd 層延伸 account 四個核定生命週期欄位；
+ * 此特例不能加入未知欄位、重複平台欄位、鍵或變更實體 metadata，其餘跨層重複實體仍拒絕。
  * 單檔 Load／Hash 與合併完成後的 Validate 仍拒絕任何未宣告目標，未驗證的局部層不會公開回傳。
  * 層級檢視只合併一次，實體／檢視名稱不得重複；所有條件欄位也須存在於清單。
  * 非教會產品即使誤載了平台內的教會實體仍會拒絕，隔離不只依賴設定檔目前剛好正確。
@@ -154,7 +156,9 @@ internal static class SchemaFiles
                 }
                 else if (!item.Folder || !string.Equals(entityLayers[entity.LogicalName], item.Layer, StringComparison.Ordinal))
                 {
-                    throw new InvalidDataException("Schema entity is duplicated across layers.");
+                    if (!IsApprovedLifecycleExtension(organization, entityLayers[entity.LogicalName], item.Layer, entity))
+                        throw new InvalidDataException("Schema entity is duplicated across layers.");
+                    entities[existingIndex] = MergeFolderEntity(entities[existingIndex], entity);
                 }
                 else
                 {
@@ -335,7 +339,7 @@ internal static class SchemaFiles
                 ValidateField(field);
             }
             if (entity.IsNew && (!ValidName(entity.PrimaryName)
-                || !entity.Fields.Any(field => field.LogicalName == entity.PrimaryName && field.Type == "string" && field.Phase == 1)))
+                || !allowEmptyEntities && !entity.Fields.Any(field => field.LogicalName == entity.PrimaryName && field.Type == "string" && field.Phase == 1)))
                 throw new InvalidDataException("New entity requires its declared primary name field.");
             var keys = new HashSet<string>(StringComparer.Ordinal);
             foreach (var key in entity.Keys)
@@ -373,6 +377,22 @@ internal static class SchemaFiles
             Fields = Array.AsReadOnly(fields),
             Keys = Array.AsReadOnly(keys)
         };
+    }
+
+    /// <summary>
+    /// F3 唯一核定的跨層延伸：好牧人 account 生命週期屬產品層，租戶基本資料屬平台層。
+    /// 只接受四個固定欄位及型別／選項，完整合併仍驗 metadata 一致與欄位唯一；未知產品擴充不能沿此特例穿越。
+    /// </summary>
+    private static bool IsApprovedLifecycleExtension(string organization, string firstLayer, string secondLayer, SchemaEntity entity)
+    {
+        if (organization != "goodshepherd20" || firstLayer != "platform" || secondLayer != "goodshepherd"
+            || entity.LogicalName != "account" || entity.IsNew || entity.Fields.Count != 4 || entity.Keys.Count != 0)
+            return false;
+        return entity.Fields.All(field => field.Phase == 1 && !field.Required && !field.Secured &&
+            (field.LogicalName == "new_lifecyclestatus"
+                ? field.Type == "choice" && field.Options.Select(option => option.Value).SequenceEqual(Enumerable.Range(100000000, 7))
+                : field.LogicalName is "new_trialenddate" or "new_reserveuntil" or "new_periodend"
+                    && field.Type == "datetime" && field.Behavior == "UserLocal" && field.Format == "DateAndTime"));
     }
 
     /// <summary>分層專用 ownership 與檢視契約；legacy goodshepherdback 保留舊 nullable ownership 以維持回歸 hash。</summary>

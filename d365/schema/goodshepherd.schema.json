@@ -119,6 +119,76 @@
         }
       ],
       "keys": []
+    },
+    {
+      "logicalName": "account",
+      "displayName": "教會",
+      "pluralName": "教會",
+      "isNew": false,
+      "audit": false,
+      "fields": [
+        {
+          "logicalName": "new_lifecyclestatus",
+          "displayName": "生命週期",
+          "type": "choice",
+          "phase": 1,
+          "options": [
+            {
+              "value": 100000000,
+              "label": "申請中"
+            },
+            {
+              "value": 100000001,
+              "label": "待啟用"
+            },
+            {
+              "value": 100000002,
+              "label": "試用中"
+            },
+            {
+              "value": 100000003,
+              "label": "進行中"
+            },
+            {
+              "value": 100000004,
+              "label": "待配發名額"
+            },
+            {
+              "value": 100000005,
+              "label": "保留中"
+            },
+            {
+              "value": 100000006,
+              "label": "已結束"
+            }
+          ]
+        },
+        {
+          "logicalName": "new_trialenddate",
+          "displayName": "試用結束時間",
+          "type": "datetime",
+          "phase": 1,
+          "behavior": "UserLocal",
+          "format": "DateAndTime"
+        },
+        {
+          "logicalName": "new_reserveuntil",
+          "displayName": "保留期限",
+          "type": "datetime",
+          "phase": 1,
+          "behavior": "UserLocal",
+          "format": "DateAndTime"
+        },
+        {
+          "logicalName": "new_periodend",
+          "displayName": "期末時間",
+          "type": "datetime",
+          "phase": 1,
+          "behavior": "UserLocal",
+          "format": "DateAndTime"
+        }
+      ],
+      "keys": []
     }
   ]
 }

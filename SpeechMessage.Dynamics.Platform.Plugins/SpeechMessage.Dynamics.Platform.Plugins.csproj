@@ -1,0 +1,26 @@
+<!--
+檔案整體說明
+目的與定位：定義三產品共用名額池平台 Plugin 的 net462 沙箱組件，不包含好牧人產品業務或主機服務。
+主要功能與流程：只參考既有雙目標 LINE Core、Localization、Xrm SDK 與 Newtonsoft；嚴格文件與分析器沿方案設定，另載入同一沙箱 GDI 禁用清單。一般建置不讀簽章金鑰、不連資料庫或 LINE，部署包由本包獨立驗證後才可使用。
+使用邊界與維護：SDK 由 D365 提供；Execute 的服務與交易由平台擁有，不能靜態保留使用者、組織、憑證或 request。CRM SDK 會傳遞引入 System.Text.Json 6.0.8；直接宣告中央管理的既有版本，避免嚴格全相依 NuGet 稽核以 NU1903 阻擋還原。修改依賴時須確認 net462、無主機或產品反向參考；明確打包才載入獨立平台 targets，使用 Core、Localization、Newtonsoft 與必要 LINE 傳輸閉包，輸出至 artifacts/plugins，不覆寫 bin 原組件。測試使用獨立 net48 宿主驗真產品輸出，不把離線替身當實機。
+-->
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net462</TargetFramework>
+    <SpeechMessageStrictCode>true</SpeechMessageStrictCode>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <AssemblyVersion>1.0.0.0</AssemblyVersion>
+    <ILRepackTargetsFile>$(MSBuildThisFileDirectory)../build/PlatformPluginMerge.targets</ILRepackTargetsFile>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.CrmSdk.CoreAssemblies" PrivateAssets="all" />
+    <PackageReference Include="System.Text.Json" />
+    <PackageReference Include="Newtonsoft.Json" />
+    <PackageReference Include="ILRepack.Lib.MSBuild.Task" PrivateAssets="all" />
+    <ProjectReference Include="../LineMessagingProcessor.Core/LineMessagingProcessor.Core.csproj" />
+    <ProjectReference Include="../SpeechMessage.Localization/SpeechMessage.Localization.csproj" />
+    <AdditionalFiles Include="../build/Plugin/BannedSymbols.txt" />
+    <InternalsVisibleTo Include="SpeechMessage.Dynamics.Platform.Plugins.Tests" />
+  </ItemGroup>
+</Project>

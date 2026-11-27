@@ -3,7 +3,7 @@
  *
  * 目的與定位：部署 CLI 的多組件清單接線層；完整文件交給 DocumentDeploymentEngine，
  * 不把多組件清單縮成第一筆。主入口負責白名單、組織寫鎖、租約及原始例外回報。
- * 主要功能與流程：逐一讀取固定 artifacts/plugins/<AssemblyName>.dll，以完整映像集合
+ * 主要功能與流程：接收主入口已按組織選取的最多三組件，逐一讀取固定 artifacts/plugins/<AssemblyName>.dll，以完整映像集合
  * 呼叫 Plan／Apply／Verify／Export／Rollback。計畫與備份索引固定為 plan.json、
  * backup.json；共用 writer 亦只允許核定的 Live 摘要、L2 脫敏 XML golden 與非驗收診斷投影檔名，
  * 以 CreateNew 暫存、Flush(true)、關檔及禁止覆寫的 Move 發布。
@@ -86,7 +86,7 @@ internal static partial class DeploymentCli
             {
                 var backup = ReadDocumentFile<DocumentDeploymentBackup>(command.InputPath!, organizationRoot);
                 if (backup.Organization != command.Organization || backup.Assemblies is null ||
-                    backup.Assemblies.Count is < 1 or > 2)
+                    backup.Assemblies.Count is < 1 or > 3)
                     throw new InvalidDataException("Backup index organization or assembly is invalid.");
                 foreach (var item in backup.Assemblies)
                     if (item is null || !IsDocumentPath(organizationRoot, item.Path))

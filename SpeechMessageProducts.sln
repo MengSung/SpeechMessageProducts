@@ -107,6 +107,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SpeechMessage.Scheduling", 
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SpeechMessage.Scheduling.Tests", "SpeechMessage.Scheduling.Tests\SpeechMessage.Scheduling.Tests.csproj", "{65FAC727-4BDD-4E15-97ED-2B77122B5122}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SpeechMessage.Dynamics.Platform.Plugins", "SpeechMessage.Dynamics.Platform.Plugins\SpeechMessage.Dynamics.Platform.Plugins.csproj", "{20C70A78-51C0-4B4E-B074-ACBF5C4EB410}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SpeechMessage.Dynamics.Platform.Plugins.Tests", "SpeechMessage.Dynamics.Platform.Plugins.Tests\SpeechMessage.Dynamics.Platform.Plugins.Tests.csproj", "{1FCC037D-E52B-4B58-8E7D-FE74C020E2DE}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug_LearnCrm|Any CPU = Debug_LearnCrm|Any CPU
@@ -1626,6 +1630,66 @@ Global
 		{65FAC727-4BDD-4E15-97ED-2B77122B5122}.Test_Exchange_Service|x64.Build.0 = Debug|Any CPU
 		{65FAC727-4BDD-4E15-97ED-2B77122B5122}.Test_Exchange_Service|x86.ActiveCfg = Debug|Any CPU
 		{65FAC727-4BDD-4E15-97ED-2B77122B5122}.Test_Exchange_Service|x86.Build.0 = Debug|Any CPU
+		{20C70A78-51C0-4B4E-B074-ACBF5C4EB410}.Debug_LearnCrm|Any CPU.ActiveCfg = Debug|Any CPU
+		{20C70A78-51C0-4B4E-B074-ACBF5C4EB410}.Debug_LearnCrm|Any CPU.Build.0 = Debug|Any CPU
+		{20C70A78-51C0-4B4E-B074-ACBF5C4EB410}.Debug_LearnCrm|x64.ActiveCfg = Debug|Any CPU
+		{20C70A78-51C0-4B4E-B074-ACBF5C4EB410}.Debug_LearnCrm|x64.Build.0 = Debug|Any CPU
+		{20C70A78-51C0-4B4E-B074-ACBF5C4EB410}.Debug_LearnCrm|x86.ActiveCfg = Debug|Any CPU
+		{20C70A78-51C0-4B4E-B074-ACBF5C4EB410}.Debug_LearnCrm|x86.Build.0 = Debug|Any CPU
+		{20C70A78-51C0-4B4E-B074-ACBF5C4EB410}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{20C70A78-51C0-4B4E-B074-ACBF5C4EB410}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{20C70A78-51C0-4B4E-B074-ACBF5C4EB410}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{20C70A78-51C0-4B4E-B074-ACBF5C4EB410}.Debug|x64.Build.0 = Debug|Any CPU
+		{20C70A78-51C0-4B4E-B074-ACBF5C4EB410}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{20C70A78-51C0-4B4E-B074-ACBF5C4EB410}.Debug|x86.Build.0 = Debug|Any CPU
+		{20C70A78-51C0-4B4E-B074-ACBF5C4EB410}.DebugOracleConnector|Any CPU.ActiveCfg = Debug|Any CPU
+		{20C70A78-51C0-4B4E-B074-ACBF5C4EB410}.DebugOracleConnector|Any CPU.Build.0 = Debug|Any CPU
+		{20C70A78-51C0-4B4E-B074-ACBF5C4EB410}.DebugOracleConnector|x64.ActiveCfg = Debug|Any CPU
+		{20C70A78-51C0-4B4E-B074-ACBF5C4EB410}.DebugOracleConnector|x64.Build.0 = Debug|Any CPU
+		{20C70A78-51C0-4B4E-B074-ACBF5C4EB410}.DebugOracleConnector|x86.ActiveCfg = Debug|Any CPU
+		{20C70A78-51C0-4B4E-B074-ACBF5C4EB410}.DebugOracleConnector|x86.Build.0 = Debug|Any CPU
+		{20C70A78-51C0-4B4E-B074-ACBF5C4EB410}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{20C70A78-51C0-4B4E-B074-ACBF5C4EB410}.Release|Any CPU.Build.0 = Release|Any CPU
+		{20C70A78-51C0-4B4E-B074-ACBF5C4EB410}.Release|x64.ActiveCfg = Release|Any CPU
+		{20C70A78-51C0-4B4E-B074-ACBF5C4EB410}.Release|x64.Build.0 = Release|Any CPU
+		{20C70A78-51C0-4B4E-B074-ACBF5C4EB410}.Release|x86.ActiveCfg = Release|Any CPU
+		{20C70A78-51C0-4B4E-B074-ACBF5C4EB410}.Release|x86.Build.0 = Release|Any CPU
+		{20C70A78-51C0-4B4E-B074-ACBF5C4EB410}.Test_Exchange_Service|Any CPU.ActiveCfg = Debug|Any CPU
+		{20C70A78-51C0-4B4E-B074-ACBF5C4EB410}.Test_Exchange_Service|Any CPU.Build.0 = Debug|Any CPU
+		{20C70A78-51C0-4B4E-B074-ACBF5C4EB410}.Test_Exchange_Service|x64.ActiveCfg = Debug|Any CPU
+		{20C70A78-51C0-4B4E-B074-ACBF5C4EB410}.Test_Exchange_Service|x64.Build.0 = Debug|Any CPU
+		{20C70A78-51C0-4B4E-B074-ACBF5C4EB410}.Test_Exchange_Service|x86.ActiveCfg = Debug|Any CPU
+		{20C70A78-51C0-4B4E-B074-ACBF5C4EB410}.Test_Exchange_Service|x86.Build.0 = Debug|Any CPU
+		{1FCC037D-E52B-4B58-8E7D-FE74C020E2DE}.Debug_LearnCrm|Any CPU.ActiveCfg = Debug|Any CPU
+		{1FCC037D-E52B-4B58-8E7D-FE74C020E2DE}.Debug_LearnCrm|Any CPU.Build.0 = Debug|Any CPU
+		{1FCC037D-E52B-4B58-8E7D-FE74C020E2DE}.Debug_LearnCrm|x64.ActiveCfg = Debug|Any CPU
+		{1FCC037D-E52B-4B58-8E7D-FE74C020E2DE}.Debug_LearnCrm|x64.Build.0 = Debug|Any CPU
+		{1FCC037D-E52B-4B58-8E7D-FE74C020E2DE}.Debug_LearnCrm|x86.ActiveCfg = Debug|Any CPU
+		{1FCC037D-E52B-4B58-8E7D-FE74C020E2DE}.Debug_LearnCrm|x86.Build.0 = Debug|Any CPU
+		{1FCC037D-E52B-4B58-8E7D-FE74C020E2DE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1FCC037D-E52B-4B58-8E7D-FE74C020E2DE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1FCC037D-E52B-4B58-8E7D-FE74C020E2DE}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{1FCC037D-E52B-4B58-8E7D-FE74C020E2DE}.Debug|x64.Build.0 = Debug|Any CPU
+		{1FCC037D-E52B-4B58-8E7D-FE74C020E2DE}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{1FCC037D-E52B-4B58-8E7D-FE74C020E2DE}.Debug|x86.Build.0 = Debug|Any CPU
+		{1FCC037D-E52B-4B58-8E7D-FE74C020E2DE}.DebugOracleConnector|Any CPU.ActiveCfg = Debug|Any CPU
+		{1FCC037D-E52B-4B58-8E7D-FE74C020E2DE}.DebugOracleConnector|Any CPU.Build.0 = Debug|Any CPU
+		{1FCC037D-E52B-4B58-8E7D-FE74C020E2DE}.DebugOracleConnector|x64.ActiveCfg = Debug|Any CPU
+		{1FCC037D-E52B-4B58-8E7D-FE74C020E2DE}.DebugOracleConnector|x64.Build.0 = Debug|Any CPU
+		{1FCC037D-E52B-4B58-8E7D-FE74C020E2DE}.DebugOracleConnector|x86.ActiveCfg = Debug|Any CPU
+		{1FCC037D-E52B-4B58-8E7D-FE74C020E2DE}.DebugOracleConnector|x86.Build.0 = Debug|Any CPU
+		{1FCC037D-E52B-4B58-8E7D-FE74C020E2DE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1FCC037D-E52B-4B58-8E7D-FE74C020E2DE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1FCC037D-E52B-4B58-8E7D-FE74C020E2DE}.Release|x64.ActiveCfg = Release|Any CPU
+		{1FCC037D-E52B-4B58-8E7D-FE74C020E2DE}.Release|x64.Build.0 = Release|Any CPU
+		{1FCC037D-E52B-4B58-8E7D-FE74C020E2DE}.Release|x86.ActiveCfg = Release|Any CPU
+		{1FCC037D-E52B-4B58-8E7D-FE74C020E2DE}.Release|x86.Build.0 = Release|Any CPU
+		{1FCC037D-E52B-4B58-8E7D-FE74C020E2DE}.Test_Exchange_Service|Any CPU.ActiveCfg = Debug|Any CPU
+		{1FCC037D-E52B-4B58-8E7D-FE74C020E2DE}.Test_Exchange_Service|Any CPU.Build.0 = Debug|Any CPU
+		{1FCC037D-E52B-4B58-8E7D-FE74C020E2DE}.Test_Exchange_Service|x64.ActiveCfg = Debug|Any CPU
+		{1FCC037D-E52B-4B58-8E7D-FE74C020E2DE}.Test_Exchange_Service|x64.Build.0 = Debug|Any CPU
+		{1FCC037D-E52B-4B58-8E7D-FE74C020E2DE}.Test_Exchange_Service|x86.ActiveCfg = Debug|Any CPU
+		{1FCC037D-E52B-4B58-8E7D-FE74C020E2DE}.Test_Exchange_Service|x86.Build.0 = Debug|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

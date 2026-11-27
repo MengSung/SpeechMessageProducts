@@ -1,0 +1,63 @@
+<!--
+檔案整體說明
+
+目的與定位：僅供 SpeechMessage.Dynamics.Platform.Plugins 使用的獨立 net462 部署打包入口；不修改舊 PluginMerge.targets，也不改寫 bin 原始測試組件。
+主要功能與流程：一般 Debug／Release 不進入打包、不讀簽章環境值、不建立 artifacts。只有 SpeechMessagePackagePlugin=true 才讀程序環境中的 SPEECHMESSAGE_PLUGIN_KEYFILE；Release 缺 key 失敗、Debug 缺 key 只輸出明確不可部署警告。唯一五個輸入是平台主組件、LineMessagingProcessor.Core、SpeechMessage.Localization、Newtonsoft.Json 與既有明確來源的 Line.Messaging 沙箱子集；子集排除事件解析所需 Microsoft.CSharp 繫結器，維持原引用守門。逐一以 PE 中繼資料檢查 net462 上限及 facade，ILRepack 內部化至獨立 artifacts/plugins，再以離線檢查器驗證簽章、目標框架、引用、GDI、大小與兩個精確 Xrm IPlugin 入口。
+使用邊界與維護：Xrm SDK 與 .NET Framework 由 D365 沙箱提供；不得新增 GoodShepherd.Core、ToolUtility 或萬用字元輸入。ILRepack、dotnet 驗證器與輸出目錄只由此打包目標持有；任何失敗由 MSBuild 非零終止，原始 bin 組件保留供測試與復原。簽章金鑰只以程序環境路徑讀取，不讀、不複製、不輸出金鑰內容。
+-->
+<Project>
+  <!--
+       此目標只對平台 Plugin 專案的明確 opt-in 生效；原始 bin 輸出維持可供測試的未合併組件。
+       簽章金鑰只能來自程序環境，MSBuild 屬性或專案檔不能提供替代來源。 -->
+  <Target Name="PackageSpeechMessagePlatformPlugin"
+          AfterTargets="Build"
+          Condition="'$(SpeechMessagePackagePlugin)' == 'true' And '$(DesignTimeBuild)' != 'true'">
+    <PropertyGroup>
+      <_SpeechMessagePlatformPluginKeyFile>$([System.Environment]::GetEnvironmentVariable('SPEECHMESSAGE_PLUGIN_KEYFILE'))</_SpeechMessagePlatformPluginKeyFile>
+      <_SpeechMessagePlatformPluginOutput>$(MSBuildThisFileDirectory)../artifacts/plugins/$(TargetFileName)</_SpeechMessagePlatformPluginOutput>
+    </PropertyGroup>
+    <!-- opt-in 重新打包一律先移除既有目標，避免本次驗證／ILRepack 失敗後被誤用成新產物。 -->
+    <Delete Files="$(_SpeechMessagePlatformPluginOutput)"
+            Condition="Exists('$(_SpeechMessagePlatformPluginOutput)')" />
+    <Error Condition="'$(_SpeechMessagePlatformPluginKeyFile)' == '' And '$(Configuration)' == 'Release'"
+           Code="SMP0001"
+           Text="Release 平台 Plugin 打包必須設定 SPEECHMESSAGE_PLUGIN_KEYFILE；請由使用者準備 repo 外的正式強式名稱金鑰。" />
+    <Error Condition="'$(_SpeechMessagePlatformPluginKeyFile)' != '' And !Exists('$(_SpeechMessagePlatformPluginKeyFile)')"
+           Code="SMP0003"
+           Text="SPEECHMESSAGE_PLUGIN_KEYFILE 指定的金鑰不存在；禁止改用其他金鑰或產生正式金鑰。" />
+    <Warning Condition="'$(_SpeechMessagePlatformPluginKeyFile)' == '' And '$(Configuration)' != 'Release'"
+             Code="SMP0002"
+             Text="未設定 SPEECHMESSAGE_PLUGIN_KEYFILE；本次 Debug 只產生未簽章平台組件，不可部署。" />
+    <ItemGroup>
+      <!-- 僅合併平台必需閉包；Xrm SDK 保持外部，由 D365 沙箱提供。 -->
+      <_SpeechMessagePlatformMergeInput Include="$(TargetPath)" />
+      <_SpeechMessagePlatformMergeInput Include="$(TargetDir)LineMessagingProcessor.Core.dll" />
+      <_SpeechMessagePlatformMergeInput Include="$(TargetDir)SpeechMessage.Localization.dll" />
+      <_SpeechMessagePlatformMergeInput Include="$(TargetDir)Newtonsoft.Json.dll" />
+      <_SpeechMessagePlatformMergeInput Include="$(MSBuildThisFileDirectory)Line.Messaging.PluginSubset/bin/$(Configuration)/net462/Line.Messaging.dll" />
+    </ItemGroup>
+    <!-- 重用已核定的精確 LINE message 子集，避開完整 SDK 的 dynamic/Microsoft.CSharp 事件解析器。 -->
+    <Exec Command="dotnet build &quot;$(MSBuildThisFileDirectory)Line.Messaging.PluginSubset/Line.Messaging.PluginSubset.csproj&quot; --configuration $(Configuration) --framework net462 --nologo -p:RestoreUseStaticGraphEvaluation=false" />
+    <Error Condition="!Exists('%(_SpeechMessagePlatformMergeInput.Identity)')"
+           Code="SMP0004"
+           Text="平台 Plugin 合併輸入缺失；請確認本組件與精確相依閉包已建置。" />
+    <!-- 以標準還原／建置重新生成 metadata validator；不沿用其他專案 assets，也不使用靜態圖還原。 -->
+    <Exec Command="dotnet build &quot;$(MSBuildThisFileDirectory)../tools/PluginPackaging/PluginPackaging.csproj&quot; --configuration Release --framework net10.0 --nologo -p:RestoreUseStaticGraphEvaluation=false -p:RestoreForce=true"
+          WorkingDirectory="$(MSBuildThisFileDirectory)../tools/PluginPackaging" />
+    <!-- 每個輸入都需低於 net462 上限且不含 facade；PEReader 不載入或執行待合併組件。 -->
+    <Exec Command="dotnet &quot;$(MSBuildThisFileDirectory)../tools/PluginPackaging/bin/Release/net10.0/PluginPackaging.dll&quot; --validate-net462-input &quot;%(_SpeechMessagePlatformMergeInput.Identity)&quot;"
+          WorkingDirectory="$(MSBuildThisFileDirectory).." />
+    <MakeDir Directories="$(MSBuildThisFileDirectory)../artifacts/plugins" />
+    <ILRepack InputAssemblies="@(_SpeechMessagePlatformMergeInput)"
+              OutputFile="$(MSBuildThisFileDirectory)../artifacts/plugins/$(TargetFileName)"
+              TargetKind="Dll"
+              Internalize="true"
+              KeyFile="$(_SpeechMessagePlatformPluginKeyFile)"
+              LibraryPath="$(TargetDir);$(TargetFrameworkDirectory)"
+              DebugInfo="false"
+              Parallel="true" />
+    <!-- 對最終產物重跑既有完整守門，未簽章、錯框架、未核准引用或錯誤入口不得被當成可交付包。 -->
+    <Exec Command="dotnet &quot;$(MSBuildThisFileDirectory)../tools/PluginPackaging/bin/Release/net10.0/PluginPackaging.dll&quot; &quot;$(_SpeechMessagePlatformPluginOutput)&quot;"
+          WorkingDirectory="$(MSBuildThisFileDirectory).." />
+  </Target>
+</Project>

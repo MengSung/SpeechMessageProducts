@@ -17,8 +17,10 @@
  * - F1 必要補正將精確 SpeechMessage.Scheduling 登錄於既有第 50 層，供 F4 共用引擎
  *   向下使用 Hosting／Localization、由產品組合根消費；不放寬同層、產品或公開表面守門，
  *   測試仍依 IsTest 分類，相似名稱不取得排程層級。本檔不實作或啟動排程產品。
+ * - 線 A 將精確 SpeechMessage.Access 與 Scheduling 同列第 50 層，讓產品組合根向下使用 F8；
+ *   同儕、反向、產品依賴、未知近似名稱與框架守門沿用原規則，不修改線 B 的權限模組。
  * - 檢查 NuGet 已選出的 Framework 相依，而不是只相信 csproj 宣告能提供 net462。
- * - 部署端 Plugin 與 Workflow 都受同一個 v4.6.2 沙箱契約約束。
+ * - 部署端 Plugin、Workflow 與精確 F3 平台 Plugin 都受同一個 v4.6.2 沙箱契約約束；平台公開面精確限制為兩個核定 IPlugin 入口。
  * - 以來源快照執行 R2 主機／Plugin 公開邊界、R3 組織字面值白名單及 R9 傳輸／Plugin 參考守門；
  *   ChurchReport以框架入口、MVC繼承及公開簽章閉包判定；明列例外必附理由與證據，其他主機規則不變。
  *   GoodShepherd2.Web 精確列為產品主機，沿用公開外殼與主機互參限制，相似名稱仍拒絕分類。
@@ -37,6 +39,7 @@
  * 追查目前工作樹中的合作／使用位置。
  */
 using System;
+using System.Collections.Frozen;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.Json;
@@ -104,6 +107,20 @@ internal sealed record ArchitectureR2Exception(string Symbol, string Reason, str
 /// <summary>純函式 R2／R3／R4／R9 規則；每次驗證獨立建立結果，不保存跨測試或跨目標的可變靜態圖。</summary>
 internal static class ArchitectureRules
 {
+    /// <summary>
+    /// 精確平台組件名稱，僅供 F3 沙箱、層級與公開入口集合檢查，不授權相似名稱。
+    /// </summary>
+    private const string F3PlatformPluginProject = "SpeechMessage.Dynamics.Platform.Plugins";
+    /// <summary>01 核定的名額申請入口完整名稱，不允許 helper 借用短名取得公開權限。</summary>
+    private const string F3SlotRequestPlugin =
+        "SpeechMessage.Dynamics.Platform.Plugins.ChannelPool.SlotRequestPlugin";
+    /// <summary>01 核定的 Channel 建立及不可變產品檢查入口；必須同時實作真正 SDK IPlugin。</summary>
+    private const string F3ChannelCreatedPlugin =
+        "SpeechMessage.Dynamics.Platform.Plugins.ChannelPool.ChannelCreatedPlugin";
+    /// <summary>不可變的兩入口白名單，每次掃描另建觀察集合；不保留 Roslyn 或來源參照。</summary>
+    private static readonly FrozenSet<string> F3PlatformPluginEntryNames =
+        new[] { F3SlotRequestPlugin, F3ChannelCreatedPlugin }.ToFrozenSet(StringComparer.Ordinal);
+
     /// <summary>
     /// 共用框架已提供的九個舊套件 ID；唯讀固定清單不含租戶、使用者或當次評估狀態，
     /// 由 Validate 同時比對直接參考及還原相依，套件身分以 NuGet 的不分大小寫語意判定。
@@ -290,6 +307,7 @@ internal static class ArchitectureRules
                 var churchReportAllowed = project.Name == "SpeechMessageProducts.ChurchReport"
                     ? ChurchReportPublicSurface(compilation, project.ChurchReportExceptions) : null;
                 var inspectedTypes = new HashSet<ISymbol>(SymbolEqualityComparer.Default);
+                var f3PlatformPluginEntries = new HashSet<string>(StringComparer.Ordinal);
                 foreach (var tree in trees)
                 {
                     var path = tree.FilePath;
@@ -330,7 +348,18 @@ internal static class ArchitectureRules
                             Add("R2HostPublicType", project, identity, path);
                         }
 
-                        if (IsSandbox(project.Name) && !IsPluginEntry(symbol, compilation))
+                        if (project.Name == F3PlatformPluginProject)
+                        {
+                            if (!IsF3PlatformPluginEntry(symbol, compilation))
+                            {
+                                Add("R2PluginPublicType", project, identity, path);
+                            }
+                            else
+                            {
+                                f3PlatformPluginEntries.Add(identity);
+                            }
+                        }
+                        else if (IsSandbox(project.Name) && !IsPluginEntry(symbol, compilation))
                         {
                             Add("R2PluginPublicType", project, identity, path);
                         }
@@ -368,6 +397,12 @@ internal static class ArchitectureRules
                             Add("R9PluginSystemDrawingReference", project, "System.Drawing", path);
                         }
                     }
+                }
+
+                if (project.Name == F3PlatformPluginProject &&
+                    !F3PlatformPluginEntryNames.SetEquals(f3PlatformPluginEntries))
+                {
+                    Add("R2PlatformPluginEntrySet", project, "F3PlatformPluginEntrySet");
                 }
             }
         }
@@ -551,6 +586,19 @@ internal static class ArchitectureRules
     }
 
     /// <summary>
+    /// F3 平台只允許兩個精確完整型別名稱，而且必須由真正 Microsoft.Xrm.Sdk.IPlugin 契約辨識；
+    /// 相同短名、helper、Workflow 或本地偽造介面均不能取得公開入口例外。
+    /// </summary>
+    /// <param name="symbol">本次 Roslyn compilation 中已確認對外可見的型別。</param>
+    /// <param name="compilation">只含本次來源快照及借入 SDK metadata 的編譯模型。</param>
+    /// <returns>精確型別名稱且實作官方 SDK Plugin 介面時才回傳 true。</returns>
+    private static bool IsF3PlatformPluginEntry(INamedTypeSymbol symbol, CSharpCompilation compilation) =>
+        symbol.TypeKind == TypeKind.Class && symbol.Arity == 0 && symbol.ContainingType is null &&
+        F3PlatformPluginEntryNames.Contains(
+            symbol.ToDisplayString(SymbolDisplayFormat.CSharpErrorMessageFormat)) &&
+        IsPluginEntry(symbol, compilation);
+
+    /// <summary>
     /// 使用真正 SDK 組件身分及 Roslyn 的完整繼承圖辨識入口；別名與間接繼承有效，
     /// 名稱相似或在產品來源偽造同命名空間的介面均無權冒充官方契約。
     /// </summary>
@@ -663,8 +711,9 @@ internal static class ArchitectureRules
     /// <summary>只有明列的三個工具可取得工具層級；產品不得反向依賴，也不授予目標、傳輸或沙箱豁免。</summary>
     private static bool IsTool(string name) => name is "SpeechMessage.Dynamics.Deployment" or "LegacyGolden" or "PluginHarness";
 
-    /// <summary>部署端 Plugin 與 Workflow 都受同一個 v4.6.2 沙箱契約約束。</summary>
-    private static bool IsSandbox(string name) => name is "SpeechMessage.Dynamics.Plugins" or "SpeechMessage.Dynamics.Workflows";
+    /// <summary>只有精確部署 Plugin、Workflow 與 F3 平台組件名稱取得 net462 沙箱規則。</summary>
+    private static bool IsSandbox(string name) => name is "SpeechMessage.Dynamics.Plugins" or
+        "SpeechMessage.Dynamics.Workflows" or F3PlatformPluginProject;
 
     /// <summary>三個精確主機具有獨立啟動與授權邊界，不得彼此參考產品外殼；名稱前綴不授予主機權限。</summary>
     private static bool IsHost(string name) => name is "SpeechMessageProducts.ChurchReport"
@@ -686,6 +735,9 @@ internal static class ArchitectureRules
     /// 向下依賴 Hosting／Localization，不授予產品身分、主機身分或公開型別豁免。
     /// F1 對 F4 Scheduling 的必要補正沿用同一第 50 層，位於 Hosting／Localization
     /// 之上、產品 Hosting／主機之下；同儕互參仍拒絕，不以名稱前綴或測試後綴授權。
+    /// SpeechMessage.Access 只以完整名稱取得同一第 50 層，供 F8 的產品組合根向下消費；
+    /// 不改變 IsTest、框架、共用對產品及公開表面邊界，也不授予 Access 與 Scheduling 互參例外。
+    /// F3 平台 Plugin 以精確名稱歸入 net462 沙箱與產品層，公開面只允許兩個完整核定類型。
     /// </summary>
     private static int Layer(string name) => name switch
     {
@@ -703,11 +755,11 @@ internal static class ArchitectureRules
         "LineMessagingProcessor" or "SpeechMessage.Payments.Workflows" => 35,
         "ToolUtility" or "LineMessagingProcessor.Workflows" or "LineMessagingProcessor.RichMenus" => 40,
         "LineMessagingProcessor.AspNetCore" or "SpeechMessage.Payments.AspNetCore"
-            or "SpeechMessage.Liff.AspNetCore" or "SpeechMessage.Scheduling" => 50,
+            or "SpeechMessage.Liff.AspNetCore" or "SpeechMessage.Scheduling" or "SpeechMessage.Access" => 50,
         "SpeechMessageProducts.GoodShepherd.Hosting" => 60,
         "SpeechMessageProducts.ChurchReport" or "SpeechMessageProducts.LineWebhook"
             or "SpeechMessageProducts.GoodShepherd2.Web" or "SpeechMessage.Dynamics.Plugins"
-            or "SpeechMessage.Dynamics.Workflows" => 100,
+            or "SpeechMessage.Dynamics.Workflows" or F3PlatformPluginProject => 100,
         "SpeechMessage.Dynamics.Deployment" or "LegacyGolden" or "PluginHarness" => 110,
         _ => -1
     };

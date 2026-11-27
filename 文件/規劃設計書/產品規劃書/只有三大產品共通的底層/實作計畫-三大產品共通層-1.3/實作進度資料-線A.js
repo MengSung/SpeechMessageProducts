@@ -1,25 +1,29 @@
 /* 檔案整體說明
 目的與定位：三大產品共通層實作計畫 1.3 的進度資料（線 A），只供同資料夾的「實作進度.html」以 script 標籤讀取顯示，不是程式、不含秘密。
 主要功能與流程：記錄線 A 各工作包（F0、F1、FS、F3、F5、F7、F9、M1）的狀態、開始與完成時間、提交 SHA、待補與報告路徑，以及逐筆進度紀錄；每包寫驗收報告的那個提交同時更新本檔。
-使用邊界與維護：只有線 A 可以改本檔，線 B 改自己的「實作進度資料-線B.js」，兩條線都不改「實作進度.html」。狀態只能填 未開始／進行中／完成（自動測試通過）／完成（測試環境驗證），縮減時在後面加「（縮減）」，與 90 清冊一致。log 每筆以「YYYY-MM-DD HH:mm Asia/Taipei (UTC+08:00)｜」開頭，新的放最前面，舊紀錄不刪；事件時間不明時寫「補記 … （原事件時間未記錄）」。不得寫入 token、密碼、LINE userId 或個資。改完以 UTF-8 無 BOM、CRLF 存檔，並用瀏覽器開啟實作進度.html 確認沒有紅色警告。
+使用邊界與維護：只有線 A 可以改本檔，線 B 改自己的「實作進度資料-線B.js」，兩條線都不改「實作進度.html」。狀態依使用者核定 02A：未通過實機為「自動測試通過（實機待補）」，五項完成定義全達成才「完成」；未開始／進行中仍依實況填寫，與 90 一致。log 每筆以「YYYY-MM-DD HH:mm Asia/Taipei (UTC+08:00)｜」開頭，新的放最前面，舊紀錄不刪；事件時間不明時寫「補記 … （原事件時間未記錄）」。不得寫入 token、密碼、LINE userId 或個資。改完以 UTF-8 無 BOM、CRLF 存檔，並用瀏覽器開啟實作進度.html 確認沒有紅色警告。
 */
 'use strict';
 window.PROGRESS_LANES = window.PROGRESS_LANES || {};
 window.PROGRESS_LANES.A = {
   lane: 'A',
-  lastUpdated: '2026-11-26T21:10:28+08:00',
+  lastUpdated: '2026-11-27T12:12:00+08:00',
   packages: {
-    F0: { status: '完成（自動測試通過）', started: '2026-11-25 22:09', finished: '2026-11-26 00:24', commit: '74ea5a1c1ff723f6a64aeb73cadf69685021f528, a9e438be0d9fe13d8fe40d0c2e03e9558774e113', pending: '端點與真metadata已自主核對；實機待補：goodshepherd20完整業務筆數／設定清冊，兩次inventory失敗後不第三次', report: 'wp-reports/3P-F0-基線矩陣.md' },
-    F1: { status: '完成（自動測試通過）', started: '2026-11-26 00:24', finished: '2026-11-26 15:39', commit: 'bfb5f56b96ff7b2c9a185f9757248c5dd9a5368a, 79f5362a44659e68afc1c17727bc2a2a3f51ac69, b2cdcbb6d11521950dbece5a7432b29a0d8d5a7a, d82c7a7252fe8ad60e107f8753e06adb12d984a1, f57fef11f342c9d823e6361a42ebae283c4e5a14, 421b6d29266668d07348d87aee0b98ae8b196e81', pending: 'Scheduling分類及QR必要補正已通過完整7943/7943、ClaudeOnly無Critical／High；真F4由線B同步驗證；畫面目視待補', report: 'wp-reports/3P-F1-依賴方向修正.md' },
-    FS: { status: '完成（自動測試通過）', started: '2026-11-26 04:31', finished: '2026-11-26 21:10', commit: '64679a87f, 9af227811, bd22905fc, abeb70d94', pending: '同步2da59fac後完整8819/8819、文件2014/0、編碼132/0、ClaudeOnly修正複審及13檔補查無Critical／High。實機待補：H1 unknown、不apply、Step3b、三組織部署／UI及Live3P；plan／inventory各兩次失敗不第三次、零D365寫入、畫面目視待補', report: 'wp-reports/3P-FS-結構分層與三組織佈署.md' },
-    F3: { status: '進行中', started: '2026-11-26 21:10', finished: '', commit: '', pending: 'FS離線閘門已過，合併後開始Step1規則／Plugin測試；實機仍受FS前置阻擋', report: '' },
+    F0: { status: '自動測試通過（實機待補）', started: '2026-11-25 22:09', finished: '2026-11-26 00:24', commit: '74ea5a1c1ff723f6a64aeb73cadf69685021f528, a9e438be0d9fe13d8fe40d0c2e03e9558774e113', pending: '實機待補（可自行處理）：依02A先quiesce，再拆小唯讀診斷inventory根因；符合RED→GREEN及回復條件後修正重試。端點與真metadata已自主核對，尚未取得完整清冊', report: 'wp-reports/3P-F0-基線矩陣.md' },
+    F1: { status: '自動測試通過（實機待補）', started: '2026-11-26 00:24', finished: '2026-11-26 15:39', commit: 'bfb5f56b96ff7b2c9a185f9757248c5dd9a5368a, 79f5362a44659e68afc1c17727bc2a2a3f51ac69, b2cdcbb6d11521950dbece5a7432b29a0d8d5a7a, d82c7a7252fe8ad60e107f8753e06adb12d984a1, f57fef11f342c9d823e6361a42ebae283c4e5a14, 421b6d29266668d07348d87aee0b98ae8b196e81', pending: '實機待補（外部阻擋）：共用層實機整合證據隨FS／F3打通補驗；Scheduling分類及QR必要補正完整7943/7943、ClaudeOnly無Critical／High；非實機宣稱', report: 'wp-reports/3P-F1-依賴方向修正.md' },
+    FS: { status: '自動測試通過（實機待補）', started: '2026-11-26 04:31', finished: '2026-11-26 21:10', commit: '64679a87f, 9af227811, bd22905fc, abeb70d94', pending: '實機待補（可自行處理）：離線8819/8819及ClaudeOnly通過；02A §2已核定未知非Microsoft自動化停用，H1待執行後依政策結案。F3離線合併後依序quiesce、診斷及修正plan、三組織部署／UI／Live3P；目前仍零D365寫入', report: 'wp-reports/3P-FS-結構分層與三組織佈署.md' },
+    F3: { status: '進行中', started: '2026-11-26 21:10', finished: '', commit: '', pending: '主機、ProductMismatch共用告警及Live helper離線已驗；正式閘門三項失敗已定向修復，三組織CLI完整流程及舊切換74/74。完整閘門重跑及ClaudeOnly待完成；離線合併後依02A先quiesce與F0／FS打通，再F3實機', report: 'wp-reports/3P-F3-Channel名額池.md' },
     F5: { status: '未開始', started: '', finished: '', commit: '', pending: '', report: '' },
     F7: { status: '未開始', started: '', finished: '', commit: '', pending: '', report: '' },
     F9: { status: '未開始', started: '', finished: '', commit: '', pending: '', report: '' },
     M1: { status: '未開始', started: '', finished: '', commit: '', pending: '', report: '' },
   },
   log: [
+    '2026-11-27 12:12 Asia/Taipei (UTC+08:00)｜F3完整離線閘門先前有三項失敗，原子export、組織組件分流及架構精確型別斷言已修復。新CLI生命週期揭露平台設定無教會mode的apply故障，修後三組織完整流程與舊切換74/74；Live helper離線48/48。正式全方案閘門重跑及ClaudeOnly待完成，尚未提交合併，沒有新增實機結果。',
+    '2026-11-27 10:37 Asia/Taipei (UTC+08:00)｜讀取使用者核定02A，F0／F1／FS未過實機的狀態更正為自動測試通過（實機待補），並區分可自行處理與外部阻擋。F3目前補齊離線閘門後合併，再依02A §5打通；未執行quiesce或實機寫入。舊unknown／不第三次紀錄為當時政策，現依02A修正後重試條件執行；頁面僅補新狀態精確解析。',
+    '2026-11-27 08:02 Asia/Taipei (UTC+08:00)｜續跑F3：新增平台名額池與好牧人account生命週期schema，精確分層parser契約測試8項確認預期RED後，修正只允許核定四個account欄位的組合並保留主名稱與未知欄位拒絕；F3 schema加既有SchemaLayerTests共42/42 GREEN（log SHA-256 3CA6F172BD0FC457C59A4D8FF17B90C00D53F458DFCF3E9250BF81EC4D722F3D）。F3於2026-11-26 21:10實際開工，現仍進行離線Step1–5；F2 b6da17e2與FS 872be9cd已合併，舊等待理由已過時。實機受FS H1 unknown及Step3b前置阻擋，零D365寫入、不呼叫Channel。',
     '2026-11-26 21:10 Asia/Taipei (UTC+08:00)｜FS同步2da59fac後完整一般26回合8819/8819、Release建置0error（65既有warning）、文件2014/0、Changed編碼132/0、進度頁28/28；ClaudeOnly修正複審及quiesce4檔／UI9檔全文補查均無Critical／High。完成自動測試層級，依02§5準備快轉推送後F3正式開工；Step3b、H1 unknown、三組織部署與UI、Live3P仍實機待補，零D365寫入且不第三次完整plan／inventory。',
+    '2026-11-27 08:02 Asia/Taipei (UTC+08:00)｜續跑F3：新增平台名額池與好牧人account生命週期schema，精確分層parser契約測試8項確認預期RED後，修正只允許核定四個account欄位的組合並保留主名稱與未知欄位拒絕；F3 schema加既有SchemaLayerTests共42/42 GREEN，原始離線log SHA-256 3CA6F172BD0FC457C59A4D8FF17B90C00D53F458DFCF3E9250BF81EC4D722F3D。F3已在2026-11-26 21:10實際開工，現仍進行離線Step1–5；F2 b6da17e2與FS 872be9cd已合併，舊等待理由已過時。實機仍因FS H1 unknown及Step3b前置未通過而零D365寫入、不呼叫Channel。',
     '2026-11-26 20:26 Asia/Taipei (UTC+08:00)｜第三輪ClaudeOnly補充覆蓋發現未列組織旗標仍規劃Plugin CreateStep之1 High。新增goodshepherd20／construction／association缺旗標RED 3/3，修正為非legacy明確true才新增；goodshepherdback缺旗標舊建立停用相容保留，受影響案例6/6通過。完整全方案守門與修正後ClaudeOnly／覆蓋補齊待跑；不連實機，H1 unknown、不apply、完整plan／inventory各兩次失敗不第三次。F3備註維持等 FS 完成後開始；F2已於b6da17e2合併。',
     '2026-11-26 16:42 Asia/Taipei (UTC+08:00)｜依使用者更正F3備註為等 FS 完成後開始；F2 已於 b6da17e2 合併。FS仍修第二輪metadata及側查UI發布High，尚未放行。',
     '2026-11-26 15:47 Asia/Taipei (UTC+08:00)｜FS正常rebase到F1已推送347fa263，51檔對原備份bytes不變，所有決策與log保留；分支恢復cl/lane-a。H1唯讀追查仍unknown，EmailPlugins五筆無可信行為／安全停用契約，舊政策不apply、零D365寫入；同步QR必要修復後正式完整守門執行中，第二輪ClaudeOnly待跑，FS未放行。',

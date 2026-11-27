@@ -1,7 +1,7 @@
 /*
 檔案整體說明
 目的與定位：P7計畫切換CLI接線分部，沿主入口ProductionGuard、單組織寫鎖與獨占lease，保留舊module與export rollback。
-主要流程：每次讀取當下manifest/catalog及全部本機PE，metadata reader核server現況；plan固定json/md，switch同buffer檔SHA。
+主要流程：每次完整驗證當下manifest/catalog，再只取本組織的舊教會組件及本機PE；F3平台池不參與Shadow／Live切換。metadata reader核server現況；plan固定json/md，switch同buffer檔SHA。
 verify保留完整切換狀態檢查，僅把受管DLL雜湊不同列為唯讀UpdateAssembly差異並列出固定操作種類；不將該差異交給switch executor。
 rollback固定switch-log.json交專用有界reader；其他export格式沿原路由。每次寫入前完整export與legacy export並flush。
 安全與生命週期：所有資料命令區域，秘密只由User Secrets委派在executor寫入時讀；不保留SDK或跨組織狀態。
@@ -38,13 +38,13 @@ internal static partial class DeploymentCli
             if (currentTarget.Name != target.Name || currentTarget.Kind != target.Kind || currentTarget.Host != target.Host ||
                 currentTarget.SwitchState != target.SwitchState || !currentTarget.TierOverrides.SequenceEqual(target.TierOverrides))
                 throw new InvalidDataException("Organization catalog changed during command.");
-            var document = RegistrationManifestLoader.LoadDocument(repository);
+            var document = RegistrationManifestLoader.LoadForOrganization(repository, target.Name, legacyOnly: true);
             var images = document.Assemblies.Select(manifest => AssemblyCatalog.Read(Path.Combine(repository, "artifacts", "plugins", manifest.AssemblyName + ".dll"), manifest)).ToArray();
             return SwitchSnapshotReader.Read(service, document, images, currentTarget, manifestHash, catalogHash, operationRoot, currentCatalog, cancellation);
         }
         void Backup()
         {
-            var document = RegistrationManifestLoader.LoadDocument(repository);
+            var document = RegistrationManifestLoader.LoadForOrganization(repository, target.Name, legacyOnly: true);
             var images = document.Assemblies.Select(manifest => AssemblyCatalog.Read(Path.Combine(repository, "artifacts", "plugins", manifest.AssemblyName + ".dll"), manifest)).ToArray();
             var engine = new DocumentDeploymentEngine(service, organizationRoot, TimeProvider.System,
                 name => ResolveRequiredSecret(target.Name, name, secretReader), catalog);

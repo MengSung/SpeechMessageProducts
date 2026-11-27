@@ -6,6 +6,10 @@
  * 不保存例外、請求、身分或驗證資料。 每個部署目錄最多保留目前檔與五份備份，單筆不超過 4 KiB；正常路徑不執行任何 I/O。
  * P5-12 的失敗彙總另有純值白名單入口，只接受已核定教會 GUID、筆數與封閉 UTC 窗，
  * 沿用同一 Write／flush／有界通知管線，不把動態摘要塞進 exception.Message 或 operation。
+ * F3 沙箱 outbox 另以 ReportPersistedFailure 傳入穩定 incident、原始 UTC、固定產品與操作；
+ * caller 只可重建同型別安全例外，輸出明標 Reconstructed，位置與堆疊屬於接收端投影，
+ * 不宣稱保留跨程序前的原例外堆疊。入口不保存 durable incident 去重快取，僅沿用 weak key；
+ * Dataverse CAS owner 負責跨程序去重，crash 後同 incident 可能至少一次重送，不承諾 exactly once。
  *
  * 主要功能與流程：
  * 本檔宣告 ExceptionDiagnostics。
@@ -15,7 +19,7 @@
  * - 在功能確定失敗的邊界呼叫。相同例外實例以 weak key 去重，不延長例外生命； 只有呼叫者 token 已取消的 OperationCanceledException 視為正常取消，內部逾時仍須記錄。 不讀
  * Message、Data、原始 StackTrace 或使用者值。true 表示已落檔，或 LINE-only 已入列， 不代表 LINE 已送達。雙開時磁碟失敗不發送 LINE；全關回傳 false，且無檔案／通知副作用。
  * - 字段僅接受開發者擁有的型別／方法符號並限制 80 字；這不是任意文字的去識別化器。 呼叫端禁止傳入 route 實值、request identifier、姓名或 log formatter 的動態內容。
- * 主要操作入口包含 StartNotifications、Report、Symbol、StackSymbols、Write、AppendWithinDegradedCap、WriteStatus、Emergency；
+ * 主要操作入口包含 StartNotifications、Report、ReportPersistedFailure、Symbol、StackSymbols、Write、AppendWithinDegradedCap、WriteStatus、Emergency；
  * 其餘入口見下方成員契約。
  *
  * 使用邊界與維護：
@@ -145,6 +149,77 @@ public sealed class ExceptionDiagnostics : IAsyncDisposable
                 Emergency("ExceptionLogWriteFailed");
                 return false;
             }
+        }
+    }
+
+    /// <summary>
+    /// 將 F3 沙箱 outbox 的已持久化失敗送入既有 Publish→flush→有界 LINE 管線。
+    /// 只接受非空 incident、零 offset UTC、三種固定產品及 ProductMismatch 操作，
+    /// 不把可清洗字串當成可信輸入，也不接受原始 payload 或例外本文。
+    /// </summary>
+    /// <param name="exception">
+    /// caller 依持久事件重建的同型別安全例外，不能還原原程序堆疊；輸出以
+    /// ExceptionProjection=Reconstructed 明標，Location／Stack 僅投影此接收端實例。
+    /// 不讀 Message、Data、ToString 或原始 StackTrace 字串；只留有界型別與程式符號。
+    /// </param>
+    /// <param name="incidentId">持久事件的穩定非空 GUID，日誌與 LINE 原樣使用其 N 格式。</param>
+    /// <param name="occurrenceUtc">持久事件的原始發生時間，必須 offset 為零，不以接收時間取代。</param>
+    /// <param name="product">僅允許精確 GoodShepherd2、GoodButler 或 GoodGuild，不構成租戶授權。</param>
+    /// <param name="operation">caller 擁有的固定 SlotRequest.ProductMismatch，禁止任何動態內容。</param>
+    /// <param name="cancellationToken">
+    /// 僅此 caller token 已取消的 OperationCanceledException 屬正常取消並留下 weak marker；
+    /// 例外內部 token 的逾時仍是失敗，非 OCE 故障亦不因 caller 取消而略過。
+    /// </param>
+    /// <returns>
+    /// 與 Report 相同，true 只代表落檔或 LINE-only 入列接受，不保證送達；
+    /// 全關、已關閉、同例外重報或輸出失敗回傳 false。雙開先 flush，滿載保留既有狀態語義。
+    /// </returns>
+    /// <remarks>
+    /// 不保留 durable incident 快取；同實例僅以共用 weak key 去重，不延長例外、request、
+    /// 身分或憑證生命。Dataverse CAS owner 負責跨程序去重；crash 可造成相同 incident
+    /// 至少一次重送，不能承諾 exactly once。僅安全 JSON 值進入既有 64 筆 queue，
+    /// 由本 owner 在 DisposeAsync 排空／取消並清除；sender 由外層於 drain 後釋放。
+    /// </remarks>
+    /// <exception cref="ArgumentNullException">exception 為 null，尚未產生任何輸出。</exception>
+    /// <exception cref="ArgumentException">incident、UTC、產品或操作不符白名單，尚未產生任何輸出。</exception>
+    public bool ReportPersistedFailure(Exception exception, Guid incidentId, DateTimeOffset occurrenceUtc,
+        string product, string operation, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(exception);
+        if (incidentId == Guid.Empty || occurrenceUtc.Offset != TimeSpan.Zero ||
+            product is not ("GoodShepherd2" or "GoodButler" or "GoodGuild") ||
+            !string.Equals(operation, "SlotRequest.ProductMismatch", StringComparison.Ordinal))
+            throw new ArgumentException("Persisted failure requires a stable identity, UTC and approved product/operation.");
+
+        lock (_gate)
+        {
+            if (_closed || _reported.TryGetValue(exception, out _)) return false;
+            var sendLine = _outputOptions.SendLine && !_sending.Value;
+            if (!_outputOptions.WriteExceptionLog && !sendLine) return false;
+            if (exception is OperationCanceledException && cancellationToken.IsCancellationRequested)
+            {
+                _reported.Add(exception, new object());
+                return false;
+            }
+            try
+            {
+                var incident = incidentId.ToString("N");
+                var record = JsonSerializer.Serialize(new
+                {
+                    IncidentId = incident,
+                    Utc = occurrenceUtc,
+                    Product = product,
+                    Operation = operation,
+                    ExceptionProjection = "Reconstructed",
+                    ExceptionType = Symbol(exception.GetType().FullName),
+                    Location = Symbol(exception.TargetSite?.DeclaringType?.FullName) + "." +
+                               Symbol(exception.TargetSite?.Name),
+                    HResult = exception.HResult,
+                    Stack = StackSymbols(exception)
+                }, JsonOptions);
+                return Publish(record, incident, sendLine, exception);
+            }
+            catch { Emergency("ExceptionLogWriteFailed"); return false; }
         }
     }
 

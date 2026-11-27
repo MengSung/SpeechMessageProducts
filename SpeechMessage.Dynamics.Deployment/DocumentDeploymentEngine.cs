@@ -1,7 +1,7 @@
 /*
  * 檔案整體說明
  *
- * 目的與定位：P5-03a 的完整文件部署編排，將兩個核定組件逐一交給既有單組件引擎。
+ * 目的與定位：完整文件部署編排，將本組織適用的最多三個核定組件逐一交給既有單組件引擎。
  * 主要功能與流程：輸入 RegistrationDocument 與各組件 AssemblyImage，先驗整份來源、
  * 計畫雜湊及即時組織指紋，全部通過才備份及套用；輸出完整計畫或逐組件具名備份。
  * 使用邊界與維護：只借用命令租約的 SDK、時鐘與秘密委派；連線與組織寫入鎖由 CLI
@@ -131,7 +131,7 @@ internal sealed class DocumentDeploymentEngine
 
     /// <summary>
     /// 先檢查全部索引、檔案摘要、原型別與步驟擁有關係，再委派原引擎回復。
-    /// 同時持有最多兩個唯讀 handle，Windows 上禁止寫入／刪除替換直到回復結束；finally
+    /// 同時持有最多三個唯讀 handle，Windows 上禁止寫入／刪除替換直到回復結束；finally
     /// 釋放全部 handle。回復不解析秘密，也不保證 SDK 故障時的跨組件交易。
     /// </summary>
     public void Rollback(DocumentDeploymentBackup backup, RegistrationDocument document, IReadOnlyList<AssemblyImage> images)
@@ -270,9 +270,8 @@ internal sealed class DocumentDeploymentEngine
         ArgumentNullException.ThrowIfNull(document);
         ArgumentNullException.ThrowIfNull(images);
         _ = catalog.Get(organization);
-        if (document.SchemaVersion != 2 ||
-            document.Assemblies is null || document.Assemblies.Count is < 1 or > 2 ||
-            images.Count != document.Assemblies.Count) throw InvalidDocument();
+        RegistrationManifestLoader.ValidateForOrganization(document, organization);
+        if (images.Count != document.Assemblies.Count) throw InvalidDocument();
         var names = new HashSet<string>(StringComparer.Ordinal);
         var legacyIds = new HashSet<Guid>();
         foreach (var manifest in document.Assemblies)
@@ -309,7 +308,7 @@ internal sealed class DocumentDeploymentEngine
             });
         }
         var ordered = copiedImages.OrderBy(image => image.Name, StringComparer.Ordinal).ToArray();
-        // Content 由已核對的 Sha256 代表，避免為計算來源摘要再複製兩個大型 Base64 字串。
+        // Content 由已核對的 Sha256 代表，避免為計算來源摘要再次複製最多三個大型 Base64 字串。
         return new Source(candidate, ordered, Hash(new
         {
             Document = candidate,

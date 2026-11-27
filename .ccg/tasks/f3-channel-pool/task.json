@@ -1,0 +1,12 @@
+{
+  "id": "f3-channel-pool",
+  "title": "F3 Channel 名額池離線閘門與實機打通",
+  "status": "in_progress",
+  "complexity": "L+",
+  "risk": "high",
+  "domain": "backend",
+  "currentPhase": "implementation",
+  "nextAction": "完整閘門實際三項失敗；原子export有界重試、三組件組織分流及架構斷言修復，定向GREEN後重跑完整閘門及ClaudeOnly，再同步合併與02A實機打通",
+  "createdAt": "2026-11-27T09:41:37+08:00",
+  "branch": "cl/lane-a"
+}

@@ -1,7 +1,7 @@
 /*
 檔案整體說明
-目的與定位：驗證 F2 真實 ASP.NET Core 組合根與 D365 就緒端點的離線契約，不連線任何外部組織、SQL 或 LINE。
-主要功能與流程：每案使用獨立暫存 content root、合成 SDK 與真實 Kestrel loopback 埠；以 WhoAmI 正常／失敗、取消及 Dispose 故障注入，確認只回安全狀態、故障先標記再歸還租約。空 Webhook 接收無效 JSON 仍回 200 且不進事件管線。重複啟停證明程序級診斷 owner 能解除後重新綁定。Main 案例以測試擁有的 listener 占用 loopback 埠，在獨立子程序重現啟動失敗，驗證原始例外不被已釋放容器的錯誤蓋掉。
+目的與定位：驗證 F2/F3 真實 ASP.NET Core 組合根與 D365 就緒端點的離線契約，不連線任何外部組織、SQL 或 LINE。
+主要功能與流程：每案使用獨立暫存 content root、合成 SDK 與真實 Kestrel loopback 埠；以 WhoAmI 正常／失敗、取消及 Dispose 故障注入，確認只回安全狀態、故障先標記再歸還租約。Webhook 使用合成原始本文與無效簽章，確認 F3 移除事先注入的替身並使用真正 verifier／拒絕 resolver，必須回 401、不得回 200 或進入事件佇列；原始 bytes 與正確 secret 的正控制由 Channels 測試保護。重複啟停證明程序級診斷 owner 能解除後重新綁定。Main 案例以測試擁有的 listener 占用 loopback 埠，在獨立子程序重現啟動失敗，驗證原始例外不被已釋放容器的錯誤蓋掉。
 使用邊界與維護：測試 collection 禁止與其他會綁定靜態診斷 owner 的案例並行；Host、HttpClient、組態與暫存資料由當案 finally／await using 清理。例外訊息使用合成 canary，實際 Exception.log 必須不含它。此測試只證明本機合成依賴及資源釋放，不代表實機 WhoAmI 或 LINE webhook/test 成功。
 */
 using System.Net;
@@ -19,6 +19,9 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Xrm.Sdk;
 using Microsoft.Crm.Sdk.Messages;
+using LineMessagingProcessor.AspNetCore.Webhooks;
+using LineMessagingProcessor.AspNetCore.Webhooks.Signatures;
+using SpeechMessage.Tenancy;
 using Moq;
 using SpeechMessageProducts.GoodShepherd2.Web.Health;
 using ToolUtilityNameSpace.Dataverse;
@@ -245,9 +248,9 @@ public sealed class HostTests
         return Encoding.UTF8.GetString(bytes.ToArray());
     }
 
-    /// <summary>連續建立三個 Host，逐次確認 live、ready 與空 webhook，並證明 shutdown 解除上一個診斷 owner。</summary>
+    /// <summary>連續建立三個 Host，逐次確認 live、ready 與無效簽章拒絕，並證明 shutdown 解除上一個診斷 owner。</summary>
     [Fact]
-    public async Task Host_HealthAndEmptyWebhook_RestartsWithoutRetainedOwner()
+    public async Task Host_HealthAndInvalidWebhook_RestartsWithoutRetainedOwner()
     {
         for (var iteration = 0; iteration < 3; iteration++)
         {
@@ -255,6 +258,11 @@ public sealed class HostTests
             Directory.CreateDirectory(directory);
             try
             {
+                var body = "synthetic webhook body";
+                const string signatureValue = "synthetic-invalid-signature";
+                var verifier = new Mock<IWebhookSignatureVerifier>(MockBehavior.Strict);
+                var deduplicator = new Mock<IWebhookEventDeduplicator>(MockBehavior.Strict);
+                var queue = new Mock<IWebhookEventQueue>(MockBehavior.Strict);
                 var lease = new Mock<IClientLease>(MockBehavior.Strict);
                 var service = new Mock<IOrganizationService>(MockBehavior.Strict);
                 service.Setup(value => value.Execute(It.IsAny<WhoAmIRequest>())).Returns(Identity());
@@ -263,6 +271,9 @@ public sealed class HostTests
                 var manager = new Mock<IDataverseConnectionManager>(MockBehavior.Strict);
                 manager.Setup(value => value.Acquire(It.IsAny<CancellationToken>())).Returns(lease.Object);
                 var builder = Builder(directory);
+                builder.Services.AddSingleton(verifier.Object);
+                builder.Services.AddSingleton(deduplicator.Object);
+                builder.Services.AddSingleton(queue.Object);
                 builder.Services.AddSingleton(manager.Object);
                 await using var app = Program.BuildApplication(builder);
                 await app.StartAsync();
@@ -275,9 +286,23 @@ public sealed class HostTests
                     Assert.Equal(HttpStatusCode.OK, live.StatusCode);
                     using var ready = await client.GetAsync(new Uri("/health/ready", UriKind.Relative));
                     Assert.Equal(HttpStatusCode.OK, ready.StatusCode);
-                    using var content = new StringContent("not-json-and-not-a-line-event", Encoding.UTF8, "application/json");
-                    using var webhook = await client.PostAsync(new Uri("/webhook/1234567890", UriKind.Relative), content);
-                    Assert.Equal(HttpStatusCode.OK, webhook.StatusCode);
+                    using var content = new StringContent(body, Encoding.UTF8, "application/json");
+                    using var request = new HttpRequestMessage(HttpMethod.Post, new Uri("/webhook/1234567890", UriKind.Relative))
+                    {
+                        Content = content
+                    };
+                    request.Headers.TryAddWithoutValidation("X-Line-Signature", signatureValue);
+                    using var webhook = await client.SendAsync(request);
+                    Assert.Equal(HttpStatusCode.Unauthorized, webhook.StatusCode);
+                    Assert.IsType<LineWebhookSignatureVerifier>(app.Services.GetRequiredService<IWebhookSignatureVerifier>());
+                    var resolver = app.Services.GetRequiredService<IWebhookChannelSecretResolver>();
+                    Assert.Empty(resolver.ConfiguredChannelIds);
+                    Assert.False(resolver.TryResolveSecret("1234567890", out var secret));
+                    Assert.Null(secret);
+                    verifier.VerifyNoOtherCalls();
+                    deduplicator.Verify(value => value.TryRegisterAsync(It.IsAny<WebhookEnvelope>(), It.IsAny<CancellationToken>()), Times.Never);
+                    queue.Verify(value => value.TryEnqueueAsync(
+                        It.IsAny<WebhookEnvelope>(), It.IsAny<IWebhookEventRegistration>(), It.IsAny<CancellationToken>()), Times.Never);
                     lease.Verify(value => value.Dispose(), Times.Once);
                     lease.Verify(value => value.MarkFaulted(), Times.Never);
                 }
