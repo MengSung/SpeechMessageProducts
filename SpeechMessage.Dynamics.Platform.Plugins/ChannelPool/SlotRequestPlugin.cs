@@ -1,7 +1,7 @@
 /*
 檔案整體說明
 目的與定位：處理三產品名額申請單 Create／PreOperation 同步交易，透過正式 allocation 列鎖序列化配發與釋放，不使用 static 應用鎖冒充資料庫保證。
-主要功能與流程：只接受租戶 lookup、操作 choice 與 GUID correlation；將合法 GUID 正規化為小寫 D 格式並由伺服器產生必填名稱。非租戶回 NotTenant 且不更新業務列。取得唯一部署鎖後重讀租戶、既有申請、帳戶指派及有界完整池，驗正式 ID、替代鍵、容量、狀態一致性及宮格暫存預算；先完成資料寫入才發布 Target 結果。池滿時只為 GoodShepherd2 更新生命週期；最後名額標 Full，安全釋放空名額才恢復 Operating，有宮格則隔離 Cleaning 不重配。
+主要功能與流程：只接受租戶 lookup、操作 choice 與 GUID correlation；將合法 GUID 正規化為小寫 D 格式並由伺服器產生必填名稱。非租戶回 NotTenant 且不更新業務列。取得唯一部署鎖後重讀租戶、既有申請、帳戶指派及有界完整池，驗正式 ID、替代鍵、容量、狀態一致性及宮格暫存預算；僅登錄音訊科技頻道仍驗本產品與所有既有名額未使用，但不要求池欄位、不加入配發候選；真正產品池保留完整容量與名額驗證。先完成資料寫入才發布 Target 結果。池滿時只為 GoodShepherd2 更新生命週期；最後名額標 Full，安全釋放空名額才恢復 Operating，有宮格則隔離 Cleaning 不重配。
 使用邊界與維護：產品只由不可變組織映射決定；平台 caller 權限 SDK、context、交易僅借用於本次堆疊，不讀秘密、不連 LINE、不建立背景工作。平台交易負責 rollback／解鎖，故障原物件交安全 trace 後重拋。申請單同鍵 Create 仍由資料庫唯一鍵阻止重複，caller 必須精確讀回原單；Plugin 不吞唯一鍵錯誤假稱第二張單建立成功。離線測試不能代替實機鎖與 schema 驗證。
 產品不符時把真正例外交 PoolData 的固定白名單入口，僅將安全診斷封套及 Pending 狀態隨原 Target 提交；即使 trace 不可用仍可由部署 receiver 讀回。非租戶、池滿不產生告警，沙箱不直接通知或建立背景佇列。
 */
@@ -92,7 +92,8 @@ public sealed class SlotRequestPlugin : IPlugin
             else Publish(target, 100000001);
             return;
         }
-        var snapshots = slots.Select(slot =>
+        var snapshots = slots.Where(slot => !PoolData.IsRegistrationOnly(
+            byChannel[PoolData.Reference(slot, "new_channel", "new_linechannel", true)!.Id])).Select(slot =>
         {
             var channel = byChannel[PoolData.Reference(slot, "new_channel", "new_linechannel", true)!.Id];
             return new ChannelSlotSnapshot(channel.Id, slot.Id, product, PoolData.Number(channel, "new_poolorder"), PoolData.Number(slot, "new_slotnumber"),

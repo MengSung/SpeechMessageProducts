@@ -1,7 +1,7 @@
 /*
 檔案整體說明
 目的與定位：由同一三產品共用 ChannelCreatedPlugin 承接兩個精確同步步驟：new_linechannel Create/PostOperation 建名額，以及 Update(new_product)/PreOperation 驗證產品欄位不可變。
-主要功能與流程：Create 分支先驗證正式 Channel ID、Stage 40、交易與精確組織映射，再取得唯一 allocation 鎖列；鎖後讀正式頻道並驗證產品、容量、租戶配額與宮格總預算，完整確認既有名額後才建立全部名額。Update 分支只接受 Stage 20 及固定別名 ProductBefore 的平台原始影像，Target 與影像中的既有產品均須精確等於組織映射產品；同值更新不寫資料、不建名額，移除或改值一律拒絕。
+主要功能與流程：Create 分支先驗證正式 Channel ID、Stage 40、交易與精確組織映射，再取得唯一 allocation 鎖列；鎖後讀正式頻道並驗證產品、容量、租戶配額與宮格總預算，完整確認既有名額後才建立全部名額。精確「音訊科技＋登錄中」只驗本產品及既有未使用名額，不要求池欄位、不建名額；產品池仍按容量完整建立。Update 分支只接受 Stage 20 及固定別名 ProductBefore 的平台原始影像，Target 與影像中的既有產品均須精確等於組織映射產品；同值更新不寫資料、不建名額，移除或改值一律拒絕。
 使用邊界與維護：不信任 caller 傳入的舊值、Target 產品或容量；PreImage 才是更新前權威值。SDK／context 與外層交易由平台擁有，不保存或 Dispose。Create 名額 ID 由 SDK 回傳，重複或空值即拋錯使平台回滾；Update 驗證不取得鎖、不變更任何資料。實機註冊必須分別精確指定 Create/PostOperation 與 Update(new_product)/PreOperation，並為後者提供 ProductBefore PreImage；離線替身不能證明註冊或 SQL 行為。固定安全 trace 保留原 Exception，不自行通知 LINE。
 */
 using System;
@@ -33,7 +33,7 @@ public sealed class ChannelCreatedPlugin : IPlugin
         PoolData.ValidateChannel(channel, product);
         var existing = PoolData.Read(service, "new_channelslot", PoolData.SlotColumns(), 20,
             filter => filter.AddCondition("new_channel", ConditionOperator.Equal, channel.Id));
-        if (existing.Count != 0) { PoolData.ValidateSlots(channel, existing); return; }
+        if (existing.Count != 0 || PoolData.IsRegistrationOnly(channel)) { PoolData.ValidateSlots(channel, existing); return; }
         var capacity = PoolData.Number(channel, "new_capacity"); var quota = PoolData.Number(channel, "new_tenantrichmenuquota");
         var ids = new HashSet<Guid>();
         for (var number = 1; number <= capacity; number++)

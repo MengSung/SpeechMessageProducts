@@ -71,12 +71,12 @@ internal sealed class PoolTransactionFixture
         Rows.Add(new Entity("account", id) { ["name"] = "相同合法名稱", ["new_istenant"] = new OptionSetValue(tenant ? 100000001 : 100000000) });
         return id;
     }
-    /// <summary>建立具完整容量、配額與狀態的頻道；可選擇不建名額以驗證真 ChannelCreated Plugin。</summary>
+    /// <summary>建立具精確產品池型別、完整容量、配額與狀態的頻道；可選擇不建名額以驗證真 ChannelCreated Plugin。</summary>
     internal Guid AddChannel(int capacity = 20, string product = PoolProduct.GoodShepherd2, bool slots = true)
     {
         var id = Guid.NewGuid();
         Rows.Add(new Entity("new_linechannel", id) { ["new_name"] = "同名頻道", ["new_product"] = product,
-            ["new_capacity"] = capacity, ["new_poolorder"] = 1, ["new_channelstatus"] = new OptionSetValue((int)ChannelStatus.Operating),
+            ["new_channeltype"] = new OptionSetValue(100000001), ["new_capacity"] = capacity, ["new_poolorder"] = 1, ["new_channelstatus"] = new OptionSetValue((int)ChannelStatus.Operating),
             ["new_reservedrichmenus"] = 2, ["new_tenantrichmenuquota"] = 45 });
         if (slots)
             for (var i = 1; i <= capacity; i++)

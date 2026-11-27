@@ -3,6 +3,7 @@
 目的與定位：集中 F3 Plugin 的精確訊息／Stage 守門、有界完整分頁、強型別資料讀取與安全診斷，讓申請單 Create 與 Channel 建立／不可變 Update 共用信任及生命週期邊界。
 主要功能與流程：檢查同步交易、Depth、Target 與組織映射，借用 caller 權限 SDK；名額交易先查唯一 allocation 鎖列，既有列以整數 new_lockvalue 更新取得列鎖，缺列則以 new_name alternate-key Upsert 原子初始化並核對正式回應 ID，再更新該列，鎖後才讀權威池。ChannelCreated 僅接受 Create/PostOperation 或 Update(new_product)/PreOperation；其餘管線拒絕。查詢依正式主鍵完整分頁，拒絕空或重複 ID、缺 cookie、資料上限及缺值。
 使用邊界與維護：SDK、context、tracing 只在當次呼叫借用，不 Dispose、不快取或提升權限；alternate key 是首次初始化唯一性的資料庫邊界，平台交易是列鎖生命期及 rollback 唯一 owner。分頁上限為五百頻道、一萬名額、每頁二百五十列、Cookie 十六 KiB。同步 fault 原樣 throw；追蹤只含型別、固定 operation、已驗產品與 incident GUID，不宣稱日誌或 LINE 已送達；追蹤自身故障不得遮蔽原故障。
+僅登錄契約：只有精確音訊科技型別與登錄中狀態可不提供池欄位，仍核對本產品。其既有名額必須全部可用、無租戶且使用量零，完整驗正式ID、編號與配額，絕不作為配發來源；產品池仍驗全部容量、配額與宮格總預算。
 產品不符診斷：接收當次真 Exception，僅投影固定型別、operation、已驗產品、平台 incident 與 UTC 至最多 1024 字元封套，隨原申請單 Create 原子提交；不另呼叫 SDK 寫診斷、不保留完整例外。部署端只可消費成功提交的正式申請單，持久化不代表通知已送達。
 */
 using System;
@@ -181,10 +182,23 @@ internal static class PoolData
         if (!(value is EntityReference reference) || reference.Id == Guid.Empty || !string.Equals(reference.LogicalName, entity, StringComparison.Ordinal)) throw Error();
         return reference;
     }
-    /// <summary>驗證頻道完整持久容量及暫存預算；使用 long 避免溢位，每租戶全額換版暫存仍須有空間。</summary>
+    /// <summary>只有音訊科技型別與登錄中狀態同時成立才是僅登錄頻道；呼叫端須先核對產品及型別契約。</summary>
+    internal static bool IsRegistrationOnly(Entity channel) => Choice(channel, "new_channeltype") == 100000000 &&
+        Choice(channel, "new_channelstatus") == (int)ChannelStatus.Registered;
+    /// <summary>
+    /// 先驗產品及精確頻道型別；音訊科技只允許登錄中且不要求池欄位，產品池則驗完整持久容量及暫存預算。
+    /// 使用 long 避免溢位，每租戶全額換版暫存仍須有空間；缺失或未知型別不得利用狀態跳過檢查。
+    /// </summary>
     internal static void ValidateChannel(Entity channel, string product)
     {
         if (!string.Equals(Text(channel, "new_product"), product, StringComparison.Ordinal)) throw Error();
+        var type = Choice(channel, "new_channeltype");
+        if (type == 100000000)
+        {
+            if (!IsRegistrationOnly(channel)) throw Error();
+            return;
+        }
+        if (type != 100000001) throw Error();
         var capacity = Number(channel, "new_capacity"); var quota = Number(channel, "new_tenantrichmenuquota");
         var reserved = Number(channel, "new_reservedrichmenus"); var status = Choice(channel, "new_channelstatus");
         if (capacity < 1 || capacity > 20 || quota < 1 || quota > 45 || reserved < 0 || reserved > 1000 ||
@@ -192,15 +206,31 @@ internal static class PoolData
             reserved + (long)capacity * quota + quota > 1000) throw Error();
     }
     /// <summary>必要池欄位的明確投影，不讀 token、secret 或顯示名稱，避免將憑證帶入候選集合。</summary>
-    internal static string[] ChannelColumns() => new[] { "new_product", "new_capacity", "new_poolorder", "new_channelstatus", "new_reservedrichmenus", "new_tenantrichmenuquota" };
+    internal static string[] ChannelColumns() => new[] { "new_product", "new_channeltype", "new_capacity", "new_poolorder", "new_channelstatus", "new_reservedrichmenus", "new_tenantrichmenuquota" };
     /// <summary>必要名額欄位的明確投影；分頁與後續發布都以正式 Slot ID 為身分。</summary>
     internal static string[] SlotColumns() => new[] { "new_channel", "new_slotnumber", "new_slotstatus", "new_tenant", "new_richmenuquota", "new_usedrichmenus", "new_usecount" };
     /// <summary>
     /// 驗證一個 Channel 的完整名額數、替代鍵、配額及狀態一致性；Full 不得仍有 Available 名額。
-    /// 不足、重複或互相矛盾的正式資料拒絕配發，避免把資料衝突誤判成池滿或自動修補掩蓋。
+    /// 僅登錄頻道可無名額，若已有名額仍驗正式身分、編號、配額及全數未使用，不建立或刪除它們。
+    /// 不足、重複或互相矛盾的產品池正式資料拒絕配發，避免把資料衝突誤判成池滿或自動修補掩蓋。
     /// </summary>
     internal static void ValidateSlots(Entity channel, IReadOnlyList<Entity> slots)
     {
+        if (IsRegistrationOnly(channel))
+        {
+            var registrationNumbers = new HashSet<int>(); var registrationIds = new HashSet<Guid>();
+            foreach (var slot in slots)
+            {
+                Identity(slot, "new_channelslot", slot.Id);
+                var number = Number(slot, "new_slotnumber"); var registrationQuota = Number(slot, "new_richmenuquota");
+                if (Reference(slot, "new_channel", "new_linechannel", true)!.Id != channel.Id ||
+                    !registrationIds.Add(slot.Id) || !registrationNumbers.Add(number) || number < 1 || number > 20 ||
+                    registrationQuota < 1 || registrationQuota > 45 || Choice(slot, "new_slotstatus") != (int)SlotStatus.Available ||
+                    Reference(slot, "new_tenant", "account") != null || Number(slot, "new_usedrichmenus") != 0 ||
+                    Number(slot, "new_usecount") < 0) throw Error();
+            }
+            return;
+        }
         var capacity = Number(channel, "new_capacity"); var quota = Number(channel, "new_tenantrichmenuquota");
         if (slots.Count != capacity) throw Error();
         var numbers = new HashSet<int>(); var ids = new HashSet<Guid>();

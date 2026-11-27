@@ -1,7 +1,7 @@
 /*
 檔案整體說明
 目的與定位：對真正 F3 SlotRequestPlugin／ChannelCreatedPlugin 執行離線交易驗收，保護產品、租戶、正式 ID、宮格預算、Channel 產品不可變與跨請求隔離，不測重寫版演算法。
-主要功能與流程：使用每案獨立的合成 SDK 資料庫及交易副本；二十執行緒以 barrier 同時進入真 Plugin，既驗既有列鎖配發，也讓全部首次讀取看見鎖列缺失後競爭 alternate-key Upsert，斷言只初始化一列、正式 Slot ID 全不同且活動交易歸零。Update 回歸以合成 PreImage 驗證原始產品，覆蓋同值允許、改值／移除／未知組織／缺影像／錯誤管線拒絕，並確認不建立名額。
+主要功能與流程：使用每案獨立的合成 SDK 資料庫及交易副本；二十執行緒以 barrier 同時進入真 Plugin，既驗既有列鎖配發，也讓全部首次讀取看見鎖列缺失後競爭 alternate-key Upsert，斷言只初始化一列、正式 Slot ID 全不同且活動交易歸零。僅登錄的音訊科技頻道以真 Plugin 驗證不建池、不妨礙營運池及既有空名額不參與配發；缺池欄位與完整池欄位皆有控制，未知型別與非法登錄狀態拒絕。Update 回歸以合成 PreImage 驗證原始產品，覆蓋同值允許、改值／移除／未知組織／缺影像／錯誤管線拒絕，並確認不建立名額。
 使用邊界與維護：SDK、context、PreImage 與 tracing 皆為合成借用介面；測試 harness 唯一擁有 Monitor 及交易副本，測試自身擁有 barrier 並等待全部工作。rollback 只證明同步例外向平台傳播及替身語意，不冒充 D365／SQL 的實機交易或 LINE 通知已送達。
 */
 using System;
@@ -142,6 +142,84 @@ public sealed class SlotRequestPluginTests
             Assert.Equal((int)SlotStatus.Available, row.GetAttributeValue<OptionSetValue>("new_slotstatus").Value);
             Assert.Equal(45, row.GetAttributeValue<int>("new_richmenuquota")); Assert.True(row.Contains("new_usedrichmenus")); });
         Assert.Equal(0, db.ActiveTransactions);
+    }
+    /// <summary>
+    /// 「音訊科技＋登錄中」只保存頻道身分：有無池欄位都不能由真 PostOperation 建名額。
+    /// 這會捕捉強制讀容量的舊分支或無條件建池的回歸；獨立交易 owner 在 Execute 結束後歸零。
+    /// </summary>
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void ChannelCreated_RegistrationOnly_DoesNotBuildPool(bool poolFields)
+    {
+        var db = new PoolTransactionFixture();
+        var channel = RegistrationOnly(db, poolFields, slots: false);
+        db.Execute(new ChannelCreatedPlugin(PoolTransactionFixture.Config), new Entity("new_linechannel", channel), stage: 40);
+        Assert.Empty(db.Rows.Where(row => row.LogicalName == "new_channelslot"));
+        Assert.Equal(0, db.BusinessWrites);
+        Assert.Equal(0, db.ActiveTransactions);
+        Assert.Equal(0, db.BorrowedDisposeCount);
+    }
+    /// <summary>
+    /// 真申請單 Plugin 必須讓僅登錄頻道與營運池共存；缺池欄位不阻斷配發，既有空名額也絕不配給租戶。
+    /// 配發、釋放後另一租戶重配均只指向營運池，登錄頻道維持原狀；不由合成 Store 代算結果。
+    /// </summary>
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void SlotRequest_RegistrationOnly_DoesNotBlockOperatingPool(bool existingSlots)
+    {
+        var db = new PoolTransactionFixture();
+        var registration = RegistrationOnly(db, existingSlots, existingSlots);
+        var operating = db.AddChannel(1);
+        var firstTenant = db.AddTenant(); var secondTenant = db.AddTenant(); var plugin = NewPlugin();
+        var first = db.Execute(plugin, PoolTransactionFixture.Request(firstTenant));
+        Assert.Equal(100000000, first.GetAttributeValue<OptionSetValue>("new_result")?.Value);
+        Assert.Equal(operating, first.GetAttributeValue<EntityReference>("new_channel").Id);
+        Assert.Equal(100000004, db.Execute(plugin, PoolTransactionFixture.Request(firstTenant, 100000001))
+            .GetAttributeValue<OptionSetValue>("new_result")?.Value);
+        var second = db.Execute(plugin, PoolTransactionFixture.Request(secondTenant));
+        Assert.Equal(operating, second.GetAttributeValue<EntityReference>("new_channel").Id);
+        Assert.Equal(first.GetAttributeValue<EntityReference>("new_slot").Id, second.GetAttributeValue<EntityReference>("new_slot").Id);
+        Assert.Equal(100000000, db.Rows.Single(row => row.Id == registration).GetAttributeValue<OptionSetValue>("new_channelstatus").Value);
+        Assert.All(db.Rows.Where(row => row.LogicalName == "new_channelslot" && row.GetAttributeValue<EntityReference>("new_channel").Id == registration), row =>
+        {
+            Assert.Null(row.GetAttributeValue<EntityReference>("new_tenant"));
+            Assert.Equal(100000000, row.GetAttributeValue<OptionSetValue>("new_slotstatus").Value);
+            Assert.Equal(0, row.GetAttributeValue<int>("new_usecount"));
+        });
+        Assert.Equal(0, db.ActiveTransactions); Assert.Equal(0, db.BorrowedDisposeCount);
+    }
+    /// <summary>音訊科技頻道只有核定的登錄中狀態可略過建池；營運中、已滿、停用與退役不得繞過池一致性檢查。</summary>
+    [Theory]
+    [InlineData(100000001)] [InlineData(100000002)] [InlineData(100000003)] [InlineData(100000004)]
+    public void ChannelCreated_RegistrationOnlyWrongStatus_Refused(int status)
+    {
+        var db = new PoolTransactionFixture(); var id = RegistrationOnly(db, poolFields: false, slots: false);
+        db.Rows.Single(row => row.Id == id)["new_channelstatus"] = new OptionSetValue(status);
+        Assert.Throws<InvalidPluginExecutionException>(() => db.Execute(new ChannelCreatedPlugin(PoolTransactionFixture.Config), new Entity("new_linechannel", id), stage: 40));
+        Assert.Equal(0, db.BusinessWrites); Assert.Equal(0, db.ActiveTransactions);
+    }
+    /// <summary>「登錄中」本身不是免驗證權限：缺失、錯型別或未知頻道型別一律拒絕，不可用狀態讓任意列跳過產品池契約。</summary>
+    [Theory]
+    [InlineData("missing")] [InlineData("wrong-type")] [InlineData("unknown")]
+    public void ChannelCreated_RegistrationOnlyInvalidType_Refused(string fault)
+    {
+        var db = new PoolTransactionFixture(); var id = RegistrationOnly(db, poolFields: false, slots: false);
+        var row = db.Rows.Single(value => value.Id == id);
+        if (fault == "missing") row.Attributes.Remove("new_channeltype");
+        else row["new_channeltype"] = fault == "wrong-type" ? (object)100000000 : new OptionSetValue(100000002);
+        Assert.Throws<InvalidPluginExecutionException>(() => db.Execute(new ChannelCreatedPlugin(PoolTransactionFixture.Config), new Entity("new_linechannel", id), stage: 40));
+        Assert.Equal(0, db.BusinessWrites); Assert.Equal(0, db.ActiveTransactions);
+    }
+    /// <summary>測試專屬候選建立器只種合成正式列，不替產品判斷或配發；各案決定是否保留完整池欄位及空名額。</summary>
+    private static Guid RegistrationOnly(PoolTransactionFixture db, bool poolFields, bool slots)
+    {
+        var id = db.AddChannel(20, slots: slots); var row = db.Rows.Single(value => value.Id == id);
+        row["new_channeltype"] = new OptionSetValue(100000000); row["new_channelstatus"] = new OptionSetValue(100000000);
+        if (!poolFields)
+            foreach (var field in new[] { "new_capacity", "new_poolorder", "new_reservedrichmenus", "new_tenantrichmenuquota" }) row.Attributes.Remove(field);
+        return id;
     }
     /// <summary>Create/PostOperation 的產品只能由組織映射取得；未知或大小寫不同組織不能建名額或取得鎖。</summary>
     [Theory]
