@@ -103,7 +103,7 @@ code{background:var(--tint);border-radius:4px;padding:0 4px}
   if (live && cx.found) {
     const m = minsSince(cx.lastActivity);
     if (/完成/.test(st['狀態'] || '')) { cls = 'g'; title = '這條線已完成'; }
-    else if (stopMine.length || /等待使用者/.test(st['狀態'] || '')) { cls = 'o'; title = '正在等你'; sub = '看下方「需要你協助」，到這條線的 Codex 對話框回覆。'; }
+    else if (stopMine.length || /^\s*等待使用者/.test(st['狀態'] || '')) { // 只認開頭，避免描述別條線時誤判 cls = 'o'; title = '正在等你'; sub = '看下方「需要你協助」，到這條線的 Codex 對話框回覆。'; }
     else if (m <= 10) { cls = 'g'; title = '正在工作'; }
     else if (m <= 60) { cls = 'y'; title = '一陣子沒有動作'; sub = '可能在跑長時間的建置或測試，或在等另一條線。'; }
     else { cls = 'r'; title = '超過 1 小時沒有動作'; sub = '請到這條線的 Codex 對話框看看；需要時回「繼續」。'; }

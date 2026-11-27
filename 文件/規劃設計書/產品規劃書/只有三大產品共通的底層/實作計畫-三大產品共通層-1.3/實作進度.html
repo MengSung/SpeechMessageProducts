@@ -135,7 +135,9 @@ code{background:var(--tint);border-radius:4px;padding:0 4px}
 
   // ---------- 頁首 ----------
   const last = ['A', 'B'].map(k => (L[k] || {}).lastUpdated).filter(Boolean).sort().pop();
-  document.getElementById('updated').textContent = '資料更新：' + (last ? last.replace('T', ' ').slice(0, 16) + ' Asia/Taipei (UTC+08:00)' : '（沒有資料）') + '｜計畫：M1 最晚 2027-01-05；全部最晚 2027-01-07';
+  // 兩種時間分開寫：工作包表格只在各線合併一包時更新；即時資料由更新程式每分鐘產生，避免使用者誤以為整頁停在舊時間
+  const liveAt = ['A', 'B'].map(k => ((window.LIVE_LANES || {})[k] || {}).generatedAt).filter(Boolean).sort().pop();
+  document.getElementById('updated').textContent = '即時資料：' + (liveAt ? liveAt + ' Asia/Taipei (UTC+08:00)' : '（尚未產生，請雙擊 立即更新進度.cmd）') + '｜工作包表格（每合併一包才更新）：' + (last ? last.replace('T', ' ').slice(0, 16) + ' Asia/Taipei (UTC+08:00)' : '（沒有資料）') + '｜計畫：M1 最晚 2027-01-05；全部最晚 2027-01-07';
   if (warns.length) document.getElementById('warnings').innerHTML = `<div class="warn"><b>資料有問題（請該線修正自己的資料檔）</b><ul>${warns.map(w => `<li>${esc(w)}</li>`).join('')}</ul></div>`;
 
   const wps = rows.filter(r => r.id !== 'P0');
@@ -155,7 +157,7 @@ code{background:var(--tint);border-radius:4px;padding:0 4px}
     const s = v.status || {}, c = v.codex || {};
     const nowT = new Date(Date.now() + 8 * 36e5).toISOString().slice(0, 16);
     const m = c.lastActivity ? Math.max(0, Math.round((Date.parse(nowT + 'Z') - Date.parse(c.lastActivity.replace(' ', 'T') + 'Z')) / 60000)) : null;
-    const wait = (v.help || []).some(h => (h.lane || '').indexOf(k) >= 0 && /要停/.test(h.kind || '') && !/已處理/.test(h.state || '')) || /等待使用者/.test(s['狀態'] || '');
+    const wait = (v.help || []).some(h => (h.lane || '').indexOf(k) >= 0 && /要停/.test(h.kind || '') && !/已處理/.test(h.state || '')) || /^\s*等待使用者/.test(s['狀態'] || ''); // 只認開頭；狀態裡描述別條線在等使用者不算
     const fin = /完成/.test(s['狀態'] || '');
     const cls = fin ? 'g' : wait ? 'o' : m == null ? 'n' : m <= 10 ? 'g' : m <= 60 ? 'y' : 'r';
     const word = { g: fin ? '已完成' : '正在工作', o: '正在等你', y: '一陣子沒有動作', r: '超過 1 小時沒有動作', n: '沒有資料' }[cls];
