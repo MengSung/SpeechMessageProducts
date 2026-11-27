@@ -1,7 +1,7 @@
 # FS 結構分層與三組織佈署
-更新：2026-11-28 01:10 Asia/Taipei (UTC+08:00)
-本包原始起點：`601d5056825eec30299432c054e867deb1e6b790`；歷史同步基線：`2da59fac62aab177a05efcba07132b69616b4243`（2026-11-26）；本輪 quiesce 修正起點：`36d4c49724fe90b522304048d3bec051ea710134`；本輪狀態轉換修正提交：`2e6de8d0e14bc5a3d86423cc33104ef08db5519c`；目前整合分支／遠端：`e2eac3c38587469c9a250362493b2ba3908e102c`（待重基線）；原程式與先前修正提交：`64679a87f`、`9af227811`、`bd22905fc`。
-狀態：自動測試通過（實機待補）；本輪 quiesce 修正與 02 §4 離線閘門通過；單模型（使用者指定 ClaudeOnly）審查及測試／報告覆蓋補查均無未修 Critical／High。最新整合基線重驗與實機仍待完成。尚未執行本輪 D365 實機寫入；H1 依 02A §2 待 apply／verify 通過後結案。
+更新：2026-11-28 01:55 Asia/Taipei (UTC+08:00)
+本包原始起點：`601d5056825eec30299432c054e867deb1e6b790`；歷史同步基線：`2da59fac62aab177a05efcba07132b69616b4243`（2026-11-26）；本輪修正起點：`36d4c49724fe90b522304048d3bec051ea710134`；本輪程式原提交 `2e6de8d0e14bc5a3d86423cc33104ef08db5519c`（重基線後 `c4cf53a63`）；最新整合基線 `e2eac3c38587469c9a250362493b2ba3908e102c`；重基線報告提交 `1bfe1a23e945118cd38dc578247a6f16ad087115`。原程式與先前修正提交：`64679a87f`、`9af227811`、`bd22905fc`。
+狀態：自動測試通過（實機待補）；FS 已安全重基線至 `e2eac3c38587469c9a250362493b2ba3908e102c` 並通過本輪 02 §4 離線閘門；單模型（使用者指定 ClaudeOnly）審查及測試／報告覆蓋補查均無未修 Critical／High。分支指標尚待安全轉移與快轉合併推送；D365 實機仍未執行。H1 依 02A §2 停用政策，待 quiesce apply／verify 後結案。
 
 ## 驗收狀態
 
@@ -142,6 +142,18 @@ FS無手機步驟；手機畫面集中M1。目前進度頁目視亦待補：先�
 - 已核對使用者指定的整合分支本機與 `git ls-remote` 均為 `e2eac3c38587469c9a250362493b2ba3908e102c`；F3 離線修正／報告提交 `5b8c74b03` 是整合 HEAD 的祖先，故 F3 離線閘門已合併，不重做已通過的守門。線 A 的 FS 狀態轉換修正提交為 `2e6de8d0e14bc5a3d86423cc33104ef08db5519c`，其重基線及基線後 02 §4 守門尚待完成。
 - 兩輪單模型（使用者指定 ClaudeOnly）審查與覆蓋補查已完成，無未修 Critical／High；本輪尚未執行 D365、Channel、正式組織、金流或手機操作。2026-11-28 01:18 唯讀檢查時 test-env.lock、integration-merge.lock 與三個 D365 寫入鎖均不存在。
 - F3 的依賴備註按 02A §5 保持「等 FS 完成後開始」；具體 F3 Step 6 實機仍須在 FS 三組織 plan／apply／verify、檢視表／UI 與 Live3P 通過後才開始。離線通過不等於實機完成。
+### 2026-11-28 01:43 Asia/Taipei (UTC+08:00) 最新整合基線後離線閘門
+
+- 為保留原工作樹未提交的其他任務 `.ccg/tasks/line-token-config-separation/.turns.json`，在獨立 detached 暫存工作樹重基線；原檔 SHA-256 前後均為 `84EFB7338518A651C18115AA89C2507C5FF7AFA41821FE8AA3B13D7573173A42`。由整合 `e2eac3c38587469c9a250362493b2ba3908e102c` 重放本包兩個提交，程式提交為 `c4cf53a63`、文件提交為 `1bfe1a23e`；未 stash、reset 或覆寫其他修改。原 `cl/lane-a` 分支指標尚未移動。
+- 02 §4 同步後閘門全部 exit 0：Release 全方案建置 65 個既有警告／0 錯誤，log SHA-256 `C0FE0D3AAD51130FAD3F894936A0F548479398F939556533328213907E933757`；完整一般測試 28 回合、9,472/9,472、0 失敗／0 略過，SHA-256 `555EC51DCB8D4EB1C8B989F80ED8D5BB21E2FA228247C85EC3C87870BE442A96`；檔案說明 2,086/0，SHA-256 `11C97668DE9964485C4A64B1D0E50220C652BF435F7E1C6F7FBC16555658EBF5`；Changed 編碼 12 檔、0 問題／0 排除，SHA-256 `33E0E0BF65DE3B613072AB91633448C9358DFB60940D35DD33B255803BE132E1`；方案清單 54 個專案、exit 0，SHA-256 `91B4F1D249BD45625A6A146C3D01E51705E6A0D7AEAF644A763E70B0A514BA2D`。以上全為離線結果。
+- 本輪沒有連線或寫入 D365、Channel、正式組織、正式金流，也沒有手機實機驗收。F3 的離線修正已在整合歷史，不重跑已通過閘門；目前仍自動測試通過（實機待補）。
+- 2026-11-28 01:55 Asia/Taipei (UTC+08:00) 進度頁離線檢查（最終重驗時間 2026-11-28 02:02 Asia/Taipei (UTC+08:00)；通用 log SHA-256 BAE864611016ABC3005A901BE2B45AA09BFC8387F998ED6AE1161E9079D1DE17；現行 1.3 log SHA-256 3C11FA9BFC7238BECA28CC9AE566CB641D7E9C3D6CAB612751BCF2BA65403C81）：AGENTS 指定的 node --test tools/RepoQuality/Tests/Test-ProgressPage.cjs 是 28/28 歷史 3.5 資料契約檢查；現行 1.3 專用 Test-ThreeProductsProgress.cjs 4/4，含真實兩線快照無警告。依先前使用者 Escape 取消，本輪未重新開啟瀏覽器，故只報 renderer 結果、不宣稱頁面目視通過。
+### 2026-11-28 02:04 Asia/Taipei (UTC+08:00) 最終文件與進度 renderer 複核
+
+- 依 AGENTS 指定入口 `node --test tools/RepoQuality/Tests/Test-ProgressPage.cjs` 通過 28/28，log SHA-256 `BAE864611016ABC3005A901BE2B45AA09BFC8387F998ED6AE1161E9079D1DE17`；現行 1.3 `node --test tools/RepoQuality/Tests/Test-ThreeProductsProgress.cjs` 通過 4/4、真實兩線快照無資料警告，log SHA-256 `3C11FA9BFC7238BECA28CC9AE566CB641D7E9C3D6CAB612751BCF2BA65403C81`。這些是離線 renderer 測試，不代表瀏覽器目視或實機驗收。
+- 最終文件說明檢查 2,086/0，log SHA-256 `11C97668DE9964485C4A64B1D0E50220C652BF435F7E1C6F7FBC16555658EBF5`；Changed UTF-8／換行檢查 12 檔、0 問題／0 排除，log SHA-256 `33E0E0BF65DE3B613072AB91633448C9358DFB60940D35DD33B255803BE132E1`；`git diff --check` exit 0。四個變更檔逐位元組確認 UTF-8 無 BOM、CRLF、末尾 CRLF。既有 Release 建置與 9,472/9,472 一般測試證據適用於相同程式 HEAD `c4cf53a63`；本次只改報告、90、線 A 進度與決策文件，故不重跑未受影響的程式閘門。
+- 現行測試環境鎖由線 B 的 `P0-2-4` 唯讀診斷持有；線 A 沒有接觸或移除該鎖，待鎖釋放後再依 02A §5.1 取得自己的鎖。未進行瀏覽器目視、D365、Channel、正式環境、金流或手機操作。
+
 ## 下一步
 
-ClaudeOnly 審查與範圍補查均完成（單模型，依使用者指定；run：`20261128-010429-3p-fs-lane-a-reviewer`、`20261128-010544-3p-fs-lane-a-coverage-reviewer`），無未修 Critical／High。下一步依 02 §5 同步至最新整合基線並重跑必要閘門；通過後快轉合併推送。合併後嚴格依 02A §5：goodshepherd20 quiesce apply／verify（通過後 H1 依 §2 結案）→ F0 inventory 與 FS plan 唯讀根因診斷及符合 §1 的修正後重試 → 三組織 plan／審查／apply／verify、平台檢視表及 UI export/import、Live3P FS → 最後 F3 Step 6 實機。F3 待補維持「等 FS 實機完成後開始」；離線結果不視為實機完成。
+ClaudeOnly 審查與範圍補查均完成（單模型，依使用者指定；run：`20261128-010429-3p-fs-lane-a-reviewer`、`20261128-010544-3p-fs-lane-a-coverage-reviewer`），無未修 Critical／High。重基線後 02 §4 五道離線閘門全通過；先完成進度資料更新及其文件／編碼／renderer 檢查，再依 02 §5 安全轉移 `cl/lane-a` 指標，在取得合併鎖後快轉合併並推送、核對遠端 SHA。之後依 02A §5 持有 test-env.lock，順序為：goodshepherd20 quiesce apply／verify（通過後 H1 依 §2 結案）→ F0 inventory 與 FS plan 唯讀根因診斷、符合 §1 後修正重試 → 三組織 plan／摘要審查／apply／verify、檢視表發布、UI export/import、Live3P FS → 最後 F3 Step 6 實機。F3 依賴備註為「等 FS 完成後開始」；具體 F3 實機仍待 FS 上述實機項目通過，離線結果不算實機完成。
