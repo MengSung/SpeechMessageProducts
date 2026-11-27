@@ -1,18 +1,19 @@
 /*
 檔案整體說明
-目的與定位：保護 FS Step 3b 已審來源與真正 apply 的連續性，經公開 CLI／Run 注入同一正式
-step 的 handler、型別、組件及 workflow 來源漂移，驗證 keep 正式 ID 不能掩蓋來源改變。
+目的與定位：保護 FS Step 3b 的來源指紋，以及 02A policyVersion=2 的停用分類。
+經公開 CLI／Run 注入同一正式 step 的 handler、型別、組件及 workflow 來源漂移，驗證 keep 正式 ID
+不能掩蓋來源改變；另驗證只有完整簽章身分符合的 F3 平台 Plugin 兩個登錄型別可保留。
 主要流程：只用每案合成 SDK 管理列，先公開 dry-run 產生非秘密來源指紋，再建立本案政策；
 真正 apply 必須重讀同次完整來源、核對指紋，成功後才交 beforeWrite 與更新信箱 0／0／2。
 故障與斷言：缺／錯指紋、來源替換、晚頁故障與未分類均須零 Update，直接 Run 的寫前 owner
 亦不可呼叫；公開 CLI 不得發布 before-image 或 SHA 側檔。合法控制驗證相同來源不同列次序
 不漂移、完整續頁只讀一次、原像保持原值，真正 SDK 例外與 caller 取消仍各依原契約處理。
 信任邊界：fingerprint 只描述已讀管理來源穩定，不把 managed、Complete 或同一來源當成安全
-保留證明，亦不解決現場 H1 分類未知；不讀 configuration、secureconfig、workflow name／本文、
+保留證明，不證明目標 goodshepherd20 已符合停用政策或 H1 已結案，實機 apply／verify 仍待完成；不讀 configuration、secureconfig、workflow name／本文、
 組件 content、userId 或 Channel。查詢欄位由本檔獨立 oracle 驗證，不借用產品白名單。
 資源與隔離：SDK、列、政策與回呼全由單案擁有，沒有共用 cache、連線或背景工作；CLI 租約
 逐次歸還，檔案只在指定證據根的隨機子目錄，Dispose 只清本案目錄。純值結果不保留 SDK 圖。
-維護驗證：只執行 Quiesce 定向離線案例，RED／GREEN 與來源 SHA 另存指定證據根；
+維護驗證：先執行 Quiesce 定向離線案例，再跑 F3 全方案閘門；RED／GREEN 與來源 SHA 另存指定證據根；
 合成來源與 mailbox 數值契約不能宣稱目標 9.1、真正政策分類或實機停用已通過。
 */
 using System;
@@ -37,14 +38,14 @@ public sealed class QuiesceSourceBindingTests
 {
     /// <summary>
     /// 重現原安全缺口：先盤點安全 handler，再把同 ID 的 keep step 換成 serviceendpoint；
-    /// 舊政策即使沒有來源欄位也會讓真正 CLI 修改信箱。修補後須先拒絕並保留零寫入、零原像發布。
+    /// 現行 CLI 必須因來源指紋漂移先拒絕，before-image 與 Update 都不得發生。缺少 policyVersion 的舊格式另由專用案例拒絕。
     /// </summary>
     [Fact]
-    public void Cli_LegacyPolicySameIdHandlerReplacement_RejectsBeforeEvidenceAndEveryUpdate()
+    public void Cli_ReviewedPolicySameIdHandlerReplacement_RejectsBeforeEvidenceAndEveryUpdate()
     {
         using var fixture = new BindingFixture();
         Assert.Equal(0, fixture.Cli(false));
-        fixture.Policy(null);
+        fixture.Policy(fixture.Fingerprint());
         fixture.Service.Change("handler");
         var exit = fixture.Cli(true);
         Assert.True(exit == 1 && fixture.Service.Updates.Count == 0,
@@ -52,9 +53,126 @@ public sealed class QuiesceSourceBindingTests
         fixture.AssertRejectedApply();
     }
 
-    /// <summary>直接 Run 也重現舊政策同 ID 換 handler；缺少 fingerprint 必須先拒絕，不能呼叫 beforeWrite 或 Update。</summary>
+    /// <summary>
+    /// 02A 停用規則必須使用版本化政策；缺少 policyVersion 的舊政策即使有正確組織與來源指紋，
+    /// 也須在第二次借出 SDK、產生寫前證據及任何 Update 前拒絕，避免沿用舊分類語意。
+    /// </summary>
     [Fact]
-    public void Run_LegacyPolicySameIdHandlerReplacement_RejectsBeforeOwnerAndEveryUpdate()
+    public void Cli_UnversionedPolicy_RejectsBeforeApplyLeaseEvidenceAndEveryUpdate()
+    {
+        using var fixture = new BindingFixture();
+        Assert.Equal(0, fixture.Cli(false));
+        fixture.LegacyPolicy(fixture.Fingerprint());
+        fixture.Service.Reads.Clear();
+
+        Assert.Equal(2, fixture.Cli(true));
+
+        Assert.Equal(1, fixture.Returned);
+        Assert.Empty(fixture.Service.Reads);
+        Assert.Empty(fixture.Service.Updates);
+        Assert.Empty(fixture.ApplyInventories());
+        Assert.Empty(Directory.GetFiles(fixture.Root, "quiesce-inventory-sha256.json", SearchOption.AllDirectories));
+    }
+
+    /// <summary>
+    /// 02A 不把 managed=true 當成 Microsoft 系統身分：合成自訂組件即使 managed，
+    /// 仍必須列入停用；錯列 keep 時，寫前 owner 與所有 Update 都不得發生。
+    /// </summary>
+    [Fact]
+    public void Run_02APolicy_RejectsManagedNonMicrosoftKeepBeforeEvidenceAndEveryUpdate()
+    {
+        using var fixture = new BindingFixture();
+        var policy = fixture.ReviewedPolicy() with
+        {
+            DisablePluginStepIds = Array.Empty<Guid>(),
+            KeepPluginStepIds = [fixture.Service.Step.Id]
+        };
+        var invoked = false;
+
+        Assert.Throws<InvalidDataException>(() => ClonedOrganizationQuiesce.Run(fixture.Service, Target(),
+            true, default, policy, beforeWrite: _ => invoked = true));
+
+        Assert.False(invoked);
+        Assert.Empty(fixture.Service.Updates);
+    }
+
+    /// <summary>
+    /// Microsoft.*、經完整 managed／Microsoft strong-name 身分確認的 ActivityFeeds，
+    /// 以及本計畫 manifest 精確列出的 F3 平台 Plugin 可保留；同一正式來源指紋下都不能誤列為停用候選。
+    /// </summary>
+    [Theory]
+    [InlineData("microsoft-system")]
+    [InlineData("microsoft-missing-token")]
+    [InlineData("activityfeeds-system")]
+    [InlineData("platform-slot-request")]
+    [InlineData("platform-channel-created")]
+    public void Run_02APolicy_PreservesAllowedSystemAndF3Plugins(string identity)
+    {
+        using var fixture = new BindingFixture();
+        fixture.Service.Change(identity);
+        var policy = fixture.ReviewedPolicy() with
+        {
+            DisablePluginStepIds = Array.Empty<Guid>(),
+            KeepPluginStepIds = [fixture.Service.Step.Id]
+        };
+
+        _ = ClonedOrganizationQuiesce.Run(fixture.Service, Target(), true, default, policy,
+            beforeWrite: _ => { });
+
+        Assert.DoesNotContain(fixture.Service.Updates, row => row.LogicalName == "sdkmessageprocessingstep");
+        Assert.Contains(fixture.Service.Updates, row => row.LogicalName == "mailbox");
+    }
+
+    /// <summary>
+    /// 平台例外不得退化成組件名稱前綴或任一已簽署型別即可保留；錯誤簽章、未登錄型別及近似組件名稱
+    /// 都必須在 beforeWrite 與所有 Update 前拒絕，避免不相關的自訂 Plugin 躲過 02A 停用政策。
+    /// </summary>
+    [Theory]
+    [InlineData("platform-wrong-token")]
+    [InlineData("platform-unregistered-type")]
+    [InlineData("platform-lookalike-assembly")]
+    public void Run_02APolicy_RejectsUnregisteredPlatformLookalikesBeforeOwnerAndEveryUpdate(string identity)
+    {
+        using var fixture = new BindingFixture();
+        fixture.Service.Change(identity);
+        var policy = fixture.ReviewedPolicy() with
+        {
+            DisablePluginStepIds = Array.Empty<Guid>(),
+            KeepPluginStepIds = [fixture.Service.Step.Id]
+        };
+        var invoked = false;
+
+        Assert.Throws<InvalidDataException>(() => ClonedOrganizationQuiesce.Run(fixture.Service, Target(),
+            true, default, policy, beforeWrite: _ => invoked = true));
+
+        Assert.False(invoked);
+        Assert.Empty(fixture.Service.Updates);
+    }
+
+    /// <summary>
+    /// 02A 明確不動 Business Rule 與 Business Process Flow；category=2／4 即使不在 workflow 保留 ID 清冊，
+    /// 也不能被列為停用候選或傳給 SDK Update。正值遵循官方 workflow_category 選項。
+    /// </summary>
+    [Theory]
+    [InlineData("workflow-business-rule", 2)]
+    [InlineData("workflow-bpf", 4)]
+    public void Run_02APolicy_ProtectedWorkflowCategoriesAreNeverSelectedOrUpdated(string identity, int category)
+    {
+        using var fixture = new BindingFixture();
+        fixture.Service.Change(identity);
+        var policy = fixture.ReviewedPolicy() with { KeepWorkflowIds = Array.Empty<Guid>() };
+
+        var result = ClonedOrganizationQuiesce.Run(fixture.Service, Target(), true, default, policy,
+            beforeWrite: _ => { });
+
+        Assert.Equal(0, result.WorkflowDefinitionsToDisable);
+        Assert.Equal(category, Assert.Single(result.WorkflowIdentities).Category);
+        Assert.DoesNotContain(fixture.Service.Updates, row => row.LogicalName == "workflow");
+    }
+
+    /// <summary>直接 Run 注入同 ID handler 替換且政策缺少 fingerprint；必須先拒絕，不能呼叫 beforeWrite 或 Update。</summary>
+    [Fact]
+    public void Run_MissingFingerprintSameIdHandlerReplacement_RejectsBeforeOwnerAndEveryUpdate()
     {
         using var fixture = new BindingFixture();
         Assert.Equal(0, fixture.Cli(false));
@@ -226,11 +344,14 @@ public sealed class QuiesceSourceBindingTests
         Assert.Same(saved, result);
         Assert.Equal(1, fixture.Service.Reads["plugintype"]);
         Assert.Equal(1, fixture.Service.Reads["pluginassembly"]);
-        var update = Assert.Single(fixture.Service.Updates);
-        Assert.Equal("mailbox", update.LogicalName);
-        Assert.Equal(0, update.GetAttributeValue<OptionSetValue>("incomingemaildeliverymethod").Value);
-        Assert.Equal(0, update.GetAttributeValue<OptionSetValue>("outgoingemaildeliverymethod").Value);
-        Assert.Equal(2, update.GetAttributeValue<OptionSetValue>("actdeliverymethod").Value);
+        var pluginUpdate = Assert.Single(fixture.Service.Updates,
+            row => row.LogicalName == "sdkmessageprocessingstep");
+        Assert.Equal(fixture.Service.Step.Id, pluginUpdate.Id);
+        var mailboxUpdate = Assert.Single(fixture.Service.Updates, row => row.LogicalName == "mailbox");
+        Assert.Equal(0, mailboxUpdate.GetAttributeValue<OptionSetValue>("incomingemaildeliverymethod").Value);
+        Assert.Equal(0, mailboxUpdate.GetAttributeValue<OptionSetValue>("outgoingemaildeliverymethod").Value);
+        Assert.Equal(2, mailboxUpdate.GetAttributeValue<OptionSetValue>("actdeliverymethod").Value);
+        Assert.DoesNotContain(fixture.Service.Updates, row => row.LogicalName == "workflow");
     }
 
     /// <summary>合法公開 apply 的寫前主檔與 SHA 側檔必須已關閉，且同一指紋及完整原值先持久化才可 Update。</summary>
@@ -255,7 +376,9 @@ public sealed class QuiesceSourceBindingTests
             Assert.Equal(1, fixture.Service.Reads["mailbox"]);
         };
         Assert.Equal(0, fixture.Cli(true));
-        Assert.Single(fixture.Service.Updates);
+        Assert.Equal(2, fixture.Service.Updates.Count);
+        Assert.Single(fixture.Service.Updates, row => row.LogicalName == "sdkmessageprocessingstep");
+        Assert.Single(fixture.Service.Updates, row => row.LogicalName == "mailbox");
         Assert.Equal(2, fixture.Returned);
         Assert.Empty(fixture.Failures);
     }
@@ -283,7 +406,9 @@ public sealed class QuiesceSourceBindingTests
         Assert.Equal(2, fixture.Service.Reads["solution"]);
         Assert.Equal(2, fixture.Service.Reads["publisher"]);
         Assert.Equal(2, result.PluginIdentities.Select(row => row.StepId).ToHashSet().Count);
-        Assert.Single(fixture.Service.Updates);
+        Assert.Equal(3, fixture.Service.Updates.Count);
+        Assert.Equal(2, fixture.Service.Updates.Count(row => row.LogicalName == "sdkmessageprocessingstep"));
+        Assert.Single(fixture.Service.Updates, row => row.LogicalName == "mailbox");
     }
 
     /// <summary>重複正式 ID 即使內容相同也不得 hash 去重；完整來源驗證失敗時不交寫前 owner。</summary>
@@ -326,6 +451,39 @@ public sealed class QuiesceSourceBindingTests
         fixture.AssertRejectedApply();
     }
 
+    /// <summary>
+    /// 重現 02A 前次 apply 的 FaultException 類型：quiesce catch 必須在共用回報後輸出有限數字碼，
+    /// 保留原例外、寫前原像與租約清理，且不得印出 SDK 的 Message、TraceText 或 FaultReason。
+    /// </summary>
+    [Fact]
+    public void Cli_ApplyDataverseFault_ReportsOnlyBoundedCodesAndReturnsLease()
+    {
+        using var fixture = new BindingFixture();
+        Assert.Equal(0, fixture.Cli(false));
+        fixture.Policy(fixture.Fingerprint());
+        const string sensitiveText = "synthetic-sensitive-dataverse-fault";
+        var failure = new System.ServiceModel.FaultException<Microsoft.Xrm.Sdk.OrganizationServiceFault>(
+            new Microsoft.Xrm.Sdk.OrganizationServiceFault
+            {
+                ErrorCode = unchecked((int)0x80040224),
+                Message = sensitiveText,
+                TraceText = sensitiveText
+            },
+            new System.ServiceModel.FaultReason(sensitiveText));
+        fixture.Service.UpdateFailure = failure;
+
+        Assert.Equal(1, fixture.Cli(true));
+
+        Assert.Same(failure, Assert.Single(fixture.Failures));
+        Assert.Contains("Dataverse fault code[0]: 0x80040224", fixture.LastOutput, StringComparison.Ordinal);
+        Assert.DoesNotContain(sensitiveText, fixture.LastOutput, StringComparison.Ordinal);
+        Assert.Equal(1, fixture.Service.UpdateAttempts);
+        Assert.Empty(fixture.Service.Updates);
+        Assert.Equal(2, fixture.Returned);
+        Assert.Single(fixture.ApplyInventories());
+        Assert.Single(Directory.GetFiles(fixture.Root, "quiesce-inventory-sha256.json", SearchOption.AllDirectories));
+    }
+
     /// <summary>caller 取消在新增來源讀取返回時仍回 130、不告警；source binding 不改取消分類或保留借用 SDK。</summary>
     [Fact]
     public void Cli_CallerCancelledDuringSourceRead_StopsBeforeEvidenceWithoutReporting()
@@ -355,6 +513,8 @@ public sealed class QuiesceSourceBindingTests
         internal List<Exception> Failures { get; } = new();
         /// <summary>每次 CLI 都必須歸還恰好一份 SDK 租約。</summary>
         internal int Returned { get; private set; }
+        /// <summary>只保存本次合成命令的固定摘要，供斷言安全 fault 數字碼而不讀原始例外內容。</summary>
+        internal string LastOutput { get; private set; } = string.Empty;
         /// <summary>只建立本案路徑，清理由 Dispose 確定完成。</summary>
         internal BindingFixture() => Directory.CreateDirectory(Root);
         /// <summary>只替換 connector，真正公開解析、寫鎖、核身、讀取、落盤與 verification 仍由產品執行。</summary>
@@ -363,9 +523,11 @@ public sealed class QuiesceSourceBindingTests
             using var output = new StringWriter(CultureInfo.InvariantCulture);
             string[] arguments = apply ? ["quiesce", "--org", "goodshepherd20", "--apply"]
                 : ["quiesce", "--org", "goodshepherd20"];
-            return DeploymentCli.RunWithCatalog(arguments, OrganizationCatalog.LoadDefault(), this, output,
+            var exitCode = DeploymentCli.RunWithCatalog(arguments, OrganizationCatalog.LoadDefault(), this, output,
                 Failures.Add, null, Root, secretReader: _ => throw new InvalidOperationException("Forbidden Secrets read."),
                 cancellationToken: cancellationToken);
+            LastOutput = output.ToString();
+            return exitCode;
         }
         /// <summary>從公開 dry-run 實際輸出取指紋，不由測試重做產品雜湊以掩蓋接線失敗。</summary>
         internal string Fingerprint()
@@ -384,13 +546,22 @@ public sealed class QuiesceSourceBindingTests
         }
         /// <summary>把目前正式 ID 分類與指定指紋轉為純值政策；null 明確省略新欄位以重現舊政策漏洞。</summary>
         internal QuiescePolicy PolicyValue(string? fingerprint) =>
-            JsonSerializer.Deserialize<QuiescePolicy>(PolicyJson(fingerprint))!;
+            JsonSerializer.Deserialize<QuiescePolicy>(PolicyJson(fingerprint, includeVersion: true))!;
         /// <summary>政策只有非秘密的 server 組織 ID、正式來源 ID 與指紋，且每案只建立一次。</summary>
         internal void Policy(string? fingerprint)
         {
             var directory = Path.Combine(Root, "goodshepherd20");
             Directory.CreateDirectory(directory);
-            File.WriteAllText(Path.Combine(directory, "quiesce-policy.json"), PolicyJson(fingerprint));
+            File.WriteAllText(Path.Combine(directory, "quiesce-policy.json"),
+                PolicyJson(fingerprint, includeVersion: true));
+        }
+        /// <summary>只供回歸舊格式拒絕的故障注入；缺版政策不作任何成功控制或寫入依據。</summary>
+        internal void LegacyPolicy(string? fingerprint)
+        {
+            var directory = Path.Combine(Root, "goodshepherd20");
+            Directory.CreateDirectory(directory);
+            File.WriteAllText(Path.Combine(directory, "quiesce-policy.json"),
+                PolicyJson(fingerprint, includeVersion: false));
         }
         /// <summary>
         /// 僅供嚴格公開 JSON 故障案例：從不帶指紋的獨立政策插入指定成員，保留重複鍵及錯型別原貌。
@@ -400,19 +571,20 @@ public sealed class QuiesceSourceBindingTests
         {
             var directory = Path.Combine(Root, "goodshepherd20");
             Directory.CreateDirectory(directory);
-            var original = PolicyJson(null);
+            var original = PolicyJson(null, includeVersion: true);
             File.WriteAllText(Path.Combine(directory, "quiesce-policy.json"), original[..^1] + "," + member + "}");
         }
         /// <summary>獨立 JSON 輸入保護新欄位接線；不依賴產品 serializer 自動補足未知／缺失欄位。</summary>
-        private string PolicyJson(string? fingerprint)
+        private string PolicyJson(string? fingerprint, bool includeVersion)
         {
             var values = new Dictionary<string, object>
             {
                 ["organizationId"] = BindingService.OrganizationId,
                 ["keepWorkflowIds"] = Service.Tables["workflow"].Select(row => row.Id).ToArray(),
-                ["keepPluginStepIds"] = Service.Tables["sdkmessageprocessingstep"].Select(row => row.Id).ToArray(),
-                ["disablePluginStepIds"] = Array.Empty<Guid>()
+                ["keepPluginStepIds"] = Array.Empty<Guid>(),
+                ["disablePluginStepIds"] = Service.Tables["sdkmessageprocessingstep"].Select(row => row.Id).ToArray()
             };
+            if (includeVersion) values.Add("policyVersion", QuiescePolicy.CurrentPolicyVersion);
             if (fingerprint is not null) values.Add("sourceFingerprint", fingerprint);
             return JsonSerializer.Serialize(values);
         }
@@ -462,6 +634,10 @@ public sealed class QuiesceSourceBindingTests
         internal Action<string>? BeforeRead { get; set; }
         /// <summary>第一筆 Update 前檢查真正已 flush 並關閉的 CLI 證據。</summary>
         internal Action? BeforeUpdate { get; set; }
+        /// <summary>模擬 Dataverse 在指定寫入中的原始 FaultException；只由本案同步測試持有。</summary>
+        internal Exception? UpdateFailure { get; set; }
+        /// <summary>記錄本案同步 Update 次數，作精確停止與租約清理斷言。</summary>
+        internal int UpdateAttempts { get; private set; }
         /// <summary>建構正式來源關聯齊全的合成控制，管理名稱不是 workflow name 或業務資料。</summary>
         internal BindingService()
         {
@@ -498,6 +674,46 @@ public sealed class QuiesceSourceBindingTests
                 case "type-name": Tables["plugintype"][0]["typename"] = "Synthetic.OutboundHandler"; break;
                 case "assembly-id": Tables["plugintype"][0]["pluginassemblyid"] = new EntityReference("pluginassembly", Id(8)); break;
                 case "assembly-name": Tables["pluginassembly"][0]["name"] = "Synthetic.ReplacedAssembly"; break;
+                case "microsoft-system":
+                    Tables["pluginassembly"][0]["name"] = "Microsoft.Crm.ObjectModel";
+                    Tables["pluginassembly"][0]["publickeytoken"] = "31bf3856ad364e35";
+                    Tables["pluginassembly"][0]["ismanaged"] = true;
+                    break;
+                case "microsoft-missing-token":
+                    Tables["pluginassembly"][0]["name"] = "Microsoft.Crm.ObjectModel";
+                    Tables["pluginassembly"][0]["publickeytoken"] = null;
+                    Tables["pluginassembly"][0]["ismanaged"] = true;
+                    break;
+                case "activityfeeds-system":
+                    Tables["pluginassembly"][0]["name"] = "ActivityFeeds.Plugins";
+                    Tables["pluginassembly"][0]["publickeytoken"] = "31bf3856ad364e35";
+                    Tables["pluginassembly"][0]["ismanaged"] = true;
+                    break;
+                case "platform-slot-request":
+                case "platform-channel-created":
+                    Tables["plugintype"][0]["typename"] = change == "platform-slot-request"
+                        ? "SpeechMessage.Dynamics.Platform.Plugins.ChannelPool.SlotRequestPlugin"
+                        : "SpeechMessage.Dynamics.Platform.Plugins.ChannelPool.ChannelCreatedPlugin";
+                    Tables["pluginassembly"][0]["name"] = "SpeechMessage.Dynamics.Platform.Plugins";
+                    Tables["pluginassembly"][0]["publickeytoken"] = "D7B85A8E2A2C25F8";
+                    Tables["pluginassembly"][0]["ismanaged"] = true;
+                    break;
+                case "platform-wrong-token":
+                case "platform-unregistered-type":
+                case "platform-lookalike-assembly":
+                    Tables["plugintype"][0]["typename"] = "SpeechMessage.Dynamics.Platform.Plugins.ChannelPool.SlotRequestPlugin";
+                    Tables["pluginassembly"][0]["name"] = change == "platform-lookalike-assembly"
+                        ? "SpeechMessage.Dynamics.Platform.Plugins.Extension"
+                        : "SpeechMessage.Dynamics.Platform.Plugins";
+                    Tables["pluginassembly"][0]["publickeytoken"] = change == "platform-wrong-token"
+                        ? "0123456789abcdef"
+                        : "D7B85A8E2A2C25F8";
+                    Tables["pluginassembly"][0]["ismanaged"] = true;
+                    if (change == "platform-unregistered-type")
+                        Tables["plugintype"][0]["typename"] = "SpeechMessage.Dynamics.Platform.Plugins.ChannelPool.OtherPlugin";
+                    break;
+                case "workflow-business-rule": Tables["workflow"][0]["category"] = new OptionSetValue(2); break;
+                case "workflow-bpf": Tables["workflow"][0]["category"] = new OptionSetValue(4); break;
                 case "public-key-token": Tables["pluginassembly"][0]["publickeytoken"] = "fedcba9876543210"; break;
                 case "assembly-managed": Tables["pluginassembly"][0]["ismanaged"] = false; break;
                 case "workflow-solution": Tables["workflow"][0]["solutionid"] = Id(8); break;
@@ -550,7 +766,14 @@ public sealed class QuiesceSourceBindingTests
             Reads[expression.EntityName] = Reads.GetValueOrDefault(expression.EntityName) + 1;
             BeforeRead?.Invoke(expression.EntityName);
             IEnumerable<Entity> rows = Tables[expression.EntityName];
-            if (expression.EntityName == "mailbox" && Updates.Count != 0) rows = [];
+            if (expression.EntityName == "sdkmessageprocessingstep")
+                rows = rows.Where(row => row.GetAttributeValue<OptionSetValue>("statecode")?.Value == 0);
+            if (expression.EntityName == "workflow")
+                rows = rows.Where(row => row.GetAttributeValue<OptionSetValue>("statecode")?.Value == 1);
+            if (expression.EntityName == "mailbox")
+                rows = rows.Where(row => row.GetAttributeValue<OptionSetValue>("incomingemaildeliverymethod")?.Value != 0
+                    || row.GetAttributeValue<OptionSetValue>("outgoingemaildeliverymethod")?.Value != 0
+                    || row.GetAttributeValue<OptionSetValue>("actdeliverymethod")?.Value != 2);
             if (Reverse) rows = rows.Reverse();
             var values = rows.ToArray();
             var paged = Paged && values.Length > 1;
@@ -563,15 +786,37 @@ public sealed class QuiesceSourceBindingTests
                 PagingCookie = paged && expression.PageInfo.PageNumber == 1 ? expression.EntityName + "-first" : null
             };
         }
-        /// <summary>唯一容許副作用為停用信箱投遞；keep 的 step／workflow 被修改就代表來源或分類守門失效。</summary>
+        /// <summary>只接受核定的 step、workflow、mailbox 狀態轉換；每次更新同步反映到本案合成來源供驗證讀回。</summary>
         public void Update(Entity entity)
         {
+            UpdateAttempts++;
             BeforeUpdate?.Invoke();
-            Assert.Equal("mailbox", entity.LogicalName);
-            Assert.Equal(0, entity.GetAttributeValue<OptionSetValue>("incomingemaildeliverymethod").Value);
-            Assert.Equal(0, entity.GetAttributeValue<OptionSetValue>("outgoingemaildeliverymethod").Value);
-            Assert.Equal(2, entity.GetAttributeValue<OptionSetValue>("actdeliverymethod").Value);
+            if (UpdateFailure is { } failure) throw failure;
+            if (entity.LogicalName == "sdkmessageprocessingstep")
+            {
+                Assert.Equal(1, entity.GetAttributeValue<OptionSetValue>("statecode").Value);
+                Assert.Equal(2, entity.GetAttributeValue<OptionSetValue>("statuscode").Value);
+            }
+            else if (entity.LogicalName == "workflow")
+            {
+                Assert.Equal(0, entity.GetAttributeValue<OptionSetValue>("statecode").Value);
+                Assert.Equal(1, entity.GetAttributeValue<OptionSetValue>("statuscode").Value);
+            }
+            else
+            {
+                Assert.Equal("mailbox", entity.LogicalName);
+                Assert.Equal(0, entity.GetAttributeValue<OptionSetValue>("incomingemaildeliverymethod").Value);
+                Assert.Equal(0, entity.GetAttributeValue<OptionSetValue>("outgoingemaildeliverymethod").Value);
+                Assert.Equal(2, entity.GetAttributeValue<OptionSetValue>("actdeliverymethod").Value);
+            }
             Updates.Add(Copy(entity, new ColumnSet(entity.Attributes.Keys.ToArray())));
+            var stored = Assert.Single(Tables[entity.LogicalName], row => row.Id == entity.Id);
+            foreach (var (name, value) in entity.Attributes)
+                stored[name] = value switch
+                {
+                    OptionSetValue option => new OptionSetValue(option.Value),
+                    _ => value
+                };
         }
         /// <summary>公開核身只能回本案組織，不能執行其他請求或觸發真正外送。</summary>
         public OrganizationResponse Execute(OrganizationRequest request)

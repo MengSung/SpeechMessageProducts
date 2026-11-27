@@ -726,7 +726,10 @@ public sealed class DataverseTraceTests
                 var ordered = clientIntervals.OrderBy(interval => interval.AcquireIndex).ToArray();
                 for (var index = 1; index < ordered.Length; index++)
                     Assert.True(ordered[index - 1].ReturnIndex < ordered[index].AcquireIndex,
-                        $"{clientIntervals.Key} 的兩段 lease 發生重疊。");
+                        $"{clientIntervals.Key} 的兩段 lease 發生重疊：" +
+                        $"前段 acquire/return={ordered[index - 1].AcquireIndex}/{ordered[index - 1].ReturnIndex}；" +
+                        $"後段 acquire/return={ordered[index].AcquireIndex}/{ordered[index].ReturnIndex}；" +
+                        $"同 client intervals={string.Join(",", ordered.Select(interval => $"{interval.AcquireIndex}:{interval.ReturnIndex}"))}。");
             }
 
             Assert.Equal(1, acquires.Values.Count(interval => interval.ClientId != null &&

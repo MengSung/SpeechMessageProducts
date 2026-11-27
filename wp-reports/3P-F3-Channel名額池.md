@@ -1,6 +1,6 @@
 # F3 Channel 名額池驗收報告
 
-更新：2026-11-27 13:22 Asia/Taipei (UTC+08:00)。本包起點 `872be9cd1ae82bb56711914653bdde24027b05f4`；狀態：**自動測試通過（實機待補）**。登錄中音訊科技頻道契約的1 High已以真Plugin RED→GREEN修復；修復後完整9,205/9,205、ClaudeOnly複審無Critical／High。離線合併後立刻依02A實機打通，不先開F5。
+更新：2026-11-27 18:50 Asia/Taipei (UTC+08:00)。本包起點 `872be9cd1ae82bb56711914653bdde24027b05f4`；狀態：**自動測試通過（實機待補）**。本輪 02 §4 離線閘門全綠、ClaudeOnly 未發現未修 Critical／High；實機仍按 02A §5 順序執行，沒有新增 D365／LINE／手機結果。
 
 已實作三產品共用純名額規則、同步交易 Plugin、分層 schema／精確三步註冊、獨立 net462 打包、固定產品目錄／健康／一次 token 輪替重解，以及好牧人真實 Webhook 接收器。既有 LineWebhook 與 2.0 委派同一接收器。未配置時拒絕，不保留 F2 的無條件 200。
 
@@ -104,3 +104,19 @@ Live helper仍在完成離線RED→GREEN；完整方案一般測試、最終文�
 外部審查覆蓋如實區分：首輪成功SHA `17C40D174E054A3E8D538BA816827132B3C6F24DEB68D3F4D95503B51C96CD45`；Channels七測試全文補查SHA `D42849796F6140D1D63166C3AD1D06D17321621979262204E3C4551BEE9464E7`；本次三個Plugin實作全文及兩測試變更段成功複審。contracts／deployment／config三組入口各兩次無可用輸出，probe為5小時額度，但runner仍報quotaBlocked=false／no-usable-output；這三組**未取得外部審查**。依02 §4以本地三個唯讀代理全文／完整diff補查，發現的1 High已修並複審，其餘無未修Critical／High；不能冒稱全部外部全文覆蓋。指定隔離自審guide不存在，依AGENTS永久隔離、正式ID、原子發布與資源所有權條款自審，限制交終點再涵蓋。詳見 `.ccg/tasks/f3-channel-pool/review.md`。
 
 登錄型別／狀態後續被改動造成整池fail closed及精確故障案例覆蓋觀察，記入之後再說；不變更核定狀態／型別政策。未新增D365、LINE或手機實機通過證據。F3任務仍in_progress，實機結束前不歸檔。
+
+## 2026-11-27 18:50 Asia/Taipei (UTC+08:00) 02A 前最終離線閘門與 ClaudeOnly 審查
+
+本節補記 F3 離線閘門結果；本包仍為「自動測試通過（實機待補）」。此前首次完整一般測試的 lease trace 斷言失敗保留為失敗證據，後續綠燈不改寫該次結果，也不等於已修復。
+
+| 驗證 | 結果 | 原始證據 SHA-256 |
+|---|---|---|
+| 定向 quiesce 離線政策 | 254/254 通過；只證明合成／離線政策，不是 D365 停用結果 | `9D82A3AFC43CB0FF153FB595CE7432647411D3B6DA270347683320C3D58975D0` |
+| Release 全方案建置 | exit 0；0 警告／0 錯誤 | `E39EA84310843A3CACB1ED8C58912D62AA9EBA762990466F8F26182B26854737` |
+| 02 §4 指定排除式一般測試 | exit 0；27 回合、9,218/9,218、0 失敗／0 略過；包含 DataverseTrace 專案 79/79 | `7E2AEF62E35B77861A5BB0858CFC6BA66AFC74F3762E3927A3FA0192B8116927` |
+| 文件、編碼、方案清單 | 文件 2064/0；Changed 編碼 8 檔、0 問題（排除 1）；方案清單成功 | 各命令 exit 0；沒有獨立原始 log |
+| ClaudeOnly 外部審查 | 使用者指定單模型審查；未發現未修 Critical／High。審查範圍為本輪變更，未冒稱逐行重審整個 F3 所有歷史程式 | run `20261127-183305-3p-f3-lane-a-reviewer`；summary `ok=true`、`reviewMode=claude-only` |
+
+**lease trace 失敗處置與限制：**首次完整測試 log SHA-256 `ED0F666FC487424FA9233DA0B58306926C7A47EB9ED58240FF0872960871AD5A`，`DataverseTraceTests.End_to_end_trace_proves_pool_lease_isolation_and_fault_eviction` 曾以 `c-10` 的 acquire／return 記錄順序斷言失敗。只增加失敗索引訊息，沒有改 pool 行為；其後定向測試兩次及 20 次重複均通過，最終完整測試亦通過。ClaudeOnly 認為可能是 `Idle.Enqueue` 與 `pool.return` trace 入列順序造成觀測事件排序競態，但首次失敗沒有索引資料可驗證該推論；故不宣稱根因已確認、不宣稱 lease 缺陷已修復，也不把單次失敗描述成已證明的跨請求重疊。此項作為非阻擋觀察列入線 A「之後再說」。
+
+**下一步固定順序（02A §5）：**F3 離線合併後，先取得測試環境鎖並對 goodshepherd20 依 §2 quiesce；再以唯讀診斷找 F0 inventory／FS plan 根因，符合 §1 的 RED→GREEN、回復準備與鎖條件後修正重試；接著三組織 plan/apply/verify、平台檢視表及 UI export/import，待 FS 實機完成後才開始 F3 Step 6。任何未完成實機項目仍標「實機待補」。

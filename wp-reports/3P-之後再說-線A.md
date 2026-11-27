@@ -4,6 +4,7 @@
 
 | 時間（Asia/Taipei） | 工作包 | 觀察與範圍 | 後續建議 | 證據 |
 |---|---|---|---|---|
+| 2026-11-27 18:50 Asia/Taipei (UTC+08:00) | F3 | DataverseTrace 並行測試曾有一次依 JSONL acquire／return 索引順序判為 lease 重疊；後續 2 次定向、20 次重複及完整 9,218 項均通過，reviewer 推測 return trace 事件可能晚於 Idle 入列；未有失敗時的索引，不能確認原因，也沒有證據證明服務被同時交付 | 日後以確定性同步點直接量測同一 fake client 的同時執行，或讓 trace 順序明確代表可重用邊界，再執行並行／重複測試；不要因觀測測試排序而放寬產品隔離斷言 | 首次失敗 SHA-256 ED0F666FC487424FA9233DA0B58306926C7A47EB9ED58240FF0872960871AD5A；20 次定向重跑 SHA-256 95DCE738B5CEB8D5DC89A802C80D764826B78AA26C2D10DA544A2A13FBFB0916；ClaudeOnly run 20261127-183305-3p-f3-lane-a-reviewer；非 Critical／High，非已修缺陷 |
 | 2026-11-27 13:22 Asia/Taipei (UTC+08:00) | F3 | 登錄型別或狀態被人工改動會使本產品整池fail closed；既有登錄slot帶tenant／used／重號的分支本次為程式審查，未逐一故障注入 | 後續runbook說明與精確負控制；本包不新增型別／狀態Update功能或改核定政策 | ClaudeOnly修正複審SHA F6C31E1B90DBA09F8CA673DAEBEF109CDCE44D138564B7D12A57468F8BADCC4A；無Critical／High |
 | 2026-11-27 12:56 Asia/Taipei (UTC+08:00) | F3 | 外產品告警探測TopCount=1時，空白產品列可能遮住另一筆真正外產品；本產品載入與解密仍精確隔離，非隔離失效 | 日後補空白與外產品共存的告警正控制及有限完整探測；本包不擴充 | ClaudeOnly Channels補查 SHA-256 D42849796F6140D1D63166C3AD1D06D17321621979262204E3C4551BEE9464E7 |
 | 2026-11-27 12:56 Asia/Taipei (UTC+08:00) | F3 | Directory_FailureRetry的第四次解密故障落在第一筆第二段，未直接覆蓋完成一筆後才失敗與舊secret不可沿用 | 日後補精確故障位置及舊secret否定斷言；現有候選原子發布與資源歸還控制保留 | 同上單模型補查；低於High，不新增本包完成定義 |

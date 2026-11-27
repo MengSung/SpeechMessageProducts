@@ -10,9 +10,11 @@ F3 起教會組件只適用好牧人；好管家／好學會的舊教會候選�
 quiesce 直接 apply 的成功案例明確提供合成快照 owner，在首筆 Update 前檢查零寫入與信箱原像；
 保留三欄投遞斷言並以 ACT None=2 驗證，不把原錯誤的 0 預期當成現場版本證據。
 有界落盤、flush、取消與部分失敗的完整原像契約另由 QuiesceMailboxDeliveryTests 驗證。
-apply 的合法控制另補齊已審來源指紋，舊正式 ID 分類與所有 mailbox 斷言不變；
-重跑時明確先重新盤點與核對合成來源政策，不以停用後已改變的來源集合繼續使用舊指紋。
-來源漂移／缺指紋的零寫入與真公開入口另由 QuiesceSourceBindingTests 保護，不解決現場 H1 分類。
+apply 的合法控制明列 policyVersion=2、每個 active step 的精確停用／保留分類與已審來源指紋；正式 ID 及 mailbox 斷言保留。
+重跑時先重盤並核對合成來源，不重用停用後已改變的指紋。
+來源漂移／缺指紋的零寫入與真公開入口另由 QuiesceSourceBindingTests 保護；這些合成測試不證明 goodshepherd20 實機 H1 已結案。
+02A v2 控制明確提供 workflow category 與 Plugin step→type→assembly 的正式 lookup；自訂 managed 組件必須停用，
+只有明確 Microsoft 系統組件控制列可保留。這是合成來源政策驗證，不能取代 goodshepherd20 實際盤點。
 依賴與隔離：只使用記憶體設定、合成 .invalid 主機、暫存目錄與計數 SDK；不讀 User Secrets、
 不建立網路或 D365 連線。catalog、鎖、Task、事件與合成 SDK 都由單一測試擁有並確定釋放。
 故障注入與決定性斷言：混入 production kind、空白 endpoint、多 test、延遲鎖競爭及只讀 quiesce；
@@ -466,9 +468,10 @@ public sealed class QuiescePublicTests
                 Assert.NotNull(Assert.Single(snapshot.Candidates, row => row.Entity == "mailbox").MailboxBeforeImage);
             });
         Assert.DoesNotContain(service.Updates, row => row.LogicalName == "workflow" || row.Id == keep);
-        Assert.Equal(disable, service.Updates[0].Id);
-        Assert.Equal(1, service.Updates[0].GetAttributeValue<OptionSetValue>("statecode").Value);
-        Assert.Equal(2, service.Updates[0].GetAttributeValue<OptionSetValue>("statuscode").Value);
+        var disabled = Assert.Single(service.Updates, row => row.Id == disable);
+        Assert.Equal("sdkmessageprocessingstep", disabled.LogicalName);
+        Assert.Equal(1, disabled.GetAttributeValue<OptionSetValue>("statecode").Value);
+        Assert.Equal(2, disabled.GetAttributeValue<OptionSetValue>("statuscode").Value);
     }
 
     /// <summary>公開 apply 缺少 F0 分類清冊時，尚未借用 SDK 就拒絕，不可採猜測的停用範圍。</summary>
@@ -581,6 +584,7 @@ public sealed class QuiescePublicTests
     private static QuiescePolicy SourcePolicy(AutomationService service, QuiescePolicy? policy = null) =>
         (policy ?? new QuiescePolicy()) with
         {
+            PolicyVersion = QuiescePolicy.CurrentPolicyVersion,
             SourceFingerprint = ClonedOrganizationQuiesce.Run(service,
                 OrganizationCatalog.LoadDefault().GetTest("goodshepherd20"), false, default,
                 includePluginIdentities: true).SourceFingerprint
@@ -710,7 +714,12 @@ public sealed class QuiescePublicTests
         internal Action<Entity>? BeforeUpdate { get; set; }
         internal Action? AfterRead { get; set; }
 
-        /// <summary>回應固定候選與可注入的續頁；依呼叫端明列欄位投影，避免替身夾帶其他表的管理欄位，並獨立驗證 workflow 篩選及秘密欄位禁讀。</summary>
+        /// <summary>
+        /// 回應固定候選與可注入的續頁；依呼叫端明列欄位投影，避免替身夾帶其他表的管理欄位。
+        /// Workflow 明確提供 category，Plugin steps 以獨立型別／組件列提供分類來源；測試可確認
+        /// 02A v2 不以 managed 單欄保留自訂 Plugin，且只有明確系統來源可留存。
+        /// 同時獨立驗證 workflow 篩選及秘密欄位禁讀。
+        /// </summary>
         public EntityCollection RetrieveMultiple(QueryBase query)
         {
             var expression = Assert.IsType<QueryExpression>(query);
@@ -725,8 +734,30 @@ public sealed class QuiescePublicTests
             }
             if (expression.EntityName == "sdkmessageprocessingstep")
                 return new EntityCollection(PluginIds.Where(id => !ApplyState || !Updates.Any(row => row.Id == id))
-                    .Select(id => new Entity("sdkmessageprocessingstep", id)
-                    { ["statecode"] = new OptionSetValue(0), ["statuscode"] = new OptionSetValue(1) }).ToList());
+                    .Select(id =>
+                    {
+                        var index = PluginIds.IndexOf(id);
+                        return new Entity("sdkmessageprocessingstep", id)
+                        {
+                            ["statecode"] = new OptionSetValue(0),
+                            ["statuscode"] = new OptionSetValue(1),
+                            ["eventhandler"] = new EntityReference("plugintype", PluginTypeId(index))
+                        };
+                    }).ToList());
+            if (expression.EntityName == "plugintype")
+                return new EntityCollection(PluginIds.Select((_, index) => new Entity("plugintype", PluginTypeId(index))
+                {
+                    ["typename"] = PluginTypeName(index),
+                    ["pluginassemblyid"] = new EntityReference("pluginassembly", PluginAssemblyId(index))
+                }).ToList());
+            if (expression.EntityName == "pluginassembly")
+                return new EntityCollection(PluginIds.Select((_, index) => index)
+                    .Select(index => new Entity("pluginassembly", PluginAssemblyId(index))
+                    {
+                        ["name"] = PluginAssemblyName(index),
+                        ["publickeytoken"] = index == 1 ? "31bf3856ad364e35" : "0123456789abcdef",
+                        ["ismanaged"] = true
+                    }).ToList());
             var id = expression.EntityName == "workflow"
                 ? expression.PageInfo.PageNumber == 1 ? WorkflowOne : WorkflowTwo
                 : expression.EntityName == "asyncoperation"
@@ -738,6 +769,7 @@ public sealed class QuiescePublicTests
                 ["statecode"] = new OptionSetValue(expression.EntityName == "workflow" ? 1 : 0),
                 ["statuscode"] = new OptionSetValue(expression.EntityName == "workflow" ? 2 : 0),
                 ["operationtype"] = new OptionSetValue(10),
+                ["category"] = new OptionSetValue(0),
                 ["incomingemaildeliverymethod"] = new OptionSetValue(2),
                 ["outgoingemaildeliverymethod"] = new OptionSetValue(2),
                 ["actdeliverymethod"] = new OptionSetValue(1)
@@ -751,6 +783,17 @@ public sealed class QuiescePublicTests
                 PagingCookie = expression.EntityName == "workflow" && Paged ? "next-page" : null
             };
         }
+
+        /// <summary>依序分配穩定合成 plugintype ID，不與資料列主鍵或組件 ID 混用。</summary>
+        private static Guid PluginTypeId(int index) => new(0x10400000 + index, 0, 0, new byte[8]);
+        /// <summary>第一個 handler 是非 Microsoft 自訂控制，第二個是精確 Microsoft namespace 控制。</summary>
+        private static string PluginTypeName(int index) => index == 1
+            ? "Microsoft.Crm.ObjectModel.SystemHandler" : "Synthetic.CustomHandler";
+        /// <summary>每個合成型別各有唯一 pluginassembly 正式 ID，保留 lookup 串接完整性。</summary>
+        private static Guid PluginAssemblyId(int index) => new(0x10500000 + index, 0, 0, new byte[8]);
+        /// <summary>組件名稱直接供分類政策判讀；managed=true 不會單獨授予系統保留。</summary>
+        private static string PluginAssemblyName(int index) => index == 1
+            ? "Microsoft.Crm.ObjectModel" : "Synthetic.Custom";
 
         /// <summary>只模擬正式組織身份，不回傳任何業務列或機密設定。</summary>
         public OrganizationResponse Execute(OrganizationRequest request)

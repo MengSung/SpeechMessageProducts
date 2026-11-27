@@ -2,9 +2,12 @@
 檔案整體說明
 目的與定位：FS Step 3b 的複製測試組織自動化停用器，僅允許對 catalog 明確標示為 test 的
 單一組織盤點及停用複製帶入的流程、等待中工作與會推播或寄信的 Plugin 步驟。
-主要流程：先驗證組織種類，以最多十頁／五萬列的完整查詢盤點，再依 F0 正式 ID 保留清冊
-選取流程與外送 Plugin。未知步驟阻擋 apply；不讀 configuration、XAML、郵件或業務內容。
-流程定義改回 Draft，外送步驟改 Disabled，信箱停用三種投遞方式；最後取消等待流程執行個體。
+主要流程：先驗證組織種類，以最多十頁／五萬列的完整查詢盤點，再依 02A policyVersion=2 執行：
+等待流程執行個體全部取消；Workflow／自訂 Action 除清冊保留外改回 Draft，Business Rule 與 BPF 不更新；
+Microsoft.* 系統步驟、經 Microsoft 簽署且 managed 的 ActivityFeeds 系統組件，以及本計畫簽署身分
+精確符合 manifest 之 F3 平台兩個 Plugin 型別的步驟保留；其他 Plugin step 改 Disabled。
+信箱停用三種投遞方式。未知組件不因 managed 單一欄位或寬鬆名稱前綴而保留。
+policyVersion=1／缺版政策於借出 SDK 前拒絕；canonical source fingerprint 的內容版本 1 另行保留；舊 before-image 必須先按正式 ID 與目前狀態核對，不覆寫原像。
 信箱 incoming／outgoing None=0，ACT None=2；篩選與寫入共用此數值契約。
 此為官方 mailbox 參照的離線契約，尚未核對目標 9.1 metadata，不能據此宣稱實機驗證。
 信箱查詢只增列三個 delivery 選項，任一投遞值與 None 不同或缺值／null 都列為候選；
@@ -18,12 +21,12 @@ dry-run 回傳純值 ID 清冊；空或重複 ID、缺失／重複 cookie、超�
 有正式 workflow.solutionid 才各完整讀取一次有界 solution／publisher，按 Guid 與正式 lookup
 關聯來源；只發布來源正式 ID、uniquename、managed 及 customizationprefix 純值，不保存 SDK 圖。
 step handler 僅允許 Microsoft 定義的 plugintype／serviceendpoint，後者不讀 endpoint 內容；
-缺 handler／型別／組件或流程來源如實標示 Resolution，不由名稱、managed、customizable
-或來源完整度自動推導 keep／disable。公開 dry-run 另發布版本化 canonical SourceFingerprint，
+缺 handler／型別／組件或流程來源如實標示 Resolution。dry-run 不自行核准分類；policyVersion=2 的 apply 依 02A 固定規則保留 Microsoft.*、完整 Microsoft 強式名稱與 managed 身分的 ActivityFeeds 例外，以及 assembly、token、manifest 型別完全相符的 F3 平台例外；其他 Plugin 必須停用，Business Rule／BPF 不停用。
+不以 managed、customizable 或來源完整度單欄授予保留。公開 dry-run 另發布版本化 canonical SourceFingerprint，
 政策 sourceFingerprint 必須為大寫 64 位 SHA-256；apply 強制完整讀取相同管理來源，
 依正式 ID 排序並逐列串流雜湊，與已審政策精確核對後才交 beforeWrite，漂移或缺欄位零寫入。
 指紋包含每個啟用 step／workflow 的已投影關聯、純值與缺失階段，不包含秘密或業務內容；
-它只證明來源快照相同，不授權 keep、不解決現場 H1 分類未知，也不聲稱看到了組件／流程本文。
+它只證明來源快照相同，不授權 keep，也不聲稱看到了組件／流程本文；policyVersion=2 的規則已可離線驗證，但只有 goodshepherd20 實機 apply／verify 成功後，H1 才能結案。
 這些查詢不是伺服器交易快照；不宣稱能偵測最後來源讀取之後的並行修改或提供 rowversion 保護。
 有效來源集合在停用後會變動，重跑 apply 須先重新盤點並審核政策指紋，不盲重用舊清冊。
 每來源最多十頁、每頁五千列；typename／組件名稱最多256字元、publickeytoken最多32字元，
@@ -147,10 +150,17 @@ internal sealed record QuiesceMailboxBeforeImage(Guid MailboxId, int? State, int
 
 /// <summary>
 /// 綁定單一 server 組織的停用清冊，由 F0 盤點後建立；CLI 核對正式組織 ID，
-/// 每個啟用 Plugin 必須明列保留或停用，不能靠名稱猜測外送行為。
+/// 並只接受依 02A 停用語意建立的版本化清冊。
 /// </summary>
 internal sealed record QuiescePolicy
 {
+    /// <summary>目前唯一允許 apply 的停用政策版本；舊版分類語意不得直接沿用。</summary>
+    internal const int CurrentPolicyVersion = 2;
+
+    /// <summary>02A 核定的停用語意版本；缺欄位解為 0，apply 必須在連線前拒絕。</summary>
+    [JsonPropertyName("policyVersion")]
+    public int PolicyVersion { get; init; }
+
     /// <summary>SDK 回傳的實際組織 ID，不能用 alias 或臨時操作 ID 代替。</summary>
     [JsonPropertyName("organizationId")]
     public Guid OrganizationId { get; init; }
@@ -176,6 +186,20 @@ internal sealed record QuiescePolicy
 /// </summary>
 internal static class ClonedOrganizationQuiesce
 {
+    /// <summary>02A 唯一允許保留的本計畫平台組件名稱；比對完整名稱，不接受前綴或近似名稱。</summary>
+    private const string F3PlatformPluginAssemblyName = "SpeechMessage.Dynamics.Platform.Plugins";
+    /// <summary>
+    /// 已核對平台簽署部署產物的公開強式名稱 token。這是公開組件身分而非秘密；
+    /// 金鑰輪替時必須先從核定新產物驗證並同步更新隔離測試，不能接受任意有效 token。
+    /// </summary>
+    private const string F3PlatformPluginPublicKeyToken = "D7B85A8E2A2C25F8";
+    /// <summary>manifest 明列且唯一屬於 F3 名額池的 platform Plugin 入口型別。</summary>
+    private const string F3SlotRequestPluginType =
+        "SpeechMessage.Dynamics.Platform.Plugins.ChannelPool.SlotRequestPlugin";
+    /// <summary>manifest 明列且唯一屬於 F3 名額池的 Channel 建立 platform Plugin 入口型別。</summary>
+    private const string F3ChannelCreatedPluginType =
+        "SpeechMessage.Dynamics.Platform.Plugins.ChannelPool.ChannelCreatedPlugin";
+
     /// <summary>
     /// 盤點並可選擇停用指定測試組織的複製自動化。
     /// </summary>
@@ -206,12 +230,15 @@ internal static class ClonedOrganizationQuiesce
             throw new InvalidDataException("Quiesce requires a test organization.");
         if (policy is not null && (policy.KeepWorkflowIds is null || policy.DisablePluginStepIds is null || policy.KeepPluginStepIds is null))
             throw new InvalidDataException("Quiesce policy collections are incomplete.");
+        if (apply && policy?.PolicyVersion != QuiescePolicy.CurrentPolicyVersion)
+            throw new InvalidDataException("Quiesce apply requires the current versioned policy.");
 
         cancellationToken.ThrowIfCancellationRequested();
         var keepWorkflows = Ids(policy?.KeepWorkflowIds ?? Array.Empty<Guid>());
         var disableSteps = Ids(policy?.DisablePluginStepIds ?? Array.Empty<Guid>());
         var keepSteps = Ids(policy?.KeepPluginStepIds ?? Array.Empty<Guid>());
-        var readSourceIdentities = includePluginIdentities || apply;
+        var readSourceIdentities = includePluginIdentities || apply
+            || policy?.PolicyVersion == QuiescePolicy.CurrentPolicyVersion;
         if (disableSteps.Overlaps(keepSteps))
             throw new InvalidDataException("Quiesce policy contains conflicting step classifications.");
         var pendingRuns = Query(service, "asyncoperation",
@@ -274,7 +301,14 @@ internal static class ClonedOrganizationQuiesce
             ? ReadPluginIdentities(service, pluginSteps, cancellationToken) : Array.Empty<QuiescePluginIdentity>();
         cancellationToken.ThrowIfCancellationRequested();
         // 盤點完成前不發布任何修改；dry-run 因此對合成 service 也保證零寫入。
-        var selectedWorkflows = workflows.Where(row => !keepWorkflows.Contains(row.Id)).Select(row => row.Id).ToArray();
+        var protectedWorkflowCategories = workflowIdentities
+            .Where(row => row.Category is 2 or 4)
+            .Select(row => row.WorkflowId)
+            .ToHashSet();
+        var selectedWorkflows = workflows
+            .Where(row => !keepWorkflows.Contains(row.Id) && !protectedWorkflowCategories.Contains(row.Id))
+            .Select(row => row.Id)
+            .ToArray();
         var selectedSteps = pluginSteps.Where(row => disableSteps.Contains(row.Id)).Select(row => row.Id).ToArray();
         var unclassified = pluginSteps.Count(row => !disableSteps.Contains(row.Id) && !keepSteps.Contains(row.Id));
         var result = new ClonedOrganizationQuiesceResult(
@@ -301,6 +335,8 @@ internal static class ClonedOrganizationQuiesce
             || approvedFingerprint.Any(character => character is not (>= '0' and <= '9' or >= 'A' and <= 'F'))
             || !string.Equals(approvedFingerprint, result.SourceFingerprint, StringComparison.Ordinal))
             throw new InvalidDataException("Quiesce source fingerprint is missing, invalid or differs from the reviewed policy.");
+        Validate02APolicy(workflows, pluginSteps, workflowIdentities, pluginIdentities,
+            keepWorkflows, disableSteps, keepSteps);
         if (beforeWrite is null)
             throw new InvalidDataException("Quiesce apply requires a durable snapshot owner before any update.");
 
@@ -353,6 +389,84 @@ internal static class ClonedOrganizationQuiesce
 
         return result;
     }
+
+    /// <summary>
+    /// 驗證 02A v2 清冊對本次完整候選是精確且互斥的分類。所有活動 step 都必須剛好落在一側；
+    /// 只有完整來源中明確 Microsoft.*、經 Microsoft strong-name token 與 managed metadata 交叉確認的
+    /// D365 ActivityFeeds，或本計畫簽署身分與 registration manifest 兩個 F3 平台型別完全相符時可保留。
+    /// managed 單欄、缺來源或未知組件一律不能保留。
+    /// Workflow 保留 ID 必須仍存在；Business Rule（category=2）與 BPF（category=4）由實際分類
+    /// 強制排除於停用集合之外，不依清冊或名稱猜測。
+    /// 本方法只消費本次 Run 的 detached 值，不建立跨命令分類快取或保存 SDK 物件。
+    /// </summary>
+    private static void Validate02APolicy(List<Entity> workflows, List<Entity> pluginSteps,
+        QuiesceWorkflowIdentity[] workflowIdentities, QuiescePluginIdentity[] pluginIdentities,
+        HashSet<Guid> keepWorkflows, HashSet<Guid> disableSteps, HashSet<Guid> keepSteps)
+    {
+        var activeWorkflowIds = workflows.Select(row => row.Id).ToHashSet();
+        if (keepWorkflows.Any(id => !activeWorkflowIds.Contains(id))
+            || workflowIdentities.Any(row => row.Category is null))
+            throw new InvalidDataException("Quiesce workflow policy cannot safely identify its active inventory.");
+
+        var activeStepIds = pluginSteps.Select(row => row.Id).ToHashSet();
+        var classifiedStepIds = new HashSet<Guid>(keepSteps);
+        classifiedStepIds.UnionWith(disableSteps);
+        if (!classifiedStepIds.SetEquals(activeStepIds)
+            || pluginIdentities.Length != activeStepIds.Count
+            || !pluginIdentities.Select(row => row.StepId).ToHashSet().SetEquals(activeStepIds)
+            || workflowIdentities.Length != activeWorkflowIds.Count
+            || !workflowIdentities.Select(row => row.WorkflowId).ToHashSet().SetEquals(activeWorkflowIds))
+            throw new InvalidDataException("Quiesce policy does not exactly cover the current active inventory.");
+
+        foreach (var identity in pluginIdentities)
+        {
+            var isProtectedSystemComponent = IsProtectedSystemPlugin(identity);
+            if (isProtectedSystemComponent
+                ? !keepSteps.Contains(identity.StepId) || disableSteps.Contains(identity.StepId)
+                : keepSteps.Contains(identity.StepId) || !disableSteps.Contains(identity.StepId))
+                throw new InvalidDataException("Quiesce Plugin classification does not match the 02A system-component rule.");
+        }
+    }
+
+    /// <summary>
+    /// 依 02A 以精確 assembly name 前綴保留 Microsoft.*；此規則不依賴其公開 token 欄位是否完整。
+    /// ActivityFeeds 是已盤點的 D365 系統例外，須同時有完整 lookup chain、managed=true、
+    /// 精確系統組件名稱及 Microsoft 公開簽署識別。
+    /// 本計畫例外只接受完整 plugintype lookup、精確平台組件名稱、已核對強式名稱 token，
+    /// 以及 registration manifest 明列的兩個完整型別名稱；不能把其他 SpeechMessage 組件或新增型別
+    /// 以 namespace 前綴放行。任何缺欄／未識別非 Microsoft 來源回傳 false，由 v2 政策要求停用。
+    /// </summary>
+    private static bool IsProtectedSystemPlugin(QuiescePluginIdentity identity)
+    {
+        if (string.IsNullOrWhiteSpace(identity.AssemblyName))
+            return false;
+
+        if (identity.AssemblyName.StartsWith("Microsoft.", StringComparison.OrdinalIgnoreCase))
+            return true;
+
+        if (!string.Equals(identity.Resolution, "Complete", StringComparison.Ordinal))
+            return false;
+
+        if (IsRegisteredF3PlatformPlugin(identity))
+            return true;
+
+        var isKnownActivityFeedsAssembly = string.Equals(identity.AssemblyName, "ActivityFeeds.Plugins",
+                StringComparison.Ordinal)
+            || string.Equals(identity.AssemblyName, "ActivityFeeds.Filtering.Plugins", StringComparison.Ordinal);
+        return isKnownActivityFeedsAssembly
+            && identity.IsManaged == true
+            && string.Equals(identity.PublicKeyToken, "31bf3856ad364e35", StringComparison.OrdinalIgnoreCase);
+    }
+
+    /// <summary>
+    /// 只保留 F3 manifest 登錄且由核定強式名稱簽署的兩種平台入口；完整比對 assembly/type/token，
+    /// 每項管理純值來自本次已驗證的正式 lookup，沒有跨呼叫快取、組件載入或對未知 Plugin 的豁免。
+    /// </summary>
+    private static bool IsRegisteredF3PlatformPlugin(QuiescePluginIdentity identity) =>
+        string.Equals(identity.HandlerType, "plugintype", StringComparison.Ordinal)
+        && string.Equals(identity.AssemblyName, F3PlatformPluginAssemblyName, StringComparison.Ordinal)
+        && string.Equals(identity.PublicKeyToken, F3PlatformPluginPublicKeyToken, StringComparison.OrdinalIgnoreCase)
+        && identity.TypeName is F3SlotRequestPluginType or F3ChannelCreatedPluginType;
 
     /// <summary>
     /// 將已完整驗證、detach 的管理來源按正式 ID 排序為版本 1 canonical JSON，再串流計算 SHA-256。

@@ -11,9 +11,9 @@ OAuth，不建立網路連線、VM 工作或環境鎖；離線通過不代表目
 預期新值與檔案 SHA；落檔／雜湊側檔失敗必須零寫入，部分失敗與取消保留完整原值供逐 ID 對帳。
 資源與隔離：SDK 與列只屬單案，沒有共用快取或背景工作；呼叫者擁有並釋放所有測試資源。
 測試 owner 在 finally 歸還借用租約並只清自己的隨機暫存根；不取得任何環境或組織鎖。
-本檔的決定性斷言保護正式 ID、三欄目標值與回讀一致，不對 H1 保留政策作安全推論。
-apply 案例明確提供「沒有 Plugin／workflow 管理來源」的版本 1 指紋政策，固定值由獨立 canonical
-空來源契約取得，不額外盤點本案信箱、不改寫前原像。來源綁定另由 QuiesceSourceBindingTests
+本檔的決定性斷言保護正式 ID、三欄目標值與回讀一致，不以合成信箱案例證明 goodshepherd20 的實機 H1 已結案。
+apply 案例明確提供「沒有 Plugin／workflow 管理來源」的 02A 版本 2 政策；其 source fingerprint
+仍依既有 canonical 版本 1 空來源契約取得，不額外盤點本案信箱、不改寫前原像。來源綁定另由 QuiesceSourceBindingTests
 以真公開 dry-run／apply 驗證；本檔既有故障與 0／0／2 斷言完整保留。
 */
 using System;
@@ -435,6 +435,7 @@ public sealed class QuiesceMailboxDeliveryTests
     /// </summary>
     private static QuiescePolicy EmptySourcePolicy() => new()
     {
+        PolicyVersion = QuiescePolicy.CurrentPolicyVersion,
         OrganizationId = SnapshotOwner.OrganizationId,
         SourceFingerprint = "3BFC71DC1BDF07610330D19AAF6A957DF71DD7A21DF28C84308C0DC69EEF8AD4"
     };

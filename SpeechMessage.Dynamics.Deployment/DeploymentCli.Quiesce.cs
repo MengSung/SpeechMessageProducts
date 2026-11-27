@@ -7,9 +7,9 @@
 每次先核對 SDK 真實組織身份，再寫正式 ID／數量與明確管理純值的 inventory；公開 dry-run 明確啟用
 Plugin handler／型別／組件及 workflow 管理純值清冊。有非空 workflow.solutionid 時，
 完整有界讀 solution／publisher 並按正式 ID 關聯來源、記錄 Resolution；不讀 configuration、secureconfig、
-XAML、content 或 workflow 名稱，不依 metadata 自動分類。apply 同樣強制重讀管理來源，
-在首筆 beforeWrite 及 Update 前核對政策指紋；缺失或漂移拒絕，不能靠 keep 正式 ID 掩蓋來源替換。
-指紋只描述來源穩定性，不證明 managed 來源可安全保留、不解決現場 H1 分類未知；
+XAML、content 或 workflow 名稱；dry-run 不自行核准分類。apply 要求 policyVersion=2，強制重讀管理來源，
+在首筆 beforeWrite 及 Update 前核對指紋與 02A 的 Plugin／workflow 分類；缺失或漂移拒絕，不能靠 keep 正式 ID 掩蓋來源替換。
+指紋只描述來源穩定性、不單獨授權保留；離線規則驗證不代表現場已停用，H1 僅於 goodshepherd20 實機 apply／verify 後結案；
 來源讀取不是伺服器交易，不宣稱可偵測最後讀取之後的並行改動或驗證禁讀的內容。
 apply 完成後重新盤點，
 仍有待停項目即失敗。dry-run 不讀憑證本文、不建立 Plugin DLL 或修改任何自動化。
@@ -22,7 +22,8 @@ UTC 時間只由本次操作建立的 Localization IChurchClock 取得；時鐘�
 部分更新故障或取消保留完整原像與預期值供同組織逐 ID 重讀對帳；不自動重試或重新開放外送。
 資源與隔離：單一命令擁有一次 lease，寫入另持同機共用組織鎖；先歸還 SDK 再釋放鎖。
 檔案限固定 artifacts 範圍，拒絕 link／junction，輸出沿用有界 CreateNew、flush、close、原子發布。
-取消在 SDK 前後檢查，正常 caller 取消回 130；失敗交原 Exception 至共用入口，摘要不印資料或訊息。
+取消在 SDK 前後檢查，正常 caller 取消回 130；失敗交原 Exception 至共用入口後，只補印有界 Dataverse 數字錯誤碼，
+絕不輸出 SDK Message、TraceText、Reason 或個資。
 驗證方式：QuiesceMailboxDeliveryTests、MultiTestOrganizationTests 與兩個 Quiesce 身分／來源測試檔用合成 SDK
 驗公開 dry-run、分頁／狀態、來源純值、取消及租約清理；
 離線成功不代表真正組織已停用，Live3P 必須另取鎖並保留實際讀回證據。
@@ -63,6 +64,11 @@ internal static partial class DeploymentCli
             if (apply && policy is null)
             {
                 output.WriteLine("Quiesce apply requires the F0 organization-bound classification policy.");
+                return 2;
+            }
+            if (apply && policy?.PolicyVersion != QuiescePolicy.CurrentPolicyVersion)
+            {
+                output.WriteLine("Quiesce apply requires the current versioned policy.");
                 return 2;
             }
             using var writeLock = apply ? OrganizationWriteLock.Acquire(organizationRoot, timeout ?? TimeSpan.FromMinutes(5),
@@ -107,6 +113,7 @@ internal static partial class DeploymentCli
         catch (Exception exception)
         {
             try { report(exception); } catch { try { Console.Error.WriteLine("Quiesce diagnostic reporting failed."); } catch { } }
+            WriteSupplementalFailureDiagnostics(exception, output);
             output.WriteLine("Quiesce failed (" + exception.GetType().Name + "). Sensitive details are not shown.");
             return 1;
         }
