@@ -88,7 +88,7 @@ function Assert-Gs2CrmUrl {
 function Get-Gs2PlatformConnectionString {
     # 連線目標與憑證檔路徑皆為核定測試環境常數；Strict使用TDS 8.0並驗證伺服器，禁止信任任意憑證。
     # 憑證由P0-2④在VM外部準備；本工具只輸出其固定路徑，不匯出、覆寫或封裝憑證內容。
-    return 'Server=D365APP01;Database=GoodShepherd2Platform;Integrated Security=True;Encrypt=Strict;TrustServerCertificate=False;ServerCertificate=C:\ProgramData\SpeechMessage\certs\d365-9.1-sql.cer;'
+    return 'Server=D365APP01;Database=GoodShepherd2Platform;Integrated Security=True;Encrypt=Strict;TrustServerCertificate=False;ServerCertificate=C:\ProgramData\SpeechMessage\certs\d365-9.1-sql-strict-pin.cer;'
 }
 
 function New-Gs2DevelopmentSettings {

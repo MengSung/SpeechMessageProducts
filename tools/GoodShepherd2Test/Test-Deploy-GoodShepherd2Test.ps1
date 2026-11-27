@@ -51,7 +51,7 @@ function Assert-Rejected {
     Assert-Condition $rejected
 }
 
-$expectedPlatformSql = 'Server=D365APP01;Database=GoodShepherd2Platform;Integrated Security=True;Encrypt=Strict;TrustServerCertificate=False;ServerCertificate=C:\ProgramData\SpeechMessage\certs\d365-9.1-sql.cer;'
+$expectedPlatformSql = 'Server=D365APP01;Database=GoodShepherd2Platform;Integrated Security=True;Encrypt=Strict;TrustServerCertificate=False;ServerCertificate=C:\ProgramData\SpeechMessage\certs\d365-9.1-sql-strict-pin.cer;'
 
 function New-CertificateFixture {
     # 每次建立獨立快照，故障案例不共用可變陣列，也不存取本機憑證存放區。
@@ -693,7 +693,7 @@ $cases = [ordered]@{
         $sql = $variables['ConnectionStrings__Platform']
         Assert-Condition ($sql -ceq $expectedPlatformSql -and $sql -ceq $actualSql)
         Assert-Condition ($sql -match 'Encrypt=Strict')
-        Assert-Condition ($sql -match 'ServerCertificate=C:\\ProgramData\\SpeechMessage\\certs\\d365-9\.1-sql\.cer')
+        Assert-Condition ($sql -match 'ServerCertificate=C:\\ProgramData\\SpeechMessage\\certs\\d365-9\.1-sql-strict-pin\.cer')
         Assert-Condition ($sql -notmatch '(?i)TrustServerCertificate\s*=\s*true')
     }
     PlatformSql_DevelopmentJsonAndWebConfigUseStrictPinnedCertificate = {
@@ -720,7 +720,7 @@ $cases = [ordered]@{
         Assert-Condition ($actualSql -ceq $expectedPlatformSql)
         Assert-Condition ($parsed.ConnectionStrings.Platform -ceq $expectedPlatformSql -and $parsed.ConnectionStrings.Platform -ceq $actualSql)
         Assert-Condition ($parsed.ConnectionStrings.Platform -match 'Encrypt=Strict')
-        Assert-Condition ($parsed.ConnectionStrings.Platform -match 'ServerCertificate=C:\\ProgramData\\SpeechMessage\\certs\\d365-9\.1-sql\.cer')
+        Assert-Condition ($parsed.ConnectionStrings.Platform -match 'ServerCertificate=C:\\ProgramData\\SpeechMessage\\certs\\d365-9\.1-sql-strict-pin\.cer')
         Assert-Condition ($parsed.ConnectionStrings.Platform -notmatch '(?i)TrustServerCertificate\s*=\s*true')
     }
     SessionRemoval_IsInsideFinally = {
