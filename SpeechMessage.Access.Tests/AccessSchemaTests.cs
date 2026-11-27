@@ -76,7 +76,7 @@ public sealed class AccessSchemaTests
             "new_role" => 4,
             "new_rolepermission" => 5,
             "new_roleassignment" => 3,
-            "new_auditentry" => 10,
+            "new_auditentry" => 11,
             _ => throw new InvalidDataException("Unknown test entity.")
         };
         Assert.Equal(expectedCount, entity.GetProperty("fields").GetArrayLength());
@@ -98,13 +98,14 @@ public sealed class AccessSchemaTests
                 AssertField(entity, "new_roleid", "lookup", required: true, target: "new_role");
                 break;
             case "new_auditentry":
+                AssertField(entity, "new_eventid", "string", length: 36, required: true);
                 AssertField(entity, "new_entity", "string", length: 128);
                 AssertField(entity, "new_recordid", "string", length: 36);
                 AssertField(entity, "new_field", "string", length: 128);
                 AssertField(entity, "new_before", "memo", length: 4000);
                 AssertField(entity, "new_after", "memo", length: 4000);
                 AssertField(entity, "new_actorcontactid", "lookup", target: "contact");
-                AssertField(entity, "new_tenantid", "lookup", target: "account");
+                AssertField(entity, "new_tenantid", "lookup", required: true, target: "account");
                 AssertField(entity, "new_correlationid", "string", length: 128);
                 var at = AssertField(entity, "new_at", "datetime");
                 Assert.Equal("UserLocal", at.GetProperty("behavior").GetString());
@@ -131,8 +132,8 @@ public sealed class AccessSchemaTests
     }
 
     /// <summary>
-    /// 三組業務 tuple 必須各有一個資料庫 alternate key，且鍵欄位非空；
-    /// 不把同名合法角色合併，也不對獨立 audit 事件建立內容去重鍵。
+    /// 角色tuple及稽核租戶／事件各有資料庫alternate key，所有鍵欄位非空；
+    /// 稽核鍵來自權威修改事件，絕不按前後值等內容去重合法的不同事件。
     /// </summary>
     [Fact]
     public void Schema_AtomicAlternateKeys_DoNotDeduplicateAuditEvents()
@@ -143,7 +144,7 @@ public sealed class AccessSchemaTests
             "new_roleid", "new_feature", "new_operation", "new_scope");
         AssertKey(Entity(document.RootElement, "new_roleassignment"), "new_ak_roleassignment",
             "new_contactid", "new_roleid");
-        Assert.Empty(Entity(document.RootElement, "new_auditentry").GetProperty("keys").EnumerateArray());
+        AssertKey(Entity(document.RootElement, "new_auditentry"), "new_ak_auditevent", "new_tenantid", "new_eventid");
     }
 
     /// <summary>

@@ -1,11 +1,13 @@
 /*
  * 檔案整體說明
  * 目的與定位：F8跨產品修改紀錄的Dataverse寫入出口，以當次AuditEntry建立獨立候選，不保存秘密或跨請求可變Entity。
- * 主要功能與流程：先驗有界欄名、主鍵、關聯碼及Dataverse UTC日期範圍；敏感欄位與疑似結構／編碼／秘密前後值整值遮罩，再借用固定產品租約，重新確認有效Contact與租戶後Create。只有SDK返回正式非空ID及租約清理完成才返回成功。
- * 使用邊界與維護：本服務不執行業務授權、讀取稽核、共同交易或自動重送，業務owner須先授權並承擔寫入與稽核的交易語意。Host擁有診斷與pool；每次租約由executor唯一歸還，同步SDK退出前不提前取消或Dispose。取消後不保證未寫入；不明結果不得盲重送，避免重複稽核事件。真正失敗傳真實Exception至安全共用入口，不輸出原值或例外Message。
+ * 主要功能與流程：先驗有界欄名、正式主鍵及伺服器權威EventId；遮罩敏感內容後重新驗證有效Contact及租戶，受tenant＋event資料庫唯一鍵保護執行Create。只有明確完整性衝突才讀回最多兩列，核對唯一正式ID及完整已遮罩內容；不同事件不按內容合併，既有證據永不覆寫。
+ * 使用邊界與維護：本服務不執行業務授權、共同交易或自動重送；業務owner須先授權並持久保存每個欄位修改事實的事件ID及原始時刻。正式索引須部署且Active才有跨程序保證。Host擁有diagnostics及pool；executor唯一歸還租約，SDK返回前不提前取消或Dispose。取消或不明傳輸結果不得換事件ID盲重送；真正失敗交安全共用入口，不輸出原值或例外Message。資料只在當次呼叫保留。
  */
 using System.Text;
+using System.ServiceModel;
 using Microsoft.Xrm.Sdk;
+using Microsoft.Xrm.Sdk.Query;
 using ToolUtilityNameSpace.Diagnostics;
 
 namespace SpeechMessage.Access;
@@ -19,7 +21,7 @@ public sealed class DataverseAuditLog : IAuditLog
     public DataverseAuditLog(Func<CancellationToken, IAccessDataverseLease> acquire, ExceptionDiagnostics diagnostics, string product) =>
         _executor = new AccessDataverseExecutor(acquire, diagnostics, product);
 
-    /// <summary>驗證並遮罩後單次Create，不重試；以faulted／canceled Task區分內部故障與caller取消。</summary>
+    /// <summary>先原子Create，僅確切唯一性衝突核對原列；不改既有證據，不盲重試，清理完成後才發布結果。</summary>
     public Task WriteAsync(AuditEntry entry, CancellationToken ct = default)
     {
         try
@@ -30,6 +32,7 @@ public sealed class DataverseAuditLog : IAuditLog
             var candidate = new Entity("new_auditentry")
             {
                 ["new_name"] = "Audit",
+                ["new_eventid"] = entry.EventId.ToString("D"),
                 ["new_entity"] = entry.Entity,
                 ["new_recordid"] = entry.RecordId.ToString("D"),
                 ["new_field"] = entry.Field,
@@ -45,7 +48,15 @@ public sealed class DataverseAuditLog : IAuditLog
                 var actor = new Actor(entry.ActorContactId, entry.TenantId, _executor.Product);
                 if (!_executor.ValidateActor(service, actor, ct)) throw new UnauthorizedAccessException("Audit actor is not valid.");
                 ct.ThrowIfCancellationRequested();
-                Guid id = service.Create(candidate);
+                Guid id;
+                try { id = service.Create(candidate); }
+                catch (FaultException<OrganizationServiceFault> failure) when
+                    (failure.Detail?.ErrorCode is unchecked((int)0x80040237) or unchecked((int)0x80060892))
+                {
+                    // 官方DuplicateRecord／DuplicateRecordEntityKey才可查回；逾時等不明結果保留原錯，不推定已寫入。
+                    ct.ThrowIfCancellationRequested();
+                    id = ReadExistingEvent(service, candidate, entry, ct);
+                }
                 if (id == Guid.Empty) throw new InvalidOperationException("Audit identity is missing.");
                 return id;
             }, "Access.AuditWrite", ct);
@@ -60,9 +71,45 @@ public sealed class DataverseAuditLog : IAuditLog
     {
         if (entry is null || !AccessValidation.ValidIdentifier(entry.Entity, 128) ||
             !ValidField(entry.Field) || !AccessValidation.ValidIdentifier(entry.CorrelationId, 128) ||
-            entry.RecordId == Guid.Empty || entry.ActorContactId == Guid.Empty || entry.TenantId == Guid.Empty ||
+            entry.RecordId == Guid.Empty || entry.EventId == Guid.Empty || entry.ActorContactId == Guid.Empty || entry.TenantId == Guid.Empty ||
             entry.Before?.Length > 4000 || entry.After?.Length > 4000 || entry.At.UtcDateTime.Year < 1753)
             throw new ArgumentException("Invalid audit entry.", nameof(entry));
+    }
+
+    /// <summary>
+    /// 只有明確索引衝突才按完整租戶／事件鍵讀回；零筆、多筆、更多資料、空正式ID或內容衝突均拒絕。
+    /// 投影只讀本次候選的十一欄，既有列不交給caller也不Update；任何SDK失敗仍由同一executor排空並告警。
+    /// </summary>
+    private static Guid ReadExistingEvent(IOrganizationService service, Entity candidate, AuditEntry entry, CancellationToken ct)
+    {
+        var query = new QueryExpression("new_auditentry")
+        {
+            TopCount = 2,
+            ColumnSet = new ColumnSet(candidate.Attributes.Keys.ToArray())
+        };
+        query.Criteria.AddCondition("new_tenantid", ConditionOperator.Equal, entry.TenantId);
+        query.Criteria.AddCondition("new_eventid", ConditionOperator.Equal, entry.EventId.ToString("D"));
+        EntityCollection rows = service.RetrieveMultiple(query);
+        ct.ThrowIfCancellationRequested();
+        if (rows is null || rows.MoreRecords || rows.Entities.Count != 1)
+            throw new InvalidOperationException("Audit event identity conflict.");
+        Entity row = rows.Entities[0];
+        if (row is null || row.LogicalName != "new_auditentry" || row.Id == Guid.Empty)
+            throw new InvalidOperationException("Audit event identity conflict.");
+        foreach (var expected in candidate.Attributes)
+        {
+            row.Attributes.TryGetValue(expected.Key, out object? actual);
+            bool equal = expected.Value switch
+            {
+                EntityReference reference => actual is EntityReference other && other.LogicalName == reference.LogicalName && other.Id == reference.Id,
+                DateTime at => actual is DateTime other && other.Kind != DateTimeKind.Local && other.Ticks == at.Ticks,
+                string text => actual is string other && string.Equals(text, other, StringComparison.Ordinal),
+                null => actual is null,
+                _ => false
+            };
+            if (!equal) throw new InvalidOperationException("Audit event content conflict.");
+        }
+        return row.Id;
     }
 
     /// <summary>允許多語欄位識別與固定分隔符；控制字元與任意本文不可成為欄位名。</summary>
@@ -80,10 +127,10 @@ public sealed class DataverseAuditLog : IAuditLog
             compact.Contains("bearer", StringComparison.OrdinalIgnoreCase) || compact.Contains("卡號", StringComparison.Ordinal);
     }
 
-    /// <summary>不嘗試解析可能含秘密的任意結構；保守整值遮罩避免JSON跳脫、URL或卡號進入稽核表。</summary>
+    /// <summary>空文字先正規化為null以穩定Dataverse讀回；不解析任意結構，保守遮罩避免嵌入秘密進入稽核表。</summary>
     private static string? MaskValue(string? value)
     {
-        if (value is null) return null;
+        if (string.IsNullOrEmpty(value)) return null;
         string normalized = value.Normalize(NormalizationForm.FormKC);
         if (Sensitive(normalized) || normalized.IndexOfAny(['{', '}', '[', ']', '=', '%', '\\']) >= 0 ||
             normalized.Contains("://", StringComparison.Ordinal) || normalized.Count(c => c == '.') >= 2 || normalized.Any(char.IsControl)) return "***";

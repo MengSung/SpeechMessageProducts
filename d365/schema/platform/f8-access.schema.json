@@ -219,6 +219,14 @@
           "required": true
         },
         {
+          "logicalName": "new_eventid",
+          "displayName": "修改事件識別",
+          "type": "string",
+          "phase": 1,
+          "maxLength": 36,
+          "required": true
+        },
+        {
           "logicalName": "new_entity",
           "displayName": "實體",
           "type": "string",
@@ -265,7 +273,8 @@
           "displayName": "租戶",
           "type": "lookup",
           "phase": 1,
-          "target": "account"
+          "target": "account",
+          "required": true
         },
         {
           "logicalName": "new_correlationid",
@@ -283,7 +292,15 @@
           "format": "DateAndTime"
         }
       ],
-      "keys": []
+      "keys": [
+        {
+          "logicalName": "new_ak_auditevent",
+          "attributes": [
+            "new_tenantid",
+            "new_eventid"
+          ]
+        }
+      ]
     }
   ]
 }

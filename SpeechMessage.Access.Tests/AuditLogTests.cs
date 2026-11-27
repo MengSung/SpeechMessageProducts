@@ -4,9 +4,10 @@
  * 主要功能與流程：只以 Moq 取代外部 IOrganizationService 與租約，執行真正 DataverseAuditLog 及共用 executor；所有前後值、主鍵及錯誤訊息均為合成 canary，不讀 User Secrets 或連接實機。
  * 使用邊界與維護：每案獨有 AuditOwner，擁有暫存 ExceptionDiagnostics 並在 DisposeAsync 後刪除目錄；不共用主代理 fixture、可變狀態或網路連線。診斷只開檔案輸出，不啟動 LINE consumer。
  * 故障與決定性斷言：錯誤身分不得 Create；空回傳主鍵、SDK 故障與內部取消必須失敗並告警且歸還；呼叫端取消不得告警。阻塞替身用有限等待與 finally 解除閘門，驗證 SDK 真正退出前租約不釋放。
- * 證據限制：併行案例驗證同一服務不混用候選、實體及租戶，並以取得／釋放／fault 計數證明操作結束回到零；不宣稱真實資料庫交易、效能或實機結果。
+ * 證據限制：併行案例驗證候選不跨租戶，兩個獨立服務共用合成索引驗證事件重送、不同事件保留及衝突不覆寫；取得／釋放／fault計數保護排空。本檔只模擬索引與SDK完整性錯誤，不宣稱真實資料庫索引Active、效能或實機結果。
  */
 using System.Collections.Concurrent;
+using System.ServiceModel;
 using Microsoft.Xrm.Sdk;
 using Microsoft.Xrm.Sdk.Query;
 using Moq;
@@ -38,7 +39,8 @@ public sealed class AuditLogTests
         Assert.Equal("audit-canary-001", row.GetAttributeValue<string>("new_correlationid"));
         Assert.Equal(new DateTime(2026, 11, 26, 1, 15, 30, DateTimeKind.Utc), row["new_at"]);
         Assert.Equal(DateTimeKind.Utc, row.GetAttributeValue<DateTime>("new_at").Kind);
-        Assert.Equal(10, row.Attributes.Count);
+        Assert.Equal(owner.Entry.EventId.ToString("D"), row.GetAttributeValue<string>("new_eventid"));
+        Assert.Equal(11, row.Attributes.Count);
         Assert.Equal(1, owner.Acquired);
         Assert.Equal(1, owner.Released);
         Assert.Equal(0, owner.Outstanding);
@@ -128,6 +130,7 @@ public sealed class AuditLogTests
     [InlineData("field-long")]
     [InlineData("field-control")]
     [InlineData("record-empty")]
+    [InlineData("event-empty")]
     [InlineData("contact-empty")]
     [InlineData("tenant-empty")]
     [InlineData("correlation-empty")]
@@ -149,6 +152,7 @@ public sealed class AuditLogTests
             "field-long" => owner.Entry with { Field = new string('a', 129) },
             "field-control" => owner.Entry with { Field = "bad\nsyntheticCanary" },
             "record-empty" => owner.Entry with { RecordId = Guid.Empty },
+            "event-empty" => owner.Entry with { EventId = Guid.Empty },
             "contact-empty" => owner.Entry with { ActorContactId = Guid.Empty },
             "tenant-empty" => owner.Entry with { TenantId = Guid.Empty },
             "correlation-empty" => owner.Entry with { CorrelationId = "" },
@@ -329,6 +333,7 @@ public sealed class AuditLogTests
             AuditEntry entry = (i % 2 == 0 ? owner.Entry : second) with
             {
                 RecordId = Guid.NewGuid(),
+                EventId = Guid.NewGuid(),
                 CorrelationId = "audit-" + i.ToString(System.Globalization.CultureInfo.InvariantCulture)
             };
             owner.Log.WriteAsync(entry).GetAwaiter().GetResult();
@@ -350,6 +355,200 @@ public sealed class AuditLogTests
         Assert.Equal("", owner.DiagnosticText());
     }
 
+    /// <summary>兩個獨立服務共享合成唯一資料庫，32次同事件重送只保留一個正式ID；無應用鎖替代產品唯一鍵。</summary>
+    [Fact]
+    public async Task Audit_TwoInstances_RepeatedEventCreatesOneCanonicalRecord()
+    {
+        await using var owner = new AuditOwner();
+        owner.EnableUniqueStore();
+        DataverseAuditLog other = owner.CreateLog();
+        Parallel.For(0, 32, new ParallelOptions { MaxDegreeOfParallelism = 4 }, i =>
+            (i % 2 == 0 ? owner.Log : other).WriteAsync(owner.Entry).GetAwaiter().GetResult());
+        Entity row = Assert.Single(owner.Stored.Values);
+        Assert.NotEqual(Guid.Empty, row.Id);
+        Assert.Equal(owner.Entry.EventId.ToString("D"), row["new_eventid"]);
+        Assert.Equal(32, owner.Acquired);
+        Assert.Equal(32, owner.Released);
+        Assert.Equal(0, owner.Outstanding);
+        Assert.Equal(0, owner.Faulted);
+        Assert.Equal("", owner.DiagnosticText());
+    }
+
+    /// <summary>不同事件即使其餘欄位完全相同都保留；相同事件在不同租戶也有獨立唯一鍵。</summary>
+    [Fact]
+    public async Task Audit_DifferentEventsOrTenants_PreserveLegitimateRows()
+    {
+        await using var owner = new AuditOwner();
+        owner.EnableUniqueStore();
+        await owner.Log.WriteAsync(owner.Entry);
+        await owner.Log.WriteAsync(owner.Entry with { EventId = Guid.NewGuid() });
+        AuditEntry secondTenant = owner.AddActor(Guid.NewGuid(), Guid.NewGuid()) with { EventId = owner.Entry.EventId };
+        await owner.Log.WriteAsync(secondTenant);
+        Assert.Equal(3, owner.Stored.Count);
+        Assert.Equal(3, owner.Stored.Values.Select(x => x.Id).Distinct().Count());
+        Assert.Equal(0, owner.Outstanding);
+    }
+
+    /// <summary>已存在事件內容不同必須拒絕並告警，不能以Upsert改寫既有稽核證據。</summary>
+    [Fact]
+    public async Task Audit_RepeatedEventWithDifferentContent_RejectsWithoutMutation()
+    {
+        await using var owner = new AuditOwner();
+        owner.EnableUniqueStore();
+        await owner.Log.WriteAsync(owner.Entry);
+        await Assert.ThrowsAsync<InvalidOperationException>(() => owner.Log.WriteAsync(owner.Entry with { After = "其他內容" }));
+        Assert.Equal("修改後", Assert.Single(owner.Stored.Values)["new_after"]);
+        Assert.Equal(0, owner.Outstanding);
+        Assert.Contains("InvalidOperationException", owner.DiagnosticText(), StringComparison.Ordinal);
+        Assert.DoesNotContain("其他內容", owner.DiagnosticText(), StringComparison.Ordinal);
+    }
+
+    /// <summary>只接受兩種已知完整性衝突碼；精確讀回失敗或不完整時不能當作重送成功。</summary>
+    [Theory]
+    [InlineData("zero")]
+    [InlineData("two")]
+    [InlineData("more")]
+    [InlineData("entity")]
+    [InlineData("content-entity")]
+    [InlineData("missing-event")]
+    [InlineData("typed-event")]
+    [InlineData("id")]
+    [InlineData("tenant")]
+    [InlineData("event")]
+    [InlineData("record")]
+    [InlineData("actor")]
+    [InlineData("field")]
+    [InlineData("before")]
+    [InlineData("after")]
+    [InlineData("correlation")]
+    [InlineData("at")]
+    [InlineData("name")]
+    public async Task Audit_InvalidConflictReadback_FailsClosedAndDrains(string invalid)
+    {
+        await using var owner = new AuditOwner();
+        owner.EnableUniqueStore();
+        await owner.Log.WriteAsync(owner.Entry);
+        Entity copy = AuditOwner.Copy(Assert.Single(owner.Stored.Values));
+        EntityCollection result = new([copy]);
+        switch (invalid)
+        {
+            case "zero": result.Entities.Clear(); break;
+            case "two": result.Entities.Add(AuditOwner.Copy(copy)); break;
+            case "more": result.MoreRecords = true; break;
+            case "entity": copy.LogicalName = "contact"; break;
+            case "content-entity": copy["new_entity"] = "account"; break;
+            case "missing-event": copy.Attributes.Remove("new_eventid"); break;
+            case "typed-event": copy["new_eventid"] = 1; break;
+            case "id": copy.Id = Guid.Empty; break;
+            case "tenant": copy["new_tenantid"] = new EntityReference("account", Guid.NewGuid()); break;
+            case "event": copy["new_eventid"] = Guid.NewGuid().ToString("D"); break;
+            case "record": copy["new_recordid"] = Guid.NewGuid().ToString("D"); break;
+            case "actor": copy["new_actorcontactid"] = new EntityReference("account", owner.Entry.ActorContactId); break;
+            case "field": copy["new_field"] = "other"; break;
+            case "before": copy["new_before"] = "other"; break;
+            case "after": copy["new_after"] = "other"; break;
+            case "correlation": copy["new_correlationid"] = "other"; break;
+            case "at": copy["new_at"] = owner.Entry.At.UtcDateTime.AddSeconds(1); break;
+            case "name": copy["new_name"] = "other"; break;
+            default: throw new InvalidOperationException("Unknown test case.");
+        }
+        owner.OnQuery = _ => result;
+        await Assert.ThrowsAsync<InvalidOperationException>(() => owner.Log.WriteAsync(owner.Entry));
+        Assert.Single(owner.Stored);
+        Assert.Equal(2, owner.Acquired);
+        Assert.Equal(2, owner.Released);
+        Assert.Equal(0, owner.Outstanding);
+        Assert.Equal(1, owner.Faulted);
+    }
+
+    /// <summary>非唯一性fault不能查回或重試；保留真正例外及一次租約釋放。</summary>
+    [Fact]
+    public async Task Audit_OtherFault_DoesNotReadBackOrRetry()
+    {
+        await using var owner = new AuditOwner();
+        var failure = new FaultException<OrganizationServiceFault>(new() { ErrorCode = unchecked((int)0x80040216) });
+        owner.OnCreate = _ => throw failure;
+        Assert.Same(failure, await Assert.ThrowsAsync<FaultException<OrganizationServiceFault>>(() => owner.Log.WriteAsync(owner.Entry)));
+        Assert.Single(owner.Created);
+        Assert.Equal(0, owner.Queries);
+        Assert.Equal(0, owner.Outstanding);
+    }
+
+    /// <summary>官方兩種完整性錯誤都必須精確核對；SDK讀回Unspecified仍表示UTC，不套本地時區。</summary>
+    [Theory]
+    [InlineData(unchecked((int)0x80040237))]
+    [InlineData(unchecked((int)0x80060892))]
+    public async Task Audit_KnownIntegrityFault_ReadsExactExistingEvent(int code)
+    {
+        await using var owner = new AuditOwner();
+        owner.EnableUniqueStore();
+        await owner.Log.WriteAsync(owner.Entry);
+        Entity row = AuditOwner.Copy(Assert.Single(owner.Stored.Values));
+        row["new_at"] = DateTime.SpecifyKind(owner.Entry.At.UtcDateTime, DateTimeKind.Unspecified);
+        owner.OnCreate = _ => throw new FaultException<OrganizationServiceFault>(new() { ErrorCode = code });
+        owner.OnQuery = _ => new EntityCollection([row]);
+        await owner.Log.WriteAsync(owner.Entry);
+        Assert.Equal(1, owner.Queries);
+        Assert.Equal(0, owner.Outstanding);
+        Assert.Equal("", owner.DiagnosticText());
+    }
+
+    /// <summary>讀回SDK故障不得覆寫或換鍵重送；原錯保持且租約排空，已提交列保持不變。</summary>
+    [Fact]
+    public async Task Audit_ConflictReadbackFailure_PreservesFaultAndDrains()
+    {
+        await using var owner = new AuditOwner();
+        owner.EnableUniqueStore();
+        await owner.Log.WriteAsync(owner.Entry);
+        var failure = new TimeoutException("syntheticReadbackCanary");
+        owner.OnQuery = _ => throw failure;
+        Assert.Same(failure, await Assert.ThrowsAsync<TimeoutException>(() => owner.Log.WriteAsync(owner.Entry)));
+        Assert.Single(owner.Stored);
+        Assert.Equal(2, owner.Created.Count);
+        Assert.Equal(1, owner.Queries);
+        Assert.Equal(0, owner.Outstanding);
+        Assert.DoesNotContain("syntheticReadbackCanary", owner.DiagnosticText(), StringComparison.Ordinal);
+    }
+
+    /// <summary>讀回期間caller取消須等待同步SDK返回，隨後拒絕發布並唯一歸還，不告警正常取消。</summary>
+    [Fact]
+    public async Task Audit_CancelDuringConflictReadback_DrainsWithoutAlert()
+    {
+        await using var owner = new AuditOwner();
+        using var cancel = new CancellationTokenSource();
+        owner.EnableUniqueStore();
+        await owner.Log.WriteAsync(owner.Entry);
+        owner.OnQuery = _ =>
+        {
+            cancel.Cancel();
+            Assert.Equal(1, owner.Outstanding);
+            return new EntityCollection([AuditOwner.Copy(Assert.Single(owner.Stored.Values))]);
+        };
+        Task task = owner.Log.WriteAsync(owner.Entry, cancel.Token);
+        await Assert.ThrowsAnyAsync<OperationCanceledException>(() => task);
+        Assert.True(task.IsCanceled);
+        Assert.Equal(0, owner.Outstanding);
+        Assert.Equal("", owner.DiagnosticText());
+    }
+
+    /// <summary>Dataverse把空文字視為null；候選須先正規化，避免同事實讀回後因空值形狀不同被誤判衝突。</summary>
+    [Fact]
+    public async Task Audit_EmptyValues_AreCanonicalNullBeforePersistence()
+    {
+        await using var owner = new AuditOwner();
+        owner.EnableUniqueStore();
+        AuditEntry entry = owner.Entry with { Before = "", After = "" };
+        await owner.Log.WriteAsync(entry);
+        Entity row = Assert.Single(owner.Stored.Values);
+        Assert.Null(row["new_before"]);
+        Assert.Null(row["new_after"]);
+        row.Attributes.Remove("new_before");
+        row.Attributes.Remove("new_after");
+        await owner.CreateLog().WriteAsync(entry);
+        Assert.Single(owner.Stored);
+        Assert.Equal(0, owner.Outstanding);
+    }
+
     /// <summary>測試唯一資源 owner：短命 mock 租約與真實本地診斷，資料及回呼只保留到單案 Dispose。</summary>
     private sealed class AuditOwner : IAsyncDisposable
     {
@@ -365,6 +564,13 @@ public sealed class AuditLogTests
         internal ConcurrentDictionary<(string Entity, Guid Id), Entity> Identities { get; } = new();
         /// <summary>注入單次 SDK 成功、故障或阻塞；不涉及外部資源。</summary>
         internal Func<Entity, Guid> OnCreate { get; set; } = _ => Guid.NewGuid();
+        /// <summary>只有本案使用的合成資料庫，原子TryAdd模擬資料庫唯一鍵；清理由Dispose負責。</summary>
+        internal ConcurrentDictionary<(Guid Tenant, string Event), Entity> Stored { get; } = new();
+        /// <summary>合成精確查詢故障注入；預設空結果，不存取外部資料。</summary>
+        internal Func<QueryExpression, EntityCollection> OnQuery { get; set; } = _ => new EntityCollection();
+        private int _queries;
+        /// <summary>查回次數供斷言非衝突錯誤沒有隱性查詢。</summary>
+        internal int Queries => Volatile.Read(ref _queries);
         /// <summary>真實被測稽核服務，不與其他測試共享依賴。</summary>
         internal DataverseAuditLog Log { get; }
         /// <summary>主案例純值，全部為合成資料。</summary>
@@ -397,6 +603,11 @@ public sealed class AuditLogTests
                 Created.Enqueue(entity);
                 return OnCreate(entity);
             });
+            _service.Setup(x => x.RetrieveMultiple(It.IsAny<QueryBase>())).Returns((QueryBase query) =>
+            {
+                Interlocked.Increment(ref _queries);
+                return OnQuery(Assert.IsType<QueryExpression>(query));
+            });
             Log = new DataverseAuditLog(Acquire, _diagnostics, "GoodShepherd2");
         }
 
@@ -414,7 +625,49 @@ public sealed class AuditLogTests
                 ["statecode"] = new OptionSetValue(0)
             };
             return new AuditEntry("contact", Guid.NewGuid(), "name", "修改前", "修改後", contactId, tenantId,
-                "audit-canary-001", new DateTimeOffset(2026, 11, 26, 9, 15, 30, TimeSpan.FromHours(8)));
+                "audit-canary-001", new DateTimeOffset(2026, 11, 26, 9, 15, 30, TimeSpan.FromHours(8))) { EventId = Guid.NewGuid() };
+        }
+
+        /// <summary>建立依賴相同而無共享產品狀態的第二服務，讓跨實例測試不依賴本機產品鎖。</summary>
+        internal DataverseAuditLog CreateLog() => new(Acquire, _diagnostics, "GoodShepherd2");
+
+        /// <summary>複製純值與lookup，測試讀回不能改動已提交合成列。</summary>
+        internal static Entity Copy(Entity row)
+        {
+            var copy = new Entity(row.LogicalName, row.Id);
+            foreach (var item in row.Attributes)
+                copy[item.Key] = item.Value is EntityReference reference ? new EntityReference(reference.LogicalName, reference.Id) : item.Value;
+            return copy;
+        }
+
+        /// <summary>以完整租戶／事件tuple模擬索引；回讀驗證精確查詢及有界投影，無Update入口。</summary>
+        internal void EnableUniqueStore()
+        {
+            OnCreate = candidate =>
+            {
+                Entity row = Copy(candidate);
+                row.Id = Guid.NewGuid();
+                var key = (row.GetAttributeValue<EntityReference>("new_tenantid").Id, row.GetAttributeValue<string>("new_eventid") ?? "");
+                if (!Stored.TryAdd(key, row))
+                    throw new FaultException<OrganizationServiceFault>(new() { ErrorCode = unchecked((int)0x80040237) });
+                return row.Id;
+            };
+            OnQuery = query =>
+            {
+                Assert.Equal("new_auditentry", query.EntityName);
+                Assert.Equal(2, query.TopCount);
+                Assert.False(query.ColumnSet.AllColumns);
+                Assert.Equal(11, query.ColumnSet.Columns.Count);
+                Assert.Equal(LogicalOperator.And, query.Criteria.FilterOperator);
+                Assert.Empty(query.LinkEntities);
+                Assert.Equal(2, query.Criteria.Conditions.Count);
+                var tenant = Assert.Single(query.Criteria.Conditions, x => x.AttributeName == "new_tenantid");
+                var eventId = Assert.Single(query.Criteria.Conditions, x => x.AttributeName == "new_eventid");
+                Assert.Equal(ConditionOperator.Equal, tenant.Operator);
+                Assert.Equal(ConditionOperator.Equal, eventId.Operator);
+                var key = ((Guid)Assert.Single(tenant.Values), (string)Assert.Single(eventId.Values));
+                return Stored.TryGetValue(key, out Entity? row) ? new EntityCollection([Copy(row)]) : new EntityCollection();
+            };
         }
 
         /// <summary>每操作建立獨立 mock 租約；標記及清理不能在 SDK 回呼結束前被呼叫。</summary>
@@ -445,6 +698,7 @@ public sealed class AuditLogTests
                 _service.Invocations.Clear();
                 Created.Clear();
                 Identities.Clear();
+                Stored.Clear();
                 if (Directory.Exists(DirectoryPath)) Directory.Delete(DirectoryPath, true);
             }
         }

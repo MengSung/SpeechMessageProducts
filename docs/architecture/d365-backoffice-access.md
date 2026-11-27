@@ -23,12 +23,15 @@ F0 metadata 尚未提供跨產品牧養樹映射，所以不猜測表名、不�
 應用修改紀錄保存被修改表／主鍵／欄位、前後值、操作者、租戶、correlation 及明確 UTC 時刻；
 token／secret／password／卡號欄位遮成 `***`，疑似結構、編碼或嵌入秘密的前後值保守整值遮罩。
 它不是原生日誌、跨租戶查詢介面或與業務寫入共同交易。SDK 返回不明不能盲目重試。
+每個單一欄位修改事實另帶伺服器持久EventId；同事件重送沿用原內容與時刻，不接受瀏覽器重試token。
+只有官方完整性衝突0x80040237／0x80060892才按租戶／事件讀回最多兩列，核對正式ID及全部已遮罩內容；
+不同事件即使內容全同仍保留，衝突不Update、不盲Upsert。UTC時刻精確比對，不猜測或放寬不符結果。
 所有真正故障交 Host 的共用安全診斷；原始值不進 Exception.log 或 LINE。
 
 ## 結構與實機前置
 
 四表只由 `d365/schema/platform/f8-access.schema.json` 定義：角色、權限、指派是 UserOwned，
-修改紀錄是 OrganizationOwned。前三表以完整業務 tuple 建 alternate key，不按顯示名去重。
+修改紀錄是 OrganizationOwned。前三表以完整業務 tuple 建 alternate key，稽核以new_tenantid＋new_eventid建立唯一鍵；不按顯示名或內容去重。
 部署只走正式分層 plan／apply／verify，必須驗證索引 Active、三測試組織及自身資料清理。
 FS Step 3b 改依 02A §2 的安全停用政策，不再等待逐筆行為分類；quiesce 尚未完成，本包維持零 D365 寫入；
 本包離線正式解析、合成 SDK、A／B 與排空結果不能當成實機已發布或資料庫唯一性結果。
