@@ -15,11 +15,12 @@ apply 完成後重新盤點，
 仍有待停項目即失敗。dry-run 不讀憑證本文、不建立 Plugin DLL 或修改任何自動化。
 apply 不先存另一輪 dry-run；Run 完成全部查詢及分類後，把實際寫入的同一候選交寫前回呼。
 回呼以有界 WriteNew／Flush(true)／關閉／原子發布保存 before-image，再對正式檔案 bytes 算 SHA-256，
-另以同一落盤流程保存 SHA 側檔；兩檔成功才允許第一筆 SDK Update。證據含核定 server 組織 ID、
+另以同一落盤流程保存 SHA 側檔；兩檔成功才允許第一筆 SDK 寫入（Workflow／Plugin step 狀態轉換為 SetStateRequest，
+asyncoperation／mailbox 欄位仍使用 Update）。證據含核定 server 組織 ID、
 操作識別、UTC 時間、正式信箱 ID、nullable state/status／delivery 原值與預期新值 0／0／2。
 UTC 時間只由本次操作建立的 Localization IChurchClock 取得；時鐘無租戶狀態、快取或待釋放資源。
 不讀 email、name、password、OAuth 或未驗證 rowversion；未取得目標 metadata 不宣稱實機驗證。
-部分更新故障或取消保留完整原像與預期值供同組織逐 ID 重讀對帳；不自動重試或重新開放外送。
+部分 SDK 寫入故障或取消保留完整原像與預期值供同組織逐 ID 重讀對帳；不自動回滾、不自動重試或重新開放外送。
 資源與隔離：單一命令擁有一次 lease，寫入另持同機共用組織鎖；先歸還 SDK 再釋放鎖。
 檔案限固定 artifacts 範圍，拒絕 link／junction，輸出沿用有界 CreateNew、flush、close、原子發布。
 取消在 SDK 前後檢查，正常 caller 取消回 130；失敗交原 Exception 至共用入口後，只補印有界 Dataverse 數字錯誤碼，
@@ -122,7 +123,7 @@ internal static partial class DeploymentCli
     /// <summary>
     /// 保存 Run 即將寫入的同一完整快照；沿用 SchemaFiles 的 100 MiB、CreateNew、
     /// Flush(true)、close 與禁止覆寫的原子發布。第一份成功後串流計算實際檔案 SHA-256，
-    /// 並將側檔同樣 flush 完成；任一步失敗或 caller 取消直接傳回，Run 尚未送第一筆 Update。
+    /// 並將側檔同樣 flush 完成；任一步失敗或 caller 取消直接傳回，Run 尚未送第一筆 SDK 寫入。
     /// 原像保留 nullable 原值，不讀額外 SDK、秘密或猜測版本；完整檔案由 CLI 操作目錄 owner
     /// 留存供失敗後按正式 ID 對帳，沒有自動回復、重試、背景輸出或跨命令狀態。
     /// 時間經操作內的 IChurchClock 取得零 offset UTC；使用既有無狀態來源，沒有 timer、

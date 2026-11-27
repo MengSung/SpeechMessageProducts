@@ -4,9 +4,11 @@
 經公開 CLI／Run 注入同一正式 step 的 handler、型別、組件及 workflow 來源漂移，驗證 keep 正式 ID
 不能掩蓋來源改變；另驗證只有完整簽章身分符合的 F3 平台 Plugin 兩個登錄型別可保留。
 主要流程：只用每案合成 SDK 管理列，先公開 dry-run 產生非秘密來源指紋，再建立本案政策；
-真正 apply 必須重讀同次完整來源、核對指紋，成功後才交 beforeWrite 與更新信箱 0／0／2。
-故障與斷言：缺／錯指紋、來源替換、晚頁故障與未分類均須零 Update，直接 Run 的寫前 owner
-亦不可呼叫；公開 CLI 不得發布 before-image 或 SHA 側檔。合法控制驗證相同來源不同列次序
+真正 apply 必須重讀同次完整來源、核對指紋，成功後才交 beforeWrite，以 SetStateRequest 停用 Workflow／Plugin step，
+並以 Update 將信箱投遞方式改為 0／0／2；兩種 SDK 寫入前都必須已完成寫前主檔與 SHA 側檔。
+故障與斷言：缺／錯指紋、來源替換、晚頁故障與未分類均須零 SetStateRequest／Update，直接 Run 的寫前 owner
+亦不可呼叫；SetStateRequest 的 OrganizationServiceFault 須保留原例外、停止後續寫入並歸還 CLI 租約，
+公開 CLI 不得發布 before-image 或 SHA 側檔。合法控制驗證相同來源不同列次序
 不漂移、完整續頁只讀一次、原像保持原值，真正 SDK 例外與 caller 取消仍各依原契約處理。
 信任邊界：fingerprint 只描述已讀管理來源穩定，不把 managed、Complete 或同一來源當成安全
 保留證明，不證明目標 goodshepherd20 已符合停用政策或 H1 已結案，實機 apply／verify 仍待完成；不讀 configuration、secureconfig、workflow name／本文、
@@ -48,8 +50,8 @@ public sealed class QuiesceSourceBindingTests
         fixture.Policy(fixture.Fingerprint());
         fixture.Service.Change("handler");
         var exit = fixture.Cli(true);
-        Assert.True(exit == 1 && fixture.Service.Updates.Count == 0,
-            $"Expected rejection before writes; exit={exit}; updates={fixture.Service.Updates.Count}.");
+        Assert.True(exit == 1 && fixture.Service.StateChanges.Count == 0 && fixture.Service.Updates.Count == 0,
+            $"Expected rejection before writes; exit={exit}; state changes={fixture.Service.StateChanges.Count}; updates={fixture.Service.Updates.Count}.");
         fixture.AssertRejectedApply();
     }
 
@@ -69,6 +71,7 @@ public sealed class QuiesceSourceBindingTests
 
         Assert.Equal(1, fixture.Returned);
         Assert.Empty(fixture.Service.Reads);
+        Assert.Empty(fixture.Service.StateChanges);
         Assert.Empty(fixture.Service.Updates);
         Assert.Empty(fixture.ApplyInventories());
         Assert.Empty(Directory.GetFiles(fixture.Root, "quiesce-inventory-sha256.json", SearchOption.AllDirectories));
@@ -93,6 +96,7 @@ public sealed class QuiesceSourceBindingTests
             true, default, policy, beforeWrite: _ => invoked = true));
 
         Assert.False(invoked);
+        Assert.Empty(fixture.Service.StateChanges);
         Assert.Empty(fixture.Service.Updates);
     }
 
@@ -120,6 +124,8 @@ public sealed class QuiesceSourceBindingTests
             beforeWrite: _ => { });
 
         Assert.DoesNotContain(fixture.Service.Updates, row => row.LogicalName == "sdkmessageprocessingstep");
+        Assert.DoesNotContain(fixture.Service.StateChanges,
+            request => request.EntityMoniker.LogicalName == "sdkmessageprocessingstep");
         Assert.Contains(fixture.Service.Updates, row => row.LogicalName == "mailbox");
     }
 
@@ -146,6 +152,7 @@ public sealed class QuiesceSourceBindingTests
             true, default, policy, beforeWrite: _ => invoked = true));
 
         Assert.False(invoked);
+        Assert.Empty(fixture.Service.StateChanges);
         Assert.Empty(fixture.Service.Updates);
     }
 
@@ -167,6 +174,8 @@ public sealed class QuiesceSourceBindingTests
 
         Assert.Equal(0, result.WorkflowDefinitionsToDisable);
         Assert.Equal(category, Assert.Single(result.WorkflowIdentities).Category);
+        Assert.DoesNotContain(fixture.Service.StateChanges,
+            request => request.EntityMoniker.LogicalName == "workflow");
         Assert.DoesNotContain(fixture.Service.Updates, row => row.LogicalName == "workflow");
     }
 
@@ -182,6 +191,7 @@ public sealed class QuiesceSourceBindingTests
         Assert.Throws<InvalidDataException>(() => ClonedOrganizationQuiesce.Run(fixture.Service, Target(),
             true, default, policy, beforeWrite: _ => invoked = true));
         Assert.False(invoked);
+        Assert.Empty(fixture.Service.StateChanges);
         Assert.Empty(fixture.Service.Updates);
     }
 
@@ -193,6 +203,7 @@ public sealed class QuiesceSourceBindingTests
         Assert.Equal(0, fixture.Cli(false));
         var fingerprint = fixture.Fingerprint();
         Assert.Matches("^[0-9A-F]{64}$", fingerprint);
+        Assert.Empty(fixture.Service.StateChanges);
         Assert.Empty(fixture.Service.Updates);
         Assert.Empty(fixture.Failures);
         Assert.Equal(1, fixture.Returned);
@@ -231,6 +242,7 @@ public sealed class QuiesceSourceBindingTests
         Assert.Throws<InvalidDataException>(() => ClonedOrganizationQuiesce.Run(fixture.Service, Target(),
             true, default, policy, beforeWrite: _ => invoked = true));
         Assert.False(invoked);
+        Assert.Empty(fixture.Service.StateChanges);
         Assert.Empty(fixture.Service.Updates);
         Assert.Equal(1, fixture.Service.Reads["sdkmessageprocessingstep"]);
         Assert.Equal(1, fixture.Service.Reads["workflow"]);
@@ -270,6 +282,7 @@ public sealed class QuiesceSourceBindingTests
         Assert.Throws<InvalidDataException>(() => ClonedOrganizationQuiesce.Run(fixture.Service, Target(),
             true, default, policy, beforeWrite: _ => invoked = true));
         Assert.False(invoked);
+        Assert.Empty(fixture.Service.StateChanges);
         Assert.Empty(fixture.Service.Updates);
     }
 
@@ -315,6 +328,7 @@ public sealed class QuiesceSourceBindingTests
         Assert.Equal(1, fixture.Cli(true));
         Assert.Equal(1, fixture.Returned);
         Assert.Empty(fixture.Service.Reads);
+        Assert.Empty(fixture.Service.StateChanges);
         Assert.Empty(fixture.Service.Updates);
         Assert.Empty(fixture.ApplyInventories());
         Assert.Empty(Directory.GetFiles(fixture.Root, "quiesce-inventory-sha256.json", SearchOption.AllDirectories));
@@ -326,13 +340,14 @@ public sealed class QuiesceSourceBindingTests
     public void Run_MatchingFingerprint_ReadsExactCandidateOnceBeforeOwnerAndUpdate()
     {
         using var fixture = new BindingFixture();
-        var policy = fixture.ReviewedPolicy();
+        var policy = fixture.ReviewedPolicy() with { KeepWorkflowIds = Array.Empty<Guid>() };
         fixture.Service.Reads.Clear();
         ClonedOrganizationQuiesceResult? saved = null;
         var result = ClonedOrganizationQuiesce.Run(fixture.Service, Target(), true, default, policy,
             beforeWrite: snapshot =>
             {
                 saved = snapshot;
+                Assert.Empty(fixture.Service.StateChanges);
                 Assert.Empty(fixture.Service.Updates);
                 Assert.All(fixture.Service.Reads.Values, count => Assert.Equal(1, count));
                 var before = Assert.Single(snapshot.Candidates, row => row.Entity == "mailbox").MailboxBeforeImage;
@@ -344,14 +359,22 @@ public sealed class QuiesceSourceBindingTests
         Assert.Same(saved, result);
         Assert.Equal(1, fixture.Service.Reads["plugintype"]);
         Assert.Equal(1, fixture.Service.Reads["pluginassembly"]);
-        var pluginUpdate = Assert.Single(fixture.Service.Updates,
-            row => row.LogicalName == "sdkmessageprocessingstep");
-        Assert.Equal(fixture.Service.Step.Id, pluginUpdate.Id);
+        var pluginState = Assert.Single(fixture.Service.StateChanges,
+            request => request.EntityMoniker.LogicalName == "sdkmessageprocessingstep");
+        Assert.Equal(fixture.Service.Step.Id, pluginState.EntityMoniker.Id);
+        Assert.Equal(1, pluginState.State.Value);
+        Assert.Equal(2, pluginState.Status.Value);
+        var workflowState = Assert.Single(fixture.Service.StateChanges,
+            request => request.EntityMoniker.LogicalName == "workflow");
+        Assert.Equal(new Guid("00000004-0000-0000-0000-000000000000"), workflowState.EntityMoniker.Id);
+        Assert.Equal(0, workflowState.State.Value);
+        Assert.Equal(1, workflowState.Status.Value);
         var mailboxUpdate = Assert.Single(fixture.Service.Updates, row => row.LogicalName == "mailbox");
         Assert.Equal(0, mailboxUpdate.GetAttributeValue<OptionSetValue>("incomingemaildeliverymethod").Value);
         Assert.Equal(0, mailboxUpdate.GetAttributeValue<OptionSetValue>("outgoingemaildeliverymethod").Value);
         Assert.Equal(2, mailboxUpdate.GetAttributeValue<OptionSetValue>("actdeliverymethod").Value);
-        Assert.DoesNotContain(fixture.Service.Updates, row => row.LogicalName == "workflow");
+        Assert.DoesNotContain(fixture.Service.Updates,
+            row => row.LogicalName is "workflow" or "sdkmessageprocessingstep");
     }
 
     /// <summary>合法公開 apply 的寫前主檔與 SHA 側檔必須已關閉，且同一指紋及完整原值先持久化才可 Update。</summary>
@@ -363,7 +386,7 @@ public sealed class QuiesceSourceBindingTests
         var fingerprint = fixture.Fingerprint();
         fixture.Policy(fingerprint);
         fixture.Service.Reads.Clear();
-        fixture.Service.BeforeUpdate = () =>
+        fixture.Service.BeforeWrite = () =>
         {
             var path = Assert.Single(fixture.ApplyInventories());
             using (var stream = File.Open(path, FileMode.Open, FileAccess.Read, FileShare.None))
@@ -376,8 +399,12 @@ public sealed class QuiesceSourceBindingTests
             Assert.Equal(1, fixture.Service.Reads["mailbox"]);
         };
         Assert.Equal(0, fixture.Cli(true));
-        Assert.Equal(2, fixture.Service.Updates.Count);
-        Assert.Single(fixture.Service.Updates, row => row.LogicalName == "sdkmessageprocessingstep");
+        var pluginState = Assert.Single(fixture.Service.StateChanges,
+            request => request.EntityMoniker.LogicalName == "sdkmessageprocessingstep");
+        Assert.Equal(new Guid("00000001-0000-0000-0000-000000000000"), pluginState.EntityMoniker.Id);
+        Assert.Equal(1, pluginState.State.Value);
+        Assert.Equal(2, pluginState.Status.Value);
+        Assert.Equal(1, fixture.Service.UpdateAttempts);
         Assert.Single(fixture.Service.Updates, row => row.LogicalName == "mailbox");
         Assert.Equal(2, fixture.Returned);
         Assert.Empty(fixture.Failures);
@@ -395,6 +422,7 @@ public sealed class QuiesceSourceBindingTests
         fixture.Service.Reads.Clear();
         var result = ClonedOrganizationQuiesce.Run(fixture.Service, Target(), true, default, policy, beforeWrite: snapshot =>
         {
+            Assert.Empty(fixture.Service.StateChanges);
             Assert.Empty(fixture.Service.Updates);
             Assert.Equal(2, snapshot.PluginIdentities.Count);
             Assert.Equal(2, snapshot.WorkflowIdentities.Count);
@@ -406,8 +434,15 @@ public sealed class QuiesceSourceBindingTests
         Assert.Equal(2, fixture.Service.Reads["solution"]);
         Assert.Equal(2, fixture.Service.Reads["publisher"]);
         Assert.Equal(2, result.PluginIdentities.Select(row => row.StepId).ToHashSet().Count);
-        Assert.Equal(3, fixture.Service.Updates.Count);
-        Assert.Equal(2, fixture.Service.Updates.Count(row => row.LogicalName == "sdkmessageprocessingstep"));
+        Assert.Equal(2, fixture.Service.StateChanges.Count);
+        Assert.Equal(2, fixture.Service.StateChanges
+            .Select(request => request.EntityMoniker.Id).ToHashSet().Count);
+        Assert.All(fixture.Service.StateChanges, request =>
+        {
+            Assert.Equal("sdkmessageprocessingstep", request.EntityMoniker.LogicalName);
+            Assert.Equal(1, request.State.Value);
+            Assert.Equal(2, request.Status.Value);
+        });
         Assert.Single(fixture.Service.Updates, row => row.LogicalName == "mailbox");
     }
 
@@ -420,6 +455,7 @@ public sealed class QuiesceSourceBindingTests
         fixture.Service.Tables["plugintype"].Add(fixture.Service.Tables["plugintype"][0]);
         Assert.Throws<InvalidDataException>(() => ClonedOrganizationQuiesce.Run(fixture.Service, Target(), true,
             default, policy, beforeWrite: _ => throw new Xunit.Sdk.XunitException("Unexpected beforeWrite.")));
+        Assert.Empty(fixture.Service.StateChanges);
         Assert.Empty(fixture.Service.Updates);
     }
 
@@ -434,6 +470,7 @@ public sealed class QuiesceSourceBindingTests
         Assert.Throws<InvalidDataException>(() => ClonedOrganizationQuiesce.Run(fixture.Service, Target(), true,
             default, policy, beforeWrite: _ => invoked = true));
         Assert.False(invoked);
+        Assert.Empty(fixture.Service.StateChanges);
         Assert.Empty(fixture.Service.Updates);
     }
 
@@ -452,8 +489,9 @@ public sealed class QuiesceSourceBindingTests
     }
 
     /// <summary>
-    /// 重現 02A 前次 apply 的 FaultException 類型：quiesce catch 必須在共用回報後輸出有限數字碼，
-    /// 保留原例外、寫前原像與租約清理，且不得印出 SDK 的 Message、TraceText 或 FaultReason。
+    /// 重現 02A 前次 apply 的 FaultException 類型：注入首個 SetStateRequest 後，
+    /// quiesce catch 必須在共用回報後輸出有限數字碼，保留原例外、寫前原像與租約清理；
+    /// 不得退回一般 Update，也不得印出 SDK 的 Message、TraceText 或 FaultReason。
     /// </summary>
     [Fact]
     public void Cli_ApplyDataverseFault_ReportsOnlyBoundedCodesAndReturnsLease()
@@ -470,14 +508,16 @@ public sealed class QuiesceSourceBindingTests
                 TraceText = sensitiveText
             },
             new System.ServiceModel.FaultReason(sensitiveText));
-        fixture.Service.UpdateFailure = failure;
+        fixture.Service.SetStateFailure = failure;
 
         Assert.Equal(1, fixture.Cli(true));
 
         Assert.Same(failure, Assert.Single(fixture.Failures));
         Assert.Contains("Dataverse fault code[0]: 0x80040224", fixture.LastOutput, StringComparison.Ordinal);
         Assert.DoesNotContain(sensitiveText, fixture.LastOutput, StringComparison.Ordinal);
-        Assert.Equal(1, fixture.Service.UpdateAttempts);
+        Assert.Equal(1, fixture.Service.SetStateAttempts);
+        Assert.Empty(fixture.Service.StateChanges);
+        Assert.Equal(0, fixture.Service.UpdateAttempts);
         Assert.Empty(fixture.Service.Updates);
         Assert.Equal(2, fixture.Returned);
         Assert.Single(fixture.ApplyInventories());
@@ -598,6 +638,7 @@ public sealed class QuiesceSourceBindingTests
         /// <summary>拒絕時連首筆 beforeWrite 都不應發生；原 dry-run 清冊保留，寫前主檔／SHA 則皆不存在。</summary>
         internal void AssertRejectedApply()
         {
+            Assert.Empty(Service.StateChanges);
             Assert.Empty(Service.Updates);
             Assert.Empty(ApplyInventories());
             Assert.Empty(Directory.GetFiles(Root, "quiesce-inventory-sha256.json", SearchOption.AllDirectories));
@@ -624,19 +665,23 @@ public sealed class QuiesceSourceBindingTests
         internal Entity Step => Tables["sdkmessageprocessingstep"][0];
         /// <summary>逐表查詢次數驗證完整單次候選與新增來源接線。</summary>
         internal Dictionary<string, int> Reads { get; } = new(StringComparer.Ordinal);
-        /// <summary>真 Update 純值複本，作零寫入及 mailbox 目標值的決定性斷言。</summary>
+        /// <summary>成功 Update 的純值複本，只允許 mailbox／asyncoperation 欄位更新。</summary>
         internal List<Entity> Updates { get; } = new();
+        /// <summary>成功 SetStateRequest 的 detached 純值副本；每案獨立持有，不保存連線或跨測試狀態。</summary>
+        internal List<SetStateRequest> StateChanges { get; } = new();
         /// <summary>改變回傳次序但不改來源純值。</summary>
         internal bool Reverse { get; set; }
         /// <summary>有兩列的來源各拆成兩頁，驗完整分頁後才允許寫入。</summary>
         internal bool Paged { get; set; }
         /// <summary>同步故障與 caller 取消注入，不建立或保留背景工作。</summary>
         internal Action<string>? BeforeRead { get; set; }
-        /// <summary>第一筆 Update 前檢查真正已 flush 並關閉的 CLI 證據。</summary>
-        internal Action? BeforeUpdate { get; set; }
-        /// <summary>模擬 Dataverse 在指定寫入中的原始 FaultException；只由本案同步測試持有。</summary>
-        internal Exception? UpdateFailure { get; set; }
-        /// <summary>記錄本案同步 Update 次數，作精確停止與租約清理斷言。</summary>
+        /// <summary>每種 SDK 寫入前檢查真正已 flush 並關閉的 CLI 證據；同步呼叫後即釋放回呼。</summary>
+        internal Action? BeforeWrite { get; set; }
+        /// <summary>只模擬第一筆 SetStateRequest 的原始 Dataverse FaultException；只由本案測試持有。</summary>
+        internal Exception? SetStateFailure { get; set; }
+        /// <summary>記錄本案 SetStateRequest 嘗試數，包括被注入故障拒絕的請求。</summary>
+        internal int SetStateAttempts { get; private set; }
+        /// <summary>記錄本案同步 Update 次數，包括被注入故障拒絕的請求。</summary>
         internal int UpdateAttempts { get; private set; }
         /// <summary>建構正式來源關聯齊全的合成控制，管理名稱不是 workflow name 或業務資料。</summary>
         internal BindingService()
@@ -786,29 +831,24 @@ public sealed class QuiesceSourceBindingTests
                 PagingCookie = paged && expression.PageInfo.PageNumber == 1 ? expression.EntityName + "-first" : null
             };
         }
-        /// <summary>只接受核定的 step、workflow、mailbox 狀態轉換；每次更新同步反映到本案合成來源供驗證讀回。</summary>
+        /// <summary>只接受 mailbox／asyncoperation 欄位更新；Workflow／Plugin step 必須另走 SetStateRequest。</summary>
         public void Update(Entity entity)
         {
             UpdateAttempts++;
-            BeforeUpdate?.Invoke();
-            if (UpdateFailure is { } failure) throw failure;
-            if (entity.LogicalName == "sdkmessageprocessingstep")
+            BeforeWrite?.Invoke();
+            if (entity.LogicalName == "mailbox")
             {
-                Assert.Equal(1, entity.GetAttributeValue<OptionSetValue>("statecode").Value);
-                Assert.Equal(2, entity.GetAttributeValue<OptionSetValue>("statuscode").Value);
-            }
-            else if (entity.LogicalName == "workflow")
-            {
-                Assert.Equal(0, entity.GetAttributeValue<OptionSetValue>("statecode").Value);
-                Assert.Equal(1, entity.GetAttributeValue<OptionSetValue>("statuscode").Value);
-            }
-            else
-            {
-                Assert.Equal("mailbox", entity.LogicalName);
                 Assert.Equal(0, entity.GetAttributeValue<OptionSetValue>("incomingemaildeliverymethod").Value);
                 Assert.Equal(0, entity.GetAttributeValue<OptionSetValue>("outgoingemaildeliverymethod").Value);
                 Assert.Equal(2, entity.GetAttributeValue<OptionSetValue>("actdeliverymethod").Value);
             }
+            else if (entity.LogicalName == "asyncoperation")
+            {
+                Assert.Equal(3, entity.GetAttributeValue<OptionSetValue>("statecode").Value);
+                Assert.Equal(32, entity.GetAttributeValue<OptionSetValue>("statuscode").Value);
+            }
+            else
+                throw new InvalidDataException("State transitions must use SetStateRequest.");
             Updates.Add(Copy(entity, new ColumnSet(entity.Attributes.Keys.ToArray())));
             var stored = Assert.Single(Tables[entity.LogicalName], row => row.Id == entity.Id);
             foreach (var (name, value) in entity.Attributes)
@@ -821,6 +861,29 @@ public sealed class QuiesceSourceBindingTests
         /// <summary>公開核身只能回本案組織，不能執行其他請求或觸發真正外送。</summary>
         public OrganizationResponse Execute(OrganizationRequest request)
         {
+            if (request is SetStateRequest setState)
+            {
+                SetStateAttempts++;
+                BeforeWrite?.Invoke();
+                if (SetStateFailure is { } stateFailure) throw stateFailure;
+
+                var entityName = setState.EntityMoniker.LogicalName;
+                if (entityName is not ("workflow" or "sdkmessageprocessingstep"))
+                    throw new InvalidDataException("Unexpected synthetic SetStateRequest target.");
+                var (expectedState, expectedStatus) = entityName == "workflow" ? (0, 1) : (1, 2);
+                Assert.Equal(expectedState, setState.State.Value);
+                Assert.Equal(expectedStatus, setState.Status.Value);
+                var stored = Assert.Single(Tables[entityName], row => row.Id == setState.EntityMoniker.Id);
+                stored["statecode"] = new OptionSetValue(setState.State.Value);
+                stored["statuscode"] = new OptionSetValue(setState.Status.Value);
+                StateChanges.Add(new SetStateRequest
+                {
+                    EntityMoniker = new EntityReference(entityName, setState.EntityMoniker.Id),
+                    State = new OptionSetValue(setState.State.Value),
+                    Status = new OptionSetValue(setState.Status.Value)
+                });
+                return new SetStateResponse();
+            }
             Assert.IsType<RetrieveCurrentOrganizationRequest>(request);
             return new RetrieveCurrentOrganizationResponse
             { Results = { ["Detail"] = new OrganizationDetail { UniqueName = "goodshepherd20", OrganizationId = OrganizationId } } };

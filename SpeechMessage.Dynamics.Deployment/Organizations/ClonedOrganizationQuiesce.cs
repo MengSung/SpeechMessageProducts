@@ -3,7 +3,7 @@
 目的與定位：FS Step 3b 的複製測試組織自動化停用器，僅允許對 catalog 明確標示為 test 的
 單一組織盤點及停用複製帶入的流程、等待中工作與會推播或寄信的 Plugin 步驟。
 主要流程：先驗證組織種類，以最多十頁／五萬列的完整查詢盤點，再依 02A policyVersion=2 執行：
-等待流程執行個體全部取消；Workflow／自訂 Action 除清冊保留外改回 Draft，Business Rule 與 BPF 不更新；
+等待流程執行個體全部取消；Workflow／自訂 Action 除清冊保留外改回 Draft，並以 SetStateRequest 執行 Workflow／Plugin step 狀態轉換；Business Rule 與 BPF 不更新；
 Microsoft.* 系統步驟、經 Microsoft 簽署且 managed 的 ActivityFeeds 系統組件，以及本計畫簽署身分
 精確符合 manifest 之 F3 平台兩個 Plugin 型別的步驟保留；其他 Plugin step 改 Disabled。
 信箱停用三種投遞方式。未知組件不因 managed 單一欄位或寬鬆名稱前綴而保留。
@@ -46,6 +46,7 @@ using System.Linq;
 using System.Security.Cryptography;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using Microsoft.Crm.Sdk.Messages;
 using Microsoft.Xrm.Sdk;
 using Microsoft.Xrm.Sdk.Query;
 
@@ -345,23 +346,30 @@ internal static class ClonedOrganizationQuiesce
         cancellationToken.ThrowIfCancellationRequested();
         // 先關閉來源再取消已等待工作，避免盤點後仍持續產生可外送的新工作。
         // 正式 ID 已在回呼前複製，寫入不得重查、重新分類或改用可變 SDK 來源圖。
+        // Workflow 與 Plugin step 的 state/status 是平台狀態轉換，必須走 SetStateRequest；
+        // 一般 Update 在目標 D365 9.1 Workflow 上以 OrganizationServiceFault 拒絕，故不做 fallback 或重試。
         foreach (var id in selectedSteps)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            service.Update(new Entity("sdkmessageprocessingstep", id)
+            // 目標為 Dynamics 365 Customer Engagement on-premises 9.1；Workflow 官方狀態範例使用 SetStateRequest，
+            // 且本案已在 Workflow 一般 Update 重現 OrganizationServiceFault。Plugin step 亦只經狀態訊息，
+            // 不以一般 Update fallback，避免一種寫法成功而另一種仍留下部分停用。
+            service.Execute(new SetStateRequest
             {
-                ["statecode"] = new OptionSetValue(1),
-                ["statuscode"] = new OptionSetValue(2)
+                EntityMoniker = new EntityReference("sdkmessageprocessingstep", id),
+                State = new OptionSetValue(1),
+                Status = new OptionSetValue(2)
             });
             cancellationToken.ThrowIfCancellationRequested();
         }
         foreach (var id in selectedWorkflows)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            service.Update(new Entity("workflow", id)
+            service.Execute(new SetStateRequest
             {
-                ["statecode"] = new OptionSetValue(0),
-                ["statuscode"] = new OptionSetValue(1)
+                EntityMoniker = new EntityReference("workflow", id),
+                State = new OptionSetValue(0),
+                Status = new OptionSetValue(1)
             });
             cancellationToken.ThrowIfCancellationRequested();
         }
