@@ -1,0 +1,27 @@
+<!--
+檔案整體說明
+目的與定位：F8跨產品權限與修改紀錄的離線測試專案，使用既有中央套件，不反向依賴產品、ToolUtility或部署工具。
+主要功能與流程：合成SDK與故障探針保護矩陣、租戶隔離、遮罩、取消及排空；專案建立當步加入SpeechMessageProducts.sln，Debug與Release均須納入建置及測試。
+使用邊界與維護：此檔只宣告建置契約，不載入User Secrets、不發起實機呼叫；SDK租約由每次操作確定歸還，診斷owner由Host借用。離線合成證據不得當成D365部署結果，文件與位元組守門必須維持零失敗。
+-->
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <SpeechMessageStrictCode>true</SpeechMessageStrictCode>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <IsPackable>false</IsPackable>
+    <IsTestProject>true</IsTestProject>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" />
+    <PackageReference Include="xunit" />
+    <PackageReference Include="xunit.runner.visualstudio" PrivateAssets="all" />
+    <PackageReference Include="Moq" />
+    <PackageReference Include="coverlet.collector" PrivateAssets="all" />
+    <!-- 正式schema解析契約測試需先建置同工作樹Deployment，不執行其入口或讀取秘密。 -->
+    <ProjectReference Include="..\SpeechMessage.Dynamics.Deployment\SpeechMessage.Dynamics.Deployment.csproj" ReferenceOutputAssembly="false" />
+    <ProjectReference Include="..\SpeechMessage.Access\SpeechMessage.Access.csproj" />
+  </ItemGroup>
+</Project>

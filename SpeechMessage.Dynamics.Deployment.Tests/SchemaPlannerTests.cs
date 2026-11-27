@@ -6,7 +6,7 @@
  * ActivePhase=4時只納入永豐設定，Phase5只新增教會進階設定及課程按鈕欄位。
  * 故障矩陣：逐一改變型別、長度、日期、安全、owner、entity/field audit、concurrency、key與managed solution，任何衝突都停止而非產生修改。
  * 決定性斷言：pending key不能當Active，failed key不能重建掩蓋；plan hash、正式orgID或版本漂移必須在apply之前拒絕。
- * 依賴與生命週期：正式schema每案重新讀，CompleteSnapshot產生本案獨占合成metadata ID／集合；固定UTC時刻，不修改全域Culture或建立背景資源。
+ * 依賴與生命週期：正式schema每案重新讀，CompleteSnapshot產生本案獨占合成metadata ID／集合，owner依宣告的OwnershipType投影、未宣告時沿用部署器預設OrganizationOwned；固定UTC時刻，不修改全域Culture或建立背景資源。
  * 維護要求：保留各約束獨立失敗案例，必要時加真正SDK往返佐證；這裡的純模型成功不能替代SDK建立、實機索引或備份驗證。
  */
 using System;
@@ -292,11 +292,11 @@ public sealed class SchemaPlannerTests
         return definition with { ActivePhase = phase, Entities = entities };
     }
 
-    /// <summary>建立本案獨佔的完整純metadata候選；不代表SDK建立成功，實際SDK契約由整合案例另驗。</summary>
+    /// <summary>建立本案獨佔的合成metadata；owner忠實反映schema宣告，未宣告時沿用部署器預設OrganizationOwned，不代表SDK實機建立成功。</summary>
     internal static SchemaSnapshot CompleteSnapshot(SchemaDefinition definition)
     {
         var entities = definition.Entities.Select(entity => new SchemaEntityState(Guid.NewGuid(), entity.LogicalName,
-            entity.LogicalName + "id", entity.IsNew ? entity.PrimaryName : "name", "OrganizationOwned", entity.Audit,
+            entity.LogicalName + "id", entity.IsNew ? entity.PrimaryName : "name", entity.OwnershipType ?? "OrganizationOwned", entity.Audit,
             entity.OptimisticConcurrency, false,
             entity.Fields.Where(field => field.Phase == 1).Select(field => new SchemaFieldState(Guid.NewGuid(), field.LogicalName,
                 field.Type, field.MaxLength == 0 ? null : field.MaxLength, field.Required ? "ApplicationRequired" : "None", field.Secured,

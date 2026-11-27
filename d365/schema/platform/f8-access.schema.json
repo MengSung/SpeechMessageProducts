@@ -1,0 +1,289 @@
+{
+  "schemaVersion": 1,
+  "activePhase": 8,
+  "solution": "SpeechMessageCore",
+  "publisher": "SpeechMessagePublisher",
+  "prefix": "new",
+  "entities": [
+    {
+      "logicalName": "new_role",
+      "displayName": "角色",
+      "pluralName": "角色",
+      "isNew": true,
+      "ownershipType": "UserOwned",
+      "audit": false,
+      "primaryName": "new_name",
+      "fields": [
+        {
+          "logicalName": "new_name",
+          "displayName": "名稱",
+          "type": "string",
+          "phase": 1,
+          "maxLength": 200,
+          "required": true
+        },
+        {
+          "logicalName": "new_tenantid",
+          "displayName": "租戶",
+          "type": "lookup",
+          "phase": 1,
+          "target": "account",
+          "required": true
+        },
+        {
+          "logicalName": "new_code",
+          "displayName": "角色代碼",
+          "type": "string",
+          "phase": 1,
+          "maxLength": 64,
+          "required": true
+        },
+        {
+          "logicalName": "new_isadmin",
+          "displayName": "管理員",
+          "type": "choice",
+          "phase": 1,
+          "options": [
+            {
+              "value": 100000000,
+              "label": "否"
+            },
+            {
+              "value": 100000001,
+              "label": "是"
+            }
+          ]
+        }
+      ],
+      "keys": [
+        {
+          "logicalName": "new_ak_role",
+          "attributes": [
+            "new_tenantid",
+            "new_code"
+          ]
+        }
+      ]
+    },
+    {
+      "logicalName": "new_rolepermission",
+      "displayName": "角色權限",
+      "pluralName": "角色權限",
+      "isNew": true,
+      "ownershipType": "UserOwned",
+      "audit": false,
+      "primaryName": "new_name",
+      "fields": [
+        {
+          "logicalName": "new_name",
+          "displayName": "名稱",
+          "type": "string",
+          "phase": 1,
+          "maxLength": 200,
+          "required": true
+        },
+        {
+          "logicalName": "new_roleid",
+          "displayName": "角色",
+          "type": "lookup",
+          "phase": 1,
+          "target": "new_role",
+          "required": true
+        },
+        {
+          "logicalName": "new_feature",
+          "displayName": "功能代碼",
+          "type": "string",
+          "phase": 1,
+          "maxLength": 64,
+          "required": true
+        },
+        {
+          "logicalName": "new_operation",
+          "displayName": "操作",
+          "type": "choice",
+          "phase": 1,
+          "options": [
+            {
+              "value": 100000000,
+              "label": "Read"
+            },
+            {
+              "value": 100000001,
+              "label": "Create"
+            },
+            {
+              "value": 100000002,
+              "label": "Update"
+            },
+            {
+              "value": 100000003,
+              "label": "Delete"
+            }
+          ],
+          "required": true
+        },
+        {
+          "logicalName": "new_scope",
+          "displayName": "資料範圍",
+          "type": "choice",
+          "phase": 1,
+          "options": [
+            {
+              "value": 100000000,
+              "label": "Self"
+            },
+            {
+              "value": 100000001,
+              "label": "Group"
+            },
+            {
+              "value": 100000002,
+              "label": "Tenant"
+            }
+          ],
+          "required": true
+        }
+      ],
+      "keys": [
+        {
+          "logicalName": "new_ak_rolepermission",
+          "attributes": [
+            "new_roleid",
+            "new_feature",
+            "new_operation",
+            "new_scope"
+          ]
+        }
+      ]
+    },
+    {
+      "logicalName": "new_roleassignment",
+      "displayName": "角色指派",
+      "pluralName": "角色指派",
+      "isNew": true,
+      "ownershipType": "UserOwned",
+      "audit": false,
+      "primaryName": "new_name",
+      "fields": [
+        {
+          "logicalName": "new_name",
+          "displayName": "名稱",
+          "type": "string",
+          "phase": 1,
+          "maxLength": 200,
+          "required": true
+        },
+        {
+          "logicalName": "new_contactid",
+          "displayName": "會友",
+          "type": "lookup",
+          "phase": 1,
+          "target": "contact",
+          "required": true
+        },
+        {
+          "logicalName": "new_roleid",
+          "displayName": "角色",
+          "type": "lookup",
+          "phase": 1,
+          "target": "new_role",
+          "required": true
+        }
+      ],
+      "keys": [
+        {
+          "logicalName": "new_ak_roleassignment",
+          "attributes": [
+            "new_contactid",
+            "new_roleid"
+          ]
+        }
+      ]
+    },
+    {
+      "logicalName": "new_auditentry",
+      "displayName": "修改紀錄",
+      "pluralName": "修改紀錄",
+      "isNew": true,
+      "ownershipType": "OrganizationOwned",
+      "audit": false,
+      "primaryName": "new_name",
+      "fields": [
+        {
+          "logicalName": "new_name",
+          "displayName": "名稱",
+          "type": "string",
+          "phase": 1,
+          "maxLength": 200,
+          "required": true
+        },
+        {
+          "logicalName": "new_entity",
+          "displayName": "實體",
+          "type": "string",
+          "phase": 1,
+          "maxLength": 128
+        },
+        {
+          "logicalName": "new_recordid",
+          "displayName": "被修改記錄",
+          "type": "string",
+          "phase": 1,
+          "maxLength": 36
+        },
+        {
+          "logicalName": "new_field",
+          "displayName": "欄位",
+          "type": "string",
+          "phase": 1,
+          "maxLength": 128
+        },
+        {
+          "logicalName": "new_before",
+          "displayName": "修改前",
+          "type": "memo",
+          "phase": 1,
+          "maxLength": 4000
+        },
+        {
+          "logicalName": "new_after",
+          "displayName": "修改後",
+          "type": "memo",
+          "phase": 1,
+          "maxLength": 4000
+        },
+        {
+          "logicalName": "new_actorcontactid",
+          "displayName": "操作者",
+          "type": "lookup",
+          "phase": 1,
+          "target": "contact"
+        },
+        {
+          "logicalName": "new_tenantid",
+          "displayName": "租戶",
+          "type": "lookup",
+          "phase": 1,
+          "target": "account"
+        },
+        {
+          "logicalName": "new_correlationid",
+          "displayName": "關聯碼",
+          "type": "string",
+          "phase": 1,
+          "maxLength": 128
+        },
+        {
+          "logicalName": "new_at",
+          "displayName": "修改時刻",
+          "type": "datetime",
+          "phase": 1,
+          "behavior": "UserLocal",
+          "format": "DateAndTime"
+        }
+      ],
+      "keys": []
+    }
+  ]
+}
