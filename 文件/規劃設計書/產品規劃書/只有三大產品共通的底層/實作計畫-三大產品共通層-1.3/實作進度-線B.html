@@ -34,7 +34,7 @@ table{width:100%;border-collapse:collapse;background:var(--card)}
 th,td{border-bottom:1px solid var(--line);padding:6px 8px;text-align:left;vertical-align:top;font-size:14px}
 th{background:var(--tint)}
 .badge{display:inline-block;border-radius:999px;padding:1px 10px;font-size:13px;font-weight:700;color:#fff;white-space:nowrap}
-.b-done{background:var(--ok)}.b-run{background:var(--run)}.b-todo{background:var(--todo)}.b-cut{background:var(--warn)}
+.b-done{background:var(--ok)}.b-run{background:var(--run)}.b-todo{background:var(--todo)}.b-cut{background:var(--warn)}.b-auto{background:#2f8a8f}
 .msg{border-left:4px solid var(--lane);padding:6px 10px;margin:8px 0;background:var(--card);border-radius:6px}
 .msg .t{color:var(--ink2);font-size:13px}
 .note{color:var(--ink2);font-size:13px}
@@ -102,7 +102,8 @@ code{background:var(--tint);border-radius:4px;padding:0 4px}
   let cls = 'n', title = '沒有資料', sub = '';
   if (live && cx.found) {
     const m = minsSince(cx.lastActivity);
-    if (/完成/.test(st['狀態'] || '')) { cls = 'g'; title = '這條線已完成'; }
+    // 只認狀態開頭是「完成」，狀態文字中段提到「完成」不算這條線已完成
+    if (/^\s*完成/.test(st['狀態'] || '')) { cls = 'g'; title = '這條線已完成'; }
     // 狀態只認開頭是「等待使用者」，避免描述別條線在等使用者時誤判
     else if (stopMine.length || /^\s*等待使用者/.test(st['狀態'] || '')) { cls = 'o'; title = '正在等你'; sub = '看下方「需要你協助」，到這條線的 Codex 對話框回覆。'; }
     else if (m <= 10) { cls = 'g'; title = '正在工作'; }
@@ -116,7 +117,9 @@ code{background:var(--tint);border-radius:4px;padding:0 4px}
     .map(([k, v]) => `<div><small>${esc(k)}</small><b>${esc(v || '—')}</b></div>`).join('');
 
   // ---------- 工作包 ----------
-  const badge = s => `<span class="badge ${/（縮減）/.test(s) ? 'b-cut' : /^完成/.test(s) ? 'b-done' : s === '進行中' ? 'b-run' : 'b-todo'}">${esc(s)}</span>`;
+  // 狀態分級（02A §4）：只有實機也通過才算完成；「完成（自動測試通過）」是 02A 前的舊寫法，與「自動測試通過（實機待補）」同級
+  const lvl = s => /（縮減）/.test(s) ? 'cut' : /^完成(（測試環境驗證）)?$/.test(s) ? 'done' : /^(自動測試通過|完成（自動測試通過）)/.test(s) ? 'auto' : s === '進行中' ? 'run' : 'todo';
+  const badge = s => `<span class="badge b-${lvl(s)}">${esc(s)}</span>`;
   const cur = st['工作包'] || '';
   $('wps').innerHTML = `<table><thead><tr><th>包</th><th>名稱</th><th>計畫日期</th><th>狀態</th><th>完成</th><th>提交</th><th>待補</th></tr></thead><tbody>${PLAN.map(p => {
     const d = (data && data.packages && data.packages[p.id]) || {};
