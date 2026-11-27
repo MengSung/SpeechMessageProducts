@@ -3,7 +3,8 @@
 檔案整體說明：離線驗證好牧人二代測試部署的拒絕邊界。
 .DESCRIPTION
 目的與定位：本檔屬於線Ｂ的Ｆ２部署工具測試，只使用合成憑證與站台快照，保護乾跑不連線、
-憑證精確選取、固定內容路徑、端口獨占與壓縮檔輸入驗證契約，並不代表任何實機結果。
+憑證精確選取、固定內容路徑、端口獨占、壓縮檔輸入，以及Development JSON與web.config
+使用Encrypt=Strict和固定ServerCertificate公鑰釘選的契約，並不代表任何實機結果。
 另以合成CRM帳密驗證只取用精確組織、不回退舊組織；集合替身驗證專用集區環境的兩鍵
 更新與精準回復，其他鍵保持不變且不輸出帳密。替身不代表IIS實際保存或worker繼承成功。
 提交生命週期案例直接執行部署的切換片段，讓合成IIS物件在Commit後拒絕再次修改，
@@ -47,6 +48,8 @@ function Assert-Rejected {
     try { & $Action | Out-Null } catch { $rejected = $true }
     Assert-Condition $rejected
 }
+
+$expectedPlatformSql = 'Server=D365APP01;Database=GoodShepherd2Platform;Integrated Security=True;Encrypt=Strict;TrustServerCertificate=False;ServerCertificate=C:\ProgramData\SpeechMessage\certs\d365-9.1-sql.cer;'
 
 function New-CertificateFixture {
     # 每次建立獨立快照，故障案例不共用可變陣列，也不存取本機憑證存放區。
@@ -346,17 +349,58 @@ $cases = [ordered]@{
             $node.Value.StartsWith('<?xml version=')
         }, $true)
         Assert-Condition ($null -ne $template)
-        $document = [xml]$template.Value
+        Assert-Condition $template.Value.Contains('__GS2_PLATFORM_CONNECTION_STRING__')
+        $connectionDefinition = $ast.Find({
+            param($node)
+            $node -is [System.Management.Automation.Language.FunctionDefinitionAst] -and
+            $node.Name -ceq 'Get-Gs2PlatformConnectionString'
+        }, $true)
+        Assert-Condition ($null -ne $connectionDefinition)
+        . ([scriptblock]::Create($connectionDefinition.Extent.Text))
+        $actualSql = Get-Gs2PlatformConnectionString
+        $rendered = $template.Value.Replace('__GS2_CRM_URL__', 'https://goodshepherd20.speechmessage.com.tw/XRMServices/2011/Organization.svc').Replace(
+            '__GS2_PLATFORM_CONNECTION_STRING__', [Security.SecurityElement]::Escape($actualSql))
+        $document = [xml]$rendered
         $hosting = $document.configuration.location.'system.webServer'.aspNetCore
         Assert-Condition ($hosting.processPath -ceq 'dotnet' -and $hosting.hostingModel -ceq 'inprocess')
         Assert-Condition ($hosting.stdoutLogEnabled -ceq 'false')
         $variables = @{}
         foreach ($variable in $hosting.environmentVariables.environmentVariable) { $variables.Add($variable.name, $variable.value) }
         Assert-Condition ($variables['DOTNET_ENVIRONMENT'] -ceq 'Development' -and $variables['ASPNETCORE_ENVIRONMENT'] -ceq 'Development')
-        Assert-Condition ($variables['CrmConnection__ServerUrl'] -ceq '__GS2_CRM_URL__')
+        Assert-Condition ($variables['CrmConnection__ServerUrl'] -ceq 'https://goodshepherd20.speechmessage.com.tw/XRMServices/2011/Organization.svc')
         Assert-Condition ($variables['GoodShepherd2__AllowedDevelopmentOrganizations__0'] -ceq 'goodshepherd20.speechmessage.com.tw')
         $sql = $variables['ConnectionStrings__Platform']
-        Assert-Condition ($sql -ceq 'Server=D365APP01;Database=GoodShepherd2Platform;Integrated Security=True;Encrypt=True;TrustServerCertificate=False;')
+        Assert-Condition ($sql -ceq $expectedPlatformSql -and $sql -ceq $actualSql)
+        Assert-Condition ($sql -match 'Encrypt=Strict')
+        Assert-Condition ($sql -match 'ServerCertificate=C:\\ProgramData\\SpeechMessage\\certs\\d365-9\.1-sql\.cer')
+        Assert-Condition ($sql -notmatch '(?i)TrustServerCertificate\s*=\s*true')
+    }
+    PlatformSql_DevelopmentJsonAndWebConfigUseStrictPinnedCertificate = {
+        $source = [IO.File]::ReadAllText($runnerPath)
+        Assert-Condition $source.Contains($expectedPlatformSql)
+        Assert-Condition (-not $source.Contains('Server=D365APP01;Database=GoodShepherd2Platform;Integrated Security=True;Encrypt=True;TrustServerCertificate=False;'))
+        $connectionDefinition = $ast.Find({
+            param($node)
+            $node -is [System.Management.Automation.Language.FunctionDefinitionAst] -and
+            $node.Name -ceq 'Get-Gs2PlatformConnectionString'
+        }, $true)
+        $settingsDefinition = $ast.Find({
+            param($node)
+            $node -is [System.Management.Automation.Language.FunctionDefinitionAst] -and
+            $node.Name -ceq 'New-Gs2DevelopmentSettings'
+        }, $true)
+        Assert-Condition ($null -ne $connectionDefinition -and $null -ne $settingsDefinition)
+        . ([scriptblock]::Create($connectionDefinition.Extent.Text))
+        . ([scriptblock]::Create($settingsDefinition.Extent.Text))
+        $actualSql = Get-Gs2PlatformConnectionString
+        $settings = New-Gs2DevelopmentSettings 'https://goodshepherd20.speechmessage.com.tw/XRMServices/2011/Organization.svc'
+        $json = $settings | ConvertTo-Json -Depth 4
+        $parsed = $json | ConvertFrom-Json
+        Assert-Condition ($actualSql -ceq $expectedPlatformSql)
+        Assert-Condition ($parsed.ConnectionStrings.Platform -ceq $expectedPlatformSql -and $parsed.ConnectionStrings.Platform -ceq $actualSql)
+        Assert-Condition ($parsed.ConnectionStrings.Platform -match 'Encrypt=Strict')
+        Assert-Condition ($parsed.ConnectionStrings.Platform -match 'ServerCertificate=C:\\ProgramData\\SpeechMessage\\certs\\d365-9\.1-sql\.cer')
+        Assert-Condition ($parsed.ConnectionStrings.Platform -notmatch '(?i)TrustServerCertificate\s*=\s*true')
     }
     SessionRemoval_IsInsideFinally = {
         $tryStatement = $ast.Find({

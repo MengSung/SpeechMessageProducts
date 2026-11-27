@@ -6,7 +6,9 @@
 不負責組織資料、平台資料庫建置、網域轉接、防火牆或手機驗收，也不修改本機電腦設定。
 主要功能與流程：乾跑只回傳固定部署計畫，不發佈、不建立檔案或遠端連線。明確套用時，
 先從部署工具既有User Secrets精確取用goodshepherd20帳密，再以有界子程序發佈專案，
-產生無秘密的開發設定與網站設定，打包並計算雜湊；遠端每次命令
+產生無秘密的開發設定與網站設定；平台SQL固定使用Encrypt=Strict、TrustServerCertificate=False
+與ProgramData中的公鑰憑證釘選路徑，憑證本身須由P0-2④在測試主機預先匯出，且不打包或複製。
+打包並計算雜湊；遠端每次命令
 先核對主機身分及系統管理員權限，再驗證固定內容根、獨占端口與精確萬用憑證。建立封閉的
 證據目錄並取得獨占檔案鎖後，先備份完整IIS設定，才上傳到不公開的套件目錄；提交前再次核對與備份，完整解壓後停止專用集區並排空，
 首次安裝先建立未Commit的站台候選，再解析本站匿名設定；切換到新的不可變發佈目錄，
@@ -78,6 +80,23 @@ function Assert-Gs2CrmUrl {
         $uri.Port -ne 443 -or $uri.UserInfo -ne '' -or $uri.Query -ne '' -or $uri.Fragment -ne '' -or
         $uri.AbsolutePath -cne '/XRMServices/2011/Organization.svc') {
         throw 'GS2_CRM_URL_REJECTED'
+    }
+}
+
+function Get-Gs2PlatformConnectionString {
+    # 連線目標與憑證檔路徑皆為核定測試環境常數；Strict使用TDS 8.0並驗證伺服器，禁止信任任意憑證。
+    # 憑證由P0-2④在VM外部準備；本工具只輸出其固定路徑，不匯出、覆寫或封裝憑證內容。
+    return 'Server=D365APP01;Database=GoodShepherd2Platform;Integrated Security=True;Encrypt=Strict;TrustServerCertificate=False;ServerCertificate=C:\ProgramData\SpeechMessage\certs\d365-9.1-sql.cer;'
+}
+
+function New-Gs2DevelopmentSettings {
+    # JSON只保存測試組織網址與無密碼的整合登入連線字串；同一固定值也供web.config使用，避免設定分岔。
+    param([Parameter(Mandatory)][string]$ServerUrl)
+    Assert-Gs2CrmUrl $ServerUrl
+    return [ordered]@{
+        CrmConnection = @{ ServerUrl=$ServerUrl }
+        GoodShepherd2 = @{ AllowedDevelopmentOrganizations=@('goodshepherd20.speechmessage.com.tw') }
+        ConnectionStrings = @{ Platform=(Get-Gs2PlatformConnectionString) }
     }
 }
 
@@ -805,11 +824,8 @@ try {
         finally { $process.Dispose() }
     }
     $utf8 = [Text.UTF8Encoding]::new($false)
-    $development = [ordered]@{
-        CrmConnection = @{ ServerUrl=$CrmServerUrl }
-        GoodShepherd2 = @{ AllowedDevelopmentOrganizations=@('goodshepherd20.speechmessage.com.tw') }
-        ConnectionStrings = @{ Platform='Server=D365APP01;Database=GoodShepherd2Platform;Integrated Security=True;Encrypt=True;TrustServerCertificate=False;' }
-    }
+    $development = New-Gs2DevelopmentSettings $CrmServerUrl
+    $platformConnectionString = [string]$development.ConnectionStrings.Platform
     [IO.File]::WriteAllText((Join-Path $publish 'appsettings.Development.json'), (($development | ConvertTo-Json -Depth 4) + "`r`n"), $utf8)
     $webConfig = @'
 <?xml version="1.0" encoding="utf-8"?>
@@ -826,14 +842,15 @@ try {
           <environmentVariable name="ASPNETCORE_DETAILEDERRORS" value="false" />
           <environmentVariable name="CrmConnection__ServerUrl" value="__GS2_CRM_URL__" />
           <environmentVariable name="GoodShepherd2__AllowedDevelopmentOrganizations__0" value="goodshepherd20.speechmessage.com.tw" />
-          <environmentVariable name="ConnectionStrings__Platform" value="Server=D365APP01;Database=GoodShepherd2Platform;Integrated Security=True;Encrypt=True;TrustServerCertificate=False;" />
+          <environmentVariable name="ConnectionStrings__Platform" value="__GS2_PLATFORM_CONNECTION_STRING__" />
         </environmentVariables>
       </aspNetCore>
     </system.webServer>
   </location>
 </configuration>
 '@
-    $webConfig = $webConfig.Replace('__GS2_CRM_URL__', [Security.SecurityElement]::Escape($CrmServerUrl))
+    $webConfig = $webConfig.Replace('__GS2_CRM_URL__', [Security.SecurityElement]::Escape($CrmServerUrl)).Replace(
+        '__GS2_PLATFORM_CONNECTION_STRING__', [Security.SecurityElement]::Escape($platformConnectionString))
     [IO.File]::WriteAllText((Join-Path $publish 'web.config'), ($webConfig.Replace("`r`n", "`n").Replace("`n", "`r`n") + "`r`n"), $utf8)
     $phase = 'Package'
     # 先逐層列舉並限制個數／容量，不遞迴追蹤連結；壓縮只消費本次publish私有目錄。
