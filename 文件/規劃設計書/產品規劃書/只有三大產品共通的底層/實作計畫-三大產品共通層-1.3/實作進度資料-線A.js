@@ -7,18 +7,21 @@
 window.PROGRESS_LANES = window.PROGRESS_LANES || {};
 window.PROGRESS_LANES.A = {
   lane: 'A',
-  lastUpdated: '2026-11-27T13:22:44+08:00',
+  lastUpdated: '2026-11-27T20:02:30+08:00',
   packages: {
     F0: { status: '自動測試通過（實機待補）', started: '2026-11-25 22:09', finished: '2026-11-26 00:24', commit: '74ea5a1c1ff723f6a64aeb73cadf69685021f528, a9e438be0d9fe13d8fe40d0c2e03e9558774e113', pending: '實機待補（可自行處理）：依02A先quiesce，再拆小唯讀診斷inventory根因；符合RED→GREEN及回復條件後修正重試。端點與真metadata已自主核對，尚未取得完整清冊', report: 'wp-reports/3P-F0-基線矩陣.md' },
     F1: { status: '自動測試通過（實機待補）', started: '2026-11-26 00:24', finished: '2026-11-26 15:39', commit: 'bfb5f56b96ff7b2c9a185f9757248c5dd9a5368a, 79f5362a44659e68afc1c17727bc2a2a3f51ac69, b2cdcbb6d11521950dbece5a7432b29a0d8d5a7a, d82c7a7252fe8ad60e107f8753e06adb12d984a1, f57fef11f342c9d823e6361a42ebae283c4e5a14, 421b6d29266668d07348d87aee0b98ae8b196e81', pending: '實機待補（外部阻擋）：共用層實機整合證據隨FS／F3打通補驗；Scheduling分類及QR必要補正完整7943/7943、ClaudeOnly無Critical／High；非實機宣稱', report: 'wp-reports/3P-F1-依賴方向修正.md' },
     FS: { status: '自動測試通過（實機待補）', started: '2026-11-26 04:31', finished: '2026-11-26 21:10', commit: '64679a87f, 9af227811, bd22905fc, abeb70d94', pending: '實機待補（可自行處理）：離線8819/8819及ClaudeOnly通過；02A §2已核定未知非Microsoft自動化停用，H1待執行後依政策結案。F3離線合併後依序quiesce、診斷及修正plan、三組織部署／UI／Live3P；目前仍零D365寫入', report: 'wp-reports/3P-FS-結構分層與三組織佈署.md' },
-    F3: { status: '自動測試通過（實機待補）', started: '2026-11-26 21:10', finished: '2026-11-27 13:22', commit: '244e45960, b7844eee7, e09a4c86, 8be872b2', pending: '實機待補：F3離線合併後依02A §5先goodshepherd20 quiesce；再唯讀診斷F0 inventory／FS plan根因、符合§1後修正重試及三組織plan/apply/verify；等FS實機完成後開始F3 Step6登錄、20並行配發與清理。F2測試站及T01／T02 Webhook仍待補。lease trace一次失敗、後續定向與完整測試通過，原因未確認且未修，不宣稱已解決；詳見報告', report: 'wp-reports/3P-F3-Channel名額池.md' },
+    F3: { status: '自動測試通過（實機待補）', started: '2026-11-26 21:10', finished: '2026-11-27 20:02', commit: '244e45960, b7844eee7, e09a4c86, 8be872b2a, 5b8c74b03, 2df96defa', pending: '實機待補：rebase後離線閘門已通過；合併推送後依02A §5先goodshepherd20 quiesce，再F0 inventory／FS plan唯讀診斷及符合§1後修正重試；接著FS三組織plan/apply/verify與檢視表／UI；等FS實機完成後開始F3 Step6登錄、20並行配發及清理。F2測試站及T01／T02 Webhook仍待補。lease trace一次失敗原因未確認、不宣稱已修；沒有新增實機結果', report: 'wp-reports/3P-F3-Channel名額池.md' },
     F5: { status: '未開始', started: '', finished: '', commit: '', pending: '', report: '' },
     F7: { status: '未開始', started: '', finished: '', commit: '', pending: '', report: '' },
     F9: { status: '未開始', started: '', finished: '', commit: '', pending: '', report: '' },
     M1: { status: '未開始', started: '', finished: '', commit: '', pending: '', report: '' },
   },
   log: [
+    '2026-11-27 20:02 Asia/Taipei (UTC+08:00)｜F3 rebase 基線 acf46fa5 的離線閘門再驗 exit 0：Release 建置 0 警告／0 錯誤（log SHA-256 9D96086AF12B4E897EF6EDB58E7B549713C77ACDFBCC078056EB92833019FE4E）；一般測試 9,471/9,471、0 失敗／0 略過（SHA 6E63C2AC026215F370240286CB316DBDB1706014C83706C0E34FC8B2F976C6F4）；文件 2,086/0；Changed 編碼 40 檔／0 問題／0 排除；方案清單 exit 0；進度 renderer 28/28；diff check exit 0。F3仍為自動測試通過（實機待補），未新增D365／LINE／手機／金流結果；準備依02 §5合併。',
+    '2026-11-27 19:35 Asia/Taipei (UTC+08:00)｜F3進度頁Node renderer通過28/28（SHA 6A2CEDF1…），狀態白名單／渲染測試通過；本輪瀏覽器服務不可用且本機HTML開啟只排隊，沒有目視頁首，因此不冒稱完成目視。F3仍自動測試通過（實機待補），不新增實機結果；下一步合併後按02A順序先quiesce→F0／FS唯讀診斷修正重試→FS三組織實機→F3 Step6。',
+    '2026-11-27 19:32 Asia/Taipei (UTC+08:00)｜F3 rebase至acf46fa5後重跑02 §4：Release建置exit0（65警告／0錯誤；SHA 08479FC6…）；完整一般測試9,471/9,471、0失敗／0略過（SHA 32ECBD2E…）；文件2,086/0（SHA 11C97668…）；Changed編碼40檔／0問題（修正90 CRLF及同步封存task.json終止CRLF後；SHA 1504D904…）；方案清單exit0（SHA 91B4F1D2…）。F3維持自動測試通過（實機待補）；沿用18:50 ClaudeOnly，不做雙模型審核。沒有新增D365／LINE／手機結果；合併後依02A先goodshepherd20 quiesce、再F0／FS根因修正重試、FS三組織實機；FS完成後才開始F3 Step6。F5未開始。',
     '2026-11-27 18:50 Asia/Taipei (UTC+08:00)｜F3 02 §4 離線閘門全綠：Release建置0警告／0錯誤，完整一般27回合9218/9218、文件2064/0、Changed編碼8檔0問題（排除1）、方案清單成功；ClaudeOnly未發現未修Critical／High。首次lease trace斷言失敗保留，後續定向2次、20次重複及完整測試通過；觀測排序推論未確認、pool行為未修改，不宣稱已修。90維持自動測試通過（實機待補）；合併後依02A先quiesce→F0／FS根因診斷及修正重試→FS三組織實機→等FS完成後開始F3 Step6；零新增實機結果。',
     '2026-11-27 13:22 Asia/Taipei (UTC+08:00)｜F3登錄契約High已真Plugin 3 RED→83/83 GREEN；修復8be872b2，完整27回合9205/9205、0失敗／略過，Release0error、文件2064/0、編碼82/0、進度32/32。ClaudeOnly修正複審無Critical／High；外部未讀限制明列。本包維持自動測試通過（實機待補），合併後立刻02A quiesce→F0／FS→三組織→F3實機，不先開F5；12:56僅前輪通過，後續High至本筆才結清。',
     '2026-11-27 12:56 Asia/Taipei (UTC+08:00)｜F3離線閘門全綠：完整27回合9194/9194，Release建置0error，文件2064/0、Changed編碼81/0、進度32/32。ClaudeOnly首輪與Channels全文補查無Critical／High；其他補查遇額度，依02 §4本地自審，外部未涵蓋範圍明列。狀態為自動測試通過（實機待補），準備快轉推送後依02A先quiesce及F0／FS打通，不先開F5；尚無新增實機或手機結果。',

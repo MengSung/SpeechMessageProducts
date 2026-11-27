@@ -120,3 +120,40 @@ Live helper仍在完成離線RED→GREEN；完整方案一般測試、最終文�
 **lease trace 失敗處置與限制：**首次完整測試 log SHA-256 `ED0F666FC487424FA9233DA0B58306926C7A47EB9ED58240FF0872960871AD5A`，`DataverseTraceTests.End_to_end_trace_proves_pool_lease_isolation_and_fault_eviction` 曾以 `c-10` 的 acquire／return 記錄順序斷言失敗。只增加失敗索引訊息，沒有改 pool 行為；其後定向測試兩次及 20 次重複均通過，最終完整測試亦通過。ClaudeOnly 認為可能是 `Idle.Enqueue` 與 `pool.return` trace 入列順序造成觀測事件排序競態，但首次失敗沒有索引資料可驗證該推論；故不宣稱根因已確認、不宣稱 lease 缺陷已修復，也不把單次失敗描述成已證明的跨請求重疊。此項作為非阻擋觀察列入線 A「之後再說」。
 
 **下一步固定順序（02A §5）：**F3 離線合併後，先取得測試環境鎖並對 goodshepherd20 依 §2 quiesce；再以唯讀診斷找 F0 inventory／FS plan 根因，符合 §1 的 RED→GREEN、回復準備與鎖條件後修正重試；接著三組織 plan/apply/verify、平台檢視表及 UI export/import，待 FS 實機完成後才開始 F3 Step 6。任何未完成實機項目仍標「實機待補」。
+
+## 2026-11-27 19:32 Asia/Taipei (UTC+08:00) Rebase 後正式離線閘門
+
+F3 兩個提交已正常重放於整合基線 `acf46fa5` 之上，90 衝突只保留線 A 的 F3 列並逐列保留整合分支各線 B 最新列。rebase 後依 02 §4 重跑離線守門；本節仍是自動測試證據，不代表 D365、Channel、手機或正式環境實測。本包狀態維持「自動測試通過（實機待補）」。
+
+| 驗證 | 結果 | 原始證據 SHA-256 |
+|---|---|---|
+| Release 全方案建置 | exit 0；65 警告／0 錯誤 | `08479FC653BE8E6A2EF5F8E1195DA72DACFBB9F5FCE656FB30DC6EF45332B707` |
+| 02 §4 指定排除式完整一般測試 | exit 0；9,471/9,471 通過、0 失敗／0 略過 | `32ECBD2E7E196B2A9B18AAC43053D44A9ACF11E8F35488D2EC02BA9D5F453ADC` |
+| 檔案說明 | 2,086 檢查／0 失敗 | `11C97668DE9964485C4A64B1D0E50220C652BF435F7E1C6F7FBC16555658EBF5` |
+| Changed 編碼（Base `dc4175e98`） | 修正後 40 檔／0 問題／0 排除；初次結果曾因 90 的手動合併行尾及同步帶入 task.json 缺最終 CRLF 失敗。90 僅改為 CRLF；task.json 僅追加最終 CRLF，JSON 解析值前後相同；沒有放寬檢查 | `1504D904B0F55C405BBAC7605FC36CEAEFABC241A575C41D70231AE752D4CCDB` |
+| 方案清單 | exit 0；完整清單輸出 | `91B4F1D249BD45625A6A146C3D01E51705E6A0D7AEAF644A763E70B0A514BA2D` |
+| 重基線後 ClaudeOnly | 沿用 18:50 對 F3 程式差異的審查（無未修 Critical／High）；rebase 解衝突及本次僅換行修正未改程式行為；不進行雙模型審核 | 原 run `20261127-183305-3p-f3-lane-a-reviewer`；本輪沒有冒稱重新審查 |
+
+首次 Changed 編碼失敗與修正均如實保留。全方案測試 log 為離線結果，不能當成 Live3P。沒有新增 D365、LINE、手機或金流操作；lease trace 首次失敗的根因仍未確認，維持原報告與「之後再說」紀錄。下一步依 02A §5：先在合併後取得 `test-env.lock` 並對 goodshepherd20 執行 quiesce；再唯讀診斷 F0 inventory／FS plan 根因，依 §1 修正後重試；完成 FS 三組織 plan/apply/verify 與檢視表／UI 實機後才開始 F3 Step 6。F5 尚未開始。
+
+
+#### 2026-11-27 19:35 Asia/Taipei (UTC+08:00) 進度頁檢查
+
+`node --test tools/RepoQuality/Tests/Test-ProgressPage.cjs` 通過 28/28，原始 log SHA-256 `6A2CEDF108099C84221B4788834578A8E1EFE31E61E68353B927C661C1C2154B`；含狀態白名單與渲染輸出檢查。此 Codex 工作階段的瀏覽器清單為空，`open_in_codex` 對本機頁面的開啟請求只回報排隊，沒有取得可觀察的瀏覽器畫面；因此不宣稱已完成瀏覽器目視或頁首檢查。
+
+
+## 2026-11-27 20:05 Asia/Taipei (UTC+08:00) 02 §5.2 合併前離線閘門再驗
+
+在重基線 F3 離線差異、尚未執行任何 D365／LINE／手機／金流實機操作前，依 02 §4 指定順序重新驗證。完整一般測試 exit 0；本次仍只代表自動測試，不代表 Live3P 或實機完成。
+
+| 驗證 | 結果 | 原始 log SHA-256 |
+|---|---|---|
+| Release 全方案建置 | exit 0；0 警告／0 錯誤 | `9D96086AF12B4E897EF6EDB58E7B549713C77ACDFBCC078056EB92833019FE4E` |
+| 02 §4 指定排除式一般測試 | exit 0；9,471/9,471 通過、0 失敗／0 略過 | `6E63C2AC026215F370240286CB316DBDB1706014C83706C0E34FC8B2F976C6F4` |
+| 檔案說明 | exit 0；2,086 檢查／0 失敗 | `11C97668DE9964485C4A64B1D0E50220C652BF435F7E1C6F7FBC16555658EBF5` |
+| Changed 編碼（Base `dc4175e98`） | exit 0；40 檔／0 問題／0 排除 | `1504D904B0F55C405BBAC7605FC36CEAEFABC241A575C41D70231AE752D4CCDB` |
+| 方案清單 | exit 0 | `91B4F1D249BD45625A6A146C3D01E51705E6A0D7AEAF644A763E70B0A514BA2D` |
+| 進度頁 Node renderer | exit 0；28/28 | `E09B967886D44D84448980E61473080020AC5D93396A80C3AE6D45BC90507BB0` |
+| `git diff --check` | exit 0；無 whitespace error | 空輸出 |
+
+一般測試中的 `SpeechMessage.Hosting.Tests` 347/347 通過；其測試回合耗時 10 分 20 秒，等待期間沒有終止或略過測試。ClaudeOnly 延續既有 F3 審查結論，無未修 Critical／High；不進行雙模型審核。此節及上述 log 全是離線證據。依 02A §5，合併推送後才取得 `test-env.lock`，依序做 goodshepherd20 quiesce、F0 inventory／FS plan 唯讀根因診斷與符合 §1 的修正重試、FS 三組織 plan/apply/verify 及平台檢視表／UI 實機，FS 實機完成後才開始 F3 Step 6.
