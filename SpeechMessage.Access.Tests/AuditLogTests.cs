@@ -1,10 +1,10 @@
 /*
  * 檔案整體說明
- * 目的與定位：F8 稽核 sidecar 的獨立離線契約測試，保護欄位映射、秘密遮罩、有效操作者與租戶驗證，以及同步 SDK 的取消、失敗與租約排空。
+ * 目的與定位：F8 稽核 sidecar 的獨立離線契約測試，保護欄位映射、秘密遮罩、有效操作者與租戶驗證、整秒時間精度的冪等重送，以及同步 SDK 的取消、失敗與租約排空。
  * 主要功能與流程：只以 Moq 取代外部 IOrganizationService 與租約，執行真正 DataverseAuditLog 及共用 executor；所有前後值、主鍵及錯誤訊息均為合成 canary，不讀 User Secrets 或連接實機。
  * 使用邊界與維護：每案獨有 AuditOwner，擁有暫存 ExceptionDiagnostics 並在 DisposeAsync 後刪除目錄；不共用主代理 fixture、可變狀態或網路連線。診斷只開檔案輸出，不啟動 LINE consumer。
  * 故障與決定性斷言：錯誤身分不得 Create；空回傳主鍵、SDK 故障與內部取消必須失敗並告警且歸還；呼叫端取消不得告警。阻塞替身用有限等待與 finally 解除閘門，驗證 SDK 真正退出前租約不釋放。
- * 證據限制：併行案例驗證候選不跨租戶，兩個獨立服務共用合成索引驗證事件重送、不同事件保留及衝突不覆寫；取得／釋放／fault計數保護排空。本檔只模擬索引與SDK完整性錯誤，不宣稱真實資料庫索引Active、效能或實機結果。
+ * 證據限制：併行案例驗證候選不跨租戶，兩個獨立服務共用合成索引驗證事件重送、不同事件保留及衝突不覆寫；小數秒測試注入整秒且Unspecified Kind的Dataverse讀回，確認同一事件可冪等成功並歸還租約。本檔只模擬索引與SDK完整性錯誤，不宣稱真實資料庫索引Active、F8欄位實機精度、效能或實機結果。
  */
 using System.Collections.Concurrent;
 using System.ServiceModel;
@@ -491,6 +491,47 @@ public sealed class AuditLogTests
         Assert.Equal(1, owner.Queries);
         Assert.Equal(0, owner.Outstanding);
         Assert.Equal("", owner.DiagnosticText());
+    }
+
+    /// <summary>
+    /// 注入1 tick、毫秒尾數及秒尾小數的事件時間，再把合成Dataverse既有列改成整秒Unspecified讀回，重送必須視為同一持久化事實。
+    /// 先以唯一鍵Create，再注入明確duplicate fault與精確查回；斷言兩次候選都已向下量化為UTC整秒、唯一正式列未被覆寫、查回僅一次且租約全部排空。
+    /// 本測試只證明離線精度相容契約，不宣稱F8的new_at欄位已在實機部署或已實機確認精度。
+    /// </summary>
+    [Theory]
+    [InlineData(1L)]
+    [InlineData(1234567L)]
+    [InlineData(9999999L)]
+    public async Task Audit_SecondPrecisionReadback_RetryWithSubsecondEventTimeSucceeds(long fractionalTicks)
+    {
+        await using var owner = new AuditOwner();
+        owner.EnableUniqueStore();
+        AuditEntry entry = owner.Entry with { At = owner.Entry.At.AddTicks(fractionalTicks) };
+        DateTime utc = entry.At.UtcDateTime;
+        DateTime expectedAt = new(utc.Ticks - utc.Ticks % TimeSpan.TicksPerSecond, DateTimeKind.Utc);
+
+        await owner.Log.WriteAsync(entry);
+        Entity persisted = Assert.Single(owner.Stored.Values);
+        // Dataverse SDK 對 UserLocal 時間可能以 Unspecified Kind 回傳；其 ticks 依 SDK 契約代表 UTC 值。
+        persisted["new_at"] = DateTime.SpecifyKind(expectedAt, DateTimeKind.Unspecified);
+
+        // 相同 tenant＋EventId 使第二次 Create 走唯一鍵衝突，再比較平台實際可表達的整秒時間。
+        await owner.Log.WriteAsync(entry);
+
+        Assert.Equal(2, owner.Created.Count);
+        Assert.All(owner.Created, candidate =>
+        {
+            DateTime actualAt = candidate.GetAttributeValue<DateTime>("new_at");
+            Assert.Equal(expectedAt, actualAt);
+            Assert.Equal(DateTimeKind.Utc, actualAt.Kind);
+        });
+        Assert.Single(owner.Stored);
+        Assert.Equal(1, owner.Queries);
+        Assert.Equal(2, owner.Acquired);
+        Assert.Equal(2, owner.Released);
+        Assert.Equal(0, owner.Faulted);
+        Assert.Equal(0, owner.Outstanding);
+        Assert.Equal(string.Empty, owner.DiagnosticText());
     }
 
     /// <summary>讀回SDK故障不得覆寫或換鍵重送；原錯保持且租約排空，已提交列保持不變。</summary>

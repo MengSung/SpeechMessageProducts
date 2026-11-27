@@ -1,8 +1,8 @@
 /*
  * 檔案整體說明
  * 目的與定位：F8跨產品修改紀錄的Dataverse寫入出口，以當次AuditEntry建立獨立候選，不保存秘密或跨請求可變Entity。
- * 主要功能與流程：先驗有界欄名、正式主鍵及伺服器權威EventId；遮罩敏感內容後重新驗證有效Contact及租戶，受tenant＋event資料庫唯一鍵保護執行Create。只有明確完整性衝突才讀回最多兩列，核對唯一正式ID及完整已遮罩內容；不同事件不按內容合併，既有證據永不覆寫。
- * 使用邊界與維護：本服務不執行業務授權、共同交易或自動重送；業務owner須先授權並持久保存每個欄位修改事實的事件ID及原始時刻。正式索引須部署且Active才有跨程序保證。Host擁有diagnostics及pool；executor唯一歸還租約，SDK返回前不提前取消或Dispose。取消或不明傳輸結果不得換事件ID盲重送；真正失敗交安全共用入口，不輸出原值或例外Message。資料只在當次呼叫保留。
+ * 主要功能與流程：先驗有界欄名、正式主鍵及伺服器權威EventId；遮罩敏感內容後重新驗證有效Contact及租戶，將事件時刻正規化為UTC整秒，再受tenant＋event資料庫唯一鍵保護執行Create。只有明確完整性衝突才讀回最多兩列，按相同整秒精度核對唯一正式ID及完整已遮罩內容；不同事件不按內容合併，既有證據永不覆寫。
+ * 使用邊界與維護：本服務不執行業務授權、共同交易或自動重送；業務owner須先授權並持久保存每個欄位修改事實的事件ID及原始時刻。為符合D365 9.1既有整秒讀回先例，`new_at` 向下量化為UTC整秒；本地離線契約不代表F8欄位已實機確認，實機精度仍待Live3P。正式索引須部署且Active才有跨程序保證。Host擁有diagnostics及pool；executor唯一歸還租約，SDK返回前不提前取消或Dispose。取消或不明傳輸結果不得換事件ID盲重送；真正失敗交安全共用入口，不輸出原值或例外Message。資料只在當次呼叫保留。
  */
 using System.Text;
 using System.ServiceModel;
@@ -21,7 +21,7 @@ public sealed class DataverseAuditLog : IAuditLog
     public DataverseAuditLog(Func<CancellationToken, IAccessDataverseLease> acquire, ExceptionDiagnostics diagnostics, string product) =>
         _executor = new AccessDataverseExecutor(acquire, diagnostics, product);
 
-    /// <summary>先原子Create，僅確切唯一性衝突核對原列；不改既有證據，不盲重試，清理完成後才發布結果。</summary>
+    /// <summary>先原子Create，將事件時間固定為UTC整秒；僅在明確唯一性衝突時以相同精度核對既有列，不改寫證據或盲重試，並在清理後才完成操作。</summary>
     public Task WriteAsync(AuditEntry entry, CancellationToken ct = default)
     {
         try
@@ -41,7 +41,7 @@ public sealed class DataverseAuditLog : IAuditLog
                 ["new_actorcontactid"] = new EntityReference("contact", entry.ActorContactId),
                 ["new_tenantid"] = new EntityReference("account", entry.TenantId),
                 ["new_correlationid"] = entry.CorrelationId,
-                ["new_at"] = entry.At.UtcDateTime
+                ["new_at"] = NormalizeUtcToSecond(entry.At.UtcDateTime)
             };
             _executor.Execute(service =>
             {
@@ -77,8 +77,19 @@ public sealed class DataverseAuditLog : IAuditLog
     }
 
     /// <summary>
+    /// 把UTC或Dataverse以Unspecified回傳、但ticks仍代表UTC的日期時間向下量化至整秒。
+    /// 統一寫入與衝突讀回的可持久化精度，避免亞秒資訊在資料庫往返中消失後把同一EventId誤判為內容衝突；不做本地時區轉換，也不向上進位。
+    /// 呼叫端須先拒絕Local kind；此純值轉換不保存狀態或取得外部資源。
+    /// </summary>
+    private static DateTime NormalizeUtcToSecond(DateTime value)
+    {
+        long ticks = value.Ticks - value.Ticks % TimeSpan.TicksPerSecond;
+        return new DateTime(ticks, DateTimeKind.Utc);
+    }
+
+    /// <summary>
     /// 只有明確索引衝突才按完整租戶／事件鍵讀回；零筆、多筆、更多資料、空正式ID或內容衝突均拒絕。
-    /// 投影只讀本次候選的十一欄，既有列不交給caller也不Update；任何SDK失敗仍由同一executor排空並告警。
+    /// 事件時間與寫入相同，將候選及讀回值用NormalizeUtcToSecond比較，接受SDK將UTC讀回標為Unspecified但拒絕Local kind。投影只讀本次候選的十一欄，既有列不交給caller也不Update；任何SDK失敗仍由同一executor排空並告警。
     /// </summary>
     private static Guid ReadExistingEvent(IOrganizationService service, Entity candidate, AuditEntry entry, CancellationToken ct)
     {
@@ -102,7 +113,7 @@ public sealed class DataverseAuditLog : IAuditLog
             bool equal = expected.Value switch
             {
                 EntityReference reference => actual is EntityReference other && other.LogicalName == reference.LogicalName && other.Id == reference.Id,
-                DateTime at => actual is DateTime other && other.Kind != DateTimeKind.Local && other.Ticks == at.Ticks,
+                DateTime at => actual is DateTime other && other.Kind != DateTimeKind.Local && NormalizeUtcToSecond(other).Ticks == NormalizeUtcToSecond(at).Ticks,
                 string text => actual is string other && string.Equals(text, other, StringComparison.Ordinal),
                 null => actual is null,
                 _ => false
