@@ -7,7 +7,7 @@
 Microsoft.* 系統步驟、經 Microsoft 簽署且 managed 的 ActivityFeeds 系統組件，以及本計畫簽署身分
 精確符合 manifest 之 F3 平台兩個 Plugin 型別的步驟保留；其他 Plugin step 改 Disabled。
 信箱停用三種投遞方式。未知組件不因 managed 單一欄位或寬鬆名稱前綴而保留。
-policyVersion=1／缺版政策於借出 SDK 前拒絕；canonical source fingerprint 的內容版本 1 另行保留；舊 before-image 必須先按正式 ID 與目前狀態核對，不覆寫原像。
+policyVersion=2／缺版及舊版政策於借出 SDK 前拒絕；canonical source fingerprint 的內容版本 1 另行保留；舊 before-image 必須先按正式 ID 與目前狀態核對，不覆寫原像。
 信箱 incoming／outgoing None=0，ACT None=2；篩選與寫入共用此數值契約。
 此為官方 mailbox 參照的離線契約，尚未核對目標 9.1 metadata，不能據此宣稱實機驗證。
 信箱查詢只增列三個 delivery 選項，任一投遞值與 None 不同或缺值／null 都列為候選；
