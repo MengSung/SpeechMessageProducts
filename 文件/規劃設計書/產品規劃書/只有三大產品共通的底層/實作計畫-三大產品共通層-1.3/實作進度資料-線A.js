@@ -7,18 +7,20 @@
 window.PROGRESS_LANES = window.PROGRESS_LANES || {};
 window.PROGRESS_LANES.A = {
   lane: 'A',
-  lastUpdated: '2026-11-27T12:12:00+08:00',
+  lastUpdated: '2026-11-27T13:22:44+08:00',
   packages: {
     F0: { status: '自動測試通過（實機待補）', started: '2026-11-25 22:09', finished: '2026-11-26 00:24', commit: '74ea5a1c1ff723f6a64aeb73cadf69685021f528, a9e438be0d9fe13d8fe40d0c2e03e9558774e113', pending: '實機待補（可自行處理）：依02A先quiesce，再拆小唯讀診斷inventory根因；符合RED→GREEN及回復條件後修正重試。端點與真metadata已自主核對，尚未取得完整清冊', report: 'wp-reports/3P-F0-基線矩陣.md' },
     F1: { status: '自動測試通過（實機待補）', started: '2026-11-26 00:24', finished: '2026-11-26 15:39', commit: 'bfb5f56b96ff7b2c9a185f9757248c5dd9a5368a, 79f5362a44659e68afc1c17727bc2a2a3f51ac69, b2cdcbb6d11521950dbece5a7432b29a0d8d5a7a, d82c7a7252fe8ad60e107f8753e06adb12d984a1, f57fef11f342c9d823e6361a42ebae283c4e5a14, 421b6d29266668d07348d87aee0b98ae8b196e81', pending: '實機待補（外部阻擋）：共用層實機整合證據隨FS／F3打通補驗；Scheduling分類及QR必要補正完整7943/7943、ClaudeOnly無Critical／High；非實機宣稱', report: 'wp-reports/3P-F1-依賴方向修正.md' },
     FS: { status: '自動測試通過（實機待補）', started: '2026-11-26 04:31', finished: '2026-11-26 21:10', commit: '64679a87f, 9af227811, bd22905fc, abeb70d94', pending: '實機待補（可自行處理）：離線8819/8819及ClaudeOnly通過；02A §2已核定未知非Microsoft自動化停用，H1待執行後依政策結案。F3離線合併後依序quiesce、診斷及修正plan、三組織部署／UI／Live3P；目前仍零D365寫入', report: 'wp-reports/3P-FS-結構分層與三組織佈署.md' },
-    F3: { status: '進行中', started: '2026-11-26 21:10', finished: '', commit: '', pending: '主機、ProductMismatch共用告警及Live helper離線已驗；正式閘門三項失敗已定向修復，三組織CLI完整流程及舊切換74/74。完整閘門重跑及ClaudeOnly待完成；離線合併後依02A先quiesce與F0／FS打通，再F3實機', report: 'wp-reports/3P-F3-Channel名額池.md' },
+    F3: { status: '自動測試通過（實機待補）', started: '2026-11-26 21:10', finished: '2026-11-27 13:22', commit: '244e45960, b7844eee7, e09a4c86, 8be872b2', pending: '實機待補（可自行處理）：依02A先quiesce，再F0／FS唯讀診斷與修正重試、三組織部署，之後F3登錄及20並行清理；外部阻擋：F2公開站台及T01／T02 Webhook。登錄修復後完整9205/9205，ClaudeOnly複審無Critical／High；其他外部覆蓋限制見報告；不先開F5', report: 'wp-reports/3P-F3-Channel名額池.md' },
     F5: { status: '未開始', started: '', finished: '', commit: '', pending: '', report: '' },
     F7: { status: '未開始', started: '', finished: '', commit: '', pending: '', report: '' },
     F9: { status: '未開始', started: '', finished: '', commit: '', pending: '', report: '' },
     M1: { status: '未開始', started: '', finished: '', commit: '', pending: '', report: '' },
   },
   log: [
+    '2026-11-27 13:22 Asia/Taipei (UTC+08:00)｜F3登錄契約High已真Plugin 3 RED→83/83 GREEN；修復8be872b2，完整27回合9205/9205、0失敗／略過，Release0error、文件2064/0、編碼82/0、進度32/32。ClaudeOnly修正複審無Critical／High；外部未讀限制明列。本包維持自動測試通過（實機待補），合併後立刻02A quiesce→F0／FS→三組織→F3實機，不先開F5；12:56僅前輪通過，後續High至本筆才結清。',
+    '2026-11-27 12:56 Asia/Taipei (UTC+08:00)｜F3離線閘門全綠：完整27回合9194/9194，Release建置0error，文件2064/0、Changed編碼81/0、進度32/32。ClaudeOnly首輪與Channels全文補查無Critical／High；其他補查遇額度，依02 §4本地自審，外部未涵蓋範圍明列。狀態為自動測試通過（實機待補），準備快轉推送後依02A先quiesce及F0／FS打通，不先開F5；尚無新增實機或手機結果。',
     '2026-11-27 12:12 Asia/Taipei (UTC+08:00)｜F3完整離線閘門先前有三項失敗，原子export、組織組件分流及架構精確型別斷言已修復。新CLI生命週期揭露平台設定無教會mode的apply故障，修後三組織完整流程與舊切換74/74；Live helper離線48/48。正式全方案閘門重跑及ClaudeOnly待完成，尚未提交合併，沒有新增實機結果。',
     '2026-11-27 10:37 Asia/Taipei (UTC+08:00)｜讀取使用者核定02A，F0／F1／FS未過實機的狀態更正為自動測試通過（實機待補），並區分可自行處理與外部阻擋。F3目前補齊離線閘門後合併，再依02A §5打通；未執行quiesce或實機寫入。舊unknown／不第三次紀錄為當時政策，現依02A修正後重試條件執行；頁面僅補新狀態精確解析。',
     '2026-11-27 08:02 Asia/Taipei (UTC+08:00)｜續跑F3：新增平台名額池與好牧人account生命週期schema，精確分層parser契約測試8項確認預期RED後，修正只允許核定四個account欄位的組合並保留主名稱與未知欄位拒絕；F3 schema加既有SchemaLayerTests共42/42 GREEN（log SHA-256 3CA6F172BD0FC457C59A4D8FF17B90C00D53F458DFCF3E9250BF81EC4D722F3D）。F3於2026-11-26 21:10實際開工，現仍進行離線Step1–5；F2 b6da17e2與FS 872be9cd已合併，舊等待理由已過時。實機受FS H1 unknown及Step3b前置阻擋，零D365寫入、不呼叫Channel。',

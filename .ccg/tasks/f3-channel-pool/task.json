@@ -6,7 +6,7 @@
   "risk": "high",
   "domain": "backend",
   "currentPhase": "implementation",
-  "nextAction": "身分fixture改用合法產品候選118/118；同步整合後重跑完整離線閘門與ClaudeOnly，通過後快轉推送，再依02A實機打通",
+  "nextAction": "F3離線9205/9205及ClaudeOnly修正複審通過；合併推送後立即依02A §5 quiesce→F0／FS→三組織→F3實機，不開F5",
   "createdAt": "2026-11-27T09:41:37+08:00",
   "branch": "cl/lane-a"
 }

@@ -2,6 +2,8 @@
 
 | 時間（Asia/Taipei） | 工作包 | 遇到的選擇 | 選了什麼 | 依據 | 怎麼回復 |
 |---|---|---|---|---|---|
+| 2026-11-27 13:22 Asia/Taipei (UTC+08:00) | F3 | 本地部署補查發現僅登錄音訊科技Channel被真Plugin強制建池，與核定角色衝突 | 真Plugin11案先3 RED，僅精確type100000000＋Registered不要求池欄位、不建池、不進Choose；既有slots仍嚴格驗未使用，產品池契約不變。83/83及完整9205/9205、ClaudeOnly複審無Critical／High | 00 §5.5、01 F3、02 §4／§10；修復8be872b2；不採合成Store成功冒充真Plugin | 獨立反向此F3修復；未執行實機寫入，既有登錄slots不刪不補 |
+| 2026-11-27 12:43 Asia/Taipei (UTC+08:00) | F3 | 同步帶入的launchSettings.json缺少末尾CRLF，Changed編碼守門失敗 | 完整讀取後僅補最後CRLF，JSON結構與值相同；81檔重驗0問題，不改設定或放寬守門。一般9194項與renderer32項均通過，ClaudeOnly另作正式審查 | AGENTS永久編碼規則；02 §3已過守門不重跑及§4失敗必修；修復e09a4c86 | 精確反向末尾換行即可；其他檔案與整合.ccg狀態保留 |
 | 2026-11-27 12:12 Asia/Taipei (UTC+08:00) | F3 | 三組件共用來源與舊切換／跨產品核心部署衝突，平台products設定又無教會mode | 先完整驗來源再按組織投影，核心拒不適用候選；legacyOnly排平台，construction／association拒教會組件；平台secure必空且不解析mode／秘密。三組織真CLI合成完整生命週期及舊切換共74/74，不放寬舊FS斷言所保護的產品邊界 | 01 F3三產品平台及教會只在goodshepherd20；02 §4／§10第3–5點；正式失敗及新CLI同例外RED→GREEN | 反向本次F3部署分流補正；沒有實機寫入，已建立來源／輸出仍只在各案臨時目錄並清理 |
 | 2026-11-27 12:12 Asia/Taipei (UTC+08:00) | F3 | 正式export遇AccessDenied，單次重跑無法證明原子發布可用 | 真Windows鎖與唯讀檔案先紅；只對精確暫態HRESULT有界一秒等待，保留第一個例外、舊快照及完整tmp清理，不改ACL／屬性。11/11定向通過，歷史外部owner未知仍如實記錄 | 02 §4守門失敗必修及§10第2–5點；AGENTS原子發布與資源所有權 | 反向本次F3原子export補正；未動實機或既有輸出證據 |
 | 2026-11-27 11:12 Asia/Taipei (UTC+08:00) | F3 | 沙箱產品不符原例外無法跨程序交到主機，而只有trace不能視為共用入口告警 | 申請單原交易保存六欄有界安全封套；固定組織主機以RowVersion領取後送既有Publish／flush／通知，明標重建並保留incident／UTC。每輪16筆、20秒、兩分鐘租約、單一pump完整排空；不承諾exactly-once | 01 F3產品不符必告警、AGENTS例外與生命週期規則；接收器12案、pump3案及共用入口32新案已驗；沒有把離線當實機 | 反向本次F3接收器及主機註冊；schema診斷欄不刪，保留未消費事件與回復證據；未執行D365寫入 |

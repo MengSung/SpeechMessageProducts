@@ -4,6 +4,9 @@
 
 | 時間（Asia/Taipei） | 工作包 | 觀察與範圍 | 後續建議 | 證據 |
 |---|---|---|---|---|
+| 2026-11-27 13:22 Asia/Taipei (UTC+08:00) | F3 | 登錄型別或狀態被人工改動會使本產品整池fail closed；既有登錄slot帶tenant／used／重號的分支本次為程式審查，未逐一故障注入 | 後續runbook說明與精確負控制；本包不新增型別／狀態Update功能或改核定政策 | ClaudeOnly修正複審SHA F6C31E1B90DBA09F8CA673DAEBEF109CDCE44D138564B7D12A57468F8BADCC4A；無Critical／High |
+| 2026-11-27 12:56 Asia/Taipei (UTC+08:00) | F3 | 外產品告警探測TopCount=1時，空白產品列可能遮住另一筆真正外產品；本產品載入與解密仍精確隔離，非隔離失效 | 日後補空白與外產品共存的告警正控制及有限完整探測；本包不擴充 | ClaudeOnly Channels補查 SHA-256 D42849796F6140D1D63166C3AD1D06D17321621979262204E3C4551BEE9464E7 |
+| 2026-11-27 12:56 Asia/Taipei (UTC+08:00) | F3 | Directory_FailureRetry的第四次解密故障落在第一筆第二段，未直接覆蓋完成一筆後才失敗與舊secret不可沿用 | 日後補精確故障位置及舊secret否定斷言；現有候選原子發布與資源歸還控制保留 | 同上單模型補查；低於High，不新增本包完成定義 |
 | 2026-11-26 21:02 Asia/Taipei (UTC+08:00) | FS | quiesce 的 oversize 案例重複相同 ID；部分 duplicate-next 同時重複 cookie，可能由其他拒絕條件先攔下。既有同頁重複及合法控制仍保留，審查無 Critical／High | 日後以全部不同 ID 及不同 cookie 的精確故障候選加強各獨立上限的鑑別力；本輪不擴充 | ClaudeOnly 測試補查 SHA-256 21F6A141298C570D6D2DA3B0FCBDA15E663D0443512C7E0BB3F556D3DB03C8F6 |
 | 2026-11-26 21:02 Asia/Taipei (UTC+08:00) | FS | UiImport 的 attributes-budget 使用 null 元素、options-budget 缺 Label，可能先觸發型別／完整性拒絕而非預算。恰2048欄合法控制已涵蓋，非全面拒絕假綠 | 日後給超量元素合法內容以分離容量條件，不放寬產品上限 | ClaudeOnly UI 測試補查 SHA-256 F758DD15E17D9C8D5B8DDAD37F3181ABDF441FDCB837C3C695E6DDC7C125904B |
 | 2026-11-26 21:02 Asia/Taipei (UTC+08:00) | FS | QuiesceSourceBinding fixture 清理案例目錄後留下空的固定 Temp 父目錄；UiSolutionDeployment 的執行緒配置量測可能受首次 JIT 影響 | 日後改善測試 owner 的空目錄整理與配置量測暖身；不宣稱現有量測為長期效能基線 | 同上兩份單模型補查；未讀取 secrets、未連實機 |

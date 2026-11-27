@@ -1,25 +1,25 @@
 # F3 Channel 名額池驗收報告
 
-更新：2026-11-27 12:12 Asia/Taipei (UTC+08:00)。本包起點 `872be9cd1ae82bb56711914653bdde24027b05f4`；目前進行中，正式完整閘門失敗修正後正在重跑，尚未合併，沒有 F3 實機成功宣稱。
+更新：2026-11-27 13:22 Asia/Taipei (UTC+08:00)。本包起點 `872be9cd1ae82bb56711914653bdde24027b05f4`；狀態：**自動測試通過（實機待補）**。登錄中音訊科技頻道契約的1 High已以真Plugin RED→GREEN修復；修復後完整9,205/9,205、ClaudeOnly複審無Critical／High。離線合併後立刻依02A實機打通，不先開F5。
 
 已實作三產品共用純名額規則、同步交易 Plugin、分層 schema／精確三步註冊、獨立 net462 打包、固定產品目錄／健康／一次 token 輪替重解，以及好牧人真實 Webhook 接收器。既有 LineWebhook 與 2.0 委派同一接收器。未配置時拒絕，不保留 F2 的無條件 200。
 
 | 01 Expected／測試 | 結果與證據 |
 |---|---|
 | Step1 四個 Choose 規則、精確 ID／同名不同 ID | `Choose_PrefersLowestPoolOrderThenLowestSlot`、`Choose_IgnoresNonOperatingChannels`、`Choose_OnlyOwnProductChannels`、`Choose_NoAvailable_ReturnsPoolFull` 及重複／同名正反例已 RED→GREEN。規則 GREEN SHA `F03C89426CA49F517EE7C2EC95542725F533077650A1E15E3F313B87C6499B9B` |
-| Step1 二十並行、產品不符、最後名額、未知組織、非租戶、建立名額 | Plugin 62/62 離線通過；另驗首次鎖缺失二十競爭、原例外／rollback、A/B 重用、重試、釋放清理及精確 Update PreImage。SHA `98DC34BB9EE3D90475BA74D41F1466A0F2854C1389CB1D7750CFF9DF512B4E6C`。產品不符持久共用告警補正進行中，故本包仍未放行；替身鎖不是實機 SQL 證據 |
+| Step1 二十並行、產品不符、最後名額、未知組織、非租戶、建立名額 | Plugin 62/62 離線通過；另驗首次鎖缺失二十競爭、原例外／rollback、A/B 重用、重試、釋放清理及精確 Update PreImage。SHA `98DC34BB9EE3D90475BA74D41F1466A0F2854C1389CB1D7750CFF9DF512B4E6C`。產品不符持久共用告警已補正，最終平台 Plugin 72/72；替身鎖不是實機 SQL 證據 |
 | Step3 三產品 schema、平台組件與註冊 | 真正 repo manifest 的 Update 完整型別曾 RED，修復後 F3 註冊及 schema 59/59；SHA `DE194E436474387ADDBF9749E9EC9D08EE03606575B78E48127D3D609F95943D`。只公開兩個 IPlugin 入口的真組件檢查曾 RED，已將 helper internal。部署 plan／apply／verify 實機待補 |
-| Step4 Directory／secret／refresh／空產品／health 401／輪替兩次 | 定向 Channels 26/26，另加 SDK metadata→密文、精確產品／版本 CAS、取消淘汰及歸還測試。真來源外產品固定告警補正中；最終完整閘門待跑 |
+| Step4 Directory／secret／refresh／空產品／health 401／輪替兩次 | 定向 Channels 26/26，另加 SDK metadata→密文、精確產品／版本 CAS、取消淘汰及歸還測試。真來源外產品固定告警已補正，最終目錄與接收器49/49、主機Channels45/45，已含於完整9194項 |
 | Step5 好牧人 Webhook 接線 | 新 Channels 39 案加既有命中共42/42，SHA `E1DA12280B4316180738177EFD9FB061DB39FC922851BE9F4208BFF7A8DCCF1A`；真 Kestrel 錯 secret/T01→T02 401、raw bytes 正控制、queue0／合法事件、32並行、64 admission、缺錯設定與 drain/key清零。主機12/12 SHA `8BA4460F1A2CAB5C8554C8FAF178D7FE3286C94D984276E8083EB14B797FEFDA`；舊HTTP回歸56/56 SHA `12A1C3EF21FC0F2629E60F4EA95B1ED0664FF74B3E2DCAC6BA12A27ED62A59F8` |
 | Step6 登錄、Webhook API、二十並行與 construction 配發清理 | 實機待補（可自行處理）：先依02A完成F3離線合併→goodshepherd20 quiesce→F0／FS診斷與三組織打通，再做本步。Live入口／清理協調者離線48/48；不能當實機通過 |
-| Step7 完整閘門、審查、提交與推送 | 待完成；以下最終守門未取得前不得合併 |
+| Step7 完整閘門、審查、提交與推送 | 修復後完整9205/9205及文件／編碼／進度守門通過；單模型ClaudeOnly修正複審無Critical／High；其他外部覆蓋限制見末節與task review。提交244e45960、b7844eee7、e09a4c86、8be872b2a；報告提交後依02 §5合併推送 |
 
-## 最終自動閘門
+## 前輪自動閘門（最終結果見末節）
 
-- 全方案 Release 建置、指定完整排除式一般測試、文件說明、Changed 編碼（包含先加入索引的新檔）、方案登錄：待跑。
+- 全方案 Release 建置 exit0，65警告／0錯誤；完整一般27回合9,194/9,194、0失敗／0略過。文件2064/0、Changed編碼81/0、方案清單與進度頁32/32通過；同步後證據見末段。
 - Access 精確共用層分類及正反例78/78，SHA `881AF37FA515D2C13055B2012B8342F2952A1B1DECDB1DA8B3418F5CDC1BE3DA`；不改線B實作。
-- 02A進度狀態 renderer 2 RED→4 GREEN，SHA `26001791C5FD592140B8DC7F141656F951A4C86626CEB629307EB8B2A0F419E6`；待補不計入完成、非法值仍警告。歷史進度入口28項待本次正式跑。
-- 正式審查須「單模型（使用者指定 ClaudeOnly）」；目前待跑。前段代理仍呼叫過 Gemini 設計分析／側審且為503，沒有取得雙模型完成，不計為正式閘門；本輪已禁止後續外部代理呼叫，由主代理統一正式入口。
+- 02A進度狀態 renderer 2 RED→4 GREEN，SHA `26001791C5FD592140B8DC7F141656F951A4C86626CEB629307EB8B2A0F419E6`；待補不計入完成、非法值仍警告。歷史與共通層進度入口合計32/32通過。
+- 正式審查為「單模型（使用者指定 ClaudeOnly）」；首輪及Channels補查成功，未讀範圍與額度限制見末節。前段代理仍呼叫過 Gemini 設計分析／側審且為503，沒有取得雙模型完成，不計為正式閘門；本輪已禁止後續外部代理呼叫，由主代理統一正式入口。
 
 ## 實機打通與回復
 
@@ -78,3 +78,29 @@ Live helper仍在完成離線RED→GREEN；完整方案一般測試、最終文�
 ## 2026-11-27 12:25 一般測試身分案例補正
 
 12:11完整一般測試最終exit 1，Deployment 21失敗、其餘回合無失敗；原始SHA `BEE75E9ECB4052F921832CE0DCD8347FC22B6948357D16C69752531ABB289A56`，未放行。根因為舊身分fixture對construction／association提供教會組件，現在被正確產品邊界拒絕，尚未進入指定身分故障注入。改為重用F3合法平台候選、映像及metadata服務，舊組織與好牧人保留原診斷候選；所有身分、雜湊、metadata前拒絕、零export／寫入及正常往返斷言保留。new_product合成metadata同步採schema的字串型別。身分與F3平台註冊定向118/118、exit 0，SHA `756E521FCA78A84C3D65F9E8BE2C808324EDF5C31F83EBFD0880FD1E560499B7`。同步整合後仍須完整守門及ClaudeOnly。
+
+## 2026-11-27 12:43 Asia/Taipei (UTC+08:00) 同步後正式離線閘門
+
+正常 rebase 至整合 `9485726e7`，保留雙方 JSON 伴隨說明與使用者已提交的進度頁修復；本包差異為 `git diff 9485726e7..HEAD`，未動整合工作樹原有其他工具狀態。
+
+- Release 全方案建置 exit0，65警告／0錯誤；log SHA-256 `9183C89294A810620CDFE2F0A4BB1CFADCE68E5A58CBC2AC574BBBF3A59CACF6`。
+- 02 §4 完整五類排除式一般測試 exit0，27回合、9,194/9,194、0失敗／0略過；Deployment1976、Hosting347、平台Plugin72、LineWebhook143；log SHA-256 `74512D3FE0CBBC6A5E01A09239D950983C2A86D4703F5B32C2C4C93A36AE002E`。均屬離線結果。
+- 檔案說明2064/0；首次Changed編碼查出既有launchSettings.json缺少末尾CRLF，僅補換行並驗JSON值完全相同，提交 `e09a4c86`；再次編碼81/0。方案清單成功，平台兩新專案各一次；進度頁32/32。沒有放寬篩選或排除範圍。
+- ClaudeOnly 正式入口已啟動，未取得結論前不宣稱審查或F3離線合併完成。本輪瀏覽器回覆本對話不支援本機存取，沒有取得目視畫面；進度頁32項實際renderer測試不冒充瀏覽器目視。
+- 02A實機順序及欠債限制不變：F3離線合併後先quiesce，依唯讀診斷及同型別RED→GREEN修F0／FS，再三組織部署及F3實機；不先開F5。
+
+
+## 2026-11-27 13:22 Asia/Taipei (UTC+08:00) 登錄契約修復與最終離線閘門
+
+本地部署補查發現1 High：只登錄的音訊科技頻道被真Plugin強制讀容量，缺欄位拋錯、補齊又誤建20個名額，亦阻斷營運池配發。真Plugin測試11案先3 RED／8通過，RED SHA `3AB9520C4EDA837DD3CD7E12AD1C4801B93AD3E2A4C6DA8CB04EA75A602BA15C`。只允許精確音訊科技＋登錄中跳過池欄位及建池，既有slots仍完整驗正式ID、全可用／無租戶／used0，不加入配發候選；產品池保持全容量與宮格預算驗證。修復提交 `8be872b2a7af2d8a751e34e1fb97b4d6cf5af3b2`，受影響平台Plugin83/83，GREEN SHA `3474243EA233980B5D6F198557E7AB186297123F2BCE71D197ECA0CDECA0B64E`。
+
+| 最終守門 | 實際結果 | 原始log SHA-256 |
+|---|---|---|
+| 全方案Release建置 | exit0；65警告／0錯誤 | `B691FA49B1C9474C2EBF2F961BBBDA1DA9AC1E146A52AE677AB96001F0325E74` |
+| 完整五類排除式一般測試 | exit0；27回合9,205/9,205；0失敗／0略過；Plugin83、Deployment1976、Hosting347、LineWebhook143 | `53632E382A1F1F587ADE24740F7220879C482F5E01E27A61858701BB4889268E` |
+| 文件／編碼／方案／進度 | 文件2064／0；Changed82／0（excluded1）；方案清單成功；renderer32/32 | 本輪工具exit0；報告更新後重驗適用文件／編碼／進度 |
+| 修正複審 | 單模型（使用者指定ClaudeOnly）；未發現Critical／High | `F6C31E1B90DBA09F8CA673DAEBEF109CDCE44D138564B7D12A57468F8BADCC4A` |
+
+外部審查覆蓋如實區分：首輪成功SHA `17C40D174E054A3E8D538BA816827132B3C6F24DEB68D3F4D95503B51C96CD45`；Channels七測試全文補查SHA `D42849796F6140D1D63166C3AD1D06D17321621979262204E3C4551BEE9464E7`；本次三個Plugin實作全文及兩測試變更段成功複審。contracts／deployment／config三組入口各兩次無可用輸出，probe為5小時額度，但runner仍報quotaBlocked=false／no-usable-output；這三組**未取得外部審查**。依02 §4以本地三個唯讀代理全文／完整diff補查，發現的1 High已修並複審，其餘無未修Critical／High；不能冒稱全部外部全文覆蓋。指定隔離自審guide不存在，依AGENTS永久隔離、正式ID、原子發布與資源所有權條款自審，限制交終點再涵蓋。詳見 `.ccg/tasks/f3-channel-pool/review.md`。
+
+登錄型別／狀態後續被改動造成整池fail closed及精確故障案例覆蓋觀察，記入之後再說；不變更核定狀態／型別政策。未新增D365、LINE或手機實機通過證據。F3任務仍in_progress，實機結束前不歸檔。
