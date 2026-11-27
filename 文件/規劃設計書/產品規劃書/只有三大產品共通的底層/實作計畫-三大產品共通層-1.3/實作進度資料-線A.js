@@ -7,11 +7,11 @@
 window.PROGRESS_LANES = window.PROGRESS_LANES || {};
 window.PROGRESS_LANES.A = {
   lane: 'A',
-  lastUpdated: '2026-11-28T02:04:49+08:00',
+  lastUpdated: '2026-11-28T03:11:09+08:00',
   packages: {
     F0: { status: '自動測試通過（實機待補）', started: '2026-11-25 22:09', finished: '2026-11-26 00:24', commit: '74ea5a1c1ff723f6a64aeb73cadf69685021f528, a9e438be0d9fe13d8fe40d0c2e03e9558774e113', pending: '實機待補（可自行處理）：依02A先quiesce，再拆小唯讀診斷inventory根因；符合RED→GREEN及回復條件後修正重試。端點與真metadata已自主核對，尚未取得完整清冊', report: 'wp-reports/3P-F0-基線矩陣.md' },
     F1: { status: '自動測試通過（實機待補）', started: '2026-11-26 00:24', finished: '2026-11-26 15:39', commit: 'bfb5f56b96ff7b2c9a185f9757248c5dd9a5368a, 79f5362a44659e68afc1c17727bc2a2a3f51ac69, b2cdcbb6d11521950dbece5a7432b29a0d8d5a7a, d82c7a7252fe8ad60e107f8753e06adb12d984a1, f57fef11f342c9d823e6361a42ebae283c4e5a14, 421b6d29266668d07348d87aee0b98ae8b196e81', pending: '實機待補（外部阻擋）：共用層實機整合證據隨FS／F3打通補驗；Scheduling分類及QR必要補正完整7943/7943、ClaudeOnly無Critical／High；非實機宣稱', report: 'wp-reports/3P-F1-依賴方向修正.md' },
-    FS: { status: '自動測試通過（實機待補）', started: '2026-11-26 04:31', finished: '2026-11-28 01:53', commit: '64679a87f, 9af227811, bd22905fc, abeb70d94, c4cf53a63, 1bfe1a23e', pending: '實機待補（可自行處理）：02 §4 重基線後離線閘門已全通過；合併推送後依02A §5先goodshepherd20 quiesce apply／verify（依§2停用政策，成功後H1結案），再做F0 inventory／FS plan唯讀診斷與符合§1條件的修正重試，接著三組織plan/apply/verify、檢視表發布、UI export/import及Live3P FS。目標9.1信箱投遞欄位實值仍待唯讀核對；實機尚未開始', report: 'wp-reports/3P-FS-結構分層與三組織佈署.md' },
+    FS: { status: '自動測試通過（實機待補）', started: '2026-11-26 04:31', finished: '2026-11-28 02:26', commit: '64679a87f, 9af227811, bd22905fc, abeb70d94, c4cf53a63, 1bfe1a23e, 0ebf49b0eb8b57b1c926187d858c5bfc4f8d93e0', pending: '實機待補（可自行處理）：離線閘門與單模型審查已通過；依02A §5依序 goodshepherd20 quiesce apply／verify（通過後H1結案）→F0 inventory／FS plan唯讀診斷及符合§1之修正重試→三組織plan/apply/verify、檢視表發布、UI export/import與Live3P FS。test-env.lock目前未持有；完成最終離線文件與renderer確認後才取得鎖並開始。目標9.1信箱欄位實值須在實機操作前唯讀核對；尚無實機成功證據', report: 'wp-reports/3P-FS-結構分層與三組織佈署.md' },
     F3: { status: '自動測試通過（實機待補）', started: '2026-11-26 21:10', finished: '2026-11-27 20:02', commit: '244e45960, b7844eee7, e09a4c86, 8be872b2a, 5b8c74b03, 2df96defa', pending: '實機待補：離線閘門已合併於整合分支；等 FS 完成後開始，依02A §5須待FS三組織plan/apply/verify、檢視表發布、UI export/import與Live3P FS完成後再做F3 Step 6登錄及20並行配發／清理。外部阻擋：F2測試站及T01／T02 Webhook；lease trace一次失敗原因未確認、不宣稱已修；沒有新增實機結果', report: 'wp-reports/3P-F3-Channel名額池.md' },
     F5: { status: '未開始', started: '', finished: '', commit: '', pending: '', report: '' },
     F7: { status: '未開始', started: '', finished: '', commit: '', pending: '', report: '' },
@@ -19,6 +19,7 @@ window.PROGRESS_LANES.A = {
     M1: { status: '未開始', started: '', finished: '', commit: '', pending: '', report: '' },
   },
   log: [
+    '2026-11-28 03:11 Asia/Taipei (UTC+08:00)｜續跑核對：F3離線閘門已合併；FS policyVersion=2文件更正後02 §4離線閘門通過，FS維持自動測試通過（實機待補）。本筆更新前renderer已通過Test-ProgressPage.cjs 28/28及Test-ThreeProductsProgress.cjs 4/4；本次更新後重新驗證。test-env.lock目前不存在且線A尚未操作D365；FS文件合併後依02A先執行goodshepherd20 quiesce。cl/lane-a位於ProgramData既有工作樹；D槽指定路徑為detached且有既存修改，保留不動。',
     '2026-11-28 01:53 Asia/Taipei (UTC+08:00)｜FS安全重基線至整合e2eac3c後02 §4五道離線閘門全通過：Release建置65警告／0錯誤（SHA C0FE0D3A…）；一般測試28回合9472/9472、0失敗／略過（SHA 555EC51D…）；文件2086/0、Changed編碼12檔0問題（SHA 33E0E0BF…）、方案54項。進度頁通用測試28/28、現行1.3 renderer4/4無資料警告。程式重基線提交c4cf53a63；F3離線閘門已在整合歷史，未重跑。90仍自動測試通過（實機待補）；本輪未連D365、Channel、正式組織、金流或手機。F3依賴文字為等 FS 完成後開始。',
     '2026-11-27 19:35 Asia/Taipei (UTC+08:00)｜F3進度頁Node renderer通過28/28（SHA 6A2CEDF1…），狀態白名單／渲染測試通過；本輪瀏覽器服務不可用且本機HTML開啟只排隊，沒有目視頁首，因此不冒稱完成目視。F3仍自動測試通過（實機待補），不新增實機結果；下一步合併後按02A順序先quiesce→F0／FS唯讀診斷修正重試→FS三組織實機→F3 Step6。',
     '2026-11-27 19:32 Asia/Taipei (UTC+08:00)｜F3 rebase至acf46fa5後重跑02 §4：Release建置exit0（65警告／0錯誤；SHA 08479FC6…）；完整一般測試9,471/9,471、0失敗／0略過（SHA 32ECBD2E…）；文件2,086/0（SHA 11C97668…）；Changed編碼40檔／0問題（修正90 CRLF及同步封存task.json終止CRLF後；SHA 1504D904…）；方案清單exit0（SHA 91B4F1D2…）。F3維持自動測試通過（實機待補）；沿用18:50 ClaudeOnly，不做雙模型審核。沒有新增D365／LINE／手機結果；合併後依02A先goodshepherd20 quiesce、再F0／FS根因修正重試、FS三組織實機；FS完成後才開始F3 Step6。F5未開始。',

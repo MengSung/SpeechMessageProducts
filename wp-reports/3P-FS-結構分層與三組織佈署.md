@@ -154,6 +154,24 @@ FS無手機步驟；手機畫面集中M1。目前進度頁目視亦待補：先�
 - 最終文件說明檢查 2,086/0，log SHA-256 `11C97668DE9964485C4A64B1D0E50220C652BF435F7E1C6F7FBC16555658EBF5`；Changed UTF-8／換行檢查 12 檔、0 問題／0 排除，log SHA-256 `33E0E0BF65DE3B613072AB91633448C9358DFB60940D35DD33B255803BE132E1`；`git diff --check` exit 0。四個變更檔逐位元組確認 UTF-8 無 BOM、CRLF、末尾 CRLF。既有 Release 建置與 9,472/9,472 一般測試證據適用於相同程式 HEAD `c4cf53a63`；本次只改報告、90、線 A 進度與決策文件，故不重跑未受影響的程式閘門。
 - 現行測試環境鎖由線 B 的 `P0-2-4` 唯讀診斷持有；線 A 沒有接觸或移除該鎖，待鎖釋放後再依 02A §5.1 取得自己的鎖。未進行瀏覽器目視、D365、Channel、正式環境、金流或手機操作。
 
+### 2026-11-28 02:26 Asia/Taipei (UTC+08:00) 02A policyVersion 文件一致性修正與完整離線重驗
+
+- 語意複核發現 `ClonedOrganizationQuiesce.cs` 檔首仍寫「policyVersion=1／缺版」，與核定 02A v2 及 `CurrentPolicyVersion=2`／apply guard 相矛盾。只把該檔首說明改為「policyVersion=2／缺版及舊版於 SDK 前拒絕」；canonical source fingerprint 的獨立內容版本仍為 1，未改任何可執行 token 或停用政策。
+- 修正後 02 §4 五道離線閘門全通過：Release 全方案建置 exit 0、65 warnings／0 errors（SHA-256 `CD09758FCFBB463DE3EA9EDE237EB4C19CDC2A23D09D2E449FCBE9F2C4E9B3DB`）；一般測試 28 回合、9,472/9,472、0 fail／0 skip（SHA-256 `001AFA21FCD6C161824C817AF63054E472B5AF89D0C808E3026F7B0912DA198F`）；文件檢查 2,086/0（`11C97668DE9964485C4A64B1D0E50220C652BF435F7E1C6F7FBC16555658EBF5`）；Changed 編碼 12 檔、0 問題／0 排除（`33E0E0BF65DE3B613072AB91633448C9358DFB60940D35DD33B255803BE132E1`）；方案清單 54 個專案（`91B4F1D249BD45625A6A146C3D01E51705E6A0D7AEAF644A763E70B0A514BA2D`）。離線結果不代表 Live3P。
+- 此次只修正過時檔案說明，未連線或寫入 D365、Channel、正式環境、金流或手機；線 B 仍持有 `test-env.lock`。瀏覽器目視仍待補，不以 renderer 代替目視。
+
+### 2026-11-28 03:12 Asia/Taipei (UTC+08:00) 最終進度 renderer 與實機鎖狀態核對
+
+- `node --test tools/RepoQuality/Tests/Test-ProgressPage.cjs` 通過 28/28、0 失敗／略過，log SHA-256 `D2225C67CDB91E0EB49AB71AFD3636BAC2FF60D2E729E83D8C6ADF71CD80A8F8`；`node --test tools/RepoQuality/Tests/Test-ThreeProductsProgress.cjs` 通過 4/4、真實兩線快照無資料警告，log SHA-256 `630F048E6F498300032179BDCA9AC1765B5C89AC5EC52E722E63A51426CFE590`。均為離線 renderer 測試，不是瀏覽器目視或Live3P。
+- test-env.lock於更新時不存在；線A尚未取鎖（唯讀確認時間 2026-11-28 03:12 Asia/Taipei）；本輪沒有取得鎖，尚未連線或寫入 D365／Channel／金流。依 02A §5，待本包文件合併後才取鎖開始 quiesce。
+
+### 2026-11-28 03:26 Asia/Taipei (UTC+08:00) 最終 02 §4 離線閘門重驗
+
+- 更新進度／報告後再次依 02 §4 執行五道離線閘門：Release 建置 exit 0、65 warnings／0 errors，SHA-256 `16BC627ADF6D9F831E934BA870A8CAB9DB7C4EA51323D180CB4EEA94B64F896F`；一般測試 28 回合、9,472/9,472、0 失敗／略過，SHA-256 `9B7066377DC78B82846AC19CB197FE90F1A3445AE96609C34C147729A60A1841`。
+- 文件說明 2,086/0，SHA-256 `11C97668DE9964485C4A64B1D0E50220C652BF435F7E1C6F7FBC16555658EBF5`；Changed 編碼 12 檔、0 問題／0 排除，SHA-256 `33E0E0BF65DE3B613072AB91633448C9358DFB60940D35DD33B255803BE132E1`；方案清單 54 個專案、每個路徑恰列一次，SHA-256 `91B4F1D249BD45625A6A146C3D01E51705E6A0D7AEAF644A763E70B0A514BA2D`。所有結果均為離線證據，不代表 Live3P。
+- test-env.lock於此時間不存在；線A尚未取鎖（唯讀核對時間 2026-11-28 03:26 Asia/Taipei）；本輪尚未執行 quiesce 或任何 D365／Channel／金流操作。待FS文件提交並合併後才取得test-env.lock，按02A §5開始goodshepherd20 quiesce。
+
+- 2026-11-28 03:35 Asia/Taipei (UTC+08:00) 最終報告／進度更新後文件說明檢查 2,086/0、Changed 編碼 12 檔／0 問題、git diff --check exit 0；四個變更檔逐位元組驗證 UTF-8 無 BOM、全 CRLF、末尾 CRLF。最終檢查 log SHA-256：文件 11C97668DE9964485C4A64B1D0E50220C652BF435F7E1C6F7FBC16555658EBF5、編碼 33E0E0BF65DE3B613072AB91633448C9358DFB60940D35DD33B255803BE132E1。
 ## 下一步
 
-ClaudeOnly 審查與範圍補查均完成（單模型，依使用者指定；run：`20261128-010429-3p-fs-lane-a-reviewer`、`20261128-010544-3p-fs-lane-a-coverage-reviewer`），無未修 Critical／High。重基線後 02 §4 五道離線閘門全通過；先完成進度資料更新及其文件／編碼／renderer 檢查，再依 02 §5 安全轉移 `cl/lane-a` 指標，在取得合併鎖後快轉合併並推送、核對遠端 SHA。之後依 02A §5 持有 test-env.lock，順序為：goodshepherd20 quiesce apply／verify（通過後 H1 依 §2 結案）→ F0 inventory 與 FS plan 唯讀根因診斷、符合 §1 後修正重試 → 三組織 plan／摘要審查／apply／verify、檢視表發布、UI export/import、Live3P FS → 最後 F3 Step 6 實機。F3 依賴備註為「等 FS 完成後開始」；具體 F3 實機仍待 FS 上述實機項目通過，離線結果不算實機完成。
+ClaudeOnly 審查與範圍補查均完成（單模型，依使用者指定；無未修 Critical／High）。FS 修正及本次報告／進度更新後，02 §4 五道離線閘門、renderer 28/28 與現行 1.3 renderer 4/4、文件說明、Changed 編碼、git diff --check 及四檔 UTF-8／CRLF 位元組檢查均已通過。接著依02 §5安全轉移 cl/lane-a 指標，取得合併鎖後快轉合併並推送、核對遠端 SHA。之後依02A §5持有test-env.lock，順序為：goodshepherd20 quiesce apply／verify（通過後H1依§2結案）→ F0 inventory與FS plan唯讀根因診斷、符合§1後修正重試 → 三組織plan／摘要審查／apply／verify、檢視表發布、UI export/import、Live3P FS → 最後F3 Step 6實機。F3依賴備註為「等 FS 完成後開始」；具體F3實機仍待FS上述實機項目通過，離線結果不算實機完成。
