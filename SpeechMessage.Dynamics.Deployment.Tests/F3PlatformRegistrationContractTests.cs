@@ -12,6 +12,7 @@
  * 重複 JSON 欄位、錯誤事件階段／模式、Update filter／image 錯配與 secure config，
  * 必須拒絕；舊組件不得接受新設定。Plan／Apply 拒絕 legacy 組織，匯出與回復只允許
  * 精確平台清單身分，未知／重複回復資料必須在任何 SDK 寫入前失敗。
+ * 平台候選、映像與訊息安排亦供組織身分測試重用，讓跨產品身分驗證使用合法平台輸入；每次呼叫均建立當案值。
  * 資源與隔離：測試只用合成 DTO、記憶體 SDK 與每案例唯一暫存目錄，不連 D365、
  * LINE 或正式環境；Fixture 唯一擁有目錄並在 Dispose 刪除，沒有跨案例快取或背景工作。
  */
@@ -695,7 +696,7 @@ public sealed class F3PlatformRegistrationContractTests
     };
 
     /// <summary>建立 F3 的兩個精確 IPlugin 型別及三筆固定註冊步驟；映射不接受 caller 產品值。</summary>
-    private static RegistrationManifest PlatformManifest()
+    internal static RegistrationManifest PlatformManifest()
     {
         var enabled = new Dictionary<string, bool>(StringComparer.Ordinal)
         {
@@ -763,7 +764,7 @@ public sealed class F3PlatformRegistrationContractTests
     }
 
     /// <summary>合成與三筆核定步驟型別集合相同的 DLL 摘要，不載入或執行任何 Plugin。</summary>
-    private static AssemblyImage PlatformImage() => new(
+    internal static AssemblyImage PlatformImage() => new(
         PlatformAssembly,
         "1.0.0.0",
         "0123456789abcdef",
@@ -797,7 +798,7 @@ public sealed class F3PlatformRegistrationContractTests
     }
 
     /// <summary>新增平台兩個 Create 與一個 Update 的訊息篩選，沿原 fixture 資料庫觀察真計畫與寫入。</summary>
-    private static void SeedPlatformMessages(MemoryOrganization service)
+    internal static void SeedPlatformMessages(MemoryOrganization service)
     {
         foreach (var message in new[] { "Create", "Update" })
         {
@@ -834,7 +835,7 @@ public sealed class F3PlatformRegistrationContractTests
     /// 測試借用的 SDK 轉接器，只補固定平台欄位 metadata 與當案組織身分；
     /// 其他操作完整委派原記憶體服務，沒有連線或額外 owner，不吞掉未支援請求。
     /// </summary>
-    private sealed class PlatformRegistrationService(MemoryOrganization inner, string organization) : IOrganizationService
+    internal sealed class PlatformRegistrationService(MemoryOrganization inner, string organization) : IOrganizationService
     {
         private readonly NamedRegistrationService named = new(inner, organization);
         /// <summary>new_product 回應僅供 filter／image 前置核對；其他官方訊息保留原故障行為。</summary>
@@ -844,7 +845,7 @@ public sealed class F3PlatformRegistrationContractTests
             {
                 var entity = new EntityMetadata { LogicalName = "new_linechannel" };
                 typeof(EntityMetadata).GetProperty(nameof(EntityMetadata.Attributes))!.SetValue(entity,
-                    new AttributeMetadata[] { new PicklistAttributeMetadata { LogicalName = "new_product" } });
+                    new AttributeMetadata[] { new StringAttributeMetadata { LogicalName = "new_product" } });
                 return new RetrieveEntityResponse { Results = { ["EntityMetadata"] = entity } };
             }
             return named.Execute(request);

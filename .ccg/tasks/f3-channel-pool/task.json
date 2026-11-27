@@ -6,7 +6,7 @@
   "risk": "high",
   "domain": "backend",
   "currentPhase": "implementation",
-  "nextAction": "完整閘門實際三項失敗；原子export有界重試、三組件組織分流及架構斷言修復，定向GREEN後重跑完整閘門及ClaudeOnly，再同步合併與02A實機打通",
+  "nextAction": "身分fixture改用合法產品候選118/118；同步整合後重跑完整離線閘門與ClaudeOnly，通過後快轉推送，再依02A實機打通",
   "createdAt": "2026-11-27T09:41:37+08:00",
   "branch": "cl/lane-a"
 }

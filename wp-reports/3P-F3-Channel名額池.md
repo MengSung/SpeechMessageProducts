@@ -74,3 +74,7 @@ Live helper仍在完成離線RED→GREEN；完整方案一般測試、最終文�
 - Live helper離線48/48，SHA `4937A85E00DCAA1D4350E0299C7A8EF8AC41A036FEF28C38A836715E106FBF11`。二十並行先排空，再按正式ID／本輪marker清理並CAS恢復基線；「好牧人」登錄中不配發、不要求池容量。真失敗走file-only共用診斷，不呼叫Channel作告警。
 
 本節只有離線結果；F0、FS、F3實機及M1手機均未新增通過證據。
+
+## 2026-11-27 12:25 一般測試身分案例補正
+
+12:11完整一般測試最終exit 1，Deployment 21失敗、其餘回合無失敗；原始SHA `BEE75E9ECB4052F921832CE0DCD8347FC22B6948357D16C69752531ABB289A56`，未放行。根因為舊身分fixture對construction／association提供教會組件，現在被正確產品邊界拒絕，尚未進入指定身分故障注入。改為重用F3合法平台候選、映像及metadata服務，舊組織與好牧人保留原診斷候選；所有身分、雜湊、metadata前拒絕、零export／寫入及正常往返斷言保留。new_product合成metadata同步採schema的字串型別。身分與F3平台註冊定向118/118、exit 0，SHA `756E521FCA78A84C3D65F9E8BE2C808324EDF5C31F83EBFD0880FD1E560499B7`。同步整合後仍須完整守門及ClaudeOnly。

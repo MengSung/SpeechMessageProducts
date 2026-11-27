@@ -1,7 +1,7 @@
 /*
 檔案整體說明
 目的與定位：FS registration 安全邊界的離線身分測試，驗證三個新測試組織不能因 kind=test 跳過伺服器身分核對，並保護既有回歸組織及正式組織契約。
-主要功能與流程：以真 ProductionGuard 與 DeploymentEngine 驗證合成 RetrieveCurrentOrganization 回應；注入錯誤／大小寫不同的 UniqueName、空 ID、相同 metadata 換 ID、移除或竄改 plan 身分。重新封存的不完整 plan 仍須拒絕；舊格式以獨立欄位投影核對完整 JSON bytes 與 SHA-256，並實際 apply。
+主要功能與流程：以真 ProductionGuard 與 DeploymentEngine 驗證合成 RetrieveCurrentOrganization 回應；注入錯誤／大小寫不同的 UniqueName、空 ID、相同 metadata 換 ID、移除或竄改 plan 身分。重新封存的不完整 plan 仍須拒絕；舊格式以獨立欄位投影核對完整 JSON bytes 與 SHA-256，並實際 apply。好管家／好學會採共用平台候選，其餘保留舊診斷候選，不能以跨產品非法輸入掩蓋身分檢查。
 使用邊界與擁有權：每個案例獨占記憶體 SDK、固定合成 GUID 與 Fixture 暫存根，不讀秘密、不連線、不啟動背景工作。服務包裝只借用 fixture 的 metadata 服務；using 在成功及斷言失敗時清除暫存根與取消來源，身分拒絕必須早於 metadata、export 與寫入。
 驗證限制：案例只證明離線守門及相容性，不代表任何 D365 組織已盤點、部署或完成實機驗收。
 */
@@ -124,8 +124,8 @@ public sealed class RegistrationIdentityTests
     [InlineData("association")]
     public void Plan_NewTest_BindsAuthoritativeOrganizationId(string organization)
     {
-        using var fixture = new Fixture();
-        var service = new RegistrationService(fixture.Service, organization);
+        using var fixture = new IdentityFixture(organization);
+        var service = new RegistrationService(fixture.SdkService, organization);
         var engine = RegistrationEngine(fixture, service);
 
         var plan = engine.Plan(fixture.Manifest, fixture.Image, organization);
@@ -150,8 +150,8 @@ public sealed class RegistrationIdentityTests
     [InlineData("association", "empty")]
     public void Plan_NewTest_InvalidServerIdentity_RefusedBeforeMetadata(string organization, string fault)
     {
-        using var fixture = new Fixture();
-        var service = new RegistrationService(fixture.Service, organization);
+        using var fixture = new IdentityFixture(organization);
+        var service = new RegistrationService(fixture.SdkService, organization);
         ChangeServerIdentity(service, organization, fault);
         var engine = RegistrationEngine(fixture, service);
 
@@ -181,8 +181,8 @@ public sealed class RegistrationIdentityTests
     [InlineData("association", "changed")]
     public void Apply_NewTest_ServerIdentityChanged_RefusedBeforeExport(string organization, string fault)
     {
-        using var fixture = new Fixture();
-        var service = new RegistrationService(fixture.Service, organization);
+        using var fixture = new IdentityFixture(organization);
+        var service = new RegistrationService(fixture.SdkService, organization);
         var engine = RegistrationEngine(fixture, service);
         var plan = engine.Plan(fixture.Manifest, fixture.Image, organization);
         var metadataReads = service.MetadataReads;
@@ -211,8 +211,8 @@ public sealed class RegistrationIdentityTests
     [InlineData("association", "empty")]
     public void Apply_NewTest_ResealedUnboundPlan_Refused(string organization, string fault)
     {
-        using var fixture = new Fixture();
-        var service = new RegistrationService(fixture.Service, organization);
+        using var fixture = new IdentityFixture(organization);
+        var service = new RegistrationService(fixture.SdkService, organization);
         var engine = RegistrationEngine(fixture, service);
         var plan = engine.Plan(fixture.Manifest, fixture.Image, organization);
         var unbound = ReplacePlanIdentity(plan, fault == "empty" ? Guid.Empty : null, reseal: true, omit: fault == "missing");
@@ -230,8 +230,8 @@ public sealed class RegistrationIdentityTests
     [InlineData("association")]
     public void Apply_NewTest_TamperedOrganizationId_IsCoveredByHash(string organization)
     {
-        using var fixture = new Fixture();
-        var service = new RegistrationService(fixture.Service, organization);
+        using var fixture = new IdentityFixture(organization);
+        var service = new RegistrationService(fixture.SdkService, organization);
         var engine = RegistrationEngine(fixture, service);
         var plan = engine.Plan(fixture.Manifest, fixture.Image, organization);
         var tampered = ReplacePlanIdentity(plan, OtherServerId, reseal: false);
@@ -250,8 +250,8 @@ public sealed class RegistrationIdentityTests
     [InlineData("association")]
     public void Apply_NewTest_BoundRoundTrip_SucceedsAndIsIdempotent(string organization)
     {
-        using var fixture = new Fixture();
-        var service = new RegistrationService(fixture.Service, organization);
+        using var fixture = new IdentityFixture(organization);
+        var service = new RegistrationService(fixture.SdkService, organization);
         var engine = RegistrationEngine(fixture, service);
         var plan = engine.Plan(fixture.Manifest, fixture.Image, organization);
         var persisted = JsonSerializer.Deserialize<DeploymentPlan>(JsonSerializer.Serialize(plan))!;
@@ -272,8 +272,8 @@ public sealed class RegistrationIdentityTests
     [InlineData("synthetic-production")]
     public void Plan_Legacy_NullIdentityPreservesExactBytesHashAndApply(string organization)
     {
-        using var fixture = new Fixture();
-        var service = new RegistrationService(fixture.Service, "synthetic-wrong") { OrganizationId = Guid.Empty };
+        using var fixture = new IdentityFixture(organization);
+        var service = new RegistrationService(fixture.SdkService, "synthetic-wrong") { OrganizationId = Guid.Empty };
         var engine = RegistrationEngine(fixture, service);
         var plan = engine.Plan(fixture.Manifest, fixture.Image, organization);
         var expectedHash = Convert.ToHexString(SHA256.HashData(LegacyPlanBytes(plan, string.Empty)));
@@ -292,8 +292,8 @@ public sealed class RegistrationIdentityTests
     [Fact]
     public void Plan_NewTest_SameMetadataDifferentOrganizationId_ChangesPlanHash()
     {
-        using var fixture = new Fixture();
-        var service = new RegistrationService(fixture.Service, "construction");
+        using var fixture = new IdentityFixture("construction");
+        var service = new RegistrationService(fixture.SdkService, "construction");
         var engine = RegistrationEngine(fixture, service);
         var first = engine.Plan(fixture.Manifest, fixture.Image, "construction");
         service.OrganizationId = OtherServerId;
@@ -304,6 +304,58 @@ public sealed class RegistrationIdentityTests
         Assert.NotEqual(first.Sha256, second.Sha256);
     }
 
+    /// <summary>
+    /// 按產品選擇合法註冊候選的單案 owner；底層 Fixture 唯一擁有記憶體服務與暫存目錄。
+    /// 好管家／好學會重用 F3 平台候選及 metadata 轉接器，其餘保留歷史診斷組件，
+    /// 使所有身分拒絕斷言測到指定故障；Dispose 委派同一 owner，不建立連線、秘密或背景資源。
+    /// </summary>
+    private sealed class IdentityFixture : IDisposable
+    {
+        /// <summary>本案唯一底層 owner；建構失敗也由 catch 清除已建立的暫存根。</summary>
+        private readonly Fixture inner = new();
+        /// <summary>本案的合法組件候選；不跨案例共用可變步驟集合。</summary>
+        internal RegistrationManifest Manifest { get; }
+        /// <summary>與候選精確相符的合成映像，不執行 DLL。</summary>
+        internal AssemblyImage Image { get; }
+        /// <summary>所有 SDK 寫入的當案觀察者。</summary>
+        internal MemoryOrganization Service => inner.Service;
+        /// <summary>借用同一底層服務的 metadata 入口，身分回應仍由外層故障轉接器負責。</summary>
+        internal IOrganizationService SdkService { get; }
+        /// <summary>底層 owner 的唯一暫存根，僅用於證明 export 先後順序。</summary>
+        internal string Root => inner.Root;
+        /// <summary>沿用固定測試時鐘，避免變更 ID 時混入時間差異。</summary>
+        internal AdvancingClock Clock => inner.Clock;
+
+        /// <summary>只對兩個非教會產品選平台；安排期不算引擎寫入，且不隱藏任何身分故障。</summary>
+        internal IdentityFixture(string organization)
+        {
+            try
+            {
+                if (organization is "construction" or "association")
+                {
+                    Manifest = F3PlatformRegistrationContractTests.PlatformManifest();
+                    Image = F3PlatformRegistrationContractTests.PlatformImage();
+                    F3PlatformRegistrationContractTests.SeedPlatformMessages(Service);
+                    SdkService = new F3PlatformRegistrationContractTests.PlatformRegistrationService(Service, organization);
+                }
+                else
+                {
+                    Manifest = inner.Manifest;
+                    Image = inner.Image;
+                    SdkService = Service;
+                }
+            }
+            catch
+            {
+                inner.Dispose();
+                throw;
+            }
+        }
+
+        /// <summary>同一 owner 清除所有當案暫存輸出；清理失敗須使測試失敗，不能假稱資源已回基線。</summary>
+        public void Dispose() => inner.Dispose();
+    }
+
     /// <summary>固定純合成正式 ID，每個替身只保留不可變值，不代表任何實機組織。</summary>
     private static readonly Guid ServerId = Guid.Parse("10000000-0000-0000-0000-000000000001");
 
@@ -311,7 +363,7 @@ public sealed class RegistrationIdentityTests
     private static readonly Guid OtherServerId = Guid.Parse("20000000-0000-0000-0000-000000000002");
 
     /// <summary>建立純合成 catalog 與真引擎；秘密委派一旦被錯誤呼叫便立即失敗，不讀環境或連線。</summary>
-    private static DeploymentEngine RegistrationEngine(Fixture fixture, IOrganizationService service) =>
+    private static DeploymentEngine RegistrationEngine(IdentityFixture fixture, IOrganizationService service) =>
         new(service, fixture.Root, fixture.Clock, _ => throw new InvalidOperationException("Unexpected secret read."),
             OrganizationCatalog.Parse("""
             {"schemaVersion":1,"organizations":[
@@ -363,7 +415,7 @@ public sealed class RegistrationIdentityTests
     /// 每案包裝 fixture 擁有的記憶體 metadata 服務，只攔截伺服器身分要求；
     /// 其他操作保留真正引擎讀寫路徑，不持有 client、timer 或 handle，清理由外層 fixture 負責。
     /// </summary>
-    private sealed class RegistrationService(MemoryOrganization inner, string uniqueName) : IOrganizationService
+    private sealed class RegistrationService(IOrganizationService inner, string uniqueName) : IOrganizationService
     {
         /// <summary>本案可變的 server UniqueName；不改 catalog 或 plan。</summary>
         internal string UniqueName { get; set; } = uniqueName;
