@@ -1,8 +1,7 @@
 # FS 結構分層與三組織佈署
-
-更新：2026-11-26 21:10 Asia/Taipei (UTC+08:00)
-本包起點：`601d5056825eec30299432c054e867deb1e6b790`；最終同步整合基線：`2da59fac62aab177a05efcba07132b69616b4243`；本機程式／修正提交：`64679a87f`、`9af227811`、`bd22905fc`，記錄提交 `abeb70d94`。
-狀態：完成（自動測試通過）；同步後完整離線守門 8,819/8,819 與單模型（使用者指定 ClaudeOnly）修正複審／13檔測試全文補查通過，無未修生產程式 Critical／High。實機部署未完成；H1 現場行為分類未知，policy 不 apply，所有 D365 寫入仍不放行。
+更新：2026-11-28 01:10 Asia/Taipei (UTC+08:00)
+本包原始起點：`601d5056825eec30299432c054e867deb1e6b790`；歷史同步基線：`2da59fac62aab177a05efcba07132b69616b4243`（2026-11-26）；本輪 quiesce 修正起點：`36d4c49724fe90b522304048d3bec051ea710134`；本輪狀態轉換修正提交：`2e6de8d0e14bc5a3d86423cc33104ef08db5519c`；目前整合分支／遠端：`e2eac3c38587469c9a250362493b2ba3908e102c`（待重基線）；原程式與先前修正提交：`64679a87f`、`9af227811`、`bd22905fc`。
+狀態：自動測試通過（實機待補）；本輪 quiesce 修正與 02 §4 離線閘門通過；單模型（使用者指定 ClaudeOnly）審查及測試／報告覆蓋補查均無未修 Critical／High。最新整合基線重驗與實機仍待完成。尚未執行本輪 D365 實機寫入；H1 依 02A §2 待 apply／verify 通過後結案。
 
 ## 驗收狀態
 
@@ -14,13 +13,13 @@
 | 跨工作樹寫鎖與失敗清理 | 部分取得失敗由 finally 依共享→本地清理；真檔案系統 UnauthorizedAccessException 已離線重現後修復，既有互斥與生命週期9/9；最終同步後全方案閘門通過，見下方最終證據 |
 | 公開 UI plan／apply／verify、指紋、定向發布 | 已接真正 SDK savedquery、平台 UI 方案、正式 ID／XML hash ledger；UI 精確組織配對30/30。已／未發布定義必須比較，不能將 RetrieveUnpublishedMultiple 的所有 ID 視為待發布。完整來源／續頁及 fixture 已納入最終 Deployment 1,855 項離線測試；實機待補 |
 | UI ZIP 有界生命週期及 D26 | 匯入配置前16MiB、最多128成員、單成員8MiB、累計解壓及輸出含中央目錄16MiB；保留account／contact表單剝除。離線正反例及最終回歸已通過；真正匯出入實機待補 |
-| quiesce Step 3b | 2026-11-26 13:15 Asia/Taipei (UTC+08:00) 真來源補讀成功：7562候選、等待workflow0、active workflow146、信箱136、active Plugin7280。流程及方案均managed；正式solution／publisher ID齊全，88筆Complete、58筆MetadataIncomplete（內建publisher缺prefix，不假填）。Plugin全部Complete、managed、Microsoft簽署公開識別31bf3856ad364e35。清冊SHA-256 `347C485962C2E24996101C5D9871BD43BDBD8BBCACA080D73547FB3B2DB1E744`；保留政策僅草案；H1 行為分類仍 unknown，不 apply，不能宣稱已停用 |
-| 三組織 plan→受審→apply→verify | 首次plan各exit1／InvalidCastException，第二次各exit1／FaultException。第二次固定摘要SHA-256均為 `3EAD97E3ADACA8B06523033B50F0133E0B173F100090DA38367489501B89E991`。零寫入、鎖已釋放；依02 §10不做第三次完整plan，不以改名繞過。三份真正摘要審查仍未完成 |
+| quiesce Step 3b | 2026-11-26 的唯讀來源盤點與清冊 SHA `347C485962C2E24996101C5D9871BD43BDBD8BBCACA080D73547FB3B2DB1E744` 為歷史證據；依 02A §2，停用政策已核定：非 Microsoft Plugin 步驟、未標保留的 Workflow／自訂 Action、等待／暫停流程執行個體與郵件投遞一律停用；Microsoft 系統步驟、業務規則、BPF 與核准保留項目不動。Workflow／Plugin step 改以 SetStateRequest；精確 FaultException RED 與離線修正證據見 2026-11-28 小節。仍待實機 apply／verify；在成功前 H1 未結案 |
+| 三組織 plan→受審→apply→verify | 原始兩次完整 plan 失敗：首次 InvalidCastException、第二次 FaultException；固定摘要 SHA-256 均為 `3EAD97E3ADACA8B06523033B50F0133E0B173F100090DA38367489501B89E991`，當時零寫入。02A §1 已取代原本一律不做第三次的限制：先以小範圍唯讀診斷確認根因；只有同型 RED→GREEN、受影響測試全綠、回復路徑備妥且取得 test-env.lock 後，才可按上限修正後重試。截至本更新尚未診斷或重試；三份新 plan 摘要仍須審查後才可 apply |
 | 真 Live3P FS、UI export／import | 已新增Category=Live3P、WP=FS真正唯讀驗收；目前僅編譯／列出，尚未執行。部署及quiesce完成前不跑；真正UI匯出入與已發布SDK讀回仍待補 |
 
 ## 盤點失敗與未完成項目
 
-完整 F0 inventory 兩次都被讀取器拒絕，未發布完整清冊：第一次混合大小寫欄名、第二次 aggregate count 回應形狀。第二次實機根因未確認；離線107/107相容案例不能冒充實機修復。兩份固定摘要SHA-256均為 `1C97615A4B561BC9A84C00A2132ED87F5225331A8B9BAFC48AF23726DD8C7680`。依02 §10不做第三次相同完整盤點；其餘受控只讀管理metadata步驟續做，不能改名稱繞過限制。
+完整 F0 inventory 的兩次原始失敗均保留：第一次混合大小寫欄名、第二次 aggregate count 回應形狀；兩份摘要 SHA-256 均為 `1C97615A4B561BC9A84C00A2132ED87F5225331A8B9BAFC48AF23726DD8C7680`。此前離線 107/107 只驗證相容案例，並非現場根因修復。依 02A §1，接續先做逐實體／欄位等唯讀診斷；只有重現同型失敗、修正後測試全綠、回復路徑備妥且持有 test-env.lock，才可修正後重試（每操作最多兩次）。截至本報告更新，診斷與重試尚未執行；不以更名或拆小寫入繞過限制。
 
 三個產品及T01／T02／LIFF交接狀態以共享交接檔為準。本包未呼叫任何Channel、正式組織或金流。複製帶來的舊Channel永不登錄、載入、解密或呼叫。
 
@@ -124,8 +123,25 @@ FS無手機步驟；手機畫面集中M1。目前進度頁目視亦待補：先�
 - 文件檢查2,014/0，SHA-256 `9F5D26B9D6004E835672CBD135E08B69B7591AA32B8FB58E0F147B2637C57871`；Changed編碼132/0，SHA-256 `6F7511F71BAB2EBEB1ABE65011E3231CEE68B555A261C13F8726E071C907F734`；方案清單exit0，SHA-256 `D52E9542EC15FFB4495879503C5EC8CEA01265867D0349608EAE34C942B37E0C`；進度頁28/28，SHA-256 `235374A08F79CFD72F6E6C9E2C34D72BA55C2C1DACE2915E80B08AD7BD19C417`。報告及進度最後更新後，文件／編碼／頁面另作交付前重驗。
 - 單模型（使用者指定 ClaudeOnly）修正複審確認 Plugin 缺旗標 High 結清、已讀生產修改無Critical／High；SHA-256 `877C93DF67B264E800DD1D4515718D010ED0FA3612548266CE3A79D5D939E4D4`。原未逐行的測試另分 quiesce 4檔、UI 9檔全文補查，兩份均無Critical／High且沒有未讀範圍；SHA-256分別 `21F6A141298C570D6D2DA3B0FCBDA15E663D0443512C7E0BB3F556D3DB03C8F6`、`F758DD15E17D9C8D5B8DDAD37F3181ABDF441FDCB837C3C695E6DDC7C125904B`。低於High觀察已寫入 `wp-reports/3P-之後再說-線A.md`，不新增完成定義。
 - 01 FS Step1 的24個指定方法全部存在並納入上述 Deployment 一般測試：MultiTestOrganizationTests 的 Catalog三項、Registration_OrgFlag、WriteLock_TwoRepositoryRoots、Quiesce兩項；SchemaLayerTests 的legacy hash、兩產品無教會表、平台多檔延伸、重複entity／attribute及ownership兩項；ViewDefinitionTests 的白名單／未知欄／第二預設／特殊檢視四項；UiSolutionLayerTests 的白名單、D26、未計畫發布、定向PublishXml、漂移、部分失敗六項。原RED及後續公開CLI／故障增補結果保留在前述歷史，不以 helper 單獨通過宣稱實機成功。
-- 實機待補不變：H1現場分類、目標9.1投遞欄選項、Step3b、三組織真正plan摘要受審→apply→verify、UI export／import、Live3P FS；完整plan／inventory各兩次失敗後依02§10不第三次重試或改名繞過。零D365寫入，本輪未連Channel、正式組織或金流。進度頁目視待補，尊重先前使用者Esc取消，不自行重啟電腦操作。
+- 實機待補：目標 9.1 信箱投遞欄位實值、goodshepherd20 quiesce apply／verify、三組織 plan 摘要審查→apply→verify、檢視表發布、UI export／import 與 Live3P FS。H1 依 02A §2 的核定停用政策處理，成功 apply／verify 後結案，不再要求逐項行為分類。F0 inventory 與 FS plan 的原兩次失敗仍保留；依 02A §1 先做唯讀根因診斷，只有同型 RED→GREEN、受影響測試全綠、回復路徑備妥且持有 test-env.lock 才可修正後重試，每個操作最多兩次。零 D365 寫入，本輪未連 Channel、正式組織或金流。進度頁目視待補，尊重先前使用者 Escape 取消，不自行重啟電腦操作。
 
+### 2026-11-28 01:02 Asia/Taipei (UTC+08:00) quiesce 狀態轉換修正與離線閘門
+
+- Workflow 與 Plugin step 的狀態轉換改用 SetStateRequest；asyncoperation 與 mailbox 欄位更新維持 Update。RED 以 FaultException<OrganizationServiceFault>／0x80045002 注入舊 Workflow Update 路徑，舊基線確實失敗；RED SHA-256 86A9F011E9E4DE00B6FDBFF348B5CB51FC4C430DDB760A45A9412A08602F240C。修正後 quiesce 定向測試 255/255 通過，GREEN SHA-256 F4DDFAAD82D3F8000954CC5DF31B7A15E9FA3565E0360DD61068C3B4E1ECDB58。這是離線合成證據，不是目標 9.1 實機結果。
+- 02 §4 離線閘門：Release 全方案建置 0 警告／0 錯誤，SHA-256 408ECC574B85C531488F94C8082A34ECC2046217079742A79C5DF5EB7F0E9701；一般測試 9,472/9,472、0 失敗／0 略過，SHA-256 F062547B5A5A060ACEC7491C7DA9FE2CD7561254D8A47B954AB2E0717A725B24；文件檢查 2,086/0，SHA-256 11C97668DE9964485C4A64B1D0E50220C652BF435F7E1C6F7FBC16555658EBF5；Changed 編碼 5 檔檢查、1 排除、0 問題，SHA-256 443125B65701E4B1E17F6B770F71CE6FA1B8DFBF78622BA226D986C98F232F15；方案清單 exit 0，SHA-256 91B4F1D249BD45625A6A146C3D01E51705E6A0D7AEAF644A763E70B0A514BA2D。
+- 本次閘門後仍會更新本報告、90 與進度資料，因此交付前須再跑適用的文件、編碼及進度頁檢查。ClaudeOnly 審查與重基線後的正式守門尚未完成，不能據此宣稱 FS 完成或可合併。
+- 截至 2026-11-28 01:02，沒有執行 D365、Channel、金流或手機實機操作。當時 test-env.lock 由線 B 持有（P0-2④）；2026-11-28 01:18 唯讀複查時該鎖已不存在，線 A 本輪仍未操作測試環境。H1 的行為不再依賴逐項推測：依 02A §2 已核定停用政策，待 goodshepherd20 quiesce apply／verify 後結案。
+
+### 單模型（使用者指定 ClaudeOnly）審查與覆蓋補查
+
+- 2026-11-28 01:04 run `20261128-010429-3p-fs-lane-a-reviewer`：runner `ok=true`、`reviewMode=claude-only`；審查輸出 SHA-256 `49576E12C43566BCEBA3F7B9B62CFD2A1FB38A5C945FDA1D18E89FD640A9BFF2`。初輪明確只讀生產 diff，未讀測試與報告；因此另做範圍補查，不把初輪單獨視為全差異審查。
+- 2026-11-28 01:05 run `20261128-010544-3p-fs-lane-a-coverage-reviewer`：逐檔閱讀兩個測試及兩份報告差異，並交叉核對生產 diff；runner `ok=true`、`reviewMode=claude-only`，輸出 SHA-256 `650733AAE74BC9763527C1FDCD36C869CFC89896D837D360FD26B274DC9CC5A5`。結論：無未修 Critical／High。非阻擋 Info 僅指出目標 9.1 的實際 Workflow 狀態轉換及取消個案要由後續 apply／verify 確認；此項仍明確列為實機待補。
+
+### 2026-11-28 01:19 Asia/Taipei (UTC+08:00) 續跑與 02A 實機順序確認
+
+- 已核對使用者指定的整合分支本機與 `git ls-remote` 均為 `e2eac3c38587469c9a250362493b2ba3908e102c`；F3 離線修正／報告提交 `5b8c74b03` 是整合 HEAD 的祖先，故 F3 離線閘門已合併，不重做已通過的守門。線 A 的 FS 狀態轉換修正提交為 `2e6de8d0e14bc5a3d86423cc33104ef08db5519c`，其重基線及基線後 02 §4 守門尚待完成。
+- 兩輪單模型（使用者指定 ClaudeOnly）審查與覆蓋補查已完成，無未修 Critical／High；本輪尚未執行 D365、Channel、正式組織、金流或手機操作。2026-11-28 01:18 唯讀檢查時 test-env.lock、integration-merge.lock 與三個 D365 寫入鎖均不存在。
+- F3 的依賴備註按 02A §5 保持「等 FS 完成後開始」；具體 F3 Step 6 實機仍須在 FS 三組織 plan／apply／verify、檢視表／UI 與 Live3P 通過後才開始。離線通過不等於實機完成。
 ## 下一步
 
-依02§5取得合併鎖、再核整合基線，無新提交時快轉合併與推送並核對遠端SHA。合併後正式開始F3離線規則／Plugin／Directory；不因FS離線合併而解除任何實機寫入前置。F3備註從「等FS完成後開始」改為實際開工狀態，保留F2於b6da17e2已合併的歷史。
+ClaudeOnly 審查與範圍補查均完成（單模型，依使用者指定；run：`20261128-010429-3p-fs-lane-a-reviewer`、`20261128-010544-3p-fs-lane-a-coverage-reviewer`），無未修 Critical／High。下一步依 02 §5 同步至最新整合基線並重跑必要閘門；通過後快轉合併推送。合併後嚴格依 02A §5：goodshepherd20 quiesce apply／verify（通過後 H1 依 §2 結案）→ F0 inventory 與 FS plan 唯讀根因診斷及符合 §1 的修正後重試 → 三組織 plan／審查／apply／verify、平台檢視表及 UI export/import、Live3P FS → 最後 F3 Step 6 實機。F3 待補維持「等 FS 實機完成後開始」；離線結果不視為實機完成。
