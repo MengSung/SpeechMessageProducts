@@ -398,3 +398,5 @@ FS無手機步驟；手機畫面集中M1。目前進度頁目視亦待補：先�
 - 單模型（使用者指定ClaudeOnly）Critical0／High0；summary SHA `EEB51BD9A9AF9EB227F8C02932A894CC49F76268CCF6197262D28F4E606C623E`，完整輸出SHA `BAF961B1BC7D09D788DCE15640CCED7A655A2DFEA8A6750256E87B759243B281`。三份C#完整讀取、逐SHA比對manifest；另讀原引擎lookup／Attribute與guard相關段落，確認寫前候選重建一致、唯讀與資源釋放、固定拒絕寫入旗標。
 - 審查沒有執行測試或連線，沒有讀實機node JSON或四份文件diff，也沒有重審共用connector／lock／diagnostics實作；主線另核對報告SHA、原始測試log及全部文件／byte。不得把審查引用的9958／Live1當成審查者獨立執行。
 - 本次交付只包含診斷，不交付FS完成；原guard與apply程式均未改動。02A§12.3／18:55決策③的通知仍待決策，第三次apply尚未使用。之後只有文件差異，依02A§10.3沿用以上完整build／一般測試，重驗文件、編碼及進度。
+
+- 2026-11-28 19:24 Asia/Taipei (UTC+08:00)：診斷程式與證據提交 `637515befe8137e60422954ae1c6e114a034c171`；為保全cl/lane-a原有F5未完成內容，使用本線隔離分支codex/lane-a-fs-node-diagnostic快轉整合本次已守門診斷。F5全部34檔仍與檢查點SHA相同。此後只有文件提交SHA補記，沿用上列最終完整守門並重驗文件／byte／進度；未提前宣稱已推送。
