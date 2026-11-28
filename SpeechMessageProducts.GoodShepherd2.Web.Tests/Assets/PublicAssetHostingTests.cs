@@ -1,7 +1,7 @@
 /*
 檔案整體說明
 目的與定位：F7公開圖片HTTP與Program接線的離線整合驗證，使用真Kestrel、真store與合成PNG，不連VM、SQL、D365或LINE，不讀秘密。
-主要功能與流程：每案先在自己的GUID根產生合法公開Logo，啟動只監聽loopback的Development主機，以GET／HEAD驗證PNG、immutable及無cookie；缺設定、目錄、其他副檔名與錯誤路由皆不得公開。獨占鎖住正式檔或將產品目錄換成真junction注入IOException，斷言固定500與共用安全日誌；關閉主機後驗證DI擁有的store已停止接單。
+主要功能與流程：每案先在自己的GUID根產生合法公開Logo，並以真Host確認素材啟用不影響health/live及correlation；啟動只監聽loopback的Development主機，以GET／HEAD驗證PNG、immutable及無cookie；缺設定、目錄、其他副檔名與錯誤路由皆不得公開。獨占鎖住正式檔或將產品目錄換成真junction注入IOException，斷言固定500與共用安全日誌；關閉主機後驗證DI擁有的store已停止接單。
 使用邊界與維護：F2Host collection隔離全域diagnostics owner。每案自行擁有client、Host、組態、檔案鎖及根；client先釋放，Host Stop排空後Dispose，最後才刪本案根。建立失敗亦確定釋放，不以離線HTTP或合成租戶代替F7 Step4b公開HTTPS與F5發送驗收。
 */
 using System.Net;
@@ -24,6 +24,19 @@ namespace SpeechMessageProducts.GoodShepherd2.Web.Tests.Assets;
 [Collection("F2Host")]
 public sealed class PublicAssetHostingTests
 {
+    /// <summary>公開素材startup filter不能攔截非素材端點；以真Kestrel重現部署存活檢查的完整路由，避免只測assets成功而漏掉health404。</summary>
+    [Fact]
+    public async Task Assets_Enabled_LivenessAndCorrelationRemainAvailable()
+    {
+        await using var fixture = await AssetHostFixture.StartAsync();
+        using var request = new HttpRequestMessage(HttpMethod.Get, "/health/live");
+        request.Headers.Add("X-Correlation-Id", "F7-live-offline");
+        using var response = await fixture.Client.SendAsync(request);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.Equal("F7-live-offline", Assert.Single(response.Headers.GetValues("X-Correlation-Id")));
+        Assert.Empty(await response.Content.ReadAsByteArrayAsync());
+    }
+
     /// <summary>GET返回最終PNG原bytes且HEAD只有標頭；兩者皆immutable及nosniff，不建立Session或cookie。</summary>
     [Theory]
     [InlineData(false)]

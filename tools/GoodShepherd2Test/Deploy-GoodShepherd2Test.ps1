@@ -17,6 +17,9 @@
 失敗回復也在設定Commit後重新取得管理器、核對舊路徑與憑證，再恢復原啟動狀態。
 若舊設定已復原但啟動失敗，先安全停止並排空，紀錄「設定已復原、啟動未完成」，
 不把它冒稱為完整復原。正常切換以虛擬帳號啟動，最後嚴格驗證本機HTTPS存活端點。
+首次冷啟動僅在curl明確28且尚無HTTP回應時，最多三次各二十秒的同步檢查；
+TLS、連線錯誤與非200立即拒絕，永不忽略憑證或把逾時當成功。每次只保存嘗試數、exit與三位狀態，
+不保存回應本文或stderr；超出有界冷啟動預算仍走原精準回復，沒有背景probe或跨部署狀態。
 使用邊界與維護：遠端唯一主機為部署前重新驗證的測試虛擬機。站台與集區名稱、網域、端口、
 內容根與整合登入資料庫皆為固定值，不能以參數改成正式站台。CRM設定只接受核定測試主機
 的完整HTTPS服務網址；本檔不呼叫CRM、SQL、LINE或就緒端點，也不讀憑證私鑰。
@@ -533,6 +536,27 @@ $remoteDeployment = {
         throw 'GS2_POOL_DRAIN_TIMEOUT'
     }
 
+    function Invoke-Gs2StrictLiveness {
+        # IIS首次要求才啟動ANCM；實機HTTPERR證明原20秒要求已Connection_Dropped後，ANCM才成功啟動。
+        # 每次保留相同SNI、Host、嚴格憑證及20秒硬期限，只有28／000容許下一次同步觀測。
+        # 三次為最多60秒的有界啟動檢查，不重送部署、不更動IIS設定；任何非200／TLS錯誤立即回復。
+        # Record只屬本次部署，安全純值供失敗記錄；不保留curl本文、原始錯誤、credential或process。
+        param([Parameter(Mandatory)][Collections.IDictionary]$Record)
+        for ($attempt = 1; $attempt -le 3; $attempt++) {
+            $status = & curl.exe --silent --noproxy '*' --connect-timeout 5 --max-time 20 --resolve 'gs2-test.speechmessage.com.tw:9443:127.0.0.1' --output NUL --write-out '%{http_code}' 'https://gs2-test.speechmessage.com.tw:9443/health/live' 2>$null
+            $exitCode = $LASTEXITCODE
+            $Record['LivenessAttempts'] = $attempt
+            $Record['LivenessExitCode'] = $exitCode
+            $Record['LivenessHttpStatus'] = 'invalid'
+            if ($status -is [string] -and $status -cmatch '\A[0-9]{3}\z') {
+                $Record['LivenessHttpStatus'] = $status
+            }
+            if ($exitCode -eq 0 -and $status -is [string] -and $status -ceq '200') { return }
+            if ($exitCode -ne 28 -or $status -isnot [string] -or $status -cne '000') { break }
+        }
+        throw 'GS2_STRICT_LIVENESS_FAILED'
+    }
+
     function Write-Gs2Record {
         # 僅固定階段、型別、路徑與雜湊，無例外訊息或其他站台資料；紀錄與套件受管理員ACL保護。
         param([object]$Data)
@@ -779,9 +803,7 @@ $remoteDeployment = {
         if ($pool.State.ToString() -ne 'Started') { $pool.Start() | Out-Null }
         if ($site.State.ToString() -ne 'Started') { $site.Start() | Out-Null }
         $remotePhase = 'Liveness'
-        # curl的resolve同時保留正確SNI與Host；正常憑證鏈驗證，絕不使用忽略TLS的選項。
-        $status = & curl.exe --silent --noproxy '*' --connect-timeout 5 --max-time 20 --resolve 'gs2-test.speechmessage.com.tw:9443:127.0.0.1' --output NUL --write-out '%{http_code}' 'https://gs2-test.speechmessage.com.tw:9443/health/live' 2>$null
-        if ($LASTEXITCODE -ne 0 -or $status -cne '200') { throw 'GS2_STRICT_LIVENESS_FAILED' }
+        Invoke-Gs2StrictLiveness -Record $recordData
         $recordData.Phase = 'Completed'
         $recordData.Result = 'LivenessPassed'
         Write-Gs2Record $recordData

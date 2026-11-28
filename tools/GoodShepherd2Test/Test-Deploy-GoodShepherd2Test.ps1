@@ -14,6 +14,9 @@
 保護切換及回復都先釋放舊快照、重新核驗目標再啟動，不冒稱設定或原狀已恢復。
 ACL操作只用無磁碟副作用的替身，F7目錄初始化由替身驗證專用集區邊界；真實ACL另由Test-PublicAssetsDeployment保護。
 測試owner在finally釋放全部合成管理器，不把IIS替身當成VM權限驗收。
+冷啟動案例直接執行遠端Liveness片段，以28／000後200重現首次要求中斷、服務稍後啟動；
+另驗三次硬上限、安全狀態記錄，以及TLS／連線失敗、非200立即拒絕。curl替身逐參數核對嚴格
+SNI與憑證設定，只模擬原生程序結果，不連網；LASTEXITCODE及區域佇列由每案finally恢復或釋放。
 主要功能與流程：先解析部署腳本，從語法樹載入純驗證函式，再注入同名不同身分、過期、
 無私鑰、歧義、越界與端口衝突等案例；每例以接受或固定拒絕結果為決定性斷言。
 使用邊界與維護：不執行套用、不啟動產品、不建立遠端連線或存取秘密。測試僅保留呼叫區域
@@ -92,7 +95,76 @@ function New-SiteFixture {
     }
 }
 
+function Invoke-LivenessFixture {
+    # 直接執行遠端Liveness片段；curl替身只提供合成exit／status並核對完整嚴格參數。
+    # 28／000重現實機Connection_Dropped後才啟動成功的首次冷啟動；不等待、不開程序或網路。
+    # 每案擁有回應佇列與LASTEXITCODE快照，finally恢復，沒有跨案或背景資源。
+    param([object[]]$Responses)
+    $assignment = $ast.Find({
+        param($node)
+        $node -is [Management.Automation.Language.AssignmentStatementAst] -and
+        $node.Left.Extent.Text -ceq '$remoteDeployment'
+    }, $true)
+    $source = $assignment.Right.Extent.Text
+    $start = $source.IndexOf('$remotePhase = ''Liveness''', [StringComparison]::Ordinal)
+    $end = $source.IndexOf('$recordData.Phase = ''Completed''', $start, [StringComparison]::Ordinal)
+    Assert-Condition ($start -ge 0 -and $end -gt $start)
+    $definition = $assignment.Right.Find({
+        param($node)
+        $node -is [Management.Automation.Language.FunctionDefinitionAst] -and
+        $node.Name -ceq 'Invoke-Gs2StrictLiveness'
+    }, $true)
+    if ($null -ne $definition) { . ([scriptblock]::Create($definition.Extent.Text)) }
+    $queue = [Collections.Generic.Queue[object]]::new()
+    foreach ($response in $Responses) { $queue.Enqueue($response) }
+    $calls = [Collections.Generic.List[string]]::new()
+    function curl.exe {
+        $expected = @('--silent','--noproxy','*','--connect-timeout','5','--max-time','20',
+            '--resolve','gs2-test.speechmessage.com.tw:9443:127.0.0.1','--output','NUL',
+            '--write-out','%{http_code}','https://gs2-test.speechmessage.com.tw:9443/health/live')
+        Assert-Condition (($args -join '|') -ceq ($expected -join '|'))
+        Assert-Condition ($queue.Count -gt 0)
+        $response = $queue.Dequeue()
+        $calls.Add('strict')
+        $global:LASTEXITCODE = $response.Exit
+        return $response.Status
+    }
+    $savedExit = Get-Variable -Name LASTEXITCODE -Scope Global -ErrorAction SilentlyContinue
+    $recordData = [ordered]@{}
+    $failure = $null
+    try {
+        try { . ([scriptblock]::Create($source.Substring($start, $end - $start))) }
+        catch { $failure = $_ }
+        return [pscustomobject]@{ Failure=$failure; Calls=$calls.Count; Record=$recordData }
+    }
+    finally {
+        if ($null -eq $savedExit) { Remove-Variable -Name LASTEXITCODE -Scope Global -ErrorAction SilentlyContinue }
+        else { $global:LASTEXITCODE = $savedExit.Value }
+    }
+}
+
 $cases = [ordered]@{
+    Liveness_ColdStartTimeoutThenHealthy_RequiresStrict200 = {
+        $result = Invoke-LivenessFixture @(@{Exit=28;Status='000'}, @{Exit=0;Status='200'})
+        if ($null -ne $result.Failure) {
+            Assert-Condition ($result.Failure.Exception.Message -ceq 'GS2_STRICT_LIVENESS_FAILED')
+            Write-Output 'Observed:GS2_STRICT_LIVENESS_FAILED'
+        }
+        Assert-Condition ($null -eq $result.Failure -and $result.Calls -eq 2)
+        Assert-Condition ($result.Record.LivenessAttempts -eq 2 -and $result.Record.LivenessExitCode -eq 0 -and $result.Record.LivenessHttpStatus -ceq '200')
+    }
+    Liveness_ThreeTimeouts_StopAndPreserveSafeEvidence = {
+        $result = Invoke-LivenessFixture @(@{Exit=28;Status='000'}, @{Exit=28;Status='000'}, @{Exit=28;Status='000'})
+        Assert-Condition ($null -ne $result.Failure -and $result.Failure.Exception.Message -ceq 'GS2_STRICT_LIVENESS_FAILED' -and $result.Calls -eq 3)
+        Assert-Condition ($result.Record.LivenessAttempts -eq 3 -and $result.Record.LivenessExitCode -eq 28 -and $result.Record.LivenessHttpStatus -ceq '000')
+    }
+    Liveness_TlsAndHttpFailures_AreNeverRetried = {
+        foreach ($response in @(@{Exit=60;Status='000'}, @{Exit=7;Status='000'}, @{Exit=0;Status='503'}, @{Exit=28;Status='200'})) {
+            $result = Invoke-LivenessFixture @($response)
+            Assert-Condition ($null -ne $result.Failure -and $result.Failure.Exception.Message -ceq 'GS2_STRICT_LIVENESS_FAILED' -and $result.Calls -eq 1)
+            Assert-Condition ($result.Record.LivenessAttempts -eq 1 -and $result.Record.LivenessExitCode -eq $response.Exit -and $result.Record.LivenessHttpStatus -ceq $response.Status)
+        }
+    }
     IisActivation_ReopensCommittedConfigurationBeforeChangingAutoStart = {
         $assignment = $ast.Find({
             param($node)
