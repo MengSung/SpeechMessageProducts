@@ -7,11 +7,11 @@
 window.PROGRESS_LANES = window.PROGRESS_LANES || {};
 window.PROGRESS_LANES.B = {
   lane: 'B',
-  lastUpdated: '2026-11-27T23:13:00+08:00',
+  lastUpdated: '2026-11-28T14:09:45+08:00',
   packages: {
-    P0: { status: '自動測試通過（實機待補）', started: '2026-11-25 22:12', finished: '', commit: 'd1f887adb50bdd4e8d32340d00feed97830c3bf6', pending: '自動測試通過（實機待補）；可自行處理：實機待補：平台SQL依02A憑證釘選及最小權限、F2公開live／ready。DNS與P0-3管理員Apply已通過，監控重啟及CRM302證據核實；不需重跑Apply。瀏覽器目視待補。', report: 'wp-reports/3P-P0-前置.md' },
+    P0: { status: '自動測試通過（實機待補）', started: '2026-11-25 22:12', finished: '', commit: '811669559982a904f84636b831146a15c7899956', pending: 'P0-2④平台SQL已Strict釘選、最小DB權限、SQL端AppPool原始及有效SID／DB=7與錯誤／缺檔拒絕；P0-3公開live／ready200，原Node路由與CRM302核實。彙總依02A保留實機待補：線A FS／F3及F2 T01相依；本項不需重交秘密或重跑P0-3。', report: 'wp-reports/3P-P0-前置.md' },
     F10: { status: '自動測試通過（實機待補）', started: '2026-11-26 00:23', finished: '', commit: '8072b764c5bca3b0853177fbe16c0a0ac30311ef', pending: '自動測試通過（實機待補）；可自行處理的前置：JesusTest 必要設定及測試卡文件已存在，V2.6 完整規格與五項沙箱流程仍須核對及實跑，尚未證明有外部阻擋，不以缺交接排除欠債；隔日到期查詢須待實際到期。外部相依：宿主 Exception.log sink capture 與產品持久層最終原子冪等待後續整合。離線 parser／合成 handler 不代表實機。', report: 'wp-reports/3P-F10-永豐補強.md' },
-    F2: { status: '自動測試通過（實機待補）', started: '2026-11-26 04:16', finished: '', commit: '9f86ad16dccec7568910a032aad402b0ea2d2c95', pending: '自動測試通過（實機待補）；可自行處理：實機待補：02A已允許具RED→GREEN證據的修正後重試，將在F8離線合併後執行；停止候選與環境回復已核對，修正版未實機驗證。公開live／ready、T01 webhook/test與平台SQL待補；T01／T02／LIFF已交接。完整一般測試7741/7741、主機83/83，ClaudeOnly複審無Critical／High；固定總覽目視待補。', report: 'wp-reports/3P-F2-主機骨架.md' },
+    F2: { status: '自動測試通過（實機待補）', started: '2026-11-26 04:16', finished: '', commit: '811669559982a904f84636b831146a15c7899956', pending: '自動測試通過（實機待補）；本輪部署修正後重試1/2成功，公開live／ready200、SQL端AppPool原始SID／有效SID／DB=7，wrong與missing拒絕；同步d8fc8c22e後一般9516/9516、ClaudeOnly補審無Critical／High。外部阻擋：T01 webhook/test401，F3目錄未配置且FS／F3未實機；不改回無條件200，不連複製舊Channel。', report: 'wp-reports/3P-F2-主機骨架.md' },
     F6: { status: '自動測試通過（實機待補）', started: '2026-11-26 13:04', finished: '', commit: '97e93413bd398f1f63998d17784a7c2a465f3ed8', pending: '自動測試通過（實機待補）；可自行處理：F2公開站台及嚴格TLS平台SQL完成後驗公開LIFF頁面；外部阻擋：FS／F3資料及M1手機。原F6全方案7905/7905及LIFF app API讀回證據保留；發現平台new_istenant為choice而原resolver/fixture用bool。必要補正先RED 5/24後產品175/175、最新全方案8049/8049；ClaudeOnly無Critical／High。仍實機待補：F2公開站台、嚴格TLS平台SQL、FS／F3資料、外部whoami及M1手機。', report: 'wp-reports/3P-F6-LIFF身分.md' },
     F4: { status: '自動測試通過（實機待補）', started: '2026-11-26 14:11', finished: '', commit: 'cb36af9b', pending: '自動測試通過（實機待補）；可自行處理：完整8026/8026、核心37/37、產品152/152；第三輪ClaudeOnly無Critical／High，前兩輪High均先紅後綠修正。實機待補：F2公開站台及嚴格TLS平台SQL；LocalDB不等於實機。使用者Esc取消後未恢復UI，新版目視待補。F6平台旗標補正已合併；F8離線閘門已合併推送（SHA：2fd68db43c777dc903410845d621ff747f66fe43）；依02A順序先補平台SQL及F2。', report: 'wp-reports/3P-F4-通用排程器.md' },
     F8: { status: '自動測試通過（實機待補）', started: '', finished: '', commit: '49c310d0d2071bd35e2c3a271d08df849e707b64', pending: '自動測試通過（實機待補）；02 §4五項離線閘門全部通過：Release建置0警告／0錯誤、一般測試9458/9458（Access 253/253）、文件說明2086/0、Changed編碼110檔0問題、方案清單54項且52項整合基底全保留。ClaudeOnly 0 Critical／0 High，但審查只完整讀DataverseAuditLog.cs，範圍限制見報告。Live3P未跑；離線包已合併推送（SHA：2fd68db43c777dc903410845d621ff747f66fe43）；外部阻擋：FS apply後才驗四表、索引、真SDK與new_at精度。固定頁狀態與90一致為「自動測試通過（實機待補）」；不代表實機完成。', report: 'wp-reports/3P-F8-權限與修改紀錄.md' },
@@ -19,6 +19,8 @@ window.PROGRESS_LANES.B = {
     F11: { status: '未開始', started: '', finished: '', commit: '', pending: '', report: '' },
   },
   log: [
+    '2026-11-28 14:09 Asia/Taipei (UTC+08:00)｜F2重基線後完整守門通過：Release65警告／0錯誤、一般9516/9516（28組件、0失敗0略過），待合併程式811669559。公開live／ready200與SQL端AppPool身分／正負pin證據已記報告；T01仍待FS／F3，維持自動測試通過（實機待補）。七檔位元組備份與回放核對一致，.ccg不提交；F12保留獨立checkpoint。',
+    '2026-11-28 14:01 Asia/Taipei (UTC+08:00)｜P0／F2實機打通：SQL憑證綁定、平台DB最小權限、SQL端原始及有效SID／DB三位元7及正負pin驗收通過；公開live／ready200。T01因F3目錄未配置401，仍自動測試通過（實機待補）。SQL聚焦25/25、凍結樹9499/9499、前輪身分證據High已修且補審解除；同步d8fc8c22e後重跑必要守門中。F12獨立checkpoint不混入F2。',
     '2026-11-27 23:13 Asia/Taipei (UTC+08:00)｜依02A §4核對線B的P0（P0-2／P0-3／P0-6）、F10、F2、F6、F4、F8狀態均為「自動測試通過（實機待補）」；無Live3P通過證據，未標「完成」。',
     '2026-11-27 16:00 Asia/Taipei (UTC+08:00)｜修正文案以使F8待補欄與90狀態一致；狀態仍為「自動測試通過（實機待補）」，Live3P未執行，未宣稱完成。',
     '2026-11-27 15:35 Asia/Taipei (UTC+08:00)｜依02A §4及使用者指示，90與本檔的P0、F10、F2、F6、F4、F8未通過實機狀態統一為「自動測試通過（實機待補）」；未改寫完成時間或實機證據。平台SQL與F2公開health等仍待實機。',
