@@ -1,25 +1,25 @@
 # FS 結構分層與三組織佈署
-更新：2026-11-28 01:55 Asia/Taipei (UTC+08:00)
+更新：2026-11-28 12:55 Asia/Taipei (UTC+08:00)
 本包原始起點：`601d5056825eec30299432c054e867deb1e6b790`；歷史同步基線：`2da59fac62aab177a05efcba07132b69616b4243`（2026-11-26）；本輪修正起點：`36d4c49724fe90b522304048d3bec051ea710134`；本輪程式原提交 `2e6de8d0e14bc5a3d86423cc33104ef08db5519c`（重基線後 `c4cf53a63`）；最新整合基線 `e2eac3c38587469c9a250362493b2ba3908e102c`；重基線報告提交 `1bfe1a23e945118cd38dc578247a6f16ad087115`。原程式與先前修正提交：`64679a87f`、`9af227811`、`bd22905fc`。
-狀態：自動測試通過（實機待補）；FS 已安全重基線至 `e2eac3c38587469c9a250362493b2ba3908e102c` 並通過本輪 02 §4 離線閘門；單模型（使用者指定 ClaudeOnly）審查及測試／報告覆蓋補查均無未修 Critical／High。分支指標尚待安全轉移與快轉合併推送；D365 實機仍未執行。H1 依 02A §2 停用政策，待 quiesce apply／verify 後結案。
+狀態：自動測試通過（實機待補）；修正已合併推送 e1cdd8cfe，quiesce H1 依 02A §2.6 結案。三組織完整 plan 的第一次修正後重試已於 2026-11-28 12:21–12:25 成功，尚未 apply／publish；接續先審查三份 plan、擁有權及回復證據，不把規劃成功寫成部署完成。
 
 ## 驗收狀態
 
 | 01 FS 條件 | 目前結果與證據 |
 |---|---|
-| 組織分層、跨層 lookup、欄位歸屬與 ownership | 已補足公開分層讀取及平台三表／產品奉獻類別；construction／association 的離線合併不含四張教會專屬表。legacy 原始 bytes SHA-256 保持 `AE008B2B75F9AB35EAFC78A18197CC9300676AA5A53272D33AC0B05BE3185310`。真正三份 plan 尚未成功產生 |
+| 組織分層、跨層 lookup、欄位歸屬與 ownership | 已補足公開分層讀取及平台三表／產品奉獻類別；construction／association 的離線合併不含四張教會專屬表。legacy 原始 bytes SHA-256 保持 `AE008B2B75F9AB35EAFC78A18197CC9300676AA5A53272D33AC0B05BE3185310`。三份完整 plan 修正後重試 1/2 均成功（詳末段）；新表 ownership、平台／產品範圍尚待合併審查，不直接套用 |
 | goodshepherd20 既有 metadata 相容 | 570 表／22,837 欄；metadata SHA-256 `3F7236983F803C68C57C6411B800DBA8884A5A42085EC3DBC601E997E06709F7`。既有兩表的不可變 owner 只在精確組織／metadata ID 相符時沿用；contact.new_lineid 採既有長度500。其他 owner／audit／managed／security／長度漂移仍拒絕 |
 | Plugin --org 與 server 身分 | 新三組織 plan／apply 核對精確名稱與非空 OrganizationId；ID 納 plan hash，apply 再讀。null 省略保留 legacy JSON bytes／hash。整合身分及組織回歸70/70，log SHA-256 `CFEE7FB7024E3DDA991FE43C3E2BCE038D10E57535DFB5FB797D60AC68C543F1` |
 | 跨工作樹寫鎖與失敗清理 | 部分取得失敗由 finally 依共享→本地清理；真檔案系統 UnauthorizedAccessException 已離線重現後修復，既有互斥與生命週期9/9；最終同步後全方案閘門通過，見下方最終證據 |
 | 公開 UI plan／apply／verify、指紋、定向發布 | 已接真正 SDK savedquery、平台 UI 方案、正式 ID／XML hash ledger；UI 精確組織配對30/30。已／未發布定義必須比較，不能將 RetrieveUnpublishedMultiple 的所有 ID 視為待發布。完整來源／續頁及 fixture 已納入最終 Deployment 1,855 項離線測試；實機待補 |
 | UI ZIP 有界生命週期及 D26 | 匯入配置前16MiB、最多128成員、單成員8MiB、累計解壓及輸出含中央目錄16MiB；保留account／contact表單剝除。離線正反例及最終回歸已通過；真正匯出入實機待補 |
 | quiesce Step 3b | 2026-11-28 08:47 Asia/Taipei (UTC+08:00)依02A §2.6各項一次讀回；待處理流程執行個體0、候選Workflow 0、未分類Plugin 0。H1依停用政策結案；211個信箱仍有個別未確認不投遞，依§2.6記錄且不阻擋FS。goodshepherdback基線一致SHA-256 `227FA949B78311F0A7A32019E65C5D36AED9C63A695A24F56C2513F074B7B91C`；讀回證據SHA-256 `9D23E42C1807EE2BD8124C9F2D6C073802E9CDA48BF5168A143090832AC9FFA0`；零D365寫入。|
-| 三組織 plan→受審→apply→verify | 原始完整plan曾分別以`InvalidCastException`與`FaultException`失敗，當時零寫入；摘要SHA-256 `3EAD97E3ADACA8B06523033B50F0133E0B173F100090DA38367489501B89E991`。截至2026-11-28，F0 inventory已修正並成功；三組織實際`SchemaMetadata.Read`／`SchemaPlanner.Create`／`UiViewDeployment.Plan`唯讀分段通過。早期臨時診斷腳本的16個單實體`RetrieveEntityRequest` FaultException與4個反射參數錯誤不等同正式plan根因；舊完整plan紀錄未保存可定位的stack／呼叫位置。故未重試完整plan、未apply；須先依02A §1完成同型RED→GREEN、受影響測試、回復路徑與鎖條件，再逐組織plan並審查後才可apply。|
+| 三組織 plan→受審→apply→verify | 完整 plan 修正後重試 1/2 全數成功：goodshepherd20 164、construction／association 各 216 項；各另有平台 UI changes=3。單排序／雙排序同型故障差分與 RED→GREEN 證據見末段；apply、verify、UI 匯出入仍未執行。|
 | 真 Live3P FS、UI export／import | 已新增Category=Live3P、WP=FS真正唯讀驗收；目前僅編譯／列出，尚未執行。部署及quiesce完成前不跑；真正UI匯出入與已發布SDK讀回仍待補 |
 
 ## 盤點失敗與未完成項目
 
-完整 F0 inventory 的兩次原始失敗均保留：第一次混合大小寫欄名、第二次 aggregate count 回應形狀；兩份摘要 SHA-256 均為 `1C97615A4B561BC9A84C00A2132ED87F5225331A8B9BAFC48AF23726DD8C7680`。此前離線 107/107 只驗證相容案例，並非現場根因修復。依 02A §1，接續先做逐實體／欄位等唯讀診斷；只有重現同型失敗、修正後測試全綠、回復路徑備妥且持有 test-env.lock，才可修正後重試（每操作最多兩次）。截至本報告更新，診斷與重試尚未執行；不以更名或拆小寫入繞過限制。
+完整 F0 inventory 的兩次原始失敗均保留：第一次混合大小寫欄名、第二次 aggregate count 回應形狀；兩份摘要 SHA-256 均為 `1C97615A4B561BC9A84C00A2132ED87F5225331A8B9BAFC48AF23726DD8C7680`。此前離線 107/107 只驗證相容案例，並非現場根因修復。依 02A §1，接續先做逐實體／欄位等唯讀診斷；只有重現同型失敗、修正後測試全綠、回復路徑備妥且持有 test-env.lock，才可修正後重試（每操作最多兩次）。上述為原始故障歷史；2026-11-28 已完成方案內診斷、相容修正及 F0 inventory 唯讀重試，完整 plan 修正後重試 1/2 亦已成功，詳末段。不以更名或拆小寫入繞過限制。
 
 三個產品及T01／T02／LIFF交接狀態以共享交接檔為準。本包未呼叫任何Channel、正式組織或金流。複製帶來的舊Channel永不登錄、載入、解密或呼叫。
 
@@ -200,6 +200,37 @@ FS無手機步驟；手機畫面集中M1。目前進度頁目視亦待補：先�
 - 在舊public-contract執行目錄找到兩份真正CLI診斷：Release log SHA-256 `F93F4D91DA8D206196C4E8D9E5F66BB2967FED3BFCB753F89E64D91B4BD8D018`含2026-11-26 12:25–12:27三筆InvalidCastException，安全stack為SDK GetAttributeValue／nullable unbox；FsMetadataLive log SHA-256 `5967946A7A40ADE1F7FA2D13D8A242F33A31FA2012032B8570FEDB00C6A70758`含12:57–12:59三筆FaultException，但安全stack只到ServiceChannel，未保存Dataverse error code／訊息。前文「未找到stack」更正為「找到有界stack，但仍無法定位第二次根因」。第一型歷史對話指向systemform.formactivationstate的Picklist誤讀int?，現已使用OptionSetValue；第二型仍不得由重複排序假設直接判為已修。
 - 已讀整合064122f56的00／02A全文及§10.4：後續實機診斷僅用方案內已測試命令／唯讀Live3P，不再用PowerShell臨時載SDK。未重試完整plan、未apply；D365鎖已釋放。
 
+### 2026-11-28 12:18 Asia/Taipei (UTC+08:00) 方案內唯讀對照與第一次修正後完整plan重試前置
+
+- 新增測試專屬最小Probe與`Category=Live3P, WP=FSQueryDiagnostics`；不走完整plan、不寫D365。離線輸出／型別／取消／ID／回應上限10案先紅後綠（RED SHA-256 `33CF56F7BB26EE60464582189D80601F48C02493B847F695CEF845BB75F3459E`，GREEN `4F1571292104802C602FFB1A990533F9F0B6049A5CE4844E174E866E2B5A6D8B`）。
+- 首次診斷3案失敗，原因為Probe誤以為systemform只回一欄；真正SDK自動帶objecttypecode／type。失敗SHA-256 `0784406821F87691E80080281F99661B089C3B6976FB3D0133CC1A7E8C43295D`，最小形狀證據 `D43AB7D8F682956D5E79F997C71B89A57534E4BA4D666778B7A9150D7029CCFA`。先以同形狀離線案例重現1 fail／16 pass（`848E2D07225C23062C7FC825AD3CCCB821381E56C80EC096667EC1C5E1384D40`），再只接受三欄成對且精確account與OptionSetValue，正式ID仍必須一致；受影響89/89通過（`692EC473967B2D2B1C1DB5C5F4D0792C1C2AC8445514409B44CD59AAB21876C6`）。不是環境限制，未放寬正式reader或測試守門。
+- 修正後三個測試組織對照3/3：兩種UI表的單排序全部成功，雙排序均FaultException，碼鏈80044150→80044150→80040216；SHA-256 `E592FAAAC3111C5A98541F109744E1C17E857F4F0C4970A5444CC12F6CDFEDC7`。只查account範圍UI主鍵一列；無XML／業務值／Channel讀取，D365鎖已立即釋放。
+- 舊FsMetadataLive DLL的ReadRows確實無條件追加同一主鍵排序；離線合成SDK對同形狀拋FaultException，正式`ReadPublicationScope`單排序通過。現行排序／Picklist修正均已在`64679a87f`。這證明可重現的相容性缺陷，**不宣稱已還原缺少SDK碼的舊完整plan fault detail**。
+- 依02A §1規劃第一次「修正後完整plan重試」：①同型FaultException已離線重現，且三組織小查詢差分一致；②既有修正下受影響89/89已綠；③完整plan只寫本機唯一artifact，D365零寫入，失敗保留證據、不清理舊檔，任何後續apply須另備before及審查；④執行前取得test-env-d365.lock。本次只plan，未授權直接apply；每個組織記為修正後重試1/2，不混入舊原樣兩次。
+
+### 2026-11-28 12:42 Asia/Taipei (UTC+08:00) 完整 plan 修正後重試 1/2 結果
+
+- 依 02A §1 四項前置、使用既有修正 `64679a87f`，三組織依序完整 plan 全部 exit 0。持鎖只執行 plan，沒有 D365 寫入；最後已由 owner finally 釋放 `test-env-d365.lock`。以下為真正 CLI 結果，不是分段診斷。
+
+| 測試組織 | schema operations／UI changes | 完整 plan log SHA-256 | schema-plan.json bytes SHA-256 |
+|---|---:|---|---|
+| goodshepherd20 | 164／3 | `8AEAADEA88B7555912A4F4B8858312C62967FED61A09F7FDC66630DA215C55E5` | `A805365AC62E7D744AA1F5D9EB8EE5B32F9B655756B1B6EA0F651043A20D851B` |
+| construction | 216／3 | `57856D117B69B0A4879E07A13E744FE958BE9E00EDD667ED58AD03C0954743A3` | `1EFDF4AF24B4BE82364710A4B9B464A3126DAE356607011E465A8034057B738C` |
+| association | 216／3 | `57856D117B69B0A4879E07A13E744FE958BE9E00EDD667ED58AD03C0954743A3` | `4D170BF3262B47DACC25A31BBC71CD799B2FC31B333DBB5E99F5750902F586AE` |
+
+- 產物均在本輪工作樹 `artifacts/d365/<org>/<唯一operation>/`，保留原始檔；兩份空白組織的固定輸出 log bytes 相同而 plan 組織身分／hash 不同，未共用計畫。
+- 每組織尚有第二次「修正後重試」額度，但本次已成功，不能為了重跑而浪費；後續 apply 是另一個操作，須三份 plan 合併審查、回復證據及新取得 D365 資源鎖。
+- 先匯出三組織 metadata 作附加 before 證據；metadata 不是資料庫備份，不宣稱可單憑它還原資料庫。正式 apply 引擎仍須核對計畫指紋、未發布變更、完整 publication scope，並在首寫前 flush 自己的 before-metadata／before-ui-plan；不跳過或放寬任何守門。
+
+### 2026-11-28 12:55 Asia/Taipei (UTC+08:00) 本輪合併前完整守門與三份 plan 合併審查
+
+- Release exit 0：65 個既有 warning／0 error，log SHA-256 `E7A68E0E891A05B8378015785D773D1BE43F4909779055A59875E74C2AE40BB6`；完整一般測試 **9,491/9,491、0 失敗／略過**，log SHA-256 `7D776DA2A5D718FA052EF8308380967E136E4E3E724886109E02DA89AFF82D48`，包含 Deployment 2,009 項。篩選依 02 §4 原文；Live3P 未混入一般測試。
+- 文件 2,089／0，SHA-256 `7265A5B8C026710F67ED3FA3219C33848772EBAE387AA2C4C13B4BB1D6A432B6`；Changed 編碼 20 檔／0 問題（另 1 既有排除），SHA-256 `57457CE2AF2C7A50F8848B66F0733FDB8998A8E43D5326C773DB6976AA8A947B`；54 個方案專案且恰好各一次，清單 SHA-256 `91B4F1D249BD45625A6A146C3D01E51705E6A0D7AEAF644A763E70B0A514BA2D`；進度 32/32，SHA-256 `193D6D7690A4FECF95FD020CDBA968769DFEC40AF1EF2B1ECC8BA52CA79A9DD6`。三個新增 C# 檔另逐位元組驗 UTF-8 無 BOM、純 CRLF、末尾 CRLF；diff check 通過。
+- **單模型（使用者指定 ClaudeOnly）**：新診斷及三份完整 plan 一起審查，無 Critical／High；產出 SHA-256 `B1028DA9F8CA39B644FAFA4AC7A2776D2CCABD98372EC8861474F53E56A9A6E1`，summary SHA-256 `E6712773A96628AA821B74B54AFF2ACAAF1E8792D7E80AF915885521F2548199`；reviewMode=claude-only、dualModelComplete=false、degradedFallback=false，不冒稱雙模型。
+- 審查確認三份計畫各自組織身分／hash、不含 Delete／Update、UI 僅平台公用檢視；construction／association 無四張教會表。goodshepherd20 兩個 retained owner 僅在精確組織 ID 及正式 metadata ID 白名單沿用，其他新租戶表仍 UserOwned。此審查未宣稱已做 apply／發布；apply 路徑仍使用既有已測試的完整 guard，不放寬來源／指紋／未知變更拒絕。
+- 同步前發現整合新增純規則 `01ea6a69f`（02A §11 事先核准保全自己的未提交檔），已讀增量。以本輪提交為檢查點後乾淨 rebase；因僅文件差異，依 02A §10.3 沿用本次相同程式內容的完整建置／一般測試，不重跑。
+- 回復準備：以既有部署 User Secrets 的授權身分透過 WinRM 先確認 D365APP01 及三個精確測試資料庫，唯讀確認成功；本機未提高權限／未更改SQL權限。準備獨立 COPY_ONLY／CHECKSUM 備份與 VERIFYONLY；尚未完成前不宣稱已有資料庫回復證據。無正式組織／Channel／金流連線。
+
 ## 下一步
 
-quiesce讀回已完成，H1依02A §2.6結案；211個信箱個別未確認不投遞且不阻擋FS。F0 inventory修正後唯讀重試已通過。FS完整plan的歷史FaultException根因仍未定位；目前正式identity、SchemaMetadata.Read、純planner及UI-view planning逐組織分段通過，但不等於整體plan已驗收。下一步繼續只讀追查正式CLI的連線／plan邊界與舊失敗證據；在02A §1四項條件全部成立且持有`test-env-d365.lock`前，不重試完整plan。之後才依序完成三組織plan、審查、apply／verify、檢視表發布、UI export/import及`Category=Live3P` FS。整包實機仍未完成。
+三份 plan 已成功，先完成本輪新測試的全方案守門與三份計畫合併審查；審查及可驗證回復證據齊全才取鎖 apply→verify。仍待平台檢視表已發布 SDK 讀回、UI export/import、正式 `Category=Live3P&WP=FS`。FS 完成後才 F3 實機，不開 F5。
