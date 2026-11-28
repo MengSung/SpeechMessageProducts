@@ -123,3 +123,7 @@
 | 2026-11-28 23:54 Asia/Taipei (UTC+08:00) | F10 | 同樹76c1d697完整10367／10367後正式ClaudeOnly C0／H0 | 診斷安全修補放行離線；Warning記之後再說 | stdout 1097937ad3f628397e2244fa71988ad426f9a8f6f6ac4bf1524d7d632ee9896d | 五沙箱／原子入帳／宿主sink保留待補；文件重驗後快轉推送 |
 
 | 2026-11-29 00:22 Asia/Taipei (UTC+08:00) | F11接回及F7／F10合併 | F7／F10已ff推送ee0224ad5，當時remote精確相同；本包只接回32個程式／專案檔，不重放舊90／JS／決策 | 保留F7 Program入口並集中F11單行組合，真F5／HTTP批次與400合成事件排空12／12；不把離線當實機 | 02A§11最後同步12／12回放；manifest72220bf1183b2a7936dfe3906104a1a4827c903afed2c598c0784cb63ca99d42、replay8105dd7f52ea21c3275b5279b0f9cc3df7b431e802a10d05196c88b1990c8da0 | 備份C:/ProgramData/SpeechMessage/backups/lane-B/20261128-235537保留至終點；新完整守門及ClaudeOnly後才合併F11 |
+
+| 2026-11-29 00:38 Asia/Taipei (UTC+08:00) | F11同步及守門 | 檢查點c6be46ba重基線5b939764d，得到eaa6a9dd；保全自己的12檔逐bytes精確回放 | 備份C:/ProgramData/SpeechMessage/backups/lane-B/20261129-002651；manifest1a4e2e9b1f6c955951ecdb733279772e7680021bb33f82a4120cdd4b3e75a3f5、replay1fed2ee4918de68d12ee183f6510438ba7249b3cc9832b983ef7253139b41da2 | 新完整29回合10458全通過，文件2211／0、Changed54／0；正式ClaudeOnly中 | 備份保留至終點，不提交CCG、不將無配置VM診斷當部署驗收 |
+
+| 2026-11-29 00:41 Asia/Taipei (UTC+08:00) | F11正式閘門 | eaa6a9dd完整10458／10458後ClaudeOnly C0／H0 | 放行離線成果，VM／Live3P仍待FS／F3／T01與F4；非High首次解析停止路徑記後續F9啟用前驗證 | stdout 26e1bf8517297b1ffb1b461f332ab11eea44949b69f5d56285b37e7672cef6b4；summary 83d9238827ba820d0becc99f914c048b73f137066f47616930072e3d570a4c5e | 只有文件差異沿用00:27完整build/test，重驗文件／編碼／進度後按合併鎖ff推送 |

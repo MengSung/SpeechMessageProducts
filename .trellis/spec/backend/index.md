@@ -41,6 +41,7 @@ This directory contains guidelines for backend development. Fill in each file wi
 | [Church Clock Contract](./church-clock-contract.md) | 明確 Kind／DST／生日、TimeProvider 借用、CLDR 可重生映射與實際 ICU 啟動守門 | Established |
 | [Tenancy Channel Contract](./tenancy-channel-contract.md) | 固定產品解析、四種既有優先序、不可變教會設定、借用 owner 與 Lazy 失敗邊界 | Established |
 | [Tenant Push Gateway Contract](./push-gateway-contract.md) | F5 權威名單／品牌、固定事件唯一鍵、正式ID與RowVersion CAS、401重試及資源排空 | Established |
+| [Hosting 觀測與關閉契約](./hosting-observability-contract.md) | F11 correlation、四項計數、response owner、四probe與先queue後推播排空 | Established |
 | [教會覆寫快照契約](./church-text-override-cache-contract.md) | 雙目標完整來源、驗證後發布、有界single-flight、隔離及owner排空 | Established |
 | [Attachment Transfer Contract](./attachment-transfer-contract.md) | Bounded annotation payloads, stable identity/parent validation and dual-target Base64 consistency | Established |
 | [Contact Authentication Cache Contract](./contact-authentication-cache-contract.md) | Fresh SDK password verification, no authenticated-result cache and precise cancellation | Established |
