@@ -11,6 +11,8 @@
  * Plugin assembly→type→step 及 message/filter、信箱三種同步狀態、方案／表單／公用檢視
  * 的存在性及 managed 屬性。不讀業務 ID／內容、會友欄值、token、LINE ID、configuration、
  * XAML、trace、郵件位址、外部網址、FormXml、FetchXml 或 LayoutXml 的定義值。
+ * 資料形狀：sdkmessageprocessingstep.name 只是可空白的管理顯示值，列的正式身份始終是
+ * server primary ID；savedquery.statuscode 依 Dataverse metadata 為選用欄位，缺少時不推造預設值。
  * 隔離與發布：只回不可變純值；所有候選、ID 集合與 cookie 都屬單次 Read；
  * 全部 I/O、身分、聚合及關聯驗證成功後才發布，沒有 cache、static mutable state 或背景 Task。
  * 有界契約：metadata 至多4096表、每表2048欄、總共100000欄；管理每表最多十頁、
@@ -505,7 +507,7 @@ internal static class ClonedOrganizationInventory
         ]),
         new("sdkmessageprocessingstep",
         [
-            new("name", ValueKind.Text), new("eventhandler", ValueKind.Reference), new("sdkmessageid", ValueKind.Reference),
+            new("name", ValueKind.Text, true), new("eventhandler", ValueKind.Reference), new("sdkmessageid", ValueKind.Reference),
             new("sdkmessagefilterid", ValueKind.Reference, true), new("statecode", ValueKind.Option),
             new("statuscode", ValueKind.Option), new("mode", ValueKind.Option), new("stage", ValueKind.Option),
             new("rank", ValueKind.Integer), new("filteringattributes", ValueKind.Text, true)
@@ -525,7 +527,7 @@ internal static class ClonedOrganizationInventory
         new("savedquery",
         [
             new("name", ValueKind.Text), new("returnedtypecode", ValueKind.LogicalName), new("querytype", ValueKind.Integer),
-            new("statecode", ValueKind.Option), new("statuscode", ValueKind.Option), new("ismanaged", ValueKind.Boolean)
+            new("statecode", ValueKind.Option), new("statuscode", ValueKind.Option, true), new("ismanaged", ValueKind.Boolean)
         ])
     ];
 

@@ -11,6 +11,8 @@
  * 測試以合成的整數展示文字保護選用註記相容，來源仍須精確指向原表與主鍵。
  * 格式註記只允許同 alias 一筆、非空且最多64字元；不作計數來源、不複製到清冊，
  * 並與錯來源／型別／額外資料交叉注入，避免相容處理繞過既有 fail-closed 守門。
+ * 實機形狀契約：管理資料的穩定 ID 不依賴可空白的顯示名稱；savedquery 的 statuscode
+ * 依 Microsoft metadata 為非必填，缺少時須保留 statecode 與其他純值而非拒絕整份清冊。
  * 決定性斷言：零寫入、核身先於 metadata、缺表不是零、同名不同 ID 完整保留、
  * 五千零一筆管理資料完整分頁、失敗不發布候選、來源 mutation 不影響唯讀純值結果。
  * 資源與隔離：每案擁有自己的記憶體 service 與回應，無檔案／timer／背景工作；
@@ -387,6 +389,50 @@ public sealed class ClonedOrganizationInventoryTests
         Assert.Throws<NotSupportedException>(() => ((IList<ClonedInventoryManagementRow>)snapshot.Management).Clear());
         service.Metadata[0].Attributes[1].LogicalName = "mutated";
         Assert.Contains("new_lineid", snapshot.Tables.Single(table => table.LogicalName == "contact").Attributes);
+        Assert.Equal(0, service.Writes);
+    }
+
+    /// <summary>
+    /// 保護管理列以資料庫 ID 而非顯示名稱作為穩定身分；合成空白 Plugin step 名稱不得阻斷
+    /// 完整唯讀清冊，也不得被拿來覆蓋或合併其他列。合成 SDK 唯一由 using 測試擁有，
+    /// 決定性斷言為保留同一正式 ID、原樣保留空白顯示欄且零寫入。
+    /// </summary>
+    [Fact]
+    public void Read_BlankPluginStepName_PreservesAuthoritativeIdentity()
+    {
+        using var service = new InventoryService();
+        service.AddAdministrativeGraph();
+        var source = Assert.Single(service.Rows["sdkmessageprocessingstep"]);
+        source["name"] = "";
+
+        var snapshot = ClonedOrganizationInventory.Read(service, default);
+
+        var step = Assert.Single(snapshot.Management, row => row.Entity == "sdkmessageprocessingstep");
+        Assert.Equal(source.Id, step.Id);
+        Assert.Equal("", step.Text["name"]);
+        Assert.Equal(0, service.Writes);
+    }
+
+    /// <summary>
+    /// 保護 SavedQuery 的選用 status reason 與必要 state／資料庫 ID 分離：故障注入是合成伺服器
+    /// 列缺少非必填 statuscode；reader 應發布完整純值而不合成預設狀態。service 由 using 擁有，
+    /// 決定性斷言為保留原 ID、statecode、managed 值、明確缺少 statuscode 且零寫入。
+    /// </summary>
+    [Fact]
+    public void Read_SavedQueryMissingStatusReason_PreservesAuthoritativeState()
+    {
+        using var service = new InventoryService();
+        service.AddAdministrativeGraph();
+        var source = Assert.Single(service.Rows["savedquery"]);
+        source.Attributes.Remove("statuscode");
+
+        var snapshot = ClonedOrganizationInventory.Read(service, default);
+
+        var view = Assert.Single(snapshot.Management, row => row.Entity == "savedquery");
+        Assert.Equal(source.Id, view.Id);
+        Assert.Equal(0, view.Options["statecode"]);
+        Assert.False(view.Options.ContainsKey("statuscode"));
+        Assert.True(view.Flags["ismanaged"]);
         Assert.Equal(0, service.Writes);
     }
 
