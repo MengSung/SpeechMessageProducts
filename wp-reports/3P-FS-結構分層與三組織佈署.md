@@ -400,3 +400,26 @@ FS無手機步驟；手機畫面集中M1。目前進度頁目視亦待補：先�
 - 本次交付只包含診斷，不交付FS完成；原guard與apply程式均未改動。02A§12.3／18:55決策③的通知仍待決策，第三次apply尚未使用。之後只有文件差異，依02A§10.3沿用以上完整build／一般測試，重驗文件、編碼及進度。
 
 - 2026-11-28 19:24 Asia/Taipei (UTC+08:00)：診斷程式與證據提交 `637515befe8137e60422954ae1c6e114a034c171`；為保全cl/lane-a原有F5未完成內容，使用本線隔離分支codex/lane-a-fs-node-diagnostic快轉整合本次已守門診斷。F5全部34檔仍與檢查點SHA相同。此後只有文件提交SHA補記，沿用上列最終完整守門並重驗文件／byte／進度；未提前宣稱已推送。
+
+### 2026-11-28 22:48 Asia/Taipei (UTC+08:00) 22:05決策執行中：F5已合併、FS先唯讀與RED→GREEN
+
+- F5離線已快轉推送`8ad9cf3e2b619385d711c92d644f1a95650dff16`，本機整合與ls-remote相同；整合樹10份他人草稿SHA不變。沒有續開F5切片；F7／F9均由B，本線接FS→F3。
+- 最新工作樹直接重跑歷史診斷先被原plan完整hash拒絕（F5新增schema導致定義不同），沒有放寬驗證：改用原`a1eebc7b3`診斷樹重跑，1/1通過且110節點JSON SHA仍`396C976BF0576B9F62C97AC31AE4CE19E242B50815F960A84F0B90E47ED1F88F`；log SHA `A854ABE1D032ACA00BFC1CF317F785568A0E1127FEB6E6AE6F99F472F622A979`。每個節點均在兩指定新lookup內，三表當前完整published=unpublished。
+- 為訂定精確值白名單，新增方案內唯讀安全預設診斷（先RED SHA`CEE81755B63561CBF414F2FC4D128C7DE376B7DB6A3E3774ADFD80F71CBB1F49`，6 GREEN SHA`1787D61248C2D040CC48AF11B5C951E55484F88DEE46F9F0588030D04A325A90`）。用git物件凍結原schema供歷史plan完整重驗；它不替代正式新plan。實機唯讀1/1通過，report SHA`650D5CFE2EBC19B0A7306E1E75AC32D735E219DA342FC0E7700AB7857764FD52`、log SHA`B89F16525F893AD3A3515673D73C672E521C1116D0DF453C0F52FBB7A39E440F`。只輸出固定路徑／封閉安全預設，不含label／XML／secret。
+- **原完整baseline仍無法回復，FullOriginalBaselineAvailable=false不變。** 依核定採「三表當前完整兩來源相等＋差異全限兩新關聯」替代，不能把新保存的baseline冒稱舊原件；診斷器CanAuthorizeThirdApply=false只表示工具無權自授權，真正額度來自18:55及22:05決策。
+- 修正`9f50406c1`：各分層清單account/contact lookup明列Merge=Cascade；legacy null省略保留舊hash。正式三組織plan/apply缺明列值即拒絕。新CapturePlannedLookup只允許本輪無ID請求、正式命名、寫前Merge正確，後續仍綁SDK回應ID；舊關聯及任意未知／錯值照拒。固定預設由寫前名稱推導，沒有將寫後整棵樹改當基準。
+- `before-ui-metadata-baseline.json`完整wire純值綁org／plan／schema hash，首SDK寫入前CreateNew→Flush(true)→關閉→讀回與寫前本文SHA比對，再寫SHA憑據；落檔／讀回／容量／取消任何失敗均零首寫。100MiB上限、stream using關閉，既有端點空時明記空值，不冒充新表已存在。
+- 真110節點fixture及baseline故障先RED：9失敗／1未授權控制通過，SHA`33179FED36C4B30B192AF7BFA3D19A4A91FECC27B347A3BCA4B6FCE7FCCEAE5C`；Merge與SHA API RED4/4 SHA`2E22129BD53B1E9B20F7217C343E49A2A489CFAAB3F4BC642F96D409349709C5`；101 GREEN SHA`D470972E0405683909AE7770FF323F0DB8987E364617E5B2867689C91578FECC`。新增15強化案全過SHA`B3999896253F5783E83E99E5AC7F2F9F277696DCC9F547EC52EE2897B7C9F5FE`；Deployment2483/2483 SHA`3D63725B85BB735E8C9228A51715CD9EDA594D6899400B606FC04F68750DDD95`。中間CA1305及過早套在純解析的限制導致既有案例失敗均已修，不當環境限制；缺明列拒絕在真正plan/apply入口，歷史純解析仍能重建。
+- 新三plan：goodshepherd20 43項（F5新sendrecord及其欄／鍵），construction／association各274項，後兩組織無教會專屬表。完整路徑／orgID／檔SHA／plan SHA寫在外部`fs-normalization-review-20261128/plans.json`，SHA`3CDDDCFAE6ACC89ADE5A8AB9A91EC3013117E7E943181CB7A5BBD50CB9DEB0B7`。將與程式修正一起ClaudeOnly審查；未提前使用第3次apply。
+- WinRM先核D365APP01，三份原COPY_ONLY／CHECKSUM且VERIFYONLY通過的DB備份大小及SHA均重新相符，PSSession finally關閉；本輪讀回log SHA`1F1E4E844BF2E06DDCC4C6DF2CD879E329C2BE8FF15B17AD648B099832CF6883`，沒有RESTORE或DB設定變更。
+- 本節是進行中證據；全方案守門、ClaudeOnly及真正第3次apply結果在後續追加，不將離線／唯讀當FS完成。
+
+- 2026-11-28 22:49 Asia/Taipei (UTC+08:00)：本輪全方案守門exit0：Release66警告／0錯誤，build SHA`AB28CE87824E0682F9A38CF1C33CA8DBFBEED77408770B140AE78271B6DB4E8F`；28回合10218/10218、0失敗／0略過，tests SHA`FBD2A7C42390815D8502EE9DF2768ECE0E9E9E7E9834B9C071CBE771309E4079`；文件2166/0、Changed23/0、方案54項、Node32/32，docs SHA`535B934291D22A712AC819097B107DACF6B01B7A84F4A14C204C09FB32D34166`。單模型（使用者指定ClaudeOnly）審查已啟動，尚未取得結論，第三次apply未使用。
+
+### 2026-11-28 22:58 Asia/Taipei (UTC+08:00) 新關聯正規化守門與三份 plan 審查完成，尚未 apply
+
+- 程式樹固定為 `9f50406c182ecac1ea242c89bdc8cc0f67d1d8b7`。最終正式一般測試28回合、10218/10218、0失敗／0略過，build66警告／0錯誤；完整log SHA分別 `FBD2A7C42390815D8502EE9DF2768ECE0E9E9E7E9834B9C071CBE771309E4079`、`AB28CE87824E0682F9A38CF1C33CA8DBFBEED77408770B140AE78271B6DB4E8F`。文件2166/0、Changed23/0、方案54、進度32/32，log SHA `535B934291D22A712AC819097B107DACF6B01B7A84F4A14C204C09FB32D34166`。本節之後只有核定文件差異，依02A§10.3沿用此建置與一般測試。
+- 單模型（使用者指定 ClaudeOnly）首審 Critical0／High0，summary SHA `9B781C9D9C5A99BF64C7B19FC451964E77DEB2B4EBC2A3AF0CC33BB72041906B`；補審 Critical0／High0，summary SHA `F52848A6F45CB118B8F635D1DE2DB1F90556C46E82957476FAE29A114C2CAEB5`。首審讀完整新固定補值與baseline檔、其他核心diff／周邊；補審逐項核三份原plan及operations、owner、lookup目標／Merge與全部四觀察fixture，另核Guard增量／完整比較及Engine首寫順序。補審沒有重讀baseline檔全文、Guard Project／Read內部；兩輪均未執行測試或連實機，不能把主線守門當審查者獨立實跑。
+- 三plan檔SHA及operations已獨立核對：goodshepherd20 43項全屬F5新sendrecord，construction／association各274項、12新表、18 lookup、13 key，沒有四張教會專屬表。account／contact目標明列Merge=Cascade，其他NoCascade；owner與已核定政策一致，未重建舊表。plan manifest SHA `3CDDDCFAE6ACC89ADE5A8AB9A91EC3013117E7E943181CB7A5BBD50CB9DEB0B7`；逐項摘要 SHA `613F2A140101D932C6D848C495A1C8A2E7D2C41C17C1F5393BD6534630087132`。
+- 110節點fixture的路徑、型別與固定值均逐項相符；差異僅本計畫兩新lookup。contact無既有真實fixture，後兩組織仍以完整guard拒絕未知值；缺省節點不自動要求出現，實際值錯誤或未知節點一律不吸收。新表端不作舊表baseline比較，是既有範圍，不冒稱已觀察全部新表wire。
+- D365APP01唯讀驗身分與三備份大小／SHA讀回不變，log SHA `1F1E4E844BF2E06DDCC4C6DF2CD879E329C2BE8FF15B17AD648B099832CF6883`。本輪到本筆為止零D365寫入，特別第3次修正後apply仍未使用；合併推送後依核定順序持D365鎖先goodshepherd20，成功再construction／association。原完整baseline缺口仍false，只採22:05核定的現況相等與限定差異替代，未宣稱實機完成。

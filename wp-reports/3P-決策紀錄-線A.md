@@ -106,3 +106,7 @@
 | 2026-11-28 22:04 Asia/Taipei (UTC+08:00) | F5最後離線檢查點 | 清冊審查H1不能以首輪可放行結語略過；新決策指定立即合併後回FS | 真移除Dispose鎖mutation RED、production SHA恢復、修後10202及ClaudeOnly C0/H0；指定無頭Edge目視通過，rebase751600298保存六提交且兩C#SHA不變，因HTML變更再跑合併前守門 | code 6541037d0d9420c594210cdfda1a12691bc4daa7；review EC155991CBD7A852B56F597C1EC2D0C208A81466E07DEF285C43785C12C6F932；02A§13／§14及使用者本輪指示 | 不續開F5切片、不開F7、不預認F9；合併後立即FS核兩新lookup、baseline落檔與第三次apply，之後F3；完整Live及手機仍待補 |
 
 | 2026-11-28 22:18 Asia/Taipei (UTC+08:00) | F5合併守門 | 751600298帶入HTML需補最後全方案 | Release66警告／0錯誤、28回合10202/10202、文件2161/0、Changed61/0排除1、方案54、進度32/32均exit0；最後六份文件更新依02A§10.3沿用同程式樹建置與一般測試，只重驗文件／編碼／進度後合併 | build5B6B1DCD…、tests B04A9C7A…、docs4C17E5A7…；最終PNG FB548E3C…；ClaudeOnly C0/H0 | 合併保全整合樹他人草稿，不續F5切片，立即FS→F3 |
+
+| 2026-11-28 22:48 Asia/Taipei (UTC+08:00) | FS22:05決策 | F5 schema使歷史plan重驗不符，且明列Merge涉及其他包分層清單 | 歷史事件只用a1eebc7b3原定義／原hash重驗；正式部署重產三plan。依使用者明令僅補所有分層account/contact lookup的Merge，不替B實作F8/F12；其餘資料保留。固定server補值僅用本次新關聯，完整baseline首寫前落檔讀SHA；RED→GREEN及正式守門後才特別第3次apply | 新唯讀110節點全限兩新lookup、完整pub=unpub；原baseline缺口false；code9f50406c1、fixture650D5CFE…、RED33179FED… | 不改legacy core、不改舊關聯、不吞未知節點、不直接publish；F9由B已claim，不停回合等待 |
+
+| 2026-11-28 22:58 Asia/Taipei (UTC+08:00) | FS新決策守門結案 | 同程式樹10218全過，首審未完整核三plan，補審逐項核operations／owner／fixture後C0/H0 | 依02A§10.3不重跑同樹建置與一般測試，只重驗文件／編碼／進度後快轉推送；第三次apply在推送後、持D365鎖下只送一次 | code9f50406c1；兩輪ClaudeOnly summary9B781C9D…／F52848A6…；原baseline缺口false與contact未觀察面保留 | F7與F9由B，架構登錄另做小切片不混FS程式；不以結束回合等待 |
