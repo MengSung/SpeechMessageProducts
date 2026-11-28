@@ -1,0 +1,12 @@
+{
+  "risk": "medium",
+  "title": "調查線 A／線 B 進度並製作圖解報告",
+  "status": "completed",
+  "createdAt": "2026-11-27T17:31:00+08:00",
+  "id": "line-a-b-progress-visual-report",
+  "currentPhase": "completed",
+  "branch": "1.0.0.12.GoodShepherd2.0.Worktree",
+  "complexity": "M",
+  "domain": "docs",
+  "nextAction": "報告已交付：C:\\Users\\Administrator\\.codex\\visualizations\\2026\\11\\27\\01a21c52-cc6a-7213-a27a-62b1f406e42d\\線A線B進度圖解-2026-11-27.html"
+}
