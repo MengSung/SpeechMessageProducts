@@ -3,7 +3,7 @@
  * 目的與定位：保護F10金流核心的診斷輸出遮罩；所有卡號與Token都是不可連線的合成字串，
  * 不讀取商店設定、不呼叫銀行、不把測試結果冒稱實機或宿主日誌驗收。
  * 主要功能與流程：以真實Sanitize及Sinopac回呼parser驗證短Token、含分隔符／內嵌卡號、
- * ATM精確白名單與偽裝欄位、密碼／授權鍵、句點／斜線PAN；斷言診斷不含原值並維持合法付款指示。
+ * ATM精確白名單與偽裝欄位、密碼／授權鍵、可見／不可見分隔PAN；斷言診斷不含原值並維持付款指示。
  * 使用邊界與維護：每案只擁有輸入與輸出字典；128個並行操作全部由Task.WhenAll排空，
  * 沒有I/O、連線、timer或全域可變測試狀態。輸入不得被修改，A/B輸出不可互相覆寫；
  * ProviderTransactionId仍是後續查詢所需的明確操作值，不能與可供log的診斷字典混為一談。
@@ -126,6 +126,18 @@ public sealed class PaymentDiagnosticsSanitizerTests
     [InlineData("4111·1111·1111·1111")]
     [InlineData("4111−1111−1111−1111")]
     public void Sanitizer_card_punctuation_variants_are_masked(string value)
+    {
+        PaymentDiagnosticsSanitizer.Sanitize(new Dictionary<string, string> { ["detail"] = value })["detail"]
+            .Should().Be("411111******1111");
+    }
+
+    /// <summary>格式與組合字元可在顯示時隱藏；注入不可見分隔符，診斷不得留下可視完整卡號。</summary>
+    [Theory]
+    [InlineData("4111\u200b1111\u200b1111\u200b1111")]
+    [InlineData("4111\u00ad1111\u00ad1111\u00ad1111")]
+    [InlineData("4111\u20601111\u20601111\u20601111")]
+    [InlineData("4111\u03011111\u03011111\u03011111")]
+    public void Sanitizer_invisible_or_combining_card_separators_are_masked(string value)
     {
         PaymentDiagnosticsSanitizer.Sanitize(new Dictionary<string, string> { ["detail"] = value })["detail"]
             .Should().Be("411111******1111");

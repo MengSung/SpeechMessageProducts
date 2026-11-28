@@ -4,7 +4,7 @@
  * provider共同呼叫，不解析付款授權、不入帳，也不擁有宿主logger或Exception.log。
  * 主要功能與流程：先遮蔽含密碼／授權標頭及sign別名的機密鍵，再處理Token；少於16字元完整遮蔽，其餘保留首尾
  * 四字元格式。只有精確ATM付款指示欄位可保留原值；其他值以單次線性掃描遮蔽13–19位數字
- * 卡號，涵蓋空白、Unicode標點／符號及描述中的多組卡號，保持前六後四顯示契約；有分隔符且
+ * 卡號，涵蓋非字母數字的分隔字元（含不可見格式字元）及描述，保持前六後四顯示契約；有分隔符且
  * 超過19位的疑似合併區段一律完整遮蔽，不能靠附加郵遞區號等數字讓完整卡號漏出。
  * 使用邊界與維護：輸入字典與非null字串由呼叫端擁有，每次回傳獨立字典；本檔只持有固定
  * 欄位名稱，不保存原值、使用者、profile或跨操作快取。最多保留本次輸入與輸出字串生命期，
@@ -88,7 +88,7 @@ public static class PaymentDiagnosticsSanitizer
     }
 
     /// <summary>
-    /// 單向掃描所有數字及空白／Unicode標點／符號區段；13–19位卡號只保留前六後四。
+    /// 單向掃描數字及非字母數字的分隔區段；涵蓋格式、組合、控制字元，13–19位保留前六後四。
     /// 每個字元最多掃描一次，固定19字元scratch不隨輸入增加，且未命中時直接回原字串。
     /// 超過19位的純業務數字不截取部分誤當卡號；有分隔符的過長候選完整遮蔽，避免把卡號與
     /// 相鄰數字合併後誤判為非卡號。輸出只由本次區域builder擁有。
@@ -123,7 +123,7 @@ public static class PaymentDiagnosticsSanitizer
                     count++;
                     digitsEnd = position + 1;
                 }
-                else if (char.IsWhiteSpace(character) || char.IsPunctuation(character) || char.IsSymbol(character)) gapAfterDigit = true;
+                else if (!char.IsLetterOrDigit(character)) gapAfterDigit = true;
                 else break;
                 position++;
             }
