@@ -1,5 +1,5 @@
 # FS 結構分層與三組織佈署
-更新：2026-11-28 15:22 Asia/Taipei (UTC+08:00)
+更新：2026-11-28 15:35 Asia/Taipei (UTC+08:00)
 本包原始起點：`601d5056825eec30299432c054e867deb1e6b790`；歷史同步基線：`2da59fac62aab177a05efcba07132b69616b4243`（2026-11-26）；本輪修正起點：`36d4c49724fe90b522304048d3bec051ea710134`；本輪程式原提交 `2e6de8d0e14bc5a3d86423cc33104ef08db5519c`（重基線後 `c4cf53a63`）；最新整合基線 `e2eac3c38587469c9a250362493b2ba3908e102c`；重基線報告提交 `1bfe1a23e945118cd38dc578247a6f16ad087115`。原程式與先前修正提交：`64679a87f`、`9af227811`、`bd22905fc`。
 狀態：自動測試通過（實機待補）；原始formxml reader與連線池必要修正已完整9,566/9,566，原始reader21檔ClaudeOnly無Critical／High；pool補審遇quota未取得外部輸出，依02 §4本地自審無未修Critical／High。首次apply首寫前拒絕、零schema/UI寫入；接續整合後重產三份plan共同受審，再持D365鎖修正重試。
 
@@ -289,3 +289,13 @@ FS無手機步驟；手機畫面集中M1。目前進度頁目視亦待補：先�
 - 修後 Release 全方案增量建置 0 警告／0 錯誤，SHA-256 `F9B6634C360F35C1DEE3B7D9EB7EB9F2CBF76CFB5DEBC94A78C9062E6F309643`；完整一般 9,566/9,566、28 組件、0 失敗／0 略過，SHA-256 `70242CB6ECC55C2C1602F550B1B8B5549C08F1684FB3E35C825B70D64B0530AC`，Hosting 347/347。這次才是 pool 新修正的完整通過結果；原 9,564/1 保留為故障歷史。
 - 文件 2,099/0（SHA-256 `6B34DD6366A6A818D765CBFC00B2E0C91214FEC60BB751DCAC5EC66D280841EB`）、Changed 編碼 53/0／排除1（`C977B2AB1D86BFEE8ED90146551A6C2DB60AB09EDF59AE7E1C1F93509E401EEF`）、進度32/32（`E70A634C556CDEEED2B12DB3083AB17E470B32EEBAB9A1C04DEA2A77CFAB1DB1`）、方案54項且未增減。此後只有文件變更，依02A §10.3沿用本次程式相同的建置及一般測試，不重跑。
 - 主線單模型（使用者指定 ClaudeOnly）補審入口 exit3，`quotaBlocked=true`，內部兩次均回 weekly limit，沒有可用輸出，**本次未取得外部審查**。runner log SHA-256 `AB47F7617D28BC120A28A1FE2CF787BAF3D649A742AB0F9B37533AA0F3C2139F`；不第三次、不切 Gemini。依02 §4入口失敗規則做永久隔離／資源護欄自審，未發現未修Critical／High；本地完整清單 SHA-256 `B012C5E394D1D5B6E39608777EF499B2C5597D5955182CB3E12C6DBA91E52419`。02指定的同名跨使用者審查指南在本樹不存在，沒有假稱已讀，而以AGENTS永久規則及00 §2.4逐項核對。終點整體審查仍須涵蓋新pool修復與F0補充文件。
+
+### 2026-11-28 15:34 Asia/Taipei (UTC+08:00) 三份新 plan 共同核對與 apply 修正後重試前置
+
+- `goodshepherd20` 新plan `artifacts/d365/goodshepherd20/20261128-072632-5028737-fabc0357ba2f470ba5b69c533f28e2c8/schema-plan.json`：schema operations=164、UI changes=3，檔案SHA-256 `540DBA9875777D7BE17A2B5E3396377A1B5DA5D5A88B55F5074C87BA00E47646`。
+- `construction` 新plan `artifacts/d365/construction/20261128-072756-1972210-576202e5b9ab4bf0b83ad747da646d21/schema-plan.json`：schema operations=216、UI changes=3，檔案SHA-256 `756A4AF6D2495B2247F4C5DD73AA7632384E3821B637CAE396A0C9A3A239A9EB`。
+- `association` 新plan `artifacts/d365/association/20261128-072908-8947917-ba6e1f90f5124288b05939dc65350b7c/schema-plan.json`：schema operations=216、UI changes=3，檔案SHA-256 `9158D7298B84E2C418C8869100185FD43DF37D710BABB3AACE33E6549E8AD17D`。
+- 三份與前次已受審plan逐值完整差分，僅 `createdUtc`、`sha256`、`ui.fingerprint` 變動；所有schema operations、organizationId、schemaHash、retainedOwnership及UI定義／正式ID／目標不變。先前舊指紋不再使用。摘要SHA-256 `E1DAFCA67D5E46B9D2D9229333E0C2CB7B1DB055C4D89858B77884004F967A2E`。本機交叉檢查首次因漏列允許的CreatePublisher/CreateSolution而拒絕，查明這兩類與舊plan完全相同、均純新增後修正本機摘要清單；未更動產品守門或plan。
+- 三份一起送單模型（使用者指定ClaudeOnly）入口，內部兩次仍quota無輸出，**新plan未取得外部審查**，不第三試；runner SHA-256 `89AE5937F6EB310021AE544A2029F13A7E82CB2A9EEF7C41ADCA1BFCDBD8337E`。依02 §4入口失敗規則共同本地補審（含全部新entity ownership、精確保留ID、產品隔離及UI定向發布），無未修Critical／High，證據SHA-256 `3C7DE55BD5D239544684630C55C88EDC3F98CA8ECD49DFCA4FE0B5B1F0BBD0BC`，終點需涵蓋；不是把quota稱審查成功。
+- 已驗真遠端主機D365APP01，再次讀回三個12:59 before DB備份SHA全相同；唯讀回核log SHA-256 `9B7E6B35CB8DA442536ADB3AC29CB05FDD43B76ADB4DCE2B76BD99DDA05B6A94`，PSSession finally清理。原COPY_ONLY/CHECKSUM及VERIFYONLY通過，沒有還原演練。本輪不重做備份、不改SQL服務或正式資料庫。
+- 回復路徑：失敗先停、保留同operation的before/after與完整差分；若真的需要DB還原，只能另核對同一測試DB/backup及目前組織身份，同持D365→SQL鎖停止相依寫入後規劃該單DB RESTORE，不自動還原整台VM或其他組織。未確認部分套用時不原樣重試。接著將以這三份新plan做goodshepherd20修正後apply重試1/2，construction／association為首次apply；尚未執行。
