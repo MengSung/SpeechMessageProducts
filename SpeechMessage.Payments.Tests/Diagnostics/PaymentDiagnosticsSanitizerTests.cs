@@ -106,6 +106,31 @@ public sealed class PaymentDiagnosticsSanitizerTests
         result["detail"].Should().NotContain(value);
     }
 
+    /// <summary>九至十五字元Token不能只藏一小部分；原始sign別名亦不可因另有hash副本而漏出。</summary>
+    [Theory]
+    [InlineData("BindToken", "abcd12345")]
+    [InlineData("PayToken", "abcd12345678")]
+    [InlineData("access_token", "abcd12345678901")]
+    [InlineData("sign", "synthetic-signature")]
+    public void Sanitizer_medium_tokens_and_original_sign_are_fully_masked(string key, string value)
+    {
+        PaymentDiagnosticsSanitizer.Sanitize(new Dictionary<string, string> { [key] = value })[key].Should().Be("***");
+    }
+
+    /// <summary>注入其他ASCII或Unicode標點／符號；卡號不得因同形態分組使用不同分隔字元而漏出。</summary>
+    [Theory]
+    [InlineData("4111_1111_1111_1111")]
+    [InlineData("4111,1111,1111,1111")]
+    [InlineData("4111|1111|1111|1111")]
+    [InlineData("4111:1111:1111:1111")]
+    [InlineData("4111·1111·1111·1111")]
+    [InlineData("4111−1111−1111−1111")]
+    public void Sanitizer_card_punctuation_variants_are_masked(string value)
+    {
+        PaymentDiagnosticsSanitizer.Sanitize(new Dictionary<string, string> { ["detail"] = value })["detail"]
+            .Should().Be("411111******1111");
+    }
+
     /// <summary>只有完整ATM欄位名稱可例外；在機密或任意欄位名稱嵌入白名單片段不能繞過遮罩。</summary>
     [Theory]
     [InlineData("atm_pay_no_secret", "secret-canary", "***")]
