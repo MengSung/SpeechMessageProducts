@@ -12,6 +12,8 @@
 部署helper獨占單次recorder並拒絕所有inner服務呼叫，完成或失敗皆Dispose排空。
 P0／F2平台SQL唯讀查驗直接使用方案既有中央SqlClient版本；命令固定測試VM與Strict公鑰釘選，
 不建立資料庫、不調整登入或執行CRM SQL；每次連線停用池化並確定釋放。
+F12 借用 Scheduling 的既有持久化 Channel 速率預算，並以既有 ZXing.Net／ImageSharp
+產生只交付手機使用的邀請 QR；每個命令自行擁有短命容器、圖像及檔案，不啟動排程 workers。
 驗證需包含focused投影測試、MSBuild Compile來源唯一性與架構／重複來源守門。
 
 使用邊界與維護：修改前先核對引用此檔的專案、頁面、腳本或CI步驟，保留既有參數、輸出及失敗結束碼。
@@ -29,9 +31,12 @@ P0／F2平台SQL唯讀查驗直接使用方案既有中央SqlClient版本；命�
   <ItemGroup>
     <PackageReference Include="Microsoft.Extensions.Configuration.UserSecrets" />
     <PackageReference Include="Microsoft.Data.SqlClient" />
+    <PackageReference Include="ZXing.Net" />
+    <PackageReference Include="SixLabors.ImageSharp" />
     <ProjectReference Include="../ToolUtility/ToolUtility.csproj" />
     <ProjectReference Include="../LineMessagingProcessor.Core/LineMessagingProcessor.Core.csproj" />
     <ProjectReference Include="../SpeechMessageProducts.GoodShepherd.Core/SpeechMessageProducts.GoodShepherd.Core.csproj" />
+    <ProjectReference Include="../SpeechMessage.Scheduling/SpeechMessage.Scheduling.csproj" />
     <InternalsVisibleTo Include="SpeechMessage.Dynamics.Deployment.Tests" />
   </ItemGroup>
   <ItemGroup>

@@ -4,11 +4,14 @@
  * UMD 匯出供 node:test 直接驗證，瀏覽器只在 router 頁面自動啟動。
  * 主要功能與流程：首頁以固定同源 config 取得部署 LIFF ID，等待 SDK init 成功，
  * 才讀 liff.state 查詢參數並以精確鍵派送本機白名單；純 bootstrapRouter 只呼叫
- * onRoute，真正導頁由首頁提供的 callback 負責。內建 whoami 不可覆寫，F12 可
- * 登錄 enroll 等固定 /liff/ 單層 HTML 頁面，拒絕原型鍵及任何需正規化的路徑。
+ * onRoute，真正導頁由首頁提供的 callback 負責。內建 whoami 不可覆寫，F12 以
+ * 顯式 enroll 本機白名單接入；首頁邀請直接在同一操作消費 fragment，不把憑證
+ * 附加至導頁。獨立 enroll 頁使用同一流程，拒絕原型鍵及需正規化的路徑。
  * 信任與隔離邊界：設定與 state 都不是授權，沒有 ID 顯示尚未設定，不產生替代值。
- * 本檔不讀取身分或 token、不持有使用者快取；頁面模組共用的 helper 不保存每頁
- * 狀態。GET 禁止 cookie、快取、轉址與 referrer，身分頁自行提供單次 Bearer。
+ * 共用 helper 不保存每頁身分；F12 只在初始化後的單次操作讀取邀請及 ID Token，
+ * 立即以固定本機路徑清除網址，操作結束清參照，沒有 storage、cookie 或使用者快取。
+ * JavaScript 字串實體回收由引擎管理，不宣稱安全覆寫；GET 與 POST 均禁止 cookie、
+ * 快取、轉址與 referrer。伺服器才負責邀請、租戶及角色授權，頁面不推斷權限。
  * 資源與失敗：每次頁面啟動唯一 scope 擁有 AbortController、離頁 listener 及
  * 最多一個進行中操作的十秒 timer。操作完成清 timer／abort listener，pagehide
  * 取消請求並執行清理；SDK init 沒有取消 API，因此只停止等待且禁止後續讀取或
@@ -24,11 +27,14 @@
         root.LiffRouter = factory();
         if (root.document && root.document.body.dataset.liffPage === 'router') {
             void root.LiffRouter.startRouterPage(root);
+        } else if (root.document && root.document.body.dataset.liffPage === 'enroll') {
+            void root.LiffRouter.startEnrollmentPage(root);
         }
     }
 }(typeof globalThis !== 'undefined' ? globalThis : this, function () {
     'use strict';
     const WHOAMI = '/liff/whoami.html';
+    const ENROLL = '/liff/enroll.html';
     const OWN = Object.prototype.hasOwnProperty;
     const GUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
@@ -169,14 +175,19 @@
             if (!config) { status.textContent = '尚未設定'; scope.dispose(); return scope; }
             await bootstrapRouter({ init: options => scope.waitFor(win.liff.init(options)) }, {
                 liffId: config.liffId,
+                routes: config.isDevelopment ? { enroll: ENROLL } : {},
                 readState() {
                     scope.assertActive();
                     const values = new win.URLSearchParams(win.location.search).getAll('liff.state');
                     if (values.length > 1) throw new Error('Ambiguous route');
                     return values.length === 0 ? null : values[0];
                 },
-                onRoute(target) {
+                async onRoute(target) {
                     scope.assertActive();
+                    if (target === ENROLL) {
+                        await consumeEnrollment(win, scope);
+                        return;
+                    }
                     win.location.replace(target);
                 }
             });
@@ -187,5 +198,64 @@
         return scope;
     }
 
-    return Object.freeze({ bootstrapRouter, startRouterPage, createPageScope, requestJson, loadConfig, isGuid });
+    /**
+     * 初始化已完成的唯一邀請操作。fragment 是明確 handoff，讀取後立即改寫固定
+     * URL；只接受單一正規 token，沒有 tenant／role／userId。ID Token 每次向 SDK
+     * 取得，不保存在模組、DOM listener 或 storage；完成清除局部參照，禁止自動重試。
+     * fetch 與本文取消共用十秒及離頁 signal，晚到完成只能清理，不能發布成功。
+     */
+    async function consumeEnrollment(win, scope) {
+        const status = win.document.getElementById('page-status');
+        let token = '', idToken = '';
+        try {
+            scope.assertActive();
+            const fragment = win.location.hash;
+            win.history.replaceState(null, '', ENROLL);
+            const parameters = new win.URLSearchParams(fragment.startsWith('#') ? fragment.slice(1) : '');
+            const values = parameters.getAll('token');
+            if (Array.from(parameters.keys()).length !== 1 || values.length !== 1 || values[0].length !== 43 ||
+                !/^[A-Za-z0-9_-]{42}[AEIMQUYcgkosw048]$/.test(values[0])) throw new Error('Invalid invitation');
+            token = values[0];
+            idToken = win.liff.getIDToken();
+            if (typeof idToken !== 'string' || !idToken || idToken.length > 16384) throw new Error('Identity unavailable');
+            status.textContent = '正在加入測試教會，請稍候…';
+            const code = await scope.waitFor((async () => {
+                const response = await win.fetch('/api/liff/dev/enroll', {
+                    method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${idToken}` },
+                    body: JSON.stringify({ token }), credentials: 'omit', cache: 'no-store', redirect: 'error',
+                    referrerPolicy: 'no-referrer', signal: scope.signal
+                });
+                // 無論成功、拒絕或離頁後才到達，都關閉本文；不讀取可能含有錯誤或身分的資料。
+                if (response.body) await response.body.cancel();
+                scope.assertActive();
+                return response.status;
+            })());
+            scope.assertActive();
+            status.textContent = code === 200 ? '已加入測試教會。' : '無法加入測試教會。';
+        } catch (_error) {
+            if (!scope.closed) status.textContent = '無法加入測試教會。';
+        } finally { token = ''; idToken = ''; }
+    }
+
+    /**
+     * 獨立邀請頁的唯一 owner。先讀固定公開 config 並確認 Development，再完整等待
+     * SDK init，最後才讀 fragment／ID Token；所有出口關閉 scope、timer 與 listener。
+     * 手機與官方 SDK 的 fragment 保留行為仍須實機驗收，離線測試不能冒稱完成。
+     */
+    async function startEnrollmentPage(win) {
+        const scope = createPageScope(win);
+        try {
+            const config = await loadConfig(win, scope);
+            scope.assertActive();
+            if (!config || !config.isDevelopment) throw new Error('Enrollment unavailable');
+            await scope.waitFor(win.liff.init({ liffId: config.liffId }));
+            scope.assertActive();
+            await consumeEnrollment(win, scope);
+        } catch (_error) {
+            if (!scope.closed) win.document.getElementById('page-status').textContent = '無法加入測試教會。';
+        } finally { scope.dispose(); }
+        return scope;
+    }
+
+    return Object.freeze({ bootstrapRouter, startRouterPage, startEnrollmentPage, createPageScope, requestJson, loadConfig, isGuid });
 }));

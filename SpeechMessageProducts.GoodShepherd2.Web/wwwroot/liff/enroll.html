@@ -1,0 +1,25 @@
+<!doctype html>
+<!--
+檔案整體說明
+目的與定位：GoodShepherd2 F12 的開發測試邀請頁，只提供繁中固定狀態與官方 LIFF SDK 載入，不讓頁面決定租戶、身分或角色。
+主要功能與流程：defer 順序先載入官方 SDK，再由 liff-router 的 enroll 入口取得伺服器公開設定、完成初始化，消費 #token 邀請交接並立即清除網址，最後只送一次受 Bearer 保護的固定 POST。成功顯示已加入，所有拒絕都使用相同固定文案，不呈現 Contact ID、userId 或錯誤本文。
+使用邊界與維護：本 HTML 不存憑證、不建立 cookie、儲存、listener 或背景工作，動態內容由 JS 使用 textContent。referrer 明確禁止傳送；token 僅留在 JS 單次操作，離頁與期限清理由 page scope 負責。HTTP 路由是否存在仍由伺服器 Development 與 Enabled 開關決定，頁面不能授權。驗證須執行 node:test 邀請及既有路由回歸並檢查 UTF-8 無 BOM、CRLF、末尾 CRLF；離線合成結果不等同手機及官方 SDK 驗收。
+-->
+<html lang="zh-Hant">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="referrer" content="no-referrer">
+    <title>加入測試教會｜好牧人</title>
+    <script defer src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+    <script defer src="/liff/liff-router.js"></script>
+</head>
+<body data-liff-page="enroll">
+    <main>
+        <h1>加入測試教會</h1>
+        <p>此邀請僅供開發環境的測試教會使用。</p>
+        <p id="page-status" role="status">正在確認邀請，請稍候…</p>
+        <noscript>請啟用 JavaScript 後重新開啟邀請。</noscript>
+    </main>
+</body>
+</html>

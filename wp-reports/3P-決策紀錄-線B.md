@@ -86,3 +86,8 @@
 | 2026-11-28 14:29 Asia/Taipei (UTC+08:00) | F6實機 | 保留公開映射後是否把整包標完成 | D365→SQL雙鎖部署成功，Live3P2／2；頁面／JS雜湊、config及匿名401均實機。Host完成真SQL選擇表startup才對外服務，但T01／FS／F3資料及M1真身分仍外部相依，維持實機待補 | 02A§4／§5／§8；9516／9516及ClaudeOnly無Critical／High；RunId20261128T062710Z-b294aab3904f430bb8471c1868d7c024 | 按固定release精準回復，不整站Restore；資料表正式歸F6，不當暫存清掉；完整SHA見F6報告 |
 
 | 2026-11-28 14:32 Asia/Taipei (UTC+08:00) | F4／F12前置 | 平台SQL與公開站已通，但F4是否可在T01及FS之前啟用 | 依02A§5第4項明列前面三項相依，不跳過T01成功與FS／F3真租戶重驗。VM現Scheduling未配置且不冒稱實機；F4剩餘分類外部阻擋，F10仍計可自行處理一包，接回既有F12唯一離線包，不另開新包 | 02A§4／§5／§9；線A狀態仍FS apply前，T01同一路徑401證據保留；F4報告更新既有過期待補 | 相依一完成優先回補F4實機；不以分類解除任何測試或完成條件，不把LocalDB寫成VM |
+
+| 2026-11-28 15:13 Asia/Taipei (UTC+08:00) | F12 | SDK交易回應遺失不可失去清理範圍 | Create前保存命令產生並傳給正式Create主鍵的GUID清單，逐筆核對回應；失敗重讀父子scope精確回復，回復失敗保留manifest與原始Exception | 01 F12、02§10及永久ID／隔離規則；不以draft key代替正式ID | 未知結果不當作零寫入；只清本租戶 |
+| 2026-11-28 15:13 Asia/Taipei (UTC+08:00) | F12 | R9禁止Deployment自有HTTP；alias已刪後需可信menu續跑身份 | 在Core新增短命單Channel傳輸lease，不改守門；首次LINE副作用前以CurrentUser DPAPI綁org／產品／Channel／代碼原子存ID-only計畫 | 01 F12、02§10；所有新增檔隨本包守門／ClaudeOnly，不提交.ccg | SQL budget不啟worker；持整機及資源鎖，失敗保留計畫 |
+
+| 2026-11-28 15:36 Asia/Taipei (UTC+08:00) | F12 | 整合發現建構／清理雙故障遮原錯、CLI未指定期望時強制第一個Channel、以及無名額建立無法復原 | 保留原錯及清理錯Aggregate；配發仍由F3決定，CLI以實際Channel核對公開白名單；只有明確未配發、零邀請及零slot可略過LINE並精確清理。撤銷邀請後有界重盤點、取消保留manifest；LINE成功且計畫刪除後才SDK清理 | 01 F12；00隔離及失敗可追查；02 §10；RED→GREEN證據見F12報告；部署F12聚焦232/232 | 本輪尚未合併；保留既存manifest及DPAPI計畫，不放寬範圍；所有實機仍待FS／F3 |

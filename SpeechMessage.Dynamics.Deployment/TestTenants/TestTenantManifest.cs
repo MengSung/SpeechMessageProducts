@@ -3,7 +3,7 @@
 目的與定位：保存 F12 測試租戶建立作業的最小本地清理清單，供後續 cleanup 命令精確識別本次建立的 Dataverse 資料列。
 主要功能與流程：TestTenantRecordId 將允許的實體邏輯名稱與非空資料庫 GUID 綁成穩定複合身份；TestTenantManifest 複製並凍結輸入集合、驗證產品／組織／租戶代碼及必要主記錄，將版本化 JSON 原子建立於 artifacts/test-tenants/{code}.json，或以有界、嚴格 JSON parser 載入並核對呼叫端要求的組織與代碼。
 依賴與輸出：只使用本機檔案系統與 System.Text.Json，不持有 SDK、LINE client、SQL 連線、token、LINE userId 或個資。呼叫端必須把固定 artifacts 根目錄交給本類，不能由 request 決定任意刪除路徑；暫存檔由當次 Save 呼叫唯一擁有，成功後原子移至最終路徑，失敗時只清理自身暫存檔。
-使用邊界與維護：manifest 是 cleanup 的必要限制條件但不是遠端授權；cleanup 仍須依資料庫父子 lookup 重驗每筆資料屬於 manifest 的租戶。只允許明列的三個測試組織、三個產品、有限代碼字元與受控實體清單；最多 256 個記錄身份、JSON 最多 64 KiB，重複實體+GUID、未知欄位、錯誤版本、符號連結、範圍不符或缺少 account／slotrequest 一律 fail closed。原始邀請碼及使用者輸入不進入 manifest。
+使用邊界與維護：manifest 是 cleanup 的必要限制條件但不是遠端授權；cleanup 仍須依資料庫父子 lookup 重驗每筆資料屬於 manifest 的租戶。只允許明列的三個測試組織、三個產品、有限代碼字元與受控實體清單；最多 256 個記錄身份、JSON 最多 64 KiB，重複實體+GUID、未知欄位、錯誤版本、符號連結、範圍不符或缺少 account／slotrequest 一律 fail closed。除已驗證公開代碼與範圍外，原始邀請碼、LINE userId、姓名及其他個資不進入 manifest。
 失敗與驗證：儲存採同目錄 CreateNew 暫存檔、Flush(true) 後不覆寫搬移；讀取使用嚴格重複屬性拒絕、深度及大小上限。合成測試驗證白名單往返、身份衝突及跨組織拒絕；通過只代表離線格式契約成立，不代表 D365 實機部署或資料清理。
 */
 using System;
@@ -35,7 +35,7 @@ internal sealed record TestTenantRecordId
     /// <summary>明確列於 manifest 白名單的 D365 實體邏輯名稱。</summary>
     internal string EntityLogicalName { get; }
 
-    /// <summary>伺服器產生且非空的資料庫主鍵；不得以重試鍵或暫存鍵替代。</summary>
+    /// <summary>非空正式資料庫主鍵；建立作業可預先指定於 CreateRequest.Target.Id，不得以重試鍵或暫存鍵替代。</summary>
     internal Guid Id { get; }
 }
 
@@ -50,7 +50,7 @@ internal sealed class TestTenantManifest
     private static readonly HashSet<string> ProductNames = new(StringComparer.Ordinal)
         { "GoodShepherd2", "GoodButler", "GoodGuild" };
     private static readonly HashSet<string> AllowedEntities = new(StringComparer.Ordinal)
-        { "account", "contact", "new_slotrequest", "new_roleassignment", "new_testinvite" };
+        { "account", "contact", "new_slotrequest", "new_role", "new_roleassignment", "new_testinvite" };
 
     /// <summary>以唯讀查詢檢查固定實體白名單，不向其他型別暴露可變集合。</summary>
     internal static bool IsAllowedEntity(string entity) => AllowedEntities.Contains(entity);

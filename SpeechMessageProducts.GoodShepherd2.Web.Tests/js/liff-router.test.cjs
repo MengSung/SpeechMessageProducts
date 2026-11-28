@@ -5,6 +5,8 @@
  * 主要功能與流程：每案建立獨立 VM、SDK Proxy、頁面參數探針及受控 Promise，
  * 驗證 init 成功前零參數讀寫，初始化拒絕、未知鍵、原型鍵與危險目標零路由。
  * 內建 whoami 與 F12 enroll 擴充必須精確派送；純路由不得自行改寫 location。
+ * F12 邀請頁另以可控 fetch、fragment 與 history 驗證初始化後才讀憑證、立即清除網址、
+ * 唯一 POST 不帶 cookie／referrer、不把敏感值寫入畫面或儲存，離頁後零晚到發布。
  * 邊界與資源：所有值皆為合成資料，VM 不提供網路、計時器或真正瀏覽器，
  * 不代表 LINE SDK、手機或部署站台驗收。每案 owner 的 after hook 釋放懸置
  * 初始化並排空 bootstrap，測試與 hook 均有有界逾時，不保留身分或共用可變資料。
@@ -415,4 +417,161 @@ for (const target of ['/liff/enroll.html\n', '/liff/enroll.html\r\n']) {
 test('router_trailingNewlineKeyRejectedEvenWhenOwnRoute', TEST_OPTIONS, async t => {
     const h = createHarness('enroll\n', { ['enroll\n']: ENROLL_PAGE }); const completion = startRouter(t, h);
     h.resolveInit(); await completion; assert.deepEqual(h.routeCalls, []); assertNoUnsafeEffects(h);
+});
+
+const ENROLL_TOKEN = 'A'.repeat(43);
+
+/** F12 每案獨立頁面 owner；SDK、DOM、timer 與 fetch 都是合成探針，不執行外部 HTTP。 */
+function enrollmentHarness(t, settings = {}) {
+    const win = new EventTarget();
+    const status = { textContent: '', set innerHTML(_value) { assert.fail('禁止 innerHTML'); } };
+    const calls = [], history = [], navigation = [], violations = [], timers = new Set();
+    let resolveInit, rejectInit, initialized = false, reads = 0, cancelled = 0, work;
+    const initialization = new Promise((resolve, reject) => { resolveInit = resolve; rejectInit = reject; });
+    win.AbortController = AbortController;
+    win.URLSearchParams = URLSearchParams;
+    win.document = { getElementById: () => status };
+    win.history = { replaceState(_data, _title, target) {
+        if (!initialized) violations.push('history before init');
+        history.push(target);
+    } };
+    win.location = {
+        get search() { if (!initialized) violations.push('search before init'); return settings.search ?? '?liff.state=enroll'; },
+        get hash() { if (!initialized) violations.push('hash before init'); reads++; return settings.hash ?? '#token=' + ENROLL_TOKEN; },
+        replace(target) { navigation.push(target); }
+    };
+    win.liff = new Proxy({
+        init() { return initialization.then(() => { initialized = true; }); },
+        getIDToken() { return settings.idToken === undefined ? 'synthetic-id-token' : settings.idToken; }
+    }, { get(target, key) {
+        if (key !== 'init' && !initialized) violations.push('SDK before init');
+        return target[key];
+    } });
+    win.setTimeout = (callback, delay) => {
+        const id = setTimeout(() => { timers.delete(id); callback(); }, delay);
+        timers.add(id); return id;
+    };
+    win.clearTimeout = id => { timers.delete(id); clearTimeout(id); };
+    for (const name of ['localStorage', 'sessionStorage', 'console']) {
+        Object.defineProperty(win, name, { get() { assert.fail('禁止儲存或記錄憑證'); } });
+    }
+    win.fetch = async (url, init) => {
+        calls.push({ url, init });
+        if (url === '/api/liff/config') return { ok: true, status: 200,
+            json: async () => ({ liffId: 'synthetic-liff', isDevelopment: settings.development !== false }) };
+        if (settings.pending) return settings.pending(init);
+        return { ok: settings.status === undefined || settings.status === 200, status: settings.status ?? 200,
+            body: { async cancel() { cancelled++; } }, json() { assert.fail('不得消費伺服器回應中的身分或例外'); } };
+    };
+    const product = require(findRouterPath());
+    t.after(async () => {
+        win.dispatchEvent(new Event('pagehide'));
+        resolveInit();
+        if (work) await work;
+        assert.equal(timers.size, 0);
+        assert.deepEqual(violations, []);
+    });
+    return { win, calls, history, navigation, status, timers, resolveInit, rejectInit,
+        get reads() { return reads; }, get cancelled() { return cancelled; },
+        start(routerPage = false) {
+            assert.equal(typeof product.startEnrollmentPage, 'function', 'F12 必須提供可等待的真實邀請頁入口');
+            work = routerPage ? product.startRouterPage(win) : product.startEnrollmentPage(win);
+            return work;
+        } };
+}
+
+/** 只讓已排程的非同步頁面續行，無定時輪詢或長期等待。 */
+async function enrollmentFlush() { await new Promise(resolve => setImmediate(resolve)); }
+
+test('enroll waits for init, scrubs fragment and posts only invitation', TEST_OPTIONS, async t => {
+    const h = enrollmentHarness(t); const work = h.start(); await enrollmentFlush();
+    assert.equal(h.reads, 0); assert.equal(h.calls.length, 1); assert.deepEqual(h.history, []);
+    h.resolveInit(); const scope = await work;
+    assert.deepEqual(h.history, [ENROLL_PAGE]); assert.equal(h.calls.length, 2);
+    const request = h.calls[1];
+    assert.equal(request.url, '/api/liff/dev/enroll');
+    assert.equal(request.init.method, 'POST');
+    assert.deepEqual(JSON.parse(request.init.body), { token: ENROLL_TOKEN });
+    assert.equal(request.init.headers.Authorization, 'Bearer synthetic-id-token');
+    assert.equal(request.init.headers['Content-Type'], 'application/json');
+    assert.equal(request.init.credentials, 'omit'); assert.equal(request.init.cache, 'no-store');
+    assert.equal(request.init.redirect, 'error'); assert.equal(request.init.referrerPolicy, 'no-referrer');
+    assert.equal(h.status.textContent, '已加入測試教會。');
+    assert.equal(h.cancelled, 1); assert.equal(scope.closed, true);
+    assert.ok(!h.status.textContent.includes(ENROLL_TOKEN));
+    assert.deepEqual(h.navigation, []);
+});
+
+test('enroll router whitelist consumes handoff in memory without a token redirect', TEST_OPTIONS, async t => {
+    const h = enrollmentHarness(t); const work = h.start(true);
+    h.resolveInit(); await work;
+    assert.equal(h.calls.length, 2); assert.deepEqual(h.history, [ENROLL_PAGE]);
+    assert.deepEqual(h.navigation, []); assert.equal(h.status.textContent, '已加入測試教會。');
+});
+
+// 只保護 CLI 交付的參數形狀及 SDK 初始化後的本機消費契約；不模擬或宣稱 LINE 遠端轉址行為。
+test('enroll CLI handoff shape matches router after SDK initialization', TEST_OPTIONS, async t => {
+    const handoff = new URL('https://liff.line.me/synthetic-liff?liff.state=enroll#token=' + ENROLL_TOKEN);
+    assert.equal(handoff.searchParams.get('liff.state'), 'enroll');
+    assert.equal(handoff.searchParams.has('token'), false);
+    const h = enrollmentHarness(t, { search: handoff.search, hash: handoff.hash });
+    const work = h.start(true); await enrollmentFlush();
+    assert.equal(h.reads, 0); assert.equal(h.calls.length, 1);
+    h.resolveInit(); await work;
+    assert.deepEqual(JSON.parse(h.calls[1].init.body), { token: ENROLL_TOKEN });
+    assert.deepEqual(h.history, [ENROLL_PAGE]); assert.deepEqual(h.navigation, []);
+});
+
+for (const status of [403, 404, 500]) {
+    test(`enroll HTTP ${status} displays one fixed denial without body`, TEST_OPTIONS, async t => {
+        const h = enrollmentHarness(t, { status }); const work = h.start(); h.resolveInit(); await work;
+        assert.equal(h.status.textContent, '無法加入測試教會。');
+        assert.equal(h.cancelled, 1); assert.equal(h.calls.length, 2);
+    });
+}
+
+for (const hash of ['', '#token=', '#token=' + ENROLL_TOKEN + '&role=admin',
+    '#token=' + ENROLL_TOKEN + '&token=' + ENROLL_TOKEN, '#token=' + 'A'.repeat(42) + 'B',
+    '#token=' + ENROLL_TOKEN + '=', '#token=' + ENROLL_TOKEN + '%0A']) {
+    test(`enroll invalid fragment is scrubbed without POST ${hash.length}`, TEST_OPTIONS, async t => {
+        const h = enrollmentHarness(t, { hash }); const work = h.start(); h.resolveInit(); await work;
+        assert.equal(h.calls.length, 1); assert.deepEqual(h.history, [ENROLL_PAGE]);
+        assert.equal(h.status.textContent, '無法加入測試教會。');
+    });
+}
+
+test('enroll absent ID token never posts', TEST_OPTIONS, async t => {
+    const h = enrollmentHarness(t, { idToken: null }); const work = h.start(); h.resolveInit(); await work;
+    assert.equal(h.calls.length, 1); assert.equal(h.status.textContent, '無法加入測試教會。');
+});
+
+test('enroll not Development never reads handoff or posts', TEST_OPTIONS, async t => {
+    const h = enrollmentHarness(t, { development: false }); const work = h.start();
+    h.resolveInit(); await work; assert.equal(h.calls.length, 1); assert.equal(h.reads, 0);
+});
+
+test('enroll init rejection never reads handoff or posts', TEST_OPTIONS, async t => {
+    const h = enrollmentHarness(t); const work = h.start(); await enrollmentFlush();
+    h.rejectInit(new Error('synthetic-sensitive-failure')); await work;
+    assert.equal(h.calls.length, 1); assert.equal(h.reads, 0);
+    assert.equal(h.status.textContent, '無法加入測試教會。');
+});
+
+test('enroll pagehide before init drains without reading handoff', TEST_OPTIONS, async t => {
+    const h = enrollmentHarness(t); const work = h.start(); await enrollmentFlush();
+    h.win.dispatchEvent(new Event('pagehide')); await work; h.resolveInit(); await enrollmentFlush();
+    assert.equal(h.calls.length, 1); assert.equal(h.reads, 0);
+});
+
+test('enroll pagehide aborts POST and suppresses late success', TEST_OPTIONS, async t => {
+    let resolvePost, signal;
+    const pending = new Promise(resolve => { resolvePost = resolve; });
+    const h = enrollmentHarness(t, { pending(init) { signal = init.signal; return pending; } });
+    t.after(() => resolvePost({ ok: true, status: 200, body: { async cancel() {} } }));
+    const work = h.start(); h.resolveInit(); await enrollmentFlush();
+    const previous = h.status.textContent;
+    h.win.dispatchEvent(new Event('pagehide')); await work;
+    assert.equal(signal.aborted, true);
+    resolvePost({ ok: true, status: 200, body: { async cancel() {} } }); await enrollmentFlush();
+    assert.equal(h.status.textContent, previous); assert.equal(h.calls.length, 2);
 });

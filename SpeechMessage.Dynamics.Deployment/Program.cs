@@ -11,6 +11,8 @@
  *   最多三十秒／16KiB，不互動回顯秘密、不建立可遺留的背景讀取。正式寫入的確認行與後續Channel秘密共用同一個30秒owner，先驗catalog／旗標才開啟。
  * - platform-sql-verify 與固定 AppPool 身分模式在相同診斷 owner 內分派至測試 VM 的唯讀 SQL 命令；不使用 D365 connector，
  *   不讀組織秘密，SqlClient 的連線／逾時／取消由單次命令擁有，真正例外仍傳本檔共用告警入口。
+ * - test-tenant 在同一 diagnostics owner 內分派，只額外借用固定 Handoff User Secrets；命令自行持有整機組織鎖、
+ *   SDK／LINE／SQL budget owner，明確邀請交付含 fragment 憑證，不得重新導向一般診斷日誌。
  * - 為單次命令掛載共用檔案診斷 owner，明確停用 LINE，並在命令完成時解除全域註冊後 drain／Dispose owner。日誌目錄由程序組合根提供，不接受命令列、組態或 request 決定。
  * - 組態尚未建立診斷 owner 時，只輸出固定初始化狀態與型別名稱。
  * - 以固定 stderr 代碼處理輸出 writer 失敗，不展開原始例外或組態內容。
@@ -137,6 +139,21 @@ internal static class Program
             var catalog = OrganizationCatalog.LoadDefault();
             if (args.Length > 0 && args[0] is "platform-sql-verify" or "platform-sql-verify-app-pool")
                 return PlatformSqlReadOnlyCli.RunAsync(args, catalog, output, null, cancellationToken).GetAwaiter().GetResult();
+            if (args.Length > 0 && args[0] == "test-tenant")
+            {
+                try { TestTenants.TestTenantCli.Parse(args); }
+                catch (ArgumentException)
+                {
+                    WriteOutputLine(output, "Test tenant command arguments were refused.");
+                    return 2;
+                }
+                var handoff = new ConfigurationBuilder().AddUserSecrets("SpeechMessage.ThreeProducts.Handoff")
+                    .AddConfiguration(configuration).Build();
+                using var handoffOwner = (IDisposable)handoff;
+                return TestTenants.TestTenantCli.RunAsync(args, catalog, connector, output, handoff,
+                    exception => diagnostics.Report(exception, "Deployment.TestTenant", cancellationToken), artifactRoot,
+                    diagnostics, cancellationToken).GetAwaiter().GetResult();
+            }
             return DeploymentCli.RunWithCatalog(
                 args,
                 catalog,

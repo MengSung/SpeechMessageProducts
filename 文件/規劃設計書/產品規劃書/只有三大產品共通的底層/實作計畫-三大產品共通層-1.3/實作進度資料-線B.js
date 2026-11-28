@@ -7,7 +7,7 @@
 window.PROGRESS_LANES = window.PROGRESS_LANES || {};
 window.PROGRESS_LANES.B = {
   lane: 'B',
-  lastUpdated: '2026-11-28T14:32:20+08:00',
+  lastUpdated: '2026-11-28T15:13:37+08:00',
   packages: {
     P0: { status: '自動測試通過（實機待補）', started: '2026-11-25 22:12', finished: '', commit: '811669559982a904f84636b831146a15c7899956', pending: 'P0-2④平台SQL已Strict釘選、最小DB權限、SQL端AppPool原始及有效SID／DB=7與錯誤／缺檔拒絕；P0-3公開live／ready200，原Node路由與CRM302核實。彙總依02A保留實機待補：線A FS／F3及F2 T01相依；本項不需重交秘密或重跑P0-3。', report: 'wp-reports/3P-P0-前置.md' },
     F10: { status: '自動測試通過（實機待補）', started: '2026-11-26 00:23', finished: '', commit: '8072b764c5bca3b0853177fbe16c0a0ac30311ef', pending: '自動測試通過（實機待補）；可自行處理的前置：JesusTest 必要設定及測試卡文件已存在，V2.6 完整規格與五項沙箱流程仍須核對及實跑，尚未證明有外部阻擋，不以缺交接排除欠債；隔日到期查詢須待實際到期。外部相依：宿主 Exception.log sink capture 與產品持久層最終原子冪等待後續整合。離線 parser／合成 handler 不代表實機。', report: 'wp-reports/3P-F10-永豐補強.md' },
@@ -15,10 +15,11 @@ window.PROGRESS_LANES.B = {
     F6: { status: '自動測試通過（實機待補）', started: '2026-11-26 13:04', finished: '', commit: '6ede902e1d88198cc1885d65e1d14e303480c5e3', pending: '公開LIFF部署補正通過：PS7／PS5各26案、完整9516/9516、ClaudeOnly無Critical／High；雙鎖部署及F6唯讀Live3P2/2，頁面／JS與本線雜湊一致，app映射正確、匿名401且無cookie，Host真平台SQL選擇表startup通過。外部阻擋：FS／F3租戶／Channel／角色、T01成功及M1真身分與跨租戶手機；不以匿名401冒稱真登入。', report: 'wp-reports/3P-F6-LIFF身分.md' },
     F4: { status: '自動測試通過（實機待補）', started: '2026-11-26 14:11', finished: '', commit: 'cb36af9b', pending: '原離線37案及全方案8026/8026、第三輪ClaudeOnly無Critical／High保留。平台SQL與公開live／ready已實機通過，不再列缺環境；VM Scheduling尚未配置，F4 Live3P未通過。外部阻擋：02A§5明列須先T01成功及FS／F3真租戶狀態／名額／Channel；相依完成後優先啟用權威組織配置並驗遠端SQL排程生命週期，不以F6 SQL或LocalDB代替。', report: 'wp-reports/3P-F4-通用排程器.md' },
     F8: { status: '自動測試通過（實機待補）', started: '', finished: '', commit: '49c310d0d2071bd35e2c3a271d08df849e707b64', pending: '自動測試通過（實機待補）；02 §4五項離線閘門全部通過：Release建置0警告／0錯誤、一般測試9458/9458（Access 253/253）、文件說明2086/0、Changed編碼110檔0問題、方案清單54項且52項整合基底全保留。ClaudeOnly 0 Critical／0 High，但審查只完整讀DataverseAuditLog.cs，範圍限制見報告。Live3P未跑；離線包已合併推送（SHA：2fd68db43c777dc903410845d621ff747f66fe43）；外部阻擋：FS apply後才驗四表、索引、真SDK與new_at精度。固定頁狀態與90一致為「自動測試通過（實機待補）」；不代表實機完成。', report: 'wp-reports/3P-F8-權限與修改紀錄.md' },
-    F12: { status: '未開始', started: '', finished: '', commit: '', pending: '', report: '' },
+    F12: { status: '進行中', started: '2026-11-28 11:34', finished: '', commit: 'f1b8630e545cfa1250fdf264995e5f3378c5fa87', pending: '依02A§9接回唯一離線包；schema／manifest8、建立清理首輪8、邀請88、加入48、JS109、LINE清理41及CLI／QR13案已聚焦通過；正補命令owner及跨程序可信清理計畫，未整包守門／審查／合併。實機前置仍FS／F3／T01與F4。', report: 'wp-reports/3P-F12-測試租戶建立邀請與清理.md' },
     F11: { status: '未開始', started: '', finished: '', commit: '', pending: '', report: '' },
   },
   log: [
+    '2026-11-28 15:13 Asia/Taipei (UTC+08:00)｜F12離線整合：邀請88、加入48、JS109、LINE清理41及CLI／QR13案通過；正補owner與可信續跑計畫，尚未完整守門、審查、合併或實機。',
     '2026-11-28 14:32 Asia/Taipei (UTC+08:00)｜F4實機前置更新：SQL與公開站已解，Scheduling仍未配置、F4 Live3P未跑；依02A§5先等T01及FS／F3真租戶前置。剩餘外部相依如實列出，F10沙箱仍計可自行處理一包；接回F12唯一離線checkpoint，前置完成即優先回補。',
     '2026-11-28 14:29 Asia/Taipei (UTC+08:00)｜F6公開映射遺失先RED後修正，程式6ede902e、一般9516/9516、ClaudeOnly無Critical／High；D365／SQL雙鎖部署成功，唯讀Live3P2/2。公開app與檔案雜湊正確、匿名資料端點401無cookie；FS／F3與M1真身分仍外部相依，維持實機待補。',
     '2026-11-28 14:09 Asia/Taipei (UTC+08:00)｜F2重基線後完整守門通過：Release65警告／0錯誤、一般9516/9516（28組件、0失敗0略過），待合併程式811669559。公開live／ready200與SQL端AppPool身分／正負pin證據已記報告；T01仍待FS／F3，維持自動測試通過（實機待補）。七檔位元組備份與回放核對一致，.ccg不提交；F12保留獨立checkpoint。',
