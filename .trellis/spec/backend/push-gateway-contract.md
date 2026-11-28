@@ -60,3 +60,9 @@
 會員adapter的負向案例必須包含「查無一人」及「回傳停用Contact」，不能只模擬後端忽略
 租戶filter而回外租戶列。用501人讓最後缺列跨過500批界線，並以mutation確認移除完整
 名單數量或Active守門時案例真的失敗；測後恢復原production位元組，不保留任何弱化版本。
+
+## F5 Live入口離線前置（尚非完整實機入口）
+
+- `F5PushLiveLockLease`只持D365→LINE兩把外部鎖的讀取handle；精確lane=A／wp=F5及round-trip start，四KiB上限、嚴格UTF8、單BOM，舊單鎖仍存在就拒絕。不得以SQL鎖取代、不建立或刪除他人鎖。所有工作實際排空後才反序Dispose。
+- `F5PushLiveTenantFlag`只供01F5明列的c124合成非測試租戶驗收及恢復；測試組件internal，不是產品管理API。WhoAmI、正式主鍵與本輪完整marker名稱、代碼、兩旗標及RowVersion都驗證後，先由入口owner將純值候選落盤flush，再單欄IfRowVersionMatches。每次SDK讀取必須使用新的ColumnSet，不能共享可變查詢物件。
+- 寫前取消零寫入；已確認寫入後同步驗回，不用晚到caller取消隱藏結果。候選已保存後任何SDK／讀回故障都可能已寫入，不自動重送或以零寫入處理；完整入口須先按本輪ID精確讀回及CAS恢復，才委派F12清理；若提交仍未知，當下舊值或查無資料不是回滾證明，必須保留清冊且不清理。SDK deadline與owner、真正flush、完整Live入口及清理串接仍待實作／實機，不以這兩個helper的離線測試替代。

@@ -13,3 +13,5 @@
 | 2026-11-26 21:02 Asia/Taipei (UTC+08:00) | FS | UiImport 的 attributes-budget 使用 null 元素、options-budget 缺 Label，可能先觸發型別／完整性拒絕而非預算。恰2048欄合法控制已涵蓋，非全面拒絕假綠 | 日後給超量元素合法內容以分離容量條件，不放寬產品上限 | ClaudeOnly UI 測試補查 SHA-256 F758DD15E17D9C8D5B8DDAD37F3181ABDF441FDCB837C3C695E6DDC7C125904B |
 | 2026-11-26 21:02 Asia/Taipei (UTC+08:00) | FS | QuiesceSourceBinding fixture 清理案例目錄後留下空的固定 Temp 父目錄；UiSolutionDeployment 的執行緒配置量測可能受首次 JIT 影響 | 日後改善測試 owner 的空目錄整理與配置量測暖身；不宣稱現有量測為長期效能基線 | 同上兩份單模型補查；未讀取 secrets、未連實機 |
 | 2026-11-26 21:02 Asia/Taipei (UTC+08:00) | FS | Plugin 新組織未啟用步驟時仍可規劃 assembly／type，沒有 CreateStep／ReconcileImages；缺旗標測試直接覆蓋型別不存在分支 | 契約目前限制執行步驟；日後可補型別已存在分支的直接控制，不新增本包完成條件 | ClaudeOnly 修正複審 SHA-256 877C93DF67B264E800DD1D4515718D010ED0FA3612548266CE3A79D5D939E4D4 |
+
+| 2026-11-28 21:15 Asia/Taipei (UTC+08:00) | F5離線前置 | ClaudeOnly非阻擋觀察：目前測試證明兩handle皆排空但未直接觀察反序；沒有需權限的reparse建立案例；legacy存在性至開檔間仍依賴外部鎖協定 | 日後補特定順序觀察及可用權限下的reparse負向案例，不藉此略過既有EnsureNoLinks／FileShare.Read；未知提交與驗回故障則已列完整Live入口必做復原待辦，不延後該契約 | summary SHA A64F33B1A14F4A6C136EC42582C1D5C907703EBC9CC56FCC7A06471FDAE05D5C；Critical0／High0，未冒稱實機 |

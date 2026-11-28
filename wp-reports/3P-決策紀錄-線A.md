@@ -100,3 +100,5 @@
 | 2026-11-28 20:35 Asia/Taipei (UTC+08:00) | F5離線 | 首輪完整10118後，ClaudeOnly補查指出真會員adapter缺查無／停用負向測試High1 | 補501尾批缺列與停用Contact，兩個獨立mutation各RED，finally恢復原production SHA；再補sender／Flex／multicast尾批三邊界。修後28回合10128/10128及ClaudeOnly H1結案C0/H0 | 02§4、02A§10.3與§12.3；code e7af6ef95c0f0e7c9b7cf128eb41576b82c999a1；修後testSHA A922799662275F187BFCE765BB358C2DB3323D7A4DB9B56B59B3E6F14445D8B8，review172A5147… | 僅離線待實機，可依02A§9第2點通過守門後合併；F5 Live入口與實跑待FS/F3，不能把零案當通過；不開F7、不使用FS第3次apply。所有原件保留、.ccg不提交 |
 
 | 2026-11-28 20:43 Asia/Taipei (UTC+08:00) | F5文件檢查點 | 程式與20:35修後守門內容一致；原生瀏覽器網址安全檢查未完成而停止操作，實際進度頁未目視 | 沿用10128與建置，只重跑文件／編碼／32項進度；提交文件但暫不合併，不重試或換介面繞過瀏覽器安全檢查；只續本包Live入口離線準備 | 02§2瀏覽檢視與02A§10.3；FS19:07仍待決策、第3次apply未用 | 不把Node renderer當瀏覽目視或實機，無鎖／無外部寫入／不開F7 |
+
+| 2026-11-28 21:15 Asia/Taipei (UTC+08:00) | F5Live入口離線前置 | FS待決策、瀏覽目視未過期間只續同包；需要雙鎖owner與c124非測試拒絕可復原前置 | 實作限測試組件internal雙鎖lease與c124正式ID／本輪marker／WhoAmI／單欄RowVersion CAS，不改線B F12；beforeWrite由未來入口實際flush，未知提交保留不重送 | 01F5 Step4b、02A§8／§12.3、02§10；code ffbfeb286655daabed372b985dd441ec94510527，完整10178/10178；ClaudeOnly四檔全文C0/H0 summary A64F33B1… | 不是產品旗標API；完整Live／flush／F12清理未實作，未合併或實機；四檔byte全通，備份保留、不開F7 |

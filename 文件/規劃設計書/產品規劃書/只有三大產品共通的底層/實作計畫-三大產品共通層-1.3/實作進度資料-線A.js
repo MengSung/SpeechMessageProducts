@@ -7,18 +7,19 @@
 window.PROGRESS_LANES = window.PROGRESS_LANES || {};
 window.PROGRESS_LANES.A = {
   lane: 'A',
-  lastUpdated: '2026-11-28T20:43:40+08:00',
+  lastUpdated: '2026-11-28T21:15:14+08:00',
   packages: {
     F0: { status: '自動測試通過（實機待補）', started: '2026-11-25 22:09 Asia/Taipei (UTC+08:00)', finished: '2026-11-26 00:24 Asia/Taipei (UTC+08:00)', commit: '74ea5a1c1ff723f6a64aeb73cadf69685021f528, a9e438be0d9fe13d8fe40d0c2e03e9558774e113', pending: '模型盤點已補齊：v2.5第9章29項／13實體正式主鍵、欄位及沿用／擴充／新增結論完整；inventory及13聚合實機證據已保留，未查數量不填0。後續G設計非F0待補；本輪完整9566/9566，整包收尾依00完成定義核對，不冒充FS部署；詳F0報告。', report: 'wp-reports/3P-F0-基線矩陣.md' },
     F1: { status: '自動測試通過（實機待補）', started: '2026-11-26 00:24', finished: '2026-11-26 15:39', commit: 'bfb5f56b96ff7b2c9a185f9757248c5dd9a5368a, 79f5362a44659e68afc1c17727bc2a2a3f51ac69, b2cdcbb6d11521950dbece5a7432b29a0d8d5a7a, d82c7a7252fe8ad60e107f8753e06adb12d984a1, f57fef11f342c9d823e6361a42ebae283c4e5a14, 421b6d29266668d07348d87aee0b98ae8b196e81', pending: '實機待補（外部阻擋）：共用層實機整合證據隨FS／F3打通補驗；Scheduling分類及QR必要補正完整7943/7943、ClaudeOnly無Critical／High；非實機宣稱', report: 'wp-reports/3P-F1-依賴方向修正.md' },
     FS: { status: '自動測試通過（實機待補）', started: '2026-11-26 04:31 Asia/Taipei (UTC+08:00)', finished: '2026-11-28 02:26 Asia/Taipei (UTC+08:00)', commit: '64679a87f, 9af227811, bd22905fc, abeb70d94, c4cf53a63, 1bfe1a23e, 0ebf49b0eb8b57b1c926187d858c5bfc4f8d93e0, 637515befe8137e60422954ae1c6e114a034c171', pending: '實機待補（待決策）：2026-11-28 19:10 Asia/Taipei (UTC+08:00) 已照18:55決策先唯讀。兩棵顯式lookup子樹每來源28／27個節點差異，含account Cascade.Merge值變更；原完整baseline未落檔，無法證明全屬系統自動元件。依③已通知、不修guard、不用特別第三次apply、不標縮減、不提前F3。診斷Live1通過只代表報告完成；F5 34檔SHA保全，僅續F5離線。', report: 'wp-reports/3P-FS-結構分層與三組織佈署.md' },
     F3: { status: '自動測試通過（實機待補）', started: '2026-11-26 21:10', finished: '2026-11-27 20:02', commit: '244e45960, b7844eee7, e09a4c86, 8be872b2a, 5b8c74b03, 2df96defa', pending: '實機待補：離線閘門已合併於整合分支；等 FS 完成後開始，依02A §5須待FS三組織plan/apply/verify、檢視表發布、UI export/import與Live3P FS完成後再做F3 Step 6登錄及20並行配發／清理。外部阻擋：F2測試站及T01／T02 Webhook；lease trace重現根因已由FS必要修復並完整9566/9566，非F3實機；沒有新增實機結果', report: 'wp-reports/3P-F3-Channel名額池.md' },
-    F5: { status: '自動測試通過（實機待補）', started: '2026-11-28 17:17 Asia/Taipei (UTC+08:00)', finished: '2026-11-28 20:35 Asia/Taipei (UTC+08:00)', commit: 'e7af6ef95c0f0e7c9b7cf128eb41576b82c999a1', pending: '2026-11-28 20:35 Asia/Taipei (UTC+08:00)｜離線完整10128/10128、ClaudeOnly C0/H0，會員缺人／停用High1已mutation RED及雙宿主GREEN結案；原子發送紀錄／schema已落地。實機待補：Live3P c121／c124完整入口與實跑、三組織部署、M1手機。進度頁實際瀏覽檢視未通過，程式／文件僅本線檢查點，暫未合併。FS待新決策、第3次apply未用，不開F7。', report: 'wp-reports/3P-F5-推播唯一出口.md' },
+    F5: { status: '自動測試通過（實機待補）', started: '2026-11-28 17:17 Asia/Taipei (UTC+08:00)', finished: '2026-11-28 20:35 Asia/Taipei (UTC+08:00)', commit: 'e7af6ef95c0f0e7c9b7cf128eb41576b82c999a1, ffbfeb286655daabed372b985dd441ec94510527', pending: '2026-11-28 20:35 Asia/Taipei (UTC+08:00)｜離線完整10128/10128、ClaudeOnly C0/H0，會員缺人／停用High1已mutation RED及雙宿主GREEN結案；原子發送紀錄／schema已落地。新增雙鎖／c124 CAS前置50/50與完整10178、ClaudeOnly C0/H0；完整Live、flush與清理串接仍待實作。實機待補：Live3P c121／c124實跑、三組織部署、M1手機。進度頁實際瀏覽檢視未通過，程式／文件僅本線檢查點，暫未合併。FS待新決策、第3次apply未用，不開F7。', report: 'wp-reports/3P-F5-推播唯一出口.md' },
     F7: { status: '未開始', started: '', finished: '', commit: '', pending: '', report: '' },
     F9: { status: '未開始', started: '', finished: '', commit: '', pending: '', report: '' },
     M1: { status: '未開始', started: '', finished: '', commit: '', pending: '', report: '' },
   },
   log: [
+    '2026-11-28 21:15 Asia/Taipei (UTC+08:00)｜F5實機入口前置離線檢查點ffbfeb28：雙鎖lease與c124正式ID／RowVersion CAS先RED後50/50 GREEN；新完整10178/10178、ClaudeOnly四檔全文C0/H0。完整Live／flush／F12清理仍待實作；目視未過不合併，FS待決策、第3次apply未用。',
     '2026-11-28 20:43 Asia/Taipei (UTC+08:00)｜F5離線程式已提交e7af6ef95，修後10128與ClaudeOnly C0/H0證據已核對；文件檢查點準備提交。瀏覽器因網址安全檢查無法完成而停止，進度頁目視未過、暫不合併；不繞過，只續F5 Live入口離線。FS仍待決策、第3次apply未用。',
     '2026-11-28 20:35 Asia/Taipei (UTC+08:00)｜F5離線程式e7af6ef95：原子Create／Active唯一鍵／RowVersion CAS與精確禁廣播；修後完整10128/10128、ClaudeOnly C0/H0，H1負向／mutation測試已結案。狀態自動測試通過（實機待補），準備快轉推送；Live3P入口、實跑及手機待FS/F3，不開F7。',
     '2026-11-28 18:41 Asia/Taipei (UTC+08:00)｜F5離線實作：Gateway／sender／禁廣播／F3純值401接縫／權威名額會員核對已有RED→GREEN。最新Core含64路A/B隔離、caller模型快照及CTS／response排空，兩目標各69；adapter net10 32／net48 12，禁廣播4與SDK合法推播兩目標各7。原子sendrecord／schema、完整閘門與ClaudeOnly未完；未合併本包，未做任何實機。FS待決策，不套縮減、不開F7。',
