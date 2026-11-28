@@ -1,7 +1,7 @@
 /*
 檔案整體說明
 目的與定位：保護 P0／F2 平台 SQL 唯讀命令的固定測試環境、嚴格 TLS、公鑰釘選與輸出契約，避免診斷工具因任意輸入變成正式環境或資料修改入口。
-主要功能與流程：以純合成 organization catalog 與單次查詢委派執行正式 parser，確認合法命令產生固定連線設定及 SELECT 1 摘要；故障注入包含正式組織、未知選項、缺少參數、錯誤結果及已取消 caller，均檢查零 I/O 或拒絕發布。
+主要功能與流程：以純合成 organization catalog 與單次查詢委派執行正式 parser，確認合法命令產生固定連線設定及 SELECT 1 或集區 SID／資料庫證據摘要；故障注入包含正式組織、未知選項、缺少參數、錯誤結果及已取消 caller，均檢查零 I/O 或拒絕發布。
 使用邊界與維護：本檔只使用不可變合成組織、StringWriter 及有界同步完成的 Task，不建立 SQL／SDK 連線、不載入 User Secrets 或實機憑證。writer 與取消來源由每案 using 釋放；測試不持有共享使用者狀態或背景工作，不把離線成功宣稱為 Strict TLS 實機驗收。
 */
 using System;
@@ -16,6 +16,35 @@ namespace SpeechMessage.Dynamics.Deployment.Tests;
 /// <summary>固定 SQL 查驗目標與 fail-closed 輸出測試，真實網路由單一借入委派替換。</summary>
 public sealed class PlatformSqlReadOnlyCliTests
 {
+    /// <summary>AppPool 成功必須由同一個 SQL 查詢核對原始登入、有效登入及資料庫；不能以本機 token 標記取代 SSPI 結果。</summary>
+    [Fact]
+    public void AppPoolQuery_RequiresServerSideIdentityAndDatabaseProof()
+    {
+        Assert.Equal(@"SELECT CASE WHEN (SELECT original_security_id FROM sys.dm_exec_sessions WHERE session_id = @@SPID) = SUSER_SID(N'IIS APPPOOL\GoodShepherd2Test') THEN 1 ELSE 0 END + CASE WHEN SUSER_SID() = SUSER_SID(N'IIS APPPOOL\GoodShepherd2Test') THEN 2 ELSE 0 END + CASE WHEN DB_NAME() = N'GoodShepherd2Platform' THEN 4 ELSE 0 END",
+            PlatformSqlReadOnlyCli.QueryText(appPool: true));
+        Assert.Equal("SELECT 1", PlatformSqlReadOnlyCli.QueryText(appPool: false));
+    }
+
+    /// <summary>原始 SID、有效 SID、資料庫任何位元不符（零至六）均拒絕；只能輸出有界數字，不印寫死的身分成功標記。</summary>
+    [Theory]
+    [InlineData(0)]
+    [InlineData(1)]
+    [InlineData(2)]
+    [InlineData(3)]
+    [InlineData(4)]
+    [InlineData(5)]
+    [InlineData(6)]
+    public async Task Verify_AppPoolServerIdentityMismatch_DoesNotPublishSuccess(int flags)
+    {
+        using var output = new StringWriter();
+        await Assert.ThrowsAsync<InvalidOperationException>(() => PlatformSqlReadOnlyCli.RunAsync(
+            "platform-sql-verify-app-pool --org goodshepherd20 --database GoodShepherd2Platform --pin correct".Split(' '),
+            OrganizationCatalog.Parse(CatalogJson), output, (_, _) => Task.FromResult(flags), CancellationToken.None,
+            (query, token) => query(token)));
+        Assert.Equal("PLATFORM-SQL identity-proof-flags=" + flags.ToString(System.Globalization.CultureInfo.InvariantCulture) + Environment.NewLine,
+            output.ToString());
+    }
+
     /// <summary>AppPool 模式仍固定平台資料庫及 Strict 選項，且 SQL 委派必須完整 awaited 在借入身分範圍中。</summary>
     [Fact]
     public async Task Verify_AppPoolMode_AwaitsIdentityScopeBeforePublishing()
@@ -30,7 +59,7 @@ public sealed class PlatformSqlReadOnlyCliTests
                 Assert.True(active);
                 Assert.Equal(SqlConnectionEncryptOption.Strict, options.Encrypt);
                 Assert.False(options.Pooling);
-                return 1;
+                return 7;
             }, CancellationToken.None, async (query, token) =>
             {
                 active = true;
@@ -39,7 +68,7 @@ public sealed class PlatformSqlReadOnlyCliTests
             });
         Assert.Equal(0, exit);
         Assert.False(active);
-        Assert.Contains("SELECT1=1", output.ToString(), StringComparison.Ordinal);
+        Assert.Contains("IDENTITY-AND-DB-PROOF=7", output.ToString(), StringComparison.Ordinal);
     }
 
     /// <summary>身分取得失敗不得退回管理員 SQL；真正例外保留且成功摘要維持空白。</summary>

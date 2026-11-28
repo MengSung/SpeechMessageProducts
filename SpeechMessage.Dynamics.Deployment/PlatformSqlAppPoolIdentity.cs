@@ -1,7 +1,7 @@
 /*
 檔案整體說明
 目的與定位：P0／F2 平台 SQL 唯讀驗收的 Windows 身分 owner；避免在 IIS 虛擬帳號另啟 CLR 的主機初始化限制，被誤認為 SQL 驗收結果。
-主要功能與流程：只在 Windows 測試主機 D365APP01，最多檢查三十二個本機 w3wp 程序的 token SID；必須恰好一個符合固定 GoodShepherd2Test 集區。複製短期 impersonation token，在既有已啟動 CLI 中以 RunImpersonatedAsync 完整等待單次 SELECT 1，進入時再核對實際 SID。沒有任意 PID、帳號、密碼或產品路由；無符合或多符合均拒絕，絕不退回原管理員身分查 SQL。
+主要功能與流程：只在 Windows 測試主機 D365APP01，最多檢查三十二個本機 w3wp 程序的 token SID；必須恰好一個符合固定 GoodShepherd2Test 集區。複製短期 impersonation token，在既有已啟動 CLI 中以 RunImpersonatedAsync 完整等待單次固定唯讀身分查詢，進入時再核對實際 SID。沒有任意 PID、帳號、密碼或產品路由；無符合或多符合均拒絕，絕不退回原管理員身分查 SQL。
 使用邊界與維護：本檔不修改 IIS、帳號權限或 D365，不讀工作程序環境與秘密，不建立子程序、背景工作或全域身分快取。原生來源 token、WindowsIdentity 與所有 Process owner 在掃描結束釋放；唯一複製 token 的租約只活至 awaited 查詢完成、取消或失敗，using 確定 Dispose。外層 CLI 擁有十五秒期限及 SQL 連線，身分範圍必須涵蓋 OpenAsync 至連線 Dispose；不可把未完成 Task 移到範圍外。所有錯誤保留真 Exception 交 Program 共用診斷，不輸出使用者資料或 Windows 錯誤本文。
 驗證方式：合成身分 owner 驗證 await、原例外、取消及 Dispose；真正 SID 選取、Windows impersonation 與 Strict SELECT 1 必須在持鎖測試 VM 額外驗收，不能以合成案例代替。
 */
