@@ -4,11 +4,11 @@
  * provider共同呼叫，不解析付款授權、不入帳，也不擁有宿主logger或Exception.log。
  * 主要功能與流程：先遮蔽含密碼／授權標頭及sign別名的機密鍵，再處理Token；少於16字元完整遮蔽，其餘保留首尾
  * 四字元格式。只有精確ATM付款指示欄位可保留原值；其他值以單次線性掃描遮蔽13–19位數字
- * 卡號，涵蓋非字母數字的分隔字元（含不可見格式字元）及描述，保持前六後四顯示契約；有分隔符且
+ * 卡號，涵蓋非字母數字的分隔字元、四種不可見Hangul填充字元及描述，保持前六後四顯示契約；有分隔符且
  * 超過19位的疑似合併區段一律完整遮蔽，不能靠附加郵遞區號等數字讓完整卡號漏出。
  * 使用邊界與維護：輸入字典與非null字串由呼叫端擁有，每次回傳獨立字典；本檔只持有固定
  * 欄位名稱，不保存原值、使用者、profile或跨操作快取。最多保留本次輸入與輸出字串生命期，
- * 無I/O、連線、timer、背景工作或Dispose責任。掃描O(n)，固定19字元stack暫存；只有發現
+ * 無I/O、連線、timer、背景工作或Dispose責任。掃描O(n)，固定19個Unicode純量stack暫存；只有發現
  * 卡號才建立輸出builder，不用正則回溯或全域鎖。大小寫重複鍵由ToDictionary拒絕，不能覆寫。
  * 驗證由PaymentDiagnosticsSanitizerTests與真Sinopac回呼parser的合成診斷輸出完成；不把它
  * 宣稱為網站日誌、銀行實機或產品最終入帳驗收。ATM欄位例外是明確付款資料契約，不是授權。
@@ -88,22 +88,23 @@ public static class PaymentDiagnosticsSanitizer
     }
 
     /// <summary>
-    /// 單向掃描數字及非字母數字的分隔區段；涵蓋格式、組合、控制字元，13–19位保留前六後四。
-    /// 每個字元最多掃描一次，固定19字元scratch不隨輸入增加，且未命中時直接回原字串。
+    /// 單向掃描Unicode十進位數字與分隔區段；涵蓋格式、組合、控制字元及不可見Hangul填充字元。
+    /// 以完整純量計數13–19位並保留前六後四；固定19純量scratch不隨輸入增加，未命中直接回原字串。
     /// 超過19位的純業務數字不截取部分誤當卡號；有分隔符的過長候選完整遮蔽，避免把卡號與
     /// 相鄰數字合併後誤判為非卡號。輸出只由本次區域builder擁有。
     /// </summary>
     private static string MaskCardNumbers(string value)
     {
-        Span<char> digits = stackalloc char[19];
+        Span<Rune> digits = stackalloc Rune[19];
         StringBuilder? output = null;
         var copyFrom = 0;
         var position = 0;
         while (position < value.Length)
         {
-            if (!char.IsDigit(value[position]))
+            var first = ReadScalar(value, position, out var firstLength);
+            if (!Rune.IsDigit(first))
             {
-                position++;
+                position += firstLength;
                 continue;
             }
 
@@ -114,18 +115,20 @@ public static class PaymentDiagnosticsSanitizer
             var hasInternalSeparator = false;
             while (position < value.Length)
             {
-                var character = value[position];
-                if (char.IsDigit(character))
+                var character = ReadScalar(value, position, out var scalarLength);
+                if (Rune.IsDigit(character))
                 {
                     hasInternalSeparator |= gapAfterDigit;
                     gapAfterDigit = false;
                     if (count < digits.Length) digits[count] = character;
                     count++;
-                    digitsEnd = position + 1;
+                    digitsEnd = position + scalarLength;
                 }
-                else if (!char.IsLetterOrDigit(character)) gapAfterDigit = true;
+                // 四個Hangul filler雖分類為字母，顯示仍近乎空白；不能當作可信文字邊界。
+                else if (!Rune.IsLetterOrDigit(character) || character.Value is 0x115F or 0x1160 or 0x3164 or 0xFFA0)
+                    gapAfterDigit = true;
                 else break;
-                position++;
+                position += scalarLength;
             }
 
             if (count < 13 || (count > 19 && !hasInternalSeparator)) continue;
@@ -134,14 +137,43 @@ public static class PaymentDiagnosticsSanitizer
             if (count > 19) output.Append("***");
             else
             {
-                output.Append(digits[..6]);
+                AppendDigits(output, digits[..6]);
                 output.Append("******");
-                output.Append(digits.Slice(count - 4, 4));
+                AppendDigits(output, digits.Slice(count - 4, 4));
             }
             copyFrom = digitsEnd;
         }
         if (output is null) return value;
         output.Append(value, copyFrom, value.Length - copyFrom);
         return output.ToString();
+    }
+
+    /// <summary>
+    /// 讀取單一Unicode純量；不完整代理字元依一個替代純量前進，避免不可信診斷觸發解碼例外或停滯。
+    /// 返回長度只用於本次UTF-16游標，不正規化或保存原始輸入。
+    /// </summary>
+    private static Rune ReadScalar(string value, int position, out int length)
+    {
+        if (Rune.TryGetRuneAt(value, position, out var scalar))
+        {
+            length = scalar.Utf16SequenceLength;
+            return scalar;
+        }
+        length = 1;
+        return Rune.ReplacementChar;
+    }
+
+    /// <summary>
+    /// 將保留的數字純量以原字形附加至本次輸出；固定兩字元stack暫存避免每個代理對建立短字串。
+    /// 只由本次掃描借用builder與至多六個數字，不保留輸入或跨操作狀態。
+    /// </summary>
+    private static void AppendDigits(StringBuilder output, ReadOnlySpan<Rune> digits)
+    {
+        Span<char> encoded = stackalloc char[2];
+        foreach (var digit in digits)
+        {
+            var length = digit.EncodeToUtf16(encoded);
+            output.Append(encoded[..length]);
+        }
     }
 }
