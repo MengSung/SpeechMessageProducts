@@ -213,7 +213,7 @@
           "displayName": "租戶",
           "type": "lookup",
           "phase": 1,
-          "target": "account",
+          "target": "account", "cascadeMerge": "Cascade",
           "required": true
         },
         {
@@ -221,7 +221,7 @@
           "displayName": "會友",
           "type": "lookup",
           "phase": 1,
-          "target": "contact",
+          "target": "contact", "cascadeMerge": "Cascade",
           "required": false
         },
         {
@@ -308,7 +308,7 @@
           "displayName": "租戶",
           "type": "lookup",
           "phase": 1,
-          "target": "account",
+          "target": "account", "cascadeMerge": "Cascade",
           "required": true
         },
         {

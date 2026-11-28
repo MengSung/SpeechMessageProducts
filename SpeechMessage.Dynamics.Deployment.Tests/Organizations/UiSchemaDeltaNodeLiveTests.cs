@@ -6,7 +6,7 @@
 對 account／new_role 的正式關聯分別讀 published／unpublished，以同一投影器比較節點。
 缺口：原完整 baseline 未落檔，不能還原舊標籤、cascade 等原節點；本工具永遠標示
 FullOriginalBaselineAvailable=false、CanAuthorizeThirdApply=false，不以當前兩來源相等冒充原基準。
-輸出：唯一 evidence 目錄只有差異路徑、SDK 型別、正式元件身份與固定分類，不輸出 scalar 值、
+輸出：唯一 evidence 目錄列差異路徑、SDK 型別、正式元件身份與固定分類；22:05決策的兩新關聯另輸出經封閉格式驗證的預設純值，不輸出
 XML、標籤、秘密或 LINE userId；完整候選驗證後才原子寫檔，主輸出只含數量和 SHA。
 隔離與生命週期：固定 User Secrets connector、測試組織 ProductionGuard、三分鐘 CTS 與獨占
 lease；同步 SDK 排空後依序歸還 lease、組織一致性鎖、組態及例外 owner，沒有共享 mutable state。
@@ -80,7 +80,7 @@ public sealed class UiSchemaDeltaNodeLiveTests
             var beforePath = Path.Combine(original, "20261128-085402-9526822-1bdc5eceb0f747f1a52dbe1d3b913280", "before-metadata.json");
             var planHash = RequireHash(planPath, "337EBA5A81AE2B014E88386FC3853FD19335B3EFFDB03EED15B511FC1FAEE997");
             var beforeHash = RequireHash(beforePath, "DD245E69D6977209EDD1F89588D203B26146373628DDB0BAE3FB400465718B64");
-            var definition = SchemaFiles.LoadForOrganization(repository, organization);
+            var definition = SchemaFiles.LoadForOrganization(Path.Combine(original, "diagnostic-original-definition-a1eebc7b"), organization);
             var plan = SchemaFiles.ReadPlan(planPath);
             var before = SchemaFiles.ReadBeforeSnapshot(beforePath);
             SchemaPlanner.ValidatePlan(plan, definition, before);
@@ -132,8 +132,10 @@ public sealed class UiSchemaDeltaNodeLiveTests
                     var actual = actualDelta.Additions.Single(item =>
                         item.Entity == field.Target && item.Collection == "OneToManyRelationships").Values;
                     var differences = SchemaDeltaNodeProbe.CompareNodes(expected, actual, ct);
+                    var safeDefaults = differences.ToDictionary(item => item.Path,
+                        item => SchemaDeltaNodeProbe.DescribeSafeDefault(item.Path, actual[item.Path]), StringComparer.Ordinal);
                     observations.Add(new RelationshipObservation(unpublished ? "Unpublished" : "Published",
-                        field.Target!, name, relationId, false, differences));
+                        field.Target!, name, relationId, false, differences, safeDefaults));
                 }
             }
             var currentFullSourcesMatch = true;
@@ -256,7 +258,9 @@ public sealed class UiSchemaDeltaNodeLiveTests
     /// <param name="Source">Published 或 Unpublished。</param><param name="Entity">所屬既有端點。</param>
     /// <param name="LogicalName">原計畫明列的關聯名稱。</param><param name="MetadataId">正式關聯 ID。</param>
     /// <param name="AutomaticSystemComponentProven">本工具沒有原基準，固定 false，不替代決策。</param>
-    /// <param name="Differences">完整純值節點差異；沒有任何來源值。</param>
+    /// <param name="Differences">完整節點差異；沒有標籤或XML本文。</param>
+    /// <param name="NormalizationDefaults">只含明列路徑與安全預設純值，不代表護欄已核准它們。</param>
     private sealed record RelationshipObservation(string Source, string Entity, string LogicalName, Guid MetadataId,
-        bool AutomaticSystemComponentProven, IReadOnlyList<SchemaDeltaNodeProbe.NodeDifference> Differences);
+        bool AutomaticSystemComponentProven, IReadOnlyList<SchemaDeltaNodeProbe.NodeDifference> Differences,
+        IReadOnlyDictionary<string, UiMetadataPublicationGuard.Scalar> NormalizationDefaults);
 }

@@ -28,7 +28,7 @@
           "displayName": "測試租戶",
           "type": "lookup",
           "phase": 1,
-          "target": "account",
+          "target": "account", "cascadeMerge": "Cascade",
           "required": true
         },
         {

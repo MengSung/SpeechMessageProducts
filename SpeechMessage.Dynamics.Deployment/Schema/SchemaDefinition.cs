@@ -3,7 +3,7 @@
  *
  * 目的與定位：本檔定義結構清單的純值資料契約，作為人工維護JSON、嚴格解析器與新增SDK引擎之間的唯一格式。
  * 主要功能：SchemaDefinition宣告格式版本、active phase、solution／publisher與new前綴；SchemaEntity描述既有或新實體；
- * SchemaField描述型別、長度、必填、安全、日期、lookup、phase與choice；SchemaKey保留正式索引身份與有序欄位。
+ * SchemaField描述型別、長度、必填、安全、日期、lookup及其明列Merge、phase與choice；SchemaKey保留正式索引身份與有序欄位。
  * 輸入輸出與依賴：SchemaFiles從JSON建立候選並完整驗證，SchemaPlanner比較server投影，SchemaDeploymentEngine依清單新增。
  * 此處建構record不會驗證授權或進行I/O，呼叫端不能以成功反序列化當成schema合法、組織授權或可安全寫入。
  * 隔離與生命週期：物件僅屬單次命令，不含SDK、連線、token、request或背景工作；集合在命令範圍獨佔，不作全域可變快取。
@@ -81,6 +81,12 @@ internal sealed record SchemaField
     public bool Secured { get; init; }
     /// <summary>lookup的唯一正式目標表，不能從列值或caller路由決定。</summary>
     public string Target { get; init; } = "";
+    /// <summary>
+    /// lookup明列的合併cascade；account/contact作主實體時平台固定Cascade，其他目標僅NoCascade。
+    /// null只供legacy清單保留canonical hash；分層清單的account/contact必須明列，不修改既有關聯。
+    /// </summary>
+    [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
+    public string? CascadeMerge { get; init; }
     /// <summary>日期明確行為；本P1時間點只能UserLocal存UTC，不轉換既有資料。</summary>
     public string Behavior { get; init; } = "";
     /// <summary>日期顯示格式與行為共同驗證，不只比對AttributeType。</summary>

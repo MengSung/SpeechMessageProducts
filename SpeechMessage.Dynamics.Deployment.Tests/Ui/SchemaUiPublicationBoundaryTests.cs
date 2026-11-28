@@ -2,7 +2,7 @@
 檔案整體說明
 目的與定位：保護 FS 只有 UI 差異時仍須核對同實體的已發布結構，不能因 schema 操作為零，
 就以實體粒度 PublishXml 順帶發布未受審的欄位變更。
-主要流程：先用既有嚴格記憶體 Store 完成合成結構，再加一個 account 公用檢視；
+主要流程：先用既有嚴格記憶體 Store 完成合成結構，construction候選明列account/contact Merge=Cascade，再加一個 account 公用檢視；
 以正式 SchemaDeploymentEngine 產生 UI 計畫，獨立隱藏已發布的既有欄位作故障注入。
 決定性斷言：原 plan 結構操作確實為零、UI 必須寫入，apply 卻必須在任何 UI 建立、
 metadata 寫入或定向發布前以 InvalidDataException 拒絕，且不得先建立 before 檔案。
@@ -42,6 +42,12 @@ public sealed class SchemaUiPublicationBoundaryTests
         var catalog = OrganizationCatalog.LoadDefault();
         var definition = fixture.Definition with
         {
+            // 合成construction清單也明列新Merge政策；仍維持原UI-only零schema操作與舊欄未發布故障。
+            Entities = fixture.Definition.Entities.Select(entity => entity with
+            {
+                Fields = entity.Fields.Select(field => field.Type == "lookup" && field.Target is "account" or "contact"
+                    ? field with { CascadeMerge = "Cascade" } : field).ToArray()
+            }).ToArray(),
             Views = new[]
             {
                 new SchemaView

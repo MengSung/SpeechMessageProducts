@@ -86,6 +86,19 @@ public sealed class SchemaDeltaNodeProbeTests
         Assert.Throws<System.IO.InvalidDataException>(() => SchemaDeltaNodeProbe.CompareNodes(large, Nodes(), default));
     }
 
+    /// <summary>診斷只准已核定兩新關聯的固定預設節點，標籤本文與任意字串仍拒絕，不對部署授權。</summary>
+    [Fact]
+    public void Normalization_OnlySafeDefaultNodes_CanBeReported()
+    {
+        var method = typeof(SchemaDeltaNodeProbe).GetMethod("DescribeSafeDefault",
+            System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.NonPublic);
+        Assert.NotNull(method);
+        Assert.NotNull(method.Invoke(null, [".IsCustomRelationship", new UiMetadataPublicationGuard.Scalar("System.Boolean", true)]));
+        var failure = Assert.Throws<System.Reflection.TargetInvocationException>(() => method.Invoke(null,
+            [".AssociatedMenuConfiguration.Label.LocalizedLabels[lcid:1028].Label", new UiMetadataPublicationGuard.Scalar("System.String", "private-label")]));
+        Assert.IsType<System.IO.InvalidDataException>(failure.InnerException);
+    }
+
     /// <summary>建立本案可變純值來源，故意允許測試端 mutation，診斷結果不得保留字典參照。</summary>
     /// <param name="rows">路徑、型別與合成值；不含 SDK 或機密。</param>
     /// <returns>只屬本案的純值字典，方法不建任何可釋放資源。</returns>

@@ -11,7 +11,7 @@
  * 共用的 Read<T> 開啟檔案後再次核對大小，解析深度最多 32，拒絕未知及重複 JSON 屬性。
  * Validate 逐一確認固定 solution／publisher／new 前綴、ActivePhase範圍、精確既有實體白名單、欄位身份與唯一性、
  * 進入既有實體白名單輔助函式前先確認Fields／Keys不為null；null集合與其他結構錯誤一律轉成受控資料錯誤，
- * 型別／長度／phase、lookup 目標、選項數值與索引欄位；主要名稱與索引欄仍要求phase 1，P1時間點必須為UserLocal／DateAndTime。
+ * 型別／長度／phase、lookup 目標與明列Merge、選項數值與索引欄位；主要名稱與索引欄仍要求phase 1，P1時間點必須為UserLocal／DateAndTime。
  * 分層讀取先驗每檔的結構，lookup 目標與主名稱欄位存在性留到完整組合後驗證，允許同層檔案延伸新表；
  * 跨層僅精確允許 goodshepherd20 的 goodshepherd 層延伸 account 四個核定生命週期欄位；
  * 此特例不能加入未知欄位、重複平台欄位、鍵或變更實體 metadata，其餘跨層重複實體仍拒絕。
@@ -536,6 +536,9 @@ internal static class SchemaFiles
     /// <summary>每種型別只接受可明確建立與比對的約束；未知欄位、錯日期或多餘參數全部fail closed。</summary>
     private static void ValidateField(SchemaField field)
     {
+        if (field.CascadeMerge is not null && (field.Type != "lookup" ||
+            field.CascadeMerge != (field.Target is "account" or "contact" ? "Cascade" : "NoCascade")))
+            throw new InvalidDataException("Lookup merge policy conflicts with the server-owned target contract.");
         if (field.Target is null || field.Behavior is null || field.Format is null
             || field.Type is not ("string" or "memo" or "integer" or "choice" or "lookup" or "datetime")
             || (field.Type is "string" or "memo" ? field.MaxLength is < 1 or > 4000 : field.MaxLength != 0)

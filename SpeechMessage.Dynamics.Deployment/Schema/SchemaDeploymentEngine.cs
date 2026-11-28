@@ -11,9 +11,9 @@
  * 新custom表樂觀並行依server預設，outbound必須重讀確認true；產品不反射寫入SDK的唯讀回應屬性，也不修改角色或舊欄位。
  * 發布與驗證：schema與UI-only修改共同決定PublishXml實體邊界；保留原schema投影守門，另於before前完整核對所有發布範圍內的既有表metadata。
  * 即使沒有views仍於首寫前與發布前盤點systemform／savedquery，兩來源各對初始UI基準比較；新表只納入建立後立即捕捉的原生UI。
- * 所有發布範圍內的既有表保存命令區域純值基準，Publish前重驗兩來源及基準；新表尚不存在，不送RetrieveEntity。
+ * 所有發布範圍內的既有表保存命令區域純值基準，並在首寫前完整落檔、flush／關閉及SHA讀回驗證；Publish前重驗兩來源及基準；新表尚不存在，不送RetrieveEntity。
  * 同表欄位／雙端關聯／鍵／局部選項只允許寫前SDK請求的完整wire候選加正式回應ID，保留所有舊metadata及新欄成員比較，不將寫後來源改認為核准基準。
- * 本次新鍵只容許Pending／InProgress／Active；其他server額外預設保守拒絕，須另行明確核定，不能略過整表或任意新子樹。
+ * 本次新鍵只容許Pending／InProgress／Active；本計畫新lookup僅依22:05決策接受固定補值白名單，其他server額外預設保守拒絕，須另行明確核定，不能略過整表或任意新子樹。
  * 再讀已發布metadata及key狀態；仍有新增差異拋錯，pending key交CLI回不完整結果。最後核對與發布間仍須由外層維持獨占，SDK不提供原子比較發布。
  * 資源與失敗：SDK由外層lease擁有；本類不Dispose它。同步I/O前後尊重caller取消，不建立背景排程；部分失敗保留before證據與原Exception，不自動刪元件或還原VM。
  * 隔離與限制：所有新ID只能取SDK正式回應，候選與created對照只存活本次apply；metadata備份不是組織資料庫備份，呼叫方法不等於環境獲准寫入。
@@ -72,6 +72,7 @@ internal sealed class SchemaDeploymentEngine
     /// <summary>在同一命令內把 metadata 與完整 UI 指紋綁入計畫；沒有 views 的 legacy 格式完全省略 UI 欄位。</summary>
     private SchemaPlan CreatePlan(SchemaDefinition definition, SchemaSnapshot snapshot, CancellationToken ct, bool publishedOnly = false)
     {
+        ValidateMergePolicy(definition);
         var plan = SchemaPlanner.Create(definition, snapshot, clock.GetUtcNow(), catalog);
         if (definition.Views.Count == 0) return plan;
         plan = plan with { Ui = UiViewDeployment.Plan(service, definition, snapshot, ct, publishedOnly), Sha256 = "" };
@@ -143,6 +144,7 @@ internal sealed class SchemaDeploymentEngine
     /// <returns>寫後重新讀取的計畫；pending key仍須verify，不表示索引已Active。</returns>
     internal SchemaPlan Apply(SchemaPlan plan, SchemaDefinition definition, CancellationToken cancellationToken)
     {
+        ValidateMergePolicy(definition);
         var before = SchemaMetadata.Read(service, target, cancellationToken);
         SchemaPlanner.ValidatePlan(plan, definition, before, catalog);
         if (definition.Views.Count != 0)
@@ -184,6 +186,9 @@ internal sealed class SchemaDeploymentEngine
             UiPublishScope.Check(UiViewDeployment.Pending(schemaUiBaseline), Array.Empty<Guid>());
         }
         _ = SchemaFiles.WriteNew(directory, "before-metadata.json", before);
+        // 完整wire基準不是planner投影；必須首寫前CreateNew、flush、關閉並與寫前序列化SHA讀回比對。
+        // 沒有既有發布端點時保存明確空基準，絕不宣稱新表原先已有完整metadata。
+        UiMetadataBaselineFile.Persist(directory, uiMetadataBaseline, plan, cancellationToken);
         if (plan.Ui is not null) _ = SchemaFiles.WriteNew(directory, "before-ui-plan.json", plan.Ui);
         var publisherId = plan.PublisherId;
         var created = new Dictionary<(string Entity, string Name), Guid>();
@@ -260,12 +265,14 @@ internal sealed class SchemaDeploymentEngine
                             ReferencedEntity = field.Target, ReferencedAttribute = field.Target + "id", ReferencingEntity = entity.LogicalName,
                             CascadeConfiguration = new CascadeConfiguration
                             {
-                                Delete = CascadeType.Restrict, Assign = CascadeType.NoCascade, Merge = CascadeType.NoCascade,
+                                Delete = CascadeType.Restrict, Assign = CascadeType.NoCascade,
+                                Merge = field.CascadeMerge == "Cascade" ? CascadeType.Cascade : CascadeType.NoCascade,
                                 Reparent = CascadeType.NoCascade, Share = CascadeType.NoCascade, Unshare = CascadeType.NoCascade
                             }
                         };
-                        var lookupAddition = metadataAdditions.CaptureLookup(entity.LogicalName, (LookupAttributeMetadata)attribute,
-                            relationship, cancellationToken);
+                        var lookupAddition = target.Name is "goodshepherd20" or "construction" or "association"
+                            ? metadataAdditions.CapturePlannedLookup(entity.LogicalName, (LookupAttributeMetadata)attribute, relationship, cancellationToken)
+                            : metadataAdditions.CaptureLookup(entity.LogicalName, (LookupAttributeMetadata)attribute, relationship, cancellationToken);
                         var response = Execute<CreateOneToManyResponse>(new CreateOneToManyRequest
                         {
                             SolutionUniqueName = definition.Solution, Lookup = (LookupAttributeMetadata)attribute,
@@ -366,6 +373,18 @@ internal sealed class SchemaDeploymentEngine
         if (remaining.Operations.Count != 0 || remaining.Ui?.Changes > 0)
             throw new InvalidOperationException("Schema apply completed with missing metadata or published UI components.");
         return remaining;
+    }
+
+    /// <summary>
+    /// 本計畫三組織的正式plan/apply必須明列account/contact Merge=Cascade，早於任何SDK寫入拒絕缺漏。
+    /// 歷史清單的純解析／hash仍可保留null供唯讀事件重建；它不能經本計畫寫入入口部署。
+    /// </summary>
+    private void ValidateMergePolicy(SchemaDefinition definition)
+    {
+        if (target.Name is "goodshepherd20" or "construction" or "association" &&
+            definition.Entities.SelectMany(entity => entity.Fields).Any(field =>
+                field.Type == "lookup" && field.Target is "account" or "contact" && field.CascadeMerge != "Cascade"))
+            throw new InvalidDataException("Planned account/contact lookup requires explicit Cascade merge.");
     }
 
     /// <summary>建構明確新欄位，固定附錄型別、日期與安全；不轉換既有欄位，後續Update例外僅限新Lookup啟用稽核。</summary>

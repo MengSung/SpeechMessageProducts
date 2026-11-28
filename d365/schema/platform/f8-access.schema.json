@@ -27,7 +27,7 @@
           "displayName": "租戶",
           "type": "lookup",
           "phase": 1,
-          "target": "account",
+          "target": "account", "cascadeMerge": "Cascade",
           "required": true
         },
         {
@@ -179,7 +179,7 @@
           "displayName": "會友",
           "type": "lookup",
           "phase": 1,
-          "target": "contact",
+          "target": "contact", "cascadeMerge": "Cascade",
           "required": true
         },
         {
@@ -266,14 +266,14 @@
           "displayName": "操作者",
           "type": "lookup",
           "phase": 1,
-          "target": "contact"
+          "target": "contact", "cascadeMerge": "Cascade"
         },
         {
           "logicalName": "new_tenantid",
           "displayName": "租戶",
           "type": "lookup",
           "phase": 1,
-          "target": "account",
+          "target": "account", "cascadeMerge": "Cascade",
           "required": true
         },
         {

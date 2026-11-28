@@ -1,0 +1,1162 @@
+{
+  "organization": "goodshepherd20",
+  "beforeSnapshotSha256": "DD245E69D6977209EDD1F89588D203B26146373628DDB0BAE3FB400465718B64",
+  "originalPlanSha256": "337EBA5A81AE2B014E88386FC3853FD19335B3EFFDB03EED15B511FC1FAEE997",
+  "fullOriginalBaselineAvailable": false,
+  "canAuthorizeThirdApply": false,
+  "coverage": "OnlyTwoExplicitPlannedRelationshipSubtrees",
+  "currentPublishedAndUnpublishedFullGuardPassed": true,
+  "missingCoverage": [
+    "OriginalLabels",
+    "OriginalDescriptions",
+    "OriginalRelationshipsAndCascade",
+    "OriginalPrivilegesAndManagedProperties",
+    "OtherOriginalFullDataMemberNodes"
+  ],
+  "observations": [
+    {
+      "source": "Published",
+      "entity": "account",
+      "logicalName": "new_new_testinvite_new_tenant",
+      "metadataId": "80a36592-09eb-f111-8ccf-00155d007916",
+      "automaticSystemComponentProven": false,
+      "differences": [
+        {
+          "path": ".AssociatedMenuConfiguration",
+          "kind": "Changed",
+          "expectedType": "null",
+          "actualType": "Contract"
+        },
+        {
+          "path": ".AssociatedMenuConfiguration.AvailableOffline",
+          "kind": "Added",
+          "expectedType": "missing",
+          "actualType": "System.Boolean"
+        },
+        {
+          "path": ".AssociatedMenuConfiguration.Behavior",
+          "kind": "Added",
+          "expectedType": "missing",
+          "actualType": "Microsoft.Xrm.Sdk.Metadata.AssociatedMenuBehavior"
+        },
+        {
+          "path": ".AssociatedMenuConfiguration.Group",
+          "kind": "Added",
+          "expectedType": "missing",
+          "actualType": "Microsoft.Xrm.Sdk.Metadata.AssociatedMenuGroup"
+        },
+        {
+          "path": ".AssociatedMenuConfiguration.Icon",
+          "kind": "Added",
+          "expectedType": "missing",
+          "actualType": "null"
+        },
+        {
+          "path": ".AssociatedMenuConfiguration.IsCustomizable",
+          "kind": "Added",
+          "expectedType": "missing",
+          "actualType": "System.Boolean"
+        },
+        {
+          "path": ".AssociatedMenuConfiguration.Label",
+          "kind": "Added",
+          "expectedType": "missing",
+          "actualType": "Contract"
+        },
+        {
+          "path": ".AssociatedMenuConfiguration.Label.LocalizedLabels",
+          "kind": "Added",
+          "expectedType": "missing",
+          "actualType": "Collection"
+        },
+        {
+          "path": ".AssociatedMenuConfiguration.Label.UserLocalizedLabel",
+          "kind": "Added",
+          "expectedType": "missing",
+          "actualType": "null"
+        },
+        {
+          "path": ".AssociatedMenuConfiguration.MenuId",
+          "kind": "Added",
+          "expectedType": "missing",
+          "actualType": "null"
+        },
+        {
+          "path": ".AssociatedMenuConfiguration.Order",
+          "kind": "Added",
+          "expectedType": "missing",
+          "actualType": "System.Int32"
+        },
+        {
+          "path": ".AssociatedMenuConfiguration.QueryApi",
+          "kind": "Added",
+          "expectedType": "missing",
+          "actualType": "null"
+        },
+        {
+          "path": ".AssociatedMenuConfiguration.ViewId",
+          "kind": "Added",
+          "expectedType": "missing",
+          "actualType": "System.Guid"
+        },
+        {
+          "path": ".CascadeConfiguration.Merge",
+          "kind": "Changed",
+          "expectedType": "Microsoft.Xrm.Sdk.Metadata.CascadeType",
+          "actualType": "Microsoft.Xrm.Sdk.Metadata.CascadeType"
+        },
+        {
+          "path": ".CascadeConfiguration.RollupView",
+          "kind": "Changed",
+          "expectedType": "null",
+          "actualType": "Microsoft.Xrm.Sdk.Metadata.CascadeType"
+        },
+        {
+          "path": ".IntroducedVersion",
+          "kind": "Changed",
+          "expectedType": "null",
+          "actualType": "System.String"
+        },
+        {
+          "path": ".IsCustomRelationship",
+          "kind": "Changed",
+          "expectedType": "null",
+          "actualType": "System.Boolean"
+        },
+        {
+          "path": ".IsCustomizable",
+          "kind": "Changed",
+          "expectedType": "null",
+          "actualType": "Contract"
+        },
+        {
+          "path": ".IsCustomizable.CanBeChanged",
+          "kind": "Added",
+          "expectedType": "missing",
+          "actualType": "System.Boolean"
+        },
+        {
+          "path": ".IsCustomizable.ManagedPropertyLogicalName",
+          "kind": "Added",
+          "expectedType": "missing",
+          "actualType": "System.String"
+        },
+        {
+          "path": ".IsCustomizable.Value",
+          "kind": "Added",
+          "expectedType": "missing",
+          "actualType": "System.Boolean"
+        },
+        {
+          "path": ".IsHierarchical",
+          "kind": "Changed",
+          "expectedType": "null",
+          "actualType": "System.Boolean"
+        },
+        {
+          "path": ".IsValidForAdvancedFind",
+          "kind": "Changed",
+          "expectedType": "null",
+          "actualType": "System.Boolean"
+        },
+        {
+          "path": ".ReferencedEntityNavigationPropertyName",
+          "kind": "Changed",
+          "expectedType": "null",
+          "actualType": "System.String"
+        },
+        {
+          "path": ".ReferencingEntityNavigationPropertyName",
+          "kind": "Changed",
+          "expectedType": "null",
+          "actualType": "System.String"
+        },
+        {
+          "path": ".RelationshipAttributes",
+          "kind": "Changed",
+          "expectedType": "null",
+          "actualType": "Collection"
+        },
+        {
+          "path": ".RelationshipBehavior",
+          "kind": "Changed",
+          "expectedType": "null",
+          "actualType": "System.Int32"
+        },
+        {
+          "path": ".SecurityTypes",
+          "kind": "Changed",
+          "expectedType": "null",
+          "actualType": "Microsoft.Xrm.Sdk.Metadata.SecurityTypes"
+        }
+      ],
+      "normalizationDefaults": {
+        ".AssociatedMenuConfiguration": {
+          "type": "Contract",
+          "value": "Microsoft.Xrm.Sdk.Metadata.AssociatedMenuConfiguration"
+        },
+        ".AssociatedMenuConfiguration.AvailableOffline": {
+          "type": "System.Boolean",
+          "value": true
+        },
+        ".AssociatedMenuConfiguration.Behavior": {
+          "type": "Microsoft.Xrm.Sdk.Metadata.AssociatedMenuBehavior",
+          "value": 0
+        },
+        ".AssociatedMenuConfiguration.Group": {
+          "type": "Microsoft.Xrm.Sdk.Metadata.AssociatedMenuGroup",
+          "value": 0
+        },
+        ".AssociatedMenuConfiguration.Icon": {
+          "type": "null",
+          "value": null
+        },
+        ".AssociatedMenuConfiguration.IsCustomizable": {
+          "type": "System.Boolean",
+          "value": true
+        },
+        ".AssociatedMenuConfiguration.Label": {
+          "type": "Contract",
+          "value": "Microsoft.Xrm.Sdk.Label"
+        },
+        ".AssociatedMenuConfiguration.Label.LocalizedLabels": {
+          "type": "Collection",
+          "value": 0
+        },
+        ".AssociatedMenuConfiguration.Label.UserLocalizedLabel": {
+          "type": "null",
+          "value": null
+        },
+        ".AssociatedMenuConfiguration.MenuId": {
+          "type": "null",
+          "value": null
+        },
+        ".AssociatedMenuConfiguration.Order": {
+          "type": "System.Int32",
+          "value": 10000
+        },
+        ".AssociatedMenuConfiguration.QueryApi": {
+          "type": "null",
+          "value": null
+        },
+        ".AssociatedMenuConfiguration.ViewId": {
+          "type": "System.Guid",
+          "value": "00000000-0000-0000-0000-000000000000"
+        },
+        ".CascadeConfiguration.Merge": {
+          "type": "Microsoft.Xrm.Sdk.Metadata.CascadeType",
+          "value": 1
+        },
+        ".CascadeConfiguration.RollupView": {
+          "type": "Microsoft.Xrm.Sdk.Metadata.CascadeType",
+          "value": 0
+        },
+        ".IntroducedVersion": {
+          "type": "System.String",
+          "value": "1.0.0.0"
+        },
+        ".IsCustomRelationship": {
+          "type": "System.Boolean",
+          "value": true
+        },
+        ".IsCustomizable": {
+          "type": "Contract",
+          "value": "Microsoft.Xrm.Sdk.BooleanManagedProperty"
+        },
+        ".IsCustomizable.CanBeChanged": {
+          "type": "System.Boolean",
+          "value": true
+        },
+        ".IsCustomizable.ManagedPropertyLogicalName": {
+          "type": "System.String",
+          "value": "iscustomizable"
+        },
+        ".IsCustomizable.Value": {
+          "type": "System.Boolean",
+          "value": true
+        },
+        ".IsHierarchical": {
+          "type": "System.Boolean",
+          "value": false
+        },
+        ".IsValidForAdvancedFind": {
+          "type": "System.Boolean",
+          "value": true
+        },
+        ".ReferencedEntityNavigationPropertyName": {
+          "type": "System.String",
+          "value": "new_new_testinvite_new_tenant"
+        },
+        ".ReferencingEntityNavigationPropertyName": {
+          "type": "System.String",
+          "value": "new_tenant"
+        },
+        ".RelationshipAttributes": {
+          "type": "Collection",
+          "value": 0
+        },
+        ".RelationshipBehavior": {
+          "type": "System.Int32",
+          "value": 1
+        },
+        ".SecurityTypes": {
+          "type": "Microsoft.Xrm.Sdk.Metadata.SecurityTypes",
+          "value": 1
+        }
+      }
+    },
+    {
+      "source": "Published",
+      "entity": "new_role",
+      "logicalName": "new_new_testinvite_new_role",
+      "metadataId": "88a36592-09eb-f111-8ccf-00155d007916",
+      "automaticSystemComponentProven": false,
+      "differences": [
+        {
+          "path": ".AssociatedMenuConfiguration",
+          "kind": "Changed",
+          "expectedType": "null",
+          "actualType": "Contract"
+        },
+        {
+          "path": ".AssociatedMenuConfiguration.AvailableOffline",
+          "kind": "Added",
+          "expectedType": "missing",
+          "actualType": "System.Boolean"
+        },
+        {
+          "path": ".AssociatedMenuConfiguration.Behavior",
+          "kind": "Added",
+          "expectedType": "missing",
+          "actualType": "Microsoft.Xrm.Sdk.Metadata.AssociatedMenuBehavior"
+        },
+        {
+          "path": ".AssociatedMenuConfiguration.Group",
+          "kind": "Added",
+          "expectedType": "missing",
+          "actualType": "Microsoft.Xrm.Sdk.Metadata.AssociatedMenuGroup"
+        },
+        {
+          "path": ".AssociatedMenuConfiguration.Icon",
+          "kind": "Added",
+          "expectedType": "missing",
+          "actualType": "null"
+        },
+        {
+          "path": ".AssociatedMenuConfiguration.IsCustomizable",
+          "kind": "Added",
+          "expectedType": "missing",
+          "actualType": "System.Boolean"
+        },
+        {
+          "path": ".AssociatedMenuConfiguration.Label",
+          "kind": "Added",
+          "expectedType": "missing",
+          "actualType": "Contract"
+        },
+        {
+          "path": ".AssociatedMenuConfiguration.Label.LocalizedLabels",
+          "kind": "Added",
+          "expectedType": "missing",
+          "actualType": "Collection"
+        },
+        {
+          "path": ".AssociatedMenuConfiguration.Label.UserLocalizedLabel",
+          "kind": "Added",
+          "expectedType": "missing",
+          "actualType": "null"
+        },
+        {
+          "path": ".AssociatedMenuConfiguration.MenuId",
+          "kind": "Added",
+          "expectedType": "missing",
+          "actualType": "null"
+        },
+        {
+          "path": ".AssociatedMenuConfiguration.Order",
+          "kind": "Added",
+          "expectedType": "missing",
+          "actualType": "System.Int32"
+        },
+        {
+          "path": ".AssociatedMenuConfiguration.QueryApi",
+          "kind": "Added",
+          "expectedType": "missing",
+          "actualType": "null"
+        },
+        {
+          "path": ".AssociatedMenuConfiguration.ViewId",
+          "kind": "Added",
+          "expectedType": "missing",
+          "actualType": "System.Guid"
+        },
+        {
+          "path": ".CascadeConfiguration.RollupView",
+          "kind": "Changed",
+          "expectedType": "null",
+          "actualType": "Microsoft.Xrm.Sdk.Metadata.CascadeType"
+        },
+        {
+          "path": ".IntroducedVersion",
+          "kind": "Changed",
+          "expectedType": "null",
+          "actualType": "System.String"
+        },
+        {
+          "path": ".IsCustomRelationship",
+          "kind": "Changed",
+          "expectedType": "null",
+          "actualType": "System.Boolean"
+        },
+        {
+          "path": ".IsCustomizable",
+          "kind": "Changed",
+          "expectedType": "null",
+          "actualType": "Contract"
+        },
+        {
+          "path": ".IsCustomizable.CanBeChanged",
+          "kind": "Added",
+          "expectedType": "missing",
+          "actualType": "System.Boolean"
+        },
+        {
+          "path": ".IsCustomizable.ManagedPropertyLogicalName",
+          "kind": "Added",
+          "expectedType": "missing",
+          "actualType": "System.String"
+        },
+        {
+          "path": ".IsCustomizable.Value",
+          "kind": "Added",
+          "expectedType": "missing",
+          "actualType": "System.Boolean"
+        },
+        {
+          "path": ".IsHierarchical",
+          "kind": "Changed",
+          "expectedType": "null",
+          "actualType": "System.Boolean"
+        },
+        {
+          "path": ".IsValidForAdvancedFind",
+          "kind": "Changed",
+          "expectedType": "null",
+          "actualType": "System.Boolean"
+        },
+        {
+          "path": ".ReferencedEntityNavigationPropertyName",
+          "kind": "Changed",
+          "expectedType": "null",
+          "actualType": "System.String"
+        },
+        {
+          "path": ".ReferencingEntityNavigationPropertyName",
+          "kind": "Changed",
+          "expectedType": "null",
+          "actualType": "System.String"
+        },
+        {
+          "path": ".RelationshipAttributes",
+          "kind": "Changed",
+          "expectedType": "null",
+          "actualType": "Collection"
+        },
+        {
+          "path": ".RelationshipBehavior",
+          "kind": "Changed",
+          "expectedType": "null",
+          "actualType": "System.Int32"
+        },
+        {
+          "path": ".SecurityTypes",
+          "kind": "Changed",
+          "expectedType": "null",
+          "actualType": "Microsoft.Xrm.Sdk.Metadata.SecurityTypes"
+        }
+      ],
+      "normalizationDefaults": {
+        ".AssociatedMenuConfiguration": {
+          "type": "Contract",
+          "value": "Microsoft.Xrm.Sdk.Metadata.AssociatedMenuConfiguration"
+        },
+        ".AssociatedMenuConfiguration.AvailableOffline": {
+          "type": "System.Boolean",
+          "value": true
+        },
+        ".AssociatedMenuConfiguration.Behavior": {
+          "type": "Microsoft.Xrm.Sdk.Metadata.AssociatedMenuBehavior",
+          "value": 0
+        },
+        ".AssociatedMenuConfiguration.Group": {
+          "type": "Microsoft.Xrm.Sdk.Metadata.AssociatedMenuGroup",
+          "value": 0
+        },
+        ".AssociatedMenuConfiguration.Icon": {
+          "type": "null",
+          "value": null
+        },
+        ".AssociatedMenuConfiguration.IsCustomizable": {
+          "type": "System.Boolean",
+          "value": true
+        },
+        ".AssociatedMenuConfiguration.Label": {
+          "type": "Contract",
+          "value": "Microsoft.Xrm.Sdk.Label"
+        },
+        ".AssociatedMenuConfiguration.Label.LocalizedLabels": {
+          "type": "Collection",
+          "value": 0
+        },
+        ".AssociatedMenuConfiguration.Label.UserLocalizedLabel": {
+          "type": "null",
+          "value": null
+        },
+        ".AssociatedMenuConfiguration.MenuId": {
+          "type": "null",
+          "value": null
+        },
+        ".AssociatedMenuConfiguration.Order": {
+          "type": "System.Int32",
+          "value": 10000
+        },
+        ".AssociatedMenuConfiguration.QueryApi": {
+          "type": "null",
+          "value": null
+        },
+        ".AssociatedMenuConfiguration.ViewId": {
+          "type": "System.Guid",
+          "value": "00000000-0000-0000-0000-000000000000"
+        },
+        ".CascadeConfiguration.RollupView": {
+          "type": "Microsoft.Xrm.Sdk.Metadata.CascadeType",
+          "value": 0
+        },
+        ".IntroducedVersion": {
+          "type": "System.String",
+          "value": "1.0.0.0"
+        },
+        ".IsCustomRelationship": {
+          "type": "System.Boolean",
+          "value": true
+        },
+        ".IsCustomizable": {
+          "type": "Contract",
+          "value": "Microsoft.Xrm.Sdk.BooleanManagedProperty"
+        },
+        ".IsCustomizable.CanBeChanged": {
+          "type": "System.Boolean",
+          "value": true
+        },
+        ".IsCustomizable.ManagedPropertyLogicalName": {
+          "type": "System.String",
+          "value": "iscustomizable"
+        },
+        ".IsCustomizable.Value": {
+          "type": "System.Boolean",
+          "value": true
+        },
+        ".IsHierarchical": {
+          "type": "System.Boolean",
+          "value": false
+        },
+        ".IsValidForAdvancedFind": {
+          "type": "System.Boolean",
+          "value": true
+        },
+        ".ReferencedEntityNavigationPropertyName": {
+          "type": "System.String",
+          "value": "new_new_testinvite_new_role"
+        },
+        ".ReferencingEntityNavigationPropertyName": {
+          "type": "System.String",
+          "value": "new_role"
+        },
+        ".RelationshipAttributes": {
+          "type": "Collection",
+          "value": 0
+        },
+        ".RelationshipBehavior": {
+          "type": "System.Int32",
+          "value": 1
+        },
+        ".SecurityTypes": {
+          "type": "Microsoft.Xrm.Sdk.Metadata.SecurityTypes",
+          "value": 1
+        }
+      }
+    },
+    {
+      "source": "Unpublished",
+      "entity": "account",
+      "logicalName": "new_new_testinvite_new_tenant",
+      "metadataId": "80a36592-09eb-f111-8ccf-00155d007916",
+      "automaticSystemComponentProven": false,
+      "differences": [
+        {
+          "path": ".AssociatedMenuConfiguration",
+          "kind": "Changed",
+          "expectedType": "null",
+          "actualType": "Contract"
+        },
+        {
+          "path": ".AssociatedMenuConfiguration.AvailableOffline",
+          "kind": "Added",
+          "expectedType": "missing",
+          "actualType": "System.Boolean"
+        },
+        {
+          "path": ".AssociatedMenuConfiguration.Behavior",
+          "kind": "Added",
+          "expectedType": "missing",
+          "actualType": "Microsoft.Xrm.Sdk.Metadata.AssociatedMenuBehavior"
+        },
+        {
+          "path": ".AssociatedMenuConfiguration.Group",
+          "kind": "Added",
+          "expectedType": "missing",
+          "actualType": "Microsoft.Xrm.Sdk.Metadata.AssociatedMenuGroup"
+        },
+        {
+          "path": ".AssociatedMenuConfiguration.Icon",
+          "kind": "Added",
+          "expectedType": "missing",
+          "actualType": "null"
+        },
+        {
+          "path": ".AssociatedMenuConfiguration.IsCustomizable",
+          "kind": "Added",
+          "expectedType": "missing",
+          "actualType": "System.Boolean"
+        },
+        {
+          "path": ".AssociatedMenuConfiguration.Label",
+          "kind": "Added",
+          "expectedType": "missing",
+          "actualType": "Contract"
+        },
+        {
+          "path": ".AssociatedMenuConfiguration.Label.LocalizedLabels",
+          "kind": "Added",
+          "expectedType": "missing",
+          "actualType": "Collection"
+        },
+        {
+          "path": ".AssociatedMenuConfiguration.Label.UserLocalizedLabel",
+          "kind": "Added",
+          "expectedType": "missing",
+          "actualType": "null"
+        },
+        {
+          "path": ".AssociatedMenuConfiguration.MenuId",
+          "kind": "Added",
+          "expectedType": "missing",
+          "actualType": "null"
+        },
+        {
+          "path": ".AssociatedMenuConfiguration.Order",
+          "kind": "Added",
+          "expectedType": "missing",
+          "actualType": "System.Int32"
+        },
+        {
+          "path": ".AssociatedMenuConfiguration.QueryApi",
+          "kind": "Added",
+          "expectedType": "missing",
+          "actualType": "null"
+        },
+        {
+          "path": ".AssociatedMenuConfiguration.ViewId",
+          "kind": "Added",
+          "expectedType": "missing",
+          "actualType": "System.Guid"
+        },
+        {
+          "path": ".CascadeConfiguration.Merge",
+          "kind": "Changed",
+          "expectedType": "Microsoft.Xrm.Sdk.Metadata.CascadeType",
+          "actualType": "Microsoft.Xrm.Sdk.Metadata.CascadeType"
+        },
+        {
+          "path": ".CascadeConfiguration.RollupView",
+          "kind": "Changed",
+          "expectedType": "null",
+          "actualType": "Microsoft.Xrm.Sdk.Metadata.CascadeType"
+        },
+        {
+          "path": ".IntroducedVersion",
+          "kind": "Changed",
+          "expectedType": "null",
+          "actualType": "System.String"
+        },
+        {
+          "path": ".IsCustomRelationship",
+          "kind": "Changed",
+          "expectedType": "null",
+          "actualType": "System.Boolean"
+        },
+        {
+          "path": ".IsCustomizable",
+          "kind": "Changed",
+          "expectedType": "null",
+          "actualType": "Contract"
+        },
+        {
+          "path": ".IsCustomizable.CanBeChanged",
+          "kind": "Added",
+          "expectedType": "missing",
+          "actualType": "System.Boolean"
+        },
+        {
+          "path": ".IsCustomizable.ManagedPropertyLogicalName",
+          "kind": "Added",
+          "expectedType": "missing",
+          "actualType": "System.String"
+        },
+        {
+          "path": ".IsCustomizable.Value",
+          "kind": "Added",
+          "expectedType": "missing",
+          "actualType": "System.Boolean"
+        },
+        {
+          "path": ".IsHierarchical",
+          "kind": "Changed",
+          "expectedType": "null",
+          "actualType": "System.Boolean"
+        },
+        {
+          "path": ".IsValidForAdvancedFind",
+          "kind": "Changed",
+          "expectedType": "null",
+          "actualType": "System.Boolean"
+        },
+        {
+          "path": ".ReferencedEntityNavigationPropertyName",
+          "kind": "Changed",
+          "expectedType": "null",
+          "actualType": "System.String"
+        },
+        {
+          "path": ".ReferencingEntityNavigationPropertyName",
+          "kind": "Changed",
+          "expectedType": "null",
+          "actualType": "System.String"
+        },
+        {
+          "path": ".RelationshipAttributes",
+          "kind": "Changed",
+          "expectedType": "null",
+          "actualType": "Collection"
+        },
+        {
+          "path": ".RelationshipBehavior",
+          "kind": "Changed",
+          "expectedType": "null",
+          "actualType": "System.Int32"
+        },
+        {
+          "path": ".SecurityTypes",
+          "kind": "Changed",
+          "expectedType": "null",
+          "actualType": "Microsoft.Xrm.Sdk.Metadata.SecurityTypes"
+        }
+      ],
+      "normalizationDefaults": {
+        ".AssociatedMenuConfiguration": {
+          "type": "Contract",
+          "value": "Microsoft.Xrm.Sdk.Metadata.AssociatedMenuConfiguration"
+        },
+        ".AssociatedMenuConfiguration.AvailableOffline": {
+          "type": "System.Boolean",
+          "value": true
+        },
+        ".AssociatedMenuConfiguration.Behavior": {
+          "type": "Microsoft.Xrm.Sdk.Metadata.AssociatedMenuBehavior",
+          "value": 0
+        },
+        ".AssociatedMenuConfiguration.Group": {
+          "type": "Microsoft.Xrm.Sdk.Metadata.AssociatedMenuGroup",
+          "value": 0
+        },
+        ".AssociatedMenuConfiguration.Icon": {
+          "type": "null",
+          "value": null
+        },
+        ".AssociatedMenuConfiguration.IsCustomizable": {
+          "type": "System.Boolean",
+          "value": true
+        },
+        ".AssociatedMenuConfiguration.Label": {
+          "type": "Contract",
+          "value": "Microsoft.Xrm.Sdk.Label"
+        },
+        ".AssociatedMenuConfiguration.Label.LocalizedLabels": {
+          "type": "Collection",
+          "value": 0
+        },
+        ".AssociatedMenuConfiguration.Label.UserLocalizedLabel": {
+          "type": "null",
+          "value": null
+        },
+        ".AssociatedMenuConfiguration.MenuId": {
+          "type": "null",
+          "value": null
+        },
+        ".AssociatedMenuConfiguration.Order": {
+          "type": "System.Int32",
+          "value": 10000
+        },
+        ".AssociatedMenuConfiguration.QueryApi": {
+          "type": "null",
+          "value": null
+        },
+        ".AssociatedMenuConfiguration.ViewId": {
+          "type": "System.Guid",
+          "value": "00000000-0000-0000-0000-000000000000"
+        },
+        ".CascadeConfiguration.Merge": {
+          "type": "Microsoft.Xrm.Sdk.Metadata.CascadeType",
+          "value": 1
+        },
+        ".CascadeConfiguration.RollupView": {
+          "type": "Microsoft.Xrm.Sdk.Metadata.CascadeType",
+          "value": 0
+        },
+        ".IntroducedVersion": {
+          "type": "System.String",
+          "value": "1.0.0.0"
+        },
+        ".IsCustomRelationship": {
+          "type": "System.Boolean",
+          "value": true
+        },
+        ".IsCustomizable": {
+          "type": "Contract",
+          "value": "Microsoft.Xrm.Sdk.BooleanManagedProperty"
+        },
+        ".IsCustomizable.CanBeChanged": {
+          "type": "System.Boolean",
+          "value": true
+        },
+        ".IsCustomizable.ManagedPropertyLogicalName": {
+          "type": "System.String",
+          "value": "iscustomizable"
+        },
+        ".IsCustomizable.Value": {
+          "type": "System.Boolean",
+          "value": true
+        },
+        ".IsHierarchical": {
+          "type": "System.Boolean",
+          "value": false
+        },
+        ".IsValidForAdvancedFind": {
+          "type": "System.Boolean",
+          "value": true
+        },
+        ".ReferencedEntityNavigationPropertyName": {
+          "type": "System.String",
+          "value": "new_new_testinvite_new_tenant"
+        },
+        ".ReferencingEntityNavigationPropertyName": {
+          "type": "System.String",
+          "value": "new_tenant"
+        },
+        ".RelationshipAttributes": {
+          "type": "Collection",
+          "value": 0
+        },
+        ".RelationshipBehavior": {
+          "type": "System.Int32",
+          "value": 1
+        },
+        ".SecurityTypes": {
+          "type": "Microsoft.Xrm.Sdk.Metadata.SecurityTypes",
+          "value": 1
+        }
+      }
+    },
+    {
+      "source": "Unpublished",
+      "entity": "new_role",
+      "logicalName": "new_new_testinvite_new_role",
+      "metadataId": "88a36592-09eb-f111-8ccf-00155d007916",
+      "automaticSystemComponentProven": false,
+      "differences": [
+        {
+          "path": ".AssociatedMenuConfiguration",
+          "kind": "Changed",
+          "expectedType": "null",
+          "actualType": "Contract"
+        },
+        {
+          "path": ".AssociatedMenuConfiguration.AvailableOffline",
+          "kind": "Added",
+          "expectedType": "missing",
+          "actualType": "System.Boolean"
+        },
+        {
+          "path": ".AssociatedMenuConfiguration.Behavior",
+          "kind": "Added",
+          "expectedType": "missing",
+          "actualType": "Microsoft.Xrm.Sdk.Metadata.AssociatedMenuBehavior"
+        },
+        {
+          "path": ".AssociatedMenuConfiguration.Group",
+          "kind": "Added",
+          "expectedType": "missing",
+          "actualType": "Microsoft.Xrm.Sdk.Metadata.AssociatedMenuGroup"
+        },
+        {
+          "path": ".AssociatedMenuConfiguration.Icon",
+          "kind": "Added",
+          "expectedType": "missing",
+          "actualType": "null"
+        },
+        {
+          "path": ".AssociatedMenuConfiguration.IsCustomizable",
+          "kind": "Added",
+          "expectedType": "missing",
+          "actualType": "System.Boolean"
+        },
+        {
+          "path": ".AssociatedMenuConfiguration.Label",
+          "kind": "Added",
+          "expectedType": "missing",
+          "actualType": "Contract"
+        },
+        {
+          "path": ".AssociatedMenuConfiguration.Label.LocalizedLabels",
+          "kind": "Added",
+          "expectedType": "missing",
+          "actualType": "Collection"
+        },
+        {
+          "path": ".AssociatedMenuConfiguration.Label.UserLocalizedLabel",
+          "kind": "Added",
+          "expectedType": "missing",
+          "actualType": "null"
+        },
+        {
+          "path": ".AssociatedMenuConfiguration.MenuId",
+          "kind": "Added",
+          "expectedType": "missing",
+          "actualType": "null"
+        },
+        {
+          "path": ".AssociatedMenuConfiguration.Order",
+          "kind": "Added",
+          "expectedType": "missing",
+          "actualType": "System.Int32"
+        },
+        {
+          "path": ".AssociatedMenuConfiguration.QueryApi",
+          "kind": "Added",
+          "expectedType": "missing",
+          "actualType": "null"
+        },
+        {
+          "path": ".AssociatedMenuConfiguration.ViewId",
+          "kind": "Added",
+          "expectedType": "missing",
+          "actualType": "System.Guid"
+        },
+        {
+          "path": ".CascadeConfiguration.RollupView",
+          "kind": "Changed",
+          "expectedType": "null",
+          "actualType": "Microsoft.Xrm.Sdk.Metadata.CascadeType"
+        },
+        {
+          "path": ".IntroducedVersion",
+          "kind": "Changed",
+          "expectedType": "null",
+          "actualType": "System.String"
+        },
+        {
+          "path": ".IsCustomRelationship",
+          "kind": "Changed",
+          "expectedType": "null",
+          "actualType": "System.Boolean"
+        },
+        {
+          "path": ".IsCustomizable",
+          "kind": "Changed",
+          "expectedType": "null",
+          "actualType": "Contract"
+        },
+        {
+          "path": ".IsCustomizable.CanBeChanged",
+          "kind": "Added",
+          "expectedType": "missing",
+          "actualType": "System.Boolean"
+        },
+        {
+          "path": ".IsCustomizable.ManagedPropertyLogicalName",
+          "kind": "Added",
+          "expectedType": "missing",
+          "actualType": "System.String"
+        },
+        {
+          "path": ".IsCustomizable.Value",
+          "kind": "Added",
+          "expectedType": "missing",
+          "actualType": "System.Boolean"
+        },
+        {
+          "path": ".IsHierarchical",
+          "kind": "Changed",
+          "expectedType": "null",
+          "actualType": "System.Boolean"
+        },
+        {
+          "path": ".IsValidForAdvancedFind",
+          "kind": "Changed",
+          "expectedType": "null",
+          "actualType": "System.Boolean"
+        },
+        {
+          "path": ".ReferencedEntityNavigationPropertyName",
+          "kind": "Changed",
+          "expectedType": "null",
+          "actualType": "System.String"
+        },
+        {
+          "path": ".ReferencingEntityNavigationPropertyName",
+          "kind": "Changed",
+          "expectedType": "null",
+          "actualType": "System.String"
+        },
+        {
+          "path": ".RelationshipAttributes",
+          "kind": "Changed",
+          "expectedType": "null",
+          "actualType": "Collection"
+        },
+        {
+          "path": ".RelationshipBehavior",
+          "kind": "Changed",
+          "expectedType": "null",
+          "actualType": "System.Int32"
+        },
+        {
+          "path": ".SecurityTypes",
+          "kind": "Changed",
+          "expectedType": "null",
+          "actualType": "Microsoft.Xrm.Sdk.Metadata.SecurityTypes"
+        }
+      ],
+      "normalizationDefaults": {
+        ".AssociatedMenuConfiguration": {
+          "type": "Contract",
+          "value": "Microsoft.Xrm.Sdk.Metadata.AssociatedMenuConfiguration"
+        },
+        ".AssociatedMenuConfiguration.AvailableOffline": {
+          "type": "System.Boolean",
+          "value": true
+        },
+        ".AssociatedMenuConfiguration.Behavior": {
+          "type": "Microsoft.Xrm.Sdk.Metadata.AssociatedMenuBehavior",
+          "value": 0
+        },
+        ".AssociatedMenuConfiguration.Group": {
+          "type": "Microsoft.Xrm.Sdk.Metadata.AssociatedMenuGroup",
+          "value": 0
+        },
+        ".AssociatedMenuConfiguration.Icon": {
+          "type": "null",
+          "value": null
+        },
+        ".AssociatedMenuConfiguration.IsCustomizable": {
+          "type": "System.Boolean",
+          "value": true
+        },
+        ".AssociatedMenuConfiguration.Label": {
+          "type": "Contract",
+          "value": "Microsoft.Xrm.Sdk.Label"
+        },
+        ".AssociatedMenuConfiguration.Label.LocalizedLabels": {
+          "type": "Collection",
+          "value": 0
+        },
+        ".AssociatedMenuConfiguration.Label.UserLocalizedLabel": {
+          "type": "null",
+          "value": null
+        },
+        ".AssociatedMenuConfiguration.MenuId": {
+          "type": "null",
+          "value": null
+        },
+        ".AssociatedMenuConfiguration.Order": {
+          "type": "System.Int32",
+          "value": 10000
+        },
+        ".AssociatedMenuConfiguration.QueryApi": {
+          "type": "null",
+          "value": null
+        },
+        ".AssociatedMenuConfiguration.ViewId": {
+          "type": "System.Guid",
+          "value": "00000000-0000-0000-0000-000000000000"
+        },
+        ".CascadeConfiguration.RollupView": {
+          "type": "Microsoft.Xrm.Sdk.Metadata.CascadeType",
+          "value": 0
+        },
+        ".IntroducedVersion": {
+          "type": "System.String",
+          "value": "1.0.0.0"
+        },
+        ".IsCustomRelationship": {
+          "type": "System.Boolean",
+          "value": true
+        },
+        ".IsCustomizable": {
+          "type": "Contract",
+          "value": "Microsoft.Xrm.Sdk.BooleanManagedProperty"
+        },
+        ".IsCustomizable.CanBeChanged": {
+          "type": "System.Boolean",
+          "value": true
+        },
+        ".IsCustomizable.ManagedPropertyLogicalName": {
+          "type": "System.String",
+          "value": "iscustomizable"
+        },
+        ".IsCustomizable.Value": {
+          "type": "System.Boolean",
+          "value": true
+        },
+        ".IsHierarchical": {
+          "type": "System.Boolean",
+          "value": false
+        },
+        ".IsValidForAdvancedFind": {
+          "type": "System.Boolean",
+          "value": true
+        },
+        ".ReferencedEntityNavigationPropertyName": {
+          "type": "System.String",
+          "value": "new_new_testinvite_new_role"
+        },
+        ".ReferencingEntityNavigationPropertyName": {
+          "type": "System.String",
+          "value": "new_role"
+        },
+        ".RelationshipAttributes": {
+          "type": "Collection",
+          "value": 0
+        },
+        ".RelationshipBehavior": {
+          "type": "System.Int32",
+          "value": 1
+        },
+        ".SecurityTypes": {
+          "type": "Microsoft.Xrm.Sdk.Metadata.SecurityTypes",
+          "value": 1
+        }
+      }
+    }
+  ]
+}

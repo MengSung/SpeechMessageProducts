@@ -185,3 +185,13 @@ D365 9.1 一般 published／unpublished 的 formxml 可能依語系投影不同�
 D365 9.1 的 solution 匯出 XSD 不等於 savedquery Create 的執行期 XSD。D365APP01已安裝 LayoutXmlValidator 的內嵌契約要求 grid name／object／select／preview／icon／jump 齊全；缺少屬性時callback拋CrmException(string)，該版本預設錯碼為0x80040216。ViewDefinitions固定產生icon=1及jump=第一個已核准顯示欄位，不新增Fetch欄、不猜主鍵或ObjectTypeCode。UiRuntimeLayoutContractTests以獨立合成子集先重現同型SDK fault再驗正常產物；不能把離線通過或ValidateSavedQueryRequest的Fetch驗證當成Create／發布成功。
 
 測試專用UiSavedQueryValidationProbe只允許固定new_linechannel／new_name與同表主鍵對照，官方Validate訊息不持久化；layout比較只有固定管理列、最多16列、128 XML節點／64KiB字元。末頁MoreRecords=false仍可帶cookie，cookie先限字元再限UTF-8至16KiB後捨棄，不重播、不輸出。MoreRecords=true、超限、重複正式ID、錯scope／投影／型別皆拒絕，不以顯示名稱去重。Live owner先ProductionGuard與真身分、單一租約，退出SDK／組態／CTS後排空ExceptionDiagnostics，不保存跨案例資料。
+
+## FS 新建lookup固定補值與完整基準（2026-11-28 22:05決策）
+
+正式分層清單對account/contact為主實體lookup明列`cascadeMerge: Cascade`，SchemaField nullable欄省略null保留歷史canonical hash；嚴格parser拒絕錯型別／錯目標政策。三個本計畫組織的plan/apply在SDK寫入前另拒絕缺明列值；歷史清單僅純解析／hash可保留舊null供唯讀事件診斷，不能經本計畫寫入入口部署。
+
+`CapturePlannedLookup`只對本輪CreateLookup寫前無ID的候選啟用固定補值，正式回應ID綁定後仍要求baseline不存在同一原子樹。舊CaptureLookup仍精確；新關聯只明列AssociatedMenuConfiguration固定空Label／10000順序／空ViewId、IsCustomizable固定managed property、RollupView及其餘實機fixture核實的固定值。navigation名稱只從寫前schema／欄位推導；不複製寫後值、不依prefix忽略未知子樹、不改舊label／cascade。Merge必須寫前正確，不把錯NoCascade吸收成可接受。完整字典比較仍拒絕新未知節點／錯預設／任何舊節點漂移。
+
+Schema Apply在第一個SDK寫入前，將完整發布範圍既有表的wire純值排序保存為`before-ui-metadata-baseline.json`，綁正式OrganizationId、plan SHA及schema hash；兩來源已完整相等才形成基準。先從寫前UTF8／CRLF本文計算SHA，CreateNew→Flush(true)→關閉→禁止覆寫發布，再串流開檔讀回SHA比對，成功才保存`.sha256.json`憑據並繼續。寫入／讀回／容量／取消／SHA不符全部拒絕首寫，100MiB上限，handle在返回前關閉。沒有既有端點則明確保存空值，不假稱新表原已存在；它是metadata證據，不是組織資料庫備份。
+
+真node-differences fixture四次觀察110節點、完整wire正向及未授權／錯預設／未知節點／舊label負向，另以真引擎證明完整檔衝突零寫入、首寫故障前已保存完整節點與SHA、竄改拒絕。goodshepherd20歷史原完整基準缺口仍為false；核定只以三表當前published=unpublished及兩新關聯限定差異作替代，不能由新baseline宣稱原件復原。

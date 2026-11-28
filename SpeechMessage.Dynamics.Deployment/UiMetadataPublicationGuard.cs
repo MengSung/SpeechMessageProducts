@@ -12,7 +12,7 @@ SDK 回應只留在目前同步投影；回傳快照只含字串、CLR 純值與
 不讀業務資料、不建快取或背景工作。每個 SDK 前後及逐節點檢查取消，呼叫返回才交外層處理。
 擁有權與驗證：service 與 transport timeout／組織寫鎖由外層命令 lease 擁有，本檔不保存或
 Dispose。匯入前拒絕既存 pending，匯入後同時拒絕 pending 與基準漂移；schema Apply 僅允許
-寫前完整 wire 候選加正式建立 ID 的欄位／雙端關聯／鍵／局部選項增量，不忽略新欄子樹或重新信任寫後來源。不能防止外部管理員在
+寫前完整 wire 候選加正式建立 ID 的欄位／雙端關聯／鍵／局部選項增量，不忽略新欄子樹或重新信任寫後來源；本計畫正式新lookup僅接受明列、固定型別及值的伺服器補值。不能防止外部管理員在
 最後一次核對與發布之間寫入，組織維護仍須保持獨占。合成 SDK 測試不代表實機發布證據。
 */
 using System;
@@ -126,14 +126,29 @@ internal static class UiMetadataPublicationGuard
                 relationship.ReferencedEntity, new ReadOnlyDictionary<string, Scalar>(relation));
         }
 
+        /// <summary>
+        /// 本計畫CreateLookup專用入口；只有寫前無正式ID且完整命名／目標及Merge均吻合的新關聯可啟用固定補值。
+        /// 呼叫者必須已完整重驗plan；舊關聯仍使用CaptureLookup的精確契約，不能用此旗標重新信任寫後來源。
+        /// </summary>
+        internal LookupAddition CapturePlannedLookup(string entity, LookupAttributeMetadata attribute,
+            OneToManyRelationshipMetadata relationship, CancellationToken ct)
+        {
+            if (relationship.MetadataId is not null || attribute.MetadataId is not null ||
+                relationship.SchemaName != "new_" + entity + "_" + attribute.SchemaName ||
+                relationship.CascadeConfiguration?.Merge !=
+                    (relationship.ReferencedEntity is "account" or "contact" ? CascadeType.Cascade : CascadeType.NoCascade))
+                throw Invalid();
+            return CaptureLookup(entity, attribute, relationship, ct) with { AllowServerNormalization = true };
+        }
+
         /// <summary>僅依正式回應綁定 lookup 與 relationship 身分；自我關聯仍保留兩個不同集合的完整原子樹。</summary>
         internal void AddLookup(LookupAddition candidate, Guid attributeId, Guid relationshipId)
         {
             _ = Identity(attributeId); _ = Identity(relationshipId);
             Add(candidate.Attribute, attributeId);
             var relation = Bind(candidate.Relationship, relationshipId, null);
-            Append(new NodeAddition(candidate.Attribute.Entity, "ManyToOneRelationships", Identity(relationshipId), relation, 4096));
-            Append(new NodeAddition(candidate.ReferencedEntity, "OneToManyRelationships", Identity(relationshipId), relation, 4096));
+            Append(new NodeAddition(candidate.Attribute.Entity, "ManyToOneRelationships", Identity(relationshipId), relation, 4096, IsNewPlannedRelationship: candidate.AllowServerNormalization));
+            Append(new NodeAddition(candidate.ReferencedEntity, "OneToManyRelationships", Identity(relationshipId), relation, 4096, IsNewPlannedRelationship: candidate.AllowServerNormalization));
         }
 
         /// <summary>新鍵寫前複製全部欄位與標籤；沒有正式 ID 或索引結果的 request 不授權其他回應預設。</summary>
@@ -240,7 +255,9 @@ internal static class UiMetadataPublicationGuard
                 continue;
             }
             expected[collection] = new Scalar("Collection", size + 1);
-            foreach (var pair in addition.Values)
+            var plannedValues = addition.IsNewPlannedRelationship
+                ? NewLookupServerDefaults.Complete(addition.Values, actual, root, ct) : addition.Values;
+            foreach (var pair in plannedValues)
             {
                 ct.ThrowIfCancellationRequested();
                 var value = pair.Value;
@@ -264,14 +281,15 @@ internal static class UiMetadataPublicationGuard
     /// <summary>寫前一般欄純值；ID 僅可取本次正式 SDK 回應，不包含來源 SDK 參照。</summary>
     internal sealed record AttributeAddition(string Entity, string Name, Guid Id, IReadOnlyDictionary<string, Scalar> Values);
     /// <summary>查閱與兩端關聯同一次請求的純值候選；不授權未知 cascade 或額外 server 預設。</summary>
-    internal sealed record LookupAddition(AttributeAddition Attribute, string ReferencedEntity, IReadOnlyDictionary<string, Scalar> Relationship);
+    internal sealed record LookupAddition(AttributeAddition Attribute, string ReferencedEntity, IReadOnlyDictionary<string, Scalar> Relationship,
+        bool AllowServerNormalization = false);
     /// <summary>替代鍵寫前純值與明列邏輯名；正式 ID／合法非同步狀態於比較時獨立驗證。</summary>
     internal sealed record KeyAddition(string Entity, string Name, IReadOnlyDictionary<string, Scalar> Values);
     /// <summary>局部選項只認穩定 Value 與完整 wire 值，不以顯示名刪除／合併任何舊值。</summary>
     internal sealed record OptionAddition(string Entity, string Attribute, int Value, IReadOnlyDictionary<string, Scalar> Values);
     /// <summary>命令區域的封閉原子樹；父集合與身份明列，唯一動態狀態例外是本次新鍵。</summary>
     internal sealed record NodeAddition(string Entity, string Collection, string Identity, IReadOnlyDictionary<string, Scalar> Values,
-        int Maximum, bool IsKey = false, string? AttributeName = null);
+        int Maximum, bool IsKey = false, string? AttributeName = null, bool IsNewPlannedRelationship = false);
 
     /// <summary>依實體名稱完整讀取 metadata，前後檢查 caller 取消；缺少必要集合不能視為空且一致。</summary>
     private static void Read(IOrganizationService service, string name, bool unpublished,

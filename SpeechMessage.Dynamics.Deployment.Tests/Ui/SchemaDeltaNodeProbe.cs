@@ -55,6 +55,47 @@ internal static class SchemaDeltaNodeProbe
         return differences.AsReadOnly();
     }
 
+    /// <summary>
+    /// 只供唯讀診斷輸出明列的伺服器預設純值，讓正式護欄能訂定精確白名單。
+    /// 不接收任意標籤／XML；所有回傳值均為封閉純值，未核定路徑或字串立即拒絕。
+    /// </summary>
+    /// <param name="path">兩個核定新關聯內已列出的節點。</param>
+    /// <param name="value">完整投影器脫離SDK後的純值。</param>
+    /// <returns>通過安全格式的純值；沒有部署或授權能力。</returns>
+    internal static UiMetadataPublicationGuard.Scalar DescribeSafeDefault(string path, UiMetadataPublicationGuard.Scalar value)
+    {
+        var allowed = path is ".AssociatedMenuConfiguration" or ".AssociatedMenuConfiguration.AvailableOffline"
+            or ".AssociatedMenuConfiguration.Behavior" or ".AssociatedMenuConfiguration.Group" or ".AssociatedMenuConfiguration.Icon"
+            or ".AssociatedMenuConfiguration.IsCustomizable" or ".AssociatedMenuConfiguration.Label"
+            or ".AssociatedMenuConfiguration.Label.LocalizedLabels" or ".AssociatedMenuConfiguration.Label.UserLocalizedLabel"
+            or ".AssociatedMenuConfiguration.MenuId" or ".AssociatedMenuConfiguration.Order" or ".AssociatedMenuConfiguration.QueryApi"
+            or ".AssociatedMenuConfiguration.ViewId" or ".CascadeConfiguration.Merge" or ".CascadeConfiguration.RollupView"
+            or ".IntroducedVersion" or ".IsCustomRelationship" or ".IsCustomizable" or ".IsCustomizable.CanBeChanged"
+            or ".IsCustomizable.ManagedPropertyLogicalName" or ".IsCustomizable.Value" or ".IsHierarchical"
+            or ".IsValidForAdvancedFind" or ".ReferencedEntityNavigationPropertyName" or ".ReferencingEntityNavigationPropertyName"
+            or ".RelationshipAttributes" or ".RelationshipBehavior" or ".SecurityTypes";
+        if (!allowed) throw Invalid();
+        var safe = value.Value switch
+        {
+            null => value.Type == "null",
+            bool => value.Type == "System.Boolean",
+            int number => (value.Type == "Collection" && number == 0) ||
+                (value.Type == "System.Int32" && path is ".RelationshipBehavior" or ".AssociatedMenuConfiguration.Order" && number is >= 0 and <= 100000),
+            long number => value.Type.StartsWith("Microsoft.Xrm.Sdk.Metadata.", StringComparison.Ordinal) && number is >= 0 and <= 10,
+            Guid id => value.Type == "System.Guid" && id == Guid.Empty,
+            string text => value.Type == "Contract" && text is "Microsoft.Xrm.Sdk.Metadata.AssociatedMenuConfiguration"
+                    or "Microsoft.Xrm.Sdk.Label" or "Microsoft.Xrm.Sdk.BooleanManagedProperty" ||
+                path == ".IntroducedVersion" && text.Length <= 32 && Version.TryParse(text, out _) ||
+                path == ".IsCustomizable.ManagedPropertyLogicalName" && text == "iscustomizable" ||
+                path is ".ReferencedEntityNavigationPropertyName" or ".ReferencingEntityNavigationPropertyName" &&
+                    text.StartsWith("new_", StringComparison.Ordinal) && text.Length <= 128 &&
+                    text.All(character => char.IsAsciiLetterOrDigit(character) || character == '_'),
+            _ => false
+        };
+        if (!safe) throw Invalid();
+        return value;
+    }
+
     /// <summary>只允許投影器封閉的型別分類；未知或不安全型別名稱不帶入輸出。</summary>
     /// <param name="type">SDK 投影器的型別代號，不是 scalar 值。</param>
     private static void ValidateType(string type)
