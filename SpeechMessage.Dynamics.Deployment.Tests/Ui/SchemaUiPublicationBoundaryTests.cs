@@ -6,6 +6,8 @@
 以正式 SchemaDeploymentEngine 產生 UI 計畫，獨立隱藏已發布的既有欄位作故障注入。
 決定性斷言：原 plan 結構操作確實為零、UI 必須寫入，apply 卻必須在任何 UI 建立、
 metadata 寫入或定向發布前以 InvalidDataException 拒絕，且不得先建立 before 檔案。
+空 UI 來源在假 SDK 邊界辨識表單 FetchXML 並依原始查詢包裝 alias，其他查詢保留
+原 Store 委派與平台方案條件；不新增元件或改變未發布結構故障，避免查詢轉型造成假拒絕。
 資源與隔離：每案唯一 Fixture 擁有暫存根及合成資料庫；服務轉接器只借用記憶體 Store，
 不讀 Secrets、不連組織、不持有 client、快取、Task 或 timer，所有檔案隨 using Fixture 清除。
 限制與驗證：這是發布邊界的離線故障案例，不是已發布元件或測試環境部署成功的證據；
@@ -77,29 +79,41 @@ public sealed class SchemaUiPublicationBoundaryTests
         /// <summary>第一個 UI 副作用的決定性計數；成功拒絕必須為零。</summary>
         internal int UiWrites { get; private set; }
 
-        /// <summary>精確合成新組織身分與空未發布 UI；其他 metadata 保留 Store 的真實投影與故障。</summary>
+        /// <summary>
+        /// 精確合成新組織身分與空未發布 UI；表單FetchXML先經共用轉接器辨識，再按原始查詢包裝空頁。
+        /// 其他metadata保留Store的真實投影與故障，回應僅屬本次呼叫，不建立額外服務或保留來源。
+        /// </summary>
         public OrganizationResponse Execute(OrganizationRequest request)
         {
+            // 官方唯讀轉換只模擬型別對應；原讀取／分頁／故障注入仍由既有替身負責。
+            if (UiFormFetchTestAdapter.Convert(request) is { } converted) return converted;
             if (request is RetrieveCurrentOrganizationRequest)
             {
                 var response = (RetrieveCurrentOrganizationResponse)inner.Execute(request);
                 response.Detail.UniqueName = "construction";
                 return response;
             }
-            if (request is RetrieveUnpublishedMultipleRequest)
+            if (request is RetrieveUnpublishedMultipleRequest unpublished)
+            {
+                var query = unpublished.Query;
+                _ = UiFormFetchTestAdapter.Query(query);
                 return new RetrieveUnpublishedMultipleResponse
-                { Results = { ["EntityCollection"] = new EntityCollection() } };
+                { Results = { ["EntityCollection"] = UiFormFetchTestAdapter.Wrap(query, new EntityCollection()) } };
+            }
             return inner.Execute(request);
         }
 
-        /// <summary>只提供本案例未存在的 UI 與平台 UI 方案；原 core 方案及其他 metadata 繼續由 Store 決定。</summary>
+        /// <summary>
+        /// 只提供本案例未存在的 UI 與平台 UI 方案；表單FetchXML還原後沿用原表名及方案條件，
+        /// 空回應按原始查詢包裝。原core方案及其他metadata繼續由Store決定，不能擴大空資料白名單。
+        /// </summary>
         public EntityCollection RetrieveMultiple(QueryBase query)
         {
-            var expression = Assert.IsType<QueryExpression>(query);
+            var expression = UiFormFetchTestAdapter.Query(query);
             if (expression.EntityName is "savedquery" or "systemform" ||
                 expression.EntityName == "solution" && expression.Criteria.Conditions.Any(condition =>
                     condition.AttributeName == "uniquename" && condition.Values.Contains(UiViewDeployment.SolutionName)))
-                return new EntityCollection();
+                return UiFormFetchTestAdapter.Wrap(query, new EntityCollection());
             return inner.RetrieveMultiple(query);
         }
 

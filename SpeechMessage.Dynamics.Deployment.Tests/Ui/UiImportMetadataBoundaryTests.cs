@@ -5,6 +5,8 @@
 主要功能與流程：建立合法且僅含 UI 的 ZIP；已／未發布 UI 完全相同，另注入實體標籤、
 欄位長度、數字範圍與精度、選項標籤、關聯 cascade 及替代鍵差異。斷言第一個 Import 前拒絕；
 成功控制則必須確實匯入與發布，避免靠替身不支援新查詢或後續泛用錯誤取得假陽性。
+兩來源空 UI 查詢由共用轉接器辨識表單 FetchXML，依原始查詢包裝 alias 空頁；
+其他 QueryExpression 與表名斷言不變，metadata 差異、取消及 wire 故障不經此轉接改寫。
 使用邊界與擁有權：不連組織、不讀秘密或業務資料。每案 fixture 唯一擁有暫存 ZIP、
 合成服務與 lease；Dispose 先排空服務回呼及快照，再刪除已關閉檔案。metadata 每次重新建立，
 外層租約清理前 SDK 不可被產品提前 Dispose。離線發布效果不是實機結果。
@@ -450,9 +452,15 @@ public sealed class UiImportMetadataBoundaryTests
         /// <summary>由案例提供的原 SDK 故障，Dispose 清除參照；不包含外部資料。</summary>
         internal Exception? MetadataFault { get; set; }
 
-        /// <summary>只承接真 metadata/UI 訊息與匯入／實體發布；未知呼叫以 NotSupportedException 暴露測試缺漏。</summary>
+        /// <summary>
+        /// 只承接真metadata/UI訊息與匯入／實體發布；未知呼叫以NotSupportedException暴露測試缺漏。
+        /// 未發布表單FetchXML先經共用轉接器辨識，再按原始查詢包裝空頁；不改metadata故障、
+        /// caller取消回呼或租約所有權，也不讓轉接器補出本案不存在的UI資料。
+        /// </summary>
         public OrganizationResponse Execute(OrganizationRequest request)
         {
+            // 官方唯讀轉換只模擬型別對應；原讀取／分頁／故障注入仍由既有替身負責。
+            if (UiFormFetchTestAdapter.Convert(request) is { } converted) return converted;
             Assert.Equal(0, Disposals);
             if (request is RetrieveEntityRequest retrieve)
             {
@@ -509,8 +517,13 @@ public sealed class UiImportMetadataBoundaryTests
                 return InvalidMetadata || Fault == "response" ? new OrganizationResponse() :
                     new RetrieveEntityResponse { Results = { ["EntityMetadata"] = entity } };
             }
-            if (request is RetrieveUnpublishedMultipleRequest)
-                return new RetrieveUnpublishedMultipleResponse { Results = { ["EntityCollection"] = new EntityCollection() } };
+            if (request is RetrieveUnpublishedMultipleRequest unpublished)
+            {
+                var query = unpublished.Query;
+                _ = UiFormFetchTestAdapter.Query(query);
+                return new RetrieveUnpublishedMultipleResponse
+                { Results = { ["EntityCollection"] = UiFormFetchTestAdapter.Wrap(query, new EntityCollection()) } };
+            }
             if (request.RequestName == "ImportSolution") { Imports++; AfterImport?.Invoke(); return new OrganizationResponse(); }
             if (request is PublishXmlRequest publish)
             {
@@ -545,11 +558,14 @@ public sealed class UiImportMetadataBoundaryTests
             }
         }
 
-        /// <summary>兩份 UI 來源固定相同且完整；不讀取業務實體。</summary>
+        /// <summary>
+        /// 兩份UI來源固定相同且完整；表單FetchXML還原後仍須通過既有表名白名單，
+        /// 空頁依原始查詢包裝alias，其他QueryExpression不變。不讀業務實體或保留本次查詢／回應。
+        /// </summary>
         public EntityCollection RetrieveMultiple(QueryBase query)
         {
-            Assert.Contains(Assert.IsType<QueryExpression>(query).EntityName, UiTables);
-            return new EntityCollection();
+            Assert.Contains(UiFormFetchTestAdapter.Query(query).EntityName, UiTables);
+            return UiFormFetchTestAdapter.Wrap(query, new EntityCollection());
         }
         /// <summary>外層 owner 釋放時清除回呼及讀取紀錄，不留跨案例參照。</summary>
         public void Dispose()

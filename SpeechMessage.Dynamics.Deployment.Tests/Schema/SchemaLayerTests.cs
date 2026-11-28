@@ -5,6 +5,8 @@
 注入跨層重複實體、平台欄位延伸、欄位重複、缺少 ownership 及租戶業務實體錯誤 ownership。
 依賴與隔離：透過 Deployment parser／planner 與公開 CLI，外部 SDK 以每案專屬替身取代，所有端點與資料均為合成值；
 fixture 由本測試建立並在 Dispose 刪除；CLI 租約確定歸還，不讀 User Secrets、不連接 D365。
+空 UI 替身於兩來源入場辨識表單 FetchXML，還原查詢後依原始格式包裝 alias 空頁；
+其他 QueryExpression 仍走原 metadata 白名單，不新增資料或放寬既有產品隔離斷言。
 故障注入與決定性斷言：合法控制 fixture 必須能讀取；每種衝突必須拒絕完整候選，
 construction／association 的結果不得含教會專屬 entity，且空層合併不得產生部分 schema。
 正式平台契約另以三組織的真實分層清單驗證加密憑證安全、工作冪等與租戶文字唯一鍵；
@@ -24,6 +26,7 @@ using Microsoft.Xrm.Sdk.Metadata;
 using Microsoft.Xrm.Sdk.Query;
 using Xunit;
 using SpeechMessage.Dynamics.Deployment.Schema;
+using SpeechMessage.Dynamics.Deployment.Tests.Ui;
 
 namespace SpeechMessage.Dynamics.Deployment.Tests.Schema;
 
@@ -200,22 +203,36 @@ public sealed class SchemaLayerTests
             }
         }
 
-        /// <summary>保留基類完整 metadata 與故障邊界，僅替換本案唯一的組織名稱，不修改任何產品查核。</summary>
+        /// <summary>
+        /// 保留基類完整 metadata 與故障邊界，僅替換本案唯一的組織名稱，不修改任何產品查核。
+        /// 未發布表單由共用轉接器辨識固定FetchXML，空頁按原始查詢包裝，不補造元件或持有查詢。
+        /// </summary>
         public override OrganizationResponse Execute(OrganizationRequest request)
         {
-            if (request is RetrieveUnpublishedMultipleRequest)
-                return new RetrieveUnpublishedMultipleResponse { Results = { ["EntityCollection"] = new EntityCollection() } };
+            // 官方唯讀轉換只模擬型別對應；原讀取／分頁／故障注入仍由既有替身負責。
+            if (UiFormFetchTestAdapter.Convert(request) is { } converted) return converted;
+            if (request is RetrieveUnpublishedMultipleRequest unpublished)
+            {
+                var query = unpublished.Query;
+                _ = UiFormFetchTestAdapter.Query(query);
+                return new RetrieveUnpublishedMultipleResponse
+                { Results = { ["EntityCollection"] = UiFormFetchTestAdapter.Wrap(query, new EntityCollection()) } };
+            }
             var response = base.Execute(request);
             if (response is RetrieveCurrentOrganizationResponse current)
                 current.Detail.UniqueName = organization;
             return response;
         }
 
-        /// <summary>本合成空 UI 組織沒有任何表單或檢視；其他查詢仍經基類嚴格 metadata 白名單。</summary>
+        /// <summary>
+        /// 本合成空 UI 組織沒有任何表單或檢視；先還原表單FetchXML再以原始查詢包裝空回應。
+        /// 其他QueryExpression保持原物件並經基類嚴格metadata白名單，不把未知查詢一律當成空UI。
+        /// </summary>
         public override EntityCollection RetrieveMultiple(QueryBase query)
         {
-            if (query is QueryExpression { EntityName: "savedquery" or "systemform" })
-                return new EntityCollection();
+            var expression = UiFormFetchTestAdapter.Query(query);
+            if (expression.EntityName is "savedquery" or "systemform")
+                return UiFormFetchTestAdapter.Wrap(query, new EntityCollection());
             return base.RetrieveMultiple(query);
         }
     }

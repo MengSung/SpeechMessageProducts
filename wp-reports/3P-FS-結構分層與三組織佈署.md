@@ -1,7 +1,7 @@
 # FS 結構分層與三組織佈署
-更新：2026-11-28 12:55 Asia/Taipei (UTC+08:00)
+更新：2026-11-28 14:17 Asia/Taipei (UTC+08:00)
 本包原始起點：`601d5056825eec30299432c054e867deb1e6b790`；歷史同步基線：`2da59fac62aab177a05efcba07132b69616b4243`（2026-11-26）；本輪修正起點：`36d4c49724fe90b522304048d3bec051ea710134`；本輪程式原提交 `2e6de8d0e14bc5a3d86423cc33104ef08db5519c`（重基線後 `c4cf53a63`）；最新整合基線 `e2eac3c38587469c9a250362493b2ba3908e102c`；重基線報告提交 `1bfe1a23e945118cd38dc578247a6f16ad087115`。原程式與先前修正提交：`64679a87f`、`9af227811`、`bd22905fc`。
-狀態：自動測試通過（實機待補）；修正已合併推送 e1cdd8cfe，quiesce H1 依 02A §2.6 結案。三組織完整 plan 的第一次修正後重試已於 2026-11-28 12:21–12:25 成功，尚未 apply／publish；接續先審查三份 plan、擁有權及回復證據，不把規劃成功寫成部署完成。
+狀態：自動測試通過（實機待補）；首次 apply 在首寫前拒絕，零 schema/UI 寫入。已證明一般 formxml 語系投影造成假 pending，原始 alias 與 SQL 原欄精確相符；正式兩個 reader 修正及單表實機唯讀診斷已通過，新增修正仍待全方案守門與 ClaudeOnly。三份舊 plan 的 UI 指紋已失效，須重新 plan 及受審後才可修正重試 apply。
 
 ## 驗收狀態
 
@@ -231,6 +231,40 @@ FS無手機步驟；手機畫面集中M1。目前進度頁目視亦待補：先�
 - 同步前發現整合新增純規則 `01ea6a69f`（02A §11 事先核准保全自己的未提交檔），已讀增量。以本輪提交為檢查點後乾淨 rebase；因僅文件差異，依 02A §10.3 沿用本次相同程式內容的完整建置／一般測試，不重跑。
 - 回復準備：以既有部署 User Secrets 的授權身分透過 WinRM 先確認 D365APP01 及三個精確測試資料庫，唯讀確認成功；本機未提高權限／未更改SQL權限。準備獨立 COPY_ONLY／CHECKSUM 備份與 VERIFYONLY；尚未完成前不宣稱已有資料庫回復證據。無正式組織／Channel／金流連線。
 
+### 2026-11-28 13:16 Asia/Taipei (UTC+08:00) 三個測試資料庫 before 備份與 apply 前回復路徑
+
+- 已用既有部署授權身分透過 WinRM 核對主機 D365APP01，並逐個以正式 OrganizationId 比對精確測試 DB 的 OrganizationBase，全部一致後才備份。只對三個指定測試 DB 執行 **COPY_ONLY／CHECKSUM 全備份及 RESTORE VERIFYONLY WITH CHECKSUM**，各 exit 0；未變更 SQL 執行個體設定、權限或服務，未執行 RESTORE DATABASE。D365 鎖已在 finally 放開；SQL／其他資料庫與正式組織未操作。備份日誌 SHA-256 `F7A7B9B6D0E1504CBE40CC4865E67A7EC221C843477445E2C78B93FA471255C0`。
+
+| 測試組織 | D365APP01 上的完整備份路徑 | bytes | SHA-256 |
+|---|---|---:|---|
+| goodshepherd20 | `D:\SQLDir\Backups\3P-FS-goodshepherd20-20261128-125953.bak` | 4451401728 | `0216633009F4330261ECA18A9BDBCF71A47B83CAD1DCAAF9C167D0318AA67372` |
+| construction | `D:\SQLDir\Backups\3P-FS-construction-20261128-125953.bak` | 2399318016 | `23BCD8728306C0029205BD541C0E5D2E704288D169E96D2F9BE99119DA7586F3` |
+| association | `D:\SQLDir\Backups\3P-FS-association-20261128-125953.bak` | 2397220864 | `F1F039EF189DC8563760ADEDB16E1B8D233E4875C21CDC699CF9F62858EC9CB4` |
+
+- `VERIFYONLY` 證明備份組可讀且 checksum 通過，**不是實際還原演練或資料／應用完整性驗收**。若後續故障：先停止該組織本次部署，不再原樣重試；保留原 plan、首寫前 before-metadata／before-ui-plan、目前差異及備份。新增結構不擅自刪除、既有資料不覆蓋。必要還原僅在同一個明確測試 DB 的停用維護範圍，以對應原備份還原後再經 D365 核身及 verify；不得把整台 VM 或別的 DB 回復到舊狀態，也不得自動發送 Channel／金流。
+- 三組織另有唯讀完整 metadata 匯出：goodshepherd20 SHA-256 `4140427C63C805831967491962C427FE75123F5936EB771DC8A8E1C2F557F913`、construction `C9E8A7E3518B5780921934DD20F98FF5A9B2C49003819CC2BC12DE9438F13817`、association `11FF6135A124374C7E12F1269ABE163890CFB365E9B7E50992C10D1DB8B05A37`；只作結構證據，不當資料庫備份。
+- goodshepherdback 真正唯讀 `plan --org goodshepherdback --schema speechmessagecore.schema.json` exit 0、operations=0、pendingKeys=0；log SHA-256 `4C3F299F9B7BD5872FA447AB9616D42EDE2453F5820D5201AB01C6ADD979C8D7`，plan bytes SHA-256 `99A85FD729294417747C8D9E3C7BB94DF4DC2DD31AD58B617D19D3BE354B52FB`。沒有寫入該組織。
+- 本輪診斷及三份 plan 審查已快轉合併推送 `d8fc8c22ea6fb8cc23ee4f190e101fd446677608`，遠端 SHA 等於整合 HEAD；保留整合樹他人的 `.ccg` 修改。重基線只有規則文件變更，文件 2089/0、編碼 23/0、進度 32/32 重驗通過，沿用同程式內容的 9491/9491 建置／一般測試結果。
+- 以上前置齊全；接著重新取得 `test-env-d365.lock`，按已審查檔案 SHA 精確綁定三份 plan，依序各 apply→verify。任何失敗立即停止本步並保留證據，不把 guard 失敗當作環境限制。
+
+### 2026-11-28 13:26 Asia/Taipei (UTC+08:00) 首次 schema apply 由計畫外未發布 UI 守門拒絕
+
+- goodshepherd20 第一次 apply exit 1：`InvalidDataException`；log SHA-256 `A06278CCCFAF9E5590D126EF6A3D9B6B0DEADE5D8AF34D221E48E14F1C25AC4E`，共用安全 Exception.log SHA-256 `B0CA12945C26952C84C8AC2F9CA3A388E879289F9FC1E3A361002D57B0AA7B7F`。stack 明確為 `UiPublishScope.Check:51 → UiViewDeployment.Validate:109 → SchemaDeploymentEngine.Apply:149`。
+- 停止於首寫前計畫外 UI 差異檢查；本次唯一 operation 無 before-metadata／before-ui-plan／after 產物，而正式 before 寫入及首個 Create 在此檢查之後。因此本次沒有 schema/UI 寫入、沒有 Publish。construction／association apply 未開始；owner finally 已釋放 D365 鎖。這是 guard 真的拒絕，**不是環境限制，不放寬檢查，也不原樣重試**。
+- 計畫指紋重算已過而 pending 未過，接著用方案內新 `WP=FSPendingDiagnostics` 唯讀測試觀察同一 schema 範圍的已／未發布正式元件。投影只輸出正式管理 ID、白名單型別／實體及固定差異欄位名稱，不貼名稱、XML 或業務值；結果非零仍只表示診斷成功，不是 FS 驗收。
+- 診斷投影離線先 RED 6/6（SHA-256 `9DD4112970A4BE9B9ECD8E4BE5F7625B9A70A48CDAAAE4866D483D57857DCB70`）再 GREEN；受影響診斷／pending 回歸 55/55，SHA-256 `ABEDA3507F7F582BF9B39FC2953DDECC73EE5341C21F5631C085D1EF9F0952B4`。此新測試程式尚待下一次合併前全方案守門，不能沿用舊 9491/9491 冒充新程式已完整驗證。
+
 ## 下一步
 
-三份 plan 已成功，先完成本輪新測試的全方案守門與三份計畫合併審查；審查及可驗證回復證據齊全才取鎖 apply→verify。仍待平台檢視表已發布 SDK 讀回、UI export/import、正式 `Category=Live3P&WP=FS`。FS 完成後才 F3 實機，不開 F5。
+先用唯讀兩來源差異診斷定位計畫外元件，不發布、不放寬guard、不原樣重試apply。確認根因及安全可回復處置，經離線重現／修正／審查後才考慮修正後apply。FS三組織verify、平台已發布SDK讀回、UI export/import與正式FS Live3P仍待補；F3繼續等FS完成。
+
+### 2026-11-28 14:17 Asia/Taipei (UTC+08:00) 原始表單來源修正（尚未重試 apply）
+
+- 正式 formid `6ddf2ea1-0406-46ec-9030-ffff6cfbc3ab` 的唯讀 SQL 只見 ComponentState=0 一筆，沒有 unpublished row；一般兩來源卻因語系投影出現 52／56 節點差異。SQL 診斷 SHA-256 `5C922CDA89A6128AE1E0A08A4F37846496CD55FF0F4E2A2F58BF925A0BE27054`。
+- 兩來源同一 FetchXML alias 的 XML 原文完全相同，UTF-16LE 3,710 bytes、SHA-256 `EC754FF58508C2997701773B2B6CD068E19B06922DA893EF3C6C30E6F515C660`，精確等於 SQL 原始欄。alias 證據 log SHA-256 `5FB2144DB2150669A23038773D1BC34E2ECA7B34314A8052A338F55D2C9D7995`。未忽略 label、未正規化 XML、未擴大核准元件清單。
+- 先以兩個真 reader 重現 InvalidDataException，再改委派共用 UiFormXmlReader。初始 RED 10 fail／1 pass，SHA-256 `15DA0BE9150BF52EAD4BE8A19E573ACFEE3B8747C7FAC35E75425B33AD26E2D0`；第一輪 GREEN 11/11，SHA-256 `B3BA84C591A32DFB30ED9FB3CE7F230654AABA4726EB6EFEA550B191EFF65FB5`。
+- 實機發現 QueryExpression 的 EntityName 字串不能直接當 FetchXML 的整數 objecttypecode：fault `0x80040203`，固定分類為 Int32／format／convert／type。失敗 log SHA-256 `32639257561ABEBD758778D87513D4F910B9FA5124FD599C18594A82A7896C9B`。改由同組織官方 QueryExpressionToFetchXml 唯讀轉換，已實機證實 numericScope=True（SHA-256 `C88DF3341B31889E1EB70C58840C3E36BE7A1E809BE81AEBCA0E88603743770E`）；沒有猜 ObjectTypeCode 或跨組織快取。
+- 數字範圍 RED 2/2，SHA-256 `C8258CA5A100FE78A99C50A663AA9B75BBC58B1E8F945270C40D9C183B3DF170`；修正後 reader／安全診斷 44/44，SHA-256 `060FF6CD15AB01AE29E726E07ED0AC688B22A7C091CD681169488CB5E31382FD`。之後新增轉換故障與取消保護，最終閘門另列，不沿用這個中途數字冒稱最終通過。
+- 正式 reader 的單表唯讀實機診斷：三個表單原文一致，pending=0，SHA-256 `ECA4A76C4ABE96795C304C3000BBE04E266CDDB67FA85DE8B1CE089016835652`。這是 WP=FSPendingDiagnostics，不是 WP=FS 驗收，也沒有 schema/UI 寫入或 Publish。
+- 固定欄位、scope、唯一排序與 cookie 保真；每頁轉換 XML ≤64KiB、頁面≤256列、≤16頁、cookie≤16KiB、表單單欄≤1MiB／頁面≤16MiB，原跨頁／兩來源完整預算仍照舊。錯 alias／身份／編碼／缺欄一律拒絕整頁；選項與字典為本次候選獨立複本。SDK 及其釋放仍由外層 lease owner 負責。
+- 三份 DB 備份與 VERIFYONLY 證據仍保留；未執行資料庫還原演練。合併新 reader 後須重新產生三份完整 plan、合併受審，取得 D365 鎖及最新整合基線後才進行 apply 的修正後重試；本輪尚未使用該重試額度。

@@ -175,3 +175,7 @@ Schema_MissingOptionValue_PlansAddOptionValue、Schema_AddOptionValue_TwiceIdemp
 上述固定測試指令保留。正式白名單以--org <name> --production操作，寫入先精確stdin名稱確認；catalog/target從共同入口顯式傳到SchemaDeploymentEngine/Metadata/Planner，不使用ambient static。
 Metadata核server uniqueName等於指定target，planner再查白名單；apply沿完整原hash重算，OrganizationId漂移仍拒絕。路徑為artifacts/d365/<canonical-name>與d365/snapshots/<canonical-name>。
 smoke仍由共同關卡禁止production，原probe test身分不擴張。舊方法簽章委派repo唯一test描述，不能把任意server名稱當授權。全程SDK借用至同步I/O排空，由命令lease釋放。
+
+## FS 原始表單 XML 與查詢轉換（2026-11-28）
+
+D365 9.1 一般 published／unpublished 的 formxml 可能依語系投影不同。正式 UI 兩來源只從相同 FetchXML alias 取得原始 XML，保留所有 label 原文逐字比較；不得以忽略翻譯或正規化來放寬 pending 檢查。QueryExpression 的 EntityName 條件先由目前同組織的 QueryExpressionToFetchXml 官方唯讀訊息轉成數字 ObjectTypeCode，不硬編代碼、不共用跨組織字典。轉換 XML ≤64KiB、禁止 DTD／外部解析；只允許固定 systemform 欄位、單一 objecttypecode IN 範圍及 formid ASC，分頁／cookie 保真。AliasedValue 的來源實體與屬性必須精確匹配，缺 alias／普通 formxml 混入／無效UTF-8／身份、scope 或預算故障皆拒絕整頁，不 fallback。UiFormXmlReaderTests 另保護真 label 變更仍被拒絕、候選不修改 SDK 原快照、轉換／讀取取消及容量上限；實機診斷與正式 FS 驗收必須分開記錄。

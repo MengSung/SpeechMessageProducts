@@ -4,6 +4,8 @@
 保存正式 SavedQueryId 與 XML 指紋，並把檢視加入 SpeechMessagePlatformUi 供定向匯出入。
 主要流程：只讀指定結構範圍的已發布／未發布表單與檢視，以及平台 UI 方案元件；完整有界
 盤點後才建立純值計畫。套用前重算指紋；未知未發布變更拒絕。新檢視的 ID 只取 SDK 回應，
+表單兩來源皆由 UiFormXmlReader 以相同 FetchXML alias 讀原始 formxml，避免不同訊息的語系投影；
+真實 XML／label 差異仍逐字比較，無效來源或 alias 不得回退成一般投影或忽略翻譯。
 既有檢視按計畫正式 ID 更新；同名多 ID 拒絕選取，不靜默覆蓋。QueryType 固定為零，
 預設檢視若與既有其他元件衝突即停止，不以取消別人的預設值取得成功。
 依賴與生命週期：借用命令擁有的 SDK，沒有 client／timer／背景工作或跨組織快取。
@@ -354,7 +356,7 @@ internal static class UiViewDeployment
         while (true)
         {
             ct.ThrowIfCancellationRequested();
-            var page = unpublished
+            var page = query.EntityName == "systemform" ? UiFormXmlReader.ReadPage(service, query, unpublished, ct) : unpublished
                 ? (service.Execute(new RetrieveUnpublishedMultipleRequest { Query = query }) as RetrieveUnpublishedMultipleResponse)?.EntityCollection
                 : service.RetrieveMultiple(query);
             ct.ThrowIfCancellationRequested();

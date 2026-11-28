@@ -9,6 +9,8 @@
  * 生命週期：Fixture擁有唯一Guid暫存目錄與合成Store；產品借用SDK，所有stream關閉後fixture才刪目錄。沒有真連線、credential或LINE。
  * Store以SDK實際請求建立下一次metadata回應，不從planner複製預期結果；SDK readonly屬性只在測試回應建構時設定。
  * 無UI元件的Store仍精確驗systemform／savedquery欄位、實體In範圍及有界頁面；真正UI寫入／pending由UiService提供。
+ * 表單FetchXML僅在Store邊界還原供既有EmptyUi斷言核對，再依原始查詢包裝alias空頁；
+ * 不放寬欄位、範圍、排序或分頁，其他QueryExpression與metadata白名單保持原契約。
  * 完整單表讀取以DataContract往返深複製，保留實際新增欄／鍵及雙端關聯；缺省空關聯／權限集合明列為空，
  * 避免用缺少RetrieveEntity或不完整替身遮蔽發布護欄。所有候選僅屬本案，不持有外部資源。
  * 維護要求：新operation要擴充真SDK參數及往返斷言，未知message一律拒絕；本離線整合不是P1-12實機部署或索引唯一性證據。
@@ -24,6 +26,7 @@ using Microsoft.Xrm.Sdk.Messages;
 using Microsoft.Xrm.Sdk.Metadata;
 using Microsoft.Xrm.Sdk.Query;
 using SpeechMessage.Dynamics.Deployment.Schema;
+using SpeechMessage.Dynamics.Deployment.Tests.Ui;
 using Xunit;
 
 namespace SpeechMessage.Dynamics.Deployment.Tests;
@@ -251,21 +254,35 @@ public sealed class SchemaEngineTests
             return row.Id;
         }
 
-        /// <summary>metadata定義查詢重用基類白名單，根據真實建立結果回完整列，任何設定本文查詢仍拒絕。</summary>
+        /// <summary>
+        /// metadata定義查詢重用基類白名單，根據真實建立結果回完整列，任何設定本文查詢仍拒絕。
+        /// 表單FetchXML還原後仍逐項通過EmptyUi原有斷言，空回應按原始查詢包裝；
+        /// 其他QueryExpression不複製、不改條件，也不增加服務或跨案例狀態。
+        /// </summary>
         public override EntityCollection RetrieveMultiple(QueryBase query)
         {
-            var expression = Assert.IsType<QueryExpression>(query);
-            if (expression.EntityName is "systemform" or "savedquery") return EmptyUi(expression);
+            var expression = UiFormFetchTestAdapter.Query(query);
+            if (expression.EntityName is "systemform" or "savedquery")
+                return UiFormFetchTestAdapter.Wrap(query, EmptyUi(expression));
             _ = base.RetrieveMultiple(query);
             return new EntityCollection(rows.Where(row => row.LogicalName == expression.EntityName).ToList());
         }
 
-        /// <summary>只實作正式新增與加入solution訊息；未知/update/delete/publish-all一律由基類拒絕。</summary>
+        /// <summary>
+        /// 只實作正式新增與加入solution訊息；未知/update/delete/publish-all一律由基類拒絕。
+        /// 未發布UI同樣以轉接後查詢核對EmptyUi，但以原始查詢包裝回應，不能因FetchXML跳過既有護欄。
+        /// </summary>
         public override OrganizationResponse Execute(OrganizationRequest request)
         {
+            // 官方唯讀轉換只模擬型別對應；原讀取／分頁／故障注入仍由既有替身負責。
+            if (UiFormFetchTestAdapter.Convert(request) is { } converted) return converted;
             if (request is RetrieveUnpublishedMultipleRequest unpublished)
+            {
+                var query = unpublished.Query;
+                var page = EmptyUi(UiFormFetchTestAdapter.Query(query));
                 return new RetrieveUnpublishedMultipleResponse
-                { Results = { ["EntityCollection"] = EmptyUi(Assert.IsType<QueryExpression>(unpublished.Query)) } };
+                { Results = { ["EntityCollection"] = UiFormFetchTestAdapter.Wrap(query, page) } };
+            }
             if (request is RetrieveEntityRequest full)
             {
                 Assert.Equal(EntityFilters.All, full.EntityFilters);

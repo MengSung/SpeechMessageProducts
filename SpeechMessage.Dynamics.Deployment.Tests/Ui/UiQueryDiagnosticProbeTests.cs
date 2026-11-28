@@ -10,6 +10,8 @@ caller 取消沒有查詢及通知，內部逾時仍屬失敗。錯正式 ID 或
 委派與 SDK 候選僅存活於單一測試，沒有連線、檔案、背景工作、快取或跨組織可變狀態。
 另外以只讀 SDK 替身對重複排序拋出 FaultException，先證明舊查詢演算法會失敗，
 再要求正式 UiViewDeployment 的兩來源 reader 通過；此合成對照不倒推歷史服務端原因。
+正式表單 FetchXML 在假 SDK 邊界還原後繼續核對唯一排序，再依原始查詢包裝 alias 空頁；
+小查詢及舊版重複排序仍使用原 QueryExpression，不能以格式轉接跳過原 fault 或改變呼叫計數。
 */
 using System;
 using System.Collections.Generic;
@@ -244,22 +246,30 @@ public sealed class UiQueryDiagnosticProbeTests
         /// <summary>本案唯一的讀取計數，不跨測試或組織重用。</summary>
         internal int Reads { get; private set; }
 
-        /// <summary>只接受未發布讀取並保留相同 Query 供排序斷言；不處理任何寫入訊息。</summary>
+        /// <summary>
+        /// 只接受官方唯讀轉換與未發布讀取，將原始QueryBase交給同一RetrieveMultiple邊界還原、驗排序及包裝alias；
+        /// 只增加一次原讀取計數，不提前轉型遺失Fetch格式，也不處理任何寫入訊息。
+        /// </summary>
         public OrganizationResponse Execute(OrganizationRequest request) =>
-            request is RetrieveUnpublishedMultipleRequest { Query: QueryExpression query }
-                ? new RetrieveUnpublishedMultipleResponse { Results = { ["EntityCollection"] = RetrieveMultiple(query) } }
-                : throw new InvalidOperationException("Unexpected diagnostic capability.");
+            UiFormFetchTestAdapter.Convert(request) ?? (request is RetrieveUnpublishedMultipleRequest unpublished
+                ? new RetrieveUnpublishedMultipleResponse { Results = { ["EntityCollection"] = RetrieveMultiple(unpublished.Query) } }
+                : throw new InvalidOperationException("Unexpected diagnostic capability."));
 
-        /// <summary>對第二個相同主鍵排序注入 SDK fault，合法單排序回空頁，避免依賴任何資料列。</summary>
+        /// <summary>
+        /// 對第二個相同主鍵排序注入SDK fault，合法單排序回空頁，避免依賴任何資料列。
+        /// 僅表單FetchXML透過共用轉接器還原；舊QueryExpression及未知型別拒絕路徑不變，
+        /// 空頁依原始查詢包裝，不產生額外讀取或跨案例可變狀態。
+        /// </summary>
         public EntityCollection RetrieveMultiple(QueryBase query)
         {
             Reads++;
-            if (query is not QueryExpression expression)
+            if (query is not QueryExpression && query is not FetchExpression)
                 throw new InvalidOperationException("Unexpected diagnostic query.");
+            var expression = UiFormFetchTestAdapter.Query(query);
             if (expression.Orders.Count != 1)
                 throw new FaultException<OrganizationServiceFault>(
                     new OrganizationServiceFault { ErrorCode = unchecked((int)0x80041103) }, "synthetic duplicate order");
-            return new EntityCollection();
+            return UiFormFetchTestAdapter.Wrap(query, new EntityCollection());
         }
 
         /// <summary>本替身不授權按 ID 讀取任何資料。</summary>

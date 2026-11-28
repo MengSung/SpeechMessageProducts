@@ -2,6 +2,7 @@
 檔案整體說明
 目的與定位：以記憶體 ZIP 與合成 Dynamics 解決方案 XML，驗證 P5-03b 匯出入共用的封裝邊界，並非實機匯出結果。
 主要功能與流程：核對共用實體表單移除但檢視與自有實體表單保留；注入越界路徑、大小寫重複、壓縮膨脹、DTD 及錯誤方案身分，驗證完整候選失敗而非發布部分資料。合成多成員 ZIP 分別跨越累計解壓 16MiB 與 128 成員邊界；以執行緒配置量驗證封裝在超額輸入及 ZIP 標頭超額時停止，不只斷言最終例外。
+雙來源表單 FetchXML 在假 SDK 邊界還原供原 Snapshot 欄位及實體範圍斷言核對，再依原始查詢包裝 rawformxml alias；不補缺值、不改合成 XML、正式 ID 或 SDK 請求順序，其餘 QueryExpression 保持原契約。
 使用邊界與擁有權：每個案例獨占記憶體串流與 ZIP，using 在斷言失敗時亦釋放；資料只含合成 GUID、固定名稱與測試內容，不讀 User Secrets、不連真實 SDK 服務、不建立背景工作。SDK 替身分別承接已發布查詢與未發布訊息，每次建立獨立快照；相同正式 ID 只有 XML 差異才構成 pending。新增的 RetrieveEntity 只返回受影響表的一致合成結構，配合完整結構護欄，不放寬原 UI 或 ZIP 斷言。RootComponent 測試故障注入未允許型別及非 shell Entity，並以 ImportSolution 呼叫不存在作為 fail-closed 斷言。往返測試核對實際封裝內容；真 Import 案例另保留完整請求順序與計畫外 ID 拒絕斷言，暫存目錄由案例 finally 清理。
 */
 using System;
@@ -16,6 +17,7 @@ using Microsoft.Xrm.Sdk;
 using Microsoft.Xrm.Sdk.Messages;
 using Microsoft.Xrm.Sdk.Metadata;
 using Microsoft.Xrm.Sdk.Query;
+using SpeechMessage.Dynamics.Deployment.Tests.Ui;
 using Xunit;
 
 namespace SpeechMessage.Dynamics.Deployment.Tests;
@@ -468,9 +470,15 @@ public sealed class UiSolutionArchiveTests
         /// <summary>只保存本案例送入匯入訊息的封裝，供方案身分與非空斷言使用。</summary>
         internal (string SolutionName, byte[] Archive)? ImportedArchive { get; private set; }
 
-        /// <summary>回傳合成封裝與獨立未發布快照，並記錄匯入／發布順序；不委派任何真實服務。</summary>
+        /// <summary>
+        /// 回傳合成封裝與獨立未發布快照，並記錄匯入／發布順序；不委派任何真實服務。
+        /// 原始QueryBase保留到回應包裝，表單FetchXML還原後仍通過Snapshot原有欄位及範圍斷言，
+        /// alias只包住本案既有formxml，不改兩來源XML差異、正式ID或請求次數。
+        /// </summary>
         public OrganizationResponse Execute(OrganizationRequest request)
         {
+            // 官方唯讀轉換只模擬型別對應；原讀取／分頁／故障注入仍由既有替身負責。
+            if (UiFormFetchTestAdapter.Convert(request) is { } converted) return converted;
             Requests.Add(request.RequestName);
             if (request is RetrieveEntityRequest metadata)
             {
@@ -485,10 +493,11 @@ public sealed class UiSolutionArchiveTests
                 return new OrganizationResponse { Results = { ["ExportSolutionFile"] = exportArchive } };
             if (request.RequestName == "RetrieveUnpublishedMultiple")
             {
-                var query = Assert.IsType<QueryExpression>(request["Query"]);
+                var query = Assert.IsAssignableFrom<QueryBase>(request["Query"]);
+                var page = Snapshot(UiFormFetchTestAdapter.Query(query), unpublished: true);
                 return new RetrieveUnpublishedMultipleResponse
                 {
-                    Results = { ["EntityCollection"] = Snapshot(query, unpublished: true) }
+                    Results = { ["EntityCollection"] = UiFormFetchTestAdapter.Wrap(query, page) }
                 };
             }
             if (request.RequestName == "ImportSolution")
@@ -562,11 +571,15 @@ public sealed class UiSolutionArchiveTests
         public void Delete(string entityName, Guid id) => throw new NotSupportedException();
         /// <summary>本測試不使用單列讀取。</summary>
         public Entity Retrieve(string entityName, Guid id, ColumnSet columnSet) => throw new NotSupportedException();
-        /// <summary>承接真 Import 的已發布 QueryExpression，記錄順序並回傳與未發布來源分離的完整快照。</summary>
+        /// <summary>
+        /// 承接真Import的已發布查詢，先記錄原順序，再還原表單FetchXML供Snapshot核對。
+        /// 依原始查詢包裝獨立alias回應，其他QueryExpression維持原狀；不與未發布來源共用可變列或補造缺值。
+        /// </summary>
         public EntityCollection RetrieveMultiple(QueryBase query)
         {
             Requests.Add("RetrieveMultiple");
-            return Snapshot(Assert.IsType<QueryExpression>(query), unpublished: false);
+            var page = Snapshot(UiFormFetchTestAdapter.Query(query), unpublished: false);
+            return UiFormFetchTestAdapter.Wrap(query, page);
         }
         /// <summary>本測試不使用關聯。</summary>
         public void Associate(string entityName, Guid entityId, Relationship relationship, EntityReferenceCollection relatedEntities) => throw new NotSupportedException();

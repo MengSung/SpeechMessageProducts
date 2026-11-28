@@ -10,6 +10,8 @@
 在真引擎及公開 CLI 注入標籤、cascade、原 SDK 故障與取消，不把缺少 RetrieveEntity 當成拒絕成功。
 表單狀態依 Microsoft systemform 參考的 Picklist 與 SDK OptionSetValue 契約合成；
 已發布／未發布來源都驗證零與一的原值，缺欄、null、整數、文字及其他錯型別一律拒絕。
+表單 FetchXML 只在假 SDK 邊界由共用轉接器還原查詢，原 Page 委派繼續核對欄位、範圍、
+排序與分頁；回應依原始查詢包裝 rawformxml alias，不補缺值或修改兩來源的合成資料。
 續頁故障以合成 SDK 精確計數，驗十六頁與十六 KiB UTF-8 cookie 的邊界及空頁／循環拒絕；
 來源身份缺漏或型別替換不得被當成無差異，新表原生 ID 僅沿本次建立的既有授權流程發布。
 決定性斷言：零差異重跑不再寫入、同一 SavedQueryId 被保留、發布真正讀回、錯誤前零寫入，
@@ -626,7 +628,10 @@ public sealed class UiViewDeploymentTests
         internal bool FailNextInclude { get; set; }
         internal bool DriftAfterViewWrite { get; set; }
         internal string LastPublishXml { get; private set; } = "";
-        /// <summary>只存活本 fixture 的有界續頁故障委派；只替代 UI 查詢回應，不建立 task 或外部來源。</summary>
+        /// <summary>
+        /// 只存活本 fixture 的有界續頁故障委派；FetchXML 在入場時還原為相同欄位、條件、排序及分頁，
+        /// 委派回傳後才依原始查詢包裝 alias，保留缺欄、越界與重複 ID 故障；不建立 task 或外部來源。
+        /// </summary>
         internal Func<QueryExpression, bool, EntityCollection>? Page { get; set; }
         /// <summary>在本輪平台檢視建立時才注入未知原生表單；不能被先前已擷取的 nativeIds 授權。</summary>
         internal bool AddLateNativeForm { get; set; }
@@ -660,9 +665,12 @@ public sealed class UiViewDeploymentTests
         /// <summary>
         /// 回應正式 SDK 請求；新表建立回應同時建立兩來源原生表單／檢視，再注入內容差異以測 nativeIds 授權。
         /// 只有精確平台 UI 方案元件可被本替身攔截，其他 metadata 仍走嚴格來源，不接觸業務資料。
+        /// 未發布表單以原始查詢決定 alias 包裝；查詢轉接不改來源集合，Page 故障仍由產品驗證。
         /// </summary>
         public OrganizationResponse Execute(OrganizationRequest request)
         {
+            // 官方唯讀轉換只模擬型別對應；原讀取／分頁／故障注入仍由既有替身負責。
+            if (UiFormFetchTestAdapter.Convert(request) is { } converted) return converted;
             if (request is RetrieveCurrentOrganizationRequest)
             {
                 var response = (RetrieveCurrentOrganizationResponse)metadata.Execute(request);
@@ -670,8 +678,12 @@ public sealed class UiViewDeploymentTests
                 return response;
             }
             if (request is RetrieveUnpublishedMultipleRequest unpublished)
+            {
+                var query = unpublished.Query;
+                var page = Select(UiFormFetchTestAdapter.Query(query), true);
                 return new RetrieveUnpublishedMultipleResponse
-                { Results = { ["EntityCollection"] = Select((QueryExpression)unpublished.Query, true) } };
+                { Results = { ["EntityCollection"] = UiFormFetchTestAdapter.Wrap(query, page) } };
+            }
             if (request is CreateEntityRequest created)
             {
                 var response = metadata.Execute(request);
@@ -737,11 +749,16 @@ public sealed class UiViewDeploymentTests
             return metadata.Execute(request);
         }
 
-        /// <summary>公開查詢區分兩個方案與 UI 發布層，模擬 server 過濾而非把其他實體回給產品。</summary>
+        /// <summary>
+        /// 公開查詢區分兩個方案與 UI 發布層，模擬 server 過濾而非把其他實體回給產品。
+        /// 表單 FetchXML 先還原供原有選列及 Page 斷言使用，再按原始查詢包裝獨立 alias 回應；
+        /// 其他 QueryExpression 保持原物件與 metadata 白名單，沒有跨來源可變列或額外 SDK 呼叫。
+        /// </summary>
         public EntityCollection RetrieveMultiple(QueryBase query)
         {
-            var expression = Assert.IsType<QueryExpression>(query);
-            if (expression.EntityName is "savedquery" or "systemform") return Select(expression, false);
+            var expression = UiFormFetchTestAdapter.Query(query);
+            if (expression.EntityName is "savedquery" or "systemform")
+                return UiFormFetchTestAdapter.Wrap(query, Select(expression, false));
             if (expression.EntityName == "solution" && expression.Criteria.Conditions.Any(condition =>
                     condition.AttributeName == "uniquename" && condition.Values.Contains("SpeechMessagePlatformUi")))
                 return new EntityCollection(solution is null ? new List<Entity>() : new List<Entity> { Copy(solution) });

@@ -2,6 +2,7 @@
 檔案整體說明
 目的與定位：FS UI 解決方案匯入的離線發布護欄測試，透過真 UiSolutionDeployment.Import 驗證已／未發布定義比較及實體隔離，避免把 RetrieveUnpublishedMultiple 全部資料誤當待發布。
 主要功能與流程：每案產生合成 ZIP 與兩份 SDK 快照，注入相同／不同 XML、其他實體修改、集合及身分錯誤、續頁不完整、cookie 循環、取消及跨來源累計 XML 超額；以 Import／Publish 是否發生及其他實體是否維持未發布作決定性斷言。
+表單 FetchXML 僅在假 SDK 邊界還原為既有 Page 委派使用的查詢，再依原始查詢包裝 rawformxml alias；欄位、排序、頁碼、cookie、重複 ID 與越界故障保持原值，不補缺欄。損壞回應注入在包裝前短路，SDK 返回後由產品先觀察 caller 取消。
 使用邊界與擁有權：SDK 只模擬本案記憶體資料，不連線、不讀秘密、不建立背景工作。新增 RetrieveEntity 固定回傳同表一致結構，讓完整 metadata 護欄不掩蓋既有 UI 故障；原 UI 身分、續頁與容量斷言保持。Fixture 擁有唯一暫存檔與 OrganizationLease；Dispose 先釋放服務並清除回呼與資料，再刪檔。成功與失敗均獨占重開 ZIP 驗證輸入 handle 已關閉，不把合成發布視為實機結果。
 */
 using System;
@@ -388,7 +389,10 @@ public sealed class UiPendingComponentTests
         internal int Disposals { get; private set; }
         /// <summary>注入錯誤未發布回應型別，測取消優先於回應驗證。</summary>
         internal bool InvalidResponse { get; set; }
-        /// <summary>本案續頁／集合故障委派，Dispose 時解除參照。</summary>
+        /// <summary>
+        /// 本案續頁／集合故障委派；FetchXML先還原成相同欄位、範圍、排序與分頁供既有斷言，
+        /// 回傳後才依原始查詢包裝alias，不修補身分或集合故障。Dispose時解除參照。
+        /// </summary>
         internal Func<QueryExpression, bool, EntityCollection>? Page { get; set; }
         /// <summary>SDK 返回前注入 caller 取消，Dispose 時解除參照。</summary>
         internal Action? AfterRead { get; set; }
@@ -397,9 +401,15 @@ public sealed class UiPendingComponentTests
 
         /// <summary>已／未發布分別持有 detached Entity，修改一側不會偷偷變動另一側。</summary>
         internal void Seed(Entity row) { Published.Add(Copy(row)); Unpublished.Add(Copy(row)); }
-        /// <summary>只支援 reader、匯入及定向發布；發布確實更新指定實體的合成已發布資料。</summary>
+        /// <summary>
+        /// 只支援reader、匯入及定向發布；未發布查詢先還原給原Read流程，再依原始查詢包裝alias。
+        /// Read中的故障與取消回呼順序不變，InvalidResponse仍直接回錯型別而不先包裝；
+        /// 發布確實更新指定實體的合成已發布資料，租約與回呼仍由外層fixture唯一清理。
+        /// </summary>
         public OrganizationResponse Execute(OrganizationRequest request)
         {
+            // 官方唯讀轉換只模擬型別對應；原讀取／分頁／故障注入仍由既有替身負責。
+            if (UiFormFetchTestAdapter.Convert(request) is { } converted) return converted;
             if (request is RetrieveEntityRequest metadata)
             {
                 Assert.Equal(EntityFilters.All, metadata.EntityFilters);
@@ -411,9 +421,10 @@ public sealed class UiPendingComponentTests
             }
             if (request is RetrieveUnpublishedMultipleRequest unpublished)
             {
-                var page = Read((QueryExpression)unpublished.Query, true);
+                var query = unpublished.Query;
+                var page = Read(UiFormFetchTestAdapter.Query(query), true);
                 return InvalidResponse ? new OrganizationResponse() : new RetrieveUnpublishedMultipleResponse
-                { Results = { ["EntityCollection"] = page } };
+                { Results = { ["EntityCollection"] = UiFormFetchTestAdapter.Wrap(query, page) } };
             }
             if (request.RequestName == "ImportSolution") { Imports++; AfterImport?.Invoke(); return new OrganizationResponse(); }
             if (request is PublishXmlRequest publish)
@@ -425,11 +436,15 @@ public sealed class UiPendingComponentTests
             }
             throw new NotSupportedException("Unexpected synthetic UI request.");
         }
-        /// <summary>已發布讀取走 SDK 的真實 RetrieveMultiple 入口；可回 null 配合取消，證明取消先於損壞回應驗證。</summary>
+        /// <summary>
+        /// 已發布讀取走SDK的真實RetrieveMultiple入口；還原查詢後沿用Read的計數、分頁及取消回呼，
+        /// 僅正常回應依原始查詢包裝alias。InvalidResponse仍回null，讓產品證明caller取消先於損壞回應驗證，
+        /// 不能把null交給包裝器而以替身例外遮蔽原契約。
+        /// </summary>
         public EntityCollection RetrieveMultiple(QueryBase query)
         {
-            var page = Read(Assert.IsType<QueryExpression>(query), false);
-            return InvalidResponse ? null! : page;
+            var page = Read(UiFormFetchTestAdapter.Query(query), false);
+            return InvalidResponse ? null! : UiFormFetchTestAdapter.Wrap(query, page);
         }
         /// <summary>模擬 SDK 伺服器依查詢條件篩選與分頁；故障委派可刻意回傳不完整或越界回應。</summary>
         private EntityCollection Read(QueryExpression query, bool unpublished)

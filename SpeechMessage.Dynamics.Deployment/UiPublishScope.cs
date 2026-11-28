@@ -2,6 +2,8 @@
 檔案整體說明
 目的與定位：FS UI 發布前的範圍護欄，只查本次發布實體的表單與公用檢視，
 比較已／未發布固定欄位，再將真正有差異的正式 ID 與核准清單核對。
+表單委派 UiFormXmlReader 以相同 FetchXML alias 取得兩來源原始 XML，避免語系投影製造假差異；
+仍逐字比較所有 XML／label，任何 alias、scope 或編碼錯誤都拒絕，不回退一般投影。
 主要流程：RetrieveUnpublishedMultiple 也會回傳沒有修改的元件，不能把所有回應 ID 視為 pending。
 兩來源完整有界讀取後，身份集合不一致即拒絕；名稱、狀態、管理旗標或 XML 不同才是差異。
 每頁最多 256 列、每個查詢最多 16 頁、每來源最多 4096 個正式 ID（兩份快照最多 8192 列）；XML 單欄一 MiB、整次比較
@@ -120,7 +122,7 @@ internal static class UiPublishScope
             while (true)
             {
                 ct.ThrowIfCancellationRequested();
-                var collection = unpublished
+                var collection = isForm ? UiFormXmlReader.ReadPage(service, query, unpublished, ct) : unpublished
                     ? (service.Execute(new RetrieveUnpublishedMultipleRequest { Query = query }) as RetrieveUnpublishedMultipleResponse)?.EntityCollection
                     : service.RetrieveMultiple(query);
                 ct.ThrowIfCancellationRequested();

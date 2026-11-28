@@ -7,11 +7,11 @@
 window.PROGRESS_LANES = window.PROGRESS_LANES || {};
 window.PROGRESS_LANES.A = {
   lane: 'A',
-  lastUpdated: '2026-11-28T12:55:19+08:00',
+  lastUpdated: '2026-11-28T14:17:59+08:00',
   packages: {
     F0: { status: '自動測試通過（實機待補）', started: '2026-11-25 22:09 Asia/Taipei (UTC+08:00)', finished: '2026-11-26 00:24 Asia/Taipei (UTC+08:00)', commit: '74ea5a1c1ff723f6a64aeb73cadf69685021f528, a9e438be0d9fe13d8fe40d0c2e03e9558774e113', pending: '實機待補（可自行處理）：完整inventory及13個聚合已讀回，原查詢2026-11-28 09:49；全方案一般9,474/9,474、Release0錯誤（測試SHA 88398C82F794642BCD601609EE5E136655A1C4E9F4139BB40589404E67E9662A）。v2.5職分／牧養／關懷等完整模型沿用對照仍待補，不以盤點命令成功當F0全部完成。產物SHA 71F864AC23F035B6027ADBD2D4EF479EE0F1970F9DE7F212DCAFA78DA358C367；報告：wp-reports/3P-F0-基線矩陣.md', report: 'wp-reports/3P-F0-基線矩陣.md' },
     F1: { status: '自動測試通過（實機待補）', started: '2026-11-26 00:24', finished: '2026-11-26 15:39', commit: 'bfb5f56b96ff7b2c9a185f9757248c5dd9a5368a, 79f5362a44659e68afc1c17727bc2a2a3f51ac69, b2cdcbb6d11521950dbece5a7432b29a0d8d5a7a, d82c7a7252fe8ad60e107f8753e06adb12d984a1, f57fef11f342c9d823e6361a42ebae283c4e5a14, 421b6d29266668d07348d87aee0b98ae8b196e81', pending: '實機待補（外部阻擋）：共用層實機整合證據隨FS／F3打通補驗；Scheduling分類及QR必要補正完整7943/7943、ClaudeOnly無Critical／High；非實機宣稱', report: 'wp-reports/3P-F1-依賴方向修正.md' },
-    FS: { status: '自動測試通過（實機待補）', started: '2026-11-26 04:31 Asia/Taipei (UTC+08:00)', finished: '2026-11-28 02:26 Asia/Taipei (UTC+08:00)', commit: '64679a87f, 9af227811, bd22905fc, abeb70d94, c4cf53a63, 1bfe1a23e, 0ebf49b0eb8b57b1c926187d858c5bfc4f8d93e0', pending: '實機待補（可自行處理）：quiesce依02A §2.6讀回完成、H1結案；211信箱個別未確認不投遞且不擋FS。2026-11-28三組織完整plan修正後重試1/2全exit0，164／216／216項、UI各3；ClaudeOnly合併審查無Critical／High。完整一般9491/9491、Release0錯誤。先備妥before／可驗證回復證據，再取D365鎖apply／verify、UI export／import與Live3P FS；未宣稱已部署。報告：wp-reports/3P-FS-結構分層與三組織佈署.md', report: 'wp-reports/3P-FS-結構分層與三組織佈署.md' },
+    FS: { status: '自動測試通過（實機待補）', started: '2026-11-26 04:31 Asia/Taipei (UTC+08:00)', finished: '2026-11-28 02:26 Asia/Taipei (UTC+08:00)', commit: '64679a87f, 9af227811, bd22905fc, abeb70d94, c4cf53a63, 1bfe1a23e, 0ebf49b0eb8b57b1c926187d858c5bfc4f8d93e0', pending: '實機待補（可自行處理）：三份DB備份及VERIFYONLY已通過；首次apply首寫前拒絕、零寫入。formxml語系投影根因已證明，正式reader改用官方型別轉換及原始alias，單表實機pending=0（診斷、非FS驗收）；新修正待全方案閘門及ClaudeOnly，通過後重產三份plan並受審，再取D365鎖修正重試apply／verify、UI匯出入及Live3P FS。H1已結案；211信箱個別未確認且不擋FS。', report: 'wp-reports/3P-FS-結構分層與三組織佈署.md' },
     F3: { status: '自動測試通過（實機待補）', started: '2026-11-26 21:10', finished: '2026-11-27 20:02', commit: '244e45960, b7844eee7, e09a4c86, 8be872b2a, 5b8c74b03, 2df96defa', pending: '實機待補：離線閘門已合併於整合分支；等 FS 完成後開始，依02A §5須待FS三組織plan/apply/verify、檢視表發布、UI export/import與Live3P FS完成後再做F3 Step 6登錄及20並行配發／清理。外部阻擋：F2測試站及T01／T02 Webhook；lease trace一次失敗原因未確認、不宣稱已修；沒有新增實機結果', report: 'wp-reports/3P-F3-Channel名額池.md' },
     F5: { status: '未開始', started: '', finished: '', commit: '', pending: '', report: '' },
     F7: { status: '未開始', started: '', finished: '', commit: '', pending: '', report: '' },
@@ -19,6 +19,7 @@ window.PROGRESS_LANES.A = {
     M1: { status: '未開始', started: '', finished: '', commit: '', pending: '', report: '' },
   },
   log: [
+    '2026-11-28 14:17 Asia/Taipei (UTC+08:00)｜FS正式reader原始XML修正：SQL／alias原文SHA完全相同；官方型別轉換及單表實機pending=0已證明，均為唯讀診斷。尚待最終全方案閘門與ClaudeOnly；通過後重新plan及受審才修正重試apply，未新增部署結果。',
     '2026-11-28 12:55 Asia/Taipei (UTC+08:00)｜FS完整plan修正後重試1/2全成功（164／216／216、UI各3）；完整一般9491/9491及ClaudeOnly無Critical／High，仍待備份、apply／verify、UI匯出入及正式FS Live3P，不把plan當完成。',
     '2026-11-28 11:50 Asia/Taipei (UTC+08:00)｜F0 inventory相容修正合併前守門：完整一般9,474/9,474、Release0錯誤、文件2086/0、Changed編碼20檔0問題、進度32/32。13個聚合已讀回；F0模型完整對照及FS完整plan仍待補，兩包維持自動測試通過（實機待補）。goodshepherd20 quiesce依02A §2.6讀回結案，211信箱未個別確認且不擋FS；無D365寫入，D365鎖已釋放。',
     '2026-11-28 03:11 Asia/Taipei (UTC+08:00)｜續跑核對：F3離線閘門已合併；FS policyVersion=2文件更正後02 §4離線閘門通過，FS維持自動測試通過（實機待補）。本筆更新前renderer已通過Test-ProgressPage.cjs 28/28及Test-ThreeProductsProgress.cjs 4/4；本次更新後重新驗證。test-env.lock目前不存在且線A尚未操作D365；FS文件合併後依02A先執行goodshepherd20 quiesce。cl/lane-a位於ProgramData既有工作樹；D槽指定路徑為detached且有既存修改，保留不動。',
