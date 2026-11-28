@@ -101,3 +101,5 @@
 | 2026-11-28 16:24 Asia/Taipei (UTC+08:00) | F12 H2 | 逾時後暫空讀不能證明零寫入；已知清理後本地刪檔失敗又必須可續跑 | manifest v2記unknown／notSubmitted／rolledBack／confirmed，舊v1視未知；只有確定結果且全ID不存在才空清理，未知保留；後到提交可重驗scope續清。H1端點57／57，H2連CLI71／71，修後整包守門及ClaudeOnly重審 | H2原始RED與GREEN、額外清理續跑RED→GREEN完整SHA見F12報告 | 不以空查詢當回滾，不放寬未知提交，不提交CCG或執行實機 |
 
 | 2026-11-28 16:36 Asia/Taipei (UTC+08:00) | F12離線放行 | 修正來源3a04d102已完整守門及正式複審 | 一般9910／9910、Release65警告0錯誤、文件2119／0、Changed52／0、進度32／32；ClaudeOnly複審無Critical／High，H1／H2解除。90及線B JS改自動測試通過（實機待補），Live3P未跑；本輪文件依02A§10.3沿用相同程式守門 | 詳細log SHA與審查範圍見F12報告，原生browser入口及Whale owner不匹配已如實保留 | 合併鎖內保全CCG、同步後ff推送並核remote；繼續F10沙箱，不代線A或把實機欠債寫完成 |
+
+| 2026-11-28 16:38 Asia/Taipei (UTC+08:00) | F12合併前同步 | 02A§11保全自己的8個CCG修改／未追蹤檔後重基線 | C:\ProgramData\SpeechMessage\backups\lane-B\20261128-163809；8／8位元組與刪除狀態精確回放、0衝突，rebase exit0且HEAD426f9d2c未改；不提交CCG | manifest SHA b096ae43b3fb8085b3a848b66938b178d955fbf186d94c7af5a592e5e3881c13；replay SHA f8b79bbb8b1d24004264974726144d49212432e1ee1e658293f12608257ceac8 | 備份保留至終點；整合00／02A及他工具草稿不在本包差異，不碰不提交 |
