@@ -5,3 +5,7 @@ P:System.TimeZoneInfo.Local;不得依賴伺服器時區
 // 分析器使用屬性的文件識別碼；setter 的方法識別碼不會命中屬性存取，故同時禁止全域預設文化讀寫。
 P:System.Globalization.CultureInfo.DefaultThreadCurrentCulture;不得讀寫程序全域預設文化
 P:System.Globalization.CultureInfo.DefaultThreadCurrentUICulture;不得讀寫程序全域預設介面文化
+M:Line.Messaging.ILineMessagingClient.BroadcastMessageAsync(System.Collections.Generic.IList{Line.Messaging.ISendMessage});禁止 broadcast：同一 Channel 有 20 間教會
+M:Line.Messaging.ILineMessagingClient.BroadcastMessageAsync(System.Collections.Generic.IList{Line.Messaging.ISendMessage},System.String);禁止 broadcast：同一 Channel 有 20 間教會
+M:Line.Messaging.LineMessagingClient.BroadcastMessageAsync(System.Collections.Generic.IList{Line.Messaging.ISendMessage});禁止 broadcast：同一 Channel 有 20 間教會
+M:Line.Messaging.LineMessagingClient.BroadcastMessageAsync(System.Collections.Generic.IList{Line.Messaging.ISendMessage},System.String);禁止 broadcast：同一 Channel 有 20 間教會

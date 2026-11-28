@@ -1,0 +1,190 @@
+{
+  "schemaVersion": 1,
+  "activePhase": 8,
+  "solution": "SpeechMessageCore",
+  "publisher": "SpeechMessagePublisher",
+  "prefix": "new",
+  "entities": [
+    {
+      "logicalName": "new_sendrecord",
+      "displayName": "發送紀錄",
+      "pluralName": "發送紀錄",
+      "isNew": true,
+      "ownershipType": "OrganizationOwned",
+      "audit": false,
+      "optimisticConcurrency": true,
+      "primaryName": "new_name",
+      "fields": [
+        {
+          "logicalName": "new_name",
+          "displayName": "批次名稱",
+          "type": "string",
+          "phase": 1,
+          "maxLength": 64,
+          "required": true
+        },
+        {
+          "logicalName": "new_product",
+          "displayName": "產品",
+          "type": "string",
+          "phase": 1,
+          "maxLength": 32,
+          "required": true
+        },
+        {
+          "logicalName": "new_tenant",
+          "displayName": "租戶",
+          "type": "lookup",
+          "phase": 1,
+          "target": "account",
+          "required": true
+        },
+        {
+          "logicalName": "new_channelkey",
+          "displayName": "Channel識別",
+          "type": "string",
+          "phase": 1,
+          "maxLength": 20,
+          "required": true
+        },
+        {
+          "logicalName": "new_recipientcount",
+          "displayName": "收件人數",
+          "type": "integer",
+          "phase": 1,
+          "required": true
+        },
+        {
+          "logicalName": "new_category",
+          "displayName": "訊息分類",
+          "type": "choice",
+          "phase": 1,
+          "required": true,
+          "options": [
+            { "value": 100000000, "label": "交易通知" },
+            { "value": 100000001, "label": "營運通知" },
+            { "value": 100000002, "label": "行銷訊息" }
+          ]
+        },
+        {
+          "logicalName": "new_messagecount",
+          "displayName": "訊息則數",
+          "type": "integer",
+          "phase": 1,
+          "required": true
+        },
+        {
+          "logicalName": "new_result",
+          "displayName": "發送結果",
+          "type": "choice",
+          "phase": 1,
+          "required": true,
+          "options": [
+            { "value": 100000000, "label": "已占用待確認" },
+            { "value": 100000001, "label": "平台已接受" },
+            { "value": 100000002, "label": "確定失敗" },
+            { "value": 100000003, "label": "待對帳" },
+            { "value": 100000004, "label": "政策拒絕" }
+          ]
+        },
+        {
+          "logicalName": "new_errorcode",
+          "displayName": "安全錯誤代碼",
+          "type": "string",
+          "phase": 1,
+          "maxLength": 64
+        },
+        {
+          "logicalName": "new_correlationid",
+          "displayName": "業務事件識別",
+          "type": "string",
+          "phase": 1,
+          "maxLength": 128,
+          "required": true
+        },
+        {
+          "logicalName": "new_senton",
+          "displayName": "結果確認時間",
+          "type": "datetime",
+          "phase": 1,
+          "behavior": "UserLocal",
+          "format": "DateAndTime"
+        },
+        {
+          "logicalName": "new_batchindex",
+          "displayName": "批次序號",
+          "type": "integer",
+          "phase": 1,
+          "required": true
+        },
+        {
+          "logicalName": "new_batchcount",
+          "displayName": "整案批次數",
+          "type": "integer",
+          "phase": 1,
+          "required": true
+        },
+        {
+          "logicalName": "new_batchkey",
+          "displayName": "業務批次唯一鍵",
+          "type": "string",
+          "phase": 1,
+          "maxLength": 64,
+          "required": true
+        },
+        {
+          "logicalName": "new_operationhash",
+          "displayName": "整案內容摘要",
+          "type": "string",
+          "phase": 1,
+          "maxLength": 64,
+          "required": true
+        },
+        {
+          "logicalName": "new_payloadhash",
+          "displayName": "批次本文摘要",
+          "type": "string",
+          "phase": 1,
+          "maxLength": 64,
+          "required": true
+        },
+        {
+          "logicalName": "new_recipienthash",
+          "displayName": "有序名單摘要",
+          "type": "string",
+          "phase": 1,
+          "maxLength": 64,
+          "required": true
+        },
+        {
+          "logicalName": "new_retrykey",
+          "displayName": "固定重試識別",
+          "type": "string",
+          "phase": 1,
+          "maxLength": 36,
+          "required": true
+        },
+        {
+          "logicalName": "new_attempts",
+          "displayName": "HTTP嘗試次數",
+          "type": "integer",
+          "phase": 1,
+          "required": true
+        },
+        {
+          "logicalName": "new_sendernote",
+          "displayName": "發送者省略原因",
+          "type": "string",
+          "phase": 1,
+          "maxLength": 64
+        }
+      ],
+      "keys": [
+        {
+          "logicalName": "new_ak_sendrecord",
+          "attributes": [ "new_batchkey" ]
+        }
+      ]
+    }
+  ]
+}

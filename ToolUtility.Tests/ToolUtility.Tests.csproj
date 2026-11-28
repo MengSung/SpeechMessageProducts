@@ -74,6 +74,8 @@
     <Compile Include="EntityOperations\EntityQueryContractTests.cs" />
     <Compile Include="DataOperations\*.cs" />
     <Compile Include="ActivityOperations\*.cs" />
+    <!-- F5 純 SDK adapters 與 Gateway 契約在 Framework 宿主也必須實際執行，不引用 net10 Host。 -->
+    <Compile Include="LineRecipients\*.cs" />
     <Compile Include="TestHelpers\GoldenQueryAssertions*.cs" />
     <Compile Include="CoreTargetFrameworkTests.cs" />
   </ItemGroup>

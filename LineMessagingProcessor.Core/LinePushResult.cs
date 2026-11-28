@@ -11,6 +11,8 @@
  * - ShadowRecorded 僅表示本地影子記錄完成，以 Rejected 加固定 Reason 表達未發送；不屬於平台成功。
  * - 平台 x-line-request-id；不讀取或保存可能含敏感資訊的錯誤回應本文。
  * - 僅無回應的傳輸失敗保留原始例外；有 HTTP 狀態的結果必須為 null。
+ * - F5 憑證 operation 內部期限可透過 TransportFailure 返回原例外純值，由最終 Gateway 決定同鍵重試與告警；
+ *   這不是正常 caller 取消或已接受的證明，也不建立新的 HTTP 資源。
  * 主要操作入口包含 ToString。
  *
  * 使用邊界與維護：
@@ -83,6 +85,24 @@ public sealed class LinePushResult
     /// <returns>本次操作擁有的未發送純值結果；Success 為 false。</returns>
     public static LinePushResult ShadowRecorded() =>
         new(LinePushOutcome.Rejected, null, null, null, "ShadowRecorded");
+
+    /// <summary>
+    /// 把尚未取得 HTTP 回應的原始傳輸故障轉成純值，供外層有界同鍵重試。
+    /// caller 明確取消應先重新拋出而非呼叫本方法；最終失敗 owner 必須傳原例外給共用診斷。
+    /// </summary>
+    /// <param name="exception">原始逾時／連線例外，不接受任意業務錯誤或已確認 HTTP 狀態。</param>
+    /// <returns>無 status、無 response、保留原例外身分的 Retryable 結果。</returns>
+    public static LinePushResult TransportFailure(Exception exception)
+    {
+#if NETFRAMEWORK
+        if (exception is null) throw new ArgumentNullException(nameof(exception));
+#else
+        ArgumentNullException.ThrowIfNull(exception);
+#endif
+        if (exception is not OperationCanceledException and not System.Net.Http.HttpRequestException)
+            throw new ArgumentException("A transport exception is required.", nameof(exception));
+        return new LinePushResult(LinePushOutcome.Retryable, null, null, exception);
+    }
 
     /// <summary>僅無回應的傳輸失敗保留原始例外；有 HTTP 狀態的結果必須為 null。</summary>
     [JsonIgnore]
