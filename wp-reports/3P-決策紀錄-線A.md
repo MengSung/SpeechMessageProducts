@@ -118,3 +118,5 @@
 | 2026-11-28 23:59 Asia/Taipei (UTC+08:00) | FS唯讀收尾／CLI測試隔離 | 完整10263與ClaudeOnly C0/H0；B新F7／F10已合併，Shadow合成共享真鎖有可重現失敗 | 先提交唯讀證據再同步B，獨立TDD加內部合成鎖接縫；正式Run固定共用鎖、ProductionGuard及拒絕保留，完整守門及ClaudeOnly後才合併 | 02§4／§5.4、02A§10.3／§14；review0CCB6430… | construction待寫入決策、無額外apply；goodshepherd20第3次已消耗 |
 
 | 2026-11-29 00:19 Asia/Taipei (UTC+08:00) | FS診斷／鎖隔離交付 | B ee0224ad5帶入程式須重驗；原診斷三檔SHA未變 | 5876349d9真RED3→相關121 GREEN；同步後29回合10381全通過及鎖隔離ClaudeOnly C0/H0；正式鎖不變，進度PNG無紅警告。僅文件後沿用同樹建置測試，文件三閘門再驗後快轉 | 02A§10.3／§14；test7FFB6742…、review6F474D30…、PNG EBA55214… | construction待決策，無新SDK寫入；不把診斷成功／守門成功當FS完成 |
+
+| 2026-11-29 00:22 Asia/Taipei (UTC+08:00) | FS切片合併 | 10381及兩切片各ClaudeOnly C0/H0、最終文件32通過 | 快轉推送ffe4b75034b002991e1019023285287d1c72d7e0；remote相等，整合10草稿SHA備份及合併後不變，放合併鎖 | backup manifest4637395A…、merge A8D3A620…、finaldocs6FACE21E… | 只完成唯讀診斷及鎖隔離交付；construction仍待23:42決策，目標保持active |

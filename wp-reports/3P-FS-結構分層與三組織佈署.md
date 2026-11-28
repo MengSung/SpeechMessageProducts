@@ -459,3 +459,10 @@ FS無手機步驟；手機畫面集中M1。目前進度頁目視亦待補：先�
 - 單模型（使用者指定 ClaudeOnly）鎖隔離切片Critical0／High0，summary SHA `6F474D302A22D3F96577E8A7F84BB72429062AE3806A76E454F48FCFC0F3FDB9`。實讀兩份程式diff、核心路由／鎖取得、IsContainedPath、固定共用根、AcquireCore開頭及友元宣告；未逐句讀兩規格文件、未重讀diff外原49案例、未自行跑gate或核log。診斷另有前述獨立C0/H0，沒有以單一審查冒充兩切片全讀；非阻擋觀察記入之後再說。
 - 無頭Edge以1400×1800截圖，已讀PNG確認頁首、FS／F3／F5及F7列，無資料紅警告；PNG SHA `EBA552147186C54216FDD672257165FD38E1EA10E9FDDB942859D0FC5A75F853`。這只是進度頁目視，不是FS或F5實機。
 - construction23:42仍待Claude寫入決策；891差異原報告SHA `DE6001A94B4AA211F22865BF87BF051F54E7C6148292D56267FF187F77AC663D`不變，未修guard／未重送、association未apply，未提前F3。goodshepherd20特別第3次已成功並消耗，不重送。下一步保全整合他人草稿後快轉推送與核remote；FS維持自動測試通過（實機待補）。
+
+### 2026-11-29 00:22 Asia/Taipei (UTC+08:00) 診斷及合成鎖隔離已快轉推送
+
+- 整合分支已快轉至 `ffe4b75034b002991e1019023285287d1c72d7e0` 並推送；當時git ls-remote與本機整合HEAD完全相等。合併鎖已釋放，沒有D365／SQL／LINE資源鎖。
+- 整合工作樹10份他人草稿與未追蹤檔先逐bytes／SHA備份，和本次合併檔無重疊，合併後10份SHA皆未變。備份清冊SHA `4637395AC4DEF18C8308D89AC46CB269F655F1FB1BA99310CCAF530EC80616F6`；合併log SHA `A8D3A62037D65F8E11804E45BF7A32E8B110CBDD1D37FD69D1FB7CFA91CD90AC`；未stash／reset／丟棄／提交他人草稿或本線.ccg。
+- 本次最後文件型差異依02A§10.3重驗文件／Changed編碼／Node32/32全部exit0，log SHA `6FACE21EEAF4CC6CEC7DE18B9243F82A29C926387527FD7BF81028F208609858`；程式與10381守門及兩切片各自ClaudeOnly審查相同。這一段只補實際合併記錄，仍依同條沿用建置／一般測試。
+- FS實機仍待23:42的Claude決策；原首寫前baseline及891差異證據完整保留，未擅自擴大白名單、未重送construction、association未apply。F3／F5實機與F0／F1收尾仍依02A§13順序等FS；不代線B F7／F9，不把階段交付當整體目標完成。
