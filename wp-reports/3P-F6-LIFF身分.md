@@ -1,5 +1,28 @@
 # F6　LIFF 共用骨架與租戶身分
 
+
+## 2026-11-28 14:29 Asia/Taipei (UTC+08:00)｜02A公開部署補正及實機結果
+
+目前狀態：自動測試通過（實機待補）。本輪程式提交 `6ede902e1d88198cc1885d65e1d14e303480c5e3`；P0／F2 SQL及公開live／ready先前已打通，F2證據已合併推送72b401258並核對遠端SHA。本節取代舊公開頁面／遠端SQL前置待補，歷史證據保留。
+
+| 驗收 | 結果與範圍 |
+|---|---|
+| 根因與補正 | F2封裝重產開發JSON時遺漏repo核定LIFF三個公開識別。只從64KiB內publish JSON取LoginChannelId／MessagingChannelKey／LiffId，驗完整三鍵、string、ASCII界限與app/login關係後逐值建立獨立候選；其餘區段不複製，不攜出秘密，Strict pin與CRM環境owner不變。 |
+| 離線先紅後綠 | 原函式拒絕新參數，新增正向案先RED（25／26）；修後PS7／PS5各26／26，涵蓋來源後續變更不改候選、空值／缺項／錯型別／越界／app不符／未知Token鍵皆拒絕。 |
+| 完整守門 | 同一程式樹全方案Release65警告／0錯誤，一般9516／9516、28組件、0失敗0略過；文件2093／0、Changed4檔0問題（另1原工具排除），三個程式檔另逐位元組驗UTF8無BOM／CRLF／末尾CRLF，方案54項、進度頁32／32。建置與一般測試期間未publish同一bin。 |
+| 外部審查 | 單模型（使用者指定ClaudeOnly），ok=true、無Critical／High，沒有雙模型。只靜態讀diff與新測試，未跑測試、未核對報告；非阻擋觀察已寫之後再說。 |
+| 雙鎖部署 | 先確認整合72b401258仍為祖先，D365→SQL雙鎖下部署固定D365APP01／speechmessage.com.tw、GoodShepherd2Test、9443；RunId `20261128T062710Z-b294aab3904f430bb8471c1868d7c024`，LivenessPassed。原release與精準IIS回復紀錄保留，沒有CRM／443／信任庫變更，finally反向釋放鎖與credential。 |
+| F6唯讀Live3P | 首次1通過1失敗確實抓到空app；修後明確Category=Live3P&WP=F6 **2／2、0略過**。whoami.html／liff-router.js與本線SHA完全相同，公開config只有核定app及Development；匿名whoami與合成租戶ping均401、無Set-Cookie。Host已完成正式LiffSelectionSchemaStartup才開始HTTP，代表以真平台SQL初始化／驗表成功，未冒稱另有獨立SQL metadata讀回。 |
+| 剩餘外部相依 | FS／F3尚未完成測試租戶、Channel及角色資料，T01 webhook/test仍401；真實ID Token、本人租戶／角色、跨租戶實機與M1手機未驗。不以匿名401稱過期或aud不符實機通過，不呼叫產品或複製舊Channel。 |
+
+原始log在repo外evidence，SHA-256：PS RED `531ED490E844BD55C3767A4F4CBFAA4F1C9ABC172D48EB11B2EB43F740BCA545`；PS7／PS5 GREEN同為 `A3F4DAEC250C9768B690134919A86445FD9A603117C160006448E1041C660543`；首次Live3P RED `53958B7CC72DB6307255DECE419C853E5B83BE3447ED39A9DCC016A708D1D6D3`；build `D90B47A24F82A2678B796DE5DA6A1E30634F784C280F9DD8AC17D5DFB9D40651`；tests `3357C97ED9C20152D413004A0FA9C1B6DC8B3D132CCB75223B7561AF16780EF6`；Claude stdout `43AA1C5EA5AA992C6530B2D2371DF5660E6010C5E231C1A4A09A657EF3B84130`、summary `137545382AABE4BBCAF406DE67E3B6ABDAE17CC910DE6F3985F68F2DC792D54A`；deploy `E2F841F35326CCB8F339194CE4BC31739302685B600930953F605D9A8A23517A`；Live3P GREEN `AFC156FB742B0AB8C120C53F07E58F02662E2334CB24FA0BB5A915B1F4D316C5`。
+
+回復使用本RunId的前release及GoodShepherd2Test專用欄位快照，先持D365／SQL鎖、核目前release仍本輪目標，再停止／排空及精準回復；不整站Restore，不覆蓋其他線或後續設定。新增line_current_selection是正式F6表，不當暫存刪除；未建立真使用者選擇資料。本次不增加手機流程，M1仍由線A負責。
+
+以下是歷史驗收與當時狀態；舊「完成（自動測試通過）」不代表目前已達02A五項完成定義。
+
+---
+
 更新：2026-11-26 17:00 Asia/Taipei (UTC+08:00)。線 B；本包起點 `b6da17e2b6ddf88dc22d5ceb5f5551039c6315a9`。狀態：完成（自動測試通過）；本次獨立平台租戶choice補正程式提交 `97e93413bd398f1f63998d17784a7c2a465f3ed8`，全方案守門及第三輪單模型複審通過；程式原提交 `162caf44ec97af736e1ce58113449c1dbd0e1833` 同步整合 `474669ddd57563ab3e657cc4098dbbe140e88ab0` 後重寫為 `44f6df89380e8b81d9e681c557dab09f629b4282`，程式樹逐 byte 不變；全方案守門通過，依02§5接續合併推送。公開站台、遠端SQL及手機結果仍未通過，不宣稱測試環境完成。
 
 | 01 驗收條件與指定測試 | 目前結果 |
@@ -39,3 +62,5 @@ M1 確認真實 LINE 登入、本人教會名稱與角色，以及 Development `
 修正提交：`97e93413bd398f1f63998d17784a7c2a465f3ed8`。正式碼只把查詢條件改用平台choice數字，且只接受entity=`account`、attribute=`new_istenant`的OptionSetValue「是」；測試fixture一併改成choice。未改FS平台schema、F3或共用LIFF。原始log均在工作樹忽略目錄，未進repo：`solution-build.log` SHA-256 `9440D82DE0B61475715EF99210CC064DFF664C99CD0BE9FA34464B7033C3BFBB`；`solution-tests.log` SHA-256 `805D0B9642428AF761C95EB303436D5A5EA82B64C2A8968AFBF31DA262E33517`；RED TRX `20EF508B771293B9EDB4DE2088483B2C52E1E04AD92BC5E4CD03C7498699C96F`；產品GREEN TRX `3AE61BB653E3669278F81C321887D2BEB3CC69DE03558FFF95A5BBDD91969F00`；ClaudeOnly輸出 `C2AC4E61E77748DF9EBB72EF60C6B41A7E5419C02A788ADB8FD9E9CC73DFA214`。
 
 此為離線schema消費及合成SDK契約，不代表D365實機、VM SQL或公開站台驗證。F2公開live／ready、嚴格TLS平台SQL、FS／F3實體資料與手機M1仍待補；全階段更新版進度頁未另作瀏覽器目視，前次F4 Esc取消後沒有恢復UI。F6補正完成後依序等待FS後才開始F8，不修改線A工作。
+
+補記2026-11-28 14:30 Asia/Taipei (UTC+08:00)：最終文件2093／0、Changed編碼7檔0問題、進度頁32／32及JS語法、diff check通過。SHA-256：docs `06FA7444456000A4F2C305CE1BB4F5494952B148B9310D1160CA5A70E8D1CF3E`、encoding `8EDFFC49DE6CED783F6E8521DE4A4FB4591273EC3383B2A27E18808429CBAEDE`、progress `96DECEBDA9F65475CC5C4B32D6E238E0B61C7DDA914CE5C10B546C8B43BA8486`。只有文件改動，依02A§10.3沿用本輪同程式樹9516案守門；新增進度頁未取得瀏覽器畫面，不宣稱目視。
