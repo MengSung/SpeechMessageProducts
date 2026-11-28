@@ -1,0 +1,79 @@
+{
+  "schemaVersion": 1,
+  "activePhase": 8,
+  "solution": "SpeechMessageCore",
+  "publisher": "SpeechMessagePublisher",
+  "prefix": "new",
+  "entities": [
+    {
+      "logicalName": "new_testinvite",
+      "displayName": "測試租戶邀請",
+      "pluralName": "測試租戶邀請",
+      "isNew": true,
+      "ownershipType": "OrganizationOwned",
+      "audit": false,
+      "optimisticConcurrency": true,
+      "primaryName": "new_name",
+      "fields": [
+        {
+          "logicalName": "new_name",
+          "displayName": "名稱",
+          "type": "string",
+          "phase": 1,
+          "maxLength": 100,
+          "required": true
+        },
+        {
+          "logicalName": "new_tenant",
+          "displayName": "測試租戶",
+          "type": "lookup",
+          "phase": 1,
+          "target": "account",
+          "required": true
+        },
+        {
+          "logicalName": "new_role",
+          "displayName": "邀請角色",
+          "type": "lookup",
+          "phase": 1,
+          "target": "new_role",
+          "required": true
+        },
+        {
+          "logicalName": "new_tokenhash",
+          "displayName": "邀請憑證雜湊",
+          "type": "string",
+          "phase": 1,
+          "maxLength": 64,
+          "required": true
+        },
+        {
+          "logicalName": "new_expireson",
+          "displayName": "到期時間",
+          "type": "datetime",
+          "phase": 1,
+          "behavior": "UserLocal",
+          "format": "DateAndTime",
+          "required": true
+        },
+        {
+          "logicalName": "new_usedon",
+          "displayName": "兌換時間",
+          "type": "datetime",
+          "phase": 1,
+          "behavior": "UserLocal",
+          "format": "DateAndTime",
+          "required": false
+        }
+      ],
+      "keys": [
+        {
+          "logicalName": "new_ak_testinvite",
+          "attributes": [
+            "new_tokenhash"
+          ]
+        }
+      ]
+    }
+  ]
+}
