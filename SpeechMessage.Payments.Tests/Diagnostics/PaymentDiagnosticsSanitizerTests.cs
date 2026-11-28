@@ -255,4 +255,57 @@ public sealed class PaymentDiagnosticsSanitizerTests
         }));
         await Task.WhenAll(operations);
     }
+
+    /// <summary>
+    /// 真回呼允許來源提供診斷鍵；將合成PAN放入鍵名，斷言輸出鍵也經遮罩且原輸入不變，
+    /// 防止只掃描value而讓完整卡號經序列化的property name進入日誌。無外部資源。
+    /// </summary>
+    [Fact]
+    public void Callback_diagnostic_key_does_not_publish_card_number()
+    {
+        const string key = "card-4111111111111111";
+        var input = new Dictionary<string, string> { [key] = "synthetic" };
+        var result = SinopacCallbackParser.Parse(new PaymentCallbackRequest { Form = input });
+        result.Diagnostics.Should().ContainKey("card-411111******1111");
+        JsonSerializer.Serialize(result.Diagnostics).Should().NotContain("4111111111111111");
+        input.Should().ContainKey(key);
+    }
+
+    /// <summary>
+    /// 兩個不同PAN可得到相同安全鍵；注入首六末四相同的兩筆，必須拒絕整份候選字典，
+    /// 不允許覆寫或靜默丟棄診斷事件。此拒絕只操作區域候選，未發布半份結果。
+    /// </summary>
+    [Fact]
+    public void Sanitizer_masked_key_collision_fails_closed()
+    {
+        var input = new Dictionary<string, string>
+        {
+            ["card-4111111111111111"] = "first",
+            ["card-4111112222221111"] = "second"
+        };
+        var action = () => PaymentDiagnosticsSanitizer.Sanitize(input);
+        action.Should().Throw<ArgumentException>();
+        input.Should().HaveCount(2);
+    }
+
+    /// <summary>
+    /// 故障注入圈號、上標、羅馬數字、雙位圈號與混合表示；Unicode Number不全屬Nd，
+    /// 不能只用IsDigit判定。非十進位數值區段整段遮蔽，不推斷多位數值的字形位數；
+    /// 真parser的Diagnostics及shop_no投影均不得保留原字串，輸入不被正規化或修改。
+    /// </summary>
+    [Theory]
+    [InlineData("④①①①①①①①①①①①①①①①")]
+    [InlineData("⁴¹¹¹¹¹¹¹¹¹¹¹¹¹¹¹")]
+    [InlineData("ⅣⅠⅠⅠⅠⅠⅠⅠⅠⅠⅠⅠⅠⅠⅠⅠ")]
+    [InlineData("⑩⑩⑩⑩⑩⑩⑩⑩")]
+    [InlineData("4111①111¹111Ⅰ111")]
+    [InlineData("4①11-1111-1111-1111-12345")]
+    public void Callback_non_decimal_numeric_notation_is_fully_masked(string value)
+    {
+        var input = new Dictionary<string, string> { ["detail"] = value, ["shop_no"] = value };
+        var result = SinopacCallbackParser.Parse(new PaymentCallbackRequest { Form = input });
+        result.Diagnostics["detail"].Should().Be("***");
+        result.ProviderData["shop_no"].Should().Be("***");
+        input["detail"].Should().Be(value);
+    }
 }

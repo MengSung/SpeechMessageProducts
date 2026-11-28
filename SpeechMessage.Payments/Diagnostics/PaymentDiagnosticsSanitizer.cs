@@ -3,9 +3,11 @@
  * 目的與定位：F10金流核心發布ProviderData與Diagnostics前的純值遮罩邊界；供永豐、MyPay等
  * provider共同呼叫，不解析付款授權、不入帳，也不擁有宿主logger或Exception.log。
  * 主要功能與流程：先遮蔽含密碼／授權標頭及sign別名的機密鍵，再處理Token；少於16字元完整遮蔽，其餘保留首尾
- * 四字元格式。只有精確ATM付款指示欄位可保留原值；其他值以單次線性掃描遮蔽13–19位數字
+ * 四字元格式。鍵名也必須遮蔽卡號，遮罩後鍵碰撞拒絕整份候選；值只容許精確ATM付款指示例外。
+ * 其他值以單次線性掃描遮蔽13–19位數字
  * 卡號，涵蓋非字母數字的分隔字元、四種不可見Hangul填充字元及描述，保持前六後四顯示契約；有分隔符且
  * 超過19位的疑似合併區段一律完整遮蔽，不能靠附加郵遞區號等數字讓完整卡號漏出。
+ * 含Unicode非十進位Number（圈號、上標或羅馬數值）的區段整段遮蔽，避免字形代表多位數時誤數。
  * 使用邊界與維護：輸入字典與非null字串由呼叫端擁有，每次回傳獨立字典；本檔只持有固定
  * 欄位名稱，不保存原值、使用者、profile或跨操作快取。最多保留本次輸入與輸出字串生命期，
  * 無I/O、連線、timer、背景工作或Dispose責任。掃描O(n)，固定19個Unicode純量stack暫存；只有發現
@@ -36,17 +38,17 @@ public static class PaymentDiagnosticsSanitizer
 
     /// <summary>
     /// 在發布前將本次provider欄位轉成獨立遮罩副本。保留非機密業務欄位與精確ATM付款指示；
-    /// 機密／Token檢查優先，任意欄位名稱嵌入ATM片段不能繞過。大小寫重複鍵拒絕而非覆寫。
+    /// 機密／Token檢查優先，任意欄位名稱嵌入ATM片段不能繞過。大小寫或遮罩後重複鍵拒絕整份候選而非覆寫。
     /// </summary>
     /// <param name="values">本次操作擁有且值非null的provider欄位；本方法不修改或跨呼叫保存。</param>
     /// <returns>由呼叫端擁有的獨立診斷字典；輸出只有原契約允許的遮罩片段。</returns>
     /// <exception cref="ArgumentNullException">字典或欄位值為null時拒絕，不發布不完整結果。</exception>
-    /// <exception cref="ArgumentException">大小寫不敏感鍵重複時拒絕，不靜默合併。</exception>
+    /// <exception cref="ArgumentException">大小寫不敏感或遮罩後鍵重複時拒絕，不靜默合併。</exception>
     public static IReadOnlyDictionary<string, string> Sanitize(IReadOnlyDictionary<string, string> values)
     {
         ArgumentNullException.ThrowIfNull(values);
         return values.ToDictionary(
-            pair => pair.Key,
+            pair => MaskCardNumbers(pair.Key),
             pair => SanitizeValue(pair.Key, pair.Value),
             StringComparer.OrdinalIgnoreCase);
     }
@@ -88,7 +90,8 @@ public static class PaymentDiagnosticsSanitizer
     }
 
     /// <summary>
-    /// 單向掃描Unicode十進位數字與分隔區段；涵蓋格式、組合、控制字元及不可見Hangul填充字元。
+    /// 單向掃描Unicode Number與分隔區段；涵蓋格式、組合、控制字元及不可見Hangul填充字元。
+    /// 非十進位Number可能表示多位或分數，不能猜測位數；含此表示的區段一律完整遮蔽。
     /// 以完整純量計數13–19位並保留前六後四；固定19純量scratch不隨輸入增加，未命中直接回原字串。
     /// 超過19位的純業務數字不截取部分誤當卡號；有分隔符的過長候選完整遮蔽，避免把卡號與
     /// 相鄰數字合併後誤判為非卡號。輸出只由本次區域builder擁有。
@@ -102,7 +105,7 @@ public static class PaymentDiagnosticsSanitizer
         while (position < value.Length)
         {
             var first = ReadScalar(value, position, out var firstLength);
-            if (!Rune.IsDigit(first))
+            if (!Rune.IsNumber(first))
             {
                 position += firstLength;
                 continue;
@@ -113,11 +116,13 @@ public static class PaymentDiagnosticsSanitizer
             var digitsEnd = position;
             var gapAfterDigit = false;
             var hasInternalSeparator = false;
+            var hasNonDecimalNumber = false;
             while (position < value.Length)
             {
                 var character = ReadScalar(value, position, out var scalarLength);
-                if (Rune.IsDigit(character))
+                if (Rune.IsNumber(character))
                 {
+                    hasNonDecimalNumber |= !Rune.IsDigit(character);
                     hasInternalSeparator |= gapAfterDigit;
                     gapAfterDigit = false;
                     if (count < digits.Length) digits[count] = character;
@@ -131,10 +136,10 @@ public static class PaymentDiagnosticsSanitizer
                 position += scalarLength;
             }
 
-            if (count < 13 || (count > 19 && !hasInternalSeparator)) continue;
+            if (!hasNonDecimalNumber && (count < 13 || (count > 19 && !hasInternalSeparator))) continue;
             output ??= new StringBuilder(value.Length);
             output.Append(value, copyFrom, start - copyFrom);
-            if (count > 19) output.Append("***");
+            if (hasNonDecimalNumber || count > 19) output.Append("***");
             else
             {
                 AppendDigits(output, digits[..6]);
