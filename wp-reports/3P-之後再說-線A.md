@@ -23,3 +23,5 @@
 | 2026-11-28 23:33 Asia/Taipei (UTC+08:00) | F1 Assets架構分類 | 由Access範例延伸的純測試區域變數access仍指向Assets節點，行為不受影響 | 下次改該測試時可更名，不為名稱重跑完整守門；不放寬任何架構限制 | ClaudeOnly C0/H0 summary4FF29F0D… |
 
 | 2026-11-28 23:59 Asia/Taipei (UTC+08:00) | FS construction唯讀診斷 | ClaudeOnly非阻擋：外部D365標記只查一次，另由同組織OS鎖保護；SHA與讀檔間依受控本機artifacts；LogicalName／AttributeOf是metadata名但未再過路徑字元檢查 | 日後可合併同buffer驗SHA及重查標記／名稱；本診斷零SDK寫入、不能授權apply，一致性鎖及上限不放寬 | summary SHA0CCB6430C3239F6FD56B77A045F0921879043053C955352CC7D82081964722E4；C0/H0 |
+
+| 2026-11-29 00:19 Asia/Taipei (UTC+08:00) | 合成Shadow鎖隔離 | ClaudeOnly非阻擋：測試組件可自寫包住真connector的decorator；switch若轉專用Schema子路由仍用原ProgramData鎖 | 接縫只用於受信任純合成shadow／switch，不是授權邊界；若未來需要其他合成子路由隔離，另依各owner明確接線，不放寬正式鎖。現有schema鎖保守保留 | summary SHA6F474D302A22D3F96577E8A7F84BB72429062AE3806A76E454F48FCFC0F3FDB9；C0/H0；未連實機 |

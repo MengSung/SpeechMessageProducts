@@ -450,3 +450,12 @@ FS無手機步驟；手機畫面集中M1。目前進度頁目視亦待補：先�
 - 單模型（使用者指定 ClaudeOnly）Critical0／High0，summary SHA `0CCB6430C3239F6FD56B77A045F0921879043053C955352CC7D82081964722E4`。實讀三檔全文、guard Project／Scalar／Delta／WithAdditions／Equal、完整baseline檔入口、引擎235–330行候選及安全報告路徑／型別；未讀秘密／baseline正文、未連網、未自行執行測試。NewLookupServerDefaults、ProductionGuard、SchemaFiles.Json內部未讀，限制保留。
 - 審查確認原工廠候選、正式ID、原before缺項與純值還原一致，沒有原67291舊節點的Changed／Removed。只證明唯讀分類可信，不代表construction原apply成功、不授權修改guard或再次apply；23:42待決策不變，非阻擋觀察記入之後再說。
 - 整合分支隨後有線B F7／F10新程式，同步後須重跑完整守門；10263不冒充同步後結果。等待決策期間依02A§14處理B23:18的CLI合成鎖隔離協作，不代做其工作包。
+
+### 2026-11-29 00:19 Asia/Taipei (UTC+08:00) 合成Shadow鎖隔離與同步後完整守門，準備合併
+
+- 線B 23:18協作原因是合成connector及artifacts仍爭用真ProgramData組織鎖。正式Run／RunWithInput／RunWithCatalog固定鎖不變；新internal RunSyntheticShadow僅用於明確的shadow／switch合成案例，拒絕產品組件connector與Temp非真子樹，使用本案固定.synthetic-shared-locks。仍走同一ProductionGuard、parser、雙鎖、SDK歸還及原例外回報；沒有CLI／環境變數選項或static可變override。這是受信任測試接縫，不是遠端寫入授權。
+- 程式檢查點 `5876349d9`；原49個Shadow案例保留，新增7案保護不同範圍獨立、同範圍跨artifacts互斥、逾時前零Connect、重試與立即再取鎖、相對／Temp自身／ProgramData拒絕、正式connector與argv拒絕。最初CA1068建置失敗SHA `0BB47E1EC119F254DC2E8F8B773E862BAE24427EE28C8C5EF525231DF1B516D1`不算RED；真缺實作RED3 SHA `62B6729ABCADBAC367EA63479D5E6B92AF4DF4FECC648D887D647CB470AF3C85`，相關121/121 GREEN SHA `9394B28101FC020E32D60222D1899F4C472ECEB4F210317BD0FB2EBC3B7E2DFD`。
+- 原診斷c9b032dfe及文件c86299a3已安全重基線到線B ee0224ad5，分別為3a5856c50與cc78a89e9；三份診斷程式逐SHA未變。同步後新程式依02A§10.3完整重驗：Release66警告／0錯誤，29回合10381/10381、0失敗／0略過，文件2184/0、Changed11/0、方案56項，全exit0。build SHA `080C5D5E64F46F1334D8B9109A867E068AE102C4B0C66458DEA437A545AE8940`；tests SHA `7FFB6742704BA242997E91003B45550326000EFDF44AD7CE4253E04487801E71`；文件SHA `CCA69AE8C963347255AF4AFF21C2042F9D63E38B82542EAED0573840D19485D8`；編碼SHA `710BA4BBD08405821245F6AFFD423E76E0F912EB1E6381EB2191951385110690`；方案SHA `0B09C2F60CB364BF8E1B15CB32852B3371AB6F7BF29E50F2D43C9911309EC8AD`。之後只有核定文件差異，依§10.3沿用此建置與一般測試，合併前只重驗文件／編碼／進度。
+- 單模型（使用者指定 ClaudeOnly）鎖隔離切片Critical0／High0，summary SHA `6F474D302A22D3F96577E8A7F84BB72429062AE3806A76E454F48FCFC0F3FDB9`。實讀兩份程式diff、核心路由／鎖取得、IsContainedPath、固定共用根、AcquireCore開頭及友元宣告；未逐句讀兩規格文件、未重讀diff外原49案例、未自行跑gate或核log。診斷另有前述獨立C0/H0，沒有以單一審查冒充兩切片全讀；非阻擋觀察記入之後再說。
+- 無頭Edge以1400×1800截圖，已讀PNG確認頁首、FS／F3／F5及F7列，無資料紅警告；PNG SHA `EBA552147186C54216FDD672257165FD38E1EA10E9FDDB942859D0FC5A75F853`。這只是進度頁目視，不是FS或F5實機。
+- construction23:42仍待Claude寫入決策；891差異原報告SHA `DE6001A94B4AA211F22865BF87BF051F54E7C6148292D56267FF187F77AC663D`不變，未修guard／未重送、association未apply，未提前F3。goodshepherd20特別第3次已成功並消耗，不重送。下一步保全整合他人草稿後快轉推送與核remote；FS維持自動測試通過（實機待補）。

@@ -116,3 +116,5 @@
 | 2026-11-28 23:45 Asia/Taipei (UTC+08:00) | FS construction新差異 | 完整原baseline可復原，兩來源各891差異且彼此相等；619顯式新欄、21新key、250三個AttributeOf衍生欄、1計數，超出兩lookup核定 | 依22:05決策有其他差異不寫入並通知Claude；不修guard、不重送、不套UI-only。只交付固定事件唯讀探針與安全純值還原，補完整守門／ClaudeOnly後合併保全證據 | code c9b032dfe；report DE6001A9…；Live只讀1／1，不是FS完成 | 特別goodshepherd20第3次已成功且消耗；association未apply；B新Shadow測試隔離請求不混本切片，正式鎖維持 |
 
 | 2026-11-28 23:59 Asia/Taipei (UTC+08:00) | FS唯讀收尾／CLI測試隔離 | 完整10263與ClaudeOnly C0/H0；B新F7／F10已合併，Shadow合成共享真鎖有可重現失敗 | 先提交唯讀證據再同步B，獨立TDD加內部合成鎖接縫；正式Run固定共用鎖、ProductionGuard及拒絕保留，完整守門及ClaudeOnly後才合併 | 02§4／§5.4、02A§10.3／§14；review0CCB6430… | construction待寫入決策、無額外apply；goodshepherd20第3次已消耗 |
+
+| 2026-11-29 00:19 Asia/Taipei (UTC+08:00) | FS診斷／鎖隔離交付 | B ee0224ad5帶入程式須重驗；原診斷三檔SHA未變 | 5876349d9真RED3→相關121 GREEN；同步後29回合10381全通過及鎖隔離ClaudeOnly C0/H0；正式鎖不變，進度PNG無紅警告。僅文件後沿用同樹建置測試，文件三閘門再驗後快轉 | 02A§10.3／§14；test7FFB6742…、review6F474D30…、PNG EBA55214… | construction待決策，無新SDK寫入；不把診斷成功／守門成功當FS完成 |
