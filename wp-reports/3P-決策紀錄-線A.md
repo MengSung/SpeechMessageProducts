@@ -88,3 +88,5 @@
 | 2026-11-28 16:52 Asia/Taipei (UTC+08:00) | FS | 等合併時線B已合入F12，新增平台new_testinvite導致舊plan失效 | 乾淨rebase9546a3086，自己的五檔SHA不變；重跑9953/9953及新三plan15／231／231，ClaudeOnly共同複核Critical0 High0；不動整合樹00／02A草稿 | 新manifest B204F4C9931F3D18A79560F456E461D787754A66F0D8773E83DE4EE2059D84EC；review02EAC74C06DDDCAAC54A40368F7211C1CD5B80EA40BC246524ADB81BF9C1760B | 核對備份／SHA及同步後才用最後apply2/2，保留§12條件 |
 
 | 2026-11-28 17:05 Asia/Taipei (UTC+08:00) | FS | 最後apply2/2已建立view及F12結構，但完整published metadata baseline+delta節點數守門失敗 | 後續只讀plan0／key0／UI0、published verify exit0；仍不等於完整wire基準一致。ClaudeOnly確認不是已證明UI-only，不套§12、不再寫入，通知計畫決策者並按§12.3只接F5離線一包 | apply A06278CCCFAF9E5590D126EF6A3D9B6B0DEADE5D8AF34D221E48E14F1C25AC4E；scope FDBF89808C7E190FAAF54D19EC94D94E5BD7CF5A98F7BB7E13C264652FE9E324 | 保留8表331欄累計新增及view／備份，不刪、不還原、不冒稱FS完成 |
+
+| 2026-11-28 19:10 Asia/Taipei (UTC+08:00) | FS | 已收到18:55決策，唯讀證明兩棵顯式lookup子樹各28／27節點差異，含account Cascade.Merge值變更；原full baseline未落檔 | 依決策③不寫入、不修guard、不用特別第三次apply；列安全節點清單再通知。用隔離FS樹避免F5未完成程式混入，F5 34檔原樣保留及SHA備份；僅續F5離線 | 02A§12.3及18:55決策；節點報告SHA396C976BF0576B9F62C97AC31AE4CE19E242B50815F960A84F0B90E47ED1F88F；Live診斷1通過不等於FS驗收 | 不重設baseline、不只發布、不刪UI／備份；完整guard仍原封不動，待決策優先回FS |

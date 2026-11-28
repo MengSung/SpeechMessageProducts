@@ -379,3 +379,22 @@ FS無手機步驟；手機畫面集中M1。目前進度頁目視亦待補：先�
 - **上述已發布投影／XML驗證不能取代失敗的完整wire metadata基準比較。** baseline+delta的節點差異尚未定位；savedquery不屬RetrieveEntity(All)結構投影，而且同一Check在structure-only apply也會執行，不能因類名Ui或當時準備發布就假稱只屬畫面。
 - ClaudeOnly唯讀範圍分析結論「無法證明UI-only，§12不能啟動」，summary SHA-256 `FDBF89808C7E190FAAF54D19EC94D94E5BD7CF5A98F7BB7E13C264652FE9E324`，輸出 `7B15191F40CAF5685662C4C6A8919B8A00650657AD6217DB3C73B4240EE49430`。分析當時published verify尚未完成，其「結構從未發布／各項都無證據」不能沿用為最後事實；主線以後來exit0修正這部分。但完整baseline差異仍未知，UI-only結論仍不能成立；沒有已證實可修的Critical／High根因，不據猜測放寬guard。
 - 按02A§12.3在需要你協助.md記「通知」，待計畫決策者確認下一步；不刪UI方案／元件，不將FS標完成（縮減），90維持自動測試通過（實機待補）。允許接續**僅F5離線一包**；F3實機不提前，決定一到優先回FS。仍保留所有before／after／DB備份，無DB或VM還原。
+
+### 2026-11-28 19:10 Asia/Taipei (UTC+08:00) 18:55決策後唯讀節點診斷：不使用第三次apply
+
+- F5先保全檢查點：34個已修改／未追蹤檔逐位元組備份並逐檔SHA相符，原工作樹完整保留。備份 `C:/ProgramData/SpeechMessage/backups/lane-A/f5-checkpoint-20261128-185102/`，manifest SHA-256 `9DD1D45F0E13D714311E0396715027116790BE671CD789DC83413044D26C8132`。本次FS診斷在be977cfd8的隔離工作樹實作，不混入F5未完成程式。
+- 逐位元組核對原plan SHA `337EBA5A81AE2B014E88386FC3853FD19335B3EFFDB03EED15B511FC1FAEE997`、before SHA `DD245E69D6977209EDD1F89588D203B26146373628DDB0BAE3FB400465718B64`，並以原定義／before重新驗原plan。只讀goodshepherd20，沒有Create／Update／Delete／Publish。
+- 關鍵證據缺口：原完整 `UiMetadataPublicationGuard.Snapshot` 僅在記憶體；失敗operation只有before-metadata、before-ui-plan、ui-components三檔。SchemaSnapshot沒有完整label、description、managed property、privilege、雙端relationship／cascade節點，無法回放「原完整baseline＋delta」，不得把當前published重新當原基準。
+- 可精確重建的有限範圍是原寫前候選在既有account／new_role上的兩棵OneToMany關聯：`new_new_testinvite_new_tenant` 每來源28個差異，`new_new_testinvite_new_role` 每來源27個；published與unpublished共110個差異觀察。包含AssociatedMenuConfiguration由null擴為Contract及其子節點、IsCustomizable等server補值，另account關聯的 **CascadeConfiguration.Merge同型別值變更**。這些位於顯式lookup關聯的既有端點，不能直接當成「只有新表附帶的系統元件」。詳細節點逐一列在安全JSON，不輸出值、label、XML或秘密。
+- 實機唯讀入口 `Category=Live3P&WP=FSNodeDiagnostics` 1/1通過；log SHA-256 `16C5FEF2076EEB79E9E28C8818F6DD7F4E335D1194C4D4BA5F81685B20119BC3`。報告 `C:/ProgramData/SpeechMessage/evidence/FS-node-readonly/766d49a80292427184cfa6a918e4d9c5/node-differences.json` SHA-256 `396C976BF0576B9F62C97AC31AE4CE19E242B50815F960A84F0B90E47ED1F88F`。三表當前完整兩來源guard相等，但報告固定 `FullOriginalBaselineAvailable=false`、`CanAuthorizeThirdApply=false`，不能冒充FS實機完成。
+- 唯讀差異器先RED：5個行為失敗、建置成功，SHA `5D756E7D257B13709CAC3436BA3404516298C2BEEC26FC4AA155FE0812EDB8E2`；GREEN連既有metadata增量回歸75/75，SHA `6FFE0A8DDC4170363D67F4A066EA7179B3387C5E6CDC2863C1E30270D2169AD0`。中間CA1861建置失敗保留為失敗，不當RED或環境限制；修為不可變固定scope後通過。
+- 依18:55決策③於需要你協助.md新增通知：沒有改guard預期增量，沒有使用特別授權第三次apply，沒有開只發布後門；不標完成（縮減），不提前F3。請Claude審查原baseline缺口與顯式cascade差異後再決策；同一時間只續F5離線，不開F7。
+- 本次兩端並行分析皆已呼叫，Claude有可用輸出，Gemini兩次503無可用輸出；summary ok=false、dualModelComplete=false、非quota降級，不宣稱雙模型成功。Claude的server補值推測已由上述唯讀節點觀察部分證實，對published來源的先前推測則由實測兩來源皆有修正。
+
+### 2026-11-28 19:22 Asia/Taipei (UTC+08:00) 唯讀診斷切片最終守門與安全審查
+
+- 凍結3份C# manifest SHA `53B60D155FED46A0FD70D0767D416472AE5153F404068A7B2F1AA84C9502C533`，最終Release build exit0、0錯誤，SHA `B177A7FC3278F1AE4901DDF73EC4D6AB6F87E6182B62F41CCC7A1A53839C6442`。一般測試完整28組件、9958/9958、0失敗／略過，SHA `DCEFDDC083795E31DAC1F15D0C210C4A5F037AC421C8B7DFC70A5918492FCAB6`。先前文件檢查發現測試檔檔頭擁有權標題欠缺，已補齊並重跑最終完整守門；未把文件失敗當成可忽略。
+- 文件2126/0，SHA `D67E53B5794A63B36C118B6BED33F16699DB8ADF93D5E7DFFF6789B7129F4F7E`；Changed編碼0問題，SHA `24DEC89271614CA25B19A830616C49290A9BEBAB6E1E60E1768140225B28B325`；另逐位元組驗7份交付文字均UTF8無BOM／CRLF／末尾CRLF。進度32/32，SHA `652895EBE89B48973C1413685C67C30C5825058CEF338A043884D83C47E9F551`；solution list exit0，SHA `91B4F1D249BD45625A6A146C3D01E51705E6A0D7AEAF644A763E70B0A514BA2D`。沒有新增csproj。
+- 單模型（使用者指定ClaudeOnly）Critical0／High0；summary SHA `EEB51BD9A9AF9EB227F8C02932A894CC49F76268CCF6197262D28F4E606C623E`，完整輸出SHA `BAF961B1BC7D09D788DCE15640CCED7A655A2DFEA8A6750256E87B759243B281`。三份C#完整讀取、逐SHA比對manifest；另讀原引擎lookup／Attribute與guard相關段落，確認寫前候選重建一致、唯讀與資源釋放、固定拒絕寫入旗標。
+- 審查沒有執行測試或連線，沒有讀實機node JSON或四份文件diff，也沒有重審共用connector／lock／diagnostics實作；主線另核對報告SHA、原始測試log及全部文件／byte。不得把審查引用的9958／Live1當成審查者獨立執行。
+- 本次交付只包含診斷，不交付FS完成；原guard與apply程式均未改動。02A§12.3／18:55決策③的通知仍待決策，第三次apply尚未使用。之後只有文件差異，依02A§10.3沿用以上完整build／一般測試，重驗文件、編碼及進度。
