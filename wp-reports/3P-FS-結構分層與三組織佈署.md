@@ -423,3 +423,13 @@ FS無手機步驟；手機畫面集中M1。目前進度頁目視亦待補：先�
 - 三plan檔SHA及operations已獨立核對：goodshepherd20 43項全屬F5新sendrecord，construction／association各274項、12新表、18 lookup、13 key，沒有四張教會專屬表。account／contact目標明列Merge=Cascade，其他NoCascade；owner與已核定政策一致，未重建舊表。plan manifest SHA `3CDDDCFAE6ACC89ADE5A8AB9A91EC3013117E7E943181CB7A5BBD50CB9DEB0B7`；逐項摘要 SHA `613F2A140101D932C6D848C495A1C8A2E7D2C41C17C1F5393BD6534630087132`。
 - 110節點fixture的路徑、型別與固定值均逐項相符；差異僅本計畫兩新lookup。contact無既有真實fixture，後兩組織仍以完整guard拒絕未知值；缺省節點不自動要求出現，實際值錯誤或未知節點一律不吸收。新表端不作舊表baseline比較，是既有範圍，不冒稱已觀察全部新表wire。
 - D365APP01唯讀驗身分與三備份大小／SHA讀回不變，log SHA `1F1E4E844BF2E06DDCC4C6DF2CD879E329C2BE8FF15B17AD648B099832CF6883`。本輪到本筆為止零D365寫入，特別第3次修正後apply仍未使用；合併推送後依核定順序持D365鎖先goodshepherd20，成功再construction／association。原完整baseline缺口仍false，只採22:05核定的現況相等與限定差異替代，未宣稱實機完成。
+
+### 2026-11-28 23:32 Asia/Taipei (UTC+08:00) 特別第三次 goodshepherd20 成功；construction 完整護欄拒絕，仍未完成FS
+
+- FS修正與三plan補審已快轉推送 `a41d838bc7c2c66627a3d2fbb42c7cc852988747`，當時ls-remote等於本機整合HEAD；整合當時3份未提交他人草稿逐SHA保全（其他草稿已由其owner收進提交，未由本線清除）。文件最後log SHA `E7C960CA94CF4D792B6BDD488EB7515FEF7BA390B3375860CE53CE81E56D1E37`。
+- goodshepherd20特別第3次修正後apply已於23:00開始、23:07 exit0，之後獨立verify亦exit0，兩log SHA皆 `77E3F834A8472F89208BADA5844314D5BD9357DBB2699638B66C7A1A80B70DB5`（相同固定成功摘要，不是相同程序）。外部 `fs-special-third-apply-state-20261128.json` 已記開始／成功／verify狀態，禁止再次消耗同授權。
+- 該次首寫前完整baseline位於operation `20261128-150044-2186590-b2a07d5470584c94922ffffa50b32fb8`，7,287,040 bytes／41,734節點，SHA `DF2BB8C29853961B98E3BC9A25C2FFF7947A10AB2F023D3E7AC07A65227716C5`，憑據與實際串流讀回相同。這是本輪新基準，不聲稱修復早前遺失baseline。
+- 原Deployment程序排空後，97份runtime逐檔copy與SHA讀回一致，CLI SHA `3529255EE4B2DC93693B37EC6B08DF185B4365FAE1AB2B7BCC82BBCC51E03056`。後兩組織用相同凍結程式副本，沒有套用未審程式。runtime manifest SHA `79AD95A3846E29551FDE46471606187F5F92EA3B5CBCA6A5CA579402731BA50F`。
+- construction於23:10開始apply，23:16 exit1，安全log SHA `A06278CCCFaf9E5590D126EF6A3D9B6B0DEADE5D8AF34D221E48E14F1C25AC4E`；固定安全診斷定位 `UiMetadataPublicationGuard.Equal:411 → Check:72 → Apply:362`，在按實體PublishXml之前完整baseline+delta比較拒絕，不直接解讀為UI-only。association尚未apply，資源鎖已反向釋放，未原樣重送。
+- construction首寫前完整baseline已保存67,291節點（account／contact），11,478,714 bytes，SHA `B77BBB161BBD6A93E0EB53C3B9D9176A7140F01ADCC0F6B6F3AC02A2C43D863A`；原before SHA `C9E8A7E3518B5780921934DD20F98FF5A9B2C49003819CC2BC12DE9438F13817`；完整baseline憑據SHA `07CF4CF9DFC390B394D4622CE2827E0168544C63B2B0592CDBF3F5FA940D0681`。UI元件清冊存在SHA `EB56036BE95DA27212E93B6E804C9E9DEF118DB8DE36A2B0ECE42DFB93D62332`，保留未刪。
+- 失敗後獨立唯讀construction verify exit0（log SHA `77E3F834A8472F89208BADA5844314D5BD9357DBB2699638B66C7A1A80B70DB5`），證明已發布規劃結構／鍵Active及UI清單投影一致；不證明完整wire舊節點無漂移，也不取代原apply成功。下一步唯讀重建完整原baseline＋計畫增量，列每個差異節點及元件歸屬；只有核定範圍才能依02A修正，其他差異停止寫入再通知。FS仍自動測試通過（實機待補），尚未提前F3或套縮減。

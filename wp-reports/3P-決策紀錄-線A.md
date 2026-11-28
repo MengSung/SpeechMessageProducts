@@ -110,3 +110,5 @@
 | 2026-11-28 22:48 Asia/Taipei (UTC+08:00) | FS22:05決策 | F5 schema使歷史plan重驗不符，且明列Merge涉及其他包分層清單 | 歷史事件只用a1eebc7b3原定義／原hash重驗；正式部署重產三plan。依使用者明令僅補所有分層account/contact lookup的Merge，不替B實作F8/F12；其餘資料保留。固定server補值僅用本次新關聯，完整baseline首寫前落檔讀SHA；RED→GREEN及正式守門後才特別第3次apply | 新唯讀110節點全限兩新lookup、完整pub=unpub；原baseline缺口false；code9f50406c1、fixture650D5CFE…、RED33179FED… | 不改legacy core、不改舊關聯、不吞未知節點、不直接publish；F9由B已claim，不停回合等待 |
 
 | 2026-11-28 22:58 Asia/Taipei (UTC+08:00) | FS新決策守門結案 | 同程式樹10218全過，首審未完整核三plan，補審逐項核operations／owner／fixture後C0/H0 | 依02A§10.3不重跑同樹建置與一般測試，只重驗文件／編碼／進度後快轉推送；第三次apply在推送後、持D365鎖下只送一次 | code9f50406c1；兩輪ClaudeOnly summary9B781C9D…／F52848A6…；原baseline缺口false與contact未觀察面保留 | F7與F9由B，架構登錄另做小切片不混FS程式；不以結束回合等待 |
+
+| 2026-11-28 23:32 Asia/Taipei (UTC+08:00) | FS／F1架構協作 | goodshepherd20特別第3次apply及verify成功；construction完整guard拒絕但獨立已發布verify通過 | association不開寫，保存67,291節點原baseline，新增方案內唯讀精確差異診斷；不重送、不套UI-only。等待期間精確Assets分類38案RED→GREEN、完整10256，審查後合併供B | FS runtime SHA3529255E…；construction失敗A06278CC…；F1 code841072290與最終test7B7024AA… | 首次buildDLL佔用與第二輪4鎖失敗均保留，實機／全守門改為序列化；新診斷待分類切片合併後才放入來源，不混未守門程式 |

@@ -19,3 +19,5 @@
 | 2026-11-28 22:04 Asia/Taipei (UTC+08:00) | F5清冊非阻擋觀察 | 專用Thread的WaitSleepJoin診斷理論上可能受暫時型別載入等待影響；CreateAt仍依外部受控根與鎖協定防止link檢查到開檔間競態 | 現有inAppend斷言及真正移除鎖RED保留；不把診斷狀態用作產品同步或把journal action當遠端授權。完整Live的SDK／Channel驗證及清理仍屬必做，不列延後 | ClaudeOnly C0/H0、summary EC155991CBD7A852B56F597C1EC2D0C208A81466E07DEF285C43785C12C6F932 |
 
 | 2026-11-28 22:58 Asia/Taipei (UTC+08:00) | FS非阻擋觀察 | baseline兩次序列化的有界配置；candidate缺key可能KeyNotFoundException仍拒絕；固定補值僅actual等於常數時納入，缺省節點不強迫出現；新負向fixture斷言不相等，最外層Equal拒絕另有既有覆蓋。contact沒有真實fixture、新表端未用舊表baseline比較 | 日後可補精確例外與配置量測及contact實機fixture；本包不放寬guard、不新增完成定義，後兩組織未知正規化仍拒絕 | 兩輪單模型（使用者指定 ClaudeOnly）C0/H0；summary 9B781C9D…／F52848A6…；審查未跑實機 |
+
+| 2026-11-28 23:33 Asia/Taipei (UTC+08:00) | F1 Assets架構分類 | 由Access範例延伸的純測試區域變數access仍指向Assets節點，行為不受影響 | 下次改該測試時可更名，不為名稱重跑完整守門；不放寬任何架構限制 | ClaudeOnly C0/H0 summary4FF29F0D… |
