@@ -16,6 +16,109 @@ namespace SpeechMessage.Dynamics.Deployment.Tests;
 /// <summary>固定 SQL 查驗目標與 fail-closed 輸出測試，真實網路由單一借入委派替換。</summary>
 public sealed class PlatformSqlReadOnlyCliTests
 {
+    /// <summary>AppPool 模式仍固定平台資料庫及 Strict 選項，且 SQL 委派必須完整 awaited 在借入身分範圍中。</summary>
+    [Fact]
+    public async Task Verify_AppPoolMode_AwaitsIdentityScopeBeforePublishing()
+    {
+        using var output = new StringWriter();
+        var active = false;
+        var exit = await PlatformSqlReadOnlyCli.RunAsync(
+            "platform-sql-verify-app-pool --org goodshepherd20 --database GoodShepherd2Platform --pin correct".Split(' '),
+            OrganizationCatalog.Parse(CatalogJson), output, async (options, token) =>
+            {
+                await Task.Yield();
+                Assert.True(active);
+                Assert.Equal(SqlConnectionEncryptOption.Strict, options.Encrypt);
+                Assert.False(options.Pooling);
+                return 1;
+            }, CancellationToken.None, async (query, token) =>
+            {
+                active = true;
+                try { return await query(token); }
+                finally { active = false; }
+            });
+        Assert.Equal(0, exit);
+        Assert.False(active);
+        Assert.Contains("SELECT1=1", output.ToString(), StringComparison.Ordinal);
+    }
+
+    /// <summary>身分取得失敗不得退回管理員 SQL；真正例外保留且成功摘要維持空白。</summary>
+    [Fact]
+    public async Task Verify_AppPoolIdentityFailure_NoFallbackOrSuccess()
+    {
+        using var output = new StringWriter();
+        var failure = new InvalidOperationException("Synthetic identity failure.");
+        var actual = await Assert.ThrowsAsync<InvalidOperationException>(() => PlatformSqlReadOnlyCli.RunAsync(
+            "platform-sql-verify-app-pool --org goodshepherd20 --database GoodShepherd2Platform --pin correct".Split(' '),
+            OrganizationCatalog.Parse(CatalogJson), output, (_, _) => throw new InvalidOperationException("Unexpected SQL."),
+            CancellationToken.None, (_, _) => throw failure));
+        Assert.Same(failure, actual);
+        Assert.Equal("", output.ToString());
+    }
+
+    /// <summary>固定集區身分不允許連 master；即使有借入替身也必須在開啟身分或 SQL 前拒絕。</summary>
+    [Fact]
+    public async Task Verify_AppPoolMaster_RejectedBeforeIdentity()
+    {
+        using var output = new StringWriter();
+        var exit = await PlatformSqlReadOnlyCli.RunAsync(
+            "platform-sql-verify-app-pool --org goodshepherd20 --database master --pin correct".Split(' '),
+            OrganizationCatalog.Parse(CatalogJson), output, (_, _) => throw new InvalidOperationException("Unexpected SQL."),
+            CancellationToken.None, (_, _) => throw new InvalidOperationException("Unexpected identity."));
+        Assert.Equal(2, exit);
+    }
+
+    /// <summary>唯一身分租約必須涵蓋 await 並在原始故障、取消或成功之後確定 Dispose；合成 owner 不使用 Windows token。</summary>
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task AppPoolScope_DrainsAndDisposesAfterAwait(bool fail)
+    {
+        var scope = new SyntheticIdentityScope();
+        var failure = new InvalidOperationException("Synthetic query failure.");
+        async Task<int> Query(CancellationToken token)
+        {
+            await Task.Yield();
+            Assert.False(scope.Disposed);
+            if (fail) throw failure;
+            return 1;
+        }
+        if (fail)
+            Assert.Same(failure, await Assert.ThrowsAsync<InvalidOperationException>(() =>
+                PlatformSqlAppPoolIdentity.RunAsync(Query, CancellationToken.None, () => scope)));
+        else
+            Assert.Equal(1, await PlatformSqlAppPoolIdentity.RunAsync(Query, CancellationToken.None, () => scope));
+        Assert.True(scope.Disposed);
+        Assert.Equal(1, scope.Executions);
+    }
+
+    /// <summary>取得身分後 caller 取消仍要釋放租約，但不得開始 SQL；沒有背景工作可在 Dispose 後續跑。</summary>
+    [Fact]
+    public async Task AppPoolScope_CancelAfterAcquire_ReleasesWithoutQuery()
+    {
+        using var cancellation = new CancellationTokenSource();
+        var scope = new SyntheticIdentityScope();
+        await Assert.ThrowsAnyAsync<OperationCanceledException>(() => PlatformSqlAppPoolIdentity.RunAsync(
+            _ => throw new InvalidOperationException("Unexpected query."), cancellation.Token,
+            () => { cancellation.Cancel(); return scope; }));
+        Assert.True(scope.Disposed);
+        Assert.Equal(0, scope.Executions);
+    }
+
+    /// <summary>測試唯一 owner：只委派單次合成查詢並記錄清理，不建立原生 handle、SQL 連線或共享身分。</summary>
+    private sealed class SyntheticIdentityScope : IPlatformSqlIdentityScope
+    {
+        /// <summary>供決定性斷言確認單次清理已完成；不跨測試案例共享。</summary>
+        internal bool Disposed { get; private set; }
+        /// <summary>實際執行次數；取消於身分取得後發生時應維持零。</summary>
+        internal int Executions { get; private set; }
+        /// <summary>借用測試委派及 token，只計次並回傳原 Task，外層必須等待完成。</summary>
+        public Task<int> ExecuteAsync(Func<CancellationToken, Task<int>> query, CancellationToken token)
+        { Executions++; return query(token); }
+        /// <summary>結束此案例唯一身分範圍；沒有任何實機資源需要釋放。</summary>
+        public void Dispose() => Disposed = true;
+    }
+
     private const string CatalogJson = """
         {"schemaVersion":1,"organizations":[
         {"name":"goodshepherd20","kind":"test","host":"goodshepherd20.speechmessage.com.tw","switchState":"off","tierOverrides":[]},
