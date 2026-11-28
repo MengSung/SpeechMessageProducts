@@ -1,0 +1,18 @@
+<!--
+檔案整體說明
+目的與定位：F7純影像與檔案系統的離線測試專案，以真ImageSharp與當案GUID暫存根驗證發布、路徑隔離、取消與資源排空，不讀秘密或存取VM、D365、LINE。
+主要功能與流程：xUnit以合成PNG、JPEG、偽裝格式、像素雜訊及受控來源Stream注入故障；斷言不可變URL、最終SHA、容量上限與Dispose順序，不以替身PNG代表產品成功。
+使用邊界與維護：測試owner必須先await所有工作與store關閉再刪本案目錄；中央套件、嚴格註解與位元組守門同產品，新增當步即納入方案；本專案沒有實機分類或隱藏跳過情境。
+-->
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework><ImplicitUsings>enable</ImplicitUsings><Nullable>enable</Nullable>
+    <SpeechMessageStrictCode>true</SpeechMessageStrictCode><GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <IsTestProject>true</IsTestProject><IsPackable>false</IsPackable>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" /><PackageReference Include="xunit" />
+    <PackageReference Include="xunit.runner.visualstudio" PrivateAssets="all" /><PackageReference Include="coverlet.collector" PrivateAssets="all" />
+    <ProjectReference Include="..\SpeechMessage.Assets\SpeechMessage.Assets.csproj" />
+  </ItemGroup>
+</Project>

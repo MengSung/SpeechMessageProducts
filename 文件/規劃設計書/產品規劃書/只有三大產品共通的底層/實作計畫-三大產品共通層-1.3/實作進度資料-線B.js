@@ -1,14 +1,16 @@
 /* 檔案整體說明
 目的與定位：三大產品共通層實作計畫 1.3 的進度資料（線 B），只供同資料夾的「實作進度.html」以 script 標籤讀取顯示，不執行產品業務、不含秘密。
-主要功能與流程：記錄線 B 各工作包（P0 的線 B 項目、F10、F2、F6、F4、F8、F12、F11）的狀態、開始與完成時間、提交 SHA、待補與報告路徑，以及逐筆進度紀錄；每包寫驗收報告的那個提交同時更新本檔。
+主要功能與流程：記錄線 B 各工作包（P0 的線 B 項目、F10、F2、F6、F4、F8、F12、F11、F7與認領後F9）的狀態、開始與完成時間、提交 SHA、待補與報告路徑，以及逐筆進度紀錄；每包寫驗收報告的那個提交同時更新本檔。
 使用邊界與維護：只有線 B 可以改本檔，線 A 改自己的「實作進度資料-線A.js」，兩條線都不改「實作進度.html」。固定頁面狀態白名單支援本計畫狀態。依02A §4與使用者指示，90及本檔對尚未通過實機的工作包都精確記為「自動測試通過（實機待補）」，不得寫「完成」；pending欄另列可自行處理或外部阻擋與具體待驗證項目。log 每筆以「YYYY-MM-DD HH:mm Asia/Taipei (UTC+08:00)｜」開頭，新的放最前面，舊紀錄不刪；事件時間不明時寫「補記 … （原事件時間未記錄）」。不得寫入 token、密碼、LINE userId 或個資。改完以 UTF-8 無 BOM、CRLF 存檔，並用瀏覽器開啟實作進度.html 確認沒有紅色警告。
 */
 'use strict';
 window.PROGRESS_LANES = window.PROGRESS_LANES || {};
 window.PROGRESS_LANES.B = {
   lane: 'B',
-  lastUpdated: '2026-11-28T20:56:03+08:00',
+  lastUpdated: '2026-11-28T22:59:49+08:00',
   packages: {
+    F7: { status: '進行中', started: '2026-11-28 22:18', finished: '', commit: '', pending: '影像19案與公開端點14案已綠，正在補驗／正式守門；架構分類依線A所有權精確登錄。實機待補：公開PNG、F5 c123 icon發送與清理，不能標完成。', report: 'wp-reports/3P-F7-公開圖片代管.md' },
+    F9: { status: '未開始', started: '', finished: '', commit: '', pending: '2026-11-28 22:28依02A §13由線B成功取得claim-F9.lock；尚未實作。', report: '' },
     P0: { status: '自動測試通過（實機待補）', started: '2026-11-25 22:12', finished: '', commit: '811669559982a904f84636b831146a15c7899956', pending: 'P0-2④平台SQL已Strict釘選、最小DB權限、SQL端AppPool原始及有效SID／DB=7與錯誤／缺檔拒絕；P0-3公開live／ready200，原Node路由與CRM302核實。彙總依02A保留實機待補：線A FS／F3及F2 T01相依；本項不需重交秘密或重跑P0-3。', report: 'wp-reports/3P-P0-前置.md' },
     F10: { status: '自動測試通過（實機待補）', started: '2026-11-26 00:23', finished: '', commit: 'c26fb83670af1f34900819e269b3a6a75c334b01', pending: '診斷遮罩c26fb836完整10001/10001、Payments162/162；不可見分隔字元安全補驗中。五項沙箱／隔日查詢、V2.6核對、最終原子入帳及亂序終態、宿主sink仍待補。前輪失敗與重跑證據均保留，未改斷言或排除測試；browser不可用，未宣稱目視通過。', report: 'wp-reports/3P-F10-永豐補強.md' },
     F2: { status: '自動測試通過（實機待補）', started: '2026-11-26 04:16', finished: '', commit: '811669559982a904f84636b831146a15c7899956', pending: '自動測試通過（實機待補）；本輪部署修正後重試1/2成功，公開live／ready200、SQL端AppPool原始SID／有效SID／DB=7，wrong與missing拒絕；同步d8fc8c22e後一般9516/9516、ClaudeOnly補審無Critical／High。外部阻擋：T01 webhook/test401，F3目錄未配置且FS／F3未實機；不改回無條件200，不連複製舊Channel。', report: 'wp-reports/3P-F2-主機骨架.md' },

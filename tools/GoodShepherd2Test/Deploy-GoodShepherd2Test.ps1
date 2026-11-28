@@ -29,7 +29,9 @@ IIS管理設定及原生備份的管理員／SYSTEM權限是這份部署環境�
 資源擁有權：單次呼叫擁有CRM SecureString、發佈子程序、兩個丟棄輸出的串流工作及唯一遠端Session；子程序
 三分鐘逾時即終止整棵程序樹，工作排空後Dispose；Session必定在finally移除。遠端提交的
 檔案鎖、IIS管理器、憑證與壓縮串流均在同一命令finally釋放，沒有背景job或跨請求狀態。
-僅全新目錄設定封閉ACL；集區只取得候選發佈目錄讀取執行，以及其Logs子目錄修改權限。
+僅全新目錄設定封閉ACL；集區取得候選發佈目錄讀取執行、其Logs子目錄及F7固定public-assets根修改權限。
+F7固定公開網址為/assets/；圖片根獨立於release且跨部署保留，舊圖清理另案處理。既有根須精確符合
+管理員／SYSTEM完整權限與本站專用集區修改權限，否則拒絕且不重寫ACL；不列目錄、不公開其他檔案。
 備份與還原：原發佈目錄及套件不刪除；IIS備份存於系統預設備份目錄，安全回復紀錄在固定
 根目錄records內，僅系統與管理員可讀。已保留部署槽的失敗會記錄非秘密階段及例外型別，回傳失敗而不
 輸出原例外內容；已切換時只復原本站原路徑、憑證與啟停狀態。首次建立失敗則保留停用站台，
@@ -93,7 +95,7 @@ function Get-Gs2PlatformConnectionString {
 }
 
 function New-Gs2DevelopmentSettings {
-    # 只產生固定測試組織、無密碼平台連線及選用LIFF公開映射；不複製來源其他區段或秘密。
+    # 只產生固定測試組織、無密碼平台連線、F7公開圖片設定及選用LIFF公開映射；不複製來源其他區段或秘密。
     # 來源只在本次封裝中借用；每項先驗型別、界限與完整性，再逐值建立獨立候選，無reload或共享狀態。
     param([Parameter(Mandatory)][string]$ServerUrl, [object]$LiffSettings)
     Assert-Gs2CrmUrl $ServerUrl
@@ -101,6 +103,7 @@ function New-Gs2DevelopmentSettings {
         CrmConnection = @{ ServerUrl=$ServerUrl }
         GoodShepherd2 = @{ AllowedDevelopmentOrganizations=@('goodshepherd20.speechmessage.com.tw') }
         ConnectionStrings = @{ Platform=(Get-Gs2PlatformConnectionString) }
+        PublicAssets = @{ RootPath='C:\inetpub\GoodShepherd2Test\public-assets'; PublicBaseUrl='https://gs2-test.speechmessage.com.tw/assets/' }
     }
     if ($PSBoundParameters.ContainsKey('LiffSettings')) {
         $names = @('LoginChannelId', 'MessagingChannelKey', 'LiffId')
@@ -124,6 +127,62 @@ function New-Gs2DevelopmentSettings {
         $result.Liff = $mapping
     }
     return $result
+}
+
+function New-Gs2PublicAssetsAcl {
+    # 公開圖片仍只能由專用worker修改；不把父目錄、套件或其他產品授權給該身分。
+    # 回傳區域ACL候選，沒有磁碟副作用；管理員／SYSTEM保留唯一管理所有權。
+    param([Security.Principal.SecurityIdentifier]$PoolSid)
+    $acl = [Security.AccessControl.DirectorySecurity]::new()
+    $acl.SetAccessRuleProtection($true, $false)
+    $acl.SetOwner([Security.Principal.SecurityIdentifier]::new('S-1-5-32-544'))
+    foreach ($sid in @('S-1-5-18', 'S-1-5-32-544', $PoolSid.Value)) {
+        $rights = [Security.AccessControl.FileSystemRights]::FullControl
+        if ($sid -ceq $PoolSid.Value) { $rights = [Security.AccessControl.FileSystemRights]::Modify }
+        $acl.AddAccessRule([Security.AccessControl.FileSystemAccessRule]::new(
+            [Security.Principal.SecurityIdentifier]::new($sid), $rights,
+            [Security.AccessControl.InheritanceFlags]'ContainerInherit, ObjectInherit',
+            [Security.AccessControl.PropagationFlags]::None, [Security.AccessControl.AccessControlType]::Allow))
+    }
+    return $acl
+}
+
+function Assert-Gs2PublicAssetsAcl {
+    # 既有根只核驗不重寫；其他主體、過大權限、繼承或不完整ACL都拒絕部署，不能藉重跑放寬。
+    # 合法根跨發佈版本保留，回復站台不刪除圖片，避免破壞既有不可變URL。
+    param([Security.AccessControl.DirectorySecurity]$Acl, [Security.Principal.SecurityIdentifier]$PoolSid)
+    if (-not $Acl.AreAccessRulesProtected -or
+        $Acl.GetOwner([Security.Principal.SecurityIdentifier]).Value -notin @('S-1-5-18', 'S-1-5-32-544')) {
+        throw 'GS2_PUBLIC_ASSETS_OWNER_CONFLICT'
+    }
+    $actual = @($Acl.GetAccessRules($true, $true, [Security.Principal.SecurityIdentifier]))
+    $expected = @((New-Gs2PublicAssetsAcl $PoolSid).GetAccessRules($true, $true, [Security.Principal.SecurityIdentifier]))
+    if ($actual.Count -ne $expected.Count) { throw 'GS2_PUBLIC_ASSETS_ACL_CONFLICT' }
+    foreach ($rule in $expected) {
+        $matched = @($actual | Where-Object {
+            $_.IdentityReference.Value -ceq $rule.IdentityReference.Value -and
+            $_.FileSystemRights -eq $rule.FileSystemRights -and $_.AccessControlType -eq $rule.AccessControlType -and
+            $_.InheritanceFlags -eq $rule.InheritanceFlags -and $_.PropagationFlags -eq $rule.PropagationFlags -and
+            -not $_.IsInherited
+        })
+        if ($matched.Count -ne 1) { throw 'GS2_PUBLIC_ASSETS_ACL_CONFLICT' }
+    }
+}
+
+function Initialize-Gs2PublicAssetsDirectory {
+    # 父目錄由部署器先驗管理員專用ACL；本函式僅處理固定根且每層拒絕reparse。
+    # 既有根不重寫或刪除；首次建立失敗保留封閉候選供診斷，不覆蓋既有公開Logo。
+    param([Security.Principal.NTAccount]$PoolAccount)
+    if ($PoolAccount.Value -ine 'IIS APPPOOL\GoodShepherd2Test') { throw 'GS2_PUBLIC_ASSETS_POOL_CONFLICT' }
+    $path = 'C:\inetpub\GoodShepherd2Test\public-assets'
+    Assert-Gs2NoReparse $path
+    $poolSid = $PoolAccount.Translate([Security.Principal.SecurityIdentifier])
+    if (-not (Test-Path -LiteralPath $path)) {
+        [IO.Directory]::CreateDirectory($path) | Out-Null
+        Set-Acl -LiteralPath $path -AclObject (New-Gs2PublicAssetsAcl $poolSid)
+    }
+    elseif (-not (Get-Item -LiteralPath $path -Force).PSIsContainer) { throw 'GS2_PUBLIC_ASSETS_DIRECTORY_CONFLICT' }
+    Assert-Gs2PublicAssetsAcl (Get-Acl -LiteralPath $path) $poolSid
 }
 
 function Get-Gs2CrmCredential {
@@ -302,6 +361,9 @@ $phase = 'Publish'
 
 # 純驗證函式的來源只來自本檔固定函式，不接受外部程式碼；遠端與離線測試共用相同拒絕規則。
 $validatorSources = @(
+    'function Initialize-Gs2PublicAssetsDirectory {' + ${function:Initialize-Gs2PublicAssetsDirectory}.ToString() + '}'
+    'function New-Gs2PublicAssetsAcl {' + ${function:New-Gs2PublicAssetsAcl}.ToString() + '}'
+    'function Assert-Gs2PublicAssetsAcl {' + ${function:Assert-Gs2PublicAssetsAcl}.ToString() + '}'
     'function Assert-Gs2CrmUrl {' + ${function:Assert-Gs2CrmUrl}.ToString() + '}'
     'function Select-Gs2Certificate {' + ${function:Select-Gs2Certificate}.ToString() + '}'
     'function Assert-Gs2Topology {' + ${function:Assert-Gs2Topology}.ToString() + '}'
@@ -689,6 +751,7 @@ $remoteDeployment = {
             [Security.AccessControl.InheritanceFlags]'ContainerInherit, ObjectInherit',
             [Security.AccessControl.PropagationFlags]::None, [Security.AccessControl.AccessControlType]::Allow))
         Set-Acl -LiteralPath $logs -AclObject $logsAcl
+        Initialize-Gs2PublicAssetsDirectory $poolAccount
         # Commit後的ConfigurationElement已封存，不可沿用舊pool／site修改AutoStart。
         # ACL完成後重開唯一管理器，重新核對所有權與排空狀態才允許啟用；失敗仍走既有精準回復。
         $manager.Dispose()

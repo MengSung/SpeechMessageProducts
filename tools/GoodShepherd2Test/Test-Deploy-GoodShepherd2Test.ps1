@@ -12,7 +12,8 @@
 提交生命週期案例直接執行部署切換與失敗回復片段，讓合成IIS物件在Commit後拒絕再次修改，
 涵蓋既有站台回復、未提交首次安裝候選不得落盤、既有集區AutoStart與啟動故障排空；
 保護切換及回復都先釋放舊快照、重新核驗目標再啟動，不冒稱設定或原狀已恢復。
-ACL操作只用無磁碟副作用的替身，測試owner在finally釋放全部合成管理器。
+ACL操作只用無磁碟副作用的替身，F7目錄初始化由替身驗證專用集區邊界；真實ACL另由Test-PublicAssetsDeployment保護。
+測試owner在finally釋放全部合成管理器，不把IIS替身當成VM權限驗收。
 主要功能與流程：先解析部署腳本，從語法樹載入純驗證函式，再注入同名不同身分、過期、
 無私鑰、歧義、越界與端口衝突等案例；每例以接受或固定拒絕結果為決定性斷言。
 使用邊界與維護：不執行套用、不啟動產品、不建立遠端連線或存取秘密。測試僅保留呼叫區域
@@ -152,6 +153,12 @@ $cases = [ordered]@{
             $aclFixture | Add-Member ScriptMethod AddAccessRule { param($Rule) }
             return $aclFixture
         }
+        $publicAssetsInitialized = $false
+        function Initialize-Gs2PublicAssetsDirectory {
+            param($PoolAccount)
+            Assert-Condition ($PoolAccount.Value -ieq 'IIS APPPOOL\GoodShepherd2Test')
+            Set-Variable -Name publicAssetsInitialized -Value $true -Scope 1
+        }
         function Set-Acl { param($LiteralPath, $AclObject) }
         function Test-Path { param($LiteralPath) return $false }
         function New-Gs2PrivateDirectory { param($Path) }
@@ -160,6 +167,7 @@ $cases = [ordered]@{
         $site = $manager.Sites['GoodShepherd2Test']
         try {
             . ([scriptblock]::Create($source.Substring($start, $end - $start)))
+            Assert-Condition $publicAssetsInitialized
             Assert-Condition ($pool.State -ceq 'Started' -and $site.State -ceq 'Started')
             Assert-Condition ($pool.AutoStart -and $site.ServerAutoStart)
             Assert-Condition ($owners.Count -gt 1 -and $owners[0].Disposed)

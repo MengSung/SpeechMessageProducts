@@ -1,0 +1,13 @@
+<!--
+檔案整體說明
+目的與定位：F7三大產品共用的net10公開Logo儲存庫，只依賴既有ImageSharp，不引用產品、SDK、HTTP或Session。
+主要功能與流程：將伺服器核定scope與借入圖片轉成有界640方形PNG，驗證後才發布新的隨機檔名及SHA純值；由受信任主機組合根建立唯一store owner。
+使用邊界與維護：採中央既有套件版本與嚴格文件分析，啟用UTF8無BOM／CRLF守門；來源與像素不跨租戶保存，實際資源清理由store與normalizer負責，不把專案建置當作實機驗收。
+-->
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework><ImplicitUsings>enable</ImplicitUsings><Nullable>enable</Nullable>
+    <SpeechMessageStrictCode>true</SpeechMessageStrictCode><GenerateDocumentationFile>true</GenerateDocumentationFile>
+  </PropertyGroup>
+  <ItemGroup><PackageReference Include="SixLabors.ImageSharp" /></ItemGroup>
+</Project>
