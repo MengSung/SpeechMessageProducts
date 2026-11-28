@@ -99,3 +99,5 @@
 | 2026-11-28 16:17 Asia/Taipei (UTC+08:00) | F12 | 修正後ClaudeOnly取得2項High，原兩次quota不能當放行 | H1重用唯一正式Contact與缺少指派、租戶＋邀請DB CAS涵蓋不同邀請並行；衝突不同ID保留拒絕。H2建立未知提交須跨程序保留精確manifest，不以立即空讀作零寫入 | H1 RED4→GREEN57；正式審查輸出CBB628EA…；H2獨立範圍修正中 | 兩項High未複審解除前不合併；不提交CCG、不連實機 |
 
 | 2026-11-28 16:24 Asia/Taipei (UTC+08:00) | F12 H2 | 逾時後暫空讀不能證明零寫入；已知清理後本地刪檔失敗又必須可續跑 | manifest v2記unknown／notSubmitted／rolledBack／confirmed，舊v1視未知；只有確定結果且全ID不存在才空清理，未知保留；後到提交可重驗scope續清。H1端點57／57，H2連CLI71／71，修後整包守門及ClaudeOnly重審 | H2原始RED與GREEN、額外清理續跑RED→GREEN完整SHA見F12報告 | 不以空查詢當回滾，不放寬未知提交，不提交CCG或執行實機 |
+
+| 2026-11-28 16:36 Asia/Taipei (UTC+08:00) | F12離線放行 | 修正來源3a04d102已完整守門及正式複審 | 一般9910／9910、Release65警告0錯誤、文件2119／0、Changed52／0、進度32／32；ClaudeOnly複審無Critical／High，H1／H2解除。90及線B JS改自動測試通過（實機待補），Live3P未跑；本輪文件依02A§10.3沿用相同程式守門 | 詳細log SHA與審查範圍見F12報告，原生browser入口及Whale owner不匹配已如實保留 | 合併鎖內保全CCG、同步後ff推送並核remote；繼續F10沙箱，不代線A或把實機欠債寫完成 |
