@@ -7,18 +7,20 @@
 window.PROGRESS_LANES = window.PROGRESS_LANES || {};
 window.PROGRESS_LANES.A = {
   lane: 'A',
-  lastUpdated: '2026-11-28T14:17:59+08:00',
+  lastUpdated: '2026-11-28T15:23:48+08:00',
   packages: {
     F0: { status: '自動測試通過（實機待補）', started: '2026-11-25 22:09 Asia/Taipei (UTC+08:00)', finished: '2026-11-26 00:24 Asia/Taipei (UTC+08:00)', commit: '74ea5a1c1ff723f6a64aeb73cadf69685021f528, a9e438be0d9fe13d8fe40d0c2e03e9558774e113', pending: '實機待補（可自行處理）：完整inventory及13個聚合已讀回，原查詢2026-11-28 09:49；全方案一般9,474/9,474、Release0錯誤（測試SHA 88398C82F794642BCD601609EE5E136655A1C4E9F4139BB40589404E67E9662A）。v2.5職分／牧養／關懷等完整模型沿用對照仍待補，不以盤點命令成功當F0全部完成。產物SHA 71F864AC23F035B6027ADBD2D4EF479EE0F1970F9DE7F212DCAFA78DA358C367；報告：wp-reports/3P-F0-基線矩陣.md', report: 'wp-reports/3P-F0-基線矩陣.md' },
     F1: { status: '自動測試通過（實機待補）', started: '2026-11-26 00:24', finished: '2026-11-26 15:39', commit: 'bfb5f56b96ff7b2c9a185f9757248c5dd9a5368a, 79f5362a44659e68afc1c17727bc2a2a3f51ac69, b2cdcbb6d11521950dbece5a7432b29a0d8d5a7a, d82c7a7252fe8ad60e107f8753e06adb12d984a1, f57fef11f342c9d823e6361a42ebae283c4e5a14, 421b6d29266668d07348d87aee0b98ae8b196e81', pending: '實機待補（外部阻擋）：共用層實機整合證據隨FS／F3打通補驗；Scheduling分類及QR必要補正完整7943/7943、ClaudeOnly無Critical／High；非實機宣稱', report: 'wp-reports/3P-F1-依賴方向修正.md' },
-    FS: { status: '自動測試通過（實機待補）', started: '2026-11-26 04:31 Asia/Taipei (UTC+08:00)', finished: '2026-11-28 02:26 Asia/Taipei (UTC+08:00)', commit: '64679a87f, 9af227811, bd22905fc, abeb70d94, c4cf53a63, 1bfe1a23e, 0ebf49b0eb8b57b1c926187d858c5bfc4f8d93e0', pending: '實機待補（可自行處理）：三份DB備份及VERIFYONLY已通過；首次apply首寫前拒絕、零寫入。formxml語系投影根因已證明，正式reader改用官方型別轉換及原始alias，單表實機pending=0（診斷、非FS驗收）；新修正待全方案閘門及ClaudeOnly，通過後重產三份plan並受審，再取D365鎖修正重試apply／verify、UI匯出入及Live3P FS。H1已結案；211信箱個別未確認且不擋FS。', report: 'wp-reports/3P-FS-結構分層與三組織佈署.md' },
-    F3: { status: '自動測試通過（實機待補）', started: '2026-11-26 21:10', finished: '2026-11-27 20:02', commit: '244e45960, b7844eee7, e09a4c86, 8be872b2a, 5b8c74b03, 2df96defa', pending: '實機待補：離線閘門已合併於整合分支；等 FS 完成後開始，依02A §5須待FS三組織plan/apply/verify、檢視表發布、UI export/import與Live3P FS完成後再做F3 Step 6登錄及20並行配發／清理。外部阻擋：F2測試站及T01／T02 Webhook；lease trace一次失敗原因未確認、不宣稱已修；沒有新增實機結果', report: 'wp-reports/3P-F3-Channel名額池.md' },
+    FS: { status: '自動測試通過（實機待補）', started: '2026-11-26 04:31 Asia/Taipei (UTC+08:00)', finished: '2026-11-28 02:26 Asia/Taipei (UTC+08:00)', commit: '64679a87f, 9af227811, bd22905fc, abeb70d94, c4cf53a63, 1bfe1a23e, 0ebf49b0eb8b57b1c926187d858c5bfc4f8d93e0', pending: '實機待補（可自行處理）：reader三組織完整唯讀pending=0；reader及pool修復完整9566/9566，Release0錯誤、文件／編碼／進度通過；reader21檔ClaudeOnly無Critical／High，pool補審quota無輸出、依02§4本地自審通過。首次apply首寫前拒絕零寫入；合併後重產三份plan共同受審，再D365鎖修正重試apply／verify、UI與正式FS。H1結案，211信箱個別未確認不擋FS。', report: 'wp-reports/3P-FS-結構分層與三組織佈署.md' },
+    F3: { status: '自動測試通過（實機待補）', started: '2026-11-26 21:10', finished: '2026-11-27 20:02', commit: '244e45960, b7844eee7, e09a4c86, 8be872b2a, 5b8c74b03, 2df96defa', pending: '實機待補：離線閘門已合併於整合分支；等 FS 完成後開始，依02A §5須待FS三組織plan/apply/verify、檢視表發布、UI export/import與Live3P FS完成後再做F3 Step 6登錄及20並行配發／清理。外部阻擋：F2測試站及T01／T02 Webhook；lease trace重現根因已由FS必要修復並完整9566/9566，非F3實機；沒有新增實機結果', report: 'wp-reports/3P-F3-Channel名額池.md' },
     F5: { status: '未開始', started: '', finished: '', commit: '', pending: '', report: '' },
     F7: { status: '未開始', started: '', finished: '', commit: '', pending: '', report: '' },
     F9: { status: '未開始', started: '', finished: '', commit: '', pending: '', report: '' },
     M1: { status: '未開始', started: '', finished: '', commit: '', pending: '', report: '' },
   },
   log: [
+    '2026-11-28 15:22 Asia/Taipei (UTC+08:00)｜FS必要修復完整9566/9566、28組件、0失敗／略過；文件2099/0、編碼53/0、進度32/32。reader21檔ClaudeOnly無Critical／High；pool補審quota無輸出依02§4自審，終點仍須覆蓋。尚無新schema/UI寫入，整合後重產plan。',
+    '2026-11-28 15:14 Asia/Taipei (UTC+08:00)｜FS原始reader三組織唯讀pending=0（非正式FS），ClaudeOnly兩段全21檔無Critical／High；同步後守門9564/1發現pool追蹤發布順序競態，已真RED→80/80，修後全方案執行中，不合併、不apply。',
     '2026-11-28 14:17 Asia/Taipei (UTC+08:00)｜FS正式reader原始XML修正：SQL／alias原文SHA完全相同；官方型別轉換及單表實機pending=0已證明，均為唯讀診斷。尚待最終全方案閘門與ClaudeOnly；通過後重新plan及受審才修正重試apply，未新增部署結果。',
     '2026-11-28 12:55 Asia/Taipei (UTC+08:00)｜FS完整plan修正後重試1/2全成功（164／216／216、UI各3）；完整一般9491/9491及ClaudeOnly無Critical／High，仍待備份、apply／verify、UI匯出入及正式FS Live3P，不把plan當完成。',
     '2026-11-28 11:50 Asia/Taipei (UTC+08:00)｜F0 inventory相容修正合併前守門：完整一般9,474/9,474、Release0錯誤、文件2086/0、Changed編碼20檔0問題、進度32/32。13個聚合已讀回；F0模型完整對照及FS完整plan仍待補，兩包維持自動測試通過（實機待補）。goodshepherd20 quiesce依02A §2.6讀回結案，211信箱未個別確認且不擋FS；無D365寫入，D365鎖已釋放。',

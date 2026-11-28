@@ -7,6 +7,7 @@
  * 主要功能與流程：
  * 本檔宣告 DataverseTraceTests、SingleLeaseManager、CountingLease、LeaseInterval、TestManager、TraceOrganizationService。
  * - 保護 legacy Ambient 代理的 CRM 歸因不可以重複計數。
+ * - 保留端對端租期順序斷言，並以有界重複驗證歸還事件先於同 client 下一次租借；每輪另核對唯一配對、等待與租約排空。
  * - 保護關閉 trace 的零侵入契約。故障注入是直接呼叫最熱的 crm.op 觀測點； 決定性斷言是沒有建立輸出檔，且暖機後的一次呼叫不配置 managed 物件。
  * - 保護背景工作與父 request 的統計隔離契約。故障注入是在背景 scope 內寫入一次 CRM 事件； 決定性斷言是父 request 結束仍為零次，而背景結束事件獨立記錄一次並保留來源 traceId。
  * - 保護 SaveIntegrate 背景工作接受與完成結果可以安全關聯，且不把 scope 結束誤當成 CRM 成功。故障注入是在 request／background scope 內寫入 accepted 與
@@ -649,6 +650,9 @@ public sealed class DataverseTraceTests
     /// 以三個假名、二十個並行操作、一次巢狀 Execute 與一次服務例外驅動真實 Pool 與 Gateway。
     /// 此測試保護觀測接線本身：借還必須對稱、同 client 的租期不可重疊、巢狀操作不多借 lease、
     /// 例外必為 faulted return，且所有實際輸出事件都滿足其 schema 的必要欄位。
+    /// 合成服務不連線組織；所有工作完成後斷言二十次借用、十九次健康歸還、一次故障，
+    /// 每條 lease 唯一配對且無遺失事件；pool 關閉後 client 計數及所有子池必須排空，
+    /// 最後由 Trace.Dispose drain writer，再由 finally 移除本輪私有暫存檔。
     /// </summary>
     [Fact]
     public async Task End_to_end_trace_proves_pool_lease_isolation_and_fault_eviction()
@@ -695,6 +699,19 @@ public sealed class DataverseTraceTests
                 })).ToArray();
 
                 await Task.WhenAll(tasks);
+                var drained = pool.GetMetrics();
+                Assert.Equal(0, drained.Leased);
+                Assert.Equal(0, drained.Waiting);
+                Assert.Equal(20, drained.TotalAcquires);
+                Assert.Equal(19, drained.TotalReleases);
+                Assert.Equal(1, drained.Faulted);
+                pool.Dispose();
+                var closed = pool.GetMetrics();
+                Assert.Equal(0, closed.Idle);
+                Assert.Equal(0, closed.Leased);
+                Assert.Equal(0, closed.Waiting);
+                Assert.Equal(0, closed.SubPoolCount);
+                Assert.Equal(closed.Created, closed.Discarded);
             }
 
             var records = ReadRecords(directory);
@@ -712,12 +729,17 @@ public sealed class DataverseTraceTests
                 .Where(item => item.record.GetProperty("ev").GetString() == "pool.return")
                 .ToArray();
 
+            Assert.Equal(20, acquires.Count);
             Assert.Equal(acquires.Count, returns.Length);
+            Assert.Equal(returns.Length, returns.Select(item =>
+                item.record.GetProperty("leaseId").GetString()).Distinct(StringComparer.Ordinal).Count());
+            Assert.DoesNotContain(records, record => record.GetProperty("ev").GetString() == "trace.dropped");
             foreach (var returned in returns)
             {
                 var leaseId = returned.record.GetProperty("leaseId").GetString()!;
                 var acquired = acquires[leaseId];
                 Assert.Equal(acquired.ClientId, returned.record.GetProperty("clientId").GetString());
+                Assert.True(acquired.AcquireIndex < returned.index, "每條 lease 必須先租借、再唯一歸還。");
                 acquires[leaseId] = acquired with { ReturnIndex = returned.index };
             }
 
@@ -741,6 +763,24 @@ public sealed class DataverseTraceTests
         {
             DeleteTemporaryDirectory(directory);
         }
+    }
+
+    /// <summary>
+    /// 在固定三十二輪內重跑真實 pool／Gateway 的並行借還、巢狀呼叫及傳輸故障案例，
+    /// 保護歸還事件必須先於同 client 的下一次租借事件，且不可重複歸還或留下等待者。
+    /// </summary>
+    /// <remarks>
+    /// 既有 Trace 沒有可注入的歸還攔截點，因此這是有界壓力回歸而非決定性排程證明；
+    /// 不以反射或新增公開 API 改變產品接縫。每輪沿用原端對端的嚴格租期與唯一配對斷言，
+    /// 並確認二十次租借、十九次健康歸還及一次故障淘汰。每次取得容量最多等待五秒，所有工作完成後
+    /// 才由 using／finally 排空 pool、Trace writer 及私有暫存檔；測試全程使用合成服務，
+    /// 不連線真實組織，也不把重跑通過視為已證明所有交錯安全。
+    /// </remarks>
+    [Fact]
+    public async Task Repeated_end_to_end_trace_preserves_return_before_republication()
+    {
+        for (var iteration = 0; iteration < 32; iteration++)
+            await End_to_end_trace_proves_pool_lease_isolation_and_fault_eviction();
     }
 
     /// <summary>

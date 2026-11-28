@@ -1,7 +1,7 @@
 # FS 結構分層與三組織佈署
-更新：2026-11-28 14:17 Asia/Taipei (UTC+08:00)
+更新：2026-11-28 15:22 Asia/Taipei (UTC+08:00)
 本包原始起點：`601d5056825eec30299432c054e867deb1e6b790`；歷史同步基線：`2da59fac62aab177a05efcba07132b69616b4243`（2026-11-26）；本輪修正起點：`36d4c49724fe90b522304048d3bec051ea710134`；本輪程式原提交 `2e6de8d0e14bc5a3d86423cc33104ef08db5519c`（重基線後 `c4cf53a63`）；最新整合基線 `e2eac3c38587469c9a250362493b2ba3908e102c`；重基線報告提交 `1bfe1a23e945118cd38dc578247a6f16ad087115`。原程式與先前修正提交：`64679a87f`、`9af227811`、`bd22905fc`。
-狀態：自動測試通過（實機待補）；首次 apply 在首寫前拒絕，零 schema/UI 寫入。已證明一般 formxml 語系投影造成假 pending，原始 alias 與 SQL 原欄精確相符；正式兩個 reader 修正及單表實機唯讀診斷已通過，新增修正仍待全方案守門與 ClaudeOnly。三份舊 plan 的 UI 指紋已失效，須重新 plan 及受審後才可修正重試 apply。
+狀態：自動測試通過（實機待補）；原始formxml reader與連線池必要修正已完整9,566/9,566，原始reader21檔ClaudeOnly無Critical／High；pool補審遇quota未取得外部輸出，依02 §4本地自審無未修Critical／High。首次apply首寫前拒絕、零schema/UI寫入；接續整合後重產三份plan共同受審，再持D365鎖修正重試。
 
 ## 驗收狀態
 
@@ -256,7 +256,7 @@ FS無手機步驟；手機畫面集中M1。目前進度頁目視亦待補：先�
 
 ## 下一步
 
-先用唯讀兩來源差異診斷定位計畫外元件，不發布、不放寬guard、不原樣重試apply。確認根因及安全可回復處置，經離線重現／修正／審查後才考慮修正後apply。FS三組織verify、平台已發布SDK讀回、UI export/import與正式FS Live3P仍待補；F3繼續等FS完成。
+先完成新發現的連線池追蹤守門修復、完整測試與補審，再整合推送。之後重新產生三份完整 plan、一起受審，持 D365 鎖進行修正後 apply；三組織 verify、平台已發布 SDK 讀回、UI export/import 與正式 FS Live3P 依序補齊，F3 等 FS 完成。
 
 ### 2026-11-28 14:17 Asia/Taipei (UTC+08:00) 原始表單來源修正（尚未重試 apply）
 
@@ -268,3 +268,24 @@ FS無手機步驟；手機畫面集中M1。目前進度頁目視亦待補：先�
 - 正式 reader 的單表唯讀實機診斷：三個表單原文一致，pending=0，SHA-256 `ECA4A76C4ABE96795C304C3000BBE04E266CDDB67FA85DE8B1CE089016835652`。這是 WP=FSPendingDiagnostics，不是 WP=FS 驗收，也沒有 schema/UI 寫入或 Publish。
 - 固定欄位、scope、唯一排序與 cookie 保真；每頁轉換 XML ≤64KiB、頁面≤256列、≤16頁、cookie≤16KiB、表單單欄≤1MiB／頁面≤16MiB，原跨頁／兩來源完整預算仍照舊。錯 alias／身份／編碼／缺欄一律拒絕整頁；選項與字典為本次候選獨立複本。SDK 及其釋放仍由外層 lease owner 負責。
 - 三份 DB 備份與 VERIFYONLY 證據仍保留；未執行資料庫還原演練。合併新 reader 後須重新產生三份完整 plan、合併受審，取得 D365 鎖及最新整合基線後才進行 apply 的修正後重試；本輪尚未使用該重試額度。
+
+### 2026-11-28 14:55 Asia/Taipei (UTC+08:00) 原始 reader 完整覆蓋與合併前新守門失敗
+
+- 同步 `72b401258` 的程式版本 `60c6f5f96`：Release 建置 65 個既有警告／0 錯誤；一般測試 9,565/9,565、28 組件、0 失敗／0 略過。建置 log SHA-256 `EAB5F69615E4FBAC6998EACACFA0BA8F4DEB4E611FE281D18894C4B3077D72C5`；測試 log SHA-256 `3DB67AA02CE8E7D117BCDC44F4621B9ADF015B2049BDF45D16C24058AE4F7FF9`。
+- 三個測試組織完整 schema 範圍，以正式原始 reader 做唯讀診斷，pending 均為 0、3/3 通過，log SHA-256 `8168F25B2A063DB87D51C462B51C62812AE56E6FA169150625607761592F9DAB`。這是 `WP=FSPendingDiagnostics`，不是正式 `WP=FS` 驗收。未重新 plan、未使用修正後 apply 重試額度、未做 schema/UI 寫入或 Publish。
+- 單模型（使用者指定 ClaudeOnly）：第一輪完整 helper、兩個正式呼叫端、adapter 與 schema 契約無 Critical／High；審查輸出 SHA-256 `238F845CB9C5624E3D23A26BFDCA3B5356B9F242C569D0C0D79291963D3474FF`。第一輪明列未涵蓋部分，再送補充審查，剩餘 16 檔完整差異全部覆蓋，無 Critical／High；輸出 SHA-256 `8A6A4A6F9A0604F94663A520709871F9282D335A63A80228BC1974555CFC0ED5`。合計 21 檔已覆蓋，沒有將抽樣稱全包完成。
+- 取得本線合併鎖並同步整合 `d4f576d10df81dc55d38589942246c83205051b0` 後，HEAD `431ca2e147ef555ec683159bdcc66d099d1513fc`；原 21 檔 bytes 全部未變。因同步帶入線 B 新程式，依 02A §10.3 重跑完整守門：建置 65 警告／0 錯誤（SHA-256 `26081A4D66B9748E46D10FF6C13A6DD2CD5BD47AF9EDD9197EB0A91A38B1E2CC`）；一般 9,564 通過／1 失敗、0 略過、28 組件（SHA-256 `5D3D0B74E93399715645162E5D35F51CF5732E8AD94C542F370DE9FF94F6F6BC`）。Hosting 347/347 正常完成，未中斷或放寬。
+- 唯一失敗為 `DataverseTraceTests.End_to_end_trace_proves_pool_lease_isolation_and_fault_eviction`。`BoundedClientPool.Return` 在 `pool.return` 事件前就將健康 client 放回 idle queue；仍有名額的並行借用者可先讀到 client，讓追蹤順序出現兩段租期重疊。這是必修守門，不能當環境限制或刪除斷言。線 A 正補正歸還與重新發布順序，尚未放行整合或實機寫入。
+
+### 2026-11-28 15:11 Asia/Taipei (UTC+08:00) 連線池必要修復與受影響驗證
+
+- `BoundedClientPool.Return` 先清理身分並提交 `pool.return`，再以既有子池短鎖重新發布健康 client；Trace 不在鎖內，shutdown 不再把 client 放回無主 queue，finally 保留發布／淘汰及 permit 清理責任。無新公共 API、跨租戶共享或全域鎖。
+- 原端對端租期不重疊斷言完全保留，補每 lease 唯一配對、二十次借用／十九次健康歸還／一次 fault、零 dropped，以及所有 client／子池排空。三十二輪有界壓力回歸在修前真 RED（87/115 → 112/127），log SHA-256 `7C2C3EBE8D96F4BCED356BDB70F143A8ABEED0C9D197029D4818289D2E1DD431`；修後受影響專案 80/80，TRX SHA-256 `ACC3D2364BE0F0E2A616D43DF8B9CF9FB0DDC4CA4721FB00BD1CE24073CF6D78`。壓力測試不是決定性排程證明。
+- 主線僅採核定 ClaudeOnly，補審待完整守門後執行。受派代理自行誤觸 CCG 雙模型入口，Gemini 回遠端 503；該次不是完整雙模型，也不作核定閘門依據，後續不重試 Gemini。此流程偏差不影響上述本機測試證據，亦不允許省掉主線單模型審查。
+- 新修復程式已凍結 SHA-256：BoundedClientPool `11CDAB701FD7539C960EA0988BFD2C98611019ADC7FDD57EC55C2CEDEFEE322D`，DataverseTraceTests `8D5360BEA4C33EC7A023B7650DA52BFF07255DD21F3DFDB1D5980BA7751D162F`。完整方案守門執行中，尚不宣稱全部通過。
+
+### 2026-11-28 15:21 Asia/Taipei (UTC+08:00) 修後完整守門與審查可用性
+
+- 修後 Release 全方案增量建置 0 警告／0 錯誤，SHA-256 `F9B6634C360F35C1DEE3B7D9EB7EB9F2CBF76CFB5DEBC94A78C9062E6F309643`；完整一般 9,566/9,566、28 組件、0 失敗／0 略過，SHA-256 `70242CB6ECC55C2C1602F550B1B8B5549C08F1684FB3E35C825B70D64B0530AC`，Hosting 347/347。這次才是 pool 新修正的完整通過結果；原 9,564/1 保留為故障歷史。
+- 文件 2,099/0（SHA-256 `6B34DD6366A6A818D765CBFC00B2E0C91214FEC60BB751DCAC5EC66D280841EB`）、Changed 編碼 53/0／排除1（`C977B2AB1D86BFEE8ED90146551A6C2DB60AB09EDF59AE7E1C1F93509E401EEF`）、進度32/32（`E70A634C556CDEEED2B12DB3083AB17E470B32EEBAB9A1C04DEA2A77CFAB1DB1`）、方案54項且未增減。此後只有文件變更，依02A §10.3沿用本次程式相同的建置及一般測試，不重跑。
+- 主線單模型（使用者指定 ClaudeOnly）補審入口 exit3，`quotaBlocked=true`，內部兩次均回 weekly limit，沒有可用輸出，**本次未取得外部審查**。runner log SHA-256 `AB47F7617D28BC120A28A1FE2CF787BAF3D649A742AB0F9B37533AA0F3C2139F`；不第三次、不切 Gemini。依02 §4入口失敗規則做永久隔離／資源護欄自審，未發現未修Critical／High；本地完整清單 SHA-256 `B012C5E394D1D5B6E39608777EF499B2C5597D5955182CB3E12C6DBA91E52419`。02指定的同名跨使用者審查指南在本樹不存在，沒有假稱已讀，而以AGENTS永久規則及00 §2.4逐項核對。終點整體審查仍須涵蓋新pool修復與F0補充文件。

@@ -13,6 +13,7 @@
  * 一律在子池鎖外執行，避免阻塞租借； beforeCleanupDispose 僅供受控協調／測試在銷毀前建立交錯點，例外會被 忽略，且不改變 pool 對 client 的唯一所有權與淘汰決策。
  * - 依完整隔離鍵取得唯一 lease。此方法在 semaphore 容量內等待，並只把已成功轉為 Leased、通過必要健康檢查的 client 交給呼叫端；超時、取消或健康失敗不會讓同一條 client 同時交給其他
  * request，故障 client 會被淘汰而非重用。
+ * - 歸還時先清除身分並提交唯一 pool.return，再重新發布到 idle queue；Trace 例外仍走確定性發布／淘汰及 permit 釋放，關閉後不得重新入列。
  * 主要操作入口包含 MarkFaulted、Dispose、Acquire、GetMetrics、CleanupIdleClients、EmitPoolSnapshotIfDue、EnsureMinimum、
  * CreateClient；其餘入口見下方成員契約。
  *
@@ -623,6 +624,17 @@ public sealed class BoundedClientPool : IBoundedClientPool
             trace.PushLease(leaseId));
     }
 
+    /// <summary>
+    /// 結束唯一租約：先清除身分並決定健康／淘汰，再於原 lease scope 內提交唯一歸還事件，
+    /// 最後才讓健康 client 重新進入可租借佇列。僅延用子池短鎖協調發布與關閉，不在鎖內
+    /// 執行 Trace 或底層 Dispose，避免把其他隔離鍵及慢速 I/O 全域序列化。
+    /// </summary>
+    /// <remarks>
+    /// ReturnHealthy 轉為 Idle 並不代表已發布；其他已有 permit 的借用者可立即讀取佇列，
+    /// 因而不可先 Enqueue 再記錄 pool.return。巢狀 finally 確保 Trace 失敗仍發布或淘汰，
+    /// 發布失敗仍由本 pool 銷毀尚未交出的 client，最後釋放 permit；關閉已接管 semaphore
+    /// 時不再釋放。ClientLease 的冪等 Dispose 保證每條 lease 只進入本方法一次。
+    /// </remarks>
     private void Return(
         SubPool subPool,
         PooledClient client,
@@ -655,21 +667,61 @@ public sealed class BoundedClientPool : IBoundedClientPool
                 RemoveAndDispose(subPool, client, "faulted");
                 return;
             }
-            subPool.Idle.Enqueue(client);
-            Interlocked.Increment(ref _totalReleases);
             returnState = "healthy";
         }
         finally
         {
-            if (traceEnabled)
-                trace.PoolReturn(
-                    leaseId,
-                    client.ClientId,
-                    returnState,
-                    callerIdAtReturn,
-                    GetElapsedMilliseconds(leaseStartedTimestamp));
-            if (Volatile.Read(ref _disposed) == 0)
-                subPool.Slots.Release();
+            try
+            {
+                // 事件入列完成才可發布；只延後 Slots.Release 無法阻擋已有 permit 的借用者。
+                if (traceEnabled)
+                    trace.PoolReturn(
+                        leaseId,
+                        client.ClientId,
+                        returnState,
+                        callerIdAtReturn,
+                        GetElapsedMilliseconds(leaseStartedTimestamp));
+            }
+            finally
+            {
+                try
+                {
+                    if (returnState == "healthy")
+                    {
+                        var published = false;
+                        try
+                        {
+                            // 與 Dispose 的佇列排空共用既有子池鎖，防止關閉後留下無主節點。
+                            lock (subPool.Sync)
+                            {
+                                if (Volatile.Read(ref _disposed) == 0)
+                                {
+                                    subPool.Idle.Enqueue(client);
+                                    published = true;
+                                    Interlocked.Increment(ref _totalReleases);
+                                }
+                            }
+                        }
+                        finally
+                        {
+                            if (!published)
+                                RemoveAndDispose(subPool, client,
+                                    Volatile.Read(ref _disposed) != 0 ? "shutdown" : "faulted");
+                        }
+                    }
+                }
+                finally
+                {
+                    if (Volatile.Read(ref _disposed) == 0)
+                    {
+                        try { subPool.Slots.Release(); }
+                        catch (ObjectDisposedException) when (Volatile.Read(ref _disposed) != 0)
+                        {
+                            // 檢查後 shutdown 已銷毀 semaphore；所有權已移交，不再重試釋放。
+                        }
+                    }
+                }
+            }
         }
     }
 

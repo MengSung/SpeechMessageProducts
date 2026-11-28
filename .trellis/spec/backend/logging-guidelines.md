@@ -148,3 +148,11 @@ services.AddSingleton<IToolUtilityTracer>(options.Enabled
 The Release composition root must instead pass `allowEnabled: false` or call
 `CreateDisabled`, so deployment configuration cannot bypass the compile-time
 fail-closed boundary.
+
+### 8. Dataverse 租約歸還事件與重新發布（2026-11-28）
+
+- `BoundedClientPool.Return` 的 `ReturnHealthy` 只完成身分清理與內部狀態轉移，不代表已允許下一位呼叫端使用；健康 client 在 idle queue 重新發布前，必須先將唯一 `pool.return` 事件提交至有界 Trace queue。
+- 不能只把 `Slots.Release` 放到事件之後：另一個已有 permit 的借用者仍可立即從 idle queue 取得同一 client。不得以事件排序抖動為由放寬同 client 租期不重疊的斷言。
+- 歸還保持原 lease 的 Trace scope；診斷不儲存 request／credential。巢狀 `finally` 確保事件流程失敗時，client 仍由 pool 發布或淘汰，permit 的責任不遺失。
+- 重新發布與 pool 關閉的 idle drain 共用既有短 `SubPool.Sync`；Trace、底層 Dispose 不在這個鎖內執行，不引入跨隔離鍵的全域序列化。pool 已關閉時不重新入列，關閉已接管 semaphore 時不再釋放它。
+- `DataverseTraceTests.End_to_end_trace_proves_pool_lease_isolation_and_fault_eviction` 必須保留同 client acquire／return 索引不重疊、每 lease 唯一配對、零 dropped、fault eviction 與 pool drain 斷言。新增三十二輪重複案例是有界壓力回歸，不是決定性排程證明；不可把單次重跑通過當成根因已修。
