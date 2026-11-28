@@ -112,3 +112,7 @@
 | 2026-11-28 22:58 Asia/Taipei (UTC+08:00) | FS新決策守門結案 | 同程式樹10218全過，首審未完整核三plan，補審逐項核operations／owner／fixture後C0/H0 | 依02A§10.3不重跑同樹建置與一般測試，只重驗文件／編碼／進度後快轉推送；第三次apply在推送後、持D365鎖下只送一次 | code9f50406c1；兩輪ClaudeOnly summary9B781C9D…／F52848A6…；原baseline缺口false與contact未觀察面保留 | F7與F9由B，架構登錄另做小切片不混FS程式；不以結束回合等待 |
 
 | 2026-11-28 23:32 Asia/Taipei (UTC+08:00) | FS／F1架構協作 | goodshepherd20特別第3次apply及verify成功；construction完整guard拒絕但獨立已發布verify通過 | association不開寫，保存67,291節點原baseline，新增方案內唯讀精確差異診斷；不重送、不套UI-only。等待期間精確Assets分類38案RED→GREEN、完整10256，審查後合併供B | FS runtime SHA3529255E…；construction失敗A06278CC…；F1 code841072290與最終test7B7024AA… | 首次buildDLL佔用與第二輪4鎖失敗均保留，實機／全守門改為序列化；新診斷待分類切片合併後才放入來源，不混未守門程式 |
+
+| 2026-11-28 23:45 Asia/Taipei (UTC+08:00) | FS construction新差異 | 完整原baseline可復原，兩來源各891差異且彼此相等；619顯式新欄、21新key、250三個AttributeOf衍生欄、1計數，超出兩lookup核定 | 依22:05決策有其他差異不寫入並通知Claude；不修guard、不重送、不套UI-only。只交付固定事件唯讀探針與安全純值還原，補完整守門／ClaudeOnly後合併保全證據 | code c9b032dfe；report DE6001A9…；Live只讀1／1，不是FS完成 | 特別goodshepherd20第3次已成功且消耗；association未apply；B新Shadow測試隔離請求不混本切片，正式鎖維持 |
+
+| 2026-11-28 23:59 Asia/Taipei (UTC+08:00) | FS唯讀收尾／CLI測試隔離 | 完整10263與ClaudeOnly C0/H0；B新F7／F10已合併，Shadow合成共享真鎖有可重現失敗 | 先提交唯讀證據再同步B，獨立TDD加內部合成鎖接縫；正式Run固定共用鎖、ProductionGuard及拒絕保留，完整守門及ClaudeOnly後才合併 | 02§4／§5.4、02A§10.3／§14；review0CCB6430… | construction待寫入決策、無額外apply；goodshepherd20第3次已消耗 |

@@ -433,3 +433,20 @@ FS無手機步驟；手機畫面集中M1。目前進度頁目視亦待補：先�
 - construction於23:10開始apply，23:16 exit1，安全log SHA `A06278CCCFaf9E5590D126EF6A3D9B6B0DEADE5D8AF34D221E48E14F1C25AC4E`；固定安全診斷定位 `UiMetadataPublicationGuard.Equal:411 → Check:72 → Apply:362`，在按實體PublishXml之前完整baseline+delta比較拒絕，不直接解讀為UI-only。association尚未apply，資源鎖已反向釋放，未原樣重送。
 - construction首寫前完整baseline已保存67,291節點（account／contact），11,478,714 bytes，SHA `B77BBB161BBD6A93E0EB53C3B9D9176A7140F01ADCC0F6B6F3AC02A2C43D863A`；原before SHA `C9E8A7E3518B5780921934DD20F98FF5A9B2C49003819CC2BC12DE9438F13817`；完整baseline憑據SHA `07CF4CF9DFC390B394D4622CE2827E0168544C63B2B0592CDBF3F5FA940D0681`。UI元件清冊存在SHA `EB56036BE95DA27212E93B6E804C9E9DEF118DB8DE36A2B0ECE42DFB93D62332`，保留未刪。
 - 失敗後獨立唯讀construction verify exit0（log SHA `77E3F834A8472F89208BADA5844314D5BD9357DBB2699638B66C7A1A80B70DB5`），證明已發布規劃結構／鍵Active及UI清單投影一致；不證明完整wire舊節點無漂移，也不取代原apply成功。下一步唯讀重建完整原baseline＋計畫增量，列每個差異節點及元件歸屬；只有核定範圍才能依02A修正，其他差異停止寫入再通知。FS仍自動測試通過（實機待補），尚未提前F3或套縮減。
+
+### 2026-11-28 23:45 Asia/Taipei (UTC+08:00) construction 完整原基準節點診斷：已通知待決策，零後續寫入
+
+- 新診斷程式檢查點 `c9b032dfe`，只改3份測試／純值探針，不修改guard／schema或任何寫入程式。原plan檔SHA `19D6AF4D72203A3F0428FC074ECD573864796476AF8126C8AC8E5EB1F621B61C`、before SHA `C9E8A7E3518B5780921934DD20F98FF5A9B2C49003819CC2BC12DE9438F13817`、完整baseline SHA `B77BBB161BBD6A93E0EB53C3B9D9176A7140F01ADCC0F6B6F3AC02A2C43D863A`先驗證，再核正式organizationId／plan hash／schema hash與原67291節點account／contact範圍。
+- JSON純值還原先4個行為RED（SHA `9F84EC3C26CBE9CF41DDF8DB4244F824A07C581DF791BA629705ABE0E57CE88B`）→4 GREEN（SHA `68E707FB4512E7E848631FE04A9F76E0A8FAF4CA7ADF2330EDE23A010F3F8C34`）；另補舊label不輸出正文、預取消不回部分結果、非法路徑拒絕，連原lookup契約最終18/18（SHA `EA6C76E1163FC48F2786052B3818DEEF0700255978A3CB728660A1FE50BA0028`）。先前JSON引號建置失敗與CA1307失敗保留，不算RED；檔頭標題檢查3失敗已補齊，重驗文件2170/0。
+- 方案內固定唯讀入口 `Category=Live3P&WP=FSConstructionDiagnostics` 最終1/1通過，log SHA `1BE74B89790D7AC2CCF2BBAAA179B9226A1D0B6A4CA9151F134CE3EC0E805A95`。用正式純候選工廠與WithAdditions重建74個增量，SDK只准RetrieveEntity(All)，五分鐘CTS／兩分鐘傳輸、驗組織身分與獨占一致性鎖；所有租約／組態／diagnostics排空，沒有任何遠端寫入。
+- 完整分類報告 `C:/ProgramData/SpeechMessage/evidence/FS-construction-node-readonly/662e1739ac154562896dd6d98d86bf8b/node-differences.json` SHA `DE6001A94B4AA211F22865BF87BF051F54E7C6148292D56267FF187F77AC663D`。Published／Unpublished每來源各891差異：8個本計畫顯式新欄位619節點、1個新account key21節點、3個自動name欄位250節點，以及account.Attributes集合計數1節點；來源彼此0差異。無其他原baseline節點差異，沒有把寫後新來源重新當原基準。
+- 三個原baseline不存在且未在顯式CreateAttribute清單的欄位，其正式AttributeOf皆精確指向計畫新欄：`new_istenantname → new_istenant`、`new_istesttenantname → new_istesttenant`、`new_channelslotname → new_channelslot`。其餘8欄為account的new_channelslot／new_istenant／new_tenantcode／new_istesttenant／new_timezone／new_logourl／new_themecolor，以及contact.new_lineid。新key差異包括AsyncJob、label管理metadata與其他server補值；本診斷只列型別與路徑，不輸出原scalar正文，也不把不相等改成通過。
+- 這些差異超出22:05只對兩新lookup關聯授權的白名單，故已在外部需要你協助.md新增23:42「通知」請Claude決策，未修guard、未原樣重送construction、未開始association、不直接套02A§12、不提前F3。報告固定FullOriginalBaselineAvailable=true（僅construction本輪）、CanAuthorizeApply=false。後續有何核定修正另依決策執行，不能用診斷成功代替寫入授權或FS完成。
+- 最終交付守門正在進行：先建置成功，接著等另一線已開始的完整一般測試排空後才跑自己的原命令，避免合成案例搶真共享組織鎖。線B23:18協作請求已讀，正式CLI固定共享鎖不能放寬；本切片只交付唯讀診斷，待後續獨立最小隔離修正或既有寫入排空後原守門驗證。
+
+### 2026-11-28 23:59 Asia/Taipei (UTC+08:00) construction唯讀診斷交付守門與審查
+
+- 固定三檔程式c9b032dfe全方案守門全exit0：Release66警告／0錯誤，28回合10263/10263、0失敗／0略過；文件2170/0、Changed5/0、方案54項。build SHA `E284B8565ACC86795C1A76CAD8C7028691D9ED8C3F4AB0F646A0DDEC21EC82FA`；tests SHA `BC6C1874BB8B63FF6CD30073DCD17684FD40A41B4F2CC77CDE44CAA4402E40F6`；文件SHA `53EC217A6A4BEA31D82E8A87EDA2452DCD6BF85ACD93F13DDD5A781ED935C9E3`；編碼SHA `46F95853C3046504B2CC41E2B278CA37CE2E364A382D840C396BDFA1E1FF5CCB`。三檔逐SHA讀回與凍結清冊一致。
+- 單模型（使用者指定 ClaudeOnly）Critical0／High0，summary SHA `0CCB6430C3239F6FD56B77A045F0921879043053C955352CC7D82081964722E4`。實讀三檔全文、guard Project／Scalar／Delta／WithAdditions／Equal、完整baseline檔入口、引擎235–330行候選及安全報告路徑／型別；未讀秘密／baseline正文、未連網、未自行執行測試。NewLookupServerDefaults、ProductionGuard、SchemaFiles.Json內部未讀，限制保留。
+- 審查確認原工廠候選、正式ID、原before缺項與純值還原一致，沒有原67291舊節點的Changed／Removed。只證明唯讀分類可信，不代表construction原apply成功、不授權修改guard或再次apply；23:42待決策不變，非阻擋觀察記入之後再說。
+- 整合分支隨後有線B F7／F10新程式，同步後須重跑完整守門；10263不冒充同步後結果。等待決策期間依02A§14處理B23:18的CLI合成鎖隔離協作，不代做其工作包。
