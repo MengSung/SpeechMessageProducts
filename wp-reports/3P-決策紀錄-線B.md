@@ -115,3 +115,7 @@
 | 2026-11-28 22:19 Asia/Taipei (UTC+08:00) | F10續跑／F7移交 | 最後review有Hangul filler High，不能沿用前樹放行 | 真8案RED後採Rune涵蓋代理對數字與四種空白字母；Payments170／170。11檔精確保全同步751600298，來源2d64ca582，新完整守門執行中。F7依02A§13接手且已雙模型入口分析，Gemini503、Claude有輸出，非完整雙模型成功 | RED／GREEN與manifest完整SHA見F10報告；F7包內計畫存本線CCG | 未合併、無實機；F11獨立檢查點保全，不替線A寫檔，不提交CCG |
 
 | 2026-11-28 23:20 Asia/Taipei (UTC+08:00) | F10守門／F7保全 | 178案聚焦通過，但同步A的FS實機期間Deployment八案因真共享組織寫鎖逾時失敗 | 保留失敗、不送正式審查或合併；共享通知A檢查合成fixture隔離，回F7離線；32檔已備份，回放31精確＋1三方，0衝突 | manifest0565ca4c…、replay48a1fc59…、testsA98C1329…，完整SHA見F10報告 | 不動A程式、不改篩選、不將原故障列為可放行環境豁免，全部備份保留至終點 |
+
+| 2026-11-28 23:36 Asia/Taipei (UTC+08:00) | F7／F10同步 | C:\ProgramData\SpeechMessage\backups\lane-B\20261128-233622，10檔逐bytes保全 | 跨磁碟rename先被Windows拒絕、尚未rebase；保留已核對備份後改用跨磁碟移動續跑，rebase整合d5e310d2成功；10檔精確回放 | manifest b0f654663ffe4d489eafcda47578a1e07abba427b5e3bb31392cd18ad8b842ff；replay 7e43b0d996d0329a31a6358fd0164ca271d0949540a03bdc22ade5614037293d | 不提交CCG，完整守門後正式審查 |
+
+| 2026-11-28 23:53 Asia/Taipei (UTC+08:00) | F7 | 76c1d697完整守門10367／10367後正式ClaudeOnly C0／H0 | 依02 §4放行離線、02A狀態維持實機待補 | stdout 15a3dfeba9da30486d4f943ec0f5dbc54ad2c5b4626d5195c47ecf564c1a0f87 | 文件重驗後按合併鎖快轉推送；不重跑同程式樹 |

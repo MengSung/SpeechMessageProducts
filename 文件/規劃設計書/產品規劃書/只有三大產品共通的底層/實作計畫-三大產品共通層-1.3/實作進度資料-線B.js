@@ -7,9 +7,9 @@
 window.PROGRESS_LANES = window.PROGRESS_LANES || {};
 window.PROGRESS_LANES.B = {
   lane: 'B',
-  lastUpdated: '2026-11-28T22:59:49+08:00',
+  lastUpdated: '2026-11-28T23:53:18+08:00',
   packages: {
-    F7: { status: '進行中', started: '2026-11-28 22:18', finished: '', commit: '', pending: '影像19案與公開端點14案已綠，正在補驗／正式守門；架構分類依線A所有權精確登錄。實機待補：公開PNG、F5 c123 icon發送與清理，不能標完成。', report: 'wp-reports/3P-F7-公開圖片代管.md' },
+    F7: { status: '自動測試通過（實機待補）', started: '2026-11-28 22:18', finished: '', commit: '76c1d697a626108df3be67e121914377bcf7ceca', pending: 'Assets29／29、HTTP23／23、部署28與完整10367／10367、ClaudeOnly C0／H0；待快轉。實機待補：公開HTTPS PNG、F5 c123 icon發送LINE200及清理；FS／F3外部相依，手機留M1。', report: 'wp-reports/3P-F7-公開圖片代管.md' },
     F9: { status: '未開始', started: '', finished: '', commit: '', pending: '2026-11-28 22:28依02A §13由線B成功取得claim-F9.lock；尚未實作。', report: '' },
     P0: { status: '自動測試通過（實機待補）', started: '2026-11-25 22:12', finished: '', commit: '811669559982a904f84636b831146a15c7899956', pending: 'P0-2④平台SQL已Strict釘選、最小DB權限、SQL端AppPool原始及有效SID／DB=7與錯誤／缺檔拒絕；P0-3公開live／ready200，原Node路由與CRM302核實。彙總依02A保留實機待補：線A FS／F3及F2 T01相依；本項不需重交秘密或重跑P0-3。', report: 'wp-reports/3P-P0-前置.md' },
     F10: { status: '自動測試通過（實機待補）', started: '2026-11-26 00:23', finished: '', commit: 'c26fb83670af1f34900819e269b3a6a75c334b01', pending: '診斷遮罩c26fb836完整10001/10001、Payments162/162；不可見分隔字元安全補驗中。五項沙箱／隔日查詢、V2.6核對、最終原子入帳及亂序終態、宿主sink仍待補。前輪失敗與重跑證據均保留，未改斷言或排除測試；browser不可用，未宣稱目視通過。', report: 'wp-reports/3P-F10-永豐補強.md' },
@@ -21,6 +21,7 @@ window.PROGRESS_LANES.B = {
     F11: { status: '未開始', started: '', finished: '', commit: '', pending: '', report: '' },
   },
   log: [
+    '2026-11-28 23:53 Asia/Taipei (UTC+08:00)｜F7正式ClaudeOnly C0／H0，完整10367／10367；程式76c1d697，待快轉推送。公開PNG及F5帶icon實機未做，手機留M1。',
     '2026-11-28 20:56 Asia/Taipei (UTC+08:00)｜F10診斷最後程式c26fb836：不可見格式／組合字元先RED後修，Payments162/162、完整10001/10001、0失敗略過。安全補驗中；五項實機、V2.6與最終入帳條件仍未完成。',
     '2026-11-28 20:34 Asia/Taipei (UTC+08:00)｜F10第二輪C0/H0後再以十案真RED收緊中短Token、各種標點PAN及sign；200b674a聚焦158/158。F5準備合併，先同步後對新基線完整守門與第三輪審查。',
     '2026-11-28 20:31 Asia/Taipei (UTC+08:00)｜F10首輪ClaudeOnly C0/H0後，本線另以七案真RED修密碼授權與句點斜線PAN；508bac90完整9987/9987、0失敗略過，第二輪ClaudeOnly進行中。前輪MSBuild退出與I/O失敗如實保留，不宣稱根因已修。',
