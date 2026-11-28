@@ -3,7 +3,7 @@
  * 目的與定位：保護F10金流核心的診斷輸出遮罩；所有卡號與Token都是不可連線的合成字串，
  * 不讀取商店設定、不呼叫銀行、不把測試結果冒稱實機或宿主日誌驗收。
  * 主要功能與流程：以真實Sanitize及Sinopac回呼parser驗證短Token、含分隔符／內嵌卡號、
- * ATM精確白名單與偽裝欄位；明確斷言遮罩值及序列化診斷不含完整原值，同時維持合法付款指示。
+ * ATM精確白名單與偽裝欄位、密碼／授權鍵、句點／斜線PAN；斷言診斷不含原值並維持合法付款指示。
  * 使用邊界與維護：每案只擁有輸入與輸出字典；128個並行操作全部由Task.WhenAll排空，
  * 沒有I/O、連線、timer或全域可變測試狀態。輸入不得被修改，A/B輸出不可互相覆寫；
  * ProviderTransactionId仍是後續查詢所需的明確操作值，不能與可供log的診斷字典混為一談。
@@ -67,7 +67,7 @@ public sealed class PaymentDiagnosticsSanitizerTests
     [InlineData("4111 1111 1111 1111", "411111******1111")]
     [InlineData("4111\u00a01111\u00a01111\u00a01111", "411111******1111")]
     [InlineData("card=4111-1111-1111-1111; ok", "card=411111******1111; ok")]
-    [InlineData("4111-1111-1111-1111/5555 5555 5555 4444", "411111******1111/555555******4444")]
+    [InlineData("4111-1111-1111-1111/5555 5555 5555 4444", "***")]
     [InlineData("4000 0000 0000 0000 001", "400000******0001")]
     [InlineData("card=4111111111111111 12345; ok", "card=***; ok")]
     [InlineData("4111-1111-1111-1111-12345", "***")]
@@ -75,6 +75,34 @@ public sealed class PaymentDiagnosticsSanitizerTests
     {
         var result = PaymentDiagnosticsSanitizer.Sanitize(new Dictionary<string, string> { ["detail"] = value });
         result["detail"].Should().Be(expected);
+        result["detail"].Should().NotContain(value);
+    }
+
+    /// <summary>真parser可帶入任意診斷鍵；注入密碼／授權標頭，必須在兩個公開診斷字典中完整遮蔽。</summary>
+    [Theory]
+    [InlineData("password", "synthetic-password")]
+    [InlineData("pwd", "synthetic-password")]
+    [InlineData("passwd", "synthetic-password")]
+    [InlineData("Authorization", "Bearer synthetic-credential")]
+    [InlineData("Proxy-Authorization", "Basic synthetic-credential")]
+    public void Callback_actual_diagnostics_mask_passwords_and_authorization(string key, string value)
+    {
+        var result = SinopacCallbackParser.Parse(new PaymentCallbackRequest
+        {
+            Form = new Dictionary<string, string> { [key] = value }
+        });
+        result.Diagnostics[key].Should().Be("***");
+        JsonSerializer.Serialize(new[] { result.ProviderData, result.Diagnostics }).Should().NotContain(value);
+    }
+
+    /// <summary>故障注入句點與斜線分隔的卡號；任何可記錄欄位都不能保留完整PAN表示。</summary>
+    [Theory]
+    [InlineData("4111.1111.1111.1111")]
+    [InlineData("4111/1111/1111/1111")]
+    public void Sanitizer_additional_card_punctuation_does_not_publish_full_card(string value)
+    {
+        var result = PaymentDiagnosticsSanitizer.Sanitize(new Dictionary<string, string> { ["detail"] = value });
+        result["detail"].Should().Be("411111******1111");
         result["detail"].Should().NotContain(value);
     }
 

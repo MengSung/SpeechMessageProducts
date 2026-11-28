@@ -2,9 +2,9 @@
  * 檔案整體說明
  * 目的與定位：F10金流核心發布ProviderData與Diagnostics前的純值遮罩邊界；供永豐、MyPay等
  * provider共同呼叫，不解析付款授權、不入帳，也不擁有宿主logger或Exception.log。
- * 主要功能與流程：先遮蔽機密鍵，再處理Token；八字元以下完整遮蔽，較長Token維持既有首尾
+ * 主要功能與流程：先遮蔽含密碼／授權標頭的機密鍵，再處理Token；八字元以下完整遮蔽，較長Token維持首尾
  * 四字元格式。只有精確ATM付款指示欄位可保留原值；其他值以單次線性掃描遮蔽13–19位數字
- * 卡號，涵蓋空白、連字號及描述中的多組卡號，保持原有前六後四顯示契約；有分隔符且
+ * 卡號，涵蓋空白、連字號、句點、斜線及描述中的多組卡號，保持前六後四顯示契約；有分隔符且
  * 超過19位的疑似合併區段一律完整遮蔽，不能靠附加郵遞區號等數字讓完整卡號漏出。
  * 使用邊界與維護：輸入字典與非null字串由呼叫端擁有，每次回傳獨立字典；本檔只持有固定
  * 欄位名稱，不保存原值、使用者、profile或跨操作快取。最多保留本次輸入與輸出字串生命期，
@@ -25,7 +25,8 @@ public static class PaymentDiagnosticsSanitizer
 {
     private static readonly string[] SecretKeyFragments =
     [
-        "signature", "hash", "storekey", "storeiv", "secret", "xkey", "cvv", "cvc"
+        "signature", "hash", "storekey", "storeiv", "secret", "xkey", "cvv", "cvc",
+        "password", "passwd", "pwd", "authorization"
     ];
 
     private static readonly HashSet<string> ExactSecretKeys = new(StringComparer.OrdinalIgnoreCase)
@@ -87,7 +88,7 @@ public static class PaymentDiagnosticsSanitizer
     }
 
     /// <summary>
-    /// 單向掃描所有數字／空白／連字號區段；13–19位卡號只保留前六後四，保留其前後描述。
+    /// 單向掃描所有數字及空白／連字號／句點／斜線區段；13–19位卡號只保留前六後四。
     /// 每個字元最多掃描一次，固定19字元scratch不隨輸入增加，且未命中時直接回原字串。
     /// 超過19位的純業務數字不截取部分誤當卡號；有分隔符的過長候選完整遮蔽，避免把卡號與
     /// 相鄰數字合併後誤判為非卡號。輸出只由本次區域builder擁有。
@@ -122,7 +123,7 @@ public static class PaymentDiagnosticsSanitizer
                     count++;
                     digitsEnd = position + 1;
                 }
-                else if (character == '-' || char.IsWhiteSpace(character)) gapAfterDigit = true;
+                else if (character is '-' or '.' or '/' || char.IsWhiteSpace(character)) gapAfterDigit = true;
                 else break;
                 position++;
             }
