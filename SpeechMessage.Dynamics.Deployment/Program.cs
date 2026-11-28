@@ -9,6 +9,8 @@
  * - 建立唯一 User Secrets 組態與 Ctrl+C 取消來源，執行一個命令後先解除事件訂閱， 再 Dispose 取消來源與組態。初始化失敗只輸出固定訊息及例外型別，不輸出原始訊息。
  * - Channel命令在語法及key通過後才建立ChannelSecretInput讀重新導向stdin，
  *   最多三十秒／16KiB，不互動回顯秘密、不建立可遺留的背景讀取。正式寫入的確認行與後續Channel秘密共用同一個30秒owner，先驗catalog／旗標才開啟。
+ * - platform-sql-verify 在相同診斷 owner 內分派至固定測試 VM 的唯讀 SQL 命令；不使用 D365 connector，
+ *   不讀組織秘密，SqlClient 的連線／逾時／取消由單次命令擁有，真正例外仍傳本檔共用告警入口。
  * - 為單次命令掛載共用檔案診斷 owner，明確停用 LINE，並在命令完成時解除全域註冊後 drain／Dispose owner。日誌目錄由程序組合根提供，不接受命令列、組態或 request 決定。
  * - 組態尚未建立診斷 owner 時，只輸出固定初始化狀態與型別名稱。
  * - 以固定 stderr 代碼處理輸出 writer 失敗，不展開原始例外或組態內容。
@@ -133,6 +135,8 @@ internal static class Program
                 outputOptions: new ExceptionOutputOptions(writeExceptionLog: true, sendLine: false));
             registration = ExceptionReporting.Attach(diagnostics);
             var catalog = OrganizationCatalog.LoadDefault();
+            if (args.Length > 0 && args[0] == "platform-sql-verify")
+                return PlatformSqlReadOnlyCli.RunAsync(args, catalog, output, null, cancellationToken).GetAwaiter().GetResult();
             return DeploymentCli.RunWithCatalog(
                 args,
                 catalog,
