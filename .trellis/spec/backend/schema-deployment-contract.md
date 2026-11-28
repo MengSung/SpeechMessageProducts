@@ -179,3 +179,9 @@ smoke仍由共同關卡禁止production，原probe test身分不擴張。舊方�
 ## FS 原始表單 XML 與查詢轉換（2026-11-28）
 
 D365 9.1 一般 published／unpublished 的 formxml 可能依語系投影不同。正式 UI 兩來源只從相同 FetchXML alias 取得原始 XML，保留所有 label 原文逐字比較；不得以忽略翻譯或正規化來放寬 pending 檢查。QueryExpression 的 EntityName 條件先由目前同組織的 QueryExpressionToFetchXml 官方唯讀訊息轉成數字 ObjectTypeCode，不硬編代碼、不共用跨組織字典。轉換 XML ≤64KiB、禁止 DTD／外部解析；只允許固定 systemform 欄位、單一 objecttypecode IN 範圍及 formid ASC，分頁／cookie 保真。AliasedValue 的來源實體與屬性必須精確匹配，缺 alias／普通 formxml 混入／無效UTF-8／身份、scope 或預算故障皆拒絕整頁，不 fallback。UiFormXmlReaderTests 另保護真 label 變更仍被拒絕、候選不修改 SDK 原快照、轉換／讀取取消及容量上限；實機診斷與正式 FS 驗收必須分開記錄。
+
+## FS savedquery 執行期版面契約（2026-11-28）
+
+D365 9.1 的 solution 匯出 XSD 不等於 savedquery Create 的執行期 XSD。D365APP01已安裝 LayoutXmlValidator 的內嵌契約要求 grid name／object／select／preview／icon／jump 齊全；缺少屬性時callback拋CrmException(string)，該版本預設錯碼為0x80040216。ViewDefinitions固定產生icon=1及jump=第一個已核准顯示欄位，不新增Fetch欄、不猜主鍵或ObjectTypeCode。UiRuntimeLayoutContractTests以獨立合成子集先重現同型SDK fault再驗正常產物；不能把離線通過或ValidateSavedQueryRequest的Fetch驗證當成Create／發布成功。
+
+測試專用UiSavedQueryValidationProbe只允許固定new_linechannel／new_name與同表主鍵對照，官方Validate訊息不持久化；layout比較只有固定管理列、最多16列、128 XML節點／64KiB字元。末頁MoreRecords=false仍可帶cookie，cookie先限字元再限UTF-8至16KiB後捨棄，不重播、不輸出。MoreRecords=true、超限、重複正式ID、錯scope／投影／型別皆拒絕，不以顯示名稱去重。Live owner先ProductionGuard與真身分、單一租約，退出SDK／組態／CTS後排空ExceptionDiagnostics，不保存跨案例資料。

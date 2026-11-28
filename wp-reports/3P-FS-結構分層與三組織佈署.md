@@ -1,7 +1,7 @@
 # FS 結構分層與三組織佈署
-更新：2026-11-28 15:35 Asia/Taipei (UTC+08:00)
+更新：2026-11-28 15:50 Asia/Taipei (UTC+08:00)
 本包原始起點：`601d5056825eec30299432c054e867deb1e6b790`；歷史同步基線：`2da59fac62aab177a05efcba07132b69616b4243`（2026-11-26）；本輪修正起點：`36d4c49724fe90b522304048d3bec051ea710134`；本輪程式原提交 `2e6de8d0e14bc5a3d86423cc33104ef08db5519c`（重基線後 `c4cf53a63`）；最新整合基線 `e2eac3c38587469c9a250362493b2ba3908e102c`；重基線報告提交 `1bfe1a23e945118cd38dc578247a6f16ad087115`。原程式與先前修正提交：`64679a87f`、`9af227811`、`bd22905fc`。
-狀態：自動測試通過（實機待補）；原始formxml reader與連線池必要修正已完整9,566/9,566，原始reader21檔ClaudeOnly無Critical／High；pool補審遇quota未取得外部輸出，依02 §4本地自審無未修Critical／High。首次apply首寫前拒絕、零schema/UI寫入；接續整合後重產三份plan共同受審，再持D365鎖修正重試。
+狀態：進行中（goodshepherd20修正後apply1/2已部分寫入並於UI階段失敗；非零寫入、非已完成）。before及唯讀after已保留；7張新平台表與schema操作已到位，UI仍2項待做；construction／association未apply。先唯讀定位根因，剩1次修正後apply額度不可原樣使用。
 
 ## 驗收狀態
 
@@ -299,3 +299,51 @@ FS無手機步驟；手機畫面集中M1。目前進度頁目視亦待補：先�
 - 三份一起送單模型（使用者指定ClaudeOnly）入口，內部兩次仍quota無輸出，**新plan未取得外部審查**，不第三試；runner SHA-256 `89AE5937F6EB310021AE544A2029F13A7E82CB2A9EEF7C41ADCA1BFCDBD8337E`。依02 §4入口失敗規則共同本地補審（含全部新entity ownership、精確保留ID、產品隔離及UI定向發布），無未修Critical／High，證據SHA-256 `3C7DE55BD5D239544684630C55C88EDC3F98CA8ECD49DFCA4FE0B5B1F0BBD0BC`，終點需涵蓋；不是把quota稱審查成功。
 - 已驗真遠端主機D365APP01，再次讀回三個12:59 before DB備份SHA全相同；唯讀回核log SHA-256 `9B7E6B35CB8DA442536ADB3AC29CB05FDD43B76ADB4DCE2B76BD99DDA05B6A94`，PSSession finally清理。原COPY_ONLY/CHECKSUM及VERIFYONLY通過，沒有還原演練。本輪不重做備份、不改SQL服務或正式資料庫。
 - 回復路徑：失敗先停、保留同operation的before/after與完整差分；若真的需要DB還原，只能另核對同一測試DB/backup及目前組織身份，同持D365→SQL鎖停止相依寫入後規劃該單DB RESTORE，不自動還原整台VM或其他組織。未確認部分套用時不原樣重試。接著將以這三份新plan做goodshepherd20修正後apply重試1/2，construction／association為首次apply；尚未執行。
+
+### 2026-11-28 15:50 Asia/Taipei (UTC+08:00) 修正後 apply 1/2 失敗與部分套用唯讀確認
+
+- goodshepherd20 operation `20261128-073637-2986119-a59114a6100c407182ebe7775585225a`，apply exit1、`FaultException`1`／0x80040216；log SHA-256 `CAE82FAA240235862CD9F12A79B8E37EA355C110D6BC05E5D5DA5C6E0A8706A5`。共用安全Exception.log記下同事件真實型別與stack，SHA-256 `3FD42EB1116DBAD0550FC0540E0A86994A133E1BA2B601B282D74BBA7F6971C5`。原始stack截於OnPremiseClient.Create，不能直接假稱全部寫入失敗。
+- owner finally已釋放D365鎖，後兩組織apply未開始。這次已使用goodshepherd20修正後apply1/2；不原樣重試、不分拆寫入繞過、不先做F3。
+- `before-metadata.json` SHA-256 `4140427C63C805831967491962C427FE75123F5936EB771DC8A8E1C2F557F913`（與原metadata一致）、`before-ui-plan.json` SHA-256 `2B50FDE82D005CD7EC735A8948564ADB64D8826C7FEB55D9EFCC744C067D4606`已持久保存，沒有after自動完成證據。
+- 失敗後用方案既有唯讀export-metadata及plan（診斷不算重試）成功：新snapshot `20261128-074535-0813683-7b427a0e08c3458d80c5f6b70be893d0` SHA-256 `DD245E69D6977209EDD1F89588D203B26146373628DDB0BAE3FB400465718B64`；實體570→577、欄位22837→23133，新增七張new_auditentry／channelslot／role／roleassignment／rolepermission／slotallocationlock／slotrequest。**已部分schema寫入，不能繼續寫零寫入。**
+- 新唯讀診斷plan `20261128-074646-9228054-d7af682e894642879c48e5f9eab1e2dd` SHA-256 `EBC92294A7B20FB08875AAAA26F54C4D5C52622C0C9B8F7887D6E83131E59ECD`，schema operations0、pendingKeys0、UI changes2；UI方案已有正式ID，目標view ID仍空、needsWrite=true。與程式Create階段對照，疑似savedquery Create故障，仍須唯讀診斷確認根因，不冒稱已定位。export及plan log SHA-256分別`1BAF9E8CD3E0C5F825E4C84CB4E51731C3D6A618130CE4A66655DF318452F85E`／`4C3F299F9B7BD5872FA447AB9616D42EDE2453F5820D5201AB01C6ADD979C8D7`。
+- VM原生Application事件只投影型別／錯碼／固定關鍵字，無任意message：SHA-256 `903B77E099E6C70AAE73607A3210DA8F5CBC9FC4AD2FFB03F86FC61F52A03DC7`；目前只見既有監控SQL例外，沒有本次savedquery的可歸因根因，不把它當修復方向。接續增加方案內只讀ValidateSavedQuery診斷，先離線測試再連測試組織。
+
+### 2026-11-28 16:16 Asia/Taipei (UTC+08:00) 執行期版面根因與已核定退路
+
+- 以 WinRM 再驗 D365APP01，唯讀複製已安裝供應商二進位至 repo 外 evidence；沒有載入／執行供應商 DLL，沒有啟用全機 tracing，PSSession finally 清理。Microsoft.Crm.ObjectModel.dll SHA-256 `5D5A884CF8854FD11020870DA59E1FE30A0148C60ADFD57A050A22CA0FBA94C4`；Microsoft.Crm.Core.dll `821EA346569A4CDD7017607033E3A2CA8ED9AE63EC4EF26F74F1BFFA00128665`。
+- 已安裝 ildasm 的靜態輸出證實 SavedQueryService.Create 先呼叫 ValidateSavedQuery，再呼叫 LayoutXmlValidator.ValidateLayoutXml；後者內嵌 runtime XSD 明列 grid icon／jump 必填，目前產生器正好缺這兩項。callback 拋 CrmException(string)，其已安裝實作固定錯碼 0x80040216，與實際 apply 相同；不是根據一般匯出 XSD 的 optional 猜測。抽出原始 runtime XSD SHA-256 `9481B46BC20C12693911FAB607257A035FBD3092CA6EBD8A51CE3A1018ECF15A`。
+- 真正取得 Microsoft Learn 官方 Create 範例（含 jump／icon）與匯出 XSD 作交叉參考；HTML SHA-256 分別 `F9F6BFF15DBBD4085B03E1EE56E65ACBF7C0C28432A1135447892B9FCC03BE8B`／`8DB5699F4311B695FF85D6E70851664279E26DBD0F253781C9AA79FDAD7D5896`。web 工具回空不能算取到頁面，以上是實際 HTTPS 200 保存的官方內容；runtime 與匯出契約不可混用。
+- 獨立合成 runtime 子集先在真產生器重現同型 FaultException<OrganizationServiceFault>：1失敗／6通過，RED log SHA-256 `A5933953672A0EB2722D76A2A6930998BBFCF0C42130272F98E2DFDD27FC8997`；僅新增 icon=1 與 jump=第一個已核准顯示欄位後，受影響生成器／公開CLI／診斷116/116，GREEN SHA-256 `41C124498C6865ACA48E484336D3A68F5DDF6AF7398AEE7E7B405595DA0A4AE1`。合成 fault不是新的實機 Create 證據；沒有改Fetch、scope、pending守門或寫入額度。
+- 新方案內唯讀診斷已實機驗證正式與最小 Fetch 皆成功；整案仍因額外版面讀取錯把「末頁仍帶 cookie」當續頁而失敗，不能稱整案通過。安全布林細分證實 page-cookie=True、page-more=False、page-overflow=False，log SHA-256 `35F19FEB0AAB0AC67E6FF8D46F345DD8F47DF7B571022E40A5F91F2746AAEEF3`。只會修正末頁cookie協定並維持16KiB UTF-8上限、單頁16列、身份／scope／重複拒絕，修前新測試已RED；不是把失敗當環境限制或略過診斷。
+- 已立即從整合工作樹讀取使用者新核定02A §12。剩餘一次修正後apply若成功照原驗收；若只在畫面失敗且結構讀回一致，才重產無畫面新plan、持鎖備份做三組織結構plan/apply/verify及結構Live3P，以完成（縮減）並將畫面延G1第一週。現階段尚未觸發，不先刪除UI方案、不擅自標完成、不先F3。
+- 子代理所交付唯讀診斷3檔已凍結及關閉；代理再次自行誤觸雙模型（Gemini403），不是原使用者指定ClaudeOnly核定閘門，也不把那次稱成功。後續主線遵守當下較高層作業要求並如實記錄實際模式與結果，外審尚待最終程式守門。
+
+### 2026-11-28 16:21 Asia/Taipei (UTC+08:00) 唯讀診斷修正與實機排除對照
+
+- 末頁cookie原協定誤判已同型RED→GREEN：保留MoreRecords=false、單頁16列、完整身份／scope／投影／重複拒絕。cookie先限字元再計UTF-8，最多16KiB、不重送、不輸出；另驗MoreRecords=true且小cookie仍拒絕。RED log SHA-256 `5DFD59120C40D1C12723B412ECB20CFECB53ABB357D70E6DDDBB394EBD3B1CE6`；最終相關119/119，SHA-256 `6D7447905A8FFF9762912AB5DB54FE2EC19280E75C34E52B66FD8ADC72A2A74A`。
+- 方案內固定goodshepherd20唯讀診斷最終1/1，正式Fetch／含主鍵最小Fetch均Validate成功，既有同表兩個公用view版面都具icon／jump；log SHA-256 `45832E3DE90E17567D660ED0656F51573017D95B58D59DBBA7EBA1B43DE37005`。這不驗證Layout Create，不冒充已建立、已發布或正式FS通過。
+- 新增runtime測試檔說明標題未符合既有機械契約，文件守門先報1失敗；只將資源段標明「資源所有權與隔離」後重驗，不更動檢查器或排除清單。上一輪一般9606/9606僅舊程式中途結果，不能沿用給後來新增的末頁cookie程式；最終凍結五檔後新全方案守門執行中。
+- 主線外部分析入口本輪同時請求兩端，Claude有可用輸出、無Critical／High，但只讀生成器diff及Probe，不冒稱涵蓋測試／Live owner；Gemini兩次遠端503，未完成雙模型、不是quota降級成功。最終安全審查仍待完整守門後覆蓋全部五檔及新plan。
+
+### 2026-11-28 16:26 Asia/Taipei (UTC+08:00) 最後修正後 apply 前的新三份計畫
+
+- goodshepherd20 `20261128-082039-4841868-6878de7769e949e5a87bbe2052f1c09c`：schema0／UI2，plan檔SHA-256 `6498FF50CB20514D060ABEAE4A2CBBD0B0A9C6E16E45973B615D5275E720255E`。這是部分套用後的新plan，未重用原164操作舊plan。
+- construction `20261128-082213-5347245-5a0b260208bd46edb587bd339e4c5ef8`：schema216／UI3，SHA-256 `BA7F5B2596808EE10EBDA0CD101CA4CD293E8D60B78361D94AAE3F658B89EFE9`。
+- association `20261128-082349-1625462-05dc3bed43a14d6888c398e9847e2718`：schema216／UI3，SHA-256 `3791D139FFF2CA84F36FC52DF1A85AA3C092947FE01932808F85BCCE368DC241`。
+- 三份皆唯讀成功，未使用額外apply額度。逐值核對與部分套用後／上次受審版的schema operations、organizationId、schemaHash、retainedOwnership欄位存在性及值、UI定義與正式ID完全相同；UI指紋是現況元件集合的ScopeHash；目標view尚未存在，plan不保存新XML本身，不能聲稱指紋已反映新XML。新XML另外以凍結生成器／測試manifest及實機唯讀摘要綁定。共同摘要SHA-256 `6642918251BAF8D62EE70C8AB08D84A910DF0946DBADCDF3CDBAEEA546C7AD70`。本機摘要最初假定所有組織都有retainedOwnership而KeyError，改為同時比較存在性和值；未改plan或產品驗證。
+- 三份將與凍結程式修正一起送最後安全審查。完整守門尚未結束，不提前放行；備份3/3及VERIFYONLY仍保留。整合工作樹已有02A§12草稿，遠端當時仍dadcf8b19，尚未把草稿稱已推送；使用者本輪直接授權亦已保存。
+
+### 2026-11-28 16:36 Asia/Taipei (UTC+08:00) 最終凍結程式完整守門
+
+- 最終五檔與凍結manifest逐位元組SHA相符（manifest SHA-256 `C1F02118DDAB1484C71BFE44572D1150D54E242B95FE4600EE45C10A7DBF349D`）。Release build exit0，log SHA-256 `B8AC9839F1DA1E91601FE4DBAF5F15FDD617E2A41C438524266BFCEC0AEB39B7`；完整一般測試28組件、9609通過／0失敗／0略過，log SHA-256 `7F33DF55E8C224E075514AE78C641326F95F58060B5B855997D27B0A5943585F`。
+- 文件說明2103／0，log SHA-256 `6A81E6F2B0AD5F31E654ACD3AF6CB8570C9E9F02BBC6EBDDBB8BC3FC3DDEDB34`；Changed編碼54檔、排除1、問題0，SHA-256 `E05714B875E76F992A8522D46F396345E9B7DEC149B9E5BB738C0EACB5A18F7B`；進度32／32，SHA-256 `C104CF7BCAF9184FF2E553777597205849369AD31166AA475E9D968C27C43433`；solution list exit0，SHA-256 `91B4F1D249BD45625A6A146C3D01E51705E6A0D7AEAF644A763E70B0A514BA2D`。本輪沒有新增csproj。
+- 依使用者免雙模型及02§4指定ClaudeOnly入口，送五檔完整安全審查、三份新plan共同核對，並要求補審既有pool修正；審查尚未結束，尚未放行apply或稱FS完成。後續若只有文件類變更，依02A§10.3沿用本次build／一般測試，仍重驗文件、編碼與進度。
+
+### 2026-11-28 16:37 Asia/Taipei (UTC+08:00) 最後安全審查與三計畫共同核對
+
+- 單模型（使用者指定 ClaudeOnly）第一輪可用，Critical 0／High 0；summary SHA-256 `ED26EB1B4870B6D697D9D3CDFF2F52F18540B0A05428023139B469C3D79197B6`；完整審查輸出 SHA-256 `1CFB6745D5C286B47F9B42EB0E3EEAFB4C6297039082871D958957403AD74902`。不是雙模型成功。
+- 審查明列五程式檔全部完整讀取且與凍結manifest相符；三份完整schema-plan逐份讀取且SHA相符；補審6558f5911的BoundedClientPool／DataverseTraceTests完整diff及Return／RemoveAndDispose周邊，未讀這兩檔整檔，不冒稱pool整體完整審查。另讀UiViewDeployment.Generate與SchemaPlanner ownership邊界。
+- 排除：vendor巨型IL dump、schema JSON整檔（僅grep ownership）、plan.md與RED／GREEN／全守門log全文；沒有重跑測試或實機。測試結果由主線原始log及凍結manifest另核對，不能把外審引用數字當獨立執行。
+- 新runtime測試是獨立子集不是完整vendor XSD；真XSD差分與正式Create仍各需自己的證據。診斷僅驗Fetch／結構觀察，不代表建立或發布。既有三份plan綁定現況、凍結generator另綁新XML，審查沒有把兩者混淆。
+- 合併前再做僅文件變更守門；完整build／一般測試沿用16:32凍結程式結果。apply前仍須重新核對遠端與整合、精確plan SHA、D365鎖、測試身分及備份；沒有提前使用最後一次重試。

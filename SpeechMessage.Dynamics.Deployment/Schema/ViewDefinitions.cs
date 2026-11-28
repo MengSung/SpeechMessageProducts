@@ -2,12 +2,15 @@
 檔案整體說明
 目的與定位：FS 的離線檢視表產生器，將分層 schema 中已核准的 SchemaView 轉為公用
 savedquery 所需的 FetchXml、LayoutXml 與 QueryType 純值候選。
-主要流程：先以實體／欄位白名單核對檢視，再固定產生 QueryType 0 的公用檢視；特殊
+主要流程：先以實體／欄位白名單核對檢視，再固定產生 QueryType 0 的公用檢視；grid
+明列 D365 9.1 執行期必填的 icon 與 jump，jump 僅使用已核准的第一個顯示欄位。
+匯出 solution 的寬鬆 XSD 不能取代 savedquery Create 的執行期版面契約。特殊
 QueryType 只能由既有資料庫元件更新，不能由本檔新建。所有 XML 均由 XDocument 建立，
 不拼接未驗證的 XML 標記。
 信任邊界與生命週期：輸入是單次分層 parser 已驗證的純值，不包含業務資料、使用者輸入、
 憑證或 SDK；輸出只存於呼叫端候選，沒有快取、背景工作或外部資源。
-驗證方式：ViewDefinitionTests 驗證欄位白名單、FetchXml／LayoutXml 欄位及特殊檢視拒絕；
+驗證方式：ViewDefinitionTests 驗證欄位白名單、FetchXml／LayoutXml 欄位及特殊檢視拒絕，
+UiRuntimeLayoutContractTests 以獨立執行期子集重現缺必填屬性的 SDK 故障型別與錯碼；
 這些離線結果不代表任何組織的 savedquery 已建立、啟用或發布。
 */
 using System;
@@ -83,8 +86,12 @@ internal static class ViewDefinitions
         var layout = new XDocument(new XElement("grid",
             new XAttribute("name", "resultset"),
             objectTypeCode is { } code ? new XAttribute("object", code) : null,
+            // runtime LayoutXmlValidator 要求兩者存在；不得依匯出 XSD 的 optional 誤判可省略。
+            // Columns 已通過同組織白名單，取第一個顯示欄位不新增未核准的查詢欄或資料。
+            new XAttribute("jump", view.Columns[0]),
             new XAttribute("select", "1"),
             new XAttribute("preview", "1"),
+            new XAttribute("icon", "1"),
             row));
         return new GeneratedView(
             0,
