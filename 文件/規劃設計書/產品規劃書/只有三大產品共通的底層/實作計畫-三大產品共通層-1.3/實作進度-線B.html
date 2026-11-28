@@ -2,7 +2,7 @@
 <!--
 檔案整體說明
 目的與定位：三大產品共通層實作計畫 1.3 的「線 B 即時進度」頁，讓使用者不必詢問就能看到這條線現在做到哪裡、是否還在工作、有沒有需要使用者的事。
-主要功能與流程：讀取同資料夾的「實作進度資料-線B.js」（每包合併時更新），以及本機 C:\ProgramData\SpeechMessage\lanes\live-B.js（由 %USERPROFILE%\.speechmessage\Update-3PLiveProgress.ps1 每分鐘產生，內容取自狀態檔、工作樹的 git 紀錄與 Codex 對話紀錄）；每 60 秒自動重新整理一次，可暫停。
+主要功能與流程：讀取同資料夾的「實作進度資料-線B.js」（每包合併時更新；另讀「實作進度資料-線A.js」，只用來顯示 02A §13 在兩線間移交的 F7、F9），以及本機 C:\ProgramData\SpeechMessage\lanes\live-B.js（由 %USERPROFILE%\.speechmessage\Update-3PLiveProgress.ps1 每分鐘產生，內容取自狀態檔、工作樹的 git 紀錄與 Codex 對話紀錄）；每 60 秒自動重新整理一次，可暫停。
 使用邊界與維護：本頁版面固定，兩條線都不改；只讀資料、不寫任何檔。即時資料只存在這台電腦，沒有開自動更新時會顯示「即時資料沒有在更新」。Codex 的說明已由產生器截短並遮罩疑似金鑰的字串。
 -->
 <html lang="zh-Hant-TW">
@@ -68,6 +68,7 @@ code{background:var(--tint);border-radius:4px;padding:0 4px}
 <p class="note">即時資料由 <code>%USERPROFILE%\.speechmessage\Update-3PLiveProgress.ps1</code> 產生（雙軌）：兩條線每完成一步會自動更新一次；你想看最新時，雙擊 <code>立即更新進度.cmd</code>（一次）或 <code>開始自動更新進度.cmd</code>（每分鐘，關視窗即停）。工作包狀態在每包合併時才更新。網頁只讀，不會影響 Codex。</p>
 </main>
 <script>document.write('<script src="實作進度資料-線B.js?t=' + Date.now() + '"><\/script>');</script>
+<script>document.write('<script src="實作進度資料-線A.js?t=' + Date.now() + '"><\/script>');</script>
 <script>document.write('<script src="file:///C:/ProgramData/SpeechMessage/lanes/live-B.js?t=' + Date.now() + '"><\/script>');</script>
 <script>
 'use strict';
@@ -121,11 +122,21 @@ code{background:var(--tint);border-radius:4px;padding:0 4px}
   const lvl = s => /（縮減）/.test(s) ? 'cut' : /^完成(（測試環境驗證）)?$/.test(s) ? 'done' : /^(自動測試通過|完成（自動測試通過）)/.test(s) ? 'auto' : s === '進行中' ? 'run' : 'todo';
   const badge = s => `<span class="badge b-${lvl(s)}">${esc(s)}</span>`;
   const cur = st['工作包'] || '';
-  $('wps').innerHTML = `<table><thead><tr><th>包</th><th>名稱</th><th>計畫日期</th><th>狀態</th><th>完成</th><th>提交</th><th>待補</th></tr></thead><tbody>${PLAN.map(p => {
-    const d = (data && data.packages && data.packages[p.id]) || {};
+  // 02A §13：F7 改由線 B，F9 由先空下來的線認領；以「狀態不是未開始」的那一邊為負責線，資料也從那一邊讀
+  const OTHER = LANE === 'A' ? 'B' : 'A';
+  const odata = (window.PROGRESS_LANES || {})[OTHER];
+  const MOVABLE = { F5: { to: null, name: '推播唯一出口', dates: '12/21～12/23' }, F7: { to: 'B', name: '公開圖片代管', dates: '12/24～12/28' }, F9: { to: null, name: '審核卡片', dates: '12/29～12/31' } };
+  const started = x => !!(x && x.status && x.status !== '未開始');
+  const ownerOf = id => { const mine = data && data.packages && data.packages[id], theirs = odata && odata.packages && odata.packages[id]; if (started(mine)) return LANE; if (started(theirs)) return OTHER; return MOVABLE[id].to || 'A'; };
+  const ROWS = PLAN.concat(Object.keys(MOVABLE).filter(id => !PLAN.some(p => p.id === id)).map(id => ({ id, name: MOVABLE[id].name, dates: MOVABLE[id].dates })));
+  $('wps').innerHTML = `<table><thead><tr><th>包</th><th>名稱</th><th>計畫日期</th><th>狀態</th><th>完成</th><th>提交</th><th>待補</th></tr></thead><tbody>${ROWS.map(p => {
+    const own = (p.id in MOVABLE) ? ownerOf(p.id) : LANE;
+    const src = own === LANE ? data : odata;
+    const d = (src && src.packages && src.packages[p.id]) || {};
     let s = d.status || '未開始';
-    if (s === '未開始' && cur.indexOf(p.id) === 0) s = '進行中';
-    return `<tr><td><b>${esc(p.id)}</b></td><td>${esc(p.name)}</td><td>${esc(p.dates)}</td><td>${badge(s)}</td><td>${esc(d.finished)}</td><td>${esc((d.commit || '').slice(0, 8))}</td><td>${esc(d.pending)}</td></tr>`;
+    if (own === LANE && s === '未開始' && cur.indexOf(p.id) === 0) s = '進行中';
+    const nm = p.name + (own !== LANE ? `（由線 ${own} 負責，02A §13）` : (!PLAN.some(q => q.id === p.id) ? `（02A §13 自線 ${OTHER} 移入）` : ''));
+    return `<tr><td><b>${esc(p.id)}</b></td><td>${esc(nm)}</td><td>${esc(p.dates)}</td><td>${badge(s)}</td><td>${esc(d.finished)}</td><td>${esc((d.commit || '').slice(0, 8))}</td><td>${esc(d.pending)}</td></tr>`;
   }).join('')}</tbody></table><p class="note">狀態在每包合併時更新；目前這一包依狀態檔顯示為「進行中」。</p>`;
 
   const cm = (live && live.git && live.git.unmerged) || [];
