@@ -6,7 +6,8 @@
 不負責組織資料、平台資料庫建置、網域轉接、防火牆或手機驗收，也不修改本機電腦設定。
 主要功能與流程：乾跑只回傳固定部署計畫，不發佈、不建立檔案或遠端連線。明確套用時，
 先從部署工具既有User Secrets精確取用goodshepherd20帳密，再以有界子程序發佈專案，
-產生無秘密的開發設定與網站設定；平台SQL固定使用Encrypt=Strict、TrustServerCertificate=False
+產生無秘密的開發設定與網站設定；只從已發佈的開發JSON白名單複製LIFF三項公開識別，
+缺項、未知鍵、錯型別或app與Login不符時在封裝前拒絕，其他區段不複製；平台SQL固定使用Encrypt=Strict、TrustServerCertificate=False
 與ProgramData中的公鑰憑證釘選路徑，憑證本身須由P0-2④在測試主機預先匯出，且不打包或複製。
 打包並計算雜湊；遠端每次命令
 先核對主機身分及系統管理員權限，再驗證固定內容根、獨占端口與精確萬用憑證。建立封閉的
@@ -92,14 +93,37 @@ function Get-Gs2PlatformConnectionString {
 }
 
 function New-Gs2DevelopmentSettings {
-    # JSON只保存測試組織網址與無密碼的整合登入連線字串；同一固定值也供web.config使用，避免設定分岔。
-    param([Parameter(Mandatory)][string]$ServerUrl)
+    # 只產生固定測試組織、無密碼平台連線及選用LIFF公開映射；不複製來源其他區段或秘密。
+    # 來源只在本次封裝中借用；每項先驗型別、界限與完整性，再逐值建立獨立候選，無reload或共享狀態。
+    param([Parameter(Mandatory)][string]$ServerUrl, [object]$LiffSettings)
     Assert-Gs2CrmUrl $ServerUrl
-    return [ordered]@{
+    $result = [ordered]@{
         CrmConnection = @{ ServerUrl=$ServerUrl }
         GoodShepherd2 = @{ AllowedDevelopmentOrganizations=@('goodshepherd20.speechmessage.com.tw') }
         ConnectionStrings = @{ Platform=(Get-Gs2PlatformConnectionString) }
     }
+    if ($PSBoundParameters.ContainsKey('LiffSettings')) {
+        $names = @('LoginChannelId', 'MessagingChannelKey', 'LiffId')
+        if ($null -eq $LiffSettings -or @($LiffSettings.PSObject.Properties).Count -ne 3) {
+            throw 'GS2_LIFF_PUBLIC_MAPPING_REJECTED'
+        }
+        $mapping = [ordered]@{}
+        foreach ($name in $names) {
+            $property = $LiffSettings.PSObject.Properties[$name]
+            if ($null -eq $property -or $property.Value -isnot [string]) {
+                throw 'GS2_LIFF_PUBLIC_MAPPING_REJECTED'
+            }
+            $mapping[$name] = [string]$property.Value
+        }
+        if ($mapping.LoginChannelId -cnotmatch '\A[0-9]{1,32}\z' -or
+            $mapping.MessagingChannelKey -cnotmatch '\A[0-9]{1,32}\z' -or
+            $mapping.LiffId.Length -gt 128 -or
+            $mapping.LiffId -cnotmatch ('\A' + [regex]::Escape($mapping.LoginChannelId) + '-[A-Za-z0-9_-]{1,95}\z')) {
+            throw 'GS2_LIFF_PUBLIC_MAPPING_REJECTED'
+        }
+        $result.Liff = $mapping
+    }
+    return $result
 }
 
 function Get-Gs2CrmCredential {
@@ -964,7 +988,16 @@ try {
         finally { $process.Dispose() }
     }
     $utf8 = [Text.UTF8Encoding]::new($false)
-    $development = New-Gs2DevelopmentSettings $CrmServerUrl
+    # 已發佈設定來自本工作樹；只讀有界JSON並擷取公開LIFF白名單，不攜出其他區段。
+    $publishedSettingsPath = Join-Path $publish 'appsettings.Development.json'
+    if ((Get-Item -LiteralPath $publishedSettingsPath).Length -gt 65536) { throw 'GS2_PUBLIC_SETTINGS_TOO_LARGE' }
+    $publishedSettings = [IO.File]::ReadAllText($publishedSettingsPath) | ConvertFrom-Json
+    $liffProperty = $publishedSettings.PSObject.Properties['Liff']
+    if ($null -eq $liffProperty) {
+        $development = New-Gs2DevelopmentSettings $CrmServerUrl
+    } else {
+        $development = New-Gs2DevelopmentSettings $CrmServerUrl -LiffSettings $liffProperty.Value
+    }
     $platformConnectionString = [string]$development.ConnectionStrings.Platform
     [IO.File]::WriteAllText((Join-Path $publish 'appsettings.Development.json'), (($development | ConvertTo-Json -Depth 4) + "`r`n"), $utf8)
     $webConfig = @'

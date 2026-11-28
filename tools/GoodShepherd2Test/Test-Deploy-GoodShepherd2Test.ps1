@@ -5,6 +5,8 @@
 目的與定位：本檔屬於線Ｂ的Ｆ２部署工具測試，只使用合成憑證與站台快照，保護乾跑不連線、
 憑證精確選取、固定內容路徑、端口獨占、壓縮檔輸入，以及Development JSON與web.config
 使用Encrypt=Strict和固定ServerCertificate公鑰釘選的契約，並不代表任何實機結果。
+另以公開LIFF映射驗證部署不遺失已核定的三項識別，只白名單複製純值，缺項、錯型別、
+未知鍵與app/login不符都拒絕；候選與來源不共用可變物件，不讀User Secrets或LINE。
 另以合成CRM帳密驗證只取用精確組織、不回退舊組織；集合替身驗證專用集區環境的兩鍵
 更新與精準回復，其他鍵保持不變且不輸出帳密。替身不代表IIS實際保存或worker繼承成功。
 提交生命週期案例直接執行部署切換與失敗回復片段，讓合成IIS物件在Commit後拒絕再次修改，
@@ -28,7 +30,7 @@ $tokens = $null
 $parseErrors = $null
 $ast = [System.Management.Automation.Language.Parser]::ParseFile($runnerPath, [ref]$tokens, [ref]$parseErrors)
 if ($parseErrors.Count -ne 0) { throw 'Deployment parser failed.' }
-foreach ($name in @('Select-Gs2Certificate', 'Assert-Gs2Topology', 'Assert-Gs2ArchiveName', 'Assert-Gs2CrmUrl', 'Get-Gs2CrmEnvironment', 'Test-Gs2CrmEnvironmentSnapshot')) {
+foreach ($name in @('Select-Gs2Certificate', 'Assert-Gs2Topology', 'Assert-Gs2ArchiveName', 'Assert-Gs2CrmUrl', 'Get-Gs2CrmEnvironment', 'Test-Gs2CrmEnvironmentSnapshot', 'Get-Gs2PlatformConnectionString', 'New-Gs2DevelopmentSettings')) {
     $definition = $ast.Find({
         param($node)
         $node -is [System.Management.Automation.Language.FunctionDefinitionAst] -and $node.Name -eq $name
@@ -722,6 +724,31 @@ $cases = [ordered]@{
         Assert-Condition ($parsed.ConnectionStrings.Platform -match 'Encrypt=Strict')
         Assert-Condition ($parsed.ConnectionStrings.Platform -match 'ServerCertificate=C:\\ProgramData\\SpeechMessage\\certs\\d365-9\.1-sql-strict-pin\.cer')
         Assert-Condition ($parsed.ConnectionStrings.Platform -notmatch '(?i)TrustServerCertificate\s*=\s*true')
+    }
+    DevelopmentSettings_PreservesDetachedPublicLiffMapping = {
+        $source = [pscustomobject]@{ LoginChannelId='2012805181'; MessagingChannelKey='2012804957'; LiffId='2012805181-synthetic' }
+        $settings = New-Gs2DevelopmentSettings 'https://goodshepherd20.speechmessage.com.tw/XRMServices/2011/Organization.svc' -LiffSettings $source
+        Assert-Condition ($null -ne $settings.Liff)
+        $source.LiffId = '2012805181-mutated'
+        $parsed = ($settings | ConvertTo-Json -Depth 4) | ConvertFrom-Json
+        Assert-Condition ($parsed.Liff.LoginChannelId -ceq '2012805181')
+        Assert-Condition ($parsed.Liff.MessagingChannelKey -ceq '2012804957')
+        Assert-Condition ($parsed.Liff.LiffId -ceq '2012805181-synthetic')
+        Assert-Condition (@($parsed.Liff.PSObject.Properties).Count -eq 3)
+        Assert-Condition ($parsed.ConnectionStrings.Platform -ceq $expectedPlatformSql)
+    }
+    DevelopmentSettings_InvalidPublicLiffMapping_IsRejected = {
+        $bad = @(
+            $null,
+            [pscustomobject]@{ LoginChannelId='2012805181'; MessagingChannelKey='2012804957' },
+            [pscustomobject]@{ LoginChannelId=2012805181; MessagingChannelKey='2012804957'; LiffId='2012805181-synthetic' },
+            [pscustomobject]@{ LoginChannelId='2012805181'; MessagingChannelKey='../channel'; LiffId='2012805181-synthetic' },
+            [pscustomobject]@{ LoginChannelId='2012805181'; MessagingChannelKey='2012804957'; LiffId='other-synthetic' },
+            [pscustomobject]@{ LoginChannelId='2012805181'; MessagingChannelKey='2012804957'; LiffId='2012805181-synthetic'; Token='synthetic-canary' }
+        )
+        foreach ($source in $bad) {
+            Assert-Rejected { New-Gs2DevelopmentSettings 'https://goodshepherd20.speechmessage.com.tw/XRMServices/2011/Organization.svc' -LiffSettings $source }
+        }
     }
     SessionRemoval_IsInsideFinally = {
         $tryStatement = $ast.Find({
