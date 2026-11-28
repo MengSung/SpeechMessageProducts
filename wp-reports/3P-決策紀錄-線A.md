@@ -86,3 +86,5 @@
 | 2026-11-28 16:37 Asia/Taipei (UTC+08:00) | FS | 最後安全外審與三份新plan共同核對已具可用輸出 | 依02§4及使用者免雙模型指定ClaudeOnly，完整五檔／三plan Critical0 High0；pool僅完整diff及周邊、不冒稱整檔。通過文件守門後合併再持鎖apply2/2 | summary SHA ED26EB1B4870B6D697D9D3CDFF2F52F18540B0A05428023139B469C3D79197B6；一般9609/9609 | 最後若UI-only故障且結構一致才依02A§12；不加額度、不原樣重試 |
 
 | 2026-11-28 16:52 Asia/Taipei (UTC+08:00) | FS | 等合併時線B已合入F12，新增平台new_testinvite導致舊plan失效 | 乾淨rebase9546a3086，自己的五檔SHA不變；重跑9953/9953及新三plan15／231／231，ClaudeOnly共同複核Critical0 High0；不動整合樹00／02A草稿 | 新manifest B204F4C9931F3D18A79560F456E461D787754A66F0D8773E83DE4EE2059D84EC；review02EAC74C06DDDCAAC54A40368F7211C1CD5B80EA40BC246524ADB81BF9C1760B | 核對備份／SHA及同步後才用最後apply2/2，保留§12條件 |
+
+| 2026-11-28 17:05 Asia/Taipei (UTC+08:00) | FS | 最後apply2/2已建立view及F12結構，但完整published metadata baseline+delta節點數守門失敗 | 後續只讀plan0／key0／UI0、published verify exit0；仍不等於完整wire基準一致。ClaudeOnly確認不是已證明UI-only，不套§12、不再寫入，通知計畫決策者並按§12.3只接F5離線一包 | apply A06278CCCFAF9E5590D126EF6A3D9B6B0DEADE5D8AF34D221E48E14F1C25AC4E；scope FDBF89808C7E190FAAF54D19EC94D94E5BD7CF5A98F7BB7E13C264652FE9E324 | 保留8表331欄累計新增及view／備份，不刪、不還原、不冒稱FS完成 |

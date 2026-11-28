@@ -368,3 +368,14 @@ FS無手機步驟；手機畫面集中M1。目前進度頁目視亦待補：先�
 - 單模型（使用者指定ClaudeOnly）可用，Critical0／High0；summary SHA-256 `02EAC74C06DDDCAAC54A40368F7211C1CD5B80EA40BC246524ADB81BF9C1760B`；輸出 `EE4824FADBD6E19AEE5E39D9CE7BEE105DE418AB0E4732FA0900C8DA9526EB62`。完整讀新三plan並逐項比對舊plan、完整讀F12 schema及入口分派；自己的五檔沿用先前完整審查，不冒稱此次重讀。主線另逐檔SHA證明相同。
 - 無live呼叫、未重跑測試；Apply引擎及TestTenants服務內部不在這次窄範圍重審內。計畫UI現況指紋與新XML繼續分開。主線已確認三份精確SHA與9953/9953完整守門，最後apply尚未開始。
 - 文件檢查2123／0、Changed81檔／排除1／問題0。後續僅文件差異依02A§10.3沿用16:50完整build／一般測試，再驗文件／編碼／進度後合併。
+
+### 2026-11-28 17:05 Asia/Taipei (UTC+08:00) 最後修正後apply2/2失敗：不符合已證明UI-only，轉02A§12.3
+
+- 修正與報告已快轉推送`837f2669299f3f84eeb27b63ee3e9b49dd4b910d`，ls-remote與本機整合HEAD逐值相同；合併前後保留整合工作樹三份既有未提交修改的SHA，未碰00／02A／他人.ccg。合併／push log SHA-256 `2B99272201F18EE9A47564EA5B2456E8ED54485A3B9B9D9C1A53028A3BDAAC2F`。
+- 最後修正後goodshepherd20 apply2/2使用受審精確新plan，持test-env-d365鎖及已驗備份；operation `20261128-085402-9526822-1bdc5eceb0f747f1a52dbe1d3b913280`，exit1／InvalidDataException，log SHA-256 `A06278CCCFAF9E5590D126EF6A3D9B6B0DEADE5D8AF34D221E48E14F1C25AC4E`。兩次修正後額度已用完，沒有第三次寫入重試；construction／association仍未apply。
+- icon／jump修正已通過真正savedquery Create邊界：平台view正式ID `07afd0c0-09eb-f111-8ccf-00155d007916`，XML hash `2AEE363D050B838CB12B721F8C581579D5AEDD3E2FA844E1E57A9FFD9D5DA287`，ledger已落檔。這不是整次apply成功。new_testinvite也已部分新增：before577表23133欄、after578表23168欄，不能稱零寫入。
+- 真正最後故障stack：`UiMetadataPublicationGuard.Equal:393`（純值節點數不等）→`Check:72`（published metadata vs初始baseline加寫前schema增量）→`SchemaDeploymentEngine.Apply:355`→`SchemaDeploymentCli.Run:100`。安全Exception.log SHA-256 `25259B0F63658E4D3D439023F1F1F7740BF04A62446595739B47B6EF9D12FB88`。未呼叫後續PublishXml；這句不代表SDK新建項目一定未發布，發布狀態以下列真讀回為準。
+- 另持D365一致性鎖做唯讀plan／export-metadata／verify，全部exit0，finally釋放鎖。新plan `20261128-085901-2207472-eafaa871730b4468b5c57a34b0eab3d4`，SHA-256 `7AE0B43ECD93082342E53D43A5D8FBE67216785BC1F7956FC78B23ACA0B86981`：schema0、pendingKeys0、UI0；這是候選現況。已發布verify exit0、所有alternate key Active，log SHA-256 `77E3F834A8472F89208BADA5844314D5BD9357DBB2699638B66C7A1A80B70DB5`。export snapshot `20261128-090010-2519519-6d3c20ab692b49ed8d5ce6b018ba8311` metadata SHA-256 `94A1B1FC0BBFC8C03E19C0055DCF9069DF822AE015C5A43723D22A886A239CAD`。
+- **上述已發布投影／XML驗證不能取代失敗的完整wire metadata基準比較。** baseline+delta的節點差異尚未定位；savedquery不屬RetrieveEntity(All)結構投影，而且同一Check在structure-only apply也會執行，不能因類名Ui或當時準備發布就假稱只屬畫面。
+- ClaudeOnly唯讀範圍分析結論「無法證明UI-only，§12不能啟動」，summary SHA-256 `FDBF89808C7E190FAAF54D19EC94D94E5BD7CF5A98F7BB7E13C264652FE9E324`，輸出 `7B15191F40CAF5685662C4C6A8919B8A00650657AD6217DB3C73B4240EE49430`。分析當時published verify尚未完成，其「結構從未發布／各項都無證據」不能沿用為最後事實；主線以後來exit0修正這部分。但完整baseline差異仍未知，UI-only結論仍不能成立；沒有已證實可修的Critical／High根因，不據猜測放寬guard。
+- 按02A§12.3在需要你協助.md記「通知」，待計畫決策者確認下一步；不刪UI方案／元件，不將FS標完成（縮減），90維持自動測試通過（實機待補）。允許接續**僅F5離線一包**；F3實機不提前，決定一到優先回FS。仍保留所有before／after／DB備份，無DB或VM還原。
