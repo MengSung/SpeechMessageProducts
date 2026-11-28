@@ -91,3 +91,7 @@
 | 2026-11-28 15:13 Asia/Taipei (UTC+08:00) | F12 | R9禁止Deployment自有HTTP；alias已刪後需可信menu續跑身份 | 在Core新增短命單Channel傳輸lease，不改守門；首次LINE副作用前以CurrentUser DPAPI綁org／產品／Channel／代碼原子存ID-only計畫 | 01 F12、02§10；所有新增檔隨本包守門／ClaudeOnly，不提交.ccg | SQL budget不啟worker；持整機及資源鎖，失敗保留計畫 |
 
 | 2026-11-28 15:36 Asia/Taipei (UTC+08:00) | F12 | 整合發現建構／清理雙故障遮原錯、CLI未指定期望時強制第一個Channel、以及無名額建立無法復原 | 保留原錯及清理錯Aggregate；配發仍由F3決定，CLI以實際Channel核對公開白名單；只有明確未配發、零邀請及零slot可略過LINE並精確清理。撤銷邀請後有界重盤點、取消保留manifest；LINE成功且計畫刪除後才SDK清理 | 01 F12；00隔離及失敗可追查；02 §10；RED→GREEN證據見F12報告；部署F12聚焦232/232 | 本輪尚未合併；保留既存manifest及DPAPI計畫，不放寬範圍；所有實機仍待FS／F3 |
+
+| 2026-11-28 15:40 Asia/Taipei (UTC+08:00) | F12／重基線 | 線A的FS新程式已推送，送審前同步 | 7檔逐位元組備份於C:\ProgramData\SpeechMessage\backups\lane-B\20261128-153853，全部SHA相同後只restore自己的CCG，重基線5c17e0f73並逐檔精確回放；唯一同檔差為已封存turns的LF→CRLF，內容相同且新舊兩版另存，不提交CCG | 02A §11；manifest SHA 940c7e490a704d592519f8c115f5aac7c4a4675737f3ba92d0104ac83faf8d67；replay SHA 0ea03a976549e15140b6beb9ceae95d9609163d25d5827027706cfb005fffeec | 備份保留至終點；原刪除狀態與7檔雜湊全部相同，未覆寫整合或線A工作樹，未stash/reset |
+
+| 2026-11-28 15:54 Asia/Taipei (UTC+08:00) | F12 | Claude兩次quota無輸出；本地自審發現F4通用SQL選項不等於F12平台部署授權 | 按02 §4如實標未取得外部審查；CLI增加固定VM／平台DB／整合身分／Strict pin拒絕關卡，再交既有F4 owner；未開SQL或改F4，CLI29案通過，修後完整守門重跑 | 02A §3；00正式／資料庫邊界；AGENTS真故障及原錯保留；本地review記錄 | 本輪尚未合併；保留原有F4設定相容性，僅F12命令嚴格限定測試平台，不放寬TLS或改正式設定 |

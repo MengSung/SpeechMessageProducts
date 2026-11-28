@@ -11,6 +11,7 @@ using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Data.SqlClient;
 using Microsoft.Xrm.Sdk;
 using Microsoft.Xrm.Sdk.Query;
 using SpeechMessage.Dynamics.Deployment.TestTenants;
@@ -163,6 +164,74 @@ public sealed class TestTenantCliTests
         Assert.Throws<InvalidDataException>(() => TestTenantCli.SelectChannel("GoodShepherd2", "2010000001", configuration));
         Assert.Throws<InvalidDataException>(() => TestTenantCli.SelectChannel("GoodButler", "2010000001", configuration));
         Assert.Equal("ThreeProducts:Line:GoodButler", TestTenantCli.SelectChannel("GoodButler", "2010000003", configuration));
+    }
+
+    /// <summary>清理預算只能寫指定測試平台資料庫；注入 CRM catalog、其他主機、弱 TLS、SQL 帳密或缺 pin 均須在 DI／SQL 入場前拒絕。</summary>
+    /// <param name="fault">各自獨立改變一個危險設定的合成故障，不接觸任何資料庫。</param>
+    [Theory]
+    [InlineData("catalog")]
+    [InlineData("host")]
+    [InlineData("tls")]
+    [InlineData("trust")]
+    [InlineData("credential")]
+    [InlineData("pin")]
+    [InlineData("missing-pin")]
+    [InlineData("attach")]
+    public void SchedulingOptions_RejectsNonPlatformOrUnpinnedConfiguration(string fault)
+    {
+        WithSyntheticPin(pin =>
+        {
+            var sql = StrictPlatformConnection(pin);
+            switch (fault)
+            {
+                case "catalog": sql.InitialCatalog = "goodshepherd20_MSCRM"; break;
+                case "host": sql.DataSource = "unapproved.invalid"; break;
+                case "tls": sql.Encrypt = SqlConnectionEncryptOption.Mandatory; break;
+                case "trust": sql.TrustServerCertificate = true; break;
+                case "credential": sql.IntegratedSecurity = false; sql.UserID = "synthetic-user"; break;
+                case "pin": sql.ServerCertificate = ""; break;
+                case "missing-pin": sql.ServerCertificate = pin + ".missing"; break;
+                case "attach": sql.AttachDBFilename = "synthetic.mdf"; break;
+                default: throw new InvalidOperationException();
+            }
+            Assert.ThrowsAny<ArgumentException>(() => TestTenantCli.CreateSchedulingOptions(
+                "GoodShepherd2", Guid.NewGuid(), sql.ConnectionString));
+        });
+    }
+
+    /// <summary>合法 Strict／既存公鑰路徑與固定平台設定可建立既有 F4 options，且其字串格式化仍遮罩所有連線內容。</summary>
+    [Fact]
+    public void SchedulingOptions_AcceptsOnlyBoundedStrictPlatformSettings()
+    {
+        WithSyntheticPin(pin =>
+        {
+            var organization = Guid.NewGuid();
+            var options = TestTenantCli.CreateSchedulingOptions("GoodShepherd2", organization, StrictPlatformConnection(pin).ConnectionString);
+            Assert.Equal("GoodShepherd2", options.Product);
+            Assert.Equal(organization, options.OrganizationId);
+            Assert.DoesNotContain(pin, options.ToString(), StringComparison.Ordinal);
+        });
+    }
+
+    /// <summary>只建構合成設定值，不開 SQL；TLS 公鑰內容驗證屬真正 SqlClient 握手，本案只測拒絕前置。</summary>
+    private static SqlConnectionStringBuilder StrictPlatformConnection(string pin) => new()
+    {
+        DataSource = "D365APP01", InitialCatalog = "GoodShepherd2Platform", IntegratedSecurity = true,
+        Encrypt = SqlConnectionEncryptOption.Strict, TrustServerCertificate = false, ServerCertificate = pin
+    };
+
+    /// <summary>案例只擁有隨機目錄與合成公鑰路徑；不使用真憑證，不將 byte 存入設定或日誌。</summary>
+    private static void WithSyntheticPin(Action<string> test)
+    {
+        var root = Path.Combine(Path.GetTempPath(), "f12-pin-" + Guid.NewGuid().ToString("N"));
+        Directory.CreateDirectory(root);
+        try
+        {
+            var pin = Path.Combine(root, "synthetic.cer");
+            File.WriteAllBytes(pin, [1]);
+            test(pin);
+        }
+        finally { Directory.Delete(root, recursive: true); }
     }
 
     /// <summary>生成的兩張真 PNG 可被 ZXing 解碼，不以檔案存在就假稱邀請可掃描。</summary>

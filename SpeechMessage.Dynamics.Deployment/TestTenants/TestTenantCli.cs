@@ -3,7 +3,7 @@
 目的與定位：F12 三產品測試租戶 CLI 的單命令組合根，只接受 create、invite 與 cleanup。
 主要流程：先完整驗證固定組織、產品、代碼與有界輸入，再經 ProductionGuard、整台電腦共用組織鎖及獨占 SDK lease；建立與清理委派 TestTenantService，邀請委派 TestInviteService 並明確交付 LIFF fragment 網址與 QR。
 信任與資料：LINE 金鑰僅來自 User Secrets 中明列測試 Channel，絕不載入複製的舊 Channel 或按資料庫第一列猜金鑰。LINE userId 不回顯、不入一般 log 或 manifest；邀請 token 僅存在指定交付網址及 QR。所有可變狀態只存單次命令。
-資源擁有權與隔離：SDK、鎖、短命 LINE client、DI budget scope 與 QR 圖像均有唯一 owner，按操作排空後反序釋放；取消不遺棄同步 SDK 或 HTTP。參數拒絕與額度耗盡使用固定文字，真正故障交外層共用診斷。離線 parser 與 owner 測試不能代表實機資料建立。
+資源擁有權與隔離：SDK、鎖、短命 LINE client、DI budget scope 與 QR 圖像均有唯一 owner，按操作排空後反序釋放；取消不遺棄同步 SDK 或 HTTP。SQL 預算只接受已核定測試 VM、GoodShepherd2Platform、Windows 整合身分、Strict 與存在且非 link 的公鑰 pin，不接受 CRM catalog、SQL 帳密或替代端點；TLS 真公鑰比較仍由 SqlClient 握手負責。參數拒絕與額度耗盡使用固定文字，真正故障交外層共用診斷。離線 parser 與 owner 測試不能代表實機資料建立。
 */
 using System;
 using System.Collections.Generic;
@@ -15,6 +15,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Data.SqlClient;
 using Microsoft.Crm.Sdk.Messages;
 using Microsoft.Xrm.Sdk;
 using LineMessagingProcessor.Core;
@@ -166,7 +167,7 @@ internal static class TestTenantCli
             throw new InvalidDataException("Test tenant Scheduling organization identity is invalid.");
         var services = new ServiceCollection();
         services.AddSingleton(diagnostics); // 外部 instance 註冊，不把借入 diagnostics 的 Dispose 責任交容器。
-        services.AddProductScheduling(new SchedulingOptions(command.Product, detail.OrganizationId, connection));
+        services.AddProductScheduling(CreateSchedulingOptions(command.Product, detail.OrganizationId, connection));
         var provider = services.BuildServiceProvider();
         owners.Add(provider.DisposeAsync);
         var scope = provider.CreateAsyncScope();
@@ -195,6 +196,31 @@ internal static class TestTenantCli
             owners.Add(() => { lease.Dispose(); return ValueTask.CompletedTask; });
             return lease;
         }
+    }
+
+    /// <summary>在 DI 或 SQL 入場前核對 F12 固定測試平台邊界，不能把僅有一般 TLS 檢查的 F4 options 當成部署授權。</summary>
+    /// <param name="product">先通過命令白名單的產品，交回既有 F4 options 再驗證。</param>
+    /// <param name="organizationId">由當次 SDK 伺服器讀回的正式組織 ID。</param>
+    /// <param name="connectionString">單命令借用的部署秘密，從不回顯或保存於靜態欄位。</param>
+    /// <returns>通過固定主機、平台 catalog、整合身分與 Strict pin 路徑的既有有界 F4 options；此處不開連線。</returns>
+    internal static SchedulingOptions CreateSchedulingOptions(string product, Guid organizationId, string connectionString)
+    {
+        var sql = new SqlConnectionStringBuilder(connectionString);
+        var approvedServer = new[] { "D365APP01", "D365APP01.speechmessage.com.tw", "192.168.50.20" }
+            .Contains(sql.DataSource, StringComparer.OrdinalIgnoreCase);
+        if (!approvedServer || !string.Equals(sql.InitialCatalog, "GoodShepherd2Platform", StringComparison.OrdinalIgnoreCase) ||
+            !sql.IntegratedSecurity || !string.IsNullOrEmpty(sql.UserID) || !string.IsNullOrEmpty(sql.Password) ||
+            sql.Encrypt != SqlConnectionEncryptOption.Strict || sql.TrustServerCertificate ||
+            !string.IsNullOrEmpty(sql.AttachDBFilename) || !string.IsNullOrEmpty(sql.FailoverPartner) || sql.UserInstance || sql.PersistSecurityInfo)
+            throw new ArgumentException("F12 cleanup requires the approved strict-pin test platform SQL deployment.");
+        var pin = sql.ServerCertificate;
+        if (string.IsNullOrWhiteSpace(pin) || pin.Length > 512 || !Path.IsPathFullyQualified(pin) || !File.Exists(pin))
+            throw new ArgumentException("F12 cleanup requires an existing absolute public certificate pin.");
+        Schema.SchemaDeploymentCli.EnsureNoLinks(pin);
+        var length = new FileInfo(pin).Length;
+        if (length is <= 0 or > 65536)
+            throw new ArgumentException("F12 cleanup certificate pin is outside its bounded public-file contract.");
+        return new SchedulingOptions(product, organizationId, sql.ConnectionString);
     }
 
     /// <summary>只核對伺服器配發的公開身分；未命中明列白名單就拒絕，絕不退回第一筆設定。</summary>
