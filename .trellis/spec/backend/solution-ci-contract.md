@@ -222,3 +222,14 @@ Plugin產物AssemblyRef與程序drain。完整方案每次同一快照同時驗R
 Validate及ValidateSource零違規。`R2_Inventory_IsEmptyAndResolved`與雙組態
 `R2_ChurchReport_PublicTypes_AreOnlyEntryControllerOrSignatureRequired`獨立防回歸。
 公開表面統計使用同次Roslyn分類的operation-local接收器，不維護人工允許大清單、不保存語意模型。
+
+## F7 Assets 精確架構分類（2026-11-28）
+
+`SpeechMessage.Assets` 是 net10 圖片共用引擎，精確登錄於既有第50層，
+和 Scheduling、Access、ASP.NET Core adapters 同層。產品主機可向下消費，
+同層互參、基礎層反向、共用層參考產品、雙目標核心引用net10單目標仍拒絕。
+不得以 Assets 名稱前綴、Tests 後綴或共用公開契約授予主機R2豁免。
+`SpeechMessage.Assets.Tests` 只由實際 `IsTestProject` 評估為測試，移除標記仍須拒絕。
+線A維護唯一架構來源與合成圖正反例；線B保留圖片程式與真方案評估所有權。
+完整守門不可和使用同一輸出目錄的實機部署並行：SDK載入的DLL會被Windows鎖住，
+此時建置失敗須保留，部署排空後完整重跑，不得列環境限制或刪除載入中的檔案。

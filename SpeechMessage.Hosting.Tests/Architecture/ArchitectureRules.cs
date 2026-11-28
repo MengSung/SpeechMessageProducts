@@ -19,6 +19,8 @@
  *   測試仍依 IsTest 分類，相似名稱不取得排程層級。本檔不實作或啟動排程產品。
  * - 線 A 將精確 SpeechMessage.Access 與 Scheduling 同列第 50 層，讓產品組合根向下使用 F8；
  *   同儕、反向、產品依賴、未知近似名稱與框架守門沿用原規則，不修改線 B 的權限模組。
+ * - F7 的 SpeechMessage.Assets 精確列為第 50 層純圖片共用引擎；產品向下使用，
+ *   同儕及反向參考仍拒絕，Assets.Tests 只由明確 IsTest 分類，不授予名稱前綴或R2公開例外。
  * - 檢查 NuGet 已選出的 Framework 相依，而不是只相信 csproj 宣告能提供 net462。
  * - 部署端 Plugin、Workflow 與精確 F3 平台 Plugin 都受同一個 v4.6.2 沙箱契約約束；平台公開面精確限制為兩個核定 IPlugin 入口。
  * - 以來源快照執行 R2 主機／Plugin 公開邊界、R3 組織字面值白名單及 R9 傳輸／Plugin 參考守門；
@@ -755,7 +757,8 @@ internal static class ArchitectureRules
         "LineMessagingProcessor" or "SpeechMessage.Payments.Workflows" => 35,
         "ToolUtility" or "LineMessagingProcessor.Workflows" or "LineMessagingProcessor.RichMenus" => 40,
         "LineMessagingProcessor.AspNetCore" or "SpeechMessage.Payments.AspNetCore"
-            or "SpeechMessage.Liff.AspNetCore" or "SpeechMessage.Scheduling" or "SpeechMessage.Access" => 50,
+            or "SpeechMessage.Liff.AspNetCore" or "SpeechMessage.Scheduling" or "SpeechMessage.Access"
+            or "SpeechMessage.Assets" => 50,
         "SpeechMessageProducts.GoodShepherd.Hosting" => 60,
         "SpeechMessageProducts.ChurchReport" or "SpeechMessageProducts.LineWebhook"
             or "SpeechMessageProducts.GoodShepherd2.Web" or "SpeechMessage.Dynamics.Plugins"
