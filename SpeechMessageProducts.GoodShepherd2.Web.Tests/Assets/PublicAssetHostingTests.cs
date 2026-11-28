@@ -43,6 +43,18 @@ public sealed class PublicAssetHostingTests
         if (head) Assert.Empty(bytes); else Assert.Equal(fixture.Png, bytes);
     }
 
+    /// <summary>共享測試網域須依原產品鍵提供已發布Logo；以真store及HTTP證明GoodButler／GoodGuild不被當作組織別名拒絕。</summary>
+    [Theory]
+    [InlineData("GoodButler")]
+    [InlineData("GoodGuild")]
+    public async Task Assets_CanonicalProductPaths_ReturnPublishedBytes(string product)
+    {
+        await using var fixture = await AssetHostFixture.StartAsync(product: product);
+        using var response = await fixture.Client.GetAsync(fixture.Asset.Url.AbsolutePath);
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.Equal(fixture.Png, await response.Content.ReadAsByteArrayAsync());
+    }
+
     /// <summary>正式PNG以外沒有可列舉或讀取的介面；包含穿越、暫存、副檔名偽裝及未知產品皆固定404。</summary>
     [Theory]
     [InlineData("/assets/")]
@@ -53,6 +65,8 @@ public sealed class PublicAssetHostingTests
     [InlineData("/assets/GoodShepherd2/{tenant}/logo.jpg")]
     [InlineData("/assets/GoodShepherd2/{tenant}/.upload-abc.tmp")]
     [InlineData("/assets/unknown/{tenant}/{name}")]
+    [InlineData("/assets/Construction/{tenant}/{name}")]
+    [InlineData("/assets/Association/{tenant}/{name}")]
     [InlineData("/assets/GoodShepherd2/{tenant}/0000000000000000-0000000000000000.png")]
     public async Task Assets_DirectoryAndInvalidPaths_AreNotPublished(string path)
     {
@@ -182,12 +196,12 @@ internal sealed class AssetHostFixture : IAsyncDisposable
     internal byte[] Png { get; }
 
     /// <summary>建立獨立圖片及只有記憶體合成設定的Program；不讀appsettings、User Secrets或程序環境。</summary>
-    internal static async Task<AssetHostFixture> StartAsync(bool configured = true, string publicBase = "https://assets.example/assets/")
+    internal static async Task<AssetHostFixture> StartAsync(bool configured = true, string publicBase = "https://assets.example/assets/", string product = "GoodShepherd2")
     {
         var root = Path.Combine(Path.GetTempPath(), "3p-f7-host-" + Guid.NewGuid().ToString("N"));
         Directory.CreateDirectory(root);
         var assets = Path.Combine(root, "public-assets");
-        var scope = new AssetScope("GoodShepherd2", Guid.NewGuid());
+        var scope = new AssetScope(product, Guid.NewGuid());
         WebApplicationBuilder? builder = null;
         WebApplication? app = null;
         HttpClient? client = null;

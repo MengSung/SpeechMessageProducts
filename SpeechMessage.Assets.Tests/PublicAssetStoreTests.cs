@@ -115,6 +115,33 @@ public sealed class PublicAssetStoreTests
         Assert.Empty(Directory.GetFiles(fixture.Root, "*", SearchOption.AllDirectories));
     }
 
+    /// <summary>共用層接收的是產品鍵而非組織名稱；好管家及好學會必須保留正式鍵於URL與實體路徑，不偷偷轉換為別名。</summary>
+    [Theory]
+    [InlineData("GoodButler")]
+    [InlineData("GoodGuild")]
+    public async Task PutLogo_CanonicalProductKeys_ArePreserved(string product)
+    {
+        await using var fixture = new AssetFixture();
+        using var input = AssetFixture.Source(Color.Green);
+        var scope = new AssetScope(product, Guid.NewGuid());
+        var asset = await fixture.Store.PutTenantLogoAsync(scope, input, default);
+        Assert.StartsWith("/assets/" + product + "/" + scope.TenantId.ToString("N") + "/", asset.Url.AbsolutePath, StringComparison.Ordinal);
+        Assert.True(File.Exists(fixture.File(asset)));
+    }
+
+    /// <summary>組織名稱不能冒充產品識別；拒絕舊候選別名時不讀取來源或建立任何租戶檔案。</summary>
+    [Theory]
+    [InlineData("Construction")]
+    [InlineData("Association")]
+    public async Task PutLogo_OrganizationAliases_AreRejected(string product)
+    {
+        await using var fixture = new AssetFixture();
+        using var source = new ControlledImageStream([], endless: true);
+        await Assert.ThrowsAsync<ArgumentException>(() => fixture.Store.PutTenantLogoAsync(new AssetScope(product, Guid.NewGuid()), source, default));
+        Assert.Equal(0, source.BytesRead);
+        Assert.Empty(Directory.GetFiles(fixture.Root, "*", SearchOption.AllDirectories));
+    }
+
     /// <summary>最終公開值必須為HTTPS PNG、640正方形且不超過300KiB／LINE一MiB；網址不含查詢、cookie或credential。</summary>
     [Fact]
     public async Task PutLogo_PublicUrlMeetsLineIconRules()
@@ -155,13 +182,13 @@ public sealed class PublicAssetStoreTests
     public async Task PutLogo_ConcurrentScopesStayDetached_AndImageAllocationsDrain()
     {
         await using var fixture = new AssetFixture(); var baseline = MemoryDiagnostics.TotalUndisposedAllocationCount;
-        var b = new AssetScope("Construction", Guid.NewGuid());
+        var b = new AssetScope("GoodButler", Guid.NewGuid());
         for (var i = 0; i < 6; i++)
         {
             using var aSource = AssetFixture.Source(Color.Red); using var bSource = AssetFixture.Source(Color.Blue);
             var results = await Task.WhenAll(fixture.Store.PutTenantLogoAsync(fixture.Scope, aSource, default), fixture.Store.PutTenantLogoAsync(b, bSource, default));
             Assert.Contains("/GoodShepherd2/" + fixture.Scope.TenantId.ToString("N") + "/", results[0].Url.AbsolutePath, StringComparison.Ordinal);
-            Assert.Contains("/Construction/" + b.TenantId.ToString("N") + "/", results[1].Url.AbsolutePath, StringComparison.Ordinal);
+            Assert.Contains("/GoodButler/" + b.TenantId.ToString("N") + "/", results[1].Url.AbsolutePath, StringComparison.Ordinal);
             using var aImage = await Image.LoadAsync<Rgba32>(fixture.File(results[0])); using var bImage = await Image.LoadAsync<Rgba32>(fixture.File(results[1]));
             Assert.Equal(Color.Red.ToPixel<Rgba32>(), aImage[200, 200]); Assert.Equal(Color.Blue.ToPixel<Rgba32>(), bImage[200, 200]);
         }

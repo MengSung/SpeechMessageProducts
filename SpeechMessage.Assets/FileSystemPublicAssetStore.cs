@@ -62,7 +62,7 @@ public sealed class FileSystemPublicAssetStore : IPublicAssetStore, IAsyncDispos
     {
         ArgumentNullException.ThrowIfNull(scope);
         ArgumentNullException.ThrowIfNull(image);
-        if (scope.Product is not ("GoodShepherd2" or "Construction" or "Association") || scope.TenantId == Guid.Empty)
+        if (scope.Product is not ("GoodShepherd2" or "GoodButler" or "GoodGuild") || scope.TenantId == Guid.Empty)
             throw new ArgumentException("A recognized product and tenant identity are required.", nameof(scope));
         lock (_gate)
         {

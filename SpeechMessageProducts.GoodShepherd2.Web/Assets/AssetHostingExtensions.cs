@@ -94,7 +94,7 @@ internal sealed class PublicAssetStartupFilter(AssetOptions options) : IStartupF
         if (path is null || path.Length > 128) return false;
         var parts = path.Split('/');
         if (parts.Length != 4 || parts[0].Length != 0 ||
-            parts[1] is not ("GoodShepherd2" or "Construction" or "Association") ||
+            parts[1] is not ("GoodShepherd2" or "GoodButler" or "GoodGuild") ||
             !Guid.TryParseExact(parts[2], "N", out var tenant) || tenant == Guid.Empty ||
             parts[2] != tenant.ToString("N")) return false;
         var name = parts[3];
