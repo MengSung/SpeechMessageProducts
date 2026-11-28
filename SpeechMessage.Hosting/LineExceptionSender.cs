@@ -5,7 +5,7 @@
 實際 HTTP 實作。只接受 diagnostics 已去識別化的文字，不提供業務使用者任意推播入口。
 
 主要功能與流程：
-建構時委派 Tenancy 取得環境→CRM 組織→預設頻道的單次 token，並讀取管理者收件人；
+建構時委派 Tenancy 取得環境→CRM 組織→預設頻道的單次 token，並讀取固定產品目的地，未設或空白則回原管理者收件人；
 後備收件人由產品組合根提供，本共用層不硬編碼任何產品或使用者 ID。
 每次 SendAsync 建立自有 Authorization／JSON request，headers-only 接收 response，
 不讀供應商本文；非成功狀態只拋固定失敗訊息，不記錄或通知自身故障。
@@ -47,12 +47,16 @@ public sealed class LineExceptionSender : IDisposable
     /// <param name="configuration">Host 已通過安全防護的啟動設定，只在建構時借用。</param>
     /// <param name="fallbackRecipient">產品組合根明確提供的舊管理者後備值；null 代表沒有後備。</param>
     /// <param name="transport">可選的受信任傳輸；成功建構後由本 sender 負責 Dispose。</param>
+    /// <param name="product">組合根固定部署產品；指定目的地非空白才優先，null完全沿用舊模式。</param>
     public LineExceptionSender(
         IConfiguration configuration,
         string? fallbackRecipient = null,
-        HttpMessageHandler? transport = null)
+        HttpMessageHandler? transport = null,
+        string? product = null)
     {
         ArgumentNullException.ThrowIfNull(configuration);
+        // 精確產品白名單；不從通知內容或HTTP選任意設定路徑。
+        _ = new ToolUtilityNameSpace.Diagnostics.ExceptionOutputOptions(false, false, product);
         var organization = configuration["CrmConnection:Organization"];
         if (!string.IsNullOrWhiteSpace(organization))
             organization = char.ToUpperInvariant(organization[0]) + organization[1..].ToLowerInvariant();
@@ -60,7 +64,9 @@ public sealed class LineExceptionSender : IDisposable
             configuration,
             string.IsNullOrWhiteSpace(organization) ? null : organization,
             LineChannelSelection.EnvironmentThenOrganizationThenDefault);
-        recipient = configuration["ExceptionNotifications:AdminLineUserId"] ?? fallbackRecipient ?? string.Empty;
+        var target = product is null ? null : configuration["ExceptionNotifications:Line:Targets:" + product];
+        recipient = !string.IsNullOrWhiteSpace(target) ? target :
+            configuration["ExceptionNotifications:AdminLineUserId"] ?? fallbackRecipient ?? string.Empty;
         client = new HttpClient(transport ?? CreateTransport(), disposeHandler: true)
         {
             Timeout = TimeSpan.FromSeconds(5)

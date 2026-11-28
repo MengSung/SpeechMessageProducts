@@ -1,10 +1,11 @@
 /*
 檔案整體說明
 目的與定位：好牧人 2.0 F2 的唯一 ASP.NET Core 組合根，只組裝固定產品的主機服務，不承接租戶或 LINE 事件業務。
-主要功能與流程：Main 依 DOTNET、ASPNETCORE、Production 選定環境，BuildApplication 先驗測試組織與禁止的外送設定，再由獨立註冊入口組合 Hosting、語系、ToolUtility 與共用 Webhook 管線，最後映射健康端點；F3 的單行 Channels 入口以固定路由接上共用原始本文驗簽接收器，不保留無條件成功的回呼。F6以單行Add入口註冊LIFF服務及固定分支；F4以單行入口註冊固定組織重驗與排程核心，未配置時明確拒絕且不開SQL，沒有dashboard或產品工作。F12 的單行入口僅在 Development 及明確開關啟用時註冊邀請加入，由獨立模組負責 token、租戶與交易重驗。詳細授權與資源責任由該模組負責，後續工作包各自維護Add入口。
+主要功能與流程：Main 依 DOTNET、ASPNETCORE、Production 選定環境，BuildApplication 先驗測試組織與禁止的外送設定，再由獨立註冊入口組合 Hosting、語系、ToolUtility 與共用 Webhook 管線，最後映射健康端點；F3 的單行 Channels 入口以固定路由接上共用原始本文驗簽接收器，不保留無條件成功的回呼。F6以單行Add入口註冊LIFF服務及固定分支；F4以單行入口註冊固定組織重驗與排程核心，未配置時明確拒絕且不開SQL，沒有dashboard或產品工作。F12 的單行入口僅在 Development 及明確開關啟用時註冊邀請加入，由獨立模組負責 token、租戶與交易重驗。F11由共用middleware加HTTP關聯scope及四項就緒probe。詳細授權與資源責任由該模組負責，後續工作包各自維護Add入口。
 使用邊界與維護：啟動設定只來自受信任部署來源，不從 request 選產品或組織。F7單行入口僅在配置齊全時註冊公開PNG唯讀分支及由DI唯一擁有的store，不提供匿名上傳；分支內自行交共用diagnostics。Build 成功後 WebApplication 接管組態，Main 是唯一啟停及非同步釋放 owner；不使用會自行 Dispose 主機的 RunAsync。以單次 ApplicationStopping 登錄等待停止，先記錄真正啟動失敗，再 Stop 排空及 Dispose；清理失敗不取代原始例外，登錄與主機均完整釋放。Build 失敗時呼叫端仍擁有組態。正常取消不告警，真正失敗交共用 diagnostics，無可用診斷 owner 的清理失敗走固定 stderr，不建立任何產品 LINE client。沒有 Session、跨使用者快取或自行建立背景 task；離線主機測試不代表 VM、D365、SQL 或 LINE 實機成功。
 */
 using System.Runtime.ExceptionServices;
+using SpeechMessage.Hosting.Observability;
 using SpeechMessageProducts.GoodShepherd2.Web.Health;
 using SpeechMessageProducts.GoodShepherd2.Web.Startup;
 using ToolUtilityNameSpace.Diagnostics;
@@ -118,9 +119,11 @@ public static class Program
         Channels.GoodShepherd2ChannelHosting.AddGoodShepherd2Channels(builder);
         Scheduling.GoodShepherd2SchedulingHosting.AddGoodShepherd2Scheduling(builder);
         Liff.GoodShepherd2LiffHosting.AddGoodShepherd2Liff(builder);
-        Liff.DevEnrollmentEndpoint.AddGoodShepherd2DevEnrollment(builder);
         Assets.AssetHostingExtensions.AddGoodShepherd2PublicAssets(builder);
+        Liff.DevEnrollmentEndpoint.AddGoodShepherd2DevEnrollment(builder);
+        Observability.GoodShepherd2ObservationHosting.AddGoodShepherd2Observation(builder);
         var app = builder.Build();
+        app.UseMiddleware<CorrelationIdMiddleware>();
         app.UseExceptionHandler(error => error.Run(context =>
         {
             context.Response.StatusCode = StatusCodes.Status500InternalServerError;

@@ -1,11 +1,13 @@
 /*
 檔案整體說明
 目的與定位：Hangfire固定可啟用的共用dispatcher，將持久化純值交給產品scoped validator及handler，不從job資料反射任意型別。
-主要功能與流程：每次取Host operation lease、工作SQL鎖及完整ledger，先驗generation與原始scope。完成的一次工作不重跑；同一次occurrence上次Running且結果不明則明確失敗，後續全新occurrence獨立執行，不被歷史故障永久封鎖。每次另建async DI scope重新查租戶狀態，成功且scope完整釋放後才發布Completed；正常速率延期交狀態filter重排。
+主要功能與流程：每次取Host operation lease、工作SQL鎖及完整ledger，先驗generation與原始scope。完成的一次工作不重跑；同一次occurrence上次Running且結果不明則明確失敗，後續全新occurrence獨立執行，不被歷史故障永久封鎖。每次另建async DI scope重新查租戶狀態，F11以固定job鍵及本次持久occurrence建立ILogger關聯scope，可選Host Meter涵蓋validator／handler及async scope釋放；成功且scope完整釋放後才發布Completed；正常速率延期交狀態filter重排。
 使用邊界與維護：工作鎖只限相同鍵，不把全產品序列化。payload與handler只活至單次操作；scope先DisposeAsync，然後SQL鎖／連線與Host lease釋放。停止取消保留明確Failed且不重送；真正失敗保留原Exception供安全告警，不將其訊息或InnerException交Hangfire持久化。
 */
 using Hangfire.Server;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
+using SpeechMessage.Hosting.Observability;
 using System.Security.Cryptography;
 using System.Text;
 
@@ -96,7 +98,7 @@ public sealed class ScheduledJobDispatcher
             var handlerReturned = false;
             try
             {
-                var result = await RunScopedAsync(key, scope, payloadJson, cancellationToken).ConfigureAwait(false);
+                var result = await RunScopedAsync(key, scope, payloadJson, occurrence, cancellationToken).ConfigureAwait(false);
                 handlerReturned = true;
                 Publish(result.DeferredUntil is null ? (result.Skipped ? "Skipped" : "Completed") : "Pending",
                     recurring ? null : TimeSpan.FromDays(30));
@@ -128,15 +130,20 @@ public sealed class ScheduledJobDispatcher
 
     /// <summary>新建單次async scope；清理失敗保留原始主要例外並另外交安全入口，不漏掉依賴釋放。</summary>
     private async Task<(bool Skipped, DateTimeOffset? DeferredUntil)> RunScopedAsync(
-        JobKey key, JobScope jobScope, string payload, CancellationToken ct)
+        JobKey key, JobScope jobScope, string payload, string occurrence, CancellationToken ct)
     {
         var scope = scopes.CreateAsyncScope();
+        IDisposable? observation = null;
+        IDisposable? correlationScope = null;
         Exception? primary = null;
         var handlerReturned = false;
         (bool Skipped, DateTimeOffset? DeferredUntil) result = default;
         try
         {
             var services = scope.ServiceProvider;
+            observation = services.GetService<HostingMeters>()?.TrackSchedulerJob();
+            correlationScope = services.GetService<ILoggerFactory>()?.CreateLogger<ScheduledJobDispatcher>()
+                .BeginScope(new Dictionary<string, object> { ["CorrelationId"] = CorrelationIds.ForJob(key.ToString(), occurrence) });
             var state = services.GetRequiredService<ScheduledJobExecution>();
             state.IsExecuting = true;
             var validator = services.GetRequiredService<IScheduledJobScopeValidator>();
@@ -165,6 +172,24 @@ public sealed class ScheduledJobDispatcher
             {
                 if (primary is null) primary = cleanup;
                 else runtime.Diagnostics.Report(cleanup, "Scheduling.Job.DisposeScope");
+            }
+            finally
+            {
+                try { observation?.Dispose(); }
+                catch (Exception cleanup)
+                {
+                    if (primary is null) primary = cleanup;
+                    else runtime.Diagnostics.Report(cleanup, "Scheduling.Job.DisposeObservation");
+                }
+                finally
+                {
+                    try { correlationScope?.Dispose(); }
+                    catch (Exception cleanup)
+                    {
+                        if (primary is null) primary = cleanup;
+                        else runtime.Diagnostics.Report(cleanup, "Scheduling.Job.DisposeCorrelation");
+                    }
+                }
             }
         }
         if (primary is not null)

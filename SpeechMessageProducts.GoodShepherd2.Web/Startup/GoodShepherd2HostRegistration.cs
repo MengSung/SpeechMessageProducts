@@ -1,7 +1,7 @@
 /*
 檔案整體說明
-目的與定位：集中好牧人 2.0 F2 的服務組合、共用診斷生命週期與尚未啟用的事件插槽，讓 Program 保持單一註冊入口。
-主要功能與流程：拒絕 legacy 設定映射與例外 LINE 外送；F3 的固定產品 D365 Channel 由獨立 Channels 入口接入；統一 ToolUtility 的兩個環境鍵為已驗 Host 環境，註冊固定 GoodShepherd2 管理器、Hosting、ICU／語系快照及有界 Webhook 管線。未配置 F3 時空驗簽器永遠拒絕；F3 設定完整時由正式驗簽器取代。產品事件處理器意外被呼叫則拋錯並由 queue 告警，不能靜默吃掉事件。
+目的與定位：集中好牧人2.0的服務組合與F11固定產品告警前綴、共用診斷生命週期與尚未啟用的事件插槽，讓 Program 保持單一註冊入口。
+主要功能與流程：拒絕 legacy 設定映射與例外 LINE 外送；F3 的固定產品 D365 Channel 由獨立 Channels 入口接入；統一 ToolUtility 的兩個環境鍵為已驗 Host 環境，註冊固定 GoodShepherd2 管理器及只借用該owner的全域租約觀測殼、Hosting、ICU／語系快照及有界 Webhook 管線。未配置 F3 時空驗簽器永遠拒絕；F3 設定完整時由正式驗簽器取代。產品事件處理器意外被呼叫則拋錯並由 queue 告警，不能靜默吃掉事件。
 使用邊界與維護：本檔不持有 Channel、token、Session 或 request 參照；F3 credential 快照由其獨立 owner 有界管理。診斷 lifetime 在所有管線服務之前註冊，Host 反向停止時先排空 HTTP／queue，再解除程序相容入口及釋放 diagnostics。DI 最終 Dispose 可重入相同清理工作；取消不能略過資源釋放。所有設定只活至目前 Host；不建立隱藏容器、sender、重試或額外背景 task。真實啟停回歸保護 owner 解除，實機驗證仍獨立列待補。
 */
 using ChurchReport.Logging;
@@ -9,6 +9,9 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 using LineMessagingProcessor.AspNetCore.Webhooks;
 using LineMessagingProcessor.AspNetCore.Webhooks.Queue;
 using SpeechMessage.Hosting;
+using SpeechMessage.Hosting.Observability;
+using SpeechMessageProducts.GoodShepherd2.Web.Observability;
+using ToolUtilityNameSpace.Dataverse;
 using ToolUtilityNameSpace.DependencyInjection;
 using ToolUtilityNameSpace.Diagnostics;
 
@@ -30,7 +33,7 @@ public static class GoodShepherd2HostRegistration
         ArgumentNullException.ThrowIfNull(configuration);
         ArgumentNullException.ThrowIfNull(environment);
         ArgumentNullException.ThrowIfNull(logging);
-        var output = ExceptionOutputOptions.FromConfiguration(configuration);
+        var output = ExceptionOutputOptions.FromConfiguration(configuration, GoodShepherd2Product.Name);
         if (output.SendLine || configuration.GetSection("LineWebhook:Channels").Value is not null ||
             configuration.GetSection("LineWebhook:Channels").GetChildren().Any() ||
             configuration.GetValue<bool>("LineWebhook:EnableLegacyCallback"))
@@ -44,6 +47,11 @@ public static class GoodShepherd2HostRegistration
         services.AddHostedService<GoodShepherd2DiagnosticsLifetime>();
         StartupGuards.ValidateIcuMode();
         services.AddSingleton(StartupGuards.ValidateLocalizationConfiguration(configuration, isProduction: false));
+        services.TryAddSingleton<HostingMeters>();
+        // 先登錄觀測殼，再讓ToolUtility建立唯一實際manager；測試明確注入的manager不被覆寫。
+        services.TryAddSingleton<IDataverseConnectionManager>(provider => new ObservedDataverseConnectionManager(
+            provider.GetRequiredService<DataverseConnectionManager>(), provider.GetRequiredService<HostingMeters>(),
+            provider.GetRequiredService<ExceptionDiagnostics>()));
         services.AddToolUtility(configuration, GoodShepherd2Product.Name);
         services.TryAddSingleton<IWebhookSignatureVerifier, InactiveSignatureVerifier>();
         services.AddScoped<IWebhookEnvelopeHandler, InactiveEnvelopeHandler>();

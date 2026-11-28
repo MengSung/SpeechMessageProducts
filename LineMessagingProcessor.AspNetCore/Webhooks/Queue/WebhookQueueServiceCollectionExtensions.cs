@@ -2,10 +2,12 @@
 檔案整體說明
 目的與定位：提供 queue 獨立組合入口，區分 DI 唯一 Dispose owner 與 Host 的非擁有轉接。
 主要功能與流程：IWebhookEventQueue descriptor 只建立一次 queue；轉接服務借用同一 instance，不註冊重複 Dispose 的 concrete alias。Starting 驗 handler、Stopping 拒收、Stop 等交接與排空，容器最後 Dispose。
-使用邊界與維護：集合只允許 Build 前單寫；重複 queue／選項拒絕。Host shutdown 至少四十五秒，涵蓋 P3-02 最多五秒提交、三十秒 drain 及合作清理。TimeProvider 與共用 diagnostics 外借，不持有 scoped handler、HTTP 或 credential；正式 handler 由 P3-06 提供，沒有預設成功實作。
+使用邊界與維護：集合只允許 Build 前單寫；重複 queue／選項拒絕。Host shutdown 至少四十五秒，涵蓋 P3-02 最多五秒提交、三十秒 drain 及合作清理。TimeProvider、可選Meter／logger與共用 diagnostics 外借，不持有 scoped handler、HTTP 或 credential；正式 handler 由 P3-06 提供，沒有預設成功實作。
 */
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
+using SpeechMessage.Hosting.Observability;
 using ToolUtilityNameSpace.Diagnostics;
 
 namespace LineMessagingProcessor.AspNetCore.Webhooks.Queue;
@@ -25,7 +27,8 @@ public static class WebhookQueueServiceCollectionExtensions
         services.AddSingleton(options ?? new WebhookQueueOptions());
         services.AddSingleton<IWebhookEventQueue>(provider => new BoundedWebhookEventQueue(
             provider.GetRequiredService<WebhookQueueOptions>(), provider.GetRequiredService<IServiceScopeFactory>(),
-            provider.GetRequiredService<ExceptionDiagnostics>(), provider.GetService<TimeProvider>()));
+            provider.GetRequiredService<ExceptionDiagnostics>(), provider.GetService<TimeProvider>(),
+            provider.GetService<HostingMeters>(), provider.GetService<ILoggerFactory>()));
         services.AddHostedService<QueueLifecycle>();
         services.PostConfigure<HostOptions>(host =>
         { if (host.ShutdownTimeout < TimeSpan.FromSeconds(45)) host.ShutdownTimeout = TimeSpan.FromSeconds(45); });

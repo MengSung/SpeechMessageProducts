@@ -121,3 +121,5 @@
 | 2026-11-28 23:53 Asia/Taipei (UTC+08:00) | F7 | 76c1d697完整守門10367／10367後正式ClaudeOnly C0／H0 | 依02 §4放行離線、02A狀態維持實機待補 | stdout 15a3dfeba9da30486d4f943ec0f5dbc54ad2c5b4626d5195c47ecf564c1a0f87 | 文件重驗後按合併鎖快轉推送；不重跑同程式樹 |
 
 | 2026-11-28 23:54 Asia/Taipei (UTC+08:00) | F10 | 同樹76c1d697完整10367／10367後正式ClaudeOnly C0／H0 | 診斷安全修補放行離線；Warning記之後再說 | stdout 1097937ad3f628397e2244fa71988ad426f9a8f6f6ac4bf1524d7d632ee9896d | 五沙箱／原子入帳／宿主sink保留待補；文件重驗後快轉推送 |
+
+| 2026-11-29 00:22 Asia/Taipei (UTC+08:00) | F11接回及F7／F10合併 | F7／F10已ff推送ee0224ad5，當時remote精確相同；本包只接回32個程式／專案檔，不重放舊90／JS／決策 | 保留F7 Program入口並集中F11單行組合，真F5／HTTP批次與400合成事件排空12／12；不把離線當實機 | 02A§11最後同步12／12回放；manifest72220bf1183b2a7936dfe3906104a1a4827c903afed2c598c0784cb63ca99d42、replay8105dd7f52ea21c3275b5279b0f9cc3df7b431e802a10d05196c88b1990c8da0 | 備份C:/ProgramData/SpeechMessage/backups/lane-B/20261128-235537保留至終點；新完整守門及ClaudeOnly後才合併F11 |

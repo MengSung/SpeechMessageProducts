@@ -1,7 +1,7 @@
 <!--
 檔案整體說明
 
-目的與定位：定義 net10 主機共用層的 MSBuild 邊界，集中啟動守門、例外診斷註冊與
+目的與定位：定義 net10 主機共用層的 MSBuild 邊界，集中HTTP追查、固定資源計數、啟動守門、例外診斷註冊與
 唯一診斷owner與相容轉接器的編譯設定。本基礎層只向Localization／Tenancy依賴，供主機與既有ToolUtility消費，不能反向參考產品主機、
 Plugin 或金流產品。
 
@@ -27,16 +27,8 @@ net462／Plugin 反向取得 net10 主機能力的參考。建置與測試由方
     <IsPackable>false</IsPackable>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Microsoft.Extensions.Configuration" />
-    <PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" />
-    <PackageReference Include="Microsoft.Extensions.Configuration.Binder" />
-    <PackageReference Include="Microsoft.Extensions.Configuration.EnvironmentVariables" />
-    <PackageReference Include="Microsoft.Extensions.Configuration.Json" />
-    <PackageReference Include="Microsoft.Extensions.Configuration.UserSecrets" />
-    <PackageReference Include="Microsoft.Extensions.DependencyInjection" />
-    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" />
-    <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" />
-    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" />
+    <!-- F11共用HTTP middleware使用受支援的共享框架，不加入舊版ASP.NET套件。 -->
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\SpeechMessage.Localization\SpeechMessage.Localization.csproj" />

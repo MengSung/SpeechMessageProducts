@@ -1,13 +1,15 @@
 /*
 檔案整體說明
 目的與定位：單一 Host 擁有的總量有界 Webhook queue，銜接 P3-02 claim 與 P3-06 scoped handler。
-主要功能與流程：依 channel／source 分區 FIFO，兩秒內取得全域槽位才 Commit，成功後發布 bounded Channel；每分區單 consumer，每事件獨立 async scope 及三十秒 CTS。
+主要功能與流程：依 channel／source 分區 FIFO，兩秒內取得全域槽位才 Commit，成功後發布 bounded Channel；每分區單 consumer，每事件獨立 async scope、事件關聯ILogger scope及三十秒 CTS；可選Host Meter租約與全域槽同時保留，完整清理才歸還。
 使用邊界與維護：permit 同時計入提交中、buffer 與執行中，合計不超 Capacity。未接管的 caller 等待者另限 Capacity，借用至兩秒期限或有界 Commit 完成，FIFO 節點只有訊號。停止先拒收、等 handoff、完成 writer、drain 三十秒、取消並等待合作清理，再排空本次停止專屬的計時器回呼，最後 Dispose。最長正常排隊為 Capacity 個有界 handler 的時間；沒有 user map、HTTP 或憑證。handler 必須合作取消及有界清理，CLR 無法強殺 task，本 owner 不遺棄仍使用 scope 的工作。真 Exception 交共用入口，測試以 barrier、假時鐘及計數驗證。
 */
 using System.Text.Json;
 using System.Threading.Channels;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
+using SpeechMessage.Hosting.Observability;
 using ToolUtilityNameSpace.Diagnostics;
 
 namespace LineMessagingProcessor.AspNetCore.Webhooks.Queue;
@@ -16,6 +18,8 @@ namespace LineMessagingProcessor.AspNetCore.Webhooks.Queue;
 public sealed class BoundedWebhookEventQueue : IWebhookEventQueue, IHostedService, IAsyncDisposable
 {
     private readonly object gate = new();
+    private readonly HostingMeters? meters;
+    private readonly ILogger? logger;
     private readonly WebhookQueueOptions options;
     private readonly TimeProvider clock;
     private readonly SemaphoreSlim capacity;
@@ -46,14 +50,19 @@ public sealed class BoundedWebhookEventQueue : IWebhookEventQueue, IHostedServic
     /// <param name="scopeFactory">Host 的 scope 工廠，不能是 request provider。</param>
     /// <param name="diagnostics">共用通知 owner，必須活至 queue drain 完成。</param>
     /// <param name="timeProvider">外借計時來源，缺省系統時鐘。</param>
+    /// <param name="meters">外借Host固定計數owner；每個成功保留槽持短命租約到完整處理／丟棄。</param>
+    /// <param name="loggerFactory">外借Host logging，不保存request；每事件scope在完整DI清理後關閉。</param>
     public BoundedWebhookEventQueue(WebhookQueueOptions options, IServiceScopeFactory scopeFactory,
-        ExceptionDiagnostics diagnostics, TimeProvider? timeProvider = null)
+        ExceptionDiagnostics diagnostics, TimeProvider? timeProvider = null,
+        HostingMeters? meters = null, ILoggerFactory? loggerFactory = null)
     {
         ArgumentNullException.ThrowIfNull(options);
         ArgumentNullException.ThrowIfNull(scopeFactory);
         ArgumentNullException.ThrowIfNull(diagnostics);
         this.options = options; this.scopeFactory = scopeFactory; this.diagnostics = diagnostics;
         clock = timeProvider ?? TimeProvider.System;
+        this.meters = meters;
+        logger = loggerFactory?.CreateLogger<BoundedWebhookEventQueue>();
         capacity = new SemaphoreSlim(options.Capacity, options.Capacity);
         partitions = Enumerable.Range(0, options.PartitionCount).Select(_ => new Partition(options.Capacity)).ToArray();
     }
@@ -122,6 +131,7 @@ public sealed class BoundedWebhookEventQueue : IWebhookEventQueue, IHostedServic
             turn = partition.Offers.AddLast(NewSignal());
             if (ReferenceEquals(partition.Offers.First, turn)) turn.Value.TrySetResult();
         }
+        IDisposable? meterLease = null;
         var reserved = false;
         var published = false;
         var committing = false;
@@ -137,6 +147,7 @@ public sealed class BoundedWebhookEventQueue : IWebhookEventQueue, IHostedServic
                 await capacity.WaitAsync(waiting.Token).ConfigureAwait(false);
                 reserved = true;
                 lock (gate) retained++;
+                meterLease = meters?.TrackWebhook();
                 waiting.Token.ThrowIfCancellationRequested();
                 committing = true;
                 await registration.CommitAsync(cancellationToken).ConfigureAwait(false);
@@ -144,10 +155,11 @@ public sealed class BoundedWebhookEventQueue : IWebhookEventQueue, IHostedServic
                 {
                     // writer 只在 handoffs 歸零後關閉。局部容量等於全域上限，permit
                     // 保證此處不會等待或失敗，不能傳入 caller token 撤銷已提交事件。
-                    if (!partition.Channel.Writer.TryWrite(envelope))
+                    if (!partition.Channel.Writer.TryWrite(new QueuedEvent(envelope, meterLease)))
                         throw new InvalidOperationException("Reserved webhook publication invariant failed.");
                     buffered++;
                     published = true;
+                    meterLease = null; // 已移交給有界channel，caller不再擁有此計數租約。
                 }
                 return true;
             }
@@ -161,6 +173,7 @@ public sealed class BoundedWebhookEventQueue : IWebhookEventQueue, IHostedServic
         {
             // 已完成的 Task 不應繼續保留 caller claim 或事件；成功資料只留 channel。
             registration = null!; envelope = null!;
+            meterLease?.Dispose();
             lock (gate)
             {
                 if (reserved && !published) { retained--; capacity.Release(); }
@@ -236,14 +249,15 @@ public sealed class BoundedWebhookEventQueue : IWebhookEventQueue, IHostedServic
         {
             while (await partition.Channel.Reader.WaitToReadAsync(processingStop.Token).ConfigureAwait(false))
             {
-                while (!processingStop.IsCancellationRequested && partition.Channel.Reader.TryRead(out var envelope))
+                while (!processingStop.IsCancellationRequested && partition.Channel.Reader.TryRead(out var queued))
                 {
                     lock (gate) { buffered--; active++; }
-                    try { await ProcessAsync(envelope).ConfigureAwait(false); }
+                    try { await ProcessAsync(queued.Envelope).ConfigureAwait(false); }
                     finally
                     {
-                        envelope = null!;
                         lock (gate) { active--; retained--; capacity.Release(); }
+                        queued.MeterLease?.Dispose();
+                        queued = null!;
                     }
                 }
             }
@@ -253,7 +267,8 @@ public sealed class BoundedWebhookEventQueue : IWebhookEventQueue, IHostedServic
         {
             lock (gate)
             {
-                while (partition.Channel.Reader.TryRead(out _)) { buffered--; retained--; capacity.Release(); }
+                while (partition.Channel.Reader.TryRead(out var abandoned))
+                { buffered--; retained--; capacity.Release(); abandoned.MeterLease?.Dispose(); }
                 workerCount--;
             }
         }
@@ -263,6 +278,8 @@ public sealed class BoundedWebhookEventQueue : IWebhookEventQueue, IHostedServic
     private async Task ProcessAsync(WebhookEnvelope envelope)
     {
         await using var cancellation = new WebhookEventCancellation(clock, diagnostics!, processingStop.Token);
+        using var correlationScope = logger?.BeginScope(new Dictionary<string, object>
+            { ["CorrelationId"] = envelope.CorrelationId });
         AsyncServiceScope scope = default;
         var ownsScope = false;
         try
@@ -343,16 +360,19 @@ public sealed class BoundedWebhookEventQueue : IWebhookEventQueue, IHostedServic
     }
 
     /// <summary>固定 channel 與短命交接訊號，沒有使用者字典或 request 參照。</summary>
+    /// <summary>一筆有界事件連同唯一計數租約；不能流出queue或由呼叫者重複釋放。</summary>
+    private sealed record QueuedEvent(WebhookEnvelope Envelope, IDisposable? MeterLease);
+
     private sealed class Partition
     {
         /// <summary>只有已提交 immutable envelope 會寫入，停止後必須排空。</summary>
-        internal readonly Channel<WebhookEnvelope> Channel;
+        internal readonly Channel<QueuedEvent> Channel;
         /// <summary>FIFO 節點只存訊號，總數由交接上限限制，返回時必定移除。</summary>
         internal readonly LinkedList<TaskCompletionSource> Offers = new();
         /// <summary>各 channel 容量為全域值，合計實際保留由唯一 semaphore 限制；禁止 drop／unbounded。</summary>
         internal Partition(int capacity)
         {
-            Channel = System.Threading.Channels.Channel.CreateBounded<WebhookEnvelope>(new BoundedChannelOptions(capacity)
+            Channel = System.Threading.Channels.Channel.CreateBounded<QueuedEvent>(new BoundedChannelOptions(capacity)
             { FullMode = BoundedChannelFullMode.Wait, SingleReader = true, SingleWriter = true, AllowSynchronousContinuations = false });
         }
     }

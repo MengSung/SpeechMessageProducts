@@ -2,7 +2,7 @@
  * 檔案整體說明
  *
  * 目的與定位：此檔真正由 SpeechMessage.Hosting 組件編譯，保留 ToolUtilityNameSpace.Diagnostics 供舊來源相容；ToolUtility 僅以型別轉送指向本唯一實作。
- * 例外目的地的不可變啟動快照；兩個開關可獨立組合，預設保持既有雙開行為。 僅保存布林值，不保存組態、request 或秘密；修改 appsettings 後須重啟 Host。
+ * 例外目的地的不可變啟動快照；兩個開關可獨立組合，預設保持既有雙開行為。 僅保存布林與固定產品識別，不保存組態、request 或秘密；修改 appsettings 後須重啟 Host。
  *
  * 主要功能與流程：
  * 本檔宣告 ExceptionOutputOptions。
@@ -24,7 +24,7 @@ namespace ToolUtilityNameSpace.Diagnostics;
 
 /// <summary>
 /// 例外目的地的不可變啟動快照；兩個開關可獨立組合，預設保持既有雙開行為。
-/// 僅保存布林值，不保存組態、request 或秘密；修改 appsettings 後須重啟 Host。
+/// 僅保存布林與固定產品識別，不保存組態、request 或秘密；修改 appsettings 後須重啟 Host。
 /// </summary>
 public sealed class ExceptionOutputOptions
 {
@@ -34,9 +34,15 @@ public sealed class ExceptionOutputOptions
     /// <summary>是否允許 LINE 入列；停用時不啟動 consumer 或建立通知 client。</summary>
     public bool SendLine { get; }
 
+    /// <summary>固定部署產品或null舊模式；只供通知前綴，不從HTTP、logger state或訊息決定。</summary>
+    public string? Product { get; }
+
     /// <summary>由部署組合根建立固定策略；雙開保序、單開僅執行所選項目、全關無輸出。</summary>
-    public ExceptionOutputOptions(bool writeExceptionLog = true, bool sendLine = true)
+    public ExceptionOutputOptions(bool writeExceptionLog = true, bool sendLine = true, string? product = null)
     {
+        if (product is not null and not "GoodShepherd2" and not "GoodButler" and not "GoodGuild")
+            throw new ArgumentException("A fixed supported deployment product is required.", nameof(product));
+        Product = product;
         WriteExceptionLog = writeExceptionLog;
         SendLine = sendLine;
     }
@@ -45,11 +51,11 @@ public sealed class ExceptionOutputOptions
     /// 只讀受信任部署的 ExceptionNotifications 區段；缺省為 true，無效布林拒絕啟動，
     /// 避免拼錯設定造成靜默關閉。回傳值不訂閱 reload，也不延長組態 provider 的生命。
     /// </summary>
-    public static ExceptionOutputOptions FromConfiguration(IConfiguration configuration)
+    public static ExceptionOutputOptions FromConfiguration(IConfiguration configuration, string? product = null)
     {
         ArgumentNullException.ThrowIfNull(configuration);
         return new ExceptionOutputOptions(
             configuration.GetValue("ExceptionNotifications:WriteExceptionLog", true),
-            configuration.GetValue("ExceptionNotifications:SendLine", true));
+            configuration.GetValue("ExceptionNotifications:SendLine", true), product);
     }
 }

@@ -1,7 +1,7 @@
 /*
 檔案整體說明
-目的與定位：驗證 F2/F3 真實 ASP.NET Core 組合根與 D365 就緒端點的離線契約，不連線任何外部組織、SQL 或 LINE。
-主要功能與流程：每案使用獨立暫存 content root、合成 SDK 與真實 Kestrel loopback 埠；以 WhoAmI 正常／失敗、取消及 Dispose 故障注入，確認只回安全狀態、故障先標記再歸還租約。Webhook 使用合成原始本文與無效簽章，確認 F3 移除事先注入的替身並使用真正 verifier／拒絕 resolver，必須回 401、不得回 200 或進入事件佇列；原始 bytes 與正確 secret 的正控制由 Channels 測試保護。重複啟停證明程序級診斷 owner 能解除後重新綁定。Main 案例以測試擁有的 listener 占用 loopback 埠，在獨立子程序重現啟動失敗，驗證原始例外不被已釋放容器的錯誤蓋掉。
+目的與定位：驗證 F2/F3/F11 真實 ASP.NET Core 組合根、D365 相容方法與四項就緒端點的離線契約，不連線任何外部組織、SQL 或 LINE。
+主要功能與流程：每案使用獨立暫存 content root、合成 SDK 與真實 Kestrel loopback 埠；F11啟停案例以正式D365 probe及明確未就緒的SQL／queue／Channel合成probe隔離外部I/O，驗四項ready的503不影響live。以 WhoAmI 正常／失敗、取消及 Dispose 故障注入，確認只回安全狀態、故障先標記再歸還租約。Webhook 使用合成原始本文與無效簽章，確認 F3 移除事先注入的替身並使用真正 verifier／拒絕 resolver，必須回 401、不得回 200 或進入事件佇列；原始 bytes 與正確 secret 的正控制由 Channels 測試保護。重複啟停證明程序級診斷 owner 能解除後重新綁定。Main 案例以測試擁有的 listener 占用 loopback 埠，在獨立子程序重現啟動失敗，驗證原始例外不被已釋放容器的錯誤蓋掉。
 使用邊界與維護：測試 collection 禁止與其他會綁定靜態診斷 owner 的案例並行；Host、HttpClient、組態與暫存資料由當案 finally／await using 清理。例外訊息使用合成 canary，實際 Exception.log 必須不含它。此測試只證明本機合成依賴及資源釋放，不代表實機 WhoAmI 或 LINE webhook/test 成功。
 */
 using System.Net;
@@ -18,6 +18,8 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Xrm.Sdk;
+using Microsoft.PowerPlatform.Dataverse.Client;
+using SpeechMessage.Hosting.Observability;
 using Microsoft.Crm.Sdk.Messages;
 using LineMessagingProcessor.AspNetCore.Webhooks;
 using LineMessagingProcessor.AspNetCore.Webhooks.Signatures;
@@ -248,7 +250,7 @@ public sealed class HostTests
         return Encoding.UTF8.GetString(bytes.ToArray());
     }
 
-    /// <summary>連續建立三個 Host，逐次確認 live、ready 與無效簽章拒絕，並證明 shutdown 解除上一個診斷 owner。</summary>
+    /// <summary>連續三個Host以正式D365 probe及其餘未就緒合成probe確認live200、ready503與無效簽章401，shutdown解除診斷owner且SDK歸還。</summary>
     [Fact]
     public async Task Host_HealthAndInvalidWebhook_RestartsWithoutRetainedOwner()
     {
@@ -264,8 +266,8 @@ public sealed class HostTests
                 var deduplicator = new Mock<IWebhookEventDeduplicator>(MockBehavior.Strict);
                 var queue = new Mock<IWebhookEventQueue>(MockBehavior.Strict);
                 var lease = new Mock<IClientLease>(MockBehavior.Strict);
-                var service = new Mock<IOrganizationService>(MockBehavior.Strict);
-                service.Setup(value => value.Execute(It.IsAny<WhoAmIRequest>())).Returns(Identity());
+                var service = new Mock<IOrganizationServiceAsync2>(MockBehavior.Strict);
+                service.Setup(value => value.ExecuteAsync(It.IsAny<WhoAmIRequest>(), It.IsAny<CancellationToken>())).ReturnsAsync(Identity());
                 lease.SetupGet(value => value.Service).Returns(service.Object);
                 lease.Setup(value => value.Dispose());
                 var manager = new Mock<IDataverseConnectionManager>(MockBehavior.Strict);
@@ -275,6 +277,13 @@ public sealed class HostTests
                 builder.Services.AddSingleton(deduplicator.Object);
                 builder.Services.AddSingleton(queue.Object);
                 builder.Services.AddSingleton(manager.Object);
+                builder.Services.AddSingleton(provider => new ReadinessChecks(ct =>
+                {
+                    var type = typeof(Program).Assembly.GetType("SpeechMessageProducts.GoodShepherd2.Web.Health.GoodShepherd2Readiness")!;
+                    return Assert.IsAssignableFrom<Task<bool>>(type.GetMethod("CheckD365Async", BindingFlags.NonPublic | BindingFlags.Static)!.Invoke(
+                        null, new object[] { manager.Object, provider.GetRequiredService<ExceptionDiagnostics>(), Guid.Empty, ct }));
+                }, _ => Task.FromResult(false), _ => Task.FromResult(false), _ => Task.FromResult(false),
+                    provider.GetRequiredService<ExceptionDiagnostics>()));
                 await using var app = Program.BuildApplication(builder);
                 await app.StartAsync();
                 try
@@ -285,7 +294,8 @@ public sealed class HostTests
                     using var live = await client.GetAsync(new Uri("/health/live", UriKind.Relative));
                     Assert.Equal(HttpStatusCode.OK, live.StatusCode);
                     using var ready = await client.GetAsync(new Uri("/health/ready", UriKind.Relative));
-                    Assert.Equal(HttpStatusCode.OK, ready.StatusCode);
+                    Assert.Equal(HttpStatusCode.ServiceUnavailable, ready.StatusCode);
+                    Assert.Equal("{\"failed\":[\"sql\",\"queue\",\"channels\"]}", await ready.Content.ReadAsStringAsync());
                     using var content = new StringContent(body, Encoding.UTF8, "application/json");
                     using var request = new HttpRequestMessage(HttpMethod.Post, new Uri("/webhook/1234567890", UriKind.Relative))
                     {
@@ -431,6 +441,19 @@ public sealed class HostTests
             Assert.Throws<InvalidOperationException>(() => Program.BuildApplication(builder));
         }
         finally { ((IDisposable)builder.Configuration).Dispose(); }
+    }
+
+    /// <summary>正式組合根將全部manager consumer接到同一觀測殼；建立與解析描述子不開SDK連線，DI各owner確定釋放。</summary>
+    [Fact]
+    public async Task Host_DefaultManager_UsesSingleObservedOwner()
+    {
+        var builder = Builder(Path.GetTempPath());
+        builder.Configuration["CrmConnection:Username"] = "synthetic-service";
+        await using var app = Program.BuildApplication(builder);
+        var manager = app.Services.GetRequiredService<IDataverseConnectionManager>();
+        Assert.Equal("ObservedDataverseConnectionManager", manager.GetType().Name);
+        Assert.Same(manager, app.Services.GetRequiredService<IDataverseConnectionManager>());
+        Assert.Equal(0, app.Services.GetRequiredService<HostingMeters>().GetSnapshot().DataverseLeasesActive);
     }
 
     /// <summary>只建立與本案分離的 Deployment 快照；避免讀真實 User Secrets 或修改程序環境。</summary>

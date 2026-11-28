@@ -4,6 +4,7 @@
  * 目的與定位：此檔真正由 SpeechMessage.Hosting 組件編譯，保留 ToolUtilityNameSpace.Diagnostics 供舊來源相容；ToolUtility 僅以型別轉送指向本唯一實作。
  * Debug／Release 共用的錯誤輸出 owner，依啟動快照獨立啟用檔案與 LINE。 雙開先完成 JSONL 落檔及 flush 再放入最多 64 筆的 LINE 佇列；LINE-only 不寫檔。
  * 不保存例外、請求、身分或驗證資料。 每個部署目錄最多保留目前檔與五份備份，單筆不超過 4 KiB；正常路徑不執行任何 I/O。
+ * F11固定產品僅在sender呼叫前加前綴，queue／檔案仍是原安全JSON，通知失敗沿同一incident記狀態。
  * P5-12 的失敗彙總另有純值白名單入口，只接受已核定教會 GUID、筆數與封閉 UTC 窗，
  * 沿用同一 Write／flush／有界通知管線，不把動態摘要塞進 exception.Message 或 operation。
  * F3 沙箱 outbox 另以 ReportPersistedFailure 傳入穩定 incident、原始 UTC、固定產品與操作；
@@ -410,7 +411,8 @@ public sealed class ExceptionDiagnostics : IAsyncDisposable
                 {
                     // sender 路徑若透過任何 ILogger 再報錯，只允許落檔，避免背景工作互相生出告警。
                     _sending.Value = true;
-                    await sender(message, timeout.Token).ConfigureAwait(false);
+                    var outgoing = _outputOptions.Product is { } product ? "[" + product + "] " + message : message;
+                    await sender(outgoing, timeout.Token).ConfigureAwait(false);
                 }
                 catch
                 {

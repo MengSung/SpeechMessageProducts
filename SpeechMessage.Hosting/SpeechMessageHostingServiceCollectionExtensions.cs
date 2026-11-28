@@ -110,7 +110,7 @@ public static class SpeechMessageHostingServiceCollectionExtensions
     }
 
     /// <summary>
-    /// 單一容器建構期的不可變標記；自建模式只保留標準部署路徑及布林快照，
+    /// 單一容器建構期的不可變標記；自建模式只保留標準部署路徑、固定產品及布林快照，
     /// 借用模式只保存同一owner／adapter參考，不延長至其他容器，也不擁有其資源。
     /// </summary>
     private sealed class RegistrationState(
@@ -128,6 +128,7 @@ public static class SpeechMessageHostingServiceCollectionExtensions
                 OperatingSystem.IsWindows() ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal) &&
             _options?.WriteExceptionLog == other._options?.WriteExceptionLog &&
             _options?.SendLine == other._options?.SendLine &&
+            string.Equals(_options?.Product, other._options?.Product, StringComparison.Ordinal) &&
             ReferenceEquals(_owner, other._owner) && ReferenceEquals(_adapter, other._adapter);
     }
 }
