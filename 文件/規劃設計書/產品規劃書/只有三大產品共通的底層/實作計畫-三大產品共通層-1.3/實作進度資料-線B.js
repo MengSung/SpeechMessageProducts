@@ -7,12 +7,12 @@
 window.PROGRESS_LANES = window.PROGRESS_LANES || {};
 window.PROGRESS_LANES.B = {
   lane: 'B',
-  lastUpdated: '2026-11-28T23:53:18+08:00',
+  lastUpdated: '2026-11-28T23:54:23+08:00',
   packages: {
     F7: { status: '自動測試通過（實機待補）', started: '2026-11-28 22:18', finished: '', commit: '76c1d697a626108df3be67e121914377bcf7ceca', pending: 'Assets29／29、HTTP23／23、部署28與完整10367／10367、ClaudeOnly C0／H0；待快轉。實機待補：公開HTTPS PNG、F5 c123 icon發送LINE200及清理；FS／F3外部相依，手機留M1。', report: 'wp-reports/3P-F7-公開圖片代管.md' },
     F9: { status: '未開始', started: '', finished: '', commit: '', pending: '2026-11-28 22:28依02A §13由線B成功取得claim-F9.lock；尚未實作。', report: '' },
     P0: { status: '自動測試通過（實機待補）', started: '2026-11-25 22:12', finished: '', commit: '811669559982a904f84636b831146a15c7899956', pending: 'P0-2④平台SQL已Strict釘選、最小DB權限、SQL端AppPool原始及有效SID／DB=7與錯誤／缺檔拒絕；P0-3公開live／ready200，原Node路由與CRM302核實。彙總依02A保留實機待補：線A FS／F3及F2 T01相依；本項不需重交秘密或重跑P0-3。', report: 'wp-reports/3P-P0-前置.md' },
-    F10: { status: '自動測試通過（實機待補）', started: '2026-11-26 00:23', finished: '', commit: 'c26fb83670af1f34900819e269b3a6a75c334b01', pending: '診斷遮罩c26fb836完整10001/10001、Payments162/162；不可見分隔字元安全補驗中。五項沙箱／隔日查詢、V2.6核對、最終原子入帳及亂序終態、宿主sink仍待補。前輪失敗與重跑證據均保留，未改斷言或排除測試；browser不可用，未宣稱目視通過。', report: 'wp-reports/3P-F10-永豐補強.md' },
+    F10: { status: '自動測試通過（實機待補）', started: '2026-11-26 00:23', finished: '', commit: 'b7cdafb39', pending: 'Unicode純量／鍵名及非十進位數值診斷修補，Payments178／178、同樹76c1d697完整10367／10367、ClaudeOnly C0／H0；待快轉推送。五沙箱／隔日查詢、V2.6、原子入帳亂序終態及宿主sink待補；保留原Shadow鎖失敗證據，未改篩選或豁免。', report: 'wp-reports/3P-F10-永豐補強.md' },
     F2: { status: '自動測試通過（實機待補）', started: '2026-11-26 04:16', finished: '', commit: '811669559982a904f84636b831146a15c7899956', pending: '自動測試通過（實機待補）；本輪部署修正後重試1/2成功，公開live／ready200、SQL端AppPool原始SID／有效SID／DB=7，wrong與missing拒絕；同步d8fc8c22e後一般9516/9516、ClaudeOnly補審無Critical／High。外部阻擋：T01 webhook/test401，F3目錄未配置且FS／F3未實機；不改回無條件200，不連複製舊Channel。', report: 'wp-reports/3P-F2-主機骨架.md' },
     F6: { status: '自動測試通過（實機待補）', started: '2026-11-26 13:04', finished: '', commit: '6ede902e1d88198cc1885d65e1d14e303480c5e3', pending: '公開LIFF部署補正通過：PS7／PS5各26案、完整9516/9516、ClaudeOnly無Critical／High；雙鎖部署及F6唯讀Live3P2/2，頁面／JS與本線雜湊一致，app映射正確、匿名401且無cookie，Host真平台SQL選擇表startup通過。外部阻擋：FS／F3租戶／Channel／角色、T01成功及M1真身分與跨租戶手機；不以匿名401冒稱真登入。', report: 'wp-reports/3P-F6-LIFF身分.md' },
     F4: { status: '自動測試通過（實機待補）', started: '2026-11-26 14:11', finished: '', commit: 'cb36af9b', pending: '原離線37案及全方案8026/8026、第三輪ClaudeOnly無Critical／High保留。平台SQL與公開live／ready已實機通過，不再列缺環境；VM Scheduling尚未配置，F4 Live3P未通過。外部阻擋：02A§5明列須先T01成功及FS／F3真租戶狀態／名額／Channel；相依完成後優先啟用權威組織配置並驗遠端SQL排程生命週期，不以F6 SQL或LocalDB代替。', report: 'wp-reports/3P-F4-通用排程器.md' },
@@ -21,6 +21,7 @@ window.PROGRESS_LANES.B = {
     F11: { status: '未開始', started: '', finished: '', commit: '', pending: '', report: '' },
   },
   log: [
+    '2026-11-28 23:54 Asia/Taipei (UTC+08:00)｜F10診斷修補正式ClaudeOnly C0／H0；Payments178／178、同樹76c1d697完整10367／10367。非阻擋Warning記之後再說，五沙箱與最終入帳、宿主sink維持待補。',
     '2026-11-28 23:53 Asia/Taipei (UTC+08:00)｜F7正式ClaudeOnly C0／H0，完整10367／10367；程式76c1d697，待快轉推送。公開PNG及F5帶icon實機未做，手機留M1。',
     '2026-11-28 20:56 Asia/Taipei (UTC+08:00)｜F10診斷最後程式c26fb836：不可見格式／組合字元先RED後修，Payments162/162、完整10001/10001、0失敗略過。安全補驗中；五項實機、V2.6與最終入帳條件仍未完成。',
     '2026-11-28 20:34 Asia/Taipei (UTC+08:00)｜F10第二輪C0/H0後再以十案真RED收緊中短Token、各種標點PAN及sign；200b674a聚焦158/158。F5準備合併，先同步後對新基線完整守門與第三輪審查。',

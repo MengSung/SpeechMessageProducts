@@ -119,3 +119,5 @@
 | 2026-11-28 23:36 Asia/Taipei (UTC+08:00) | F7／F10同步 | C:\ProgramData\SpeechMessage\backups\lane-B\20261128-233622，10檔逐bytes保全 | 跨磁碟rename先被Windows拒絕、尚未rebase；保留已核對備份後改用跨磁碟移動續跑，rebase整合d5e310d2成功；10檔精確回放 | manifest b0f654663ffe4d489eafcda47578a1e07abba427b5e3bb31392cd18ad8b842ff；replay 7e43b0d996d0329a31a6358fd0164ca271d0949540a03bdc22ade5614037293d | 不提交CCG，完整守門後正式審查 |
 
 | 2026-11-28 23:53 Asia/Taipei (UTC+08:00) | F7 | 76c1d697完整守門10367／10367後正式ClaudeOnly C0／H0 | 依02 §4放行離線、02A狀態維持實機待補 | stdout 15a3dfeba9da30486d4f943ec0f5dbc54ad2c5b4626d5195c47ecf564c1a0f87 | 文件重驗後按合併鎖快轉推送；不重跑同程式樹 |
+
+| 2026-11-28 23:54 Asia/Taipei (UTC+08:00) | F10 | 同樹76c1d697完整10367／10367後正式ClaudeOnly C0／H0 | 診斷安全修補放行離線；Warning記之後再說 | stdout 1097937ad3f628397e2244fa71988ad426f9a8f6f6ac4bf1524d7d632ee9896d | 五沙箱／原子入帳／宿主sink保留待補；文件重驗後快轉推送 |
