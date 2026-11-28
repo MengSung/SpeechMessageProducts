@@ -31,6 +31,9 @@
  * 擁有權與隔離：一次命令最多一個OrganizationLease，寫入命令另持本機同組織OS檔案鎖；
  * using先歸還client再釋放寫鎖。所有命令資料與輸出目錄均為本次操作，沒有跨命令SDK、
  * credential、request、Session或可變結果快取；secretReader僅在真正寫入設定瞬間解析。
+ * 合成 shadow 測試另有 internal 接縫，只接受外部測試替身及 Temp 子樹，將共享鎖隔離在
+ * 案例根的固定子目錄；正式 Run／RunWithInput／RunWithCatalog 永遠使用 ProgramData 共用鎖。
+ * 接縫沒有命令列或環境變數開關，不能由產品呼叫端以 artifactRoot 隱式改變互斥邊界。
  *
  * 失敗與限制：正常caller取消回130且不通知；真正例外在lease已歸還後交注入的共用report，
  * seed與Live準備識別包裝會先還原原始內層例外供report分類；LIVE-PREP 固定碼只列有界識別，
@@ -106,6 +109,64 @@ internal static partial class DeploymentCli
     internal static int RunWithCatalog(string[] args, OrganizationCatalog catalog, IOrganizationConnector connector,
         TextWriter output, Action<Exception> report, TextReader? secretInput, string? artifactRoot = null,
         Func<string, string>? secretReader = null, TimeSpan? writeLockTimeout = null, CancellationToken cancellationToken = default)
+        => RunWithCatalogCore(args, catalog, connector, output, report, secretInput,
+            GetSharedOrganizationLockDirectory(), artifactRoot, secretReader, writeLockTimeout, cancellationToken);
+
+    /// <summary>
+    /// 僅供友元測試組件以合成 connector 執行 shadow／switch 的隔離接縫，保留相同授權、
+    /// parser、共享鎖及 SDK 歸還流程。正式組件 connector 與 Temp 外根在任何副作用前拒絕。
+    /// 這不是寫入授權：正式入口不呼叫此方法，也沒有可選取此方法的 CLI 或環境開關。
+    /// </summary>
+    /// <param name="args">當案 shadow／switch 參數；所有產品白名單及拒絕照常套用。</param>
+    /// <param name="connector">測試組件擁有的合成來源，不能使用正式組件 connector。</param>
+    /// <param name="output">測試擁有的安全摘要 writer。</param>
+    /// <param name="report">在鎖與 SDK 租約釋放後接收原始故障的測試回報。</param>
+    /// <param name="artifactRoot">測試唯一擁有的 Temp 子目錄，不能是 Temp 本身或 link。</param>
+    /// <param name="secretReader">當案合成值委派，本方法不保存或擁有。</param>
+    /// <param name="writeLockTimeout">本案鎖等待上限，不因隔離而略過鎖或放寬逾時。</param>
+    /// <param name="cancellationToken">caller 取消，固定參數列末端，正常取消仍回130。</param>
+    /// <returns>原命令結束碼；不合法合成邊界回2且不取鎖、不 Connect。</returns>
+    internal static int RunSyntheticShadow(string[] args, IOrganizationConnector connector, TextWriter output,
+        Action<Exception> report, string artifactRoot, Func<string, string>? secretReader = null,
+        TimeSpan? writeLockTimeout = null, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(args);
+        ArgumentNullException.ThrowIfNull(connector);
+        ArgumentNullException.ThrowIfNull(output);
+        ArgumentNullException.ThrowIfNull(report);
+        ArgumentException.ThrowIfNullOrWhiteSpace(artifactRoot);
+        if (args.Length == 0 || args[0] is not ("shadow" or "switch") ||
+            connector.GetType().Assembly == typeof(DeploymentCli).Assembly ||
+            !Path.IsPathFullyQualified(artifactRoot) ||
+            !IsContainedPath(Path.GetFullPath(Path.GetTempPath()), artifactRoot, out var fullRoot))
+        {
+            output.WriteLine("Synthetic shadow scope rejected.");
+            return 2;
+        }
+        return RunWithCatalogCore(args, OrganizationCatalog.LoadDefault(), connector, output, report, null,
+            Path.Combine(fullRoot, ".synthetic-shared-locks"), fullRoot, secretReader, writeLockTimeout, cancellationToken);
+    }
+
+    /// <summary>
+    /// 正式與合成入口共用的唯一授權流程；共享鎖根僅由上層受控程式選取，沒有全域可變 override。
+    /// stdin owner 在 finally 關閉，命令的 SDK 及鎖則在 RunAuthorized 返回前依原順序釋放。
+    /// </summary>
+    /// <param name="args">原命令候選，不回顯秘密或未驗參數。</param>
+    /// <param name="catalog">本案權威組織白名單，仍由 ProductionGuard 驗證。</param>
+    /// <param name="connector">借入的單案租約來源。</param>
+    /// <param name="output">呼叫端擁有的安全輸出。</param>
+    /// <param name="report">所有租約歸還後的原始例外回報。</param>
+    /// <param name="secretInput">外層借用的 stdin；只有本層新開的 owner 會在 finally 關閉。</param>
+    /// <param name="sharedLockDirectory">正式固定 ProgramData，合成限明確 Temp 接縫，不能由 args 覆寫。</param>
+    /// <param name="artifactRoot">本案輸出根，本參數本身不改變正式鎖。</param>
+    /// <param name="secretReader">原有逐次讀取設定委派，不快取實值。</param>
+    /// <param name="writeLockTimeout">同組織有界等待，不取消或豁免互斥。</param>
+    /// <param name="cancellationToken">caller 取消，取得及交付前持續遵守。</param>
+    /// <returns>原有成功、拒絕、故障與正常取消結束碼。</returns>
+    private static int RunWithCatalogCore(string[] args, OrganizationCatalog catalog, IOrganizationConnector connector,
+        TextWriter output, Action<Exception> report, TextReader? secretInput, string sharedLockDirectory,
+        string? artifactRoot = null, Func<string, string>? secretReader = null,
+        TimeSpan? writeLockTimeout = null, CancellationToken cancellationToken = default)
     {
         if (args.Length == 0 || args.Length == 1 && args[0] is "--help" or "-h") { WriteUsage(output); return 0; }
         Channels.ChannelSecretInput? ownedInput = null;
@@ -117,7 +178,7 @@ internal static partial class DeploymentCli
             var input = secretInput ?? ownedInput;
             var authorization = ProductionGuard.Authorize(args, catalog, input, cancellationToken);
             return RunAuthorized(authorization.Arguments, authorization.Organization, catalog, connector, output, report,
-                input, artifactRoot, secretReader, writeLockTimeout, cancellationToken);
+                input, sharedLockDirectory, artifactRoot, secretReader, writeLockTimeout, cancellationToken);
         }
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested) { output.WriteLine("Command cancelled."); return 130; }
         catch (Exception exception) when (exception is InvalidDataException or InvalidOperationException or TimeoutException)
@@ -155,6 +216,7 @@ internal static partial class DeploymentCli
         TextWriter output,
         Action<Exception> report,
         TextReader? secretInput,
+        string sharedLockDirectory,
         string? artifactRoot = null,
         Func<string, string>? secretReader = null,
         TimeSpan? writeLockTimeout = null,
@@ -264,7 +326,7 @@ internal static partial class DeploymentCli
                 ? OrganizationWriteLock.Acquire(
                     organizationArtifactRoot,
                     writeLockTimeout ?? TimeSpan.FromMinutes(5),
-                    GetSharedOrganizationLockDirectory(),
+                    sharedLockDirectory,
                     cancellationToken)
                 : null;
             cancellationToken.ThrowIfCancellationRequested();

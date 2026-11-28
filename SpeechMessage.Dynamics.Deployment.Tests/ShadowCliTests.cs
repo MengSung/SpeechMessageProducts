@@ -10,6 +10,8 @@
  * trace 等級與停用狀態恢復、自建 task 零殘留，以及報告不洩漏秘密或實際 GUID。
  * 使用邊界與維護：非平行集合保護程序 cwd；fixture 先恢復 cwd，再刪除自己的唯一根，
  * writer、租約與檔案均確定釋放。替身只擴充所需的權威 metadata 與精確追蹤查詢，
+ * 合成 shadow／switch 透過明確 internal 接縫使用本案 Temp 下的共享鎖，不爭用正式
+ * ProgramData 組織鎖；另以跨 artifacts 根互斥及立即再取鎖驗證，不能以不取鎖假綠。
  * 外部觀察以合成既有列驗版本摘要及保留，分頁故障在觸發前後注入，不假稱全域稽核。
  * 不改既有通用假服務，也不把合成綠燈稱為實機驗收。
  * P7分級相容：非診斷合成候選補完整live區塊，避免新必填格式遮蔽原本故障注入；
@@ -532,6 +534,102 @@ public sealed class ShadowCliTests
         Assert.IsType<TimeoutException>(Assert.Single(f.Reports));
     }
 
+    /// <summary>
+    /// 合成入口使用本案獨立共享根；即使其他案例的同名組織鎖正被持有，仍可完整執行，
+    /// 且產生真正的合成共享鎖檔，不能靠略過共享鎖取得假綠。所有 handle 由 using 排空。
+    /// </summary>
+    [Fact]
+    public void ShadowCli_SyntheticLockRootIsSeparateAndStillUsesSharedLock()
+    {
+        using var f = new CliFixture();
+        using var other = OrganizationWriteLock.Acquire(
+            Path.Combine(f.Core.Root, "other", Fixture.Organization), TimeSpan.Zero,
+            Path.Combine(f.Core.Root, "other-shared"));
+        Assert.Equal(0, f.RunIsolated());
+        Assert.True(File.Exists(Path.Combine(f.SyntheticSharedRoot, Fixture.Organization + ".lock")));
+        f.AssertRestored();
+    }
+
+    /// <summary>
+    /// 同一合成共享根仍跨不同 artifacts 根互斥；逾時不得 Connect，釋放後須可重試成功，
+    /// 並立即重新獨占取得兩把鎖，證明失敗及成功出口均不依 GC 清理。
+    /// </summary>
+    [Fact]
+    public void ShadowCli_SyntheticSharedContentionFailsBeforeConnectThenDrains()
+    {
+        using var f = new CliFixture();
+        using (OrganizationWriteLock.Acquire(Path.Combine(f.Core.Root, "other", Fixture.Organization),
+            TimeSpan.Zero, f.SyntheticSharedRoot))
+        {
+            Assert.Equal(1, f.RunIsolated());
+            Assert.Equal(0, f.Connects);
+            Assert.IsType<TimeoutException>(Assert.Single(f.Reports));
+        }
+        f.Reports.Clear();
+        Assert.Equal(0, f.RunIsolated());
+        f.AssertRestored();
+        using var probe = OrganizationWriteLock.Acquire(Path.Combine(f.ArtifactRoot, Fixture.Organization),
+            TimeSpan.Zero, f.SyntheticSharedRoot);
+        Assert.Empty(f.Reports);
+    }
+
+    /// <summary>合成輸出根必須是 Temp 真子樹；相對路徑、Temp 本身及 ProgramData 均在副作用前拒絕。</summary>
+    /// <param name="invalidScope">每案只有一個路徑邊界故障，不建立測試擁有範圍外的檔案。</param>
+    [Theory]
+    [InlineData("relative")]
+    [InlineData("temp")]
+    [InlineData("programdata")]
+    public void ShadowCli_SyntheticScopeOutsideTempFailsBeforeSideEffects(string invalidScope)
+    {
+        using var f = new CliFixture();
+        var root = invalidScope switch
+        {
+            "relative" => "relative-artifacts",
+            "temp" => Path.GetTempPath(),
+            _ => DeploymentCli.GetSharedOrganizationLockDirectory()
+        };
+        Assert.Equal(2, f.RunIsolated(artifactRoot: root));
+        Assert.Equal(0, f.Connects);
+        Assert.Empty(f.Reports);
+        Assert.False(Directory.Exists(f.SyntheticSharedRoot));
+    }
+
+    /// <summary>
+    /// 真正產品 connector 即使搭配合法 Temp 根也不可選用合成接縫；設定為空且工廠故意擲錯，
+    /// 決定性斷言是固定拒絕、零工廠呼叫及零合成鎖目錄，沒有 User Secrets 或網路。
+    /// </summary>
+    [Fact]
+    public void ShadowCli_SyntheticSeamRefusesProductConnectorBeforeAnyClient()
+    {
+        using var f = new CliFixture();
+        var configuration = new Microsoft.Extensions.Configuration.ConfigurationBuilder().Build();
+        using var configurationOwner = (IDisposable)configuration;
+        var clientCreates = 0;
+        var connector = new UserSecretsOrganizationConnector(configuration, (_, _, _) =>
+        {
+            clientCreates++;
+            throw new InvalidOperationException("No real client may be constructed.");
+        });
+        Assert.Equal(2, DeploymentCli.RunSyntheticShadow(f.Arguments, connector, f.Output,
+            f.Reports.Add, f.ArtifactRoot, writeLockTimeout: TimeSpan.Zero));
+        Assert.Equal(0, clientCreates);
+        Assert.Empty(f.Reports);
+        Assert.False(Directory.Exists(f.SyntheticSharedRoot));
+    }
+
+    /// <summary>正式 CLI 沒有可注入共享鎖的選項；未知旗標在鎖／連線之前拒絕，不能透過 argv 放寬。</summary>
+    [Fact]
+    public void ShadowCli_ProductArgumentsCannotSelectSyntheticLockDirectory()
+    {
+        using var f = new CliFixture();
+        var args = f.Arguments.Concat(["--shared-lock-directory", f.SyntheticSharedRoot]).ToArray();
+        Assert.Equal(2, DeploymentCli.Run(args, f, f.Output, f.Reports.Add, f.ArtifactRoot,
+            writeLockTimeout: TimeSpan.Zero));
+        Assert.Equal(0, f.Connects);
+        Assert.Empty(f.Reports);
+        Assert.False(Directory.Exists(f.SyntheticSharedRoot));
+    }
+
     /// <summary>同步步驟沒有 asyncoperation；必須用本次請求 ID、正式 step、型別及時間窗找唯一追蹤。</summary>
     [Fact]
     public void ShadowCli_SynchronousRoundUsesExactRequestTraceWithoutAsyncOperation()
@@ -570,6 +668,8 @@ public sealed class ShadowCliTests
         internal bool WrongIdentity;
         internal int TokenSecretReads;
         internal string ArtifactRoot => Path.Combine(Core.Root, "artifacts", "d365");
+        /// <summary>只屬本案 Temp 根的固定共享鎖位置，不接觸真正 ProgramData 組織鎖。</summary>
+        internal string SyntheticSharedRoot => Path.Combine(ArtifactRoot, ".synthetic-shared-locks");
         internal string ScenarioRoot => Path.Combine(Core.Root, "SpeechMessageProducts.GoodShepherd.Core.Tests", "Golden", "Legacy", "localization");
         internal string[] Arguments => ["shadow", "--org", Fixture.Organization, "--module", "localization", "--scenario-root", ScenarioRoot];
 
@@ -672,20 +772,35 @@ public sealed class ShadowCliTests
             Service.TokenRequired = !withoutToken;
         }
 
-        /// <summary>呼叫正式入口；秘密僅為本案例的常值，沒有磁碟設定或環境依賴。</summary>
+        /// <summary>經明確合成接縫執行同一正式授權及命令流程；秘密僅是當案常值，不接觸真鎖。</summary>
         internal int Run(string[]? args = null, CancellationToken cancellationToken = default) =>
-            DeploymentCli.Run(args ?? Arguments, this, Output, failure =>
-            {
-                Assert.Equal(Connects, Releases);
-                Reports.Add(failure);
-            }, ArtifactRoot, key => key switch
+            RunIsolated(args, cancellationToken: cancellationToken);
+
+        /// <summary>
+        /// 以反射要求明確的合成入口，缺實作時以執行期斷言形成 RED；並非編譯錯誤。
+        /// reporter 同時斷言連線已歸還，原例外保留供原有契約驗證，不產生背景資源。
+        /// </summary>
+        /// <param name="args">當案合成命令，缺省為固定 shadow。</param>
+        /// <param name="artifactRoot">故障注入用輸出根，合法預設限本案 Temp。</param>
+        /// <param name="cancellationToken">caller 擁有的取消訊號，固定最後一個參數。</param>
+        /// <returns>正式共用授權與命令執行的結束碼。</returns>
+        internal int RunIsolated(string[]? args = null, string? artifactRoot = null, CancellationToken cancellationToken = default)
+        {
+            var method = typeof(DeploymentCli).GetMethod("RunSyntheticShadow",
+                System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static);
+            Assert.NotNull(method);
+            Action<Exception> reporter = failure => { Assert.Equal(Connects, Releases); Reports.Add(failure); };
+            Func<string, string> reader = key => key switch
             {
                 "ShadowTestChurchId" => (WrongIdentity ? Guid.NewGuid() : Service.Church).ToString("D"),
                 "ShadowTestContactId" => Service.Contact.ToString("D"),
                 "TestLineUserId" => "synthetic-recipient",
                 "TestChannelToken" => ReadTestToken(),
                 _ => throw new InvalidOperationException("Unexpected secret request.")
-            }, TimeSpan.Zero, cancellationToken);
+            };
+            return Assert.IsType<int>(method.Invoke(null,
+                [args ?? Arguments, this, Output, reporter, artifactRoot ?? ArtifactRoot, reader, TimeSpan.Zero, cancellationToken]));
+        }
 
         /// <summary>只計數真命令在受控舊輪解析合成秘密，避免新輪或前置拒絕也取得 token。</summary>
         private string ReadTestToken() { TokenSecretReads++; return Fixture.SecretValue; }
