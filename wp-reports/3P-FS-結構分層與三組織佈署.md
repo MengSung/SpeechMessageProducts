@@ -347,3 +347,24 @@ FS無手機步驟；手機畫面集中M1。目前進度頁目視亦待補：先�
 - 排除：vendor巨型IL dump、schema JSON整檔（僅grep ownership）、plan.md與RED／GREEN／全守門log全文；沒有重跑測試或實機。測試結果由主線原始log及凍結manifest另核對，不能把外審引用數字當獨立執行。
 - 新runtime測試是獨立子集不是完整vendor XSD；真XSD差分與正式Create仍各需自己的證據。診斷僅驗Fetch／結構觀察，不代表建立或發布。既有三份plan綁定現況、凍結generator另綁新XML，審查沒有把兩者混淆。
 - 合併前再做僅文件變更守門；完整build／一般測試沿用16:32凍結程式結果。apply前仍須重新核對遠端與整合、精確plan SHA、D365鎖、測試身分及備份；沒有提前使用最後一次重試。
+
+### 2026-11-28 16:49 Asia/Taipei (UTC+08:00) 整合分支先進入F12後安全重基線
+
+- 本線安全修正先提交c2d5bd0b，取得合併鎖時線B已持鎖，未碰該鎖、未寫整合樹。線B完成F12合併後遠端為`9546a30864fea44131bece0ab04123f86c878ee0`；本線乾淨已追蹤內容直接rebase成功為`68fe3789027ef50c0405bb8f6ecf2a5325e62e59`，未stash／reset／丟棄或提交任何.ccg。既有未追蹤本線task保持原貌，git未要求搬移，未新增備份步驟冒稱必要。
+- F12新增平台`new_testinvite`，所以舊三份plan全部作廢，未用來apply。重新唯讀plan：goodshepherd20 schema15／UI2（`20261128-084236-0466096-bdb4e365506449b8818265a0afb491cd`，SHA-256 `337EBA5A81AE2B014E88386FC3853FD19335B3EFFDB03EED15B511FC1FAEE997`）；construction schema231／UI3（`20261128-084349-6840141-919175b3b0d141258eea37de8ddd90ef`，`44349FC56D3F654E3EA71F52C4B21A3B9BCA18C465C02D4D676B801AEA88527E`）；association schema231／UI3（`20261128-084452-2125502-bf8bbcad6ffb4c4189593d1c141f3fe2`，`BBC40F7B051F1CAD9EF3490C160EA5ED8E301E0F0D76E6E5EE192592E50EC516`）。
+- 逐值比對每份僅新增15個new_testinvite結構操作，原操作沒有移除、原組織ID／保留ownership／UI現況完整相同；新schemaHash依正式分層清單變動，不硬套舊hash。三份共同摘要SHA-256 `B204F4C9931F3D18A79560F456E461D787754A66F0D8773E83DE4EE2059D84EC`。新plan仍待共同複核，最後apply尚未使用。
+- rebase含新程式，依02A§10.3完整守門重新執行，未沿用9609數字冒稱新樹通過。自己的五程式檔仍與受審凍結manifest逐位元組相符。
+- WinRM重新核身D365APP01，三個原before DB備份逐檔SHA讀回均相同，log SHA-256 `0233F96DF480475F75BA123DEEED8D160E8B386F13C3BB89B3DC451B024C3D70`；PSSession finally關閉，原COPY_ONLY／CHECKSUM及VERIFYONLY結果保留，無RESTORE。
+- 進度頁32項測試通過的證據與瀏覽器畫面讀回分開：本輪IAB連線不可用、原生瀏覽器URL安全核對中止，沒有繞過安全限制或宣稱畫面確認成功；不把畫面未取得稱一般測試通過的替代證據。
+
+### 2026-11-28 16:50 Asia/Taipei (UTC+08:00) F12重基線後最終完整守門
+
+- 六項指令全部exit0；Release build SHA-256 `8046D20BFFE9B64F005ADA418A52D75A1D422F87A77A0C562F9F3B6247F49533`；一般測試28組件、9953通過／0失敗／0略過，log SHA-256 `FC51EAE045B3EBBD18EC14401E5ECF73E756A537ABFCF4239E1BD772BDA5AB62`。這是新的完整樹結果，不沿用舊9609。
+- 文件檢查exit0，SHA-256 `41BB66A7ECE8811E89BD6ED337D14FB7C40722F0D3B871717DD65CE48D33B3FB`；Changed編碼exit0，`9A8A437FA4A055EB4A825BD22155872E7C87683829A0BB527A33362B33C1B996`；進度32／32，`D1194CC9C9E5584B496ECCDE1EF6ED0051584907AB768831F0D9466FCF948D34`；solution list exit0，`91B4F1D249BD45625A6A146C3D01E51705E6A0D7AEAF644A763E70B0A514BA2D`。
+- 新三份plan及F12 schema／Program入口／SchemaDeploymentCli已送ClaudeOnly唯讀整合複核，等待可用結果；未提前套用。
+
+### 2026-11-28 16:52 Asia/Taipei (UTC+08:00) F12整合後新三plan複核通過
+
+- 單模型（使用者指定ClaudeOnly）可用，Critical0／High0；summary SHA-256 `02EAC74C06DDDCAAC54A40368F7211C1CD5B80EA40BC246524ADB81BF9C1760B`；輸出 `EE4824FADBD6E19AEE5E39D9CE7BEE105DE418AB0E4732FA0900C8DA9526EB62`。完整讀新三plan並逐項比對舊plan、完整讀F12 schema及入口分派；自己的五檔沿用先前完整審查，不冒稱此次重讀。主線另逐檔SHA證明相同。
+- 無live呼叫、未重跑測試；Apply引擎及TestTenants服務內部不在這次窄範圍重審內。計畫UI現況指紋與新XML繼續分開。主線已確認三份精確SHA與9953/9953完整守門，最後apply尚未開始。
+- 文件檢查2123／0、Changed81檔／排除1／問題0。後續僅文件差異依02A§10.3沿用16:50完整build／一般測試，再驗文件／編碼／進度後合併。

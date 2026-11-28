@@ -84,3 +84,5 @@
 | 2026-11-28 16:16 Asia/Taipei (UTC+08:00) | FS | 最後一次apply前已證明runtime必填icon／jump缺漏，另收到02A§12預先退路 | 先同型RED→GREEN及所有守門，新plan受審後才用剩餘1次；成功原驗收，只有UI失敗且結構一致才依§12縮減，現未觸發 | vendor runtime XSD SHA9481B46BC20C12693911FAB607257A035FBD3092CA6EBD8A51CE3A1018ECF15A；02A§1／§10.4／§12 | 部分7表296欄與UI方案保留；不自動刪除／還原DB、不分拆重試繞過額度 |
 
 | 2026-11-28 16:37 Asia/Taipei (UTC+08:00) | FS | 最後安全外審與三份新plan共同核對已具可用輸出 | 依02§4及使用者免雙模型指定ClaudeOnly，完整五檔／三plan Critical0 High0；pool僅完整diff及周邊、不冒稱整檔。通過文件守門後合併再持鎖apply2/2 | summary SHA ED26EB1B4870B6D697D9D3CDFF2F52F18540B0A05428023139B469C3D79197B6；一般9609/9609 | 最後若UI-only故障且結構一致才依02A§12；不加額度、不原樣重試 |
+
+| 2026-11-28 16:52 Asia/Taipei (UTC+08:00) | FS | 等合併時線B已合入F12，新增平台new_testinvite導致舊plan失效 | 乾淨rebase9546a3086，自己的五檔SHA不變；重跑9953/9953及新三plan15／231／231，ClaudeOnly共同複核Critical0 High0；不動整合樹00／02A草稿 | 新manifest B204F4C9931F3D18A79560F456E461D787754A66F0D8773E83DE4EE2059D84EC；review02EAC74C06DDDCAAC54A40368F7211C1CD5B80EA40BC246524ADB81BF9C1760B | 核對備份／SHA及同步後才用最後apply2/2，保留§12條件 |
