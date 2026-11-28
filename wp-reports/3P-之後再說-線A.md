@@ -15,3 +15,5 @@
 | 2026-11-26 21:02 Asia/Taipei (UTC+08:00) | FS | Plugin 新組織未啟用步驟時仍可規劃 assembly／type，沒有 CreateStep／ReconcileImages；缺旗標測試直接覆蓋型別不存在分支 | 契約目前限制執行步驟；日後可補型別已存在分支的直接控制，不新增本包完成條件 | ClaudeOnly 修正複審 SHA-256 877C93DF67B264E800DD1D4515718D010ED0FA3612548266CE3A79D5D939E4D4 |
 
 | 2026-11-28 21:15 Asia/Taipei (UTC+08:00) | F5離線前置 | ClaudeOnly非阻擋觀察：目前測試證明兩handle皆排空但未直接觀察反序；沒有需權限的reparse建立案例；legacy存在性至開檔間仍依賴外部鎖協定 | 日後補特定順序觀察及可用權限下的reparse負向案例，不藉此略過既有EnsureNoLinks／FileShare.Read；未知提交與驗回故障則已列完整Live入口必做復原待辦，不延後該契約 | summary SHA A64F33B1A14F4A6C136EC42582C1D5C907703EBC9CC56FCC7A06471FDAE05D5C；Critical0／High0，未冒稱實機 |
+
+| 2026-11-28 22:04 Asia/Taipei (UTC+08:00) | F5清冊非阻擋觀察 | 專用Thread的WaitSleepJoin診斷理論上可能受暫時型別載入等待影響；CreateAt仍依外部受控根與鎖協定防止link檢查到開檔間競態 | 現有inAppend斷言及真正移除鎖RED保留；不把診斷狀態用作產品同步或把journal action當遠端授權。完整Live的SDK／Channel驗證及清理仍屬必做，不列延後 | ClaudeOnly C0/H0、summary EC155991CBD7A852B56F597C1EC2D0C208A81466E07DEF285C43785C12C6F932 |

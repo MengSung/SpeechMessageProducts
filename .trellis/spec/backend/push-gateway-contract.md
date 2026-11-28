@@ -65,4 +65,10 @@
 
 - `F5PushLiveLockLease`只持D365→LINE兩把外部鎖的讀取handle；精確lane=A／wp=F5及round-trip start，四KiB上限、嚴格UTF8、單BOM，舊單鎖仍存在就拒絕。不得以SQL鎖取代、不建立或刪除他人鎖。所有工作實際排空後才反序Dispose。
 - `F5PushLiveTenantFlag`只供01F5明列的c124合成非測試租戶驗收及恢復；測試組件internal，不是產品管理API。WhoAmI、正式主鍵與本輪完整marker名稱、代碼、兩旗標及RowVersion都驗證後，先由入口owner將純值候選落盤flush，再單欄IfRowVersionMatches。每次SDK讀取必須使用新的ColumnSet，不能共享可變查詢物件。
-- 寫前取消零寫入；已確認寫入後同步驗回，不用晚到caller取消隱藏結果。候選已保存後任何SDK／讀回故障都可能已寫入，不自動重送或以零寫入處理；完整入口須先按本輪ID精確讀回及CAS恢復，才委派F12清理；若提交仍未知，當下舊值或查無資料不是回滾證明，必須保留清冊且不清理。SDK deadline與owner、真正flush、完整Live入口及清理串接仍待實作／實機，不以這兩個helper的離線測試替代。
+- 寫前取消零寫入；已確認寫入後同步驗回，不用晚到caller取消隱藏結果。候選已保存後任何SDK／讀回故障都可能已寫入，不自動重送或以零寫入處理；完整入口須先按本輪ID精確讀回及CAS恢復，才委派F12清理；若提交仍未知，當下舊值或查無資料不是回滾證明，必須保留清冊且不清理。SDK deadline與owner、完整Live入口實際接入flush及清理串接仍待實作／實機，不以這兩個helper的離線測試替代。
+
+## F5寫前清冊（已離線驗證，尚待完整入口接入）
+
+F5PushLiveJournal固定repo外根與本輪GUID檔名，CreateNew／WriteThrough，每筆Write與Flush(true)成功後才發布綁定或正式結果；最多256筆、256KiB、每筆4KiB。只接受固定c121／c124、不同正式tenant／record ID、canonical操作鍵、數字Channel與版本、封閉enum；格式不是T01／T02授權。任何append／flush／容量故障永久拒用，工廠失敗關sink且保留原與cleanup例外；Dispose等待inflight、清局部參照但不刪證據。
+
+Windows獨立讀者須FileAccess.Read＋FileShare.ReadWrite以容納既有writer，writer本身仍FileShare.Read阻擋其他寫入及替換，不能放寬writer來修測試。關閉競爭測試必須有sink重疊斷言、真競爭觀測與finally排空，並以移除Dispose鎖mutation證明RED；Task尚未排程的負向快照不足以證明安全。ThreadState僅是測試診斷，產品同步不可依賴它。

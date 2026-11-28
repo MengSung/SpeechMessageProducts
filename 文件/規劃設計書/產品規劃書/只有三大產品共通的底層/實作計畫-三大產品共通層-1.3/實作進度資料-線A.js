@@ -1,24 +1,24 @@
 /* 檔案整體說明
 目的與定位：三大產品共通層實作計畫 1.3 的進度資料（線 A），只供同資料夾的「實作進度.html」以 script 標籤讀取顯示，不是程式、不含秘密。
-主要功能與流程：記錄線 A 各工作包（F0、F1、FS、F3、F5、F7、F9、M1）的狀態、開始與完成時間、提交 SHA、待補與報告路徑，以及逐筆進度紀錄；每包寫驗收報告的那個提交同時更新本檔。
+主要功能與流程：記錄線 A 各工作包（F0、F1、FS、F3、F5、F9、M1；F7依02A§13由線B負責）的狀態、開始與完成時間、提交 SHA、待補與報告路徑，以及逐筆進度紀錄；每包寫驗收報告的那個提交同時更新本檔。
 使用邊界與維護：只有線 A 可以改本檔，線 B 改自己的「實作進度資料-線B.js」，兩條線都不改「實作進度.html」。狀態依使用者核定 02A：未通過實機為「自動測試通過（實機待補）」，五項完成定義全達成才「完成」；未開始／進行中仍依實況填寫，與 90 一致。log 每筆以「YYYY-MM-DD HH:mm Asia/Taipei (UTC+08:00)｜」開頭，新的放最前面，舊紀錄不刪；事件時間不明時寫「補記 … （原事件時間未記錄）」。不得寫入 token、密碼、LINE userId 或個資。改完以 UTF-8 無 BOM、CRLF 存檔，並用瀏覽器開啟實作進度.html 確認沒有紅色警告。
 */
 'use strict';
 window.PROGRESS_LANES = window.PROGRESS_LANES || {};
 window.PROGRESS_LANES.A = {
   lane: 'A',
-  lastUpdated: '2026-11-28T21:15:14+08:00',
+  lastUpdated: '2026-11-28T22:18:15+08:00',
   packages: {
     F0: { status: '自動測試通過（實機待補）', started: '2026-11-25 22:09 Asia/Taipei (UTC+08:00)', finished: '2026-11-26 00:24 Asia/Taipei (UTC+08:00)', commit: '74ea5a1c1ff723f6a64aeb73cadf69685021f528, a9e438be0d9fe13d8fe40d0c2e03e9558774e113', pending: '模型盤點已補齊：v2.5第9章29項／13實體正式主鍵、欄位及沿用／擴充／新增結論完整；inventory及13聚合實機證據已保留，未查數量不填0。後續G設計非F0待補；本輪完整9566/9566，整包收尾依00完成定義核對，不冒充FS部署；詳F0報告。', report: 'wp-reports/3P-F0-基線矩陣.md' },
     F1: { status: '自動測試通過（實機待補）', started: '2026-11-26 00:24', finished: '2026-11-26 15:39', commit: 'bfb5f56b96ff7b2c9a185f9757248c5dd9a5368a, 79f5362a44659e68afc1c17727bc2a2a3f51ac69, b2cdcbb6d11521950dbece5a7432b29a0d8d5a7a, d82c7a7252fe8ad60e107f8753e06adb12d984a1, f57fef11f342c9d823e6361a42ebae283c4e5a14, 421b6d29266668d07348d87aee0b98ae8b196e81', pending: '實機待補（外部阻擋）：共用層實機整合證據隨FS／F3打通補驗；Scheduling分類及QR必要補正完整7943/7943、ClaudeOnly無Critical／High；非實機宣稱', report: 'wp-reports/3P-F1-依賴方向修正.md' },
-    FS: { status: '自動測試通過（實機待補）', started: '2026-11-26 04:31 Asia/Taipei (UTC+08:00)', finished: '2026-11-28 02:26 Asia/Taipei (UTC+08:00)', commit: '64679a87f, 9af227811, bd22905fc, abeb70d94, c4cf53a63, 1bfe1a23e, 0ebf49b0eb8b57b1c926187d858c5bfc4f8d93e0, 637515befe8137e60422954ae1c6e114a034c171', pending: '實機待補（待決策）：2026-11-28 19:10 Asia/Taipei (UTC+08:00) 已照18:55決策先唯讀。兩棵顯式lookup子樹每來源28／27個節點差異，含account Cascade.Merge值變更；原完整baseline未落檔，無法證明全屬系統自動元件。依③已通知、不修guard、不用特別第三次apply、不標縮減、不提前F3。診斷Live1通過只代表報告完成；F5 34檔SHA保全，僅續F5離線。', report: 'wp-reports/3P-FS-結構分層與三組織佈署.md' },
+    FS: { status: '自動測試通過（實機待補）', started: '2026-11-26 04:31 Asia/Taipei (UTC+08:00)', finished: '2026-11-28 02:26 Asia/Taipei (UTC+08:00)', commit: '64679a87f, 9af227811, bd22905fc, abeb70d94, c4cf53a63, 1bfe1a23e, 0ebf49b0eb8b57b1c926187d858c5bfc4f8d93e0, 637515befe8137e60422954ae1c6e114a034c171', pending: '實機待補（可自行處理）：已收到Claude標記2026-11-28 22:05新決策；先F5合併，再唯讀重核110節點均在兩個新lookup。修account/contact Merge=Cascade、新建關聯伺服器補值白名單，及首寫前完整baseline落檔與SHA讀回RED-GREEN；FS守門後才特別第3次apply。原baseline缺口如實保留，goodshepherd20以現況published=unpublished及限定差異作核定替代；未提前F3。', report: 'wp-reports/3P-FS-結構分層與三組織佈署.md' },
     F3: { status: '自動測試通過（實機待補）', started: '2026-11-26 21:10', finished: '2026-11-27 20:02', commit: '244e45960, b7844eee7, e09a4c86, 8be872b2a, 5b8c74b03, 2df96defa', pending: '實機待補：離線閘門已合併於整合分支；等 FS 完成後開始，依02A §5須待FS三組織plan/apply/verify、檢視表發布、UI export/import與Live3P FS完成後再做F3 Step 6登錄及20並行配發／清理。外部阻擋：F2測試站及T01／T02 Webhook；lease trace重現根因已由FS必要修復並完整9566/9566，非F3實機；沒有新增實機結果', report: 'wp-reports/3P-F3-Channel名額池.md' },
-    F5: { status: '自動測試通過（實機待補）', started: '2026-11-28 17:17 Asia/Taipei (UTC+08:00)', finished: '2026-11-28 20:35 Asia/Taipei (UTC+08:00)', commit: 'e7af6ef95c0f0e7c9b7cf128eb41576b82c999a1, ffbfeb286655daabed372b985dd441ec94510527', pending: '2026-11-28 20:35 Asia/Taipei (UTC+08:00)｜離線完整10128/10128、ClaudeOnly C0/H0，會員缺人／停用High1已mutation RED及雙宿主GREEN結案；原子發送紀錄／schema已落地。新增雙鎖／c124 CAS前置50/50與完整10178、ClaudeOnly C0/H0；完整Live、flush與清理串接仍待實作。實機待補：Live3P c121／c124實跑、三組織部署、M1手機。進度頁實際瀏覽檢視未通過，程式／文件僅本線檢查點，暫未合併。FS待新決策、第3次apply未用，不開F7。', report: 'wp-reports/3P-F5-推播唯一出口.md' },
-    F7: { status: '未開始', started: '', finished: '', commit: '', pending: '', report: '' },
+    F5: { status: '自動測試通過（實機待補）', started: '2026-11-28 17:17 Asia/Taipei (UTC+08:00)', finished: '2026-11-28 22:04 Asia/Taipei (UTC+08:00)', commit: 'a169eb3cfaa627a1484f6db2e17a3bb0d3557f64, b028a0b8f7fc5768bb69e6c9a7e16999d5a7e6d5, 6541037d0d9420c594210cdfda1a12691bc4daa7', pending: '2026-11-28 22:04 Asia/Taipei (UTC+08:00)｜離線Gateway、前置與清冊已完整10202/10202、ClaudeOnly C0/H0；Dispose High1真mutation RED後結案。程式a169eb3cf／b028a0b8f／6541037d0，重基線751600298後Release66警告／0錯誤、10202/10202、文件2161/0、Changed61/0、方案54、進度32/32全過。無頭Edge已目視無紅警告，依02A§13守門後即合併。實機待補（外部相依FS／F3）：完整Live3P c121／c124入口、F12清理串接、三組織schema、M1手機；未把helper當完整Live。接FS→F3；F7由B，F9待claim。', report: 'wp-reports/3P-F5-推播唯一出口.md' },
     F9: { status: '未開始', started: '', finished: '', commit: '', pending: '', report: '' },
     M1: { status: '未開始', started: '', finished: '', commit: '', pending: '', report: '' },
   },
   log: [
+    '2026-11-28 22:04 Asia/Taipei (UTC+08:00)｜F5寫前清冊6541037d0：真Flush、限額、故障保留及排空；10202/10202與ClaudeOnly C0/H0，High1經移除鎖mutation RED結案。無頭Edge目視無紅警告；同步751600298後最後守門10202/10202全過、即合併，接FS新決策→F3；F7由B，F9待claim。',
     '2026-11-28 21:15 Asia/Taipei (UTC+08:00)｜F5實機入口前置離線檢查點ffbfeb28：雙鎖lease與c124正式ID／RowVersion CAS先RED後50/50 GREEN；新完整10178/10178、ClaudeOnly四檔全文C0/H0。完整Live／flush／F12清理仍待實作；目視未過不合併，FS待決策、第3次apply未用。',
     '2026-11-28 20:43 Asia/Taipei (UTC+08:00)｜F5離線程式已提交e7af6ef95，修後10128與ClaudeOnly C0/H0證據已核對；文件檢查點準備提交。瀏覽器因網址安全檢查無法完成而停止，進度頁目視未過、暫不合併；不繞過，只續F5 Live入口離線。FS仍待決策、第3次apply未用。',
     '2026-11-28 20:35 Asia/Taipei (UTC+08:00)｜F5離線程式e7af6ef95：原子Create／Active唯一鍵／RowVersion CAS與精確禁廣播；修後完整10128/10128、ClaudeOnly C0/H0，H1負向／mutation測試已結案。狀態自動測試通過（實機待補），準備快轉推送；Live3P入口、實跑及手機待FS/F3，不開F7。',

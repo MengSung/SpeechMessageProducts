@@ -102,3 +102,7 @@
 | 2026-11-28 20:43 Asia/Taipei (UTC+08:00) | F5文件檢查點 | 程式與20:35修後守門內容一致；原生瀏覽器網址安全檢查未完成而停止操作，實際進度頁未目視 | 沿用10128與建置，只重跑文件／編碼／32項進度；提交文件但暫不合併，不重試或換介面繞過瀏覽器安全檢查；只續本包Live入口離線準備 | 02§2瀏覽檢視與02A§10.3；FS19:07仍待決策、第3次apply未用 | 不把Node renderer當瀏覽目視或實機，無鎖／無外部寫入／不開F7 |
 
 | 2026-11-28 21:15 Asia/Taipei (UTC+08:00) | F5Live入口離線前置 | FS待決策、瀏覽目視未過期間只續同包；需要雙鎖owner與c124非測試拒絕可復原前置 | 實作限測試組件internal雙鎖lease與c124正式ID／本輪marker／WhoAmI／單欄RowVersion CAS，不改線B F12；beforeWrite由未來入口實際flush，未知提交保留不重送 | 01F5 Step4b、02A§8／§12.3、02§10；code ffbfeb286655daabed372b985dd441ec94510527，完整10178/10178；ClaudeOnly四檔全文C0/H0 summary A64F33B1… | 不是產品旗標API；完整Live／flush／F12清理未實作，未合併或實機；四檔byte全通，備份保留、不開F7 |
+
+| 2026-11-28 22:04 Asia/Taipei (UTC+08:00) | F5最後離線檢查點 | 清冊審查H1不能以首輪可放行結語略過；新決策指定立即合併後回FS | 真移除Dispose鎖mutation RED、production SHA恢復、修後10202及ClaudeOnly C0/H0；指定無頭Edge目視通過，rebase751600298保存六提交且兩C#SHA不變，因HTML變更再跑合併前守門 | code 6541037d0d9420c594210cdfda1a12691bc4daa7；review EC155991CBD7A852B56F597C1EC2D0C208A81466E07DEF285C43785C12C6F932；02A§13／§14及使用者本輪指示 | 不續開F5切片、不開F7、不預認F9；合併後立即FS核兩新lookup、baseline落檔與第三次apply，之後F3；完整Live及手機仍待補 |
+
+| 2026-11-28 22:18 Asia/Taipei (UTC+08:00) | F5合併守門 | 751600298帶入HTML需補最後全方案 | Release66警告／0錯誤、28回合10202/10202、文件2161/0、Changed61/0排除1、方案54、進度32/32均exit0；最後六份文件更新依02A§10.3沿用同程式樹建置與一般測試，只重驗文件／編碼／進度後合併 | build5B6B1DCD…、tests B04A9C7A…、docs4C17E5A7…；最終PNG FB548E3C…；ClaudeOnly C0/H0 | 合併保全整合樹他人草稿，不續F5切片，立即FS→F3 |
