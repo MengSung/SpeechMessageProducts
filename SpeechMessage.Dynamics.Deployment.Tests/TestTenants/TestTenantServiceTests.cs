@@ -1,14 +1,15 @@
 /*
 檔案整體說明
 目的與定位：保護 F12 建立、名額錯配復原及清理的測試租戶隔離契約。
-主要功能與流程：使用 operation-local 記憶體 SDK 模擬資料庫主鍵、正式 metadata、同步配發結果及交易回復；真服務負責選項驗證、manifest 發布及遠端父子範圍判斷，fake 不代做這些規則。
+主要功能與流程：使用 operation-local 記憶體 SDK 模擬資料庫主鍵、正式 metadata、同步配發結果、交易回復及可控延遲提交；真服務負責選項驗證、manifest 發布及遠端父子範圍判斷，fake 不代做這些規則。
 資源擁有權與隔離：所有 GUID、LINE 格式字串及路徑皆為合成；每個 fixture 唯一擁有暫存目錄與記憶體列，Dispose 僅刪自身目錄，不連線 D365、SQL 或 LINE。
-故障與斷言：注入 Channel 錯配、正式組織、他租戶清單、LINE 故障及交易失敗；斷言不擴大清理、錯配精確釋放、無個資 manifest，且失敗保留可續跑證據。通過只表示離線契約成立。
+故障與斷言：注入 Channel 錯配、正式組織、他租戶清單、LINE 故障、明確交易回滾、提交前取消及逾時後延遲提交；斷言不擴大清理、錯配精確釋放、無個資 manifest，且失敗保留可續跑證據。通過只表示離線契約成立。
 */
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.ServiceModel;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Crm.Sdk.Messages;
@@ -160,21 +161,220 @@ public sealed class TestTenantServiceTests
     {
         using var fixture = new Fixture();
         fixture.Sdk.FailCreateAt = 2;
-        Assert.Throws<IOException>(() => fixture.Service.Create("c201", "測試甲", null, [], [User], default));
+        Assert.Same(fixture.Sdk.TransactionFailure, Assert.Throws<FaultException<OrganizationServiceFault>>(
+            () => fixture.Service.Create("c201", "測試甲", null, [], [User], default)));
         Assert.Empty(fixture.Sdk.Rows);
         Assert.False(File.Exists(fixture.Path));
     }
 
-    /// <summary>已提交但傳輸回應遺失時仍依寫前清單讀回、正式釋放並清理，不把未知結果當成未寫入。</summary>
+    /// <summary>已確認建立且遠端清理完成，本地 manifest 刪除失敗後可精確續跑；唯有完整正式 ID 全不存在才移除清單。</summary>
     [Fact]
-    public void Create_ResponseLostAfterCommit_RecoversUsingRecordedDatabaseKeys()
+    public async Task Cleanup_ConfirmedCreationAlreadyDeleted_RemovesRetainedManifest()
+    {
+        using var fixture = new Fixture();
+        fixture.Service.Create("c201", "測試甲", null, [], [User], default);
+        var retained = File.ReadAllBytes(fixture.Path);
+        await fixture.Service.CleanupAsync("c201", static (_, _, _) => Task.CompletedTask, default);
+        File.WriteAllBytes(fixture.Path, retained);
+        await fixture.Service.CleanupAsync("c201", static (_, _, _) => throw new InvalidOperationException("LINE must not be called after confirmed cleanup."), default);
+        Assert.False(File.Exists(fixture.Path));
+        Assert.Equal(1, fixture.Sdk.ReleaseCount);
+    }
+
+    /// <summary>已提交但回應遺失仍屬未知結果；建立不得立即清理，另一服務明確清理時才依持久化正式 ID 釋放。</summary>
+    [Fact]
+    public async Task Create_ResponseLostAfterCommit_RetainsManifestUntilExplicitCleanup()
     {
         using var fixture = new Fixture();
         fixture.Sdk.LoseNextCommitResponse = true;
         Assert.Throws<IOException>(() => fixture.Service.Create("c201", "測試甲", null, [], [User], default));
+        var persisted = TestTenantManifest.Load(fixture.Root, "goodshepherd20", "c201");
+        Assert.All(persisted.Records, record => Assert.True(fixture.Sdk.Rows.ContainsKey((record.EntityLogicalName, record.Id))));
+        Assert.Equal(0, fixture.Sdk.ReleaseCount);
+        Assert.Equal(0, fixture.Sdk.DeleteCount);
+
+        await fixture.Service.CleanupAsync("c201", (_, _, _) => Task.CompletedTask, default);
+
+        Assert.All(persisted.Records, record => Assert.False(fixture.Sdk.Rows.ContainsKey((record.EntityLogicalName, record.Id))));
+        Assert.Equal(1, fixture.Sdk.ReleaseCount);
+        Assert.False(File.Exists(fixture.Path));
+    }
+
+    /// <summary>伺服器尚未提交便逾時時保留同一原始例外與全部正式 ID；以同步閘門延遲交易，沒有遺留背景工作。</summary>
+    [Fact]
+    public void Create_TimeoutBeforeLateCommit_PreservesOriginalFailureAndManifest()
+    {
+        using var fixture = new Fixture();
+        var failure = new TimeoutException("synthetic timeout before late commit");
+        fixture.Sdk.NextSubmissionFailure = failure;
+
+        Assert.Same(failure, Assert.Throws<TimeoutException>(
+            () => fixture.Service.Create("c201", "測試甲", null, [], [User], default)));
+
+        var persisted = TestTenantManifest.Load(fixture.Root, "goodshepherd20", "c201");
+        var submitted = Assert.IsType<ExecuteTransactionRequest>(fixture.Sdk.DeferredTransaction).Requests
+            .Cast<CreateRequest>().Select(request => (request.Target.LogicalName, request.Target.Id)).ToHashSet();
+        Assert.Equal(6, persisted.Records.Count);
+        Assert.Equal(submitted.Count, persisted.Records.Count);
+        Assert.All(persisted.Records, record => Assert.Contains((record.EntityLogicalName, record.Id), submitted));
+        Assert.Empty(fixture.Sdk.Rows);
+        Assert.Equal(0, fixture.Sdk.ReleaseCount);
+        Assert.Equal(0, fixture.Sdk.DeleteCount);
+    }
+
+    /// <summary>即使程序重啟且所有正式 ID 目前不可見，未知清單仍不可視為空交易刪除；斷言零 LINE／SDK 變更及原檔保留。</summary>
+    [Fact]
+    public async Task Cleanup_UnknownCreationStillInvisible_RetainsManifestAcrossServiceInstances()
+    {
+        using var fixture = new Fixture();
+        TestTenantManifest.Create("goodshepherd20", "GoodShepherd2", "c201", [
+            new TestTenantRecordId("account", Guid.Parse("20100000-0000-0000-0000-000000000001")),
+            new TestTenantRecordId("new_slotrequest", Guid.Parse("20100000-0000-0000-0000-000000000002"))
+        ]).Save(fixture.Root);
+        var before = File.ReadAllBytes(fixture.Path);
+        var lineCalls = 0;
+
+        await Assert.ThrowsAsync<InvalidOperationException>(() => fixture.Service.CleanupAsync("c201",
+            (_, _, _) => { lineCalls++; return Task.CompletedTask; }, default));
+
+        Assert.Equal(before, File.ReadAllBytes(fixture.Path));
+        Assert.Equal(0, lineCalls);
+        Assert.Equal(0, fixture.Sdk.DeleteCount);
+        Assert.Equal(0, fixture.Sdk.ReleaseCount);
+    }
+
+    /// <summary>逾時後由測試閘門真正提交原交易，再以新服務載入磁碟清單精確清理；同名不同 ID 租戶保留且名額歸零。</summary>
+    [Fact]
+    public async Task Cleanup_LateCommitAfterTimeout_ResumesWithExactPersistedIds()
+    {
+        using var fixture = new Fixture();
+        fixture.Sdk.NextSubmissionFailure = new TimeoutException("synthetic delayed server commit");
+        Assert.Throws<TimeoutException>(() => fixture.Service.Create("c201", "測試甲", null, [], [User], default));
+        var persisted = TestTenantManifest.Load(fixture.Root, "goodshepherd20", "c201");
+        var before = File.ReadAllBytes(fixture.Path);
+        await Assert.ThrowsAsync<InvalidOperationException>(() => fixture.Service.CleanupAsync("c201",
+            (_, _, _) => throw new InvalidOperationException("Invisible tenant cannot call LINE"), default));
+        Assert.Equal(before, File.ReadAllBytes(fixture.Path));
+        fixture.Sdk.CompleteDeferredCommit();
+        var other = new Entity("account", Guid.NewGuid()) { ["name"] = "測試甲", ["new_tenantcode"] = "c202" };
+        fixture.Sdk.Rows.Add((other.LogicalName, other.Id), other);
+        Assert.All(persisted.Records, record => Assert.True(fixture.Sdk.Rows.ContainsKey((record.EntityLogicalName, record.Id))));
+        var lineCalls = 0;
+
+        await fixture.Service.CleanupAsync("c201", (channel, users, _) =>
+        {
+            Assert.Equal("2012804957", channel);
+            Assert.Equal(User, Assert.Single(users));
+            lineCalls++;
+            return Task.CompletedTask;
+        }, default);
+
+        Assert.Equal(1, lineCalls);
+        Assert.All(persisted.Records, record => Assert.False(fixture.Sdk.Rows.ContainsKey((record.EntityLogicalName, record.Id))));
+        Assert.Same(other, fixture.Sdk.Rows[("account", other.Id)]);
+        Assert.Null(fixture.Sdk.DeferredTransaction);
+        Assert.Equal(1, fixture.Sdk.ReleaseCount);
+        Assert.False(File.Exists(fixture.Path));
+    }
+
+    /// <summary>一般 SDK fault 不是 ExecuteTransactionFault，不能證明已回滾；保留同一例外及清單，不立即清理或釋放。</summary>
+    [Fact]
+    public void Create_GenericSdkFault_DoesNotCertifyRollback()
+    {
+        using var fixture = new Fixture();
+        var failure = new FaultException<OrganizationServiceFault>(new OrganizationServiceFault { ErrorCode = -2147220891 });
+        fixture.Sdk.NextSubmissionFailure = failure;
+
+        Assert.Same(failure, Assert.Throws<FaultException<OrganizationServiceFault>>(
+            () => fixture.Service.Create("c201", "測試甲", null, [], [], default)));
+
+        Assert.True(File.Exists(fixture.Path));
+        Assert.Equal(4, TestTenantManifest.Load(fixture.Root, "goodshepherd20", "c201").Records.Count);
+        Assert.Empty(fixture.Sdk.Rows);
+        Assert.Equal(0, fixture.Sdk.DeleteCount);
+        Assert.Equal(0, fixture.Sdk.ReleaseCount);
+    }
+
+    /// <summary>程序重啟後只接受已落盤的未送出或正式回滾證據執行空清理，確認零 LINE、零遠端刪除及精確移除清單。</summary>
+    [Theory]
+    [InlineData("notSubmitted")]
+    [InlineData("rolledBack")]
+    public async Task Cleanup_ProvenNoCommitAcrossServiceInstances_RemovesOnlyEmptyManifest(string outcome)
+    {
+        using var fixture = new Fixture();
+        Directory.CreateDirectory(System.IO.Path.GetDirectoryName(fixture.Path)!);
+        File.WriteAllText(fixture.Path, $$"""
+            {"version":2,"organization":"goodshepherd20","product":"GoodShepherd2","code":"c201","creationOutcome":"{{outcome}}","records":[
+            {"entity":"account","id":"20100000-0000-0000-0000-000000000001"},
+            {"entity":"new_slotrequest","id":"20100000-0000-0000-0000-000000000002"}]}
+            """);
+
+        await fixture.Service.CleanupAsync("c201", (_, _, _) => throw new InvalidOperationException("Empty cleanup cannot call LINE"), default);
+
+        Assert.False(File.Exists(fixture.Path));
+        Assert.Empty(fixture.Sdk.Rows);
+        Assert.Equal(0, fixture.Sdk.DeleteCount);
+        Assert.Equal(0, fixture.Sdk.ReleaseCount);
+    }
+
+    /// <summary>呼叫端在送出前已取消時不保存清單也不送 SDK 交易；取消來源維持原 token，沒有不確定寫入。</summary>
+    [Fact]
+    public void Create_PreSubmitCancellation_DoesNotSendOrLeaveManifest()
+    {
+        using var fixture = new Fixture();
+        using var cancellation = new CancellationTokenSource();
+        cancellation.Cancel();
+
+        var failure = Assert.Throws<OperationCanceledException>(() => fixture.Service.Create(
+            "c201", "測試甲", null, [], [], cancellation.Token));
+
+        Assert.Equal(cancellation.Token, failure.CancellationToken);
+        Assert.Empty(fixture.Sdk.Rows);
+        Assert.Null(fixture.Sdk.DeferredTransaction);
+        Assert.False(File.Exists(fixture.Path));
+    }
+
+    /// <summary>同步提交有完整回應後 caller 才取消，應先記錄已確認結果再精確復原；不能誤當未知而留下租戶。</summary>
+    [Fact]
+    public void Create_CancellationAfterConfirmedCommit_RecoversBeforeRethrowing()
+    {
+        using var fixture = new Fixture();
+        using var cancellation = new CancellationTokenSource();
+        fixture.Sdk.AfterCommit = () => cancellation.Cancel();
+
+        var failure = Assert.Throws<OperationCanceledException>(() => fixture.Service.Create(
+            "c201", "測試甲", null, [], [User], cancellation.Token));
+
+        Assert.Equal(cancellation.Token, failure.CancellationToken);
         Assert.DoesNotContain(fixture.Sdk.Rows.Values, row => row.LogicalName is "account" or "contact" or "new_role" or "new_roleassignment" or "new_slotrequest");
         Assert.Equal(1, fixture.Sdk.ReleaseCount);
         Assert.False(File.Exists(fixture.Path));
+    }
+
+    /// <summary>明確 SDK 交易回滾後讀回故障必須聚合原 fault 與清理故障；重啟服務再清理只依落盤回滾證據移除空清單。</summary>
+    [Fact]
+    public async Task Create_KnownRollbackCleanupFailure_PreservesBothFailuresAndDurableRecovery()
+    {
+        using var fixture = new Fixture();
+        fixture.Sdk.FailCreateAt = 2;
+        var cleanupFailure = new IOException("synthetic recovery read failure");
+        fixture.Sdk.AfterRollback = () => fixture.Sdk.RetrieveFailure = cleanupFailure;
+
+        var failure = Assert.Throws<AggregateException>(() => fixture.Service.Create(
+            "c201", "測試甲", null, [], [User], default));
+
+        Assert.Equal(2, failure.InnerExceptions.Count);
+        Assert.Same(fixture.Sdk.TransactionFailure, failure.InnerExceptions[0]);
+        Assert.Same(cleanupFailure, failure.InnerExceptions[1]);
+        Assert.Empty(fixture.Sdk.Rows);
+        Assert.True(File.Exists(fixture.Path));
+        Assert.Equal(TestTenantCreationOutcome.RolledBack,
+            TestTenantManifest.Load(fixture.Root, "goodshepherd20", "c201").CreationOutcome);
+        fixture.Sdk.RetrieveFailure = null;
+        await fixture.Service.CleanupAsync("c201", (_, _, _) => throw new InvalidOperationException("LINE must not be used"), default);
+        Assert.False(File.Exists(fixture.Path));
+        Assert.Equal(0, fixture.Sdk.DeleteCount);
+        Assert.Equal(0, fixture.Sdk.ReleaseCount);
     }
 
     /// <summary>無指定期望值時保留 F3 的實際配發結果，由命令白名單核對，不能替呼叫端改成第一個 Channel。</summary>
@@ -304,8 +504,8 @@ public sealed class TestTenantServiceTests
         internal MemorySdk Sdk { get; } = new();
         /// <summary>每次借用同一案例 SDK 的真服務，所有可變資料仍由本 fixture 限定。</summary>
         internal TestTenantService Service => new(Sdk, "goodshepherd20", "GoodShepherd2", Root);
-        /// <summary>所有同步及非同步作業已返回後，只刪案例自己建立的隨機目錄。</summary>
-        public void Dispose() { if (Directory.Exists(Root)) Directory.Delete(Root, recursive: true); }
+        /// <summary>所有作業返回後先清空記憶體列、待提交交易與 callback 參照，再刪案例自己建立的隨機目錄。</summary>
+        public void Dispose() { Sdk.Clear(); if (Directory.Exists(Root)) Directory.Delete(Root, recursive: true); }
     }
 
     /// <summary>僅模擬正式 SDK 的 ID、範圍查詢與同步配發；真服務仍擁有安全驗證及清理順序。</summary>
@@ -321,6 +521,19 @@ public sealed class TestTenantServiceTests
         internal int FailCreateAt { get; set; }
         /// <summary>下一筆交易已提交後遺失回應，用以驗證真服務寫前主鍵清單。</summary>
         internal bool LoseNextCommitResponse { get; set; }
+        /// <summary>下一筆提交在伺服器執行前回報此原始例外；交易保留給測試明確開啟閘門，沒有背景計時或 task。</summary>
+        internal Exception? NextSubmissionFailure { get; set; }
+        /// <summary>尚未提交的完整原 SDK 交易，只活到案例明確提交或 fixture Dispose 清空，不跨案例保存。</summary>
+        internal ExecuteTransactionRequest? DeferredTransaction { get; private set; }
+        /// <summary>以正式 ExecuteTransactionFault 表示整筆已回滾，而非用傳輸 IOException 假冒已確認的伺服器結果。</summary>
+        internal FaultException<OrganizationServiceFault> TransactionFailure { get; } = new(
+            new ExecuteTransactionFault { ErrorCode = unchecked((int)0x80040265), FaultedRequestIndex = 1 });
+        /// <summary>只對精確 Retrieve 注入原始故障，用於驗證清理失敗不覆蓋建立失敗。</summary>
+        internal Exception? RetrieveFailure { get; set; }
+        /// <summary>同步提交完畢但回應尚未返回時只呼叫一次，模擬 caller 取消；使用後立即解除 closure。</summary>
+        internal Action? AfterCommit { get; set; }
+        /// <summary>整批回滾完成後注入讀回故障，仍由真服務持有原始 SDK fault。</summary>
+        internal Action? AfterRollback { get; set; }
         /// <summary>同步配發器回待配發且不建立任何 Channel／slot lookup 的容量耗盡注入。</summary>
         internal bool RefuseAllocation { get; set; }
         /// <summary>僅在已套用單筆同步更新後注入有界競賽或取消，不建立背景工作。</summary>
@@ -335,7 +548,7 @@ public sealed class TestTenantServiceTests
         public Guid Create(Entity entity)
         {
             creates++;
-            if (creates == FailCreateAt) throw new IOException("synthetic atomic transaction fault");
+            if (creates == FailCreateAt) throw TransactionFailure;
             entity.Id = entity.Id == Guid.Empty ? Guid.NewGuid() : entity.Id;
             Rows.Add((entity.LogicalName, entity.Id), entity);
             if (entity.LogicalName == "new_slotrequest")
@@ -361,9 +574,13 @@ public sealed class TestTenantServiceTests
             return entity.Id;
         }
 
-        /// <summary>只依精確實體與主鍵讀取，不存在時回正式的 ObjectDoesNotExist fault 供真服務分類。</summary>
-        public Entity Retrieve(string entityName, Guid id, ColumnSet columnSet) => Rows.TryGetValue((entityName, id), out var row)
-            ? row : throw new System.ServiceModel.FaultException<OrganizationServiceFault>(new OrganizationServiceFault { ErrorCode = -2147220969 });
+        /// <summary>只依精確實體與主鍵讀取；可注入原始讀回故障，不存在時回正式 ObjectDoesNotExist fault 供真服務分類。</summary>
+        public Entity Retrieve(string entityName, Guid id, ColumnSet columnSet)
+        {
+            if (RetrieveFailure is not null) throw RetrieveFailure;
+            return Rows.TryGetValue((entityName, id), out var row)
+                ? row : throw new FaultException<OrganizationServiceFault>(new OrganizationServiceFault { ErrorCode = -2147220969 });
+        }
         /// <summary>解讀真服務的完整 AND／OR 條件，不用固定回傳清單掩蓋漏查跨租戶指派。</summary>
         public EntityCollection RetrieveMultiple(QueryBase query)
         {
@@ -384,7 +601,7 @@ public sealed class TestTenantServiceTests
             }).Concat(filter.Filters.Select(child => Matches(row, child)));
             return filter.FilterOperator == LogicalOperator.Or ? matches.Any(match => match) : matches.All(match => match);
         }
-        /// <summary>回已發布試用 choice、真正逐項交易回應與寫入故障；任何子項失敗還原操作前快照。</summary>
+        /// <summary>回已發布試用 choice 及逐項交易回應；明確子項失敗還原快照，傳輸逾時則保留完整交易供同步閘門後續提交。</summary>
         public OrganizationResponse Execute(OrganizationRequest request)
         {
             if (request is RetrieveAttributeRequest)
@@ -395,6 +612,12 @@ public sealed class TestTenantServiceTests
             }
             if (request is ExecuteTransactionRequest transaction)
             {
+                if (NextSubmissionFailure is { } submissionFailure)
+                {
+                    NextSubmissionFailure = null;
+                    DeferredTransaction = transaction;
+                    throw submissionFailure;
+                }
                 var before = Rows.ToDictionary(pair => pair.Key, pair => Copy(pair.Value));
                 var previousRelease = ReleaseCount;
                 var responses = new OrganizationResponseCollection();
@@ -404,8 +627,12 @@ public sealed class TestTenantServiceTests
                     Rows.Clear();
                     foreach (var pair in before) Rows.Add(pair.Key, pair.Value);
                     ReleaseCount = previousRelease;
+                    AfterRollback?.Invoke();
                     throw;
                 }
+                var afterCommit = AfterCommit;
+                AfterCommit = null;
+                afterCommit?.Invoke();
                 if (LoseNextCommitResponse)
                 {
                     LoseNextCommitResponse = false;
@@ -426,6 +653,26 @@ public sealed class TestTenantServiceTests
             }
             throw new NotSupportedException();
         }
+        /// <summary>由案例同步提交先前已送出但回報逾時的原交易；提交一次即清除候選，避免睡眠與排程時序造成假紅綠。</summary>
+        internal void CompleteDeferredCommit()
+        {
+            var transaction = DeferredTransaction ?? throw new InvalidOperationException("No delayed transaction exists.");
+            DeferredTransaction = null;
+            Execute(transaction);
+        }
+
+        /// <summary>fixture 結束時釋放所有合成資料、待提交交易及 callback 參照；不發送或補做任何 SDK 作業。</summary>
+        internal void Clear()
+        {
+            Rows.Clear();
+            DeferredTransaction = null;
+            NextSubmissionFailure = null;
+            RetrieveFailure = null;
+            AfterCommit = null;
+            AfterRollback = null;
+            AfterUpdate = null;
+        }
+
         /// <summary>只複製 fake 交易私有候選，不保留下一交易會原地修改的 Attribute 字典。</summary>
         private static Entity Copy(Entity row)
         {

@@ -1,9 +1,9 @@
 /*
 檔案整體說明
 目的與定位：F12 測試租戶建立與精確清理的 SDK 作業邊界，僅接受三個核定測試組織及對應產品。
-主要功能與流程：建立時以 SDK 交易建立測試 account、角色、合成會友及配發申請，先保存只含穩定資料庫 ID 的本地復原清單；清理時重新驗證遠端父子 lookup 後才呼叫受限 LINE 清理委派及釋放名額。
+主要功能與流程：建立時以 SDK 交易建立測試 account、角色、合成會友及配發申請，先保存只含穩定資料庫 ID 與提交結果的本地復原清單，未知結果不得自動清理；清理時重新驗證遠端父子 lookup 後才呼叫受限 LINE 清理委派及釋放名額。
 資源擁有權與隔離：SDK 及 LINE 委派由外層命令借入，命令必須持有整台電腦共用組織鎖；不建立背景工作、不保存 token 或使用者資料到 manifest。同步 SDK 入場後必須排空，原始例外由外層共用告警入口處理。
-失敗與驗證：任何範圍、穩定身分、容量或名額讀回衝突都拒絕；未完成清理保留 manifest 供精確續跑。合成 SDK 測試驗證正式拒絕、錯配釋放及跨租戶拒絕，不能當作實機結果。
+失敗與驗證：任何範圍、穩定身分、容量或名額讀回衝突都拒絕；逾時、回應遺失或未知提交保留 manifest 至明確清理。account 尚不可見時，未知提交一律保留；已確定未送出、正式回滾或完整成功回應排除晚到建立後，仍須每個正式 ID 均不存在才接受空清理。合成 SDK 測試驗證正式拒絕、錯配釋放及跨租戶拒絕，不能當作實機結果。
 */
 using System;
 using System.Collections.Generic;
@@ -42,7 +42,12 @@ internal sealed class TestTenantService
     }
 
     /// <summary>建立隔離測試租戶並保存精確復原清單；不輸出任何 LINE 使用者識別資料。</summary>
-    /// <remarks>呼叫端的期望值只做配發後比對；白名單委派只驗證正式結果，不能指定或改寫 F3 的選擇。</remarks>
+    /// <remarks>
+    /// 呼叫端的期望值只做配發後比對；白名單委派不能改寫 F3 選擇。寫前清單一律是未知結果，
+    /// SDK 入場前取消、正式 ExecuteTransactionFault 及逐筆驗證成功回應才可持久化確定狀態。
+    /// 傳輸逾時、回應遺失或錯誤型別的回應不立即清理，即使當下可讀到資料也保留原例外與清單；
+    /// 明確 cleanup 命令須重新驗證 account 及所有父子範圍。已確認結果的復原失敗則聚合原始例外與清理例外。
+    /// </remarks>
     internal TestTenantManifest Create(string code, string name, string? expectedChannel,
         IReadOnlyList<string> admins, IReadOnlyList<string> members, CancellationToken ct, Action<string>? validateChannel = null)
     {
@@ -100,9 +105,11 @@ internal sealed class TestTenantService
         // 這些 GUID 是本命令指定給 CreateRequest.Target.Id 的正式主鍵，不是顯示／重試／draft key。
         // 寫前落盤使傳輸結果不確定時仍能精確讀回，不因取消遺失唯一清理範圍。
         manifest.Save(artifactRoot, ct);
+        var submitted = false;
         try
         {
-            ExecuteCreates(rows, ct);
+            ExecuteCreates(rows, ct, beforeSubmit: () => submitted = true,
+                afterConfirmedResponse: () => manifest = manifest.RecordCreationOutcome(artifactRoot, TestTenantCreationOutcome.Confirmed));
             var allocated = GetRequired("new_slotrequest", allocation.Id, "new_tenant", "new_result", "new_channel", "new_slot");
             if (allocated.GetAttributeValue<OptionSetValue>("new_result")?.Value != 100000000)
                 throw new InvalidOperationException("Test tenant slot allocation was refused.");
@@ -115,8 +122,13 @@ internal sealed class TestTenantService
         }
         catch (Exception failure)
         {
+            // SDK 一旦入場，查無資料不能證明尚未提交；未知結果只保留，禁止立即清理延遲交易的唯一正式 ID。
+            if (submitted && manifest.CreationOutcome == TestTenantCreationOutcome.Unknown && !IsConfirmedRollback(failure)) throw;
             try
             {
+                if (manifest.CreationOutcome == TestTenantCreationOutcome.Unknown)
+                    manifest = manifest.RecordCreationOutcome(artifactRoot, submitted
+                        ? TestTenantCreationOutcome.RolledBack : TestTenantCreationOutcome.NotSubmitted);
                 // 建立尚未簽發邀請，沒有本命令創建的 LINE 宮格；只走精確 SDK 回復，不呼叫外部 LINE。
                 CleanupAsync(code, static (_, _, _) => Task.CompletedTask, CancellationToken.None).GetAwaiter().GetResult();
             }
@@ -160,8 +172,16 @@ internal sealed class TestTenantService
         var account = Get("account", manifest.TenantId, "new_tenantcode", "new_istenant", "new_istesttenant", "new_channelslot");
         if (account is null)
         {
-            // 交易未到伺服器，或最後刪除已成功但本地檔案刪除失敗；每個清單 ID 都不存在才移除清單。
-            if (manifest.Records.Any(record => Get(record.EntityLogicalName, record.Id) is not null)) throw ScopeFailure();
+            // 未知建立可能仍在遠端執行，任何空讀都不能刪唯一清單。已確定的三種結果均排除晚到建立；
+            // 包含完整成功回應之後，遠端精確刪除已完成但本地刪檔失敗的續跑，仍逐一讀回全部正式 ID。
+            if (manifest.CreationOutcome == TestTenantCreationOutcome.Unknown)
+                throw new InvalidOperationException("Test tenant creation cannot be resolved while the account is absent; manifest is retained.");
+            foreach (var record in manifest.Records)
+            {
+                ct.ThrowIfCancellationRequested();
+                if (Get(record.EntityLogicalName, record.Id) is not null) throw ScopeFailure();
+            }
+            ct.ThrowIfCancellationRequested();
             DeleteManifest(manifest);
             return;
         }
@@ -392,28 +412,41 @@ internal sealed class TestTenantService
         row.GetAttributeValue<EntityReference>(attribute) is { Id: var id, LogicalName: var logicalName } &&
         id != Guid.Empty && logicalName == target ? id : throw ScopeFailure();
 
-    /// <summary>同一 SDK 交易創建整批列，回應需逐筆核對正式主鍵，避免未知部分結果被發布。</summary>
-    private void ExecuteCreates(List<Entity> rows, CancellationToken ct)
+    /// <summary>同一 SDK 交易創建整批列；入場前標記是否已送出，逐筆核對正式主鍵後才記錄成功，均早於返回時的 caller 取消檢查。</summary>
+    /// <remarks>回呼只由本次 Create closure 擁有，既不跨操作保存也不產生背景工作；配發釋放交易沿用相同逐筆回應驗證。</remarks>
+    private void ExecuteCreates(List<Entity> rows, CancellationToken ct, Action? beforeSubmit = null, Action? afterConfirmedResponse = null)
     {
-        var response = ExecuteBatch(rows.Select(row => (OrganizationRequest)new CreateRequest { Target = row }).ToArray(), ct);
-        if (response.Responses.Count != rows.Count || response.Responses.Where((item, index) => item is not CreateResponse create || create.id != rows[index].Id).Any())
-            throw ScopeFailure();
+        ExecuteBatch(rows.Select(row => (OrganizationRequest)new CreateRequest { Target = row }).ToArray(), ct, beforeSubmit, response =>
+        {
+            if (response.Responses.Count != rows.Count || response.Responses.Where((item, index) => item is not CreateResponse create || create.id != rows[index].Id).Any())
+                throw ScopeFailure();
+            afterConfirmedResponse?.Invoke();
+        });
     }
+
+    /// <summary>只有正式交易 fault detail 證明整批回滾；一般 OrganizationServiceFault、逾時、取消及 IOException 都保留未知結果。</summary>
+    private static bool IsConfirmedRollback(Exception failure) =>
+        failure is FaultException<OrganizationServiceFault> { Detail: ExecuteTransactionFault } or FaultException<ExecuteTransactionFault>;
 
     /// <summary>精確刪除已完整盤點的記錄 ID；不依顯示名稱、空查詢或 wildcard 執行清理。</summary>
     private void ExecuteDeletes(IReadOnlyList<Entity> rows, CancellationToken ct) => ExecuteBatch(
         rows.Select(row => (OrganizationRequest)new DeleteRequest { Target = row.ToEntityReference() }).ToArray(), ct);
 
-    /// <summary>同步 SDK 交易有界於當次租約；入場後等真正返回才檢查取消，沒有遺棄背景工作。</summary>
-    private ExecuteTransactionResponse ExecuteBatch(OrganizationRequest[] requests, CancellationToken ct)
+    /// <summary>同步 SDK 交易有界於當次租約；送出標記緊鄰 Execute，真正返回後先驗回應及保存確定結果再檢查取消，沒有遺棄工作。</summary>
+    /// <remarks>單次作業 closure 只活到同步呼叫結束；SDK fault 原樣往上傳遞，不能由查無資料或取消 token 推論回滾。</remarks>
+    private ExecuteTransactionResponse ExecuteBatch(OrganizationRequest[] requests, CancellationToken ct,
+        Action? beforeSubmit = null, Action<ExecuteTransactionResponse>? validateResponse = null)
     {
         if (requests.Length is < 1 or > 512) throw ScopeFailure();
         ct.ThrowIfCancellationRequested();
         var collection = new OrganizationRequestCollection();
         collection.AddRange(requests);
+        beforeSubmit?.Invoke();
         var response = service.Execute(new ExecuteTransactionRequest { Requests = collection, ReturnResponses = true });
+        var transactionResponse = response as ExecuteTransactionResponse ?? throw ScopeFailure();
+        validateResponse?.Invoke(transactionResponse);
         ct.ThrowIfCancellationRequested();
-        return response as ExecuteTransactionResponse ?? throw ScopeFailure();
+        return transactionResponse;
     }
 
     /// <summary>固定檔名由已驗證代碼組成，呼叫端不能傳任意路徑。</summary>
@@ -423,7 +456,8 @@ internal sealed class TestTenantService
     private void DeleteManifest(TestTenantManifest expected)
     {
         var current = TestTenantManifest.Load(artifactRoot, organization, expected.Code);
-        if (current.Product != expected.Product || !current.Records.SequenceEqual(expected.Records)) throw ScopeFailure();
+        if (current.Product != expected.Product || current.CreationOutcome != expected.CreationOutcome ||
+            !current.Records.SequenceEqual(expected.Records)) throw ScopeFailure();
         File.Delete(ManifestPath(expected.Code));
     }
 

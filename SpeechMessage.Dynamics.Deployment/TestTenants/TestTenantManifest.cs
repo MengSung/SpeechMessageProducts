@@ -1,10 +1,10 @@
 /*
 檔案整體說明
 目的與定位：保存 F12 測試租戶建立作業的最小本地清理清單，供後續 cleanup 命令精確識別本次建立的 Dataverse 資料列。
-主要功能與流程：TestTenantRecordId 將允許的實體邏輯名稱與非空資料庫 GUID 綁成穩定複合身份；TestTenantManifest 複製並凍結輸入集合、驗證產品／組織／租戶代碼及必要主記錄，將版本化 JSON 原子建立於 artifacts/test-tenants/{code}.json，或以有界、嚴格 JSON parser 載入並核對呼叫端要求的組織與代碼。
-依賴與輸出：只使用本機檔案系統與 System.Text.Json，不持有 SDK、LINE client、SQL 連線、token、LINE userId 或個資。呼叫端必須把固定 artifacts 根目錄交給本類，不能由 request 決定任意刪除路徑；暫存檔由當次 Save 呼叫唯一擁有，成功後原子移至最終路徑，失敗時只清理自身暫存檔。
+主要功能與流程：TestTenantRecordId 將允許的實體邏輯名稱與非空資料庫 GUID 綁成穩定複合身份；TestTenantManifest 複製並凍結輸入集合、驗證產品／組織／租戶代碼及必要主記錄，以 unknown／notSubmitted／rolledBack／confirmed 持久化建立結果，將版本化 JSON 原子建立於 artifacts/test-tenants/{code}.json，或以有界、嚴格 JSON parser 載入並核對呼叫端要求的組織與代碼。
+依賴與輸出：只使用本機檔案系統與 System.Text.Json，不持有 SDK、LINE client、SQL 連線、token、LINE userId 或個資。呼叫端必須把固定 artifacts 根目錄交給本類，不能由 request 決定任意刪除路徑；暫存檔由當次 Save 呼叫唯一擁有，成功後原子移至最終路徑，狀態轉移先核對原清單再原子替換，失敗時只清理自身暫存檔。呼叫端須持有同機組織鎖；清單保留到精確清理完成，不以時間過期。
 使用邊界與維護：manifest 是 cleanup 的必要限制條件但不是遠端授權；cleanup 仍須依資料庫父子 lookup 重驗每筆資料屬於 manifest 的租戶。只允許明列的三個測試組織、三個產品、有限代碼字元與受控實體清單；最多 256 個記錄身份、JSON 最多 64 KiB，重複實體+GUID、未知欄位、錯誤版本、符號連結、範圍不符或缺少 account／slotrequest 一律 fail closed。除已驗證公開代碼與範圍外，原始邀請碼、LINE userId、姓名及其他個資不進入 manifest。
-失敗與驗證：儲存採同目錄 CreateNew 暫存檔、Flush(true) 後不覆寫搬移；讀取使用嚴格重複屬性拒絕、深度及大小上限。合成測試驗證白名單往返、身份衝突及跨組織拒絕；通過只代表離線格式契約成立，不代表 D365 實機部署或資料清理。
+失敗與驗證：首次儲存採同目錄 CreateNew 暫存檔、Flush(true) 後不覆寫搬移；狀態更新重驗原 scope、正式 ID 及舊結果後才原子替換；讀取使用嚴格重複屬性拒絕、深度及大小上限。第一版缺少提交證據一律讀為 unknown，不可因當下遠端查無資料便移除；第二版明列狀態且拒絕未知值。合成測試驗證狀態跨檔往返、身份衝突及跨組織拒絕；通過只代表離線格式契約成立，不代表 D365 實機部署或資料清理。
 */
 using System;
 using System.Collections.Generic;
@@ -15,6 +15,19 @@ using System.Threading;
 using System.Threading.Tasks;
 
 namespace SpeechMessage.Dynamics.Deployment.TestTenants;
+
+/// <summary>只表達本次建立交易可證明的結果，不取代遠端租戶授權；未知狀態必須保留正式 ID 供後續精確清理。</summary>
+internal enum TestTenantCreationOutcome
+{
+    /// <summary>已寫前保存但尚無完整提交或回滾證據，包含傳輸逾時、回應遺失、程序中斷及舊版清單。</summary>
+    Unknown,
+    /// <summary>本程序確定未呼叫初始交易的 SDK Execute；仍須確認全部正式 ID 不存在才能移除清單。</summary>
+    NotSubmitted,
+    /// <summary>初始交易收到正式 ExecuteTransactionFault，確認伺服器整批回滾；一般 SDK／傳輸故障不具此證明。</summary>
+    RolledBack,
+    /// <summary>完整初始交易回應已逐筆確認正式主鍵；後續失敗可在重新驗證遠端租戶範圍後精確復原。</summary>
+    Confirmed
+}
 
 /// <summary>manifest 允許的單筆本地記錄身份；不包含顯示名稱、秘密或使用者識別資料。</summary>
 internal sealed record TestTenantRecordId
@@ -39,10 +52,10 @@ internal sealed record TestTenantRecordId
     internal Guid Id { get; }
 }
 
-/// <summary>只含 F12 清理所需記錄身份的不可變 manifest；檔案系統操作僅限固定租戶子目錄。</summary>
+/// <summary>只含 F12 清理所需正式記錄身份與提交結果的不可變 manifest；檔案系統操作僅限固定租戶子目錄。</summary>
 internal sealed class TestTenantManifest
 {
-    private const int CurrentVersion = 1;
+    private const int CurrentVersion = 2;
     private const int MaximumRecords = 256;
     private const int MaximumBytes = 64 * 1024;
     private static readonly HashSet<string> OrganizationNames = new(StringComparer.Ordinal)
@@ -70,13 +83,18 @@ internal sealed class TestTenantManifest
     /// <summary>以唯讀副本發布的完整本次記錄身份；不同 entity+ID 保留為獨立資料列。</summary>
     internal IReadOnlyList<TestTenantRecordId> Records { get; }
 
+    /// <summary>與正式 ID 一同落盤的建立結果；Unknown 不因遠端暫時不可見而升級為未送出或回滾。</summary>
+    internal TestTenantCreationOutcome CreationOutcome { get; }
+
     /// <summary>只由已驗證欄位建構；所有公開於本 assembly 的建立路徑均會複製及檢查集合。</summary>
-    private TestTenantManifest(string organization, string product, string code, IReadOnlyList<TestTenantRecordId> records)
+    private TestTenantManifest(string organization, string product, string code, IReadOnlyList<TestTenantRecordId> records,
+        TestTenantCreationOutcome creationOutcome = TestTenantCreationOutcome.Unknown)
     {
         Organization = organization;
         Product = product;
         Code = code;
         Records = records;
+        CreationOutcome = creationOutcome;
     }
 
     /// <summary>複製、排序並驗證候選列，只有完整唯一清單通過後才建立可發布的 manifest。</summary>
@@ -108,7 +126,27 @@ internal sealed class TestTenantManifest
     /// <param name="artifactRoot">由程序組合根固定指定的 artifacts 根目錄，不得來自 HTTP 或秘密。</param>
     /// <param name="cancellationToken">呼叫端取消訊號；任何尚未發布的本次暫存檔都會清理。</param>
     /// <returns>唯一 test-tenants/{code}.json 路徑；呼叫端只應輸出檔名而非記錄內容。</returns>
-    internal string Save(string artifactRoot, CancellationToken cancellationToken = default)
+    internal string Save(string artifactRoot, CancellationToken cancellationToken = default) =>
+        SaveCore(artifactRoot, replacing: null, cancellationToken);
+
+    /// <summary>將未知結果提升為本程序已取得的確定證據，完整保留正式 ID 並原子替換原清單；不允許改寫既有確定結果。</summary>
+    /// <param name="artifactRoot">持有組織寫鎖之命令所使用的固定本地根目錄。</param>
+    /// <param name="outcome">僅接受已確認未送出、整筆回滾或完整成功回應；呼叫者不得由查無資料推論結果。</param>
+    /// <returns>狀態持久化成功後的不可變新清單；任何失敗保留原檔，交由建立流程保留原始例外並決定復原。</returns>
+    internal TestTenantManifest RecordCreationOutcome(string artifactRoot, TestTenantCreationOutcome outcome)
+    {
+        if (CreationOutcome != TestTenantCreationOutcome.Unknown || outcome is not
+            (TestTenantCreationOutcome.NotSubmitted or TestTenantCreationOutcome.RolledBack or TestTenantCreationOutcome.Confirmed))
+            throw new InvalidDataException("Test tenant creation outcome transition is invalid.");
+        var next = new TestTenantManifest(Organization, Product, Code, Records, outcome);
+        // 這是同步 SDK 已排空後的必要復原證據；不能因 caller 取消而跳過落盤。
+        next.SaveCore(artifactRoot, replacing: this, CancellationToken.None);
+        return next;
+    }
+
+    /// <summary>單次寫入擁有暫存檔及串流；Flush(true) 並關閉後才發布，更新前重讀 scope、正式 ID 及原狀態避免替換其他證據。</summary>
+    /// <remarks>呼叫端持有同機組織鎖；同目錄原子搬移只替換已核對之既有完整清單，不存在原地填寫或刪除後重建的空窗。</remarks>
+    private string SaveCore(string artifactRoot, TestTenantManifest? replacing, CancellationToken cancellationToken)
     {
         var directory = GetDirectory(artifactRoot, create: true);
         var path = Path.Combine(directory, Code + ".json");
@@ -126,6 +164,14 @@ internal sealed class TestTenantManifest
                     writer.WriteString("organization", Organization);
                     writer.WriteString("product", Product);
                     writer.WriteString("code", Code);
+                    writer.WriteString("creationOutcome", CreationOutcome switch
+                    {
+                        TestTenantCreationOutcome.Unknown => "unknown",
+                        TestTenantCreationOutcome.NotSubmitted => "notSubmitted",
+                        TestTenantCreationOutcome.RolledBack => "rolledBack",
+                        TestTenantCreationOutcome.Confirmed => "confirmed",
+                        _ => throw new InvalidDataException("Test tenant creation outcome is invalid.")
+                    });
                     writer.WriteStartArray("records");
                     foreach (var record in Records)
                     {
@@ -145,7 +191,14 @@ internal sealed class TestTenantManifest
             }
 
             cancellationToken.ThrowIfCancellationRequested();
-            File.Move(temporaryPath, path, overwrite: false);
+            if (replacing is not null)
+            {
+                var current = Load(artifactRoot, Organization, Code);
+                if (current.Product != replacing.Product || current.CreationOutcome != replacing.CreationOutcome ||
+                    !current.Records.SequenceEqual(replacing.Records))
+                    throw new InvalidDataException("Test tenant manifest changed before outcome publication.");
+            }
+            File.Move(temporaryPath, path, overwrite: replacing is not null);
             return path;
         }
         finally
@@ -182,10 +235,23 @@ internal sealed class TestTenantManifest
             MaxDepth = 8
         });
         var root = document.RootElement;
-        RequireProperties(root, "version", "organization", "product", "code", "records");
-        if (!root.TryGetProperty("version", out var version) || version.ValueKind != JsonValueKind.Number ||
-            !version.TryGetInt32(out var parsedVersion) || parsedVersion != CurrentVersion)
+        if (root.ValueKind != JsonValueKind.Object || !root.TryGetProperty("version", out var version) ||
+            version.ValueKind != JsonValueKind.Number || !version.TryGetInt32(out var parsedVersion) ||
+            parsedVersion is not (1 or CurrentVersion))
             throw new InvalidDataException("Test tenant manifest version is invalid.");
+        if (parsedVersion == 1)
+            RequireProperties(root, "version", "organization", "product", "code", "records");
+        else
+            RequireProperties(root, "version", "organization", "product", "code", "creationOutcome", "records");
+        // 第一版沒有提交結果證據；升級只能保守保留 unknown，不能因載入成功便假設未寫入。
+        var outcome = parsedVersion == 1 ? TestTenantCreationOutcome.Unknown : ReadString(root, "creationOutcome") switch
+        {
+            "unknown" => TestTenantCreationOutcome.Unknown,
+            "notSubmitted" => TestTenantCreationOutcome.NotSubmitted,
+            "rolledBack" => TestTenantCreationOutcome.RolledBack,
+            "confirmed" => TestTenantCreationOutcome.Confirmed,
+            _ => throw new InvalidDataException("Test tenant creation outcome is invalid.")
+        };
 
         var organization = ReadString(root, "organization");
         var product = ReadString(root, "product");
@@ -208,7 +274,8 @@ internal sealed class TestTenantManifest
             records.Add(new TestTenantRecordId(entity, id));
         }
 
-        return Create(organization, product, code, records);
+        var validated = Create(organization, product, code, records);
+        return new TestTenantManifest(organization, product, code, validated.Records, outcome);
     }
 
     /// <summary>建立固定子目錄或檢查既有路徑，拒絕根目錄及子目錄被 junction／symlink 導出。</summary>

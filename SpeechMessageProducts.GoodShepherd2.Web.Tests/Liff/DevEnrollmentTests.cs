@@ -1,7 +1,7 @@
 /*
 檔案整體說明
 目的與定位：F12 開發邀請註冊的離線 HTTP 契約測試，保護環境開關、固定伺服器 Channel、Choice 租戶旗標與一次性交易；不連線 LINE、D365 或 SQL。
-主要功能與流程：每案建立獨立 loopback Kestrel、合成官方驗證 transport 與具鎖定提交的 IOrganizationService 替身。真實 LIFF 廣域分支與邀請分支共同啟動，透過實際 POST 驗證拒絕及成功；以雙請求讀取屏障、交易故障及未知傳輸結果證明 CAS 排在兩筆 Create 前且整批回復。
+主要功能與流程：每案建立獨立 loopback Kestrel、合成官方驗證 transport 與具鎖定提交的 IOrganizationService 替身。真實 LIFF 廣域分支與邀請分支共同啟動，透過實際 POST 驗證拒絕及成功；以雙請求屏障、不同邀請及既有正式 Contact／指派，證明租戶與邀請 CAS 排在 Create 前、衝突資料不合併且交易故障整批回復。
 使用邊界與維護：只使用合成身分與隨機邀請，替身交易提交不等同實機 ACID 證據。fixture 唯一擁有 Host、HTTP client、驗證 client、屏障及暫存目錄，先停止排空再 Dispose；每筆 SDK lease 計數歸零，所有 HTTP 訊息逐筆關閉。測試另讀本工作樹 schema 的中文選項，避免猜數字或用 bool 假裝 Choice；來源須 UTF-8 無 BOM、CRLF 與末尾 CRLF。
 */
 using System.Net;
@@ -203,6 +203,95 @@ public sealed class DevEnrollmentTests
             Assert.Equal(1, f.Database.Contacts);
             Assert.Equal(1, f.Database.Assignments);
             Assert.Equal(2, f.Released);
+            Assert.Equal(0, f.Active);
+        }
+        finally { foreach (var response in replies) response.Dispose(); }
+    }
+
+    /// <summary>另一張邀請重用同租戶同 LINE 身分的正式 Contact；角色已存在時不再建立，fixture 完整排空。</summary>
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task Enroll_ExistingContact_ReusesStableIdentity(bool existingRole)
+    {
+        await using var f = await Fixture.StartAsync();
+        var existing = f.Database.SeedContact(existingRole);
+        using var response = await f.PostAsync();
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.Equal(1, f.Database.Contacts);
+        Assert.Equal(1, f.Database.Assignments);
+        Assert.Equal(existing, Assert.Single(f.Database.StoredContacts).Id);
+        Assert.Equal(existing, ((EntityReference)Assert.Single(f.Database.StoredAssignments)["new_contactid"]).Id);
+        Assert.Equal(0, f.Active);
+    }
+
+    /// <summary>既存不同資料庫 ID 即使姓名與身分相同也不能靜默合併；拒絕邀請且完整保留兩筆供診斷。</summary>
+    [Fact]
+    public async Task Enroll_ConflictingContacts_RefusesWithoutMerging()
+    {
+        await using var f = await Fixture.StartAsync();
+        f.Database.SeedContact(false);
+        f.Database.SeedContact(false);
+        using var response = await f.PostAsync();
+        Assert.Equal(HttpStatusCode.InternalServerError, response.StatusCode);
+        Assert.Equal(2, f.Database.Contacts);
+        Assert.Equal(0, f.Database.Transactions);
+        Assert.False(f.Database.Invite.Contains("new_usedon"));
+        Assert.Equal(0, f.Active);
+    }
+
+    /// <summary>唯一查詢仍須重驗完整父子 scope；合成替身回傳外租戶 Contact／角色或重複指派時零寫入並保留原資料。</summary>
+    [Theory]
+    [InlineData("contact-tenant")]
+    [InlineData("contact-user")]
+    [InlineData("assignment-role")]
+    [InlineData("assignment-contact")]
+    [InlineData("assignment-duplicate")]
+    public async Task Enroll_ExistingIdentityScopeConflict_PreservesRows(string fault)
+    {
+        await using var f = await Fixture.StartAsync();
+        f.Database.SeedContact(true);
+        var contact = Assert.Single(f.Database.StoredContacts);
+        var assignment = Assert.Single(f.Database.StoredAssignments);
+        if (fault == "contact-tenant") contact["parentcustomerid"] = new EntityReference("account", Guid.NewGuid());
+        if (fault == "contact-user") contact["new_lineid"] = "synthetic-other-sub";
+        if (fault == "assignment-role") assignment["new_roleid"] = new EntityReference("new_role", Guid.NewGuid());
+        if (fault == "assignment-contact") assignment["new_contactid"] = new EntityReference("contact", Guid.NewGuid());
+        if (fault == "assignment-duplicate")
+        {
+            var duplicate = new Entity("new_roleassignment", Guid.NewGuid());
+            duplicate.Attributes.AddRange(assignment.Attributes);
+            f.Database.StoredAssignments.Add(duplicate);
+        }
+        using var response = await f.PostAsync();
+        Assert.Equal(HttpStatusCode.InternalServerError, response.StatusCode);
+        Assert.Equal(0, f.Database.Transactions);
+        Assert.False(f.Database.Invite.Contains("new_usedon"));
+        Assert.Equal(0, f.Active);
+    }
+
+    /// <summary>不同邀請同時替相同身分加入同租戶時，租戶 RowVersion CAS 僅放行一批；不能只鎖各自邀請。</summary>
+    [Fact]
+    public async Task Enroll_DifferentInvitesSameUser_OneContactAcrossTransactions()
+    {
+        await using var f = await Fixture.StartAsync();
+        var other = f.Database.AddInvite();
+        f.Database.ReadBarrier = new Barrier(2);
+        var replies = await Task.WhenAll(f.PostAsync(), f.PostAsync(JsonSerializer.Serialize(new { token = other })));
+        try
+        {
+            Assert.Single(replies, r => r.StatusCode == HttpStatusCode.OK);
+            Assert.Single(replies, r => r.StatusCode == HttpStatusCode.Forbidden);
+            Assert.Equal(1, f.Database.Contacts);
+            Assert.Equal(1, f.Database.Assignments);
+            Assert.Equal(0, f.Active);
+            var retryBody = replies[0].StatusCode == HttpStatusCode.Forbidden ? null : JsonSerializer.Serialize(new { token = other });
+            f.Database.ReadBarrier.Dispose();
+            f.Database.ReadBarrier = null;
+            using var retry = await f.PostAsync(retryBody);
+            Assert.Equal(HttpStatusCode.OK, retry.StatusCode);
+            Assert.Equal(1, f.Database.Contacts);
+            Assert.Equal(1, f.Database.Assignments);
             Assert.Equal(0, f.Active);
         }
         finally { foreach (var response in replies) response.Dispose(); }
@@ -526,6 +615,14 @@ public sealed class DevEnrollmentTests
         internal Entity Invite { get; } = new("new_testinvite", Guid.NewGuid()) { RowVersion = "7" };
         /// <summary>只同步本案資料庫提交，不假裝應用程式鎖提供實機唯一性。</summary>
         private readonly object gate = new();
+        /// <summary>本案正式 Contact 快照，正式 ID 逐筆保留，不以顯示文字去重。</summary>
+        internal List<Entity> StoredContacts { get; } = [];
+        /// <summary>本案角色指派快照，只在整筆交易成功後發布。</summary>
+        internal List<Entity> StoredAssignments { get; } = [];
+        /// <summary>同 scope 的獨立邀請，各有自己的正式 ID 與版本。</summary>
+        private readonly List<Entity> otherInvites = [];
+        /// <summary>合成資料庫在 gate 下維護的租戶序列版本，不能替代實機 CAS 證據。</summary>
+        private long tenantVersion = 11;
         /// <summary>兩個讀者於 CAS 前會合；fixture 最後 Dispose。</summary>
         internal Barrier? ReadBarrier;
         /// <summary>合成同步 SDK 已取得候選後的受控故障／取消閘門，不建立背景工作。</summary>
@@ -571,12 +668,31 @@ public sealed class DevEnrollmentTests
             Service.Setup(s => s.RetrieveMultiple(It.IsAny<QueryBase>())).Returns((QueryBase query) =>
             {
                 var expression = Assert.IsType<QueryExpression>(query);
-                Assert.Equal("new_testinvite", expression.EntityName);
                 Assert.Equal(2, expression.TopCount);
+                if (expression.EntityName == "contact")
+                {
+                    Assert.Contains(expression.Criteria.Conditions, c => c.AttributeName == "parentcustomerid" && (Guid)c.Values[0] == ((EntityReference)Invite["new_tenant"]).Id);
+                    Assert.Contains(expression.Criteria.Conditions, c => c.AttributeName == "new_lineid" && (string)c.Values[0] == "synthetic-line-sub");
+                    lock (gate) return new EntityCollection(StoredContacts.ToList());
+                }
+                if (expression.EntityName == "new_roleassignment")
+                {
+                    Assert.Contains(expression.Criteria.Conditions, c => c.AttributeName == "new_contactid");
+                    Assert.Contains(expression.Criteria.Conditions, c => c.AttributeName == "new_roleid");
+                    lock (gate) return new EntityCollection(StoredAssignments.ToList());
+                }
+                Assert.Equal("new_testinvite", expression.EntityName);
+                Assert.Contains("versionnumber", Assert.Single(expression.LinkEntities, link => link.LinkToEntityName == "account").Columns.Columns);
                 Assert.Equal("new_tokenhash", Assert.Single(expression.Criteria.Conditions).AttributeName);
                 Assert.DoesNotContain(token, expression.Criteria.Conditions[0].Values.Cast<string>());
                 Entity row;
-                lock (gate) { row = new Entity(Invite.LogicalName, Invite.Id) { RowVersion = Invite.RowVersion }; row.Attributes.AddRange(Invite.Attributes); }
+                lock (gate)
+                {
+                    var source = otherInvites.Prepend(Invite).SingleOrDefault(r => (string)r["new_tokenhash"] == (string)expression.Criteria.Conditions[0].Values[0]) ?? Invite;
+                    row = new Entity(source.LogicalName, source.Id) { RowVersion = source.RowVersion };
+                    row.Attributes.AddRange(source.Attributes);
+                    row["tenant.versionnumber"] = new AliasedValue("account", "versionnumber", tenantVersion);
+                }
                 BeforeReadReturn?.Invoke();
                 if (ReadBarrier is not null) Assert.True(ReadBarrier.SignalAndWait(TimeSpan.FromSeconds(8)));
                 return new EntityCollection(Duplicate ? [row, row] : [row]) { MoreRecords = MoreRecords };
@@ -587,35 +703,79 @@ public sealed class DevEnrollmentTests
         /// <summary>只替換明確來源的合成別名，不以顯示名稱識別資料。</summary>
         internal void Alias(string alias, string entity, string field, object value) => Invite[alias + "." + field] = new AliasedValue(entity, field, value);
 
-        /// <summary>檢查真實交易形狀與順序；先驗 CAS，再候選兩個 Create，全部成功才在鎖內發布。</summary>
+        /// <summary>預置同租戶同官方身分的既存正式列；可預置角色，用以辨識重複建立。</summary>
+        internal Guid SeedContact(bool withRole)
+        {
+            var contact = new Entity("contact", Guid.NewGuid())
+            {
+                ["parentcustomerid"] = Invite["new_tenant"], ["new_lineid"] = "synthetic-line-sub", ["lastname"] = "測試會友"
+            };
+            StoredContacts.Add(contact); Contacts++;
+            if (withRole)
+            {
+                StoredAssignments.Add(new Entity("new_roleassignment", Guid.NewGuid())
+                { ["new_contactid"] = contact.ToEntityReference(), ["new_roleid"] = Invite["new_role"] });
+                Assignments++;
+            }
+            return contact.Id;
+        }
+
+        /// <summary>建立同 scope 的第二張隨機邀請，不共用第一張的正式 ID 或雜湊。</summary>
+        internal string AddInvite()
+        {
+            var token = Convert.ToBase64String(RandomNumberGenerator.GetBytes(32)).TrimEnd('=').Replace('+', '-').Replace('/', '_');
+            var row = new Entity(Invite.LogicalName, Guid.NewGuid()) { RowVersion = "7" };
+            row.Attributes.AddRange(Invite.Attributes);
+            row["new_tokenhash"] = Convert.ToHexString(SHA256.HashData(Convert.FromBase64String(token.Replace('-', '+').Replace('_', '/') + "=")));
+            otherInvites.Add(row);
+            return token;
+        }
+
+        /// <summary>核對交易 scope 與兩道 CAS；Contact 與角色的候選只有整批成功才在 gate 下發布。</summary>
         private ExecuteTransactionResponse Execute(OrganizationRequest request)
         {
             var transaction = Assert.IsType<ExecuteTransactionRequest>(request);
-            Assert.Equal(3, transaction.Requests.Count);
-            var update = Assert.IsType<UpdateRequest>(transaction.Requests[0]);
+            var tenantGuard = transaction.Requests[0] is UpdateRequest first && first.Target.LogicalName == "account" ? first : null;
+            var offset = tenantGuard is null ? 0 : 1;
+            var update = Assert.IsType<UpdateRequest>(transaction.Requests[offset]);
             Assert.Equal(ConcurrencyBehavior.IfRowVersionMatches, update.ConcurrencyBehavior);
-            Assert.Equal(Invite.Id, update.Target.Id);
             Assert.Equal("new_testinvite", update.Target.LogicalName);
+            var invite = otherInvites.Prepend(Invite).Single(row => row.Id == update.Target.Id);
             var used = Assert.IsType<DateTime>(update.Target["new_usedon"]);
             Assert.Equal(DateTimeKind.Utc, used.Kind);
-            var contact = Assert.IsType<CreateRequest>(transaction.Requests[1]).Target;
-            var assignment = Assert.IsType<CreateRequest>(transaction.Requests[2]).Target;
-            Assert.Equal("contact", contact.LogicalName);
-            Assert.Equal("new_roleassignment", assignment.LogicalName);
-            Assert.NotEqual(Guid.Empty, contact.Id);
-            Assert.NotEqual(Guid.Empty, assignment.Id);
-            Assert.Equal("synthetic-line-sub", contact["new_lineid"]);
-            Assert.Equal(((EntityReference)Invite["new_tenant"]).Id, ((EntityReference)contact["parentcustomerid"]).Id);
-            Assert.Equal(contact.Id, ((EntityReference)assignment["new_contactid"]).Id);
-            Assert.Equal(((EntityReference)Invite["new_role"]).Id, ((EntityReference)assignment["new_roleid"]).Id);
+            var creates = transaction.Requests.Skip(offset + 1).Select(r => Assert.IsType<CreateRequest>(r).Target).ToArray();
+            var contact = creates.SingleOrDefault(r => r.LogicalName == "contact");
+            var assignment = creates.SingleOrDefault(r => r.LogicalName == "new_roleassignment");
+            if (contact is not null)
+            {
+                Assert.NotEqual(Guid.Empty, contact.Id);
+                Assert.Equal("synthetic-line-sub", contact["new_lineid"]);
+                Assert.Equal(((EntityReference)Invite["new_tenant"]).Id, ((EntityReference)contact["parentcustomerid"]).Id);
+            }
+            if (assignment is not null)
+            {
+                Assert.NotEqual(Guid.Empty, assignment.Id);
+                Assert.Equal(((EntityReference)Invite["new_role"]).Id, ((EntityReference)assignment["new_roleid"]).Id);
+                Assert.True(contact?.Id == ((EntityReference)assignment["new_contactid"]).Id || StoredContacts.Any(r => r.Id == ((EntityReference)assignment["new_contactid"]).Id));
+            }
             lock (gate)
             {
                 Transactions++;
-                if (Invite.RowVersion != update.Target.RowVersion)
+                if (tenantGuard is not null)
+                {
+                    Assert.Equal(((EntityReference)Invite["new_tenant"]).Id, tenantGuard.Target.Id);
+                    Assert.Equal(ConcurrencyBehavior.IfRowVersionMatches, tenantGuard.ConcurrencyBehavior);
+                    Assert.Equal(100000001, Assert.IsType<OptionSetValue>(tenantGuard.Target["new_istesttenant"]).Value);
+                    if (tenantGuard.Target.RowVersion != tenantVersion.ToString(System.Globalization.CultureInfo.InvariantCulture))
+                        throw new FaultException<OrganizationServiceFault>(new ExecuteTransactionFault { FaultedRequestIndex = 0, ErrorCode = -2147088254 });
+                }
+                if (invite.RowVersion != update.Target.RowVersion)
                     throw new FaultException<OrganizationServiceFault>(new ExecuteTransactionFault
-                    { FaultedRequestIndex = 0, ErrorCode = -2147088254 });
+                    { FaultedRequestIndex = offset, ErrorCode = -2147088254 });
                 if (Fault is "contact" or "assignment") throw new IOException("Synthetic transaction failure.");
-                Contacts++; Assignments++; Invite["new_usedon"] = used; Invite.RowVersion = "8";
+                if (contact is not null) { StoredContacts.Add(contact); Contacts++; }
+                if (assignment is not null) { StoredAssignments.Add(assignment); Assignments++; }
+                invite["new_usedon"] = used; invite.RowVersion = "8"; tenantVersion++;
                 if (Fault == "unknown") throw new IOException("Synthetic unknown commit outcome.");
                 return new ExecuteTransactionResponse();
             }

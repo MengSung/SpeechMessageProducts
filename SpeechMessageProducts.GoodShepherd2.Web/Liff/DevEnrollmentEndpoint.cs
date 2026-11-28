@@ -1,8 +1,8 @@
 /*
 檔案整體說明
 目的與定位：GoodShepherd2 共通層 F12 的開發邀請註冊入口，由 Program 單一註冊呼叫接入，僅 Development 且顯式 Enabled=true 才建立精確 POST 分支。
-主要功能與流程：先限制 JSON 本文為二 KiB、唯一 token 欄位及正規四十三字元 base64url，再以共用五秒官方 verifier 核對伺服器 Login Channel。以原三十二 bytes 的 SHA-256 查唯一邀請，固定時間比對雜湊，核對 UTC 期限、兩個 Choice 旗標、啟用及試用狀態、角色所屬租戶與完整租戶→名額→Channel→產品鏈。最後僅送一次 ExecuteTransaction，先 CAS 標記邀請，再建立具有伺服器正式主鍵的 Contact 與角色。
-使用邊界與維護：不接受 caller 的角色、租戶或 userId；固定組織與 GoodShepherd2 連線子池由既有組合根守門。憑證、官方身分及 SDK 投影只活於單次 HTTP，不放 Session、快取、日誌或回應；原始 bytes 在 finally 清除。同步 SDK 一旦入場就等待完成，不使用 Task.Run，租約排空後 MarkFaulted／Dispose，manager 仍由 DI 擁有。只有精確交易第一步的版本衝突屬預期 403；其他 SDK、內部取消、未知提交或清理失敗保留真 Exception 交共用 diagnostics，固定 500 且不重試。已確認提交不以後到取消假稱未寫入。離線交易、競賽與清理測試不等同 D365 或手機實機驗收。
+主要功能與流程：先限制 JSON 本文為二 KiB、唯一 token 欄位及正規四十三字元 base64url，再以共用五秒官方 verifier 核對伺服器 Login Channel。以原三十二 bytes 的 SHA-256 查唯一邀請，固定時間比對雜湊，核對 UTC 期限、兩個 Choice 旗標、啟用及試用狀態、角色所屬租戶與完整租戶→名額→Channel→產品鏈。依同租戶及官方身分重用唯一正式 Contact，只補缺少的角色；多筆衝突保留並拒絕。單次交易先 CAS 租戶版本及邀請，再建立缺少的正式列，讓不同邀請的並行加入也只放行一批。
+使用邊界與維護：不接受 caller 的角色、租戶或 userId；固定組織與 GoodShepherd2 連線子池由既有組合根守門。憑證、官方身分及 SDK 投影只活於單次 HTTP，不放 Session、快取、日誌或回應；原始 bytes 在 finally 清除。同步 SDK 一旦入場就等待完成，不使用 Task.Run，租約排空後 MarkFaulted／Dispose，manager 仍由 DI 擁有。只有精確交易前兩步的版本衝突屬預期 403；其他 SDK、內部取消、未知提交或清理失敗保留真 Exception 交共用 diagnostics，固定 500 且不重試。已確認提交不以後到取消假稱未寫入。離線交易、競賽與清理測試不等同 D365 或手機實機驗收。
 */
 using System.Runtime.ExceptionServices;
 using System.Security.Cryptography;
@@ -157,7 +157,9 @@ internal static class DevEnrollmentEndpoint
 
     /// <summary>
     /// 單一操作借用固定 GoodShepherd2 manager 的短命租約，完整讀取後重新核對 token 到期瞬間。
-    /// CAS 與兩筆 Create 必須同一 ExecuteTransaction；GUID 是這批實際 Create 的正式主鍵，並非 draft。
+    /// 租戶 CAS、邀請 CAS 與必要的 Create 必須同一 ExecuteTransaction；GUID 是實際正式主鍵，並非 draft。
+    /// 先從完整權威 joined 快照取得租戶版本，再查同身分的 Contact／角色；租戶保護更新維持已驗證的測試旗標。
+    /// 版本變更就拒絕且不重試，不同邀請不能各自成功建立同身分；此協定涵蓋本入口寫入者，不代替其他產品的唯一鍵。
     /// 同步 SDK 入場後沒有可安全放棄的背景工作，所有路徑等完成並歸還租約才返回。
     /// 版本衝突回 false；未知結果、內部取消與清理失敗不重試，保留第一個真實例外及額外清理診斷。
     /// </summary>
@@ -188,7 +190,18 @@ internal static class DevEnrollmentEndpoint
                 ValidInvite(rows.Entities[0], hash, options, now, out var tenant, out var role))
             {
                 var invite = rows.Entities[0];
-                var contact = new Entity("contact", Guid.NewGuid())
+                var contact = ReadUnique(lease.Service, "contact", new ColumnSet("parentcustomerid", "new_lineid"),
+                    ("parentcustomerid", tenant), ("new_lineid", identity.UserId));
+                if (contact is not null && (!Lookup(contact.GetAttributeValue<EntityReference>("parentcustomerid"), "account", tenant) ||
+                    !string.Equals(contact.GetAttributeValue<string>("new_lineid"), identity.UserId, StringComparison.Ordinal)))
+                    throw new InvalidDataException("Enrollment Contact scope is inconsistent.");
+                var existingAssignment = contact is null ? null : ReadUnique(lease.Service, "new_roleassignment",
+                    new ColumnSet("new_contactid", "new_roleid"), ("new_contactid", contact.Id), ("new_roleid", role));
+                if (existingAssignment is not null && (!Lookup(existingAssignment.GetAttributeValue<EntityReference>("new_contactid"), "contact", contact!.Id) ||
+                    !Lookup(existingAssignment.GetAttributeValue<EntityReference>("new_roleid"), "new_role", role)))
+                    throw new InvalidDataException("Enrollment role assignment scope is inconsistent.");
+                var createContact = contact is null;
+                contact ??= new Entity("contact", Guid.NewGuid())
                 {
                     ["lastname"] = "測試會友", ["parentcustomerid"] = new EntityReference("account", tenant), ["new_lineid"] = identity.UserId
                 };
@@ -203,23 +216,37 @@ internal static class DevEnrollmentEndpoint
                     {
                         new UpdateRequest
                         {
-                            Target = new Entity("new_testinvite", invite.Id) { RowVersion = invite.RowVersion, ["new_usedon"] = now },
+                            Target = new Entity("account", tenant)
+                            {
+                                RowVersion = ((long)Alias(invite, "tenant", "account", "versionnumber")!).ToString(System.Globalization.CultureInfo.InvariantCulture),
+                                ["new_istesttenant"] = new OptionSetValue(YesChoice)
+                            },
                             ConcurrencyBehavior = ConcurrencyBehavior.IfRowVersionMatches
                         },
-                        new CreateRequest { Target = contact }, new CreateRequest { Target = assignment }
+                        new UpdateRequest
+                        {
+                            Target = new Entity("new_testinvite", invite.Id) { RowVersion = invite.RowVersion, ["new_usedon"] = now },
+                            ConcurrencyBehavior = ConcurrencyBehavior.IfRowVersionMatches
+                        }
                     }
                 };
+                if (createContact) transaction.Requests.Add(new CreateRequest { Target = contact });
+                if (existingAssignment is null) transaction.Requests.Add(new CreateRequest { Target = assignment });
                 cancellationToken.ThrowIfCancellationRequested();
-                try
+                now = clock.UtcNow.UtcDateTime;
+                if (identity.ExpiresAt.UtcDateTime > now && ValidInvite(invite, hash, options, now, out _, out _))
                 {
-                    if (lease.Service.Execute(transaction) is not ExecuteTransactionResponse)
-                        throw new InvalidDataException("Enrollment transaction result is unavailable.");
-                    joined = true;
-                }
-                catch (FaultException<OrganizationServiceFault> conflict) when (
-                    conflict.Detail is ExecuteTransactionFault { FaultedRequestIndex: 0, ErrorCode: -2147088254 })
-                {
-                    // 只有邀請 CAS 的精確版本衝突可以視為重播；其餘錯誤及未知提交結果均不可重試。
+                    try
+                    {
+                        if (lease.Service.Execute(transaction) is not ExecuteTransactionResponse)
+                            throw new InvalidDataException("Enrollment transaction result is unavailable.");
+                        joined = true;
+                    }
+                    catch (FaultException<OrganizationServiceFault> conflict) when (
+                        conflict.Detail is ExecuteTransactionFault { FaultedRequestIndex: 0 or 1, ErrorCode: -2147088254 })
+                    {
+                        // 只有租戶或邀請兩道 CAS 的精確版本衝突屬預期競爭；其餘錯誤及未知提交均不可重試。
+                    }
                 }
             }
         }
@@ -264,7 +291,7 @@ internal static class DevEnrollmentEndpoint
         query.Criteria.AddCondition("new_tokenhash", ConditionOperator.Equal, hash);
         var tenant = query.AddLink("account", "new_tenant", "accountid", JoinOperator.Inner);
         tenant.EntityAlias = "tenant";
-        tenant.Columns = new ColumnSet("accountid", "statecode", "new_istenant", "new_istesttenant", "new_lifecyclestatus", "new_tenantcode", "new_channelslot");
+        tenant.Columns = new ColumnSet("accountid", "statecode", "new_istenant", "new_istesttenant", "new_lifecyclestatus", "new_tenantcode", "new_channelslot", "versionnumber");
         var slot = tenant.AddLink("new_channelslot", "new_channelslot", "new_channelslotid", JoinOperator.Inner);
         slot.EntityAlias = "slot";
         slot.Columns = new ColumnSet("new_channelslotid", "new_tenant", "new_channel");
@@ -307,6 +334,7 @@ internal static class DevEnrollmentEndpoint
             row.GetAttributeValue<EntityReference>("new_tenant") is not { LogicalName: "account", Id: var tenantId } || tenantId == Guid.Empty ||
             row.GetAttributeValue<EntityReference>("new_role") is not { LogicalName: "new_role", Id: var roleId } || roleId == Guid.Empty ||
             Alias(row, "tenant", "account", "accountid") is not Guid accountId || accountId != tenantId ||
+            Alias(row, "tenant", "account", "versionnumber") is not long tenantVersion || tenantVersion <= 0 ||
             Alias(row, "tenant", "account", "statecode") is not OptionSetValue { Value: 0 } ||
             Alias(row, "tenant", "account", "new_istenant") is not OptionSetValue { Value: YesChoice } ||
             Alias(row, "tenant", "account", "new_istesttenant") is not OptionSetValue { Value: YesChoice } ||
@@ -324,6 +352,26 @@ internal static class DevEnrollmentEndpoint
             Alias(row, "role", "new_role", "new_code") is not ("member" or "admin")) return false;
         tenant = tenantId; role = roleId;
         return true;
+    }
+
+    /// <summary>
+    /// 二筆上限查詢只接受零筆或唯一正式 ID；不完整分頁、多筆（即使同名）與不合法實體均拒絕並交診斷。
+    /// 查詢物件及結果只活於本次租約，條件由已驗證租戶、正式 Contact／角色 ID 或官方身分組成，不含 caller scope。
+    /// </summary>
+    /// <param name="service">借入的同步 SDK，由外層排空及釋放。</param>
+    /// <param name="entity">本檔固定的 Contact 或角色指派實體。</param>
+    /// <param name="columns">僅含本次驗證需要的欄位。</param>
+    /// <param name="conditions">已驗證且不輸出的等值條件。</param>
+    /// <returns>唯一正式列或 null，沒有快取與共享 mutable state。</returns>
+    private static Entity? ReadUnique(IOrganizationService service, string entity, ColumnSet columns, params (string Field, object Value)[] conditions)
+    {
+        var query = new QueryExpression(entity) { TopCount = 2, ColumnSet = columns };
+        foreach (var (field, value) in conditions) query.Criteria.AddCondition(field, ConditionOperator.Equal, value);
+        var rows = service.RetrieveMultiple(query);
+        if (rows is null || rows.MoreRecords || rows.Entities.Count > 1 ||
+            rows.Entities.Any(row => row.LogicalName != entity || row.Id == Guid.Empty))
+            throw new InvalidDataException("Enrollment stable identity is ambiguous or incomplete.");
+        return rows.Entities.SingleOrDefault();
     }
 
     /// <summary>別名鍵、來源實體及欄位三者皆精確吻合才讀值，防止另一欄位冒充授權投影。</summary>

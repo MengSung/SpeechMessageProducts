@@ -95,3 +95,7 @@
 | 2026-11-28 15:40 Asia/Taipei (UTC+08:00) | F12／重基線 | 線A的FS新程式已推送，送審前同步 | 7檔逐位元組備份於C:\ProgramData\SpeechMessage\backups\lane-B\20261128-153853，全部SHA相同後只restore自己的CCG，重基線5c17e0f73並逐檔精確回放；唯一同檔差為已封存turns的LF→CRLF，內容相同且新舊兩版另存，不提交CCG | 02A §11；manifest SHA 940c7e490a704d592519f8c115f5aac7c4a4675737f3ba92d0104ac83faf8d67；replay SHA 0ea03a976549e15140b6beb9ceae95d9609163d25d5827027706cfb005fffeec | 備份保留至終點；原刪除狀態與7檔雜湊全部相同，未覆寫整合或線A工作樹，未stash/reset |
 
 | 2026-11-28 15:54 Asia/Taipei (UTC+08:00) | F12 | Claude兩次quota無輸出；本地自審發現F4通用SQL選項不等於F12平台部署授權 | 按02 §4如實標未取得外部審查；CLI增加固定VM／平台DB／整合身分／Strict pin拒絕關卡，再交既有F4 owner；未開SQL或改F4，CLI29案通過，修後完整守門重跑 | 02A §3；00正式／資料庫邊界；AGENTS真故障及原錯保留；本地review記錄 | 本輪尚未合併；保留原有F4設定相容性，僅F12命令嚴格限定測試平台，不放寬TLS或改正式設定 |
+
+| 2026-11-28 16:17 Asia/Taipei (UTC+08:00) | F12 | 修正後ClaudeOnly取得2項High，原兩次quota不能當放行 | H1重用唯一正式Contact與缺少指派、租戶＋邀請DB CAS涵蓋不同邀請並行；衝突不同ID保留拒絕。H2建立未知提交須跨程序保留精確manifest，不以立即空讀作零寫入 | H1 RED4→GREEN57；正式審查輸出CBB628EA…；H2獨立範圍修正中 | 兩項High未複審解除前不合併；不提交CCG、不連實機 |
+
+| 2026-11-28 16:24 Asia/Taipei (UTC+08:00) | F12 H2 | 逾時後暫空讀不能證明零寫入；已知清理後本地刪檔失敗又必須可續跑 | manifest v2記unknown／notSubmitted／rolledBack／confirmed，舊v1視未知；只有確定結果且全ID不存在才空清理，未知保留；後到提交可重驗scope續清。H1端點57／57，H2連CLI71／71，修後整包守門及ClaudeOnly重審 | H2原始RED與GREEN、額外清理續跑RED→GREEN完整SHA見F12報告 | 不以空查詢當回滾，不放寬未知提交，不提交CCG或執行實機 |
